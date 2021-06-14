@@ -14,6 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class ripio(Exchange):
@@ -157,12 +158,12 @@ class ripio(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': self.safe_float(market, 'min_amount'),
-                'price': self.safe_float(market, 'price_tick'),
+                'amount': self.safe_number(market, 'min_amount'),
+                'price': self.safe_number(market, 'price_tick'),
             }
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'min_amount'),
+                    'min': self.safe_number(market, 'min_amount'),
                     'max': None,
                 },
                 'price': {
@@ -170,15 +171,15 @@ class ripio(Exchange):
                     'max': None,
                 },
                 'cost': {
-                    'min': self.safe_float(market, 'min_value'),
+                    'min': self.safe_number(market, 'min_value'),
                     'max': None,
                 },
             }
             active = self.safe_value(market, 'enabled', True)
             fees = self.safe_value(market, 'fees', [])
             firstFee = self.safe_value(fees, 0, {})
-            maker = self.safe_float(firstFee, 'maker_fee', 0.0)
-            taker = self.safe_float(firstFee, 'taker_fee', 0.0)
+            maker = self.safe_number(firstFee, 'maker_fee', 0.0)
+            taker = self.safe_number(firstFee, 'taker_fee', 0.0)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -248,8 +249,6 @@ class ripio(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
             }
@@ -281,18 +280,18 @@ class ripio(Exchange):
         timestamp = self.parse8601(self.safe_string(ticker, 'created_at'))
         marketId = self.safe_string(ticker, 'pair')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_float(ticker, 'last_price')
-        average = self.safe_float(ticker, 'avg')
+        last = self.safe_number(ticker, 'last_price')
+        average = self.safe_number(ticker, 'avg')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
-            'bidVolume': self.safe_float(ticker, 'bid_volume'),
-            'ask': self.safe_float(ticker, 'ask'),
-            'askVolume': self.safe_float(ticker, 'ask_volume'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
+            'bidVolume': self.safe_number(ticker, 'bid_volume'),
+            'ask': self.safe_number(ticker, 'ask'),
+            'askVolume': self.safe_number(ticker, 'ask_volume'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -388,7 +387,7 @@ class ripio(Exchange):
         #         "updated_id":47225
         #     }
         #
-        orderbook = self.parse_order_book(response, None, 'buy', 'sell', 'price', 'amount')
+        orderbook = self.parse_order_book(response, symbol, None, 'buy', 'sell', 'price', 'amount')
         orderbook['nonce'] = self.safe_integer(response, 'updated_id')
         return orderbook
 
@@ -428,14 +427,14 @@ class ripio(Exchange):
         takerOrMaker = 'taker' if (takerSide == side) else 'maker'
         if side is not None:
             side = side.lower()
-        price = self.safe_float_2(trade, 'price', 'match_price')
-        amount = self.safe_float_2(trade, 'amount', 'exchanged')
-        cost = None
-        if (amount is not None) and (price is not None):
-            cost = amount * price
+        priceString = self.safe_string_2(trade, 'price', 'match_price')
+        amountString = self.safe_string_2(trade, 'amount', 'exchanged')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market)
-        feeCost = self.safe_float(trade, takerOrMaker + '_fee')
+        feeCost = self.safe_number(trade, takerOrMaker + '_fee')
         orderId = self.safe_string(trade, takerOrMaker)
         fee = None
         if feeCost is not None:
@@ -506,10 +505,10 @@ class ripio(Exchange):
             currencyId = self.safe_string(balance, 'symbol')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'locked')
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -755,16 +754,16 @@ class ripio(Exchange):
         #     }
         #
         id = self.safe_string(order, 'order_id')
-        amount = self.safe_float(order, 'amount')
-        cost = self.safe_float(order, 'notional')
+        amount = self.safe_number(order, 'amount')
+        cost = self.safe_number(order, 'notional')
         type = self.safe_string_lower(order, 'order_type')
         priceField = 'fill_price' if (type == 'market') else 'limit_price'
-        price = self.safe_float(order, priceField)
+        price = self.safe_number(order, priceField)
         side = self.safe_string_lower(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.safe_timestamp(order, 'created_at')
         average = self.safe_value(order, 'fill_price')
-        filled = self.safe_float(order, 'filled')
+        filled = self.safe_number(order, 'filled')
         remaining = None
         fills = self.safe_value(order, 'fills')
         trades = None
@@ -792,7 +791,7 @@ class ripio(Exchange):
                 remaining = max(0, amount - filled)
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market, '_')
-        stopPrice = self.safe_float(order, 'stop_price')
+        stopPrice = self.safe_number(order, 'stop_price')
         return {
             'id': id,
             'clientOrderId': None,

@@ -167,7 +167,7 @@ class whitebit extends Exchange {
                 ),
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'minAmount'),
+                        'min' => $this->safe_number($market, 'minAmount'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -175,7 +175,7 @@ class whitebit extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $this->safe_float($market, 'minTotal'),
+                        'min' => $this->safe_number($market, 'minTotal'),
                         'max' => null,
                     ),
                 ),
@@ -231,17 +231,9 @@ class whitebit extends Exchange {
                         'min' => null,
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
-                        'min' => $this->safe_float($currency, 'minWithdrawal'),
-                        'max' => $this->safe_float($currency, 'maxWithdrawal'),
+                        'min' => $this->safe_number($currency, 'minWithdrawal'),
+                        'max' => $this->safe_number($currency, 'maxWithdrawal'),
                     ),
                 ),
             );
@@ -253,8 +245,8 @@ class whitebit extends Exchange {
         $response = $this->publicV2GetFee ($params);
         $fees = $this->safe_value($response, 'result');
         return array(
-            'maker' => $this->safe_float($fees, 'makerFee'),
-            'taker' => $this->safe_float($fees, 'takerFee'),
+            'maker' => $this->safe_number($fees, 'makerFee'),
+            'taker' => $this->safe_number($fees, 'takerFee'),
         );
     }
 
@@ -324,8 +316,8 @@ class whitebit extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'last');
-        $percentage = $this->safe_float($ticker, 'change');
+        $last = $this->safe_number($ticker, 'last');
+        $percentage = $this->safe_number($ticker, 'change');
         $change = null;
         if ($percentage !== null) {
             $change = $this->number_to_string($percentage * 0.01);
@@ -334,22 +326,22 @@ class whitebit extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_float($ticker, 'open'),
+            'open' => $this->safe_number($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => $change,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
-            'quoteVolume' => $this->safe_float($ticker, 'deal'),
+            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'quoteVolume' => $this->safe_number($ticker, 'deal'),
             'info' => $ticker,
         );
     }
@@ -422,7 +414,7 @@ class whitebit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $timestamp = $this->parse8601($this->safe_string($result, 'lastUpdateTimestamp'));
-        return $this->parse_order_book($result, $timestamp);
+        return $this->parse_order_book($result, $symbol, $timestamp);
     }
 
     public function fetch_trades_v1($symbol, $since = null, $limit = null, $params = array ()) {
@@ -517,8 +509,11 @@ class whitebit extends Exchange {
         } else {
             $timestamp = intval($timestamp * 1000);
         }
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float_2($trade, 'amount', 'volume');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'amount', 'volume');
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $id = $this->safe_string_2($trade, 'id', 'tradeId');
         $side = $this->safe_string($trade, 'type');
         if ($side === null) {
@@ -528,10 +523,6 @@ class whitebit extends Exchange {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
-        }
-        $cost = null;
-        if ($amount !== null && $price !== null) {
-            $cost = $amount * $price;
         }
         return array(
             'info' => $trade,
@@ -602,11 +593,11 @@ class whitebit extends Exchange {
         //
         return array(
             $this->safe_timestamp($ohlcv, 0), // timestamp
-            $this->safe_float($ohlcv, 1), // open
-            $this->safe_float($ohlcv, 3), // high
-            $this->safe_float($ohlcv, 4), // low
-            $this->safe_float($ohlcv, 2), // close
-            $this->safe_float($ohlcv, 5), // volume
+            $this->safe_number($ohlcv, 1), // open
+            $this->safe_number($ohlcv, 3), // high
+            $this->safe_number($ohlcv, 4), // low
+            $this->safe_number($ohlcv, 2), // close
+            $this->safe_number($ohlcv, 5), // volume
         );
     }
 

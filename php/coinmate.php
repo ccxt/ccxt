@@ -233,7 +233,7 @@ class coinmate extends Exchange {
                 ),
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'minAmount'),
+                        'min' => $this->safe_number($market, 'minAmount'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -261,12 +261,12 @@ class coinmate extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($balances, $currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'available');
-            $account['used'] = $this->safe_float($balance, 'reserved');
-            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'reserved');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -278,7 +278,7 @@ class coinmate extends Exchange {
         $response = $this->publicGetOrderBook (array_merge($request, $params));
         $orderbook = $response['data'];
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -289,16 +289,16 @@ class coinmate extends Exchange {
         $response = $this->publicGetTicker (array_merge($request, $params));
         $ticker = $this->safe_value($response, 'data');
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'vwap' => null,
             'askVolume' => null,
             'open' => null,
@@ -308,7 +308,7 @@ class coinmate extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'amount'),
+            'baseVolume' => $this->safe_number($ticker, 'amount'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -377,8 +377,8 @@ class coinmate extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($item, 'timestamp');
-        $amount = $this->safe_float($item, 'amount');
-        $fee = $this->safe_float($item, 'fee');
+        $amount = $this->safe_number($item, 'amount');
+        $fee = $this->safe_number($item, 'fee');
         $txid = $this->safe_string($item, 'txid');
         $address = $this->safe_string($item, 'destination');
         $tag = $this->safe_string($item, 'destinationTag');
@@ -456,21 +456,18 @@ class coinmate extends Exchange {
         //
         $marketId = $this->safe_string($trade, 'currencyPair');
         $market = $this->safe_market($marketId, $market, '_');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $side = $this->safe_string_lower_2($trade, 'type', 'tradeType');
         $type = $this->safe_string_lower($trade, 'orderType');
         $orderId = $this->safe_string($trade, 'orderId');
         $id = $this->safe_string($trade, 'transactionId');
         $timestamp = $this->safe_integer_2($trade, 'timestamp', 'createdTimestamp');
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
@@ -532,7 +529,7 @@ class coinmate extends Exchange {
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -611,31 +608,20 @@ class coinmate extends Exchange {
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->safe_integer($order, 'timestamp');
         $side = $this->safe_string_lower($order, 'type');
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'originalAmount');
-        $remaining = $this->safe_float($order, 'remainingAmount');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'originalAmount');
+        $remaining = $this->safe_number($order, 'remainingAmount');
         if ($remaining === null) {
-            $remaining = $this->safe_float($order, 'amount');
+            $remaining = $this->safe_number($order, 'amount');
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->parse_order_type($this->safe_string($order, 'orderTradeType'));
-        $filled = null;
-        $cost = null;
-        if (($amount !== null) && ($remaining !== null)) {
-            $filled = max ($amount - $remaining, 0);
-            if ($remaining === 0) {
-                $status = 'closed';
-            }
-            if ($price !== null) {
-                $cost = $filled * $price;
-            }
-        }
-        $average = $this->safe_float($order, 'avgPrice');
+        $average = $this->safe_number($order, 'avgPrice');
         $marketId = $this->safe_string($order, 'currencyPair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        $stopPrice = $this->safe_float($order, 'stopPrice');
-        return array(
+        $stopPrice = $this->safe_number($order, 'stopPrice');
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
@@ -649,15 +635,15 @@ class coinmate extends Exchange {
             'price' => $price,
             'stopPrice' => $stopPrice,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'status' => $status,
             'trades' => null,
             'info' => $order,
             'fee' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

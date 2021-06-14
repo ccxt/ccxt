@@ -96,6 +96,7 @@ class currencycom extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.002,
@@ -142,7 +143,9 @@ class currencycom extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'ETN' => 'Eaton',
                 'IQ' => 'iQIYI',
+                'PLAY' => "Dave & Buster's Entertainment",
             ),
         ));
     }
@@ -254,7 +257,7 @@ class currencycom extends Exchange {
             $filtersByType = $this->index_by($filters, 'filterType');
             $precision = array(
                 'amount' => 1 / pow(1, $this->safe_integer($market, 'baseAssetPrecision')),
-                'price' => $this->safe_float($market, 'tickSize'),
+                'price' => $this->safe_number($market, 'tickSize'),
             );
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'TRADING');
@@ -287,14 +290,14 @@ class currencycom extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => -1 * log10 ($precision['amount']),
+                        'min' => -log10 ($precision['amount']),
                         'max' => null,
                     ),
                 ),
             );
-            $exchangeFee = $this->safe_float_2($market, 'exchangeFee', 'tradingFee');
-            $makerFee = $this->safe_float($market, 'makerFee', $exchangeFee);
-            $takerFee = $this->safe_float($market, 'takerFee', $exchangeFee);
+            $exchangeFee = $this->safe_number_2($market, 'exchangeFee', 'tradingFee');
+            $makerFee = $this->safe_number($market, 'makerFee', $exchangeFee);
+            $takerFee = $this->safe_number($market, 'takerFee', $exchangeFee);
             if ($makerFee !== null) {
                 $entry['maker'] = $makerFee / 100;
             }
@@ -303,63 +306,42 @@ class currencycom extends Exchange {
             }
             if (is_array($filtersByType) && array_key_exists('PRICE_FILTER', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
-                $entry['precision']['price'] = $this->safe_float($filter, 'tickSize');
+                $entry['precision']['price'] = $this->safe_number($filter, 'tickSize');
                 // PRICE_FILTER reports zero values for $maxPrice
                 // since they updated $filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
                 // therefore limits['price']['max'] doesn't have any meaningful value except null
                 $entry['limits']['price'] = array(
-                    'min' => $this->safe_float($filter, 'minPrice'),
+                    'min' => $this->safe_number($filter, 'minPrice'),
                     'max' => null,
                 );
-                $maxPrice = $this->safe_float($filter, 'maxPrice');
+                $maxPrice = $this->safe_number($filter, 'maxPrice');
                 if (($maxPrice !== null) && ($maxPrice > 0)) {
                     $entry['limits']['price']['max'] = $maxPrice;
                 }
             }
             if (is_array($filtersByType) && array_key_exists('LOT_SIZE', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
-                $entry['precision']['amount'] = $this->safe_float($filter, 'stepSize');
+                $entry['precision']['amount'] = $this->safe_number($filter, 'stepSize');
                 $entry['limits']['amount'] = array(
-                    'min' => $this->safe_float($filter, 'minQty'),
-                    'max' => $this->safe_float($filter, 'maxQty'),
+                    'min' => $this->safe_number($filter, 'minQty'),
+                    'max' => $this->safe_number($filter, 'maxQty'),
                 );
             }
             if (is_array($filtersByType) && array_key_exists('MARKET_LOT_SIZE', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'MARKET_LOT_SIZE', array());
                 $entry['limits']['market'] = array(
-                    'min' => $this->safe_float($filter, 'minQty'),
-                    'max' => $this->safe_float($filter, 'maxQty'),
+                    'min' => $this->safe_number($filter, 'minQty'),
+                    'max' => $this->safe_number($filter, 'maxQty'),
                 );
             }
             if (is_array($filtersByType) && array_key_exists('MIN_NOTIONAL', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'MIN_NOTIONAL', array());
-                $entry['limits']['cost']['min'] = $this->safe_float($filter, 'minNotional');
+                $entry['limits']['cost']['min'] = $this->safe_number($filter, 'minNotional');
             }
             $result[] = $entry;
         }
         return $result;
-    }
-
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $key = 'quote';
-        $rate = $market[$takerOrMaker];
-        $cost = $amount * $rate;
-        $precision = $market['precision']['price'];
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-            $precision = $market['precision']['amount'];
-        }
-        $cost = $this->decimal_to_precision($cost, ROUND, $precision, $this->precisionMode);
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => floatval($cost),
-        );
     }
 
     public function fetch_accounts($params = array ()) {
@@ -408,8 +390,8 @@ class currencycom extends Exchange {
         $response = $this->privateGetAccount ($params);
         return array(
             'info' => $response,
-            'maker' => $this->safe_float($response, 'makerCommission'),
-            'taker' => $this->safe_float($response, 'takerCommission'),
+            'maker' => $this->safe_number($response, 'makerCommission'),
+            'taker' => $this->safe_number($response, 'takerCommission'),
         );
     }
 
@@ -443,11 +425,11 @@ class currencycom extends Exchange {
             $currencyId = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'free');
-            $account['used'] = $this->safe_float($balance, 'locked');
+            $account['free'] = $this->safe_string($balance, 'free');
+            $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_balance($params = array ()) {
@@ -503,7 +485,7 @@ class currencycom extends Exchange {
         //         ]
         //     }
         //
-        $orderbook = $this->parse_order_book($response);
+        $orderbook = $this->parse_order_book($response, $symbol);
         $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
         return $orderbook;
     }
@@ -546,8 +528,8 @@ class currencycom extends Exchange {
         $timestamp = $this->safe_integer($ticker, 'closeTime');
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_float($ticker, 'lastPrice');
-        $open = $this->safe_float($ticker, 'openPrice');
+        $last = $this->safe_number($ticker, 'lastPrice');
+        $open = $this->safe_number($ticker, 'openPrice');
         $average = null;
         if (($open !== null) && ($last !== null)) {
             $average = $this->sum($open, $last) / 2;
@@ -556,22 +538,22 @@ class currencycom extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'highPrice'),
-            'low' => $this->safe_float($ticker, 'lowPrice'),
-            'bid' => $this->safe_float($ticker, 'bidPrice'),
-            'bidVolume' => $this->safe_float($ticker, 'bidQty'),
-            'ask' => $this->safe_float($ticker, 'askPrice'),
-            'askVolume' => $this->safe_float($ticker, 'askQty'),
-            'vwap' => $this->safe_float($ticker, 'weightedAvgPrice'),
+            'high' => $this->safe_number($ticker, 'highPrice'),
+            'low' => $this->safe_number($ticker, 'lowPrice'),
+            'bid' => $this->safe_number($ticker, 'bidPrice'),
+            'bidVolume' => $this->safe_number($ticker, 'bidQty'),
+            'ask' => $this->safe_number($ticker, 'askPrice'),
+            'askVolume' => $this->safe_number($ticker, 'askQty'),
+            'vwap' => $this->safe_number($ticker, 'weightedAvgPrice'),
             'open' => $open,
             'close' => $last,
             'last' => $last,
-            'previousClose' => $this->safe_float($ticker, 'prevClosePrice'), // previous day close
-            'change' => $this->safe_float($ticker, 'priceChange'),
-            'percentage' => $this->safe_float($ticker, 'priceChangePercent'),
+            'previousClose' => $this->safe_number($ticker, 'prevClosePrice'), // previous day close
+            'change' => $this->safe_number($ticker, 'priceChange'),
+            'percentage' => $this->safe_number($ticker, 'priceChangePercent'),
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
-            'quoteVolume' => $this->safe_float($ticker, 'quoteVolume'),
+            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
             'info' => $ticker,
         );
     }
@@ -606,14 +588,6 @@ class currencycom extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_tickers($rawTickers, $symbols = null) {
-        $tickers = array();
-        for ($i = 0; $i < count($rawTickers); $i++) {
-            $tickers[] = $this->parse_ticker($rawTickers[$i]);
-        }
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
-    }
-
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTicker24hr ($params);
@@ -646,11 +620,11 @@ class currencycom extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 0),
-            $this->safe_float($ohlcv, 1),
-            $this->safe_float($ohlcv, 2),
-            $this->safe_float($ohlcv, 3),
-            $this->safe_float($ohlcv, 4),
-            $this->safe_float($ohlcv, 5),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -716,8 +690,11 @@ class currencycom extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer_2($trade, 'T', 'time');
-        $price = $this->safe_float_2($trade, 'p', 'price');
-        $amount = $this->safe_float_2($trade, 'q', 'qty');
+        $priceString = $this->safe_string_2($trade, 'p', 'price');
+        $amountString = $this->safe_string_2($trade, 'q', 'qty');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $id = $this->safe_string_2($trade, 'a', 'id');
         $side = null;
         $orderId = $this->safe_string($trade, 'orderId');
@@ -733,7 +710,7 @@ class currencycom extends Exchange {
         $fee = null;
         if (is_array($trade) && array_key_exists('commission', $trade)) {
             $fee = array(
-                'cost' => $this->safe_float($trade, 'commission'),
+                'cost' => $this->safe_number($trade, 'commission'),
                 'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAsset')),
             );
         }
@@ -755,7 +732,7 @@ class currencycom extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $price * $amount,
+            'cost' => $cost,
             'fee' => $fee,
         );
     }
@@ -831,66 +808,21 @@ class currencycom extends Exchange {
         } else if (is_array($order) && array_key_exists('transactTime', $order)) {
             $timestamp = $this->safe_integer($order, 'transactTime');
         }
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'origQty');
-        $filled = $this->safe_float($order, 'executedQty');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'origQty');
+        $filled = $this->safe_number($order, 'executedQty');
         $remaining = null;
-        $cost = $this->safe_float($order, 'cummulativeQuoteQty');
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-                if ($this->options['parseOrderToPrecision']) {
-                    $remaining = floatval($this->amount_to_precision($symbol, $remaining));
-                }
-                $remaining = max ($remaining, 0.0);
-            }
-            if ($price !== null) {
-                if ($cost === null) {
-                    $cost = $price * $filled;
-                }
-            }
-        }
+        $cost = $this->safe_number($order, 'cummulativeQuoteQty');
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
-        if ($type === 'market') {
-            if ($price === 0.0) {
-                if (($cost !== null) && ($filled !== null)) {
-                    if (($cost > 0) && ($filled > 0)) {
-                        $price = $cost / $filled;
-                    }
-                }
-            }
-        }
         $side = $this->safe_string_lower($order, 'side');
-        $fee = null;
         $trades = null;
         $fills = $this->safe_value($order, 'fills');
         if ($fills !== null) {
             $trades = $this->parse_trades($fills, $market);
-            $numTrades = is_array($trades) ? count($trades) : 0;
-            if ($numTrades > 0) {
-                $cost = $trades[0]['cost'];
-                $fee = array(
-                    'cost' => $trades[0]['fee']['cost'],
-                    'currency' => $trades[0]['fee']['currency'],
-                );
-                for ($i = 1; $i < count($trades); $i++) {
-                    $cost = $this->sum($cost, $trades[$i]['cost']);
-                    $fee['cost'] = $this->sum($fee['cost'], $trades[$i]['fee']['cost']);
-                }
-            }
-        }
-        $average = null;
-        if ($cost !== null) {
-            if ($filled) {
-                $average = $cost / $filled;
-            }
-            if ($this->options['parseOrderToPrecision']) {
-                $cost = floatval($this->cost_to_precision($symbol, $cost));
-            }
         }
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -904,13 +836,13 @@ class currencycom extends Exchange {
             'stopPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
-            'average' => $average,
+            'average' => null,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
-            'fee' => $fee,
+            'fee' => null,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -920,7 +852,7 @@ class currencycom extends Exchange {
         if ($market['margin']) {
             $accountId = $this->safe_integer($params, 'accountId');
             if ($accountId === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder requires an $accountId parameter for ' . $market['type'] . ' $market ' . $symbol);
+                throw new ArgumentsRequired($this->id . ' createOrder() requires an $accountId parameter for ' . $market['type'] . ' $market ' . $symbol);
             }
         }
         $uppercaseType = strtoupper($type);
@@ -981,7 +913,7 @@ class currencycom extends Exchange {
             $symbols = $this->symbols;
             $numSymbols = is_array($symbols) ? count($symbols) : 0;
             $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
-            throw new ExchangeError($this->id . ' fetchOpenOrders WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+            throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
         $response = $this->privateGetOpenOrders (array_merge($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
@@ -989,7 +921,7 @@ class currencycom extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1024,7 +956,7 @@ class currencycom extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

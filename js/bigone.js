@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, PermissionDenied, BadRequest, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -78,6 +79,7 @@ module.exports = class bigone extends Exchange {
                 'private': {
                     'get': [
                         'accounts',
+                        'fund/accounts',
                         'assets/{asset_symbol}/address',
                         'orders',
                         'orders/{id}',
@@ -91,6 +93,7 @@ module.exports = class bigone extends Exchange {
                         'orders/{id}/cancel',
                         'orders/cancel',
                         'withdrawals',
+                        'transfer',
                     ],
                 },
             },
@@ -189,9 +192,13 @@ module.exports = class bigone extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const amountPrecisionString = this.safeString (market, 'base_scale');
+            const pricePrecisionString = this.safeString (market, 'quote_scale');
+            const amountLimit = this.parsePrecision (amountPrecisionString);
+            const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
-                'amount': this.safeInteger (market, 'base_scale'),
-                'price': this.safeInteger (market, 'quote_scale'),
+                'amount': parseInt (amountPrecisionString),
+                'price': parseInt (pricePrecisionString),
             };
             const minCost = this.safeInteger (market, 'min_quote_value');
             const entry = {
@@ -206,11 +213,11 @@ module.exports = class bigone extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': this.parseNumber (amountLimit),
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': this.parseNumber (priceLimit),
                         'max': undefined,
                     },
                     'cost': {
@@ -258,28 +265,28 @@ module.exports = class bigone extends Exchange {
         const marketId = this.safeString (ticker, 'asset_pair_name');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = undefined;
-        const close = this.safeFloat (ticker, 'close');
+        const close = this.safeNumber (ticker, 'close');
         const bid = this.safeValue (ticker, 'bid', {});
         const ask = this.safeValue (ticker, 'ask', {});
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (bid, 'price'),
-            'bidVolume': this.safeFloat (bid, 'quantity'),
-            'ask': this.safeFloat (ask, 'price'),
-            'askVolume': this.safeFloat (ask, 'quantity'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (bid, 'price'),
+            'bidVolume': this.safeNumber (bid, 'quantity'),
+            'ask': this.safeNumber (ask, 'price'),
+            'askVolume': this.safeNumber (ask, 'quantity'),
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': this.safeNumber (ticker, 'open'),
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'daily_change'),
+            'change': this.safeNumber (ticker, 'daily_change'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -398,7 +405,7 @@ module.exports = class bigone extends Exchange {
         //     }
         //
         const orderbook = this.safeValue (response, 'data', {});
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'quantity');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
     parseTrade (trade, market = undefined) {
@@ -444,16 +451,13 @@ module.exports = class bigone extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'created_at', 'inserted_at'));
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 'asset_pair_name');
         const symbol = this.safeSymbol (marketId, market, '-');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = this.costToPrecision (symbol, price * amount);
-            }
-        }
         let side = this.safeString (trade, 'side');
         const takerSide = this.safeString (trade, 'taker_side');
         let takerOrMaker = undefined;
@@ -527,8 +531,8 @@ module.exports = class bigone extends Exchange {
                 takerCurrencyCode = market['quote'];
             }
         }
-        const makerFeeCost = this.safeFloat (trade, 'maker_fee');
-        const takerFeeCost = this.safeFloat (trade, 'taker_fee');
+        const makerFeeCost = this.safeNumber (trade, 'maker_fee');
+        const takerFeeCost = this.safeNumber (trade, 'taker_fee');
         if (makerFeeCost !== undefined) {
             if (takerFeeCost !== undefined) {
                 result['fees'] = [
@@ -591,11 +595,11 @@ module.exports = class bigone extends Exchange {
         //
         return [
             this.parse8601 (this.safeString (ohlcv, 'time')),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -645,7 +649,10 @@ module.exports = class bigone extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccounts (params);
+        const type = this.safeString (params, 'type', '');
+        params = this.omit (params, 'type');
+        const method = 'privateGet' + this.capitalize (type) + 'Accounts';
+        const response = await this[method] (params);
         //
         //     {
         //         "code":0,
@@ -656,18 +663,22 @@ module.exports = class bigone extends Exchange {
         //         ],
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const symbol = this.safeString (balance, 'asset_symbol');
             const code = this.safeCurrencyCode (symbol);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance');
-            account['used'] = this.safeFloat (balance, 'locked_balance');
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'locked_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrder (order, market = undefined) {
@@ -689,13 +700,9 @@ module.exports = class bigone extends Exchange {
         const marketId = this.safeString (order, 'asset_pair_name');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount');
-        const filled = this.safeFloat (order, 'filled_amount');
-        let remaining = undefined;
-        if (amount !== undefined && filled !== undefined) {
-            remaining = Math.max (0, amount - filled);
-        }
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'amount');
+        const filled = this.safeNumber (order, 'filled_amount');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         let side = this.safeString (order, 'side');
         if (side === 'BID') {
@@ -703,15 +710,9 @@ module.exports = class bigone extends Exchange {
         } else {
             side = 'sell';
         }
-        let cost = undefined;
-        if (filled !== undefined) {
-            if (price !== undefined) {
-                cost = filled * price;
-            }
-        }
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'updated_at'));
-        const average = this.safeFloat (order, 'avg_deal_price');
-        return {
+        const average = this.safeNumber (order, 'avg_deal_price');
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -726,14 +727,14 @@ module.exports = class bigone extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -757,9 +758,9 @@ module.exports = class bigone extends Exchange {
             const isStopLimit = (uppercaseType === 'STOP_LIMIT');
             const isStopMarket = (uppercaseType === 'STOP_MARKET');
             if (isStopLimit || isStopMarket) {
-                const stopPrice = this.safeFloat2 (params, 'stop_price', 'stopPrice');
+                const stopPrice = this.safeNumber2 (params, 'stop_price', 'stopPrice');
                 if (stopPrice === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder requires a stop_price parameter');
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a stop_price parameter');
                 }
                 request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
                 params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
@@ -1096,7 +1097,7 @@ module.exports = class bigone extends Exchange {
         const currencyId = this.safeString (transaction, 'asset_symbol');
         const code = this.safeCurrencyCode (currencyId);
         const id = this.safeInteger (transaction, 'id');
-        const amount = this.safeFloat (transaction, 'amount');
+        const amount = this.safeNumber (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
         const timestamp = this.parse8601 (this.safeString (transaction, 'inserted_at'));
         const updated = this.parse8601 (this.safeString2 (transaction, 'updated_at', 'completed_at'));

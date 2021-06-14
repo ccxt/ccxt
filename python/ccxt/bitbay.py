@@ -17,6 +17,7 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class bitbay(Exchange):
@@ -57,15 +58,16 @@ class bitbay(Exchange):
                 '3d': '259200',
                 '1w': '604800',
             },
+            'hostname': 'bitbay.net',
             'urls': {
                 'referral': 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
                 'www': 'https://bitbay.net',
                 'api': {
-                    'public': 'https://bitbay.net/API/Public',
-                    'private': 'https://bitbay.net/API/Trading/tradingApi.php',
-                    'v1_01Public': 'https://api.bitbay.net/rest',
-                    'v1_01Private': 'https://api.bitbay.net/rest',
+                    'public': 'https://{hostname}/API/Public',
+                    'private': 'https://{hostname}/API/Trading/tradingApi.php',
+                    'v1_01Public': 'https://api.{hostname}/rest',
+                    'v1_01Private': 'https://api.{hostname}/rest',
                 },
                 'doc': [
                     'https://bitbay.net/public-api',
@@ -289,8 +291,8 @@ class bitbay(Exchange):
             fees = self.safe_value(self.fees, 'trading', {})
             if self.in_array(base, fiatCurrencies) or self.in_array(quote, fiatCurrencies):
                 fees = self.safe_value(self.fees, 'fiat', {})
-            maker = self.safe_float(fees, 'maker')
-            taker = self.safe_float(fees, 'taker')
+            maker = self.safe_number(fees, 'maker')
+            taker = self.safe_number(fees, 'taker')
             # todo: check that the limits have ben interpreted correctly
             # todo: parse the fees page
             result.append({
@@ -306,7 +308,7 @@ class bitbay(Exchange):
                 'taker': taker,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(first, 'minOffer'),
+                        'min': self.safe_number(first, 'minOffer'),
                         'max': None,
                     },
                     'price': {
@@ -314,7 +316,7 @@ class bitbay(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': self.safe_float(second, 'minOffer'),
+                        'min': self.safe_number(second, 'minOffer'),
                         'max': None,
                     },
                 },
@@ -351,14 +353,10 @@ class bitbay(Exchange):
         marketId = self.safe_string(order, 'market')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.safe_integer(order, 'time')
-        amount = self.safe_float(order, 'startAmount')
-        remaining = self.safe_float(order, 'currentAmount')
-        filled = None
-        if amount is not None:
-            if remaining is not None:
-                filled = max(0, amount - remaining)
+        amount = self.safe_number(order, 'startAmount')
+        remaining = self.safe_number(order, 'currentAmount')
         postOnly = self.safe_value(order, 'postOnly')
-        return {
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'info': order,
@@ -371,16 +369,16 @@ class bitbay(Exchange):
             'timeInForce': None,
             'postOnly': postOnly,
             'side': self.safe_string_lower(order, 'offerType'),
-            'price': self.safe_float(order, 'rate'),
+            'price': self.safe_number(order, 'rate'),
             'stopPrice': None,
             'amount': amount,
             'cost': None,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'average': None,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -428,10 +426,10 @@ class bitbay(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_float(balance, 'lockedFunds')
-            account['free'] = self.safe_float(balance, 'availableFunds')
+            account['used'] = self.safe_string(balance, 'lockedFunds')
+            account['free'] = self.safe_string(balance, 'availableFunds')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -439,7 +437,7 @@ class bitbay(Exchange):
             'id': self.market_id(symbol),
         }
         orderbook = self.publicGetIdOrderbook(self.extend(request, params))
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, symbol)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -448,21 +446,21 @@ class bitbay(Exchange):
         }
         ticker = self.publicGetIdTicker(self.extend(request, params))
         timestamp = self.milliseconds()
-        baseVolume = self.safe_float(ticker, 'volume')
-        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_number(ticker, 'volume')
+        vwap = self.safe_number(ticker, 'vwap')
         quoteVolume = None
         if baseVolume is not None and vwap is not None:
             quoteVolume = baseVolume * vwap
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'max'),
-            'low': self.safe_float(ticker, 'min'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'max'),
+            'low': self.safe_number(ticker, 'min'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -471,7 +469,7 @@ class bitbay(Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_float(ticker, 'average'),
+            'average': self.safe_number(ticker, 'average'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
@@ -767,7 +765,7 @@ class bitbay(Exchange):
         currencyId = self.safe_string(balance, 'currency')
         code = self.safe_currency_code(currencyId)
         change = self.safe_value(item, 'change', {})
-        amount = self.safe_float(change, 'total')
+        amount = self.safe_number(change, 'total')
         direction = 'in'
         if amount < 0:
             direction = 'out'
@@ -778,9 +776,9 @@ class bitbay(Exchange):
         referenceId = self.safe_string(item, 'detailId')
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         fundsBefore = self.safe_value(item, 'fundsBefore', {})
-        before = self.safe_float(fundsBefore, 'total')
+        before = self.safe_number(fundsBefore, 'total')
         fundsAfter = self.safe_value(item, 'fundsAfter', {})
-        after = self.safe_float(fundsAfter, 'total')
+        after = self.safe_number(fundsAfter, 'total')
         return {
             'info': item,
             'id': id,
@@ -835,11 +833,11 @@ class bitbay(Exchange):
         first = self.safe_value(ohlcv, 1, {})
         return [
             self.safe_integer(ohlcv, 0),
-            self.safe_float(first, 'o'),
-            self.safe_float(first, 'h'),
-            self.safe_float(first, 'l'),
-            self.safe_float(first, 'c'),
-            self.safe_float(first, 'v'),
+            self.safe_number(first, 'o'),
+            self.safe_number(first, 'h'),
+            self.safe_number(first, 'l'),
+            self.safe_number(first, 'c'),
+            self.safe_number(first, 'v'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -917,13 +915,12 @@ class bitbay(Exchange):
         takerOrMaker = None
         if wasTaker is not None:
             takerOrMaker = 'taker' if wasTaker else 'maker'
-        price = self.safe_float_2(trade, 'rate', 'r')
-        amount = self.safe_float_2(trade, 'amount', 'a')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
-        feeCost = self.safe_float(trade, 'commissionValue')
+        priceString = self.safe_string_2(trade, 'rate', 'r')
+        amountString = self.safe_string_2(trade, 'amount', 'a')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        feeCost = self.safe_number(trade, 'commissionValue')
         marketId = self.safe_string(trade, 'market')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
@@ -1136,7 +1133,7 @@ class bitbay(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api]
+        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname})
         if api == 'public':
             query = self.omit(params, self.extract_params(path))
             url += '/' + self.implode_params(path, params) + '.json'

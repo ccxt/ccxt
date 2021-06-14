@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
+from ccxt.base.precise import Precise
 
 
 class zaif(Exchange):
@@ -130,6 +131,27 @@ class zaif(Exchange):
 
     def fetch_markets(self, params={}):
         markets = self.publicGetCurrencyPairsAll(params)
+        #
+        #     [
+        #         {
+        #             "aux_unit_point": 0,
+        #             "item_japanese": "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3",
+        #             "aux_unit_step": 5.0,
+        #             "description": "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3\u30fb\u65e5\u672c\u5186\u306e\u53d6\u5f15\u3092\u884c\u3046\u3053\u3068\u304c\u3067\u304d\u307e\u3059",
+        #             "item_unit_min": 0.001,
+        #             "event_number": 0,
+        #             "currency_pair": "btc_jpy",
+        #             "is_token": False,
+        #             "aux_unit_min": 5.0,
+        #             "aux_japanese": "\u65e5\u672c\u5186",
+        #             "id": 1,
+        #             "item_unit_step": 0.0001,
+        #             "name": "BTC/JPY",
+        #             "seq": 0,
+        #             "title": "BTC/JPY"
+        #         }
+        #     ]
+        #
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -140,8 +162,8 @@ class zaif(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': -math.log10(market['item_unit_step']),
-                'price': market['aux_unit_point'],
+                'amount': -math.log10(self.safe_number(market, 'item_unit_step')),
+                'price': self.safe_integer(market, 'aux_unit_point'),
             }
             fees = self.safe_value(self.options['fees'], symbol, self.fees['trading'])
             taker = fees['taker']
@@ -159,11 +181,11 @@ class zaif(Exchange):
                 'maker': maker,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'item_unit_min'),
+                        'min': self.safe_number(market, 'item_unit_min'),
                         'max': None,
                     },
                     'price': {
-                        'min': self.safe_float(market, 'aux_unit_min'),
+                        'min': self.safe_number(market, 'aux_unit_min'),
                         'max': None,
                     },
                     'cost': {
@@ -179,24 +201,26 @@ class zaif(Exchange):
         self.load_markets()
         response = self.privatePostGetInfo(params)
         balances = self.safe_value(response, 'return', {})
-        result = {'info': response}
+        deposit = self.safe_value(balances, 'deposit')
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         funds = self.safe_value(balances, 'funds', {})
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
-            balance = self.safe_value(funds, currencyId)
-            account = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
-            }
-            if 'deposit' in balances:
-                if currencyId in balances['deposit']:
-                    account['total'] = self.safe_float(balances['deposit'], currencyId)
-                    account['used'] = account['total'] - account['free']
+            balance = self.safe_string(funds, currencyId)
+            account = self.account()
+            account['free'] = balance
+            account['total'] = balance
+            if deposit is not None:
+                if currencyId in deposit:
+                    account['total'] = self.safe_string(deposit, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -204,7 +228,7 @@ class zaif(Exchange):
             'pair': self.market_id(symbol),
         }
         response = self.publicGetDepthPair(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -213,21 +237,21 @@ class zaif(Exchange):
         }
         ticker = self.publicGetTickerPair(self.extend(request, params))
         timestamp = self.milliseconds()
-        vwap = self.safe_float(ticker, 'vwap')
-        baseVolume = self.safe_float(ticker, 'volume')
+        vwap = self.safe_number(ticker, 'vwap')
+        baseVolume = self.safe_number(ticker, 'volume')
         quoteVolume = None
         if baseVolume is not None and vwap is not None:
             quoteVolume = baseVolume * vwap
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -247,12 +271,11 @@ class zaif(Exchange):
         side = 'buy' if (side == 'bid') else 'sell'
         timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string_2(trade, 'id', 'tid')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'currency_pair')
         symbol = self.safe_symbol(marketId, market, '_')
         return {
@@ -323,14 +346,10 @@ class zaif(Exchange):
         timestamp = self.safe_timestamp(order, 'timestamp')
         marketId = self.safe_string(order, 'currency_pair')
         symbol = self.safe_symbol(marketId, market, '_')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'amount')
         id = self.safe_string(order, 'id')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -344,7 +363,7 @@ class zaif(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'amount': amount,
             'filled': None,
             'remaining': None,
@@ -352,7 +371,7 @@ class zaif(Exchange):
             'fee': None,
             'info': order,
             'average': None,
-        }
+        })
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

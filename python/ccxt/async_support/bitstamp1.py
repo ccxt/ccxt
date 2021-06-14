@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class bitstamp1(Exchange):
@@ -91,7 +92,7 @@ class bitstamp1(Exchange):
         await self.load_markets()
         orderbook = await self.publicGetOrderBook(params)
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     async def fetch_ticker(self, symbol, params={}):
         if symbol != 'BTC/USD':
@@ -99,24 +100,24 @@ class bitstamp1(Exchange):
         await self.load_markets()
         ticker = await self.publicGetTicker(params)
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        vwap = self.safe_float(ticker, 'vwap')
-        baseVolume = self.safe_float(ticker, 'volume')
+        vwap = self.safe_number(ticker, 'vwap')
+        baseVolume = self.safe_number(ticker, 'volume')
         quoteVolume = None
         if baseVolume is not None and vwap is not None:
             quoteVolume = baseVolume * vwap
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
-            'open': self.safe_float(ticker, 'open'),
+            'open': self.safe_number(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -136,12 +137,11 @@ class bitstamp1(Exchange):
             if trade['currency_pair'] in self.markets_by_id:
                 market = self.markets_by_id[trade['currency_pair']]
         id = self.safe_string(trade, 'tid')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -181,11 +181,11 @@ class bitstamp1(Exchange):
             currency = self.currency(code)
             currencyId = currency['id']
             account = self.account()
-            account['free'] = self.safe_float(balance, currencyId + '_available')
-            account['used'] = self.safe_float(balance, currencyId + '_reserved')
-            account['total'] = self.safe_float(balance, currencyId + '_balance')
+            account['free'] = self.safe_string(balance, currencyId + '_available')
+            account['used'] = self.safe_string(balance, currencyId + '_reserved')
+            account['total'] = self.safe_string(balance, currencyId + '_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':

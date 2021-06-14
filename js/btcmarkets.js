@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection, BadRequest } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -246,11 +247,11 @@ module.exports = class btcmarkets extends Exchange {
         const tagTo = tag;
         const addressFrom = undefined;
         const tagFrom = undefined;
-        const fee = this.safeFloat (transaction, 'fee');
+        const fee = this.safeNumber (transaction, 'fee');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const currencyId = this.safeString (transaction, 'assetName');
         const code = this.safeCurrencyCode (currencyId);
-        let amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeNumber (transaction, 'amount');
         if (fee) {
             amount -= fee;
         }
@@ -303,10 +304,10 @@ module.exports = class btcmarkets extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const fees = this.safeValue (this.safeValue (this.options, 'fees', {}), quote, this.fees);
-            const pricePrecision = this.safeFloat (market, 'priceDecimals');
-            const amountPrecision = this.safeFloat (market, 'amountDecimals');
-            const minAmount = this.safeFloat (market, 'minOrderAmount');
-            const maxAmount = this.safeFloat (market, 'maxOrderAmount');
+            const pricePrecision = this.safeNumber (market, 'priceDecimals');
+            const amountPrecision = this.safeNumber (market, 'amountDecimals');
+            const minAmount = this.safeNumber (market, 'minOrderAmount');
+            const maxAmount = this.safeNumber (market, 'maxOrderAmount');
             let minPrice = undefined;
             if (quote === 'AUD') {
                 minPrice = Math.pow (10, -pricePrecision);
@@ -365,14 +366,12 @@ module.exports = class btcmarkets extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'assetName');
             const code = this.safeCurrencyCode (currencyId);
-            const total = this.safeFloat (balance, 'balance');
-            const used = this.safeFloat (balance, 'locked');
             const account = this.account ();
-            account['used'] = used;
-            account['total'] = total;
+            account['used'] = this.safeString (balance, 'locked');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -388,11 +387,11 @@ module.exports = class btcmarkets extends Exchange {
         //
         return [
             this.parse8601 (this.safeString (ohlcv, 0)),
-            this.safeFloat (ohlcv, 1), // open
-            this.safeFloat (ohlcv, 2), // high
-            this.safeFloat (ohlcv, 3), // low
-            this.safeFloat (ohlcv, 4), // close
-            this.safeFloat (ohlcv, 5), // volume
+            this.safeNumber (ohlcv, 1), // open
+            this.safeNumber (ohlcv, 2), // high
+            this.safeNumber (ohlcv, 3), // low
+            this.safeNumber (ohlcv, 4), // close
+            this.safeNumber (ohlcv, 5), // volume
         ];
     }
 
@@ -449,7 +448,7 @@ module.exports = class btcmarkets extends Exchange {
         //     }
         //
         const timestamp = this.safeIntegerProduct (response, 'snapshotId', 0.001);
-        const orderbook = this.parseOrderBook (response, timestamp);
+        const orderbook = this.parseOrderBook (response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger (response, 'snapshotId');
         return orderbook;
     }
@@ -488,21 +487,21 @@ module.exports = class btcmarkets extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        const last = this.safeFloat (ticker, 'lastPrice');
-        const baseVolume = this.safeFloat (ticker, 'volume24h');
-        const quoteVolume = this.safeFloat (ticker, 'volumeQte24h');
+        const last = this.safeNumber (ticker, 'lastPrice');
+        const baseVolume = this.safeNumber (ticker, 'volume24h');
+        const quoteVolume = this.safeNumber (ticker, 'volumeQte24h');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        const change = this.safeFloat (ticker, 'price24h');
-        const percentage = this.safeFloat (ticker, 'pricePct24h');
+        const change = this.safeNumber (ticker, 'price24h');
+        const percentage = this.safeNumber (ticker, 'pricePct24h');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high24h'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bestBid'),
+            'high': this.safeNumber (ticker, 'high24h'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bestBid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'bestAsk'),
+            'ask': this.safeNumber (ticker, 'bestAsk'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
@@ -613,17 +612,14 @@ module.exports = class btcmarkets extends Exchange {
             side = 'sell';
         }
         const id = this.safeString (trade, 'id');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const orderId = this.safeString (trade, 'orderId');
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -714,7 +710,7 @@ module.exports = class btcmarkets extends Exchange {
             }
         }
         if (triggerPriceIsRequired) {
-            const triggerPrice = this.safeFloat (params, 'triggerPrice');
+            const triggerPrice = this.safeNumber (params, 'triggerPrice');
             params = this.omit (params, 'triggerPrice');
             if (triggerPrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter for a ' + type + 'order');
@@ -847,26 +843,16 @@ module.exports = class btcmarkets extends Exchange {
             side = 'sell';
         }
         const type = this.safeStringLower (order, 'type');
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount');
-        const remaining = this.safeFloat (order, 'openAmount');
-        let filled = undefined;
-        if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max (0, amount - remaining);
-        }
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'amount');
+        const remaining = this.safeNumber (order, 'openAmount');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let cost = undefined;
-        if (price !== undefined) {
-            if (filled !== undefined) {
-                cost = price * filled;
-            }
-        }
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
-        const stopPrice = this.safeFloat (order, 'triggerPrice');
+        const stopPrice = this.safeNumber (order, 'triggerPrice');
         const postOnly = this.safeValue (order, 'postOnly');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -880,15 +866,15 @@ module.exports = class btcmarkets extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'average': undefined,
             'status': status,
             'trades': undefined,
             'fee': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

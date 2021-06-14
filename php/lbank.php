@@ -203,8 +203,8 @@ class lbank extends Exchange {
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $info = $ticker;
         $ticker = $info['ticker'];
-        $last = $this->safe_float($ticker, 'latest');
-        $percentage = $this->safe_float($ticker, 'change');
+        $last = $this->safe_number($ticker, 'latest');
+        $percentage = $this->safe_number($ticker, 'change');
         $open = null;
         if ($percentage !== null) {
             $relativeChange = $this->sum(1, $percentage / 100);
@@ -225,8 +225,8 @@ class lbank extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
@@ -239,8 +239,8 @@ class lbank extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
-            'quoteVolume' => $this->safe_float($ticker, 'turnover'),
+            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'quoteVolume' => $this->safe_number($ticker, 'turnover'),
             'info' => $info,
         );
     }
@@ -281,7 +281,7 @@ class lbank extends Exchange {
             'size' => $size,
         );
         $response = $this->publicGetDepth (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -290,17 +290,15 @@ class lbank extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->safe_integer($trade, 'date_ms');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $id = $this->safe_string($trade, 'tid');
         $type = null;
         $side = $this->safe_string($trade, 'type');
+        $side = str_replace('_market', '', $side);
         return array(
             'id' => $id,
             'info' => $this->safe_value($trade, 'info', $trade),
@@ -348,11 +346,11 @@ class lbank extends Exchange {
         //
         return array(
             $this->safe_timestamp($ohlcv, 0),
-            $this->safe_float($ohlcv, 1),
-            $this->safe_float($ohlcv, 2),
-            $this->safe_float($ohlcv, 3),
-            $this->safe_float($ohlcv, 4),
-            $this->safe_float($ohlcv, 5),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -360,10 +358,10 @@ class lbank extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($since === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a `$since` argument');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a `$since` argument');
         }
         if ($limit === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a `$limit` argument');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a `$limit` argument');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -407,7 +405,11 @@ class lbank extends Exchange {
         //         }
         //     }
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $info = $this->safe_value($response, 'info', array());
         $free = $this->safe_value($info, 'free', array());
         $freeze = $this->safe_value($info, 'freeze', array());
@@ -417,12 +419,12 @@ class lbank extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($free, $currencyId);
-            $account['used'] = $this->safe_float($freeze, $currencyId);
-            $account['total'] = $this->safe_float($asset, $currencyId);
+            $account['free'] = $this->safe_string($free, $currencyId);
+            $account['used'] = $this->safe_string($freeze, $currencyId);
+            $account['total'] = $this->safe_string($asset, $currencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order_status($status) {
@@ -450,35 +452,20 @@ class lbank extends Exchange {
         //         "$status"：2
         //     }
         //
-        $symbol = null;
-        $responseMarket = $this->safe_value($this->marketsById, $order['symbol']);
-        if ($responseMarket !== null) {
-            $symbol = $responseMarket['symbol'];
-        } else if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_integer($order, 'create_time');
         // Limit Order Request Returns => Order Price
         // Market Order Returns => cny $amount of $market $order
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'amount', 0.0);
-        $filled = $this->safe_float($order, 'deal_amount', 0.0);
-        $av_price = $this->safe_float($order, 'avg_price');
-        $cost = null;
-        if ($av_price !== null) {
-            $cost = $filled * $av_price;
-        }
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'amount', 0.0);
+        $filled = $this->safe_number($order, 'deal_amount', 0.0);
+        $average = $this->safe_number($order, 'avg_price');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'order_id');
         $type = $this->safe_string($order, 'order_type');
         $side = $this->safe_string($order, 'type');
-        $remaining = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $remaining = $amount - $filled;
-            }
-        }
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -492,15 +479,15 @@ class lbank extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'trades' => null,
             'fee' => null,
             'info' => $this->safe_value($order, 'info', $order),
-            'average' => null,
-        );
+            'average' => $average,
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

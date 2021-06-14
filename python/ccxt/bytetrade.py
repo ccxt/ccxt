@@ -193,11 +193,11 @@ class bytetrade(Exchange):
             limits = self.safe_value(currency, 'limits')
             deposit = self.safe_value(limits, 'deposit')
             amountPrecision = self.safe_integer(currency, 'basePrecision')
-            maxDeposit = self.safe_float(deposit, 'max')
+            maxDeposit = self.safe_number(deposit, 'max')
             if maxDeposit == -1.0:
                 maxDeposit = None
             withdraw = self.safe_value(limits, 'withdraw')
-            maxWithdraw = self.safe_float(withdraw, 'max')
+            maxWithdraw = self.safe_number(withdraw, 'max')
             if maxWithdraw == -1.0:
                 maxWithdraw = None
             result[code] = {
@@ -209,14 +209,12 @@ class bytetrade(Exchange):
                 'fee': None,
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'deposit': {
-                        'min': self.safe_float(deposit, 'min'),
+                        'min': self.safe_number(deposit, 'min'),
                         'max': maxDeposit,
                     },
                     'withdraw': {
-                        'min': self.safe_float(withdraw, 'min'),
+                        'min': self.safe_number(withdraw, 'min'),
                         'max': maxWithdraw,
                     },
                 },
@@ -265,12 +263,12 @@ class bytetrade(Exchange):
                 'normalSymbol': normalSymbol,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(amount, 'min'),
-                        'max': self.safe_float(amount, 'max'),
+                        'min': self.safe_number(amount, 'min'),
+                        'max': self.safe_number(amount, 'max'),
                     },
                     'price': {
-                        'min': self.safe_float(price, 'min'),
-                        'max': self.safe_float(price, 'max'),
+                        'min': self.safe_number(price, 'min'),
+                        'max': self.safe_number(price, 'max'),
                     },
                     'cost': {
                         'min': None,
@@ -283,7 +281,7 @@ class bytetrade(Exchange):
 
     def fetch_balance(self, params={}):
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired(self.id + ' fetchDeposits requires self.apiKey or userid argument')
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires self.apiKey or userid argument')
         self.load_markets()
         request = {
             'userid': self.apiKey,
@@ -295,10 +293,10 @@ class bytetrade(Exchange):
             currencyId = self.safe_string(balance, 'code')
             code = self.safe_currency_code(currencyId, None)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'free')
-            account['used'] = self.safe_float(balance, 'used')
+            account['free'] = self.safe_string(balance, 'free')
+            account['used'] = self.safe_string(balance, 'used')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -310,7 +308,7 @@ class bytetrade(Exchange):
             request['limit'] = limit  # default = maximum = 100
         response = self.marketGetDepth(self.extend(request, params))
         timestamp = self.safe_value(response, 'timestamp')
-        orderbook = self.parse_order_book(response, timestamp)
+        orderbook = self.parse_order_book(response, symbol, timestamp)
         return orderbook
 
     def parse_ticker(self, ticker, market=None):
@@ -353,22 +351,22 @@ class bytetrade(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
-            'vwap': self.safe_float(ticker, 'weightedAvgPrice'),
-            'open': self.safe_float(ticker, 'open'),
-            'close': self.safe_float(ticker, 'close'),
-            'last': self.safe_float(ticker, 'last'),
+            'vwap': self.safe_number(ticker, 'weightedAvgPrice'),
+            'open': self.safe_number(ticker, 'open'),
+            'close': self.safe_number(ticker, 'close'),
+            'last': self.safe_number(ticker, 'last'),
             'previousClose': None,  # previous day close
-            'change': self.safe_float(ticker, 'change'),
-            'percentage': self.safe_float(ticker, 'percentage'),
+            'change': self.safe_number(ticker, 'change'),
+            'percentage': self.safe_number(ticker, 'percentage'),
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'baseVolume'),
-            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_number(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
@@ -407,21 +405,15 @@ class bytetrade(Exchange):
             return self.parse_ticker(ticker, market)
         return self.parse_ticker(response, market)
 
-    def parse_tickers(self, rawTickers, symbols=None):
-        tickers = []
-        for i in range(0, len(rawTickers)):
-            tickers.append(self.parse_ticker(rawTickers[i]))
-        return self.filter_by_array(tickers, 'symbol', symbols)
-
     def fetch_bids_asks(self, symbols=None, params={}):
         self.load_markets()
-        rawTickers = self.marketGetDepth(params)
-        return self.parse_tickers(rawTickers, symbols)
+        response = self.marketGetDepth(params)
+        return self.parse_tickers(response, symbols)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        rawTickers = self.marketGetTickers(params)
-        return self.parse_tickers(rawTickers, symbols)
+        response = self.marketGetTickers(params)
+        return self.parse_tickers(response, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -436,11 +428,11 @@ class bytetrade(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 0),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 5),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -466,22 +458,31 @@ class bytetrade(Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'timestamp')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = self.safe_float(trade, 'cost')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
+        cost = self.safe_number(trade, 'cost')
         id = self.safe_string(trade, 'id')
         type = self.safe_string(trade, 'type')
         takerOrMaker = self.safe_string(trade, 'takerOrMaker')
         side = self.safe_string(trade, 'side')
         datetime = self.iso8601(timestamp)  # self.safe_string(trade, 'datetime')
         order = self.safe_string(trade, 'order')
-        fee = self.safe_value(trade, 'fee')
         symbol = None
         if market is None:
             marketId = self.safe_string(trade, 'symbol')
             market = self.safe_value(self.markets_by_id, marketId)
         if market is not None:
             symbol = market['symbol']
+        feeData = self.safe_value(trade, 'fee')
+        feeCost = self.safe_number(feeData, 'cost')
+        feeRate = self.safe_number(feeData, 'rate')
+        feeCode = self.safe_string(feeData, 'code')
+        feeCurrency = self.safe_currency_code(feeCode)
+        fee = {
+            'currency': feeCurrency,
+            'cost': feeCost,
+            'rate': feeRate,
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -529,16 +530,25 @@ class bytetrade(Exchange):
         timestamp = self.safe_integer(order, 'timestamp')
         datetime = self.safe_string(order, 'datetime')
         lastTradeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
-        filled = self.safe_float(order, 'filled')
-        remaining = self.safe_float(order, 'remaining')
-        cost = self.safe_float(order, 'cost')
-        average = self.safe_float(order, 'average')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'amount')
+        filled = self.safe_number(order, 'filled')
+        remaining = self.safe_number(order, 'remaining')
+        cost = self.safe_number(order, 'cost')
+        average = self.safe_number(order, 'average')
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
-        fee = self.safe_value(order, 'fee')
+        feeData = self.safe_value(order, 'fee')
+        feeCost = self.safe_number(feeData, 'cost')
+        feeRate = self.safe_number(feeData, 'rate')
+        feeCode = self.safe_string(feeData, 'code')
+        feeCurrency = self.safe_currency_code(feeCode)
+        fee = {
+            'currency': feeCurrency,
+            'cost': feeCost,
+            'rate': feeRate,
+        }
         return {
             'info': order,
             'id': id,
@@ -566,7 +576,7 @@ class bytetrade(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.check_required_dependencies()
         if self.apiKey is None:
-            raise ArgumentsRequired('createOrder requires self.apiKey or userid in params')
+            raise ArgumentsRequired('createOrder() requires self.apiKey or userid in params')
         self.load_markets()
         market = self.market(symbol)
         sideNum = None
@@ -746,7 +756,7 @@ class bytetrade(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchOrder requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchOrder() requires self.apiKey or userid argument')
         self.load_markets()
         request = {
             'userid': self.apiKey,
@@ -761,7 +771,7 @@ class bytetrade(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchOpenOrders requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchOpenOrders() requires self.apiKey or userid argument')
         self.load_markets()
         request = {
             'userid': self.apiKey,
@@ -772,12 +782,14 @@ class bytetrade(Exchange):
             request['symbol'] = market['id']
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['since'] = since
         response = self.publicGetOrdersOpen(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchClosedOrders requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchClosedOrders() requires self.apiKey or userid argument')
         self.load_markets()
         market = None
         request = {
@@ -788,12 +800,14 @@ class bytetrade(Exchange):
             request['symbol'] = market['id']
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['since'] = since
         response = self.publicGetOrdersClosed(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchOrders requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchOrders() requires self.apiKey or userid argument')
         self.load_markets()
         market = None
         request = {
@@ -804,14 +818,16 @@ class bytetrade(Exchange):
             request['symbol'] = market['id']
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['since'] = since
         response = self.publicGetOrdersAll(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
         if self.apiKey is None:
-            raise ArgumentsRequired('cancelOrder requires hasAlreadyAuthenticatedSuccessfully')
+            raise ArgumentsRequired('cancelOrder() requires hasAlreadyAuthenticatedSuccessfully')
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         baseId = market['baseId']
@@ -904,10 +920,10 @@ class bytetrade(Exchange):
             'average': None,
         }
 
-    def transfer(self, code, amount, address, message='', params={}):
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
         self.check_required_dependencies()
         if self.apiKey is None:
-            raise ArgumentsRequired('transfer requires self.apiKey')
+            raise ArgumentsRequired('transfer() requires self.apiKey')
         self.load_markets()
         currency = self.currency(code)
         amountTruncate = self.decimal_to_precision(amount, TRUNCATE, currency['info']['basePrecision'] - currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING)
@@ -921,6 +937,7 @@ class bytetrade(Exchange):
         expirationDatetime = expirationDatetime.split('.')[0]
         feeAmount = '300000000000000'
         defaultDappId = 'Sagittarius'
+        message = self.safe_string(params, 'message', '')
         dappId = self.safe_string(params, 'dappId', defaultDappId)
         eightBytes = self.integer_pow('2', '64')
         byteStringArray = [
@@ -934,8 +951,8 @@ class bytetrade(Exchange):
             self.number_to_le(feeAmount, 8),  # string for 32 bit php
             self.number_to_le(len(self.apiKey), 1),
             self.encode(self.apiKey),
-            self.number_to_le(len(address), 1),
-            self.encode(address),
+            self.number_to_le(len(toAccount), 1),
+            self.encode(toAccount),
             self.number_to_le(assetType, 4),
             self.number_to_le(self.integer_divide(amountChain, eightBytes), 8),
             self.number_to_le(self.integer_modulo(amountChain, eightBytes), 8),
@@ -956,7 +973,7 @@ class bytetrade(Exchange):
         operation = {
             'fee': '300000000000000',
             'from': self.apiKey,
-            'to': address,
+            'to': toAccount,
             'asset_type': int(currency['id']),
             'amount': str(amountChain),
             'message': message,
@@ -1010,7 +1027,7 @@ class bytetrade(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchMyTrades requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchMyTrades() requires self.apiKey or userid argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1020,13 +1037,15 @@ class bytetrade(Exchange):
             request['symbol'] = market['id']
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['since'] = since
         response = self.publicGetOrdersTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchDeposits requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchDeposits() requires self.apiKey or userid argument')
         currency = None
         request = {
             'userid': self.apiKey,
@@ -1044,7 +1063,7 @@ class bytetrade(Exchange):
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchWithdrawals requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchWithdrawals() requires self.apiKey or userid argument')
         currency = None
         request = {
             'userid': self.apiKey,
@@ -1091,9 +1110,9 @@ class bytetrade(Exchange):
         datetime = self.safe_string(transaction, 'datetime')
         type = self.safe_string(transaction, 'type')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         feeInfo = self.safe_value(transaction, 'fee')
-        feeCost = self.safe_float(feeInfo, 'cost')
+        feeCost = self.safe_number(feeInfo, 'cost')
         feeCurrencyId = self.safe_string(feeInfo, 'code')
         feeCode = self.safe_currency_code(feeCurrencyId, currency)
         fee = {
@@ -1119,7 +1138,7 @@ class bytetrade(Exchange):
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchDepositAddress requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchDepositAddress() requires self.apiKey or userid argument')
         currency = self.currency(code)
         request = {
             'userid': self.apiKey,
@@ -1143,7 +1162,7 @@ class bytetrade(Exchange):
         self.check_address(address)
         self.load_markets()
         if self.apiKey is None:
-            raise ArgumentsRequired('withdraw requires self.apiKey')
+            raise ArgumentsRequired(self.id + ' withdraw() requires self.apiKey')
         addressResponse = self.fetch_deposit_address(code)
         chainTypeString = self.safe_string(addressResponse, 'chainType')
         chainId = self.safe_string(addressResponse['info'][0], 'chainId')

@@ -10,6 +10,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.precise import Precise
 
 
 class therock(Exchange):
@@ -176,8 +177,8 @@ class therock(Exchange):
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
-                buy_fee = self.safe_float(market, 'buy_fee')
-                sell_fee = self.safe_float(market, 'sell_fee')
+                buy_fee = self.safe_number(market, 'buy_fee')
+                sell_fee = self.safe_number(market, 'sell_fee')
                 taker = max(buy_fee, sell_fee)
                 taker = taker / 100
                 maker = taker
@@ -198,11 +199,11 @@ class therock(Exchange):
                     },
                     'limits': {
                         'amount': {
-                            'min': self.safe_float(market, 'minimum_quantity_offer'),
+                            'min': self.safe_number(market, 'minimum_quantity_offer'),
                             'max': None,
                         },
                         'price': {
-                            'min': self.safe_float(market, 'minimum_price_offer'),
+                            'min': self.safe_number(market, 'minimum_price_offer'),
                             'max': None,
                         },
                         'cost': {
@@ -223,10 +224,10 @@ class therock(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'trading_balance')
-            account['total'] = self.safe_float(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'trading_balance')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -235,34 +236,34 @@ class therock(Exchange):
         }
         orderbook = self.publicGetFundsIdOrderbook(self.extend(request, params))
         timestamp = self.parse8601(self.safe_string(orderbook, 'date'))
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['date'])
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': self.safe_number(ticker, 'open'),
             'close': last,
             'last': last,
-            'previousClose': self.safe_float(ticker, 'close'),  # previous day close, if any
+            'previousClose': self.safe_number(ticker, 'close'),  # previous day close, if any
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume_traded'),
-            'quoteVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_number(ticker, 'volume_traded'),
+            'quoteVolume': self.safe_number(ticker, 'volume'),
             'info': ticker,
         }
 
@@ -333,12 +334,11 @@ class therock(Exchange):
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order_id')
         side = self.safe_string(trade, 'side')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         feeCost = None
         transactions = self.safe_value(trade, 'transactions', [])
@@ -347,7 +347,7 @@ class therock(Exchange):
         for i in range(0, len(feeTransactions)):
             if feeCost is None:
                 feeCost = 0
-            feeCost = self.sum(feeCost, self.safe_float(feeTransactions[i], 'price'))
+            feeCost = self.sum(feeCost, self.safe_number(feeTransactions[i], 'price'))
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -496,7 +496,7 @@ class therock(Exchange):
             referenceId = self.safe_string(item, 'trade_id')
         currencyId = self.safe_string(item, 'currency')
         code = self.safe_currency_code(currencyId)
-        amount = self.safe_float(item, 'price')
+        amount = self.safe_number(item, 'price')
         timestamp = self.parse8601(self.safe_string(item, 'date'))
         status = 'ok'
         return {
@@ -721,7 +721,7 @@ class therock(Exchange):
                 address = self.safe_string(detail, 'recipient')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
-        amount = self.safe_float(transaction, 'price')
+        amount = self.safe_number(transaction, 'price')
         timestamp = self.parse8601(self.safe_string(transaction, 'date'))
         status = 'ok'
         # todo parse tags
@@ -889,13 +889,13 @@ class therock(Exchange):
         timestamp = self.parse8601(self.safe_string(order, 'date'))
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
-        amount = self.safe_float(order, 'amount')
-        remaining = self.safe_float(order, 'amount_unfilled')
+        amount = self.safe_number(order, 'amount')
+        remaining = self.safe_number(order, 'amount_unfilled')
         filled = None
         if amount is not None:
             if remaining is not None:
                 filled = amount - remaining
-        price = self.safe_float(order, 'price')
+        price = self.safe_number(order, 'price')
         trades = self.safe_value(order, 'trades')
         cost = None
         average = None
@@ -918,7 +918,7 @@ class therock(Exchange):
                 lastTradeTimestamp = trades[numTrades - 1]['timestamp']
             else:
                 cost = 0
-        stopPrice = self.safe_float(order, 'conditional_price')
+        stopPrice = self.safe_number(order, 'conditional_price')
         return {
             'id': id,
             'clientOrderId': None,
@@ -957,7 +957,7 @@ class therock(Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -999,7 +999,7 @@ class therock(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1033,7 +1033,7 @@ class therock(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

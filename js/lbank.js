@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -201,8 +202,8 @@ module.exports = class lbank extends Exchange {
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const info = ticker;
         ticker = info['ticker'];
-        const last = this.safeFloat (ticker, 'latest');
-        const percentage = this.safeFloat (ticker, 'change');
+        const last = this.safeNumber (ticker, 'latest');
+        const percentage = this.safeNumber (ticker, 'change');
         let open = undefined;
         if (percentage !== undefined) {
             const relativeChange = this.sum (1, percentage / 100);
@@ -223,8 +224,8 @@ module.exports = class lbank extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -237,8 +238,8 @@ module.exports = class lbank extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'turnover'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
+            'quoteVolume': this.safeNumber (ticker, 'turnover'),
             'info': info,
         };
     }
@@ -279,7 +280,7 @@ module.exports = class lbank extends Exchange {
             'size': size,
         };
         const response = await this.publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTrade (trade, market = undefined) {
@@ -288,17 +289,15 @@ module.exports = class lbank extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.safeInteger (trade, 'date_ms');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = parseFloat (this.costToPrecision (symbol, price * amount));
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString (trade, 'tid');
         const type = undefined;
-        const side = this.safeString (trade, 'type');
+        let side = this.safeString (trade, 'type');
+        side = side.replace ('_market', '');
         return {
             'id': id,
             'info': this.safeValue (trade, 'info', trade),
@@ -346,11 +345,11 @@ module.exports = class lbank extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 5),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -358,10 +357,10 @@ module.exports = class lbank extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a `since` argument');
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a `since` argument');
         }
         if (limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a `limit` argument');
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a `limit` argument');
         }
         const request = {
             'symbol': market['id'],
@@ -405,7 +404,11 @@ module.exports = class lbank extends Exchange {
         //         }
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const info = this.safeValue (response, 'info', {});
         const free = this.safeValue (info, 'free', {});
         const freeze = this.safeValue (info, 'freeze', {});
@@ -415,12 +418,12 @@ module.exports = class lbank extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (free, currencyId);
-            account['used'] = this.safeFloat (freeze, currencyId);
-            account['total'] = this.safeFloat (asset, currencyId);
+            account['free'] = this.safeString (free, currencyId);
+            account['used'] = this.safeString (freeze, currencyId);
+            account['total'] = this.safeString (asset, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrderStatus (status) {
@@ -448,35 +451,20 @@ module.exports = class lbank extends Exchange {
         //         "status"：2
         //     }
         //
-        let symbol = undefined;
-        const responseMarket = this.safeValue (this.marketsById, order['symbol']);
-        if (responseMarket !== undefined) {
-            symbol = responseMarket['symbol'];
-        } else if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeInteger (order, 'create_time');
         // Limit Order Request Returns: Order Price
         // Market Order Returns: cny amount of market order
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount', 0.0);
-        const filled = this.safeFloat (order, 'deal_amount', 0.0);
-        const av_price = this.safeFloat (order, 'avg_price');
-        let cost = undefined;
-        if (av_price !== undefined) {
-            cost = filled * av_price;
-        }
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'amount', 0.0);
+        const filled = this.safeNumber (order, 'deal_amount', 0.0);
+        const average = this.safeNumber (order, 'avg_price');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'order_id');
         const type = this.safeString (order, 'order_type');
         const side = this.safeString (order, 'type');
-        let remaining = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = amount - filled;
-            }
-        }
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -490,15 +478,15 @@ module.exports = class lbank extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
             'info': this.safeValue (order, 'info', order),
-            'average': undefined,
-        };
+            'average': average,
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -22,6 +22,7 @@ class phemex extends Exchange {
             'version' => 'v1',
             'certified' => false,
             'pro' => true,
+            'hostname' => 'api.phemex.com',
             'has' => array(
                 'cancelAllOrders' => true, // swap contracts only
                 'cancelOrder' => true,
@@ -50,9 +51,9 @@ class phemex extends Exchange {
                     'private' => 'https://testnet-api.phemex.com',
                 ),
                 'api' => array(
-                    'v1' => 'https://api.phemex.com/v1',
-                    'public' => 'https://api.phemex.com/exchange/public',
-                    'private' => 'https://api.phemex.com',
+                    'v1' => 'https://{hostname}/v1',
+                    'public' => 'https://{hostname}/exchange/public',
+                    'private' => 'https://{hostname}',
                 ),
                 'www' => 'https://phemex.com',
                 'doc' => 'https://github.com/phemex/phemex-api-docs',
@@ -106,6 +107,7 @@ class phemex extends Exchange {
                         'exchange/spot/order/trades', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         // swap
                         'accounts/accountPositions', // ?currency=<currency>
+                        'accounts/positions', // ?currency=<currency>
                         'orders/activeList', // ?symbol=<symbol>
                         'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
@@ -308,13 +310,13 @@ class phemex extends Exchange {
         ));
     }
 
-    public function parse_safe_float($value = null) {
+    public function parse_safe_number($value = null) {
         if ($value === null) {
             return $value;
         }
         $value = str_replace(',', '', $value);
         $parts = explode(' ', $value);
-        return $this->safe_float($parts, 0);
+        return $this->safe_number($parts, 0);
     }
 
     public function parse_swap_market($market) {
@@ -338,7 +340,9 @@ class phemex extends Exchange {
         //         "$minPriceEp":5000,
         //         "$maxPriceEp":10000000000,
         //         "maxOrderQty":1000000,
-        //         "$type":"Perpetual"
+        //         "$type":"Perpetual",
+        //         "$status":"Listed",
+        //         "tipOrderQty":1000000,
         //         "steps":"50",
         //         "riskLimits":array(
         //             array("limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000),
@@ -363,7 +367,7 @@ class phemex extends Exchange {
         //     }
         //
         $id = $this->safe_string($market, 'symbol');
-        $baseId = $this->safe_string($market, 'baseCurrency', 'contractUnderlyingAssets');
+        $baseId = $this->safe_string_2($market, 'baseCurrency', 'contractUnderlyingAssets');
         $quoteId = $this->safe_string($market, 'quoteCurrency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
@@ -380,16 +384,16 @@ class phemex extends Exchange {
         }
         $linear = !$inverse;
         $precision = array(
-            'amount' => $this->safe_float($market, 'lotSize'),
-            'price' => $this->safe_float($market, 'tickSize'),
+            'amount' => $this->safe_number($market, 'lotSize'),
+            'price' => $this->safe_number($market, 'tickSize'),
         );
         $priceScale = $this->safe_integer($market, 'priceScale');
         $ratioScale = $this->safe_integer($market, 'ratioScale');
         $valueScale = $this->safe_integer($market, 'valueScale');
-        $minPriceEp = $this->safe_float($market, 'minPriceEp');
-        $maxPriceEp = $this->safe_float($market, 'maxPriceEp');
-        $makerFeeRateEr = $this->safe_float($market, 'makerFeeRateEr');
-        $takerFeeRateEr = $this->safe_float($market, 'takerFeeRateEr');
+        $minPriceEp = $this->safe_number($market, 'minPriceEp');
+        $maxPriceEp = $this->safe_number($market, 'maxPriceEp');
+        $makerFeeRateEr = $this->safe_number($market, 'makerFeeRateEr');
+        $takerFeeRateEr = $this->safe_number($market, 'takerFeeRateEr');
         if ($makerFeeRateEr !== null) {
             $maker = $this->from_en($makerFeeRateEr, $ratioScale, 0.00000001);
         }
@@ -407,10 +411,11 @@ class phemex extends Exchange {
             ),
             'cost' => array(
                 'min' => null,
-                'max' => $this->parse_safe_float($this->safe_string($market, 'maxOrderQty')),
+                'max' => $this->parse_safe_number($this->safe_string($market, 'maxOrderQty')),
             ),
         );
-        $active = null;
+        $status = $this->safe_string($market, 'status');
+        $active = $status === 'Listed';
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -459,7 +464,9 @@ class phemex extends Exchange {
         //         "defaultMakerFee":"0.001",
         //         "defaultMakerFeeEr":100000,
         //         "baseQtyPrecision":6,
-        //         "quoteQtyPrecision":2
+        //         "quoteQtyPrecision":2,
+        //         "$status":"Listed",
+        //         "tipOrderQty":20
         //     }
         //
         $type = $this->safe_string_lower($market, 'type');
@@ -470,30 +477,31 @@ class phemex extends Exchange {
         $inverse = null;
         $spot = true;
         $swap = false;
-        $taker = $this->safe_float($market, 'defaultTakerFee');
-        $maker = $this->safe_float($market, 'defaultMakerFee');
+        $taker = $this->safe_number($market, 'defaultTakerFee');
+        $maker = $this->safe_number($market, 'defaultMakerFee');
         $precision = array(
-            'amount' => $this->parse_safe_float($this->safe_string($market, 'baseTickSize')),
-            'price' => $this->parse_safe_float($this->safe_string($market, 'quoteTickSize')),
+            'amount' => $this->parse_safe_number($this->safe_string($market, 'baseTickSize')),
+            'price' => $this->parse_safe_number($this->safe_string($market, 'quoteTickSize')),
         );
         $limits = array(
             'amount' => array(
                 'min' => $precision['amount'],
-                'max' => $this->parse_safe_float($this->safe_string($market, 'maxBaseOrderSize')),
+                'max' => $this->parse_safe_number($this->safe_string($market, 'maxBaseOrderSize')),
             ),
             'price' => array(
                 'min' => $precision['price'],
                 'max' => null,
             ),
             'cost' => array(
-                'min' => $this->parse_safe_float($this->safe_string($market, 'minOrderValue')),
-                'max' => $this->parse_safe_float($this->safe_string($market, 'maxOrderValue')),
+                'min' => $this->parse_safe_number($this->safe_string($market, 'minOrderValue')),
+                'max' => $this->parse_safe_number($this->safe_string($market, 'maxOrderValue')),
             ),
         );
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        $active = null;
+        $status = $this->safe_string($market, 'status');
+        $active = $status === 'Listed';
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -683,8 +691,8 @@ class phemex extends Exchange {
             $name = $this->safe_string($currency, 'name');
             $code = $this->safe_currency_code($id);
             $valueScale = $this->safe_integer($currency, 'valueScale');
-            $minValueEv = $this->safe_float($currency, 'minValueEv');
-            $maxValueEv = $this->safe_float($currency, 'maxValueEv');
+            $minValueEv = $this->safe_number($currency, 'minValueEv');
+            $maxValueEv = $this->safe_number($currency, 'maxValueEv');
             $minAmount = null;
             $maxAmount = null;
             $precision = null;
@@ -711,14 +719,6 @@ class phemex extends Exchange {
                         'min' => $minAmount,
                         'max' => $maxAmount,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => null,
                         'max' => null,
@@ -732,20 +732,21 @@ class phemex extends Exchange {
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
         if ($market === null) {
-            throw new ArgumentsRequired($this->id . ' parseBidAsk requires a $market argument');
+            throw new ArgumentsRequired($this->id . ' parseBidAsk() requires a $market argument');
         }
-        $amount = $this->safe_float($bidask, $amountKey);
+        $amount = $this->safe_number($bidask, $amountKey);
         if ($market['spot']) {
             $amount = $this->from_ev($amount, $market);
         }
         return array(
-            $this->from_ep($this->safe_float($bidask, $priceKey), $market),
+            $this->from_ep($this->safe_number($bidask, $priceKey), $market),
             $amount,
         );
     }
 
-    public function parse_order_book($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
+    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
         $result = array(
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'nonce' => null,
@@ -801,7 +802,7 @@ class phemex extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $book = $this->safe_value($result, 'book', array());
         $timestamp = $this->safe_integer_product($result, 'timestamp', 0.000001);
-        $orderbook = $this->parse_order_book($book, $timestamp, 'bids', 'asks', 0, 1, $market);
+        $orderbook = $this->parse_order_book($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
         $orderbook['nonce'] = $this->safe_integer($result, 'sequence');
         return $orderbook;
     }
@@ -825,6 +826,9 @@ class phemex extends Exchange {
     }
 
     public function from_en($en, $scale, $precision, $precisionMode = null) {
+        if ($en === null) {
+            return $en;
+        }
         $precisionMode = ($precisionMode === null) ? $this->precisionMode : $precisionMode;
         return floatval($this->decimal_to_precision($en * pow(10, -$scale), ROUND, $precision, $precisionMode));
     }
@@ -870,16 +874,16 @@ class phemex extends Exchange {
         //
         $baseVolume = null;
         if (($market !== null) && $market['spot']) {
-            $baseVolume = $this->from_ev($this->safe_float($ohlcv, 7), $market);
+            $baseVolume = $this->from_ev($this->safe_number($ohlcv, 7), $market);
         } else {
             $baseVolume = $this->safe_integer($ohlcv, 7);
         }
         return array(
             $this->safe_timestamp($ohlcv, 0),
-            $this->from_ep($this->safe_float($ohlcv, 3), $market),
-            $this->from_ep($this->safe_float($ohlcv, 4), $market),
-            $this->from_ep($this->safe_float($ohlcv, 5), $market),
-            $this->from_ep($this->safe_float($ohlcv, 6), $market),
+            $this->from_ep($this->safe_number($ohlcv, 3), $market),
+            $this->from_ep($this->safe_number($ohlcv, 4), $market),
+            $this->from_ep($this->safe_number($ohlcv, 5), $market),
+            $this->from_ep($this->safe_number($ohlcv, 6), $market),
             $baseVolume,
         );
     }
@@ -907,7 +911,7 @@ class phemex extends Exchange {
             $request['from'] = $now - $duration * $this->sum($limit, 1);
             $request['to'] = $now;
         } else {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument, or a $limit argument, or both');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument, or a $limit argument, or both');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -972,11 +976,11 @@ class phemex extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
-        $last = $this->from_ep($this->safe_float($ticker, 'lastEp'), $market);
-        $quoteVolume = $this->from_ep($this->safe_float($ticker, 'turnoverEv'), $market);
-        $baseVolume = $this->safe_float($ticker, 'volume');
+        $last = $this->from_ep($this->safe_number($ticker, 'lastEp'), $market);
+        $quoteVolume = $this->from_ep($this->safe_number($ticker, 'turnoverEv'), $market);
+        $baseVolume = $this->safe_number($ticker, 'volume');
         if ($baseVolume === null) {
-            $baseVolume = $this->from_ev($this->safe_float($ticker, 'volumeEv'));
+            $baseVolume = $this->from_ev($this->safe_number($ticker, 'volumeEv'));
         }
         $vwap = null;
         if (($market !== null) && ($market['spot'])) {
@@ -985,7 +989,7 @@ class phemex extends Exchange {
         $change = null;
         $percentage = null;
         $average = null;
-        $open = $this->from_ep($this->safe_float($ticker, 'openEp'), $market);
+        $open = $this->from_ep($this->safe_number($ticker, 'openEp'), $market);
         if (($open !== null) && ($last !== null)) {
             $change = $last - $open;
             if ($open > 0) {
@@ -997,11 +1001,11 @@ class phemex extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->from_ep($this->safe_float($ticker, 'highEp'), $market),
-            'low' => $this->from_ep($this->safe_float($ticker, 'lowEp'), $market),
-            'bid' => $this->from_ep($this->safe_float($ticker, 'bidEp'), $market),
+            'high' => $this->from_ep($this->safe_number($ticker, 'highEp'), $market),
+            'low' => $this->from_ep($this->safe_number($ticker, 'lowEp'), $market),
+            'bid' => $this->from_ep($this->safe_number($ticker, 'bidEp'), $market),
             'bidVolume' => null,
-            'ask' => $this->from_ep($this->safe_float($ticker, 'askEp'), $market),
+            'ask' => $this->from_ep($this->safe_number($ticker, 'askEp'), $market),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => $open,
@@ -1192,8 +1196,8 @@ class phemex extends Exchange {
                 $id = $this->safe_string($trade, $tradeLength - 4);
             }
             $side = $this->safe_string_lower($trade, $tradeLength - 3);
-            $price = $this->from_ep($this->safe_float($trade, $tradeLength - 2), $market);
-            $amount = $this->from_ev($this->safe_float($trade, $tradeLength - 1), $market);
+            $price = $this->from_ep($this->safe_number($trade, $tradeLength - 2), $market);
+            $amount = $this->from_ev($this->safe_number($trade, $tradeLength - 1), $market);
             if ($market['spot']) {
                 if (($price !== null) && ($amount !== null)) {
                     $cost = $price * $amount;
@@ -1209,14 +1213,14 @@ class phemex extends Exchange {
             if ($execStatus === 'MakerFill') {
                 $takerOrMaker = 'maker';
             }
-            $price = $this->from_ep($this->safe_float($trade, 'execPriceEp'), $market);
-            $amount = $this->from_ev($this->safe_float($trade, 'execBaseQtyEv'), $market);
-            $amount = $this->safe_float($trade, 'execQty', $amount);
-            $cost = $this->from_ev($this->safe_float_2($trade, 'execQuoteQtyEv', 'execValueEv'), $market);
-            $feeCost = $this->from_ev($this->safe_float($trade, 'execFeeEv'), $market);
+            $price = $this->from_ep($this->safe_number($trade, 'execPriceEp'), $market);
+            $amount = $this->from_ev($this->safe_number($trade, 'execBaseQtyEv'), $market);
+            $amount = $this->safe_number($trade, 'execQty', $amount);
+            $cost = $this->from_ev($this->safe_number_2($trade, 'execQuoteQtyEv', 'execValueEv'), $market);
+            $feeCost = $this->from_ev($this->safe_number($trade, 'execFeeEv'), $market);
             if ($feeCost !== null) {
                 $feeRate = null;
-                $feeRateEr = $this->safe_float($trade, 'feeRateEr');
+                $feeRateEr = $this->safe_number($trade, 'feeRateEr');
                 if ($feeRateEr < 0) {
                     $feeRateEr = abs($feeRateEr);
                     $feeRate = $this->from_er($feeRateEr, $market);
@@ -1269,7 +1273,7 @@ class phemex extends Exchange {
         //                 "$balanceEv":0,
         //                 "$lockedTradingBalanceEv":0,
         //                 "$lockedWithdrawEv":0,
-        //                 "lastUpdateTimeNs":1592065834511322514,
+        //                 "$lastUpdateTimeNs":1592065834511322514,
         //                 "walletVid":0
         //             ),
         //             {
@@ -1277,12 +1281,13 @@ class phemex extends Exchange {
         //                 "$balanceEv":0,
         //                 "$lockedTradingBalanceEv":0,
         //                 "$lockedWithdrawEv":0,
-        //                 "lastUpdateTimeNs":1592065834511322514,
+        //                 "$lastUpdateTimeNs":1592065834511322514,
         //                 "walletVid":0
         //             }
         //         )
         //     }
         //
+        $timestamp = null;
         $result = array( 'info' => $response );
         $data = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
@@ -1292,17 +1297,21 @@ class phemex extends Exchange {
             $currency = $this->safe_value($this->currencies, $code, array());
             $scale = $this->safe_integer($currency, 'valueScale', 8);
             $account = $this->account();
-            $balanceEv = $this->safe_float($balance, 'balanceEv');
-            $lockedTradingBalanceEv = $this->safe_float($balance, 'lockedTradingBalanceEv');
-            $lockedWithdrawEv = $this->safe_float($balance, 'lockedWithdrawEv');
+            $balanceEv = $this->safe_number($balance, 'balanceEv');
+            $lockedTradingBalanceEv = $this->safe_number($balance, 'lockedTradingBalanceEv');
+            $lockedWithdrawEv = $this->safe_number($balance, 'lockedWithdrawEv');
             $total = $this->from_en($balanceEv, $scale, $scale, DECIMAL_PLACES);
             $lockedTradingBalance = $this->from_en($lockedTradingBalanceEv, $scale, $scale, DECIMAL_PLACES);
             $lockedWithdraw = $this->from_en($lockedWithdrawEv, $scale, $scale, DECIMAL_PLACES);
             $used = $this->sum($lockedTradingBalance, $lockedWithdraw);
+            $lastUpdateTimeNs = $this->safe_integer_product($balance, 'lastUpdateTimeNs', 0.000001);
+            $timestamp = ($timestamp === null) ? $lastUpdateTimeNs : max ($timestamp, $lastUpdateTimeNs);
             $account['total'] = $total;
             $account['used'] = $used;
             $result[$code] = $account;
         }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
         return $this->parse_balance($result);
     }
 
@@ -1388,8 +1397,8 @@ class phemex extends Exchange {
         $code = $this->safe_currency_code($currencyId);
         $currency = $this->currency($code);
         $account = $this->account();
-        $accountBalanceEv = $this->safe_float($balance, 'accountBalanceEv');
-        $totalUsedBalanceEv = $this->safe_float($balance, 'totalUsedBalanceEv');
+        $accountBalanceEv = $this->safe_number($balance, 'accountBalanceEv');
+        $totalUsedBalanceEv = $this->safe_number($balance, 'totalUsedBalanceEv');
         $valueScale = $this->safe_integer($currency, 'valueScale', 8);
         $account['total'] = $this->from_en($accountBalanceEv, $valueScale, $valueScale, DECIMAL_PLACES);
         $account['used'] = $this->from_en($totalUsedBalanceEv, $valueScale, $valueScale, DECIMAL_PLACES);
@@ -1412,7 +1421,7 @@ class phemex extends Exchange {
             } else {
                 $currency = $this->safe_string($params, 'currency');
                 if ($currency === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchBalance requires a $code parameter or a $currency parameter for ' . $type . ' type');
+                    throw new ArgumentsRequired($this->id . ' fetchBalance() requires a $code parameter or a $currency parameter for ' . $type . ' type');
                 }
             }
             $method = 'privateGetAccountsAccountPositions';
@@ -1621,21 +1630,21 @@ class phemex extends Exchange {
         }
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $price = $this->from_ep($this->safe_float($order, 'priceEp'), $market);
+        $price = $this->from_ep($this->safe_number($order, 'priceEp'), $market);
         if ($price === 0) {
             $price = null;
         }
-        $amount = $this->from_ev($this->safe_float($order, 'baseQtyEv'), $market);
-        $remaining = $this->from_ev($this->safe_float($order, 'leavesBaseQtyEv'), $market);
-        $filled = $this->from_ev($this->safe_float($order, 'cumBaseQtyEv'), $market);
-        $cost = $this->from_ev($this->safe_float($order, 'quoteQtyEv'), $market);
-        $average = $this->from_ep($this->safe_float($order, 'avgPriceEp'), $market);
+        $amount = $this->from_ev($this->safe_number($order, 'baseQtyEv'), $market);
+        $remaining = $this->from_ev($this->safe_number($order, 'leavesBaseQtyEv'), $market);
+        $filled = $this->from_ev($this->safe_number($order, 'cumBaseQtyEv'), $market);
+        $cost = $this->from_ev($this->safe_number($order, 'quoteQtyEv'), $market);
+        $average = $this->from_ep($this->safe_number($order, 'avgPriceEp'), $market);
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $side = $this->safe_string_lower($order, 'side');
         $type = $this->parse_order_type($this->safe_string($order, 'ordType'));
         $timestamp = $this->safe_integer_product_2($order, 'actionTimeNs', 'createTimeNs', 0.000001);
         $fee = null;
-        $feeCost = $this->from_ev($this->safe_float($order, 'cumFeeEv'), $market);
+        $feeCost = $this->from_ev($this->safe_number($order, 'cumFeeEv'), $market);
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
@@ -1648,7 +1657,7 @@ class phemex extends Exchange {
             }
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $stopPrice = $this->from_ep($this->safe_float($order, 'stopPxEp', $market));
+        $stopPrice = $this->from_ep($this->safe_number($order, 'stopPxEp', $market));
         $postOnly = ($timeInForce === 'PO');
         return array(
             'info' => $order,
@@ -1721,18 +1730,18 @@ class phemex extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $side = $this->safe_string_lower($order, 'side');
         $type = $this->parse_order_type($this->safe_string($order, 'orderType'));
-        $price = $this->from_ep($this->safe_float($order, 'priceEp'), $market);
-        $amount = $this->safe_float($order, 'orderQty');
-        $filled = $this->safe_float($order, 'cumQty');
-        $remaining = $this->safe_float($order, 'leavesQty');
+        $price = $this->from_ep($this->safe_number($order, 'priceEp'), $market);
+        $amount = $this->safe_number($order, 'orderQty');
+        $filled = $this->safe_number($order, 'cumQty');
+        $remaining = $this->safe_number($order, 'leavesQty');
         $timestamp = $this->safe_integer_product($order, 'actionTimeNs', 0.000001);
-        $cost = $this->safe_float($order, 'cumValue');
+        $cost = $this->safe_number($order, 'cumValue');
         $lastTradeTimestamp = $this->safe_integer_product($order, 'transactTimeNs', 0.000001);
         if ($lastTradeTimestamp === 0) {
             $lastTradeTimestamp = null;
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $stopPrice = $this->safe_float($order, 'stopPx');
+        $stopPrice = $this->safe_number($order, 'stopPx');
         $postOnly = ($timeInForce === 'PO');
         return array(
             'info' => $order,
@@ -1800,18 +1809,20 @@ class phemex extends Exchange {
         );
         if ($market['spot']) {
             $qtyType = $this->safe_value($params, 'qtyType', 'ByBase');
-            if ($price !== null) {
-                $qtyType = 'ByQuote';
+            if (($type === 'Market') || ($type === 'Stop') || ($type === 'MarketIfTouched')) {
+                if ($price !== null) {
+                    $qtyType = 'ByQuote';
+                }
             }
             $request['qtyType'] = $qtyType;
             if ($qtyType === 'ByQuote') {
-                $cost = $this->safe_float($params, 'cost');
+                $cost = $this->safe_number($params, 'cost');
                 $params = $this->omit($params, 'cost');
                 if ($this->options['createOrderByQuoteRequiresPrice']) {
                     if ($price !== null) {
                         $cost = $amount * $price;
                     } else if ($cost === null) {
-                        throw new ArgumentsRequired($this->id . ' createOrder ' . $qtyType . ' requires a $price argument or a $cost parameter');
+                        throw new ArgumentsRequired($this->id . ' createOrder() ' . $qtyType . ' requires a $price argument or a $cost parameter');
                     }
                 }
                 $cost = ($cost === null) ? $amount : $cost;
@@ -1825,7 +1836,7 @@ class phemex extends Exchange {
         if ($type === 'Limit') {
             $request['priceEp'] = $this->to_ep($price, $market);
         }
-        $stopPrice = $this->safe_float_2($params, 'stopPx', 'stopPrice');
+        $stopPrice = $this->safe_number_2($params, 'stopPx', 'stopPrice');
         if ($stopPrice !== null) {
             $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
         }
@@ -1914,7 +1925,7 @@ class phemex extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1954,7 +1965,7 @@ class phemex extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1988,7 +1999,7 @@ class phemex extends Exchange {
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2010,7 +2021,7 @@ class phemex extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2034,7 +2045,7 @@ class phemex extends Exchange {
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2096,7 +2107,7 @@ class phemex extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2331,9 +2342,9 @@ class phemex extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $currency['code'];
-        $timestamp = $this->safe_integer($transaction, 'createdAt');
+        $timestamp = $this->safe_integer_2($transaction, 'createdAt', 'submitedAt');
         $type = $this->safe_string_lower($transaction, 'type');
-        $feeCost = $this->from_en($this->safe_float($transaction, 'feeEv'), $currency['valueScale'], $currency['precision']);
+        $feeCost = $this->from_en($this->safe_number($transaction, 'feeEv'), $currency['valueScale'], $currency['precision']);
         $fee = null;
         if ($feeCost !== null) {
             $type = 'withdrawal';
@@ -2343,7 +2354,7 @@ class phemex extends Exchange {
             );
         }
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $amount = $this->from_en($this->safe_float($transaction, 'amountEv'), $currency['valueScale'], $currency['precision']);
+        $amount = $this->from_en($this->safe_number($transaction, 'amountEv'), $currency['valueScale'], $currency['precision']);
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -2365,7 +2376,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $code = $this->safe_string($params, 'code');
         $request = array();
@@ -2492,7 +2503,7 @@ class phemex extends Exchange {
             $auth = $requestPath . $queryString . $expiryString . $payload;
             $headers['x-phemex-request-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
         }
-        $url = $this->urls['api'][$api] . $url;
+        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

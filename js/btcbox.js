@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, PermissionDenied, InvalidNonce, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -88,12 +89,12 @@ module.exports = class btcbox extends Exchange {
             if (free in response) {
                 const account = this.account ();
                 const used = currencyId + '_lock';
-                account['free'] = this.safeFloat (response, free);
-                account['used'] = this.safeFloat (response, used);
+                account['free'] = this.safeString (response, free);
+                account['used'] = this.safeString (response, used);
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -105,7 +106,7 @@ module.exports = class btcbox extends Exchange {
             request['coin'] = market['baseId'];
         }
         const response = await this.publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -114,16 +115,16 @@ module.exports = class btcbox extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -133,8 +134,8 @@ module.exports = class btcbox extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
+            'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
         };
     }
@@ -158,14 +159,11 @@ module.exports = class btcbox extends Exchange {
             symbol = market['symbol'];
         }
         const id = this.safeString (trade, 'tid');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const type = undefined;
         const side = this.safeString (trade, 'type');
         return {
@@ -265,21 +263,9 @@ module.exports = class btcbox extends Exchange {
         if (datetimeString !== undefined) {
             timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
         }
-        const amount = this.safeFloat (order, 'amount_original');
-        const remaining = this.safeFloat (order, 'amount_outstanding');
-        let filled = undefined;
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = amount - remaining;
-            }
-        }
-        const price = this.safeFloat (order, 'price');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (filled !== undefined) {
-                cost = filled * price;
-            }
-        }
+        const amount = this.safeNumber (order, 'amount_original');
+        const remaining = this.safeNumber (order, 'amount_outstanding');
+        const price = this.safeNumber (order, 'price');
         // status is set by fetchOrder method only
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         // fetchOrders do not return status, use heuristic
@@ -294,7 +280,7 @@ module.exports = class btcbox extends Exchange {
             symbol = market['symbol'];
         }
         const side = this.safeString (order, 'type');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -302,7 +288,7 @@ module.exports = class btcbox extends Exchange {
             'lastTradeTimestamp': undefined,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': undefined,
             'side': side,
             'type': undefined,
             'timeInForce': undefined,
@@ -311,12 +297,12 @@ module.exports = class btcbox extends Exchange {
             'symbol': symbol,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'trades': trades,
             'fee': undefined,
             'info': order,
             'average': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

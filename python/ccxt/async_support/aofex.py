@@ -16,6 +16,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.precise import Precise
 
 
 class aofex(Exchange):
@@ -26,6 +27,7 @@ class aofex(Exchange):
             'name': 'AOFEX',
             'countries': ['GB'],
             'rateLimit': 1000,
+            'hostname': 'openapi.aofex.com',
             'has': {
                 'fetchMarkets': True,
                 'fetchCurrencies': False,
@@ -58,8 +60,8 @@ class aofex(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg',
                 'api': {
-                    'public': 'https://openapi.aofex.com/openApi',
-                    'private': 'https://openapi.aofex.com/openApi',
+                    'public': 'https://{hostname}/openApi',
+                    'private': 'https://{hostname}/openApi',
                 },
                 'www': 'https://aofex.com',
                 'doc': 'https://aofex.zendesk.com/hc/en-us/sections/360005576574-API',
@@ -143,6 +145,9 @@ class aofex(Exchange):
                     'show_all': '0',  # '1' to show zero balances
                 },
             },
+            'commonCurrencies': {
+                'CPC': 'Consensus Planet Coin',
+            },
         })
 
     async def fetch_markets(self, params={}):
@@ -200,8 +205,10 @@ class aofex(Exchange):
             symbol = base + '/' + quote
             numericId = self.safe_integer(market, 'id')
             precision = self.safe_value(precisions, id, {})
-            makerFee = self.safe_float(market, 'maker_fee')
-            takerFee = self.safe_float(market, 'taker_fee')
+            makerFeeString = self.safe_string(market, 'maker_fee')
+            takerFeeString = self.safe_string(market, 'taker_fee')
+            makerFee = self.parse_number(Precise.string_div(makerFeeString, '1000'))
+            takerFee = self.parse_number(Precise.string_div(takerFeeString, '1000'))
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -211,20 +218,20 @@ class aofex(Exchange):
                 'base': base,
                 'quote': quote,
                 'active': None,
-                'maker': makerFee / 1000,
-                'taker': takerFee / 1000,
+                'maker': makerFee,
+                'taker': takerFee,
                 'precision': {
                     'amount': self.safe_integer(precision, 'amount'),
                     'price': self.safe_integer(precision, 'price'),
                 },
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'min_size'),
-                        'max': self.safe_float(market, 'max_size'),
+                        'min': self.safe_number(market, 'min_size'),
+                        'max': self.safe_number(market, 'max_size'),
                     },
                     'price': {
-                        'min': self.safe_float(market, 'min_price'),
-                        'max': self.safe_float(market, 'max_price'),
+                        'min': self.safe_number(market, 'min_price'),
+                        'max': self.safe_number(market, 'max_price'),
                     },
                     'cost': {
                         'min': None,
@@ -250,11 +257,11 @@ class aofex(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 'id'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'amount'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'amount'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -323,17 +330,21 @@ class aofex(Exchange):
         #         ]
         #     }
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         balances = self.safe_value(response, 'result', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'frozen')
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'frozen')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_trading_fee(self, symbol, params={}):
         await self.load_markets()
@@ -355,8 +366,8 @@ class aofex(Exchange):
         return {
             'info': response,
             'symbol': symbol,
-            'maker': self.safe_float(result, 'fromFee'),
-            'taker': self.safe_float(result, 'toFee'),
+            'maker': self.safe_number(result, 'fromFee'),
+            'taker': self.safe_number(result, 'toFee'),
         }
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -389,7 +400,7 @@ class aofex(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         timestamp = self.safe_integer(result, 'ts')
-        return self.parse_order_book(result, timestamp)
+        return self.parse_order_book(result, symbol, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -410,8 +421,8 @@ class aofex(Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        open = self.safe_float(ticker, 'open')
-        last = self.safe_float(ticker, 'close')
+        open = self.safe_number(ticker, 'open')
+        last = self.safe_number(ticker, 'close')
         change = None
         if symbol is not None:
             change = float(self.price_to_precision(symbol, last - open))
@@ -419,8 +430,8 @@ class aofex(Exchange):
             change = last - open
         average = self.sum(last, open) / 2
         percentage = change / open * 100
-        baseVolume = self.safe_float(ticker, 'amount')
-        quoteVolume = self.safe_float(ticker, 'vol')
+        baseVolume = self.safe_number(ticker, 'amount')
+        quoteVolume = self.safe_number(ticker, 'vol')
         vwap = self.vwap(baseVolume, quoteVolume)
         if vwap is not None:
             vwap = float(self.price_to_precision(symbol, vwap))
@@ -428,8 +439,8 @@ class aofex(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -541,12 +552,14 @@ class aofex(Exchange):
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         side = self.safe_string(trade, 'direction')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float_2(trade, 'amount', 'number')
-        cost = self.safe_float(trade, 'total_price')
-        if (cost is None) and (price is not None) and (amount is not None):
-            cost = price * amount
-        feeCost = self.safe_float(trade, 'fee')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'amount', 'number')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.safe_number(trade, 'total_price')
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
             feeCurrencyCode = None
@@ -683,85 +696,46 @@ class aofex(Exchange):
         orderType = self.safe_string(order, 'type')
         type = 'limit' if (orderType == '2') else 'market'
         side = self.safe_string(order, 'side')
-        # amount = self.safe_float(order, 'number')
-        # price = self.safe_float(order, 'price')
+        # amount = self.safe_number(order, 'number')
+        # price = self.safe_number(order, 'price')
         cost = None
         price = None
         amount = None
         average = None
-        number = self.safe_float(order, 'number')
-        totalPrice = self.safe_float(order, 'total_price')
+        number = self.safe_number(order, 'number')
+        totalPrice = self.safe_number(order, 'total_price')
         if type == 'limit':
             amount = number
-            price = self.safe_float(order, 'price')
+            price = self.safe_number(order, 'price')
         else:
-            average = self.safe_float(order, 'deal_price')
+            average = self.safe_number(order, 'deal_price')
             if side == 'buy':
-                amount = self.safe_float(order, 'deal_number')
+                amount = self.safe_number(order, 'deal_number')
             else:
                 amount = number
-        fee = None
-        trades = None
-        filled = None
-        feeCost = None
-        remaining = None
-        lastTradeTimestamp = None
         # all orders except new orders and canceled orders
-        if (orderStatus != '1') and (orderStatus != '6'):
-            rawTrades = self.safe_value(order, 'trades')
-            if rawTrades is not None:
-                for i in range(0, len(rawTrades)):
-                    rawTrades[i]['direction'] = side
-                trades = self.parse_trades(rawTrades, market, None, None, {
-                    'symbol': market['symbol'],
-                    'order': id,
-                    'side': side,
-                    'type': type,
-                })
-                tradesLength = len(trades)
-                if tradesLength > 0:
-                    firstTrade = trades[0]
-                    feeCost = firstTrade['fee']['cost']
-                    lastTradeTimestamp = firstTrade['timestamp']
-                    filled = firstTrade['amount']
-                    cost = firstTrade['cost']
-                    for i in range(1, len(trades)):
-                        trade = trades[i]
-                        feeCost = self.sum(feeCost, trade['fee']['cost'])
-                        filled = self.sum(filled, trade['amount'])
-                        cost = self.sum(cost, trade['cost'])
-                        lastTradeTimestamp = max(lastTradeTimestamp, trade['timestamp'])
-                    if amount is not None:
-                        filled = min(amount, filled)
-                    if filled > 0:
-                        average = cost / filled
-                if feeCost is not None:
-                    feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
-                    fee = {
-                        'cost': feeCost,
-                        'currency': feeCurrencyCode,
-                    }
-        else:
-            filled = 0
-            cost = 0
-        if cost is None:
-            if type == 'limit':
-                cost = totalPrice
-            elif side == 'buy':
-                cost = number
-        if filled is None:
-            if (type == 'limit') and (orderStatus == '3'):
-                filled = amount
-        if filled is not None:
-            if amount is not None:
-                remaining = max(amount - filled, 0)
-        return {
+        rawTrades = self.safe_value(order, 'trades', [])
+        for i in range(0, len(rawTrades)):
+            rawTrades[i]['direction'] = side
+        trades = self.parse_trades(rawTrades, market, None, None, {
+            'symbol': market['symbol'],
+            'order': id,
+            'type': type,
+        })
+        if type == 'limit':
+            cost = totalPrice
+        elif side == 'buy':
+            cost = number
+        filled = None
+        if (type == 'limit') and (orderStatus == '3'):
+            filled = amount
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': market['symbol'],
             'type': type,
@@ -774,10 +748,10 @@ class aofex(Exchange):
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'trades': trades,
-            'fee': fee,
-        }
+            'fee': None,
+        })
 
     async def fetch_closed_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -981,7 +955,7 @@ class aofex(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/' + path
+        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + '/' + path
         keys = list(params.keys())
         keysLength = len(keys)
         if api == 'public':

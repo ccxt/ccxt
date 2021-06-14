@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -162,9 +161,13 @@ class rightbtc(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            amountPrecision = self.safe_string(market, 'bid_asset_decimals')
+            pricePrecision = self.safe_string(market, 'ask_asset_decimals')
+            amountLimit = self.parse_precision(amountPrecision)
+            priceLimit = self.parse_precision(pricePrecision)
             precision = {
-                'amount': self.safe_integer(market, 'bid_asset_decimals'),
-                'price': self.safe_integer(market, 'ask_asset_decimals'),
+                'amount': int(amountPrecision),
+                'price': int(pricePrecision),
             }
             result.append({
                 'id': id,
@@ -177,12 +180,12 @@ class rightbtc(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['price']),
+                        'min': self.parse_number(amountLimit),
+                        'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': self.parse_number(priceLimit),
+                        'max': None,
                     },
                     'cost': {
                         'min': None,
@@ -193,8 +196,8 @@ class rightbtc(Exchange):
             })
         return result
 
-    def divide_safe_float(self, x, key, divisor):
-        value = self.safe_float(x, key)
+    def divide_safe_number(self, x, key, divisor):
+        value = self.safe_number(x, key)
         if value is not None:
             return value / divisor
         return value
@@ -202,12 +205,12 @@ class rightbtc(Exchange):
     def parse_ticker(self, ticker, market=None):
         symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'date')
-        last = self.divide_safe_float(ticker, 'last', 1e8)
-        high = self.divide_safe_float(ticker, 'high', 1e8)
-        low = self.divide_safe_float(ticker, 'low', 1e8)
-        bid = self.divide_safe_float(ticker, 'buy', 1e8)
-        ask = self.divide_safe_float(ticker, 'sell', 1e8)
-        baseVolume = self.divide_safe_float(ticker, 'vol24h', 1e8)
+        last = self.divide_safe_number(ticker, 'last', 1e8)
+        high = self.divide_safe_number(ticker, 'high', 1e8)
+        low = self.divide_safe_number(ticker, 'low', 1e8)
+        bid = self.divide_safe_number(ticker, 'buy', 1e8)
+        ask = self.divide_safe_number(ticker, 'sell', 1e8)
+        baseVolume = self.divide_safe_number(ticker, 'vol24h', 1e8)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -280,7 +283,7 @@ class rightbtc(Exchange):
                     amount / 1e8,
                     total / 1e8,
                 ])
-        return self.parse_order_book(bidsasks, None, 'bid', 'ask')
+        return self.parse_order_book(bidsasks, symbol, None, 'bid', 'ask')
 
     def parse_trade(self, trade, market=None):
         #
@@ -300,9 +303,9 @@ class rightbtc(Exchange):
         id = self.safe_string(trade, 'tid')
         id = self.safe_string(trade, 'trade_id', id)
         orderId = self.safe_string(trade, 'order_id')
-        price = self.divide_safe_float(trade, 'price', 1e8)
-        amount = self.safe_float(trade, 'amount')
-        amount = self.safe_float(trade, 'quantity', amount)
+        price = self.divide_safe_number(trade, 'price', 1e8)
+        amount = self.safe_number(trade, 'amount')
+        amount = self.safe_number(trade, 'quantity', amount)
         if amount is not None:
             amount = amount / 1e8
         marketId = self.safe_string(trade, 'trading_pair')
@@ -393,8 +396,8 @@ class rightbtc(Exchange):
             code = self.safe_currency_code(currencyId)
             account = self.account()
             # https://github.com/ccxt/ccxt/issues/3873
-            account['free'] = self.divide_safe_float(balance, 'balance', 1e8)
-            account['used'] = self.divide_safe_float(balance, 'frozen', 1e8)
+            account['free'] = self.divide_safe_number(balance, 'balance', 1e8)
+            account['used'] = self.divide_safe_number(balance, 'frozen', 1e8)
             result[code] = account
         return self.parse_balance(result)
 
@@ -416,7 +419,7 @@ class rightbtc(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -474,36 +477,29 @@ class rightbtc(Exchange):
             timestamp = order['time']
         elif 'transactTime' in order:
             timestamp = order['transactTime']
-        price = self.safe_float_2(order, 'limit', 'price')
+        price = self.safe_number_2(order, 'limit', 'price')
         if price is not None:
             price = price / 1e8
-        amount = self.divide_safe_float(order, 'quantity', 1e8)
-        filled = self.divide_safe_float(order, 'filled_quantity', 1e8)
-        remaining = self.divide_safe_float(order, 'rest', 1e8)
-        cost = self.divide_safe_float(order, 'cost', 1e8)
+        amount = self.divide_safe_number(order, 'quantity', 1e8)
+        filled = self.divide_safe_number(order, 'filled_quantity', 1e8)
+        remaining = self.divide_safe_number(order, 'rest', 1e8)
+        cost = self.divide_safe_number(order, 'cost', 1e8)
         # lines 483-494 should be generalized into a base class method
-        if amount is not None:
-            if remaining is None:
-                if filled is not None:
-                    remaining = max(0, amount - filled)
-            if filled is None:
-                if remaining is not None:
-                    filled = max(0, amount - remaining)
         type = 'limit'
         side = self.safe_string_lower(order, 'side')
-        feeCost = self.divide_safe_float(order, 'min_fee', 1e8)
+        feeCost = self.divide_safe_number(order, 'min_fee', 1e8)
         fee = None
         if feeCost is not None:
             feeCurrency = None
             if market is not None:
                 feeCurrency = market['quote']
             fee = {
-                'rate': self.safe_float(order, 'fee'),
+                'rate': self.safe_number(order, 'fee'),
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
         trades = None
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -525,11 +521,11 @@ class rightbtc(Exchange):
             'fee': fee,
             'trades': trades,
             'average': None,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -564,7 +560,7 @@ class rightbtc(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -599,7 +595,7 @@ class rightbtc(Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         ids = self.safe_string(params, 'ids')
         if (symbol is None) or (ids is None):
-            raise ArgumentsRequired(self.id + " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order ids separated with slashes.")  # eslint-disable-line quotes
+            raise ArgumentsRequired(self.id + " fetchOrders() requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order ids separated with slashes.")  # eslint-disable-line quotes
         if isinstance(ids, list):
             ids = '/'.join(ids)
         self.load_markets()
@@ -635,7 +631,7 @@ class rightbtc(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

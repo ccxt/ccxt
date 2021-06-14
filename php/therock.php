@@ -174,8 +174,8 @@ class therock extends Exchange {
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
-                $buy_fee = $this->safe_float($market, 'buy_fee');
-                $sell_fee = $this->safe_float($market, 'sell_fee');
+                $buy_fee = $this->safe_number($market, 'buy_fee');
+                $sell_fee = $this->safe_number($market, 'sell_fee');
                 $taker = max ($buy_fee, $sell_fee);
                 $taker = $taker / 100;
                 $maker = $taker;
@@ -196,11 +196,11 @@ class therock extends Exchange {
                     ),
                     'limits' => array(
                         'amount' => array(
-                            'min' => $this->safe_float($market, 'minimum_quantity_offer'),
+                            'min' => $this->safe_number($market, 'minimum_quantity_offer'),
                             'max' => null,
                         ),
                         'price' => array(
-                            'min' => $this->safe_float($market, 'minimum_price_offer'),
+                            'min' => $this->safe_number($market, 'minimum_price_offer'),
                             'max' => null,
                         ),
                         'cost' => array(
@@ -224,11 +224,11 @@ class therock extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'trading_balance');
-            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['free'] = $this->safe_string($balance, 'trading_balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -238,7 +238,7 @@ class therock extends Exchange {
         );
         $orderbook = $this->publicGetFundsIdOrderbook (array_merge($request, $params));
         $timestamp = $this->parse8601($this->safe_string($orderbook, 'date'));
-        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -247,27 +247,27 @@ class therock extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_float($ticker, 'open'),
+            'open' => $this->safe_number($ticker, 'open'),
             'close' => $last,
             'last' => $last,
-            'previousClose' => $this->safe_float($ticker, 'close'), // previous day close, if any
+            'previousClose' => $this->safe_number($ticker, 'close'), // previous day close, if any
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume_traded'),
-            'quoteVolume' => $this->safe_float($ticker, 'volume'),
+            'baseVolume' => $this->safe_number($ticker, 'volume_traded'),
+            'quoteVolume' => $this->safe_number($ticker, 'volume'),
             'info' => $ticker,
         );
     }
@@ -342,14 +342,11 @@ class therock extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order_id');
         $side = $this->safe_string($trade, 'side');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
         $feeCost = null;
         $transactions = $this->safe_value($trade, 'transactions', array());
@@ -359,7 +356,7 @@ class therock extends Exchange {
             if ($feeCost === null) {
                 $feeCost = 0;
             }
-            $feeCost = $this->sum($feeCost, $this->safe_float($feeTransactions[$i], 'price'));
+            $feeCost = $this->sum($feeCost, $this->safe_number($feeTransactions[$i], 'price'));
         }
         if ($feeCost !== null) {
             $fee = array(
@@ -514,7 +511,7 @@ class therock extends Exchange {
         }
         $currencyId = $this->safe_string($item, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $amount = $this->safe_float($item, 'price');
+        $amount = $this->safe_number($item, 'price');
         $timestamp = $this->parse8601($this->safe_string($item, 'date'));
         $status = 'ok';
         return array(
@@ -746,7 +743,7 @@ class therock extends Exchange {
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $amount = $this->safe_float($transaction, 'price');
+        $amount = $this->safe_number($transaction, 'price');
         $timestamp = $this->parse8601($this->safe_string($transaction, 'date'));
         $status = 'ok';
         // todo parse tags
@@ -921,15 +918,15 @@ class therock extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($order, 'date'));
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
-        $amount = $this->safe_float($order, 'amount');
-        $remaining = $this->safe_float($order, 'amount_unfilled');
+        $amount = $this->safe_number($order, 'amount');
+        $remaining = $this->safe_number($order, 'amount_unfilled');
         $filled = null;
         if ($amount !== null) {
             if ($remaining !== null) {
                 $filled = $amount - $remaining;
             }
         }
-        $price = $this->safe_float($order, 'price');
+        $price = $this->safe_number($order, 'price');
         $trades = $this->safe_value($order, 'trades');
         $cost = null;
         $average = null;
@@ -956,7 +953,7 @@ class therock extends Exchange {
                 $cost = 0;
             }
         }
-        $stopPrice = $this->safe_float($order, 'conditional_price');
+        $stopPrice = $this->safe_number($order, 'conditional_price');
         return array(
             'id' => $id,
             'clientOrderId' => null,
@@ -998,7 +995,7 @@ class therock extends Exchange {
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1043,7 +1040,7 @@ class therock extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1082,7 +1079,7 @@ class therock extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

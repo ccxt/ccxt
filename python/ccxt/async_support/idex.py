@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
@@ -16,6 +15,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
+from ccxt.base.precise import Precise
 
 
 class idex(Exchange):
@@ -67,8 +67,8 @@ class idex(Exchange):
                 },
                 'logo': 'https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg',
                 'api': {
-                    'public': 'https://api.idex.io',
-                    'private': 'https://api.idex.io',
+                    'ETH': 'https://api-eth.idex.io',
+                    'BSC': 'https://api-bsc.idex.io',
                 },
                 'www': 'https://idex.io',
                 'doc': [
@@ -114,6 +114,7 @@ class idex(Exchange):
             'options': {
                 'defaultTimeInForce': 'gtc',
                 'defaultSelfTradePrevention': 'cn',
+                'network': 'ETH',  # also supports BSC
             },
             'exceptions': {
                 'INVALID_ORDER_QUANTITY': InvalidOrder,
@@ -160,13 +161,15 @@ class idex(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            basePrecision = self.safe_integer(entry, 'baseAssetPrecision')
-            quotePrecision = self.safe_integer(entry, 'quoteAssetPrecision')
+            basePrecisionString = self.safe_string(entry, 'baseAssetPrecision')
+            quotePrecisionString = self.safe_string(entry, 'quoteAssetPrecision')
+            basePrecision = self.parse_precision(basePrecisionString)
+            quotePrecision = self.parse_precision(quotePrecisionString)
             status = self.safe_string(entry, 'status')
             active = status == 'active'
             precision = {
-                'amount': basePrecision,
-                'price': quotePrecision,
+                'amount': int(basePrecisionString),
+                'price': int(quotePrecisionString),
             }
             result.append({
                 'symbol': symbol,
@@ -180,11 +183,11 @@ class idex(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': self.parse_number(basePrecision),
                         'max': None,
                     },
                     'price': {
-                        'min': None,
+                        'min': self.parse_number(quotePrecision),
                         'max': None,
                     },
                     'cost': {
@@ -246,12 +249,6 @@ class idex(Exchange):
         response = await self.publicGetTickers(params)
         return self.parse_tickers(response, symbols)
 
-    def parse_tickers(self, rawTickers, symbols=None):
-        tickers = []
-        for i in range(0, len(rawTickers)):
-            tickers.append(self.parse_ticker(rawTickers[i]))
-        return self.filter_by_array(tickers, 'symbol', symbols)
-
     def parse_ticker(self, ticker, market=None):
         # {
         #   market: 'DIL-ETH',
@@ -271,16 +268,16 @@ class idex(Exchange):
         # }
         marketId = self.safe_string(ticker, 'market')
         symbol = self.safe_symbol(marketId, market, '-')
-        baseVolume = self.safe_float(ticker, 'baseVolume')
-        quoteVolume = self.safe_float(ticker, 'quoteVolume')
+        baseVolume = self.safe_number(ticker, 'baseVolume')
+        quoteVolume = self.safe_number(ticker, 'quoteVolume')
         timestamp = self.safe_integer(ticker, 'time')
-        open = self.safe_float(ticker, 'open')
-        high = self.safe_float(ticker, 'high')
-        low = self.safe_float(ticker, 'low')
-        close = self.safe_float(ticker, 'close')
-        ask = self.safe_float(ticker, 'ask')
-        bid = self.safe_float(ticker, 'bid')
-        percentage = self.safe_float(ticker, 'percentChange')
+        open = self.safe_number(ticker, 'open')
+        high = self.safe_number(ticker, 'high')
+        low = self.safe_number(ticker, 'low')
+        close = self.safe_number(ticker, 'close')
+        ask = self.safe_number(ticker, 'ask')
+        bid = self.safe_number(ticker, 'bid')
+        percentage = self.safe_number(ticker, 'percentChange')
         if percentage is not None:
             percentage = 1 + percentage / 100
         change = None
@@ -349,11 +346,11 @@ class idex(Exchange):
         #   sequence: 3853
         # }
         timestamp = self.safe_integer(ohlcv, 'start')
-        open = self.safe_float(ohlcv, 'open')
-        high = self.safe_float(ohlcv, 'high')
-        low = self.safe_float(ohlcv, 'low')
-        close = self.safe_float(ohlcv, 'close')
-        volume = self.safe_float(ohlcv, 'volume')
+        open = self.safe_number(ohlcv, 'open')
+        high = self.safe_number(ohlcv, 'high')
+        low = self.safe_number(ohlcv, 'low')
+        close = self.safe_number(ohlcv, 'close')
+        volume = self.safe_number(ohlcv, 'volume')
         return [timestamp, open, high, low, close, volume]
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -411,9 +408,13 @@ class idex(Exchange):
         #   txStatus: 'mined'
         # }
         id = self.safe_string(trade, 'fillId')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'quantity')
-        cost = self.safe_float(trade, 'quoteQuantity')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'quantity')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.safe_number(trade, 'quoteQuantity')
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         timestamp = self.safe_integer(trade, 'time')
         marketId = self.safe_string(trade, 'market')
         symbol = self.safe_symbol(marketId, market, '-')
@@ -422,7 +423,7 @@ class idex(Exchange):
         oppositeSide = 'sell' if (makerSide == 'buy') else 'buy'
         side = self.safe_string(trade, 'side', oppositeSide)
         takerOrMaker = self.safe_string(trade, 'liquidity', 'taker')
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'feeAsset')
@@ -479,6 +480,7 @@ class idex(Exchange):
         response = await self.publicGetOrderbook(self.extend(request, params))
         nonce = self.safe_integer(response, 'sequence')
         return {
+            'symbol': symbol,
             'timestamp': None,
             'datetime': None,
             'nonce': nonce,
@@ -491,8 +493,8 @@ class idex(Exchange):
         result = []
         for i in range(0, len(bookSide)):
             order = bookSide[i]
-            price = self.safe_float(order, 0)
-            amount = self.safe_float(order, 1)
+            price = self.safe_number(order, 0)
+            amount = self.safe_number(order, 1)
             orderCount = self.safe_integer(order, 2)
             result.append([price, amount, orderCount])
         descending = side == 'bids'
@@ -514,9 +516,10 @@ class idex(Exchange):
             entry = response[i]
             name = self.safe_string(entry, 'name')
             currencyId = self.safe_string(entry, 'symbol')
-            precision = self.safe_integer(entry, 'exchangeDecimals')
+            precisionString = self.safe_string(entry, 'exchangeDecimals')
             code = self.safe_currency_code(currencyId)
-            lot = math.pow(-10, precision)
+            precision = self.parse_precision(precisionString)
+            lot = self.parse_number(precision)
             result[code] = {
                 'id': currencyId,
                 'code': code,
@@ -525,11 +528,9 @@ class idex(Exchange):
                 'name': name,
                 'active': None,
                 'fee': None,
-                'precision': precision,
+                'precision': int(precisionString),
                 'limits': {
                     'amount': {'min': lot, 'max': None},
-                    'price': {'min': lot, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': lot, 'max': None},
                 },
             }
@@ -567,20 +568,19 @@ class idex(Exchange):
                 raise e
         result = {
             'info': response,
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(response)):
             entry = response[i]
             currencyId = self.safe_string(entry, 'asset')
             code = self.safe_currency_code(currencyId)
-            total = self.safe_float(entry, 'quantity')
-            free = self.safe_float(entry, 'availableForTrade')
-            used = self.safe_float(entry, 'locked')
-            result[code] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
-        return self.parse_balance(result)
+            account = self.account()
+            account['total'] = self.safe_string(entry, 'quantity')
+            account['free'] = self.safe_string(entry, 'availableForTrade')
+            account['used'] = self.safe_string(entry, 'locked')
+            result[code] = account
+        return self.parse_balance(result, False)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.check_required_credentials()
@@ -784,35 +784,19 @@ class idex(Exchange):
         symbol = self.safe_symbol(marketId, market, '-')
         trades = self.parse_trades(fills, market)
         type = self.safe_string(order, 'type')
-        amount = self.safe_float(order, 'originalQuantity')
-        filled = self.safe_float(order, 'executedQuantity')
-        remaining = None
-        if (amount is not None) and (filled is not None):
-            remaining = amount - filled
-        average = self.safe_float(order, 'avgExecutionPrice')
-        price = self.safe_float(order, 'price', average)  # for market orders
-        cost = None
-        if (amount is not None) and (price is not None):
-            cost = amount * price
+        amount = self.safe_number(order, 'originalQuantity')
+        filled = self.safe_number(order, 'executedQuantity')
+        average = self.safe_number(order, 'avgExecutionPrice')
+        price = self.safe_number(order, 'price')
         rawStatus = self.safe_string(order, 'status')
         status = self.parse_order_status(rawStatus)
-        fee = {
-            'currency': None,
-            'cost': None,
-        }
-        lastTrade = None
-        for i in range(0, len(trades)):
-            lastTrade = trades[i]
-            fee['currency'] = lastTrade['fee']['currency']
-            fee['cost'] = self.sum(fee['cost'], lastTrade['fee']['cost'])
-        lastTradeTimestamp = self.safe_integer(lastTrade, 'timestamp')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
@@ -821,14 +805,14 @@ class idex(Exchange):
             'price': price,
             'stopPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
-            'fee': fee,
+            'fee': None,
             'trades': trades,
-        }
+        })
 
     async def associate_wallet(self, walletAddress, params={}):
         nonce = self.uuidv1()
@@ -895,10 +879,11 @@ class idex(Exchange):
             if type != 'market':
                 raise NotSupported(self.id + ' quoteOrderQuantity is not supported for ' + type + ' orders, only supported for market orders')
             amountEnum = 1
-            amount = self.safe_float(params, 'quoteOrderQuantity')
+            amount = self.safe_number(params, 'quoteOrderQuantity')
         sideEnum = 0 if (side == 'buy') else 1
         walletBytes = self.remove0x_prefix(self.walletAddress)
-        orderVersion = 1
+        network = self.safe_string(self.options, 'network', 'ETH')
+        orderVersion = 1 if (network == 'ETH') else 2
         amountString = self.amount_to_precision(symbol, amount)
         # https://docs.idex.io/#time-in-force
         timeInForceEnums = {
@@ -1172,13 +1157,13 @@ class idex(Exchange):
             type = 'withdrawal'
         id = self.safe_string_2(transaction, 'depositId', 'withdrawId')
         code = self.safe_currency_code(self.safe_string(transaction, 'asset'), currency)
-        amount = self.safe_float(transaction, 'quantity')
+        amount = self.safe_number(transaction, 'quantity')
         txid = self.safe_string(transaction, 'txId')
         timestamp = self.safe_integer(transaction, 'txTime')
         fee = None
         if 'fee' in transaction:
             fee = {
-                'cost': self.safe_float(transaction, 'fee'),
+                'cost': self.safe_number(transaction, 'fee'),
                 'currency': 'ETH',
             }
         rawStatus = self.safe_string(transaction, 'txStatus')
@@ -1201,8 +1186,9 @@ class idex(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        network = self.safe_string(self.options, 'network', 'ETH')
         version = self.safe_string(self.options, 'version', 'v1')
-        url = self.urls['api'][api] + '/' + version + '/' + path
+        url = self.urls['api'][network] + '/' + version + '/' + path
         keys = list(params.keys())
         length = len(keys)
         query = None

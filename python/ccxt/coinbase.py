@@ -8,6 +8,8 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class coinbase(Exchange):
@@ -127,23 +129,28 @@ class coinbase(Exchange):
                 },
             },
             'exceptions': {
-                'two_factor_required': AuthenticationError,  # 402 When sending money over 2fa limit
-                'param_required': ExchangeError,  # 400 Missing parameter
-                'validation_error': ExchangeError,  # 400 Unable to validate POST/PUT
-                'invalid_request': ExchangeError,  # 400 Invalid request
-                'personal_details_required': AuthenticationError,  # 400 User’s personal detail required to complete self request
-                'identity_verification_required': AuthenticationError,  # 400 Identity verification is required to complete self request
-                'jumio_verification_required': AuthenticationError,  # 400 Document verification is required to complete self request
-                'jumio_face_match_verification_required': AuthenticationError,  # 400 Document verification including face match is required to complete self request
-                'unverified_email': AuthenticationError,  # 400 User has not verified their email
-                'authentication_error': AuthenticationError,  # 401 Invalid auth(generic)
-                'invalid_token': AuthenticationError,  # 401 Invalid Oauth token
-                'revoked_token': AuthenticationError,  # 401 Revoked Oauth token
-                'expired_token': AuthenticationError,  # 401 Expired Oauth token
-                'invalid_scope': AuthenticationError,  # 403 User hasn’t authenticated necessary scope
-                'not_found': ExchangeError,  # 404 Resource not found
-                'rate_limit_exceeded': RateLimitExceeded,  # 429 Rate limit exceeded
-                'internal_server_error': ExchangeError,  # 500 Internal server error
+                'exact': {
+                    'two_factor_required': AuthenticationError,  # 402 When sending money over 2fa limit
+                    'param_required': ExchangeError,  # 400 Missing parameter
+                    'validation_error': ExchangeError,  # 400 Unable to validate POST/PUT
+                    'invalid_request': ExchangeError,  # 400 Invalid request
+                    'personal_details_required': AuthenticationError,  # 400 User’s personal detail required to complete self request
+                    'identity_verification_required': AuthenticationError,  # 400 Identity verification is required to complete self request
+                    'jumio_verification_required': AuthenticationError,  # 400 Document verification is required to complete self request
+                    'jumio_face_match_verification_required': AuthenticationError,  # 400 Document verification including face match is required to complete self request
+                    'unverified_email': AuthenticationError,  # 400 User has not verified their email
+                    'authentication_error': AuthenticationError,  # 401 Invalid auth(generic)
+                    'invalid_token': AuthenticationError,  # 401 Invalid Oauth token
+                    'revoked_token': AuthenticationError,  # 401 Revoked Oauth token
+                    'expired_token': AuthenticationError,  # 401 Expired Oauth token
+                    'invalid_scope': AuthenticationError,  # 403 User hasn’t authenticated necessary scope
+                    'not_found': ExchangeError,  # 404 Resource not found
+                    'rate_limit_exceeded': RateLimitExceeded,  # 429 Rate limit exceeded
+                    'internal_server_error': ExchangeError,  # 500 Internal server error
+                },
+                'broad': {
+                    'request timestamp expired': InvalidNonce,  # {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
+                },
             },
             'commonCurrencies': {
                 'CGLD': 'CELO',
@@ -174,7 +181,11 @@ class coinbase(Exchange):
         return self.safe_timestamp(data, 'epoch')
 
     def fetch_accounts(self, params={}):
-        response = self.privateGetAccounts(params)
+        self.load_markets()
+        request = {
+            'limit': 100,
+        }
+        response = self.privateGetAccounts(self.extend(request, params))
         #
         #     {
         #         "id": "XLM",
@@ -391,10 +402,10 @@ class coinbase(Exchange):
         timestamp = self.parse8601(self.safe_value(transaction, 'created_at'))
         updated = self.parse8601(self.safe_value(transaction, 'updated_at'))
         type = self.safe_string(transaction, 'resource')
-        amount = self.safe_float(subtotalObject, 'amount')
+        amount = self.safe_number(subtotalObject, 'amount')
         currencyId = self.safe_string(subtotalObject, 'currency')
         currency = self.safe_currency_code(currencyId)
-        feeCost = self.safe_float(feeObject, 'amount')
+        feeCost = self.safe_number(feeObject, 'amount')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         fee = {
@@ -466,13 +477,12 @@ class coinbase(Exchange):
         orderId = None
         side = self.safe_string(trade, 'resource')
         type = None
-        cost = self.safe_float(subtotalObject, 'amount')
-        amount = self.safe_float(amountObject, 'amount')
-        price = None
-        if cost is not None:
-            if (amount is not None) and (amount > 0):
-                price = cost / amount
-        feeCost = self.safe_float(feeObject, 'amount')
+        costString = self.safe_string(subtotalObject, 'amount')
+        amountString = self.safe_string(amountObject, 'amount')
+        cost = self.parse_number(costString)
+        amount = self.parse_number(amountString)
+        price = self.parse_number(Precise.string_div(costString, amountString))
+        feeCost = self.safe_number(feeObject, 'amount')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         fee = {
@@ -539,7 +549,7 @@ class coinbase(Exchange):
                                 'max': None,
                             },
                             'cost': {
-                                'min': self.safe_float(quoteCurrency, 'min_size'),
+                                'min': self.safe_number(quoteCurrency, 'min_size'),
                                 'max': None,
                             },
                         },
@@ -615,15 +625,7 @@ class coinbase(Exchange):
                 'precision': None,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(currency, 'min_size'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
+                        'min': self.safe_number(currency, 'min_size'),
                         'max': None,
                     },
                     'withdraw': {
@@ -644,9 +646,9 @@ class coinbase(Exchange):
         buy = self.publicGetPricesSymbolBuy(request)
         sell = self.publicGetPricesSymbolSell(request)
         spot = self.publicGetPricesSymbolSpot(request)
-        ask = self.safe_float(buy['data'], 'amount')
-        bid = self.safe_float(sell['data'], 'amount')
-        last = self.safe_float(spot['data'], 'amount')
+        ask = self.safe_number(buy['data'], 'amount')
+        bid = self.safe_number(sell['data'], 'amount')
+        last = self.safe_number(spot['data'], 'amount')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -676,29 +678,33 @@ class coinbase(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetAccounts(params)
+        request = {
+            'limit': 100,
+        }
+        response = self.privateGetAccounts(self.extend(request, params))
         balances = self.safe_value(response, 'data')
         accounts = self.safe_value(params, 'type', self.options['accounts'])
         result = {'info': response}
         for b in range(0, len(balances)):
             balance = balances[b]
-            if self.in_array(balance['type'], accounts):
-                currencyId = self.safe_string(balance['balance'], 'currency')
-                code = self.safe_currency_code(currencyId)
-                total = self.safe_float(balance['balance'], 'amount')
-                free = total
-                used = None
-                if code in result:
-                    result[code]['free'] = self.sum(result[code]['free'], total)
-                    result[code]['total'] = self.sum(result[code]['total'], total)
-                else:
-                    account = {
-                        'free': free,
-                        'used': used,
-                        'total': total,
-                    }
+            type = self.safe_string(balance, 'type')
+            if self.in_array(type, accounts):
+                value = self.safe_value(balance, 'balance')
+                if value is not None:
+                    currencyId = self.safe_string(value, 'currency')
+                    code = self.safe_currency_code(currencyId)
+                    total = self.safe_string(value, 'amount')
+                    free = total
+                    account = self.safe_value(result, code)
+                    if account is None:
+                        account = self.account()
+                        account['free'] = free
+                        account['total'] = total
+                    else:
+                        account['free'] = Precise.string_add(account['free'], total)
+                        account['total'] = Precise.string_add(account['total'], total)
                     result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -978,7 +984,7 @@ class coinbase(Exchange):
         #     }
         #
         amountInfo = self.safe_value(item, 'amount', {})
-        amount = self.safe_float(amountInfo, 'amount')
+        amount = self.safe_number(amountInfo, 'amount')
         direction = None
         if amount < 0:
             direction = 'out'
@@ -1003,7 +1009,7 @@ class coinbase(Exchange):
         if feeInfo is not None:
             feeCurrencyId = self.safe_string(feeInfo, 'currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId, currency)
-            feeAmount = self.safe_float(feeInfo, 'amount')
+            feeAmount = self.safe_number(feeInfo, 'amount')
             fee = {
                 'cost': feeAmount,
                 'currency': feeCurrencyCode,
@@ -1117,7 +1123,9 @@ class coinbase(Exchange):
         #
         errorCode = self.safe_string(response, 'error')
         if errorCode is not None:
-            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+            errorMessage = self.safe_string(response, 'error_description')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
             raise ExchangeError(feedback)
         errors = self.safe_value(response, 'errors')
         if errors is not None:
@@ -1125,8 +1133,10 @@ class coinbase(Exchange):
                 numErrors = len(errors)
                 if numErrors > 0:
                     errorCode = self.safe_string(errors[0], 'id')
+                    errorMessage = self.safe_string(errors[0], 'message')
                     if errorCode is not None:
-                        self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                        self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
                         raise ExchangeError(feedback)
         data = self.safe_value(response, 'data')
         if data is None:

@@ -195,7 +195,6 @@ function createMarkdownTable (array, markdownMethod, centeredColumns) {
     //
 
     const columns = underline.split ('|')
-
     for (const i of centeredColumns) {
         columns[i] = ':' + columns[i].slice (1, columns[i].length - 1) + ':'
     }
@@ -219,51 +218,45 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     const exchangesNotListedInDocs = [ 'hitbtc2' ]
 
     const arrayOfExchanges = values (exchanges)
+    const numExchanges = arrayOfExchanges.length
 
-    if (allExchangesPaths) {
-
+    if (allExchangesPaths && numExchanges) {
         const supportedExchangesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfExchanges, [ 3, 4 ])
-            , numExchanges = arrayOfExchanges.length
             , beginning = "The CCXT library currently supports the following "
             , ending = " cryptocurrency exchange markets and trading APIs:\n\n"
             , totalString = beginning + numExchanges + ending
             , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
             , allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\| logo[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
-
         for (const path of allExchangesPaths) {
             logExportExchanges (path, allExchangesRegex, allExchangesReplacement)
         }
     }
 
-    if (proExchangesPaths) {
-
-        const proExchanges = arrayOfExchanges.filter (exchange => exchange.pro)
-            , proExchangesMarkdownTable = createMarkdownTable (proExchanges, createMarkdownListOfExchanges, [ 3, 4 ])
-            , numExchanges = proExchanges.length
+    const proExchanges = arrayOfExchanges.filter (exchange => exchange.pro)
+    const numProExchanges = proExchanges.length
+    if (proExchangesPaths && numProExchanges) {
+        const proExchangesMarkdownTable = createMarkdownTable (proExchanges, createMarkdownListOfExchanges, [ 3, 4 ])
             , beginning = "The CCXT Pro library currently supports the following "
             , ending = " cryptocurrency exchange markets and WebSocket trading APIs:\n\n"
-            , totalString = beginning + numExchanges + ending
+            , totalString = beginning + numProExchanges + ending
             , proExchangesReplacement = totalString + proExchangesMarkdownTable + "$1"
             , proExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
-
         for (const path of proExchangesPaths) {
             logExportExchanges (path, proExchangesRegex, proExchangesReplacement)
         }
     }
 
-    if (certifiedExchangesPaths) {
-            const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified)
-                , certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfExchanges, [ 3, 4 ])
-                , certifiedExchangesReplacement = '$1' + certifiedExchangesMarkdownTable + "\n"
-                , certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
-
+    const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified)
+    if (certifiedExchangesPaths && certifiedExchanges.length) {
+        const certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfExchanges, [ 3, 4 ])
+            , certifiedExchangesReplacement = '$1' + certifiedExchangesMarkdownTable + "\n"
+            , certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
         for (const path of certifiedExchangesPaths) {
             logExportExchanges (path, certifiedExchangesRegex, certifiedExchangesReplacement)
         }
     }
 
     if (exchangesByCountriesPaths) {
-
         const exchangesByCountriesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfExchangesByCountries, [ 4, 5 ])
         const result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + exchangesByCountriesMarkdownTable + "\n\n"
         for (const path of exchangesByCountriesPaths) {
@@ -385,7 +378,7 @@ function exportEverything () {
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },
         {
-            file: './php/base/Exchange.php',
+            file: './php/Exchange.php',
             regex: /public static \$exchanges \= array\s*\([^\)]+\)/,
             replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
         },

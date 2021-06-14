@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -96,12 +97,12 @@ module.exports = class paymium extends Exchange {
             if (free in response) {
                 const account = this.account ();
                 const used = 'locked_' + currencyId;
-                account['free'] = this.safeFloat (response, free);
-                account['used'] = this.safeFloat (response, used);
+                account['free'] = this.safeString (response, free);
+                account['used'] = this.safeString (response, used);
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -110,7 +111,7 @@ module.exports = class paymium extends Exchange {
             'currency': this.marketId (symbol),
         };
         const response = await this.publicGetDataCurrencyDepth (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -120,30 +121,30 @@ module.exports = class paymium extends Exchange {
         };
         const ticker = await this.publicGetDataCurrencyTicker (this.extend (request, params));
         const timestamp = this.safeTimestamp (ticker, 'at');
-        const vwap = this.safeFloat (ticker, 'vwap');
-        const baseVolume = this.safeFloat (ticker, 'volume');
+        const vwap = this.safeNumber (ticker, 'vwap');
+        const baseVolume = this.safeNumber (ticker, 'volume');
         let quoteVolume = undefined;
         if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
         }
-        const last = this.safeFloat (ticker, 'price');
+        const last = this.safeNumber (ticker, 'price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': this.safeNumber (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeFloat (ticker, 'variation'),
+            'percentage': this.safeNumber (ticker, 'variation'),
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -159,15 +160,12 @@ module.exports = class paymium extends Exchange {
             symbol = market['symbol'];
         }
         const side = this.safeString (trade, 'side');
-        const price = this.safeFloat (trade, 'price');
+        const priceString = this.safeString (trade, 'price');
         const amountField = 'traded_' + market['base'].toLowerCase ();
-        const amount = this.safeFloat (trade, amountField);
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
-            }
-        }
+        const amountString = this.safeString (trade, amountField);
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         return {
             'info': trade,
             'id': id,

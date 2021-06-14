@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -113,6 +114,7 @@ module.exports = class poloniex extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     // starting from Jan 8 2020
                     'maker': 0.0009,
                     'taker': 0.0009,
@@ -172,8 +174,15 @@ module.exports = class poloniex extends Exchange {
                         'min': {
                             'BTC': 0.0001,
                             'ETH': 0.0001,
-                            'XMR': 0.0001,
                             'USDT': 1.0,
+                            'TRX': 100,
+                            'BNB': 0.06,
+                            'USDC': 1.0,
+                            'USDJ': 1.0,
+                            'TUSD': 0.0001,
+                            'DAI': 1.0,
+                            'PAX': 1.0,
+                            'BUSD': 1.0,
                         },
                     },
                 },
@@ -200,30 +209,11 @@ module.exports = class poloniex extends Exchange {
                     'Nonce must be greater': InvalidNonce,
                     'You have already called cancelOrder or moveOrder on this order.': CancelPending,
                     'Amount must be at least': InvalidOrder, // {"error":"Amount must be at least 0.000001."}
-                    'is either completed or does not exist': InvalidOrder, // {"error":"Order 587957810791 is either completed or does not exist."}
+                    'is either completed or does not exist': OrderNotFound, // {"error":"Order 587957810791 is either completed or does not exist."}
                     'Error pulling ': ExchangeError, // {"error":"Error pulling order book"}
                 },
             },
-            'orders': {}, // orders cache / emulation
         });
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        let key = 'quote';
-        const rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
-        };
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -241,11 +231,11 @@ module.exports = class poloniex extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 'date'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'quoteVolume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'quoteVolume'),
         ];
     }
 
@@ -331,18 +321,29 @@ module.exports = class poloniex extends Exchange {
             'account': 'all',
         };
         const response = await this.privatePostReturnCompleteBalances (this.extend (request, params));
-        const result = { 'info': response };
+        //
+        //     {
+        //         "1CR":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
+        //         "ABY":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
+        //         "AC":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
+        //     }
+        //
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const currencyIds = Object.keys (response);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const balance = this.safeValue (response, currencyId, {});
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'onOrders');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'onOrders');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchTradingFees (params = {}) {
@@ -360,8 +361,8 @@ module.exports = class poloniex extends Exchange {
         //
         return {
             'info': fees,
-            'maker': this.safeFloat (fees, 'makerFee'),
-            'taker': this.safeFloat (fees, 'takerFee'),
+            'maker': this.safeNumber (fees, 'makerFee'),
+            'taker': this.safeNumber (fees, 'takerFee'),
             'withdraw': {},
             'deposit': {},
         };
@@ -376,7 +377,7 @@ module.exports = class poloniex extends Exchange {
             request['depth'] = limit; // 100
         }
         const response = await this.publicGetReturnOrderBook (this.extend (request, params));
-        const orderbook = this.parseOrderBook (response);
+        const orderbook = this.parseOrderBook (response, symbol);
         orderbook['nonce'] = this.safeInteger (response, 'seq');
         return orderbook;
     }
@@ -403,7 +404,7 @@ module.exports = class poloniex extends Exchange {
                 const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
-            const orderbook = this.parseOrderBook (response[marketId]);
+            const orderbook = this.parseOrderBook (response[marketId], symbol);
             orderbook['nonce'] = this.safeInteger (response[marketId], 'seq');
             result[symbol] = orderbook;
         }
@@ -419,8 +420,8 @@ module.exports = class poloniex extends Exchange {
         let open = undefined;
         let change = undefined;
         let average = undefined;
-        const last = this.safeFloat (ticker, 'last');
-        const relativeChange = this.safeFloat (ticker, 'percentChange');
+        const last = this.safeNumber (ticker, 'last');
+        const relativeChange = this.safeNumber (ticker, 'percentChange');
         if (relativeChange !== -1) {
             open = last / this.sum (1, relativeChange);
             change = last - open;
@@ -430,11 +431,11 @@ module.exports = class poloniex extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high24hr'),
-            'low': this.safeFloat (ticker, 'low24hr'),
-            'bid': this.safeFloat (ticker, 'highestBid'),
+            'high': this.safeNumber (ticker, 'high24hr'),
+            'low': this.safeNumber (ticker, 'low24hr'),
+            'bid': this.safeNumber (ticker, 'highestBid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'lowestAsk'),
+            'ask': this.safeNumber (ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -444,8 +445,8 @@ module.exports = class poloniex extends Exchange {
             'change': change,
             'percentage': relativeChange * 100,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'quoteVolume'),
-            'quoteVolume': this.safeFloat (ticker, 'baseVolume'),
+            'baseVolume': this.safeNumber (ticker, 'quoteVolume'),
+            'quoteVolume': this.safeNumber (ticker, 'baseVolume'),
             'info': ticker,
         };
     }
@@ -477,16 +478,32 @@ module.exports = class poloniex extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetReturnCurrencies (params);
+        //     {
+        //       "id": "293",
+        //       "name": "0x",
+        //       "humanType": "Sweep to Main Account",
+        //       "currencyType": "address",
+        //       "txFee": "17.21877546",
+        //       "minConf": "12",
+        //       "depositAddress": null,
+        //       "disabled": "0",
+        //       "frozen": "0",
+        //       "hexColor": "003831",
+        //       "blockchain": "ETH",
+        //       "delisted": "0",
+        //       "isGeofenced": 0
+        //     }
         const ids = Object.keys (response);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = response[id];
             const precision = 8; // default precision, todo: fix "magic constants"
+            const amountLimit = '1e-8';
             const code = this.safeCurrencyCode (id);
             const active = (currency['delisted'] === 0) && !currency['disabled'];
             const numericId = this.safeInteger (currency, 'id');
-            const fee = this.safeFloat (currency, 'txFee');
+            const fee = this.safeNumber (currency, 'txFee');
             result[code] = {
                 'id': id,
                 'numericId': numericId,
@@ -498,20 +515,12 @@ module.exports = class poloniex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
+                        'min': this.parseNumber (amountLimit),
                         'max': undefined,
                     },
                     'withdraw': {
                         'min': fee,
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                 },
             };
@@ -577,13 +586,18 @@ module.exports = class poloniex extends Exchange {
         }
         const side = this.safeString (trade, 'type');
         let fee = undefined;
-        const price = this.safeFloat (trade, 'rate');
-        const cost = this.safeFloat (trade, 'total');
-        const amount = this.safeFloat (trade, 'amount');
+        const priceString = this.safeString (trade, 'rate');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        let cost = this.safeNumber (trade, 'total');
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        }
         const feeDisplay = this.safeString (trade, 'feeDisplay');
         if (feeDisplay !== undefined) {
             const parts = feeDisplay.split (' ');
-            const feeCost = this.safeFloat (parts, 0);
+            const feeCost = this.safeNumber (parts, 0);
             if (feeCost !== undefined) {
                 const feeCurrencyId = this.safeString (parts, 1);
                 const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -602,7 +616,7 @@ module.exports = class poloniex extends Exchange {
             }
         }
         let takerOrMaker = undefined;
-        const takerAdjustment = this.safeFloat (trade, 'takerAdjustment');
+        const takerAdjustment = this.safeNumber (trade, 'takerAdjustment');
         if (takerAdjustment !== undefined) {
             takerOrMaker = 'taker';
         }
@@ -848,9 +862,9 @@ module.exports = class poloniex extends Exchange {
         if (resultingTrades !== undefined) {
             trades = this.parseTrades (resultingTrades, market);
         }
-        const price = this.safeFloat2 (order, 'price', 'rate');
-        let remaining = this.safeFloat (order, 'amount');
-        let amount = this.safeFloat (order, 'startingAmount');
+        const price = this.safeNumber2 (order, 'price', 'rate');
+        let remaining = this.safeNumber (order, 'amount');
+        let amount = this.safeNumber (order, 'startingAmount');
         let filled = undefined;
         let cost = 0;
         if (amount !== undefined) {
@@ -900,7 +914,7 @@ module.exports = class poloniex extends Exchange {
         }
         const id = this.safeString (order, 'orderNumber');
         let fee = undefined;
-        const feeCost = this.safeFloat (order, 'fee');
+        const feeCost = this.safeNumber (order, 'fee');
         if (feeCost !== undefined) {
             let feeCurrencyCode = undefined;
             if (market !== undefined) {
@@ -1397,11 +1411,11 @@ module.exports = class poloniex extends Exchange {
         const defaultType = ('withdrawalNumber' in transaction) ? 'withdrawal' : 'deposit';
         const type = this.safeString (transaction, 'type', defaultType);
         const id = this.safeString2 (transaction, 'withdrawalNumber', 'depositNumber');
-        let amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeNumber (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'paymentID');
         // according to https://poloniex.com/fees/
-        const feeCost = this.safeFloat (transaction, 'fee', 0);
+        const feeCost = this.safeNumber (transaction, 'fee', 0);
         if (type === 'withdrawal') {
             // poloniex withdrawal amount includes the fee
             amount = amount - feeCost;

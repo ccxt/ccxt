@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
+from ccxt.base.precise import Precise
 
 
 class coincheck(Exchange):
@@ -83,10 +84,11 @@ class coincheck(Exchange):
             'markets': {
                 'BTC/JPY': {'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy'},  # the only real pair
                 # 'ETH/JPY': {'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy'},
-                # 'ETC/JPY': {'id': 'etc_jpy', 'symbol': 'ETC/JPY', 'base': 'ETC', 'quote': 'JPY', 'baseId': 'etc', 'quoteId': 'jpy'},
+                'ETC/JPY': {'id': 'etc_jpy', 'symbol': 'ETC/JPY', 'base': 'ETC', 'quote': 'JPY', 'baseId': 'etc', 'quoteId': 'jpy'},
                 # 'DAO/JPY': {'id': 'dao_jpy', 'symbol': 'DAO/JPY', 'base': 'DAO', 'quote': 'JPY', 'baseId': 'dao', 'quoteId': 'jpy'},
                 # 'LSK/JPY': {'id': 'lsk_jpy', 'symbol': 'LSK/JPY', 'base': 'LSK', 'quote': 'JPY', 'baseId': 'lsk', 'quoteId': 'jpy'},
-                # 'FCT/JPY': {'id': 'fct_jpy', 'symbol': 'FCT/JPY', 'base': 'FCT', 'quote': 'JPY', 'baseId': 'fct', 'quoteId': 'jpy'},
+                'FCT/JPY': {'id': 'fct_jpy', 'symbol': 'FCT/JPY', 'base': 'FCT', 'quote': 'JPY', 'baseId': 'fct', 'quoteId': 'jpy'},
+                'MONA/JPY': {'id': 'mona_jpy', 'symbol': 'MONA/JPY', 'base': 'MONA', 'quote': 'JPY', 'baseId': 'mona', 'quoteId': 'jpy'},
                 # 'XMR/JPY': {'id': 'xmr_jpy', 'symbol': 'XMR/JPY', 'base': 'XMR', 'quote': 'JPY', 'baseId': 'xmr', 'quoteId': 'jpy'},
                 # 'REP/JPY': {'id': 'rep_jpy', 'symbol': 'REP/JPY', 'base': 'REP', 'quote': 'JPY', 'baseId': 'rep', 'quoteId': 'jpy'},
                 # 'XRP/JPY': {'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy'},
@@ -95,7 +97,7 @@ class coincheck(Exchange):
                 # 'LTC/JPY': {'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy'},
                 # 'DASH/JPY': {'id': 'dash_jpy', 'symbol': 'DASH/JPY', 'base': 'DASH', 'quote': 'JPY', 'baseId': 'dash', 'quoteId': 'jpy'},
                 # 'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc'},
-                # 'ETC/BTC': {'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'baseId': 'etc', 'quoteId': 'btc'},
+                'ETC/BTC': {'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'baseId': 'etc', 'quoteId': 'btc'},
                 # 'LSK/BTC': {'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'baseId': 'lsk', 'quoteId': 'btc'},
                 # 'FCT/BTC': {'id': 'fct_btc', 'symbol': 'FCT/BTC', 'base': 'FCT', 'quote': 'BTC', 'baseId': 'fct', 'quoteId': 'btc'},
                 # 'XMR/BTC': {'id': 'xmr_btc', 'symbol': 'XMR/BTC', 'base': 'XMR', 'quote': 'BTC', 'baseId': 'xmr', 'quoteId': 'btc'},
@@ -127,10 +129,10 @@ class coincheck(Exchange):
             if currencyId in balances:
                 account = self.account()
                 reserved = currencyId + '_reserved'
-                account['free'] = self.safe_float(balances, currencyId)
-                account['used'] = self.safe_float(balances, reserved)
+                account['free'] = self.safe_string(balances, currencyId)
+                account['used'] = self.safe_string(balances, reserved)
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -164,20 +166,13 @@ class coincheck(Exchange):
         id = self.safe_string(order, 'id')
         side = self.safe_string(order, 'order_type')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        amount = self.safe_float(order, 'pending_amount')
-        remaining = self.safe_float(order, 'pending_amount')
-        price = self.safe_float(order, 'rate')
-        filled = None
-        cost = None
-        if remaining is not None:
-            if amount is not None:
-                filled = max(amount - remaining, 0)
-                if price is not None:
-                    cost = filled * price
+        amount = self.safe_number(order, 'pending_amount')
+        remaining = self.safe_number(order, 'pending_amount')
+        price = self.safe_number(order, 'rate')
         status = None
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market, '_')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -185,7 +180,7 @@ class coincheck(Exchange):
             'lastTradeTimestamp': None,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': None,
             'side': side,
             'type': None,
             'timeInForce': None,
@@ -194,36 +189,42 @@ class coincheck(Exchange):
             'symbol': symbol,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'fee': None,
             'info': order,
             'average': None,
             'trades': None,
-        }
+        })
 
     def fetch_order_book(self, symbol, limit=None, params={}):
-        if symbol != 'BTC/JPY':
-            raise BadSymbol(self.id + ' fetchOrderBook() supports BTC/JPY only')
         self.load_markets()
-        response = self.publicGetOrderBooks(params)
-        return self.parse_order_book(response)
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+        }
+        response = self.publicGetOrderBooks(self.extend(request, params))
+        return self.parse_order_book(response, symbol)
 
     def fetch_ticker(self, symbol, params={}):
         if symbol != 'BTC/JPY':
             raise BadSymbol(self.id + ' fetchTicker() supports BTC/JPY only')
         self.load_markets()
-        ticker = self.publicGetTicker(params)
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+        }
+        ticker = self.publicGetTicker(self.extend(request, params))
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -233,7 +234,7 @@ class coincheck(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -241,7 +242,7 @@ class coincheck(Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         id = self.safe_string(trade, 'id')
-        price = self.safe_float(trade, 'rate')
+        priceString = self.safe_string(trade, 'rate')
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_value(self.markets_by_id, marketId, market)
         symbol = None
@@ -264,7 +265,7 @@ class coincheck(Exchange):
             if market is not None:
                 symbol = market['symbol']
         takerOrMaker = None
-        amount = None
+        amountString = None
         cost = None
         side = None
         fee = None
@@ -275,21 +276,21 @@ class coincheck(Exchange):
             elif self.safe_string(trade, 'liquidity') == 'M':
                 takerOrMaker = 'maker'
             funds = self.safe_value(trade, 'funds', {})
-            amount = self.safe_float(funds, baseId)
-            cost = self.safe_float(funds, quoteId)
+            amountString = self.safe_string(funds, baseId)
+            cost = self.safe_number(funds, quoteId)
             fee = {
                 'currency': self.safe_string(trade, 'fee_currency'),
-                'cost': self.safe_float(trade, 'fee'),
+                'cost': self.safe_number(trade, 'fee'),
             }
             side = self.safe_string(trade, 'side')
             orderId = self.safe_string(trade, 'order_id')
         else:
-            amount = self.safe_float(trade, 'amount')
+            amountString = self.safe_string(trade, 'amount')
             side = self.safe_string(trade, 'order_type')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         if cost is None:
-            if amount is not None:
-                if price is not None:
-                    cost = amount * price
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'id': id,
             'info': trade,
@@ -314,8 +315,6 @@ class coincheck(Exchange):
         return self.parse_trades(transactions, market, since, limit)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        if symbol != 'BTC/JPY':
-            raise BadSymbol(self.id + ' fetchTrades() supports BTC/JPY only')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -353,6 +352,9 @@ class coincheck(Exchange):
             'id': id,
         }
         return self.privateDeleteExchangeOrdersId(self.extend(request, params))
+
+    def nonce(self):
+        return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

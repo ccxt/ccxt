@@ -159,32 +159,34 @@ class bitso extends Exchange {
             $symbol = $base . '/' . $quote;
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_float($market, 'minimum_amount'),
-                    'max' => $this->safe_float($market, 'maximum_amount'),
+                    'min' => $this->safe_number($market, 'minimum_amount'),
+                    'max' => $this->safe_number($market, 'maximum_amount'),
                 ),
                 'price' => array(
-                    'min' => $this->safe_float($market, 'minimum_price'),
-                    'max' => $this->safe_float($market, 'maximum_price'),
+                    'min' => $this->safe_number($market, 'minimum_price'),
+                    'max' => $this->safe_number($market, 'maximum_price'),
                 ),
                 'cost' => array(
-                    'min' => $this->safe_float($market, 'minimum_value'),
-                    'max' => $this->safe_float($market, 'maximum_value'),
+                    'min' => $this->safe_number($market, 'minimum_value'),
+                    'max' => $this->safe_number($market, 'maximum_value'),
                 ),
             );
-            $defaultPricePrecision = $this->safe_float($this->options['precision'], $quote, $this->options['defaultPrecision']);
-            $pricePrecision = $this->safe_float($market, 'tick_size', $defaultPricePrecision);
+            $defaultPricePrecision = $this->safe_number($this->options['precision'], $quote, $this->options['defaultPrecision']);
+            $pricePrecision = $this->safe_number($market, 'tick_size', $defaultPricePrecision);
             $precision = array(
-                'amount' => $this->safe_float($this->options['precision'], $base, $this->options['defaultPrecision']),
+                'amount' => $this->safe_number($this->options['precision'], $base, $this->options['defaultPrecision']),
                 'price' => $pricePrecision,
             );
             $fees = $this->safe_value($market, 'fees', array());
             $flatRate = $this->safe_value($fees, 'flat_rate', array());
-            $maker = $this->safe_float($flatRate, 'maker');
-            $taker = $this->safe_float($flatRate, 'taker');
+            $makerString = $this->safe_string($flatRate, 'maker');
+            $takerString = $this->safe_string($flatRate, 'taker');
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
             $feeTiers = $this->safe_value($fees, 'structure', array());
             $fee = array(
-                'maker' => $maker,
                 'taker' => $taker,
+                'maker' => $maker,
                 'percentage' => true,
                 'tierBased' => true,
             );
@@ -192,14 +194,14 @@ class bitso extends Exchange {
             $makerFees = array();
             for ($j = 0; $j < count($feeTiers); $j++) {
                 $tier = $feeTiers[$j];
-                $volume = $this->safe_float($tier, 'volume');
-                $takerFee = $this->safe_float($tier, 'taker');
-                $makerFee = $this->safe_float($tier, 'maker');
+                $volume = $this->safe_number($tier, 'volume');
+                $takerFee = $this->safe_number($tier, 'taker');
+                $makerFee = $this->safe_number($tier, 'maker');
                 $takerFees[] = array( $volume, $takerFee );
                 $makerFees[] = array( $volume, $makerFee );
                 if ($j === 0) {
-                    $fee['taker'] = $taker;
-                    $fee['maker'] = $maker;
+                    $fee['taker'] = $takerFee;
+                    $fee['maker'] = $makerFee;
                 }
             }
             $tiers = array(
@@ -226,20 +228,49 @@ class bitso extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetBalance ($params);
-        $balances = $this->safe_value($response['payload'], 'balances');
-        $result = array( 'info' => $response );
+        //
+        //     {
+        //       "success" => true,
+        //       "$payload" => array(
+        //         "$balances" => array(
+        //           array(
+        //             "currency" => "bat",
+        //             "available" => "0.00000000",
+        //             "locked" => "0.00000000",
+        //             "total" => "0.00000000",
+        //             "pending_deposit" => "0.00000000",
+        //             "pending_withdrawal" => "0.00000000"
+        //           ),
+        //           array(
+        //             "currency" => "bch",
+        //             "available" => "0.00000000",
+        //             "locked" => "0.00000000",
+        //             "total" => "0.00000000",
+        //             "pending_deposit" => "0.00000000",
+        //             "pending_withdrawal" => "0.00000000"
+        //           ),
+        //         ),
+        //       ),
+        //     }
+        //
+        $payload = $this->safe_value($response, 'payload', array());
+        $balances = $this->safe_value($payload, 'balances');
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_float($balance, 'available'),
-                'used' => $this->safe_float($balance, 'locked'),
-                'total' => $this->safe_float($balance, 'total'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'locked');
+            $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -250,7 +281,7 @@ class bitso extends Exchange {
         $response = $this->publicGetOrderBook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'payload');
         $timestamp = $this->parse8601($this->safe_string($orderbook, 'updated_at'));
-        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -261,22 +292,22 @@ class bitso extends Exchange {
         $response = $this->publicGetTicker (array_merge($request, $params));
         $ticker = $this->safe_value($response, 'payload');
         $timestamp = $this->parse8601($this->safe_string($ticker, 'created_at'));
-        $vwap = $this->safe_float($ticker, 'vwap');
-        $baseVolume = $this->safe_float($ticker, 'volume');
+        $vwap = $this->safe_number($ticker, 'vwap');
+        $baseVolume = $this->safe_number($ticker, 'volume');
         $quoteVolume = null;
         if ($baseVolume !== null && $vwap !== null) {
             $quoteVolume = $baseVolume * $vwap;
         }
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
@@ -297,12 +328,12 @@ class bitso extends Exchange {
         $marketId = $this->safe_string($trade, 'book');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $side = $this->safe_string_2($trade, 'side', 'maker_side');
-        $amount = $this->safe_float_2($trade, 'amount', 'major');
+        $amount = $this->safe_number_2($trade, 'amount', 'major');
         if ($amount !== null) {
             $amount = abs($amount);
         }
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fees_amount');
+        $feeCost = $this->safe_number($trade, 'fees_amount');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fees_currency');
             $feeCurrency = $this->safe_currency_code($feeCurrencyId);
@@ -311,11 +342,11 @@ class bitso extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        $cost = $this->safe_float($trade, 'minor');
+        $cost = $this->safe_number($trade, 'minor');
         if ($cost !== null) {
             $cost = abs($cost);
         }
-        $price = $this->safe_float($trade, 'price');
+        $price = $this->safe_number($trade, 'price');
         $orderId = $this->safe_string($trade, 'oid');
         $id = $this->safe_string($trade, 'tid');
         return array(
@@ -416,17 +447,11 @@ class bitso extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $orderType = $this->safe_string($order, 'type');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'original_amount');
-        $remaining = $this->safe_float($order, 'unfilled_amount');
-        $filled = null;
-        if ($amount !== null) {
-            if ($remaining !== null) {
-                $filled = $amount - $remaining;
-            }
-        }
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'original_amount');
+        $remaining = $this->safe_number($order, 'unfilled_amount');
         $clientOrderId = $this->safe_string($order, 'client_id');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -443,12 +468,12 @@ class bitso extends Exchange {
             'amount' => $amount,
             'cost' => null,
             'remaining' => $remaining,
-            'filled' => $filled,
+            'filled' => null,
             'status' => $status,
             'fee' => null,
             'average' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = 25, $params = array ()) {

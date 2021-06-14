@@ -151,12 +151,12 @@ class ripio extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array(
-                'amount' => $this->safe_float($market, 'min_amount'),
-                'price' => $this->safe_float($market, 'price_tick'),
+                'amount' => $this->safe_number($market, 'min_amount'),
+                'price' => $this->safe_number($market, 'price_tick'),
             );
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_float($market, 'min_amount'),
+                    'min' => $this->safe_number($market, 'min_amount'),
                     'max' => null,
                 ),
                 'price' => array(
@@ -164,15 +164,15 @@ class ripio extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $this->safe_float($market, 'min_value'),
+                    'min' => $this->safe_number($market, 'min_value'),
                     'max' => null,
                 ),
             );
             $active = $this->safe_value($market, 'enabled', true);
             $fees = $this->safe_value($market, 'fees', array());
             $firstFee = $this->safe_value($fees, 0, array());
-            $maker = $this->safe_float($firstFee, 'maker_fee', 0.0);
-            $taker = $this->safe_float($firstFee, 'taker_fee', 0.0);
+            $maker = $this->safe_number($firstFee, 'maker_fee', 0.0);
+            $taker = $this->safe_number($firstFee, 'taker_fee', 0.0);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -244,8 +244,6 @@ class ripio extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
                 ),
             );
@@ -279,18 +277,18 @@ class ripio extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($ticker, 'created_at'));
         $marketId = $this->safe_string($ticker, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_float($ticker, 'last_price');
-        $average = $this->safe_float($ticker, 'avg');
+        $last = $this->safe_number($ticker, 'last_price');
+        $average = $this->safe_number($ticker, 'avg');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
-            'bidVolume' => $this->safe_float($ticker, 'bid_volume'),
-            'ask' => $this->safe_float($ticker, 'ask'),
-            'askVolume' => $this->safe_float($ticker, 'ask_volume'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
+            'bidVolume' => $this->safe_number($ticker, 'bid_volume'),
+            'ask' => $this->safe_number($ticker, 'ask'),
+            'askVolume' => $this->safe_number($ticker, 'ask_volume'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -390,7 +388,7 @@ class ripio extends Exchange {
         //         "updated_id":47225
         //     }
         //
-        $orderbook = $this->parse_order_book($response, null, 'buy', 'sell', 'price', 'amount');
+        $orderbook = $this->parse_order_book($response, $symbol, null, 'buy', 'sell', 'price', 'amount');
         $orderbook['nonce'] = $this->safe_integer($response, 'updated_id');
         return $orderbook;
     }
@@ -432,15 +430,14 @@ class ripio extends Exchange {
         if ($side !== null) {
             $side = strtolower($side);
         }
-        $price = $this->safe_float_2($trade, 'price', 'match_price');
-        $amount = $this->safe_float_2($trade, 'amount', 'exchanged');
-        $cost = null;
-        if (($amount !== null) && ($price !== null)) {
-            $cost = $amount * $price;
-        }
+        $priceString = $this->safe_string_2($trade, 'price', 'match_price');
+        $amountString = $this->safe_string_2($trade, 'amount', 'exchanged');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'pair');
         $market = $this->safe_market($marketId, $market);
-        $feeCost = $this->safe_float($trade, $takerOrMaker . '_fee');
+        $feeCost = $this->safe_number($trade, $takerOrMaker . '_fee');
         $orderId = $this->safe_string($trade, $takerOrMaker);
         $fee = null;
         if ($feeCost !== null) {
@@ -514,11 +511,11 @@ class ripio extends Exchange {
             $currencyId = $this->safe_string($balance, 'symbol');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'available');
-            $account['used'] = $this->safe_float($balance, 'locked');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -777,16 +774,16 @@ class ripio extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'order_id');
-        $amount = $this->safe_float($order, 'amount');
-        $cost = $this->safe_float($order, 'notional');
+        $amount = $this->safe_number($order, 'amount');
+        $cost = $this->safe_number($order, 'notional');
         $type = $this->safe_string_lower($order, 'order_type');
         $priceField = ($type === 'market') ? 'fill_price' : 'limit_price';
-        $price = $this->safe_float($order, $priceField);
+        $price = $this->safe_number($order, $priceField);
         $side = $this->safe_string_lower($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = $this->safe_timestamp($order, 'created_at');
         $average = $this->safe_value($order, 'fill_price');
-        $filled = $this->safe_float($order, 'filled');
+        $filled = $this->safe_number($order, 'filled');
         $remaining = null;
         $fills = $this->safe_value($order, 'fills');
         $trades = null;
@@ -821,7 +818,7 @@ class ripio extends Exchange {
         }
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $stopPrice = $this->safe_float($order, 'stop_price');
+        $stopPrice = $this->safe_number($order, 'stop_price');
         return array(
             'id' => $id,
             'clientOrderId' => null,

@@ -127,7 +127,7 @@ class coinspot extends Exchange {
                     $balance = $currencies[$currencyId];
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
-                    $account['total'] = $this->safe_float($balance, 'balance');
+                    $account['total'] = $this->safe_string($balance, 'balance');
                     $result[$code] = $account;
                 }
             }
@@ -137,11 +137,11 @@ class coinspot extends Exchange {
                 $currencyId = $currencyIds[$i];
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                $account['total'] = $this->safe_float($balances, $currencyId);
+                $account['total'] = $this->safe_string($balances, $currencyId);
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -151,7 +151,7 @@ class coinspot extends Exchange {
             'cointype' => $market['id'],
         );
         $orderbook = $this->privatePostOrders (array_merge($request, $params));
-        return $this->parse_order_book($orderbook, null, 'buyorders', 'sellorders', 'rate', 'amount');
+        return $this->parse_order_book($orderbook, $symbol, null, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -161,16 +161,16 @@ class coinspot extends Exchange {
         $id = strtolower($id);
         $ticker = $response['prices'][$id];
         $timestamp = $this->milliseconds();
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -218,11 +218,13 @@ class coinspot extends Exchange {
         //         "$market":"BTC/AUD"
         //     }
         //
-        $price = $this->safe_float($trade, 'rate');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = $this->safe_float($trade, 'total');
-        if (($cost === null) && ($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
+        $priceString = $this->safe_string($trade, 'rate');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->safe_number($trade, 'total');
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $timestamp = $this->safe_integer($trade, 'solddate');
         $marketId = $this->safe_string($trade, 'market');

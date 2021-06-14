@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -16,6 +15,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.precise import Precise
 
 
 class bitz(Exchange):
@@ -71,7 +71,7 @@ class bitz(Exchange):
                     'assets': 'https://{hostname}',
                 },
                 'www': 'https://www.bitz.com',
-                'doc': 'https://apidoc.bitz.com/en/',
+                'doc': 'https://apidocv2.bitz.plus/en/',
                 'fees': 'https://www.bitz.com/fee?type=1',
                 'referral': 'https://u.bitz.com/register?invite_code=1429193',
             },
@@ -88,6 +88,11 @@ class bitz(Exchange):
                         'currencyRate',
                         'currencyCoinRate',
                         'coinRate',
+                        'getContractCoin',
+                        'getContractKline',
+                        'getContractOrderBook',
+                        'getContractTradesHistory',
+                        'getContractTickers',
                     ],
                 },
                 'trade': {
@@ -100,11 +105,29 @@ class bitz(Exchange):
                         'getUserNowEntrustSheet',  # open orders
                         'getEntrustSheetInfo',  # order
                         'depositOrWithdraw',  # transactions
+                        'getCoinAddress',
+                        'getCoinAddressList',
+                        'marketTrade',
+                        'addEntrustSheetBatch',
                     ],
                 },
                 'assets': {
                     'post': [
                         'getUserAssets',
+                    ],
+                },
+                'contract': {
+                    'post': [
+                        'addContractTrade',
+                        'cancelContractTrade',
+                        'getContractActivePositions',
+                        'getContractAccountInfo',
+                        'getContractMyPositions',
+                        'getContractOrderResult',
+                        'getContractTradeResult',
+                        'getContractOrder',
+                        'getContractMyHistoryTrade',
+                        'getContractMyTrades',
                     ],
                 },
             },
@@ -275,10 +298,13 @@ class bitz(Exchange):
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
+            pricePrecisionString = self.safe_string(market, 'priceFloat')
+            minPrice = self.parse_precision(pricePrecisionString)
             precision = {
                 'amount': self.safe_integer(market, 'numberFloat'),
-                'price': self.safe_integer(market, 'priceFloat'),
+                'price': int(pricePrecisionString),
             }
+            minAmount = self.safe_string(market, 'minTrade')
             result.append({
                 'info': market,
                 'id': id,
@@ -292,15 +318,15 @@ class bitz(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'minTrade'),
-                        'max': self.safe_float(market, 'maxTrade'),
+                        'min': self.parse_number(minAmount),
+                        'max': self.safe_number(market, 'maxTrade'),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': self.parse_number(minPrice),
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.parse_number(Precise.string_mul(minPrice, minAmount)),
                         'max': None,
                     },
                 },
@@ -334,17 +360,22 @@ class bitz(Exchange):
         #     }
         #
         balances = self.safe_value(response['data'], 'info')
-        result = {'info': response}
+        timestamp = self.parse_microtime(self.safe_string(response, 'microtime'))
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'name')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_float(balance, 'lock')
-            account['total'] = self.safe_float(balance, 'num')
-            account['free'] = self.safe_float(balance, 'over')
+            account['used'] = self.safe_string(balance, 'lock')
+            account['total'] = self.safe_string(balance, 'num')
+            account['free'] = self.safe_string(balance, 'over')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -373,8 +404,8 @@ class bitz(Exchange):
         timestamp = None
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        last = self.safe_float(ticker, 'now')
-        open = self.safe_float(ticker, 'open')
+        last = self.safe_number(ticker, 'now')
+        open = self.safe_number(ticker, 'open')
         change = None
         average = None
         if last is not None and open is not None:
@@ -384,22 +415,22 @@ class bitz(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bidPrice'),
-            'bidVolume': self.safe_float(ticker, 'bidQty'),
-            'ask': self.safe_float(ticker, 'askPrice'),
-            'askVolume': self.safe_float(ticker, 'askQty'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bidPrice'),
+            'bidVolume': self.safe_number(ticker, 'bidQty'),
+            'ask': self.safe_number(ticker, 'askPrice'),
+            'askVolume': self.safe_number(ticker, 'askQty'),
             'vwap': None,
             'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
             'change': change,
-            'percentage': self.safe_float(ticker, 'priceChange24h'),
+            'percentage': self.safe_number(ticker, 'priceChange24h'),
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
+            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
@@ -557,7 +588,7 @@ class bitz(Exchange):
         #
         orderbook = self.safe_value(response, 'data')
         timestamp = self.parse_microtime(self.safe_string(response, 'microtime'))
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def parse_trade(self, trade, market=None):
         #
@@ -575,12 +606,11 @@ class bitz(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        price = self.safe_float(trade, 'p')
-        amount = self.safe_float(trade, 'n')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = self.price_to_precision(symbol, amount * price)
+        priceString = self.safe_string(trade, 'p')
+        amountString = self.safe_string(trade, 'n')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string(trade, 's')
         return {
             'timestamp': timestamp,
@@ -640,11 +670,11 @@ class bitz(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 'time'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -661,7 +691,7 @@ class bitz(Exchange):
                 request['to'] = self.sum(since, limit * duration * 1000)
         else:
             if since is not None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a limit argument if the since argument is specified')
+                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a limit argument if the since argument is specified')
         response = self.marketGetKline(self.extend(request, params))
         #
         #     {
@@ -731,19 +761,16 @@ class bitz(Exchange):
         side = self.safe_string(order, 'flag')
         if side is not None:
             side = 'sell' if (side == 'sale') else 'buy'
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'number')
-        remaining = self.safe_float(order, 'numberOver')
-        filled = self.safe_float(order, 'numberDeal')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'number')
+        remaining = self.safe_number(order, 'numberOver')
+        filled = self.safe_number(order, 'numberDeal')
         timestamp = self.safe_integer(order, 'timestamp')
         if timestamp is None:
             timestamp = self.safe_timestamp(order, 'created')
-        cost = self.safe_float(order, 'orderTotalPrice')
-        if price is not None:
-            if filled is not None:
-                cost = filled * price
+        cost = self.safe_number(order, 'orderTotalPrice')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -765,7 +792,7 @@ class bitz(Exchange):
             'fee': None,
             'info': order,
             'average': None,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -916,7 +943,7 @@ class bitz(Exchange):
 
     def fetch_orders_with_method(self, method, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1076,7 +1103,7 @@ class bitz(Exchange):
         type = self.safe_string_lower(transaction, 'type')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         fee = None
-        feeCost = self.safe_float(transaction, 'network_fee')
+        feeCost = self.safe_number(transaction, 'network_fee')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -1090,7 +1117,7 @@ class bitz(Exchange):
             'address': self.safe_string(transaction, 'wallet'),
             'tag': self.safe_string(transaction, 'memo'),
             'type': type,
-            'amount': self.safe_float(transaction, 'number'),
+            'amount': self.safe_number(transaction, 'number'),
             'currency': code,
             'status': status,
             'updated': timestamp,

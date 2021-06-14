@@ -24,6 +24,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class exmo(Exchange):
@@ -132,6 +133,7 @@ class exmo(Exchange):
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
                     'maker': 0.2 / 100,
@@ -586,18 +588,18 @@ class exmo(Exchange):
             baseId, quoteId = marketId.split('/')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            maxAmount = self.safe_float(limit, 'max_q')
-            maxPrice = self.safe_float(limit, 'max_p')
-            maxCost = self.safe_float(limit, 'max_a')
-            minAmount = self.safe_float(limit, 'min_q')
-            minPrice = self.safe_float(limit, 'min_p')
-            minCost = self.safe_float(limit, 'min_a')
-            minAmounts[base] = min(self.safe_float(minAmounts, base, minAmount), minAmount)
-            maxAmounts[base] = max(self.safe_float(maxAmounts, base, maxAmount), maxAmount)
-            minPrices[quote] = min(self.safe_float(minPrices, quote, minPrice), minPrice)
-            minCosts[quote] = min(self.safe_float(minCosts, quote, minCost), minCost)
-            maxPrices[quote] = max(self.safe_float(maxPrices, quote, maxPrice), maxPrice)
-            maxCosts[quote] = max(self.safe_float(maxCosts, quote, maxCost), maxCost)
+            maxAmount = self.safe_number(limit, 'max_q')
+            maxPrice = self.safe_number(limit, 'max_p')
+            maxCost = self.safe_number(limit, 'max_a')
+            minAmount = self.safe_number(limit, 'min_q')
+            minPrice = self.safe_number(limit, 'min_p')
+            minCost = self.safe_number(limit, 'min_a')
+            minAmounts[base] = min(self.safe_number(minAmounts, base, minAmount), minAmount)
+            maxAmounts[base] = max(self.safe_number(maxAmounts, base, maxAmount), maxAmount)
+            minPrices[quote] = min(self.safe_number(minPrices, quote, minPrice), minPrice)
+            minCosts[quote] = min(self.safe_number(minCosts, quote, minCost), minCost)
+            maxPrices[quote] = max(self.safe_number(maxPrices, quote, maxPrice), maxPrice)
+            maxCosts[quote] = max(self.safe_number(maxCosts, quote, maxCost), maxCost)
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
@@ -613,16 +615,16 @@ class exmo(Exchange):
                 'precision': 8,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(minAmounts, code),
-                        'max': self.safe_float(maxAmounts, code),
+                        'min': self.safe_number(minAmounts, code),
+                        'max': self.safe_number(maxAmounts, code),
                     },
                     'price': {
-                        'min': self.safe_float(minPrices, code),
-                        'max': self.safe_float(maxPrices, code),
+                        'min': self.safe_number(minPrices, code),
+                        'max': self.safe_number(maxPrices, code),
                     },
                     'cost': {
-                        'min': self.safe_float(minCosts, code),
-                        'max': self.safe_float(maxCosts, code),
+                        'min': self.safe_number(minCosts, code),
+                        'max': self.safe_number(maxCosts, code),
                     },
                 },
                 'info': id,
@@ -655,8 +657,10 @@ class exmo(Exchange):
             baseId, quoteId = symbol.split('/')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            taker = self.safe_float(market, 'commission_taker_percent')
-            maker = self.safe_float(market, 'commission_maker_percent')
+            takerString = self.safe_string(market, 'commission_taker_percent')
+            makerString = self.safe_string(market, 'commission_maker_percent')
+            taker = self.parse_number(Precise.string_div(takerString, '100'))
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -665,20 +669,20 @@ class exmo(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
-                'taker': taker / 100,
-                'maker': maker / 100,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'min_quantity'),
-                        'max': self.safe_float(market, 'max_quantity'),
+                        'min': self.safe_number(market, 'min_quantity'),
+                        'max': self.safe_number(market, 'max_quantity'),
                     },
                     'price': {
-                        'min': self.safe_float(market, 'min_price'),
-                        'max': self.safe_float(market, 'max_price'),
+                        'min': self.safe_number(market, 'min_price'),
+                        'max': self.safe_number(market, 'max_price'),
                     },
                     'cost': {
-                        'min': self.safe_float(market, 'min_amount'),
-                        'max': self.safe_float(market, 'max_amount'),
+                        'min': self.safe_number(market, 'min_amount'),
+                        'max': self.safe_number(market, 'max_amount'),
                     },
                 },
                 'precision': {
@@ -702,7 +706,7 @@ class exmo(Exchange):
         now = self.milliseconds()
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument or a limit argument')
+                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
             else:
                 if limit > maxLimit:
                     raise BadRequest(self.id + ' fetchOHLCV will serve ' + str(maxLimit) + ' candles at most')
@@ -743,11 +747,11 @@ class exmo(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 't'),
-            self.safe_float(ohlcv, 'o'),
-            self.safe_float(ohlcv, 'h'),
-            self.safe_float(ohlcv, 'l'),
-            self.safe_float(ohlcv, 'c'),
-            self.safe_float(ohlcv, 'v'),
+            self.safe_number(ohlcv, 'o'),
+            self.safe_number(ohlcv, 'h'),
+            self.safe_number(ohlcv, 'l'),
+            self.safe_number(ohlcv, 'c'),
+            self.safe_number(ohlcv, 'v'),
         ]
 
     async def fetch_balance(self, params={}):
@@ -762,11 +766,11 @@ class exmo(Exchange):
             currencyId = self.currency_id(code)
             account = self.account()
             if currencyId in free:
-                account['free'] = self.safe_float(free, currencyId)
+                account['free'] = self.safe_string(free, currencyId)
             if currencyId in used:
-                account['used'] = self.safe_float(used, currencyId)
+                account['used'] = self.safe_string(used, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -778,7 +782,7 @@ class exmo(Exchange):
             request['limit'] = limit
         response = await self.publicGetOrderBook(self.extend(request, params))
         result = self.safe_value(response, market['id'])
-        return self.parse_order_book(result, None, 'bid', 'ask')
+        return self.parse_order_book(result, symbol, None, 'bid', 'ask')
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
         await self.load_markets()
@@ -814,16 +818,16 @@ class exmo(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last_trade')
+        last = self.safe_number(ticker, 'last_trade')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy_price'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy_price'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell_price'),
+            'ask': self.safe_number(ticker, 'sell_price'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -832,9 +836,9 @@ class exmo(Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_float(ticker, 'avg'),
-            'baseVolume': self.safe_float(ticker, 'vol'),
-            'quoteVolume': self.safe_float(ticker, 'vol_curr'),
+            'average': self.safe_number(ticker, 'avg'),
+            'baseVolume': self.safe_number(ticker, 'vol'),
+            'quoteVolume': self.safe_number(ticker, 'vol_curr'),
             'info': ticker,
         }
 
@@ -891,9 +895,9 @@ class exmo(Exchange):
         symbol = None
         id = self.safe_string(trade, 'trade_id')
         orderId = self.safe_string(trade, 'order_id')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'quantity')
-        cost = self.safe_float(trade, 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'quantity')
+        cost = self.safe_number(trade, 'amount')
         side = self.safe_string(trade, 'type')
         type = None
         marketId = self.safe_string(trade, 'pair')
@@ -909,11 +913,11 @@ class exmo(Exchange):
             symbol = market['symbol']
         takerOrMaker = self.safe_string(trade, 'exec_type')
         fee = None
-        feeCost = self.safe_float(trade, 'commission_amount')
+        feeCost = self.safe_number(trade, 'commission_amount')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commission_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            feeRate = self.safe_float(trade, 'commission_percent')
+            feeRate = self.safe_number(trade, 'commission_percent')
             if feeRate is not None:
                 feeRate /= 1000
             fee = {
@@ -1188,12 +1192,12 @@ class exmo(Exchange):
                     marketId = order['out_currency'] + '_' + order['in_currency']
             if (marketId is not None) and (marketId in self.markets_by_id):
                 market = self.markets_by_id[marketId]
-        amount = self.safe_float(order, 'quantity')
+        amount = self.safe_number(order, 'quantity')
         if amount is None:
             amountField = 'in_amount' if (side == 'buy') else 'out_amount'
-            amount = self.safe_float(order, amountField)
-        price = self.safe_float(order, 'price')
-        cost = self.safe_float(order, 'amount')
+            amount = self.safe_number(order, amountField)
+        price = self.safe_number(order, 'price')
+        cost = self.safe_number(order, 'amount')
         filled = 0.0
         trades = []
         transactions = self.safe_value(order, 'trades', [])
@@ -1294,22 +1298,6 @@ class exmo(Exchange):
             return self.markets[symbols[0]]
         return None
 
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * rate))
-        key = 'quote'
-        if side == 'sell':
-            cost *= price
-        else:
-            key = 'base'
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, cost)),
-        }
-
     async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
         currency = self.currency(code)
@@ -1351,7 +1339,7 @@ class exmo(Exchange):
         #          }
         #
         timestamp = self.safe_timestamp(transaction, 'dt')
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         if amount is not None:
             amount = abs(amount)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
@@ -1359,17 +1347,25 @@ class exmo(Exchange):
         type = self.safe_string(transaction, 'type')
         currencyId = self.safe_string(transaction, 'curr')
         code = self.safe_currency_code(currencyId, currency)
-        address = self.safe_string(transaction, 'account')
-        if address is not None:
-            parts = address.split(':')
-            numParts = len(parts)
-            if numParts == 2:
-                address = parts[1].replace(' ', '')
+        address = None
+        tag = None
+        comment = None
+        account = self.safe_string(transaction, 'account')
+        if type == 'deposit':
+            comment = account
+        elif type == 'withdrawal':
+            address = account
+            if address is not None:
+                parts = address.split(':')
+                numParts = len(parts)
+                if numParts == 2:
+                    address = self.safe_string(parts, 1)
+                    address = address.replace(' ', '')
         fee = None
         # fixed funding fees only(for now)
         if not self.fees['funding']['percentage']:
             key = 'withdraw' if (type == 'withdrawal') else 'deposit'
-            feeCost = self.safe_float(self.options['fundingFees'][key], code)
+            feeCost = self.safe_number(self.options['fundingFees'][key], code)
             # users don't pay for cashbacks, no fees for that
             provider = self.safe_string(transaction, 'provider')
             if provider == 'cashback':
@@ -1386,16 +1382,21 @@ class exmo(Exchange):
         return {
             'info': transaction,
             'id': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'currency': code,
             'amount': amount,
             'address': address,
-            'tag': None,  # refix it properly
+            'addressTo': address,
+            'addressFrom': None,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': None,
             'status': status,
             'type': type,
             'updated': None,
+            'comment': comment,
             'txid': txid,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
             'fee': fee,
         }
 

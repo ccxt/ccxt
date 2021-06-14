@@ -20,6 +20,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class btcbox(Exchange):
@@ -103,10 +104,10 @@ class btcbox(Exchange):
             if free in response:
                 account = self.account()
                 used = currencyId + '_lock'
-                account['free'] = self.safe_float(response, free)
-                account['used'] = self.safe_float(response, used)
+                account['free'] = self.safe_string(response, free)
+                account['used'] = self.safe_string(response, used)
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -116,23 +117,23 @@ class btcbox(Exchange):
         if numSymbols > 1:
             request['coin'] = market['baseId']
         response = await self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -142,8 +143,8 @@ class btcbox(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
-            'quoteVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_number(ticker, 'vol'),
+            'quoteVolume': self.safe_number(ticker, 'volume'),
             'info': ticker,
         }
 
@@ -163,12 +164,11 @@ class btcbox(Exchange):
         if market is not None:
             symbol = market['symbol']
         id = self.safe_string(trade, 'tid')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         type = None
         side = self.safe_string(trade, 'type')
         return {
@@ -260,17 +260,9 @@ class btcbox(Exchange):
         timestamp = None
         if datetimeString is not None:
             timestamp = self.parse8601(order['datetime'] + '+09:00')  # Tokyo time
-        amount = self.safe_float(order, 'amount_original')
-        remaining = self.safe_float(order, 'amount_outstanding')
-        filled = None
-        if amount is not None:
-            if remaining is not None:
-                filled = amount - remaining
-        price = self.safe_float(order, 'price')
-        cost = None
-        if price is not None:
-            if filled is not None:
-                cost = filled * price
+        amount = self.safe_number(order, 'amount_original')
+        remaining = self.safe_number(order, 'amount_outstanding')
+        price = self.safe_number(order, 'price')
         # status is set by fetchOrder method only
         status = self.parse_order_status(self.safe_string(order, 'status'))
         # fetchOrders do not return status, use heuristic
@@ -282,7 +274,7 @@ class btcbox(Exchange):
         if market is not None:
             symbol = market['symbol']
         side = self.safe_string(order, 'type')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -290,7 +282,7 @@ class btcbox(Exchange):
             'lastTradeTimestamp': None,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': None,
             'side': side,
             'type': None,
             'timeInForce': None,
@@ -299,12 +291,12 @@ class btcbox(Exchange):
             'symbol': symbol,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'trades': trades,
             'fee': None,
             'info': order,
             'average': None,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()

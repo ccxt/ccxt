@@ -260,14 +260,12 @@ class delta extends Exchange {
                 'name' => $this->safe_string($currency, 'name'),
                 'info' => $currency, // the original payload
                 'active' => $active,
-                'fee' => $this->safe_float($currency, 'base_withdrawal_fee'),
+                'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
                 'precision' => 1 / pow(10, $precision),
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array(
-                        'min' => $this->safe_float($currency, 'min_withdrawal_amount'),
+                        'min' => $this->safe_number($currency, 'min_withdrawal_amount'),
                         'max' => null,
                     ),
                 ),
@@ -385,7 +383,9 @@ class delta extends Exchange {
                 $swap = true;
                 $future = false;
                 $option = false;
-                $symbol = $base . '/' . $quote;
+                if (mb_strpos($id, '_') === false) {
+                    $symbol = $base . '/' . $quote;
+                }
             } else if (($type === 'call_options') || ($type === 'put_options') || ($type === 'move_options')) {
                 $type = 'option';
                 $swap = false;
@@ -399,26 +399,26 @@ class delta extends Exchange {
             }
             $precision = array(
                 'amount' => 1.0, // number of contracts
-                'price' => $this->safe_float($market, 'tick_size'),
+                'price' => $this->safe_number($market, 'tick_size'),
             );
             $limits = array(
                 'amount' => array(
                     'min' => 1.0,
-                    'max' => $this->safe_float($market, 'position_size_limit'),
+                    'max' => $this->safe_number($market, 'position_size_limit'),
                 ),
                 'price' => array(
                     'min' => $precision['price'],
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $this->safe_float($market, 'min_size'),
+                    'min' => $this->safe_number($market, 'min_size'),
                     'max' => null,
                 ),
             );
             $state = $this->safe_string($market, 'state');
             $active = ($state === 'live');
-            $maker = $this->safe_float($market, 'maker_commission_rate');
-            $taker = $this->safe_float($market, 'taker_commission_rate');
+            $maker = $this->safe_number($market, 'maker_commission_rate');
+            $taker = $this->safe_number($market, 'taker_commission_rate');
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
@@ -466,8 +466,8 @@ class delta extends Exchange {
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.001);
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_float($ticker, 'close');
-        $open = $this->safe_float($ticker, 'open');
+        $last = $this->safe_number($ticker, 'close');
+        $open = $this->safe_number($ticker, 'open');
         $change = null;
         $average = null;
         $percentage = null;
@@ -478,15 +478,15 @@ class delta extends Exchange {
                 $percentage = ($change / $open) * 100;
             }
         }
-        $baseVolume = $this->safe_float($ticker, 'volume');
-        $quoteVolume = $this->safe_float($ticker, 'turnover');
+        $baseVolume = $this->safe_number($ticker, 'volume');
+        $quoteVolume = $this->safe_number($ticker, 'turnover');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
@@ -601,7 +601,7 @@ class delta extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_order_book($result, null, 'buy', 'sell', 'price', 'size');
+        return $this->parse_order_book($result, $symbol, null, 'buy', 'sell', 'price', 'size');
     }
 
     public function parse_trade($trade, $market = null) {
@@ -656,12 +656,11 @@ class delta extends Exchange {
         $orderId = $this->safe_string($trade, 'order_id');
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $timestamp = $this->safe_integer_product($trade, 'timestamp', 0.001, $timestamp);
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'size');
-        $cost = null;
-        if (($amount !== null) && ($price !== null)) {
-            $cost = $amount * $price;
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'size');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $product = $this->safe_value($trade, 'product', array());
         $marketId = $this->safe_string($product, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -680,7 +679,7 @@ class delta extends Exchange {
         if ($type !== null) {
             $type = str_replace('_order', '', $type);
         }
-        $feeCost = $this->safe_float($trade, 'commission');
+        $feeCost = $this->safe_number($trade, 'commission');
         $fee = null;
         if ($feeCost !== null) {
             $settlingAsset = $this->safe_value($product, 'settling_asset', array());
@@ -747,11 +746,11 @@ class delta extends Exchange {
         //
         return array(
             $this->safe_timestamp($ohlcv, 'time'),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'volume'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
         );
     }
 
@@ -821,11 +820,11 @@ class delta extends Exchange {
             $currency = $this->safe_value($currenciesByNumericId, $currencyId);
             $code = ($currency === null) ? $currencyId : $currency['code'];
             $account = $this->account();
-            $account['total'] = $this->safe_float($balance, 'balance');
-            $account['free'] = $this->safe_float($balance, 'available_balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['free'] = $this->safe_string($balance, 'available_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_position($symbol, $params = null) {
@@ -849,7 +848,7 @@ class delta extends Exchange {
         return $result;
     }
 
-    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetPositionsMargined ($params);
         //
@@ -930,20 +929,12 @@ class delta extends Exchange {
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'order_type');
         $type = str_replace('_order', '', $type);
-        $price = $this->safe_float($order, 'limit_price');
-        $amount = $this->safe_float($order, 'size');
-        $remaining = $this->safe_float($order, 'unfilled_size');
-        $filled = null;
-        if (($amount !== null) && ($remaining !== null)) {
-            $filled = max (0, $amount - $remaining);
-        }
-        $cost = null;
-        $average = $this->safe_float($order, 'average_fill_price');
-        if (($average !== null) && $filled) {
-            $cost = $average * $filled;
-        }
+        $price = $this->safe_number($order, 'limit_price');
+        $amount = $this->safe_number($order, 'size');
+        $remaining = $this->safe_number($order, 'unfilled_size');
+        $average = $this->safe_number($order, 'average_fill_price');
         $fee = null;
-        $feeCost = $this->safe_float($order, 'paid_commission');
+        $feeCost = $this->safe_number($order, 'paid_commission');
         if ($feeCost !== null) {
             $feeCurrencyCode = null;
             if ($market !== null) {
@@ -956,7 +947,7 @@ class delta extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -968,14 +959,14 @@ class delta extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1132,7 +1123,7 @@ class delta extends Exchange {
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1374,9 +1365,9 @@ class delta extends Exchange {
         $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId');
         $currency = $this->safe_value($currenciesByNumericId, $currencyId, $currency);
         $code = ($currency === null) ? null : $currency['code'];
-        $amount = $this->safe_float($item, 'amount');
+        $amount = $this->safe_number($item, 'amount');
         $timestamp = $this->parse8601($this->safe_string($item, 'created_at'));
-        $after = $this->safe_float($item, 'balance');
+        $after = $this->safe_number($item, 'balance');
         $before = max (0, $after - $amount);
         $status = 'ok';
         return array(

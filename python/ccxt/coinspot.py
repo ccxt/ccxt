@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class coinspot(Exchange):
@@ -126,7 +127,7 @@ class coinspot(Exchange):
                     balance = currencies[currencyId]
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
-                    account['total'] = self.safe_float(balance, 'balance')
+                    account['total'] = self.safe_string(balance, 'balance')
                     result[code] = account
         else:
             currencyIds = list(balances.keys())
@@ -134,9 +135,9 @@ class coinspot(Exchange):
                 currencyId = currencyIds[i]
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['total'] = self.safe_float(balances, currencyId)
+                account['total'] = self.safe_string(balances, currencyId)
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -145,7 +146,7 @@ class coinspot(Exchange):
             'cointype': market['id'],
         }
         orderbook = self.privatePostOrders(self.extend(request, params))
-        return self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'rate', 'amount')
+        return self.parse_order_book(orderbook, symbol, None, 'buyorders', 'sellorders', 'rate', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -154,16 +155,16 @@ class coinspot(Exchange):
         id = id.lower()
         ticker = response['prices'][id]
         timestamp = self.milliseconds()
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_float(ticker, 'bid'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -209,11 +210,13 @@ class coinspot(Exchange):
         #         "market":"BTC/AUD"
         #     }
         #
-        price = self.safe_float(trade, 'rate')
-        amount = self.safe_float(trade, 'amount')
-        cost = self.safe_float(trade, 'total')
-        if (cost is None) and (price is not None) and (amount is not None):
-            cost = price * amount
+        priceString = self.safe_string(trade, 'rate')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.safe_number(trade, 'total')
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         timestamp = self.safe_integer(trade, 'solddate')
         marketId = self.safe_string(trade, 'market')
         symbol = self.safe_symbol(marketId, market, '/')

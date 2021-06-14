@@ -117,6 +117,7 @@ class exmo extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
                     'maker' => 0.2 / 100,
@@ -586,18 +587,18 @@ class exmo extends Exchange {
             list($baseId, $quoteId) = explode('/', $marketId);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $maxAmount = $this->safe_float($limit, 'max_q');
-            $maxPrice = $this->safe_float($limit, 'max_p');
-            $maxCost = $this->safe_float($limit, 'max_a');
-            $minAmount = $this->safe_float($limit, 'min_q');
-            $minPrice = $this->safe_float($limit, 'min_p');
-            $minCost = $this->safe_float($limit, 'min_a');
-            $minAmounts[$base] = min ($this->safe_float($minAmounts, $base, $minAmount), $minAmount);
-            $maxAmounts[$base] = max ($this->safe_float($maxAmounts, $base, $maxAmount), $maxAmount);
-            $minPrices[$quote] = min ($this->safe_float($minPrices, $quote, $minPrice), $minPrice);
-            $minCosts[$quote] = min ($this->safe_float($minCosts, $quote, $minCost), $minCost);
-            $maxPrices[$quote] = max ($this->safe_float($maxPrices, $quote, $maxPrice), $maxPrice);
-            $maxCosts[$quote] = max ($this->safe_float($maxCosts, $quote, $maxCost), $maxCost);
+            $maxAmount = $this->safe_number($limit, 'max_q');
+            $maxPrice = $this->safe_number($limit, 'max_p');
+            $maxCost = $this->safe_number($limit, 'max_a');
+            $minAmount = $this->safe_number($limit, 'min_q');
+            $minPrice = $this->safe_number($limit, 'min_p');
+            $minCost = $this->safe_number($limit, 'min_a');
+            $minAmounts[$base] = min ($this->safe_number($minAmounts, $base, $minAmount), $minAmount);
+            $maxAmounts[$base] = max ($this->safe_number($maxAmounts, $base, $maxAmount), $maxAmount);
+            $minPrices[$quote] = min ($this->safe_number($minPrices, $quote, $minPrice), $minPrice);
+            $minCosts[$quote] = min ($this->safe_number($minCosts, $quote, $minCost), $minCost);
+            $maxPrices[$quote] = max ($this->safe_number($maxPrices, $quote, $maxPrice), $maxPrice);
+            $maxCosts[$quote] = max ($this->safe_number($maxCosts, $quote, $maxCost), $maxCost);
         }
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -614,16 +615,16 @@ class exmo extends Exchange {
                 'precision' => 8,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($minAmounts, $code),
-                        'max' => $this->safe_float($maxAmounts, $code),
+                        'min' => $this->safe_number($minAmounts, $code),
+                        'max' => $this->safe_number($maxAmounts, $code),
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($minPrices, $code),
-                        'max' => $this->safe_float($maxPrices, $code),
+                        'min' => $this->safe_number($minPrices, $code),
+                        'max' => $this->safe_number($maxPrices, $code),
                     ),
                     'cost' => array(
-                        'min' => $this->safe_float($minCosts, $code),
-                        'max' => $this->safe_float($maxCosts, $code),
+                        'min' => $this->safe_number($minCosts, $code),
+                        'max' => $this->safe_number($maxCosts, $code),
                     ),
                 ),
                 'info' => $id,
@@ -658,8 +659,10 @@ class exmo extends Exchange {
             list($baseId, $quoteId) = explode('/', $symbol);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $taker = $this->safe_float($market, 'commission_taker_percent');
-            $maker = $this->safe_float($market, 'commission_maker_percent');
+            $takerString = $this->safe_string($market, 'commission_taker_percent');
+            $makerString = $this->safe_string($market, 'commission_maker_percent');
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -668,20 +671,20 @@ class exmo extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
-                'taker' => $taker / 100,
-                'maker' => $maker / 100,
+                'taker' => $taker,
+                'maker' => $maker,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'min_quantity'),
-                        'max' => $this->safe_float($market, 'max_quantity'),
+                        'min' => $this->safe_number($market, 'min_quantity'),
+                        'max' => $this->safe_number($market, 'max_quantity'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($market, 'min_price'),
-                        'max' => $this->safe_float($market, 'max_price'),
+                        'min' => $this->safe_number($market, 'min_price'),
+                        'max' => $this->safe_number($market, 'max_price'),
                     ),
                     'cost' => array(
-                        'min' => $this->safe_float($market, 'min_amount'),
-                        'max' => $this->safe_float($market, 'max_amount'),
+                        'min' => $this->safe_number($market, 'min_amount'),
+                        'max' => $this->safe_number($market, 'max_amount'),
                     ),
                 ),
                 'precision' => array(
@@ -707,7 +710,7 @@ class exmo extends Exchange {
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument or a $limit argument');
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
             } else {
                 if ($limit > $maxLimit) {
                     throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
@@ -754,11 +757,11 @@ class exmo extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 't'),
-            $this->safe_float($ohlcv, 'o'),
-            $this->safe_float($ohlcv, 'h'),
-            $this->safe_float($ohlcv, 'l'),
-            $this->safe_float($ohlcv, 'c'),
-            $this->safe_float($ohlcv, 'v'),
+            $this->safe_number($ohlcv, 'o'),
+            $this->safe_number($ohlcv, 'h'),
+            $this->safe_number($ohlcv, 'l'),
+            $this->safe_number($ohlcv, 'c'),
+            $this->safe_number($ohlcv, 'v'),
         );
     }
 
@@ -774,14 +777,14 @@ class exmo extends Exchange {
             $currencyId = $this->currency_id($code);
             $account = $this->account();
             if (is_array($free) && array_key_exists($currencyId, $free)) {
-                $account['free'] = $this->safe_float($free, $currencyId);
+                $account['free'] = $this->safe_string($free, $currencyId);
             }
             if (is_array($used) && array_key_exists($currencyId, $used)) {
-                $account['used'] = $this->safe_float($used, $currencyId);
+                $account['used'] = $this->safe_string($used, $currencyId);
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -795,7 +798,7 @@ class exmo extends Exchange {
         }
         $response = $this->publicGetOrderBook (array_merge($request, $params));
         $result = $this->safe_value($response, $market['id']);
-        return $this->parse_order_book($result, null, 'bid', 'ask');
+        return $this->parse_order_book($result, $symbol, null, 'bid', 'ask');
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
@@ -839,16 +842,16 @@ class exmo extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'last_trade');
+        $last = $this->safe_number($ticker, 'last_trade');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy_price'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy_price'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell_price'),
+            'ask' => $this->safe_number($ticker, 'sell_price'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -857,9 +860,9 @@ class exmo extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_float($ticker, 'avg'),
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
-            'quoteVolume' => $this->safe_float($ticker, 'vol_curr'),
+            'average' => $this->safe_number($ticker, 'avg'),
+            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'quoteVolume' => $this->safe_number($ticker, 'vol_curr'),
             'info' => $ticker,
         );
     }
@@ -920,9 +923,9 @@ class exmo extends Exchange {
         $symbol = null;
         $id = $this->safe_string($trade, 'trade_id');
         $orderId = $this->safe_string($trade, 'order_id');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'quantity');
-        $cost = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'quantity');
+        $cost = $this->safe_number($trade, 'amount');
         $side = $this->safe_string($trade, 'type');
         $type = null;
         $marketId = $this->safe_string($trade, 'pair');
@@ -941,11 +944,11 @@ class exmo extends Exchange {
         }
         $takerOrMaker = $this->safe_string($trade, 'exec_type');
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'commission_amount');
+        $feeCost = $this->safe_number($trade, 'commission_amount');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commission_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $feeRate = $this->safe_float($trade, 'commission_percent');
+            $feeRate = $this->safe_number($trade, 'commission_percent');
             if ($feeRate !== null) {
                 $feeRate /= 1000;
             }
@@ -1244,13 +1247,13 @@ class exmo extends Exchange {
                 $market = $this->markets_by_id[$marketId];
             }
         }
-        $amount = $this->safe_float($order, 'quantity');
+        $amount = $this->safe_number($order, 'quantity');
         if ($amount === null) {
             $amountField = ($side === 'buy') ? 'in_amount' : 'out_amount';
-            $amount = $this->safe_float($order, $amountField);
+            $amount = $this->safe_number($order, $amountField);
         }
-        $price = $this->safe_float($order, 'price');
-        $cost = $this->safe_float($order, 'amount');
+        $price = $this->safe_number($order, 'price');
+        $cost = $this->safe_number($order, 'amount');
         $filled = 0.0;
         $trades = array();
         $transactions = $this->safe_value($order, 'trades', array());
@@ -1371,24 +1374,6 @@ class exmo extends Exchange {
         return null;
     }
 
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $rate = $market[$takerOrMaker];
-        $cost = floatval($this->cost_to_precision($symbol, $amount * $rate));
-        $key = 'quote';
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-        }
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => floatval($this->fee_to_precision($symbol, $cost)),
-        );
-    }
-
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1428,12 +1413,12 @@ class exmo extends Exchange {
         //            "$status" => "processing",
         //            "$provider" => "Qiwi (LA) [12345]",
         //            "$amount" => "1",
-        //            "account" => "",
+        //            "$account" => "",
         //            "$txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
         //          }
         //
         $timestamp = $this->safe_timestamp($transaction, 'dt');
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         if ($amount !== null) {
             $amount = abs($amount);
         }
@@ -1442,19 +1427,28 @@ class exmo extends Exchange {
         $type = $this->safe_string($transaction, 'type');
         $currencyId = $this->safe_string($transaction, 'curr');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $address = $this->safe_string($transaction, 'account');
-        if ($address !== null) {
-            $parts = explode(':', $address);
-            $numParts = is_array($parts) ? count($parts) : 0;
-            if ($numParts === 2) {
-                $address = str_replace(' ', '', $parts[1]);
+        $address = null;
+        $tag = null;
+        $comment = null;
+        $account = $this->safe_string($transaction, 'account');
+        if ($type === 'deposit') {
+            $comment = $account;
+        } else if ($type === 'withdrawal') {
+            $address = $account;
+            if ($address !== null) {
+                $parts = explode(':', $address);
+                $numParts = is_array($parts) ? count($parts) : 0;
+                if ($numParts === 2) {
+                    $address = $this->safe_string($parts, 1);
+                    $address = str_replace(' ', '', $address);
+                }
             }
         }
         $fee = null;
         // fixed funding fees only (for now)
         if (!$this->fees['funding']['percentage']) {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
-            $feeCost = $this->safe_float($this->options['fundingFees'][$key], $code);
+            $feeCost = $this->safe_number($this->options['fundingFees'][$key], $code);
             // users don't pay for cashbacks, no fees for that
             $provider = $this->safe_string($transaction, 'provider');
             if ($provider === 'cashback') {
@@ -1475,16 +1469,21 @@ class exmo extends Exchange {
         return array(
             'info' => $transaction,
             'id' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
             'amount' => $amount,
             'address' => $address,
-            'tag' => null, // refix it properly
+            'addressTo' => $address,
+            'addressFrom' => null,
+            'tag' => $tag,
+            'tagTo' => $tag,
+            'tagFrom' => null,
             'status' => $status,
             'type' => $type,
             'updated' => null,
+            'comment' => $comment,
             'txid' => $txid,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
             'fee' => $fee,
         );
     }

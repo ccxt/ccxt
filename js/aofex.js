@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, BadSymbol, InvalidOrder, PermissionDenied, InvalidAddress, AuthenticationError, InvalidNonce, BadRequest, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,6 +16,7 @@ module.exports = class aofex extends Exchange {
             'name': 'AOFEX',
             'countries': [ 'GB' ],
             'rateLimit': 1000,
+            'hostname': 'openapi.aofex.com',
             'has': {
                 'fetchMarkets': true,
                 'fetchCurrencies': false,
@@ -47,8 +49,8 @@ module.exports = class aofex extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg',
                 'api': {
-                    'public': 'https://openapi.aofex.com/openApi',
-                    'private': 'https://openapi.aofex.com/openApi',
+                    'public': 'https://{hostname}/openApi',
+                    'private': 'https://{hostname}/openApi',
                 },
                 'www': 'https://aofex.com',
                 'doc': 'https://aofex.zendesk.com/hc/en-us/sections/360005576574-API',
@@ -132,6 +134,9 @@ module.exports = class aofex extends Exchange {
                     'show_all': '0', // '1' to show zero balances
                 },
             },
+            'commonCurrencies': {
+                'CPC': 'Consensus Planet Coin',
+            },
         });
     }
 
@@ -190,8 +195,10 @@ module.exports = class aofex extends Exchange {
             const symbol = base + '/' + quote;
             const numericId = this.safeInteger (market, 'id');
             const precision = this.safeValue (precisions, id, {});
-            const makerFee = this.safeFloat (market, 'maker_fee');
-            const takerFee = this.safeFloat (market, 'taker_fee');
+            const makerFeeString = this.safeString (market, 'maker_fee');
+            const takerFeeString = this.safeString (market, 'taker_fee');
+            const makerFee = this.parseNumber (Precise.stringDiv (makerFeeString, '1000'));
+            const takerFee = this.parseNumber (Precise.stringDiv (takerFeeString, '1000'));
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -201,20 +208,20 @@ module.exports = class aofex extends Exchange {
                 'base': base,
                 'quote': quote,
                 'active': undefined,
-                'maker': makerFee / 1000,
-                'taker': takerFee / 1000,
+                'maker': makerFee,
+                'taker': takerFee,
                 'precision': {
                     'amount': this.safeInteger (precision, 'amount'),
                     'price': this.safeInteger (precision, 'price'),
                 },
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'min_size'),
-                        'max': this.safeFloat (market, 'max_size'),
+                        'min': this.safeNumber (market, 'min_size'),
+                        'max': this.safeNumber (market, 'max_size'),
                     },
                     'price': {
-                        'min': this.safeFloat (market, 'min_price'),
-                        'max': this.safeFloat (market, 'max_price'),
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': {
                         'min': undefined,
@@ -242,11 +249,11 @@ module.exports = class aofex extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 'id'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'amount'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'amount'),
         ];
     }
 
@@ -318,18 +325,22 @@ module.exports = class aofex extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const balances = this.safeValue (response, 'result', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'frozen');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'frozen');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchTradingFee (symbol, params = {}) {
@@ -352,8 +363,8 @@ module.exports = class aofex extends Exchange {
         return {
             'info': response,
             'symbol': symbol,
-            'maker': this.safeFloat (result, 'fromFee'),
-            'taker': this.safeFloat (result, 'toFee'),
+            'maker': this.safeNumber (result, 'fromFee'),
+            'taker': this.safeNumber (result, 'toFee'),
         };
     }
 
@@ -387,7 +398,7 @@ module.exports = class aofex extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const timestamp = this.safeInteger (result, 'ts');
-        return this.parseOrderBook (result, timestamp);
+        return this.parseOrderBook (result, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -410,8 +421,8 @@ module.exports = class aofex extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        const open = this.safeFloat (ticker, 'open');
-        const last = this.safeFloat (ticker, 'close');
+        const open = this.safeNumber (ticker, 'open');
+        const last = this.safeNumber (ticker, 'close');
         let change = undefined;
         if (symbol !== undefined) {
             change = parseFloat (this.priceToPrecision (symbol, last - open));
@@ -420,8 +431,8 @@ module.exports = class aofex extends Exchange {
         }
         const average = this.sum (last, open) / 2;
         const percentage = change / open * 100;
-        const baseVolume = this.safeFloat (ticker, 'amount');
-        const quoteVolume = this.safeFloat (ticker, 'vol');
+        const baseVolume = this.safeNumber (ticker, 'amount');
+        const quoteVolume = this.safeNumber (ticker, 'vol');
         let vwap = this.vwap (baseVolume, quoteVolume);
         if (vwap !== undefined) {
             vwap = parseFloat (this.priceToPrecision (symbol, vwap));
@@ -430,8 +441,8 @@ module.exports = class aofex extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -549,13 +560,15 @@ module.exports = class aofex extends Exchange {
             symbol = market['symbol'];
         }
         const side = this.safeString (trade, 'direction');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'amount', 'number');
-        let cost = this.safeFloat (trade, 'total_price');
-        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString2 (trade, 'amount', 'number');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        let cost = this.safeNumber (trade, 'total_price');
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             let feeCurrencyCode = undefined;
@@ -699,101 +712,51 @@ module.exports = class aofex extends Exchange {
         const orderType = this.safeString (order, 'type');
         const type = (orderType === '2') ? 'limit' : 'market';
         const side = this.safeString (order, 'side');
-        // const amount = this.safeFloat (order, 'number');
-        // const price = this.safeFloat (order, 'price');
+        // const amount = this.safeNumber (order, 'number');
+        // const price = this.safeNumber (order, 'price');
         let cost = undefined;
         let price = undefined;
         let amount = undefined;
         let average = undefined;
-        const number = this.safeFloat (order, 'number');
-        const totalPrice = this.safeFloat (order, 'total_price');
+        const number = this.safeNumber (order, 'number');
+        const totalPrice = this.safeNumber (order, 'total_price');
         if (type === 'limit') {
             amount = number;
-            price = this.safeFloat (order, 'price');
+            price = this.safeNumber (order, 'price');
         } else {
-            average = this.safeFloat (order, 'deal_price');
+            average = this.safeNumber (order, 'deal_price');
             if (side === 'buy') {
-                amount = this.safeFloat (order, 'deal_number');
+                amount = this.safeNumber (order, 'deal_number');
             } else {
                 amount = number;
             }
         }
-        let fee = undefined;
-        let trades = undefined;
-        let filled = undefined;
-        let feeCost = undefined;
-        let remaining = undefined;
-        let lastTradeTimestamp = undefined;
         // all orders except new orders and canceled orders
-        if ((orderStatus !== '1') && (orderStatus !== '6')) {
-            const rawTrades = this.safeValue (order, 'trades');
-            if (rawTrades !== undefined) {
-                for (let i = 0; i < rawTrades.length; i++) {
-                    rawTrades[i]['direction'] = side;
-                }
-                trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                    'symbol': market['symbol'],
-                    'order': id,
-                    'side': side,
-                    'type': type,
-                });
-                const tradesLength = trades.length;
-                if (tradesLength > 0) {
-                    const firstTrade = trades[0];
-                    feeCost = firstTrade['fee']['cost'];
-                    lastTradeTimestamp = firstTrade['timestamp'];
-                    filled = firstTrade['amount'];
-                    cost = firstTrade['cost'];
-                    for (let i = 1; i < trades.length; i++) {
-                        const trade = trades[i];
-                        feeCost = this.sum (feeCost, trade['fee']['cost']);
-                        filled = this.sum (filled, trade['amount']);
-                        cost = this.sum (cost, trade['cost']);
-                        lastTradeTimestamp = Math.max (lastTradeTimestamp, trade['timestamp']);
-                    }
-                    if (amount !== undefined) {
-                        filled = Math.min (amount, filled);
-                    }
-                    if (filled > 0) {
-                        average = cost / filled;
-                    }
-                }
-                if (feeCost !== undefined) {
-                    const feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
-                    fee = {
-                        'cost': feeCost,
-                        'currency': feeCurrencyCode,
-                    };
-                }
-            }
-        } else {
-            filled = 0;
-            cost = 0;
+        const rawTrades = this.safeValue (order, 'trades', []);
+        for (let i = 0; i < rawTrades.length; i++) {
+            rawTrades[i]['direction'] = side;
         }
-        if (cost === undefined) {
-            if (type === 'limit') {
-                cost = totalPrice;
-            } else if (side === 'buy') {
-                cost = number;
-            }
+        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+            'symbol': market['symbol'],
+            'order': id,
+            'type': type,
+        });
+        if (type === 'limit') {
+            cost = totalPrice;
+        } else if (side === 'buy') {
+            cost = number;
         }
-        if (filled === undefined) {
-            if ((type === 'limit') && (orderStatus === '3')) {
-                filled = amount;
-            }
+        let filled = undefined;
+        if ((type === 'limit') && (orderStatus === '3')) {
+            filled = amount;
         }
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = Math.max (amount - filled, 0);
-            }
-        }
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': market['symbol'],
             'type': type,
@@ -806,10 +769,10 @@ module.exports = class aofex extends Exchange {
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'trades': trades,
-            'fee': fee,
-        };
+            'fee': undefined,
+        });
     }
 
     async fetchClosedOrder (id, symbol = undefined, params = {}) {
@@ -1031,7 +994,7 @@ module.exports = class aofex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
+        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + '/' + path;
         let keys = Object.keys (params);
         const keysLength = keys.length;
         if (api === 'public') {

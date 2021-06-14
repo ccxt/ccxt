@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -148,6 +149,7 @@ module.exports = class mercado extends Exchange {
                 'amount': 8,
                 'price': 5,
             };
+            const priceLimit = '1e-5';
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -160,11 +162,11 @@ module.exports = class mercado extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (amountLimits, baseId),
+                        'min': this.safeNumber (amountLimits, baseId),
                         'max': undefined,
                     },
                     'price': {
-                        'min': 1 / Math.pow (10, precision['price']),
+                        'min': this.parseNumber (priceLimit),
                         'max': undefined,
                     },
                     'cost': {
@@ -184,7 +186,7 @@ module.exports = class mercado extends Exchange {
             'coin': market['base'],
         };
         const response = await this.publicGetCoinOrderbook (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -196,16 +198,16 @@ module.exports = class mercado extends Exchange {
         const response = await this.publicGetCoinTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'ticker', {});
         const timestamp = this.safeTimestamp (ticker, 'date');
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -215,7 +217,7 @@ module.exports = class mercado extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -230,15 +232,12 @@ module.exports = class mercado extends Exchange {
         const id = this.safeString2 (trade, 'tid', 'operation_id');
         const type = undefined;
         const side = this.safeString (trade, 'type');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'amount', 'quantity');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
-        const feeCost = this.safeFloat (trade, 'fee_rate');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString2 (trade, 'amount', 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const feeCost = this.safeNumber (trade, 'fee_rate');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -295,12 +294,12 @@ module.exports = class mercado extends Exchange {
             if (currencyId in balances) {
                 const balance = this.safeValue (balances, currencyId, {});
                 const account = this.account ();
-                account['free'] = this.safeFloat (balance, 'available');
-                account['total'] = this.safeFloat (balance, 'total');
+                account['free'] = this.safeString (balance, 'available');
+                account['total'] = this.safeString (balance, 'total');
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -407,32 +406,31 @@ module.exports = class mercado extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'order_id');
+        const order_type = this.safeString (order, 'order_type');
         let side = undefined;
         if ('order_type' in order) {
-            side = (order['order_type'] === 1) ? 'buy' : 'sell';
+            side = (order_type === '1') ? 'buy' : 'sell';
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'coin_pair');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (order, 'created_timestamp');
         const fee = {
-            'cost': this.safeFloat (order, 'fee'),
+            'cost': this.safeNumber (order, 'fee'),
             'currency': market['quote'],
         };
-        const price = this.safeFloat (order, 'limit_price');
-        // price = this.safeFloat (order, 'executed_price_avg', price);
-        const average = this.safeFloat (order, 'executed_price_avg');
-        const amount = this.safeFloat (order, 'quantity');
-        const filled = this.safeFloat (order, 'executed_quantity');
-        const remaining = amount - filled;
-        const cost = filled * average;
+        const price = this.safeNumber (order, 'limit_price');
+        // price = this.safeNumber (order, 'executed_price_avg', price);
+        const average = this.safeNumber (order, 'executed_price_avg');
+        const amount = this.safeNumber (order, 'quantity');
+        const filled = this.safeNumber (order, 'executed_quantity');
         const lastTradeTimestamp = this.safeTimestamp (order, 'updated_timestamp');
         const rawTrades = this.safeValue (order, 'operations', []);
         const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
             'side': side,
             'order': id,
         });
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -446,15 +444,15 @@ module.exports = class mercado extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -485,17 +483,17 @@ module.exports = class mercado extends Exchange {
         if (code === 'BRL') {
             const account_ref = ('account_ref' in params);
             if (!account_ref) {
-                throw new ArgumentsRequired (this.id + ' requires account_ref parameter to withdraw ' + code);
+                throw new ArgumentsRequired (this.id + ' withdraw() requires account_ref parameter to withdraw ' + code);
             }
         } else if (code !== 'LTC') {
             const tx_fee = ('tx_fee' in params);
             if (!tx_fee) {
-                throw new ArgumentsRequired (this.id + ' requires tx_fee parameter to withdraw ' + code);
+                throw new ArgumentsRequired (this.id + ' withdraw() requires tx_fee parameter to withdraw ' + code);
             }
             if (code === 'XRP') {
                 if (tag === undefined) {
                     if (!('destination_tag' in params)) {
-                        throw new ArgumentsRequired (this.id + ' requires a tag argument or destination_tag parameter to withdraw ' + code);
+                        throw new ArgumentsRequired (this.id + ' withdraw() requires a tag argument or destination_tag parameter to withdraw ' + code);
                     }
                 } else {
                     request['destination_tag'] = tag;
@@ -512,11 +510,11 @@ module.exports = class mercado extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeTimestamp (ohlcv, 'timestamp'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 

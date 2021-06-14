@@ -16,6 +16,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class wavesexchange(Exchange):
@@ -395,6 +396,7 @@ class wavesexchange(Exchange):
         bids = self.parse_order_book_side(self.safe_value(response, 'bids'), market, limit)
         asks = self.parse_order_book_side(self.safe_value(response, 'asks'), market, limit)
         return {
+            'symbol': symbol,
             'bids': bids,
             'asks': asks,
             'timestamp': timestamp,
@@ -546,13 +548,13 @@ class wavesexchange(Exchange):
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         data = self.safe_value(ticker, 'data', {})
-        last = self.safe_float(data, 'lastPrice')
-        low = self.safe_float(data, 'low')
-        high = self.safe_float(data, 'high')
-        vwap = self.safe_float(data, 'weightedAveragePrice')
-        baseVolume = self.safe_float(data, 'volume')
-        quoteVolume = self.safe_float(data, 'quoteVolume')
-        open = self.safe_value(data, 'firstPrice')
+        last = self.safe_number(data, 'lastPrice')
+        low = self.safe_number(data, 'low')
+        high = self.safe_number(data, 'high')
+        vwap = self.safe_number(data, 'weightedAveragePrice')
+        baseVolume = self.safe_number(data, 'volume')
+        quoteVolume = self.safe_number(data, 'quoteVolume')
+        open = self.safe_number(data, 'firstPrice')
         change = None
         average = None
         percentage = None
@@ -698,11 +700,11 @@ class wavesexchange(Exchange):
         data = self.safe_value(ohlcv, 'data', {})
         return [
             self.parse8601(self.safe_string(data, 'time')),
-            self.safe_float(data, 'open'),
-            self.safe_float(data, 'high'),
-            self.safe_float(data, 'low'),
-            self.safe_float(data, 'close'),
-            self.safe_float(data, 'volume', 0),
+            self.safe_number(data, 'open'),
+            self.safe_number(data, 'high'),
+            self.safe_number(data, 'low'),
+            self.safe_number(data, 'close'),
+            self.safe_number(data, 'volume', 0),
         ]
 
     async def fetch_deposit_address(self, code, params={}):
@@ -895,7 +897,7 @@ class wavesexchange(Exchange):
             raise InsufficientFunds(self.id + ' not enough funds to cover the fee, specify feeAssetId in params or options, or buy some WAVES')
         if matcherFee is None:
             wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
-            rate = self.safe_float(rates, matcherFeeAssetId)
+            rate = self.safe_number(rates, matcherFeeAssetId)
             code = self.safe_currency_code(matcherFeeAssetId)
             currency = self.currency(code)
             newPrecison = math.pow(10, wavesPrecision - currency['precision'])
@@ -1003,7 +1005,7 @@ class wavesexchange(Exchange):
         self.check_required_dependencies()
         self.check_required_keys()
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders requires symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         timestamp = self.milliseconds()
@@ -1280,21 +1282,24 @@ class wavesexchange(Exchange):
         # }
         balances = self.safe_value(totalBalance, 'balances')
         result = {}
+        timestamp = None
         for i in range(0, len(balances)):
             entry = balances[i]
+            entryTimestamp = self.safe_integer(entry, 'timestamp')
+            timestamp = entryTimestamp if (timestamp is None) else max(timestamp, entryTimestamp)
             issueTransaction = self.safe_value(entry, 'issueTransaction')
             decimals = self.safe_integer(issueTransaction, 'decimals')
             currencyId = self.safe_string(entry, 'assetId')
-            balance = self.safe_float(entry, 'balance')
+            balance = self.safe_number(entry, 'balance')
             code = None
             if currencyId in self.currencies_by_id:
                 code = self.safe_currency_code(currencyId)
                 result[code] = self.account()
                 result[code]['total'] = self.from_wei(balance, decimals)
-        timestamp = self.milliseconds()
+        currentTimestamp = self.milliseconds()
         byteArray = [
             self.base58_to_binary(self.apiKey),
-            self.number_to_be(timestamp, 8),
+            self.number_to_be(currentTimestamp, 8),
         ]
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
@@ -1302,7 +1307,7 @@ class wavesexchange(Exchange):
         matcherRequest = {
             'publicKey': self.apiKey,
             'signature': signature,
-            'timestamp': str(timestamp),
+            'timestamp': str(currentTimestamp),
         }
         reservedBalance = await self.matcherGetMatcherBalanceReservedPublicKey(matcherRequest)
         # {WAVES: 200300000}
@@ -1312,7 +1317,7 @@ class wavesexchange(Exchange):
             code = self.safe_currency_code(currencyId)
             if not (code in result):
                 result[code] = self.account()
-            amount = self.safe_float(reservedBalance, currencyId)
+            amount = self.safe_number(reservedBalance, currencyId)
             result[code]['used'] = self.currency_from_precision(code, amount)
         wavesRequest = {
             'address': wavesAddress,
@@ -1324,12 +1329,14 @@ class wavesexchange(Exchange):
         #   "balance": 909085978
         # }
         result['WAVES'] = self.safe_value(result, 'WAVES', {})
-        result['WAVES']['total'] = self.currency_from_precision('WAVES', self.safe_float(wavesTotal, 'balance'))
+        result['WAVES']['total'] = self.currency_from_precision('WAVES', self.safe_number(wavesTotal, 'balance'))
         codes = list(result.keys())
         for i in range(0, len(codes)):
             code = codes[i]
             if self.safe_value(result[code], 'used') is None:
                 result[code]['used'] = 0.0
+        result['timestamp'] = timestamp
+        result['datetime'] = self.iso8601(timestamp)
         return self.parse_balance(result)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -1409,8 +1416,11 @@ class wavesexchange(Exchange):
         datetime = self.safe_string(data, 'timestamp')
         timestamp = self.parse8601(datetime)
         id = self.safe_string(data, 'id')
-        price = self.safe_float(data, 'price')
-        amount = self.safe_float(data, 'amount')
+        priceString = self.safe_string(data, 'price')
+        amountString = self.safe_string(data, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         order1 = self.safe_value(data, 'order1')
         order2 = self.safe_value(data, 'order2')
         order = None
@@ -1427,11 +1437,8 @@ class wavesexchange(Exchange):
             symbol = market['symbol']
         side = self.safe_string(order, 'orderType')
         orderId = self.safe_string(order, 'id')
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
         fee = {
-            'cost': self.safe_float(data, 'fee'),
+            'cost': self.safe_number(data, 'fee'),
             'currency': self.safe_currency_code(self.safe_string(order, 'matcherFeeAssetId', 'WAVES')),
         }
         return {
@@ -1502,7 +1509,7 @@ class wavesexchange(Exchange):
             withdrawAddress = await self.privateGetWithdrawAddressesCurrencyAddress(withdrawAddressRequest)
             currency = self.safe_value(withdrawAddress, 'currency')
             allowedAmount = self.safe_value(currency, 'allowed_amount')
-            minimum = self.safe_float(allowedAmount, 'min')
+            minimum = self.safe_number(allowedAmount, 'min')
             if amount <= minimum:
                 raise BadRequest(self.id + ' ' + code + ' withdraw failed, amount ' + str(amount) + ' must be greater than the minimum allowed amount of ' + str(minimum))
             # {

@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class btctradeua(Exchange):
@@ -106,9 +107,9 @@ class btctradeua(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'balance')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -128,7 +129,7 @@ class btctradeua(Exchange):
         if asks:
             if 'list' in asks:
                 orderbook['asks'] = asks['list']
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'currency_trade')
+        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'currency_trade')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -229,12 +230,11 @@ class btctradeua(Exchange):
         id = self.safe_string(trade, 'id')
         type = 'limit'
         side = self.safe_string(trade, 'type')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amnt_trade')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amnt_trade')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -306,11 +306,11 @@ class btctradeua(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': self.safe_string(order, 'type'),
-            'price': self.safe_float(order, 'price'),
+            'price': self.safe_number(order, 'price'),
             'stopPrice': None,
-            'amount': self.safe_float(order, 'amnt_trade'),
+            'amount': self.safe_number(order, 'amnt_trade'),
             'filled': 0,
-            'remaining': self.safe_float(order, 'amnt_trade'),
+            'remaining': self.safe_number(order, 'amnt_trade'),
             'trades': None,
             'info': order,
             'cost': None,
@@ -320,7 +320,7 @@ class btctradeua(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {

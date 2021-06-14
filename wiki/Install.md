@@ -36,41 +36,60 @@ var ccxt = require ('ccxt')
 console.log (ccxt.exchanges) // print all available exchanges
 ```
 
-#### Node.js + Windows
-
-Windows users having difficulties installing `w3`, `scrypt` or `node-gyp` dependencies for the ccxt library, try installing `scrypt` first:
-
-```
-npm install -g web3 --unsafe-perm=true --allow-root
-```
-
-or
-
-```
-sudo npm install -g web3 --unsafe-perm=true --allow-root
-```
-
-Then install ccxt as usual with `npm install ccxt`.
-
-If that does not help, please, follow here: https://github.com/nodejs/node-gyp#on-windows
-
 ### JavaScript (for use with the `<script>` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.40.29/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.40.29/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.51.42/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.51.42/dist/ccxt.browser.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.40.29/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.51.42/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
 
 ```JavaScript
 console.log (ccxt.exchanges) // print all available exchanges
+```
+
+### Custom JavaScript Builds
+
+It takes time to load all scripts and resources. The problem with in-browser usage is that the entire CCXT library weighs a few megabytes which is a lot for a web application. Sometimes it is also critical for a Node app. Therefore to lower the loading time you might want to make your own custom build of CCXT for your app with just the exchanges you need.
+
+Follow these steps:
+
+```bash
+# 1. clone the repository
+
+git clone https://github.com/ccxt/ccxt.git
+
+# 2. go to the cloned repository
+
+cd ccxt
+
+# 3. install dependencies
+
+npm install
+
+# 4. edit exchanges.cfg for the exchanges of your interest
+
+echo "binance\nftx" > exchanges.cfg
+
+# 5. build the library
+
+npm run build
+
+# 6a. copy the browser file to your project folder if you are buildig a web application
+
+cp build/ccxt.browser.js path/to/your/html/project
+
+# 6b. or link against the library if you are building a Node.js application
+npm link
+cd path/to/your/node/project
+npm link ccxt
 ```
 
 ### Python
@@ -110,6 +129,8 @@ It requires common PHP modules:
 include "ccxt.php";
 var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
+
+The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.2+. Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
 
 ### Docker
 

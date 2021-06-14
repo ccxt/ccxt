@@ -2,6 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 module.exports = class timex extends Exchange {
     describe () {
@@ -353,7 +354,7 @@ module.exports = class timex extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (response, 'timestamp'));
-        return this.parseOrderBook (response, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
+        return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -434,7 +435,7 @@ module.exports = class timex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const balances = await this.tradingGetBalances (params);
+        const response = await this.tradingGetBalances (params);
         //
         //     [
         //         {"currency":"BTC","totalBalance":"0","lockedBalance":"0"},
@@ -444,32 +445,39 @@ module.exports = class timex extends Exchange {
         //         {"currency":"USDT","totalBalance":"0","lockedBalance":"0"}
         //     ]
         //
-        const result = { 'info': balances };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'totalBalance');
-            account['used'] = this.safeFloat (balance, 'lockedBalance');
+            account['total'] = this.safeString (balance, 'totalBalance');
+            account['used'] = this.safeString (balance, 'lockedBalance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const uppercaseSide = side.toUpperCase ();
+        const uppercaseType = type.toUpperCase ();
         const request = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
-            'side': side.toUpperCase (),
+            'side': uppercaseSide,
+            'orderTypes': uppercaseType,
             // 'clientOrderId': '123',
             // 'expireIn': 1575523308, // in seconds
             // 'expireTime': 1575523308, // unix timestamp
         };
         let query = params;
-        if (type === 'limit') {
+        if (uppercaseType === 'LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
             const defaultExpireIn = this.safeInteger (this.options, 'expireIn');
             const expireTime = this.safeValue (params, 'expireTime');
@@ -479,7 +487,7 @@ module.exports = class timex extends Exchange {
             } else if (expireIn !== undefined) {
                 request['expireIn'] = expireIn;
             } else {
-                throw new InvalidOrder (this.id + ' createOrder method requires a expireTime or expireIn param for a ' + type + ' order, you can also set the expireIn exchange-wide option');
+                throw new InvalidOrder (this.id + ' createOrder() method requires a expireTime or expireIn param for a ' + type + ' order, you can also set the expireIn exchange-wide option');
             }
             query = this.omit (params, [ 'expireTime', 'expireIn' ]);
         } else {
@@ -812,7 +820,7 @@ module.exports = class timex extends Exchange {
         const result = this.safeValue (response, 0, {});
         return {
             'info': response,
-            'maker': this.safeFloat (result, 'fee'),
+            'maker': this.safeNumber (result, 'fee'),
             'taker': undefined,
         };
     }
@@ -849,18 +857,18 @@ module.exports = class timex extends Exchange {
             'amount': this.precisionFromString (this.safeString (market, 'quantityIncrement')),
             'price': this.precisionFromString (this.safeString (market, 'tickSize')),
         };
-        const amountIncrement = this.safeFloat (market, 'quantityIncrement');
-        const minBase = this.safeFloat (market, 'baseMinSize');
+        const amountIncrement = this.safeNumber (market, 'quantityIncrement');
+        const minBase = this.safeNumber (market, 'baseMinSize');
         const minAmount = Math.max (amountIncrement, minBase);
-        const priceIncrement = this.safeFloat (market, 'tickSize');
-        const minCost = this.safeFloat (market, 'quoteMinSize');
+        const priceIncrement = this.safeNumber (market, 'tickSize');
+        const minCost = this.safeNumber (market, 'quoteMinSize');
         const limits = {
             'amount': { 'min': minAmount, 'max': undefined },
             'price': { 'min': priceIncrement, 'max': undefined },
             'cost': { 'min': Math.max (minCost, minAmount * priceIncrement), 'max': undefined },
         };
-        const taker = this.safeFloat (market, 'takerFee');
-        const maker = this.safeFloat (market, 'makerFee');
+        const taker = this.safeNumber (market, 'takerFee');
+        const maker = this.safeNumber (market, 'makerFee');
         return {
             'id': id,
             'symbol': symbol,
@@ -921,7 +929,7 @@ module.exports = class timex extends Exchange {
         const name = this.safeString (currency, 'name');
         const precision = this.safeInteger (currency, 'decimals');
         const active = this.safeValue (currency, 'active');
-        // const fee = this.safeFloat (currency, 'withdrawalFee');
+        // const fee = this.safeNumber (currency, 'withdrawalFee');
         const feeString = this.safeString (currency, 'withdrawalFee');
         const tradeDecimals = this.safeInteger (currency, 'tradeDecimals');
         let fee = undefined;
@@ -952,18 +960,8 @@ module.exports = class timex extends Exchange {
             'limits': {
                 'withdraw': { 'min': fee, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
-                'price': { 'min': undefined, 'max': undefined },
-                'cost': { 'min': undefined, 'max': undefined },
             },
         };
-    }
-
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -985,8 +983,8 @@ module.exports = class timex extends Exchange {
         const marketId = this.safeString (ticker, 'market');
         const symbol = this.safeSymbol (marketId, market, '/');
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        const last = this.safeFloat (ticker, 'last');
-        const open = this.safeFloat (ticker, 'open');
+        const last = this.safeNumber (ticker, 'last');
+        const open = this.safeNumber (ticker, 'open');
         let change = undefined;
         let average = undefined;
         if (last !== undefined && open !== undefined) {
@@ -1002,11 +1000,11 @@ module.exports = class timex extends Exchange {
             'info': ticker,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -1016,8 +1014,8 @@ module.exports = class timex extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat (ticker, 'volumeQuote'),
+            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'quoteVolume': this.safeNumber (ticker, 'volumeQuote'),
         };
     }
 
@@ -1036,23 +1034,27 @@ module.exports = class timex extends Exchange {
         // fetchMyTrades, fetchOrder (private)
         //
         //     {
-        //         "fee": "0.3",
-        //         "id": 100,
-        //         "makerOrTaker": "MAKER",
-        //         "makerOrderId": "string",
-        //         "price": "0.017",
-        //         "quantity": "0.3",
+        //         "id": "7613414",
+        //         "makerOrderId": "0x8420af060722f560098f786a2894d4358079b6ea5d14b395969ed77bc87a623a",
+        //         "takerOrderId": "0x1235ef158a361815b54c9988b6241c85aedcbc1fe81caf8df8587d5ab0373d1a",
+        //         "symbol": "LTCUSDT",
         //         "side": "BUY",
-        //         "symbol": "TIMEETH",
-        //         "takerOrderId": "string",
-        //         "timestamp": "2019-12-08T04:54:11.171Z"
-        //     }
+        //         "quantity": "0.2",
+        //         "fee": "0.22685",
+        //         "feeToken": "USDT",
+        //         "price": "226.85",
+        //         "makerOrTaker": "TAKER",
+        //         "timestamp": "2021-04-09T15:39:45.608"
+        //    }
         //
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'quantity');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString (trade, 'id');
         const side = this.safeStringLower2 (trade, 'direction', 'side');
         const takerOrMaker = this.safeStringLower (trade, 'makerOrTaker');
@@ -1061,17 +1063,13 @@ module.exports = class timex extends Exchange {
             orderId = this.safeString (trade, takerOrMaker + 'OrderId');
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'feeToken'));
         if (feeCost !== undefined) {
-            const feeCurrency = (market === undefined) ? undefined : market['quote'];
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
             };
-        }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = this.costToPrecision (symbol, amount * price);
         }
         return {
             'info': trade,
@@ -1104,11 +1102,11 @@ module.exports = class timex extends Exchange {
         //
         return [
             this.parse8601 (this.safeString (ohlcv, 'timestamp')),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -1139,14 +1137,12 @@ module.exports = class timex extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'quantity');
-        const filled = this.safeFloat (order, 'filledQuantity');
-        const canceledQuantity = this.safeFloat (order, 'cancelledQuantity');
-        let remaining = undefined;
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'quantity');
+        const filled = this.safeNumber (order, 'filledQuantity');
+        const canceledQuantity = this.safeNumber (order, 'cancelledQuantity');
         let status = undefined;
         if ((amount !== undefined) && (filled !== undefined)) {
-            remaining = Math.max (amount - filled, 0.0);
             if (filled >= amount) {
                 status = 'closed';
             } else if ((canceledQuantity !== undefined) && (canceledQuantity > 0)) {
@@ -1155,30 +1151,19 @@ module.exports = class timex extends Exchange {
                 status = 'open';
             }
         }
-        const cost = parseFloat (this.costToPrecision (symbol, price * filled));
-        const fee = undefined;
-        let lastTradeTimestamp = undefined;
-        let trades = undefined;
-        const rawTrades = this.safeValue (order, 'trades');
-        if (rawTrades !== undefined) {
-            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                'order': id,
-            });
-        }
-        if (trades !== undefined) {
-            const numTrades = trades.length;
-            if (numTrades > 0) {
-                lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
-            }
-        }
+        const rawTrades = this.safeValue (order, 'trades', []);
+        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+            'order': id,
+            'type': type,
+        });
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
@@ -1187,14 +1172,14 @@ module.exports = class timex extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': undefined,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
-            'fee': fee,
+            'fee': undefined,
             'trades': trades,
-        };
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

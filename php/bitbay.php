@@ -46,15 +46,16 @@ class bitbay extends Exchange {
                 '3d' => '259200',
                 '1w' => '604800',
             ),
+            'hostname' => 'bitbay.net',
             'urls' => array(
                 'referral' => 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
                 'www' => 'https://bitbay.net',
                 'api' => array(
-                    'public' => 'https://bitbay.net/API/Public',
-                    'private' => 'https://bitbay.net/API/Trading/tradingApi.php',
-                    'v1_01Public' => 'https://api.bitbay.net/rest',
-                    'v1_01Private' => 'https://api.bitbay.net/rest',
+                    'public' => 'https://{hostname}/API/Public',
+                    'private' => 'https://{hostname}/API/Trading/tradingApi.php',
+                    'v1_01Public' => 'https://api.{hostname}/rest',
+                    'v1_01Private' => 'https://api.{hostname}/rest',
                 ),
                 'doc' => array(
                     'https://bitbay.net/public-api',
@@ -280,8 +281,8 @@ class bitbay extends Exchange {
             if ($this->in_array($base, $fiatCurrencies) || $this->in_array($quote, $fiatCurrencies)) {
                 $fees = $this->safe_value($this->fees, 'fiat', array());
             }
-            $maker = $this->safe_float($fees, 'maker');
-            $taker = $this->safe_float($fees, 'taker');
+            $maker = $this->safe_number($fees, 'maker');
+            $taker = $this->safe_number($fees, 'taker');
             // todo => check that the limits have ben interpreted correctly
             // todo => parse the $fees page
             $result[] = array(
@@ -297,7 +298,7 @@ class bitbay extends Exchange {
                 'taker' => $taker,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($first, 'minOffer'),
+                        'min' => $this->safe_number($first, 'minOffer'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -305,7 +306,7 @@ class bitbay extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $this->safe_float($second, 'minOffer'),
+                        'min' => $this->safe_number($second, 'minOffer'),
                         'max' => null,
                     ),
                 ),
@@ -345,16 +346,10 @@ class bitbay extends Exchange {
         $marketId = $this->safe_string($order, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->safe_integer($order, 'time');
-        $amount = $this->safe_float($order, 'startAmount');
-        $remaining = $this->safe_float($order, 'currentAmount');
-        $filled = null;
-        if ($amount !== null) {
-            if ($remaining !== null) {
-                $filled = max (0, $amount - $remaining);
-            }
-        }
+        $amount = $this->safe_number($order, 'startAmount');
+        $remaining = $this->safe_number($order, 'currentAmount');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'info' => $order,
@@ -367,16 +362,16 @@ class bitbay extends Exchange {
             'timeInForce' => null,
             'postOnly' => $postOnly,
             'side' => $this->safe_string_lower($order, 'offerType'),
-            'price' => $this->safe_float($order, 'rate'),
+            'price' => $this->safe_number($order, 'rate'),
             'stopPrice' => null,
             'amount' => $amount,
             'cost' => null,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'average' => null,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -429,11 +424,11 @@ class bitbay extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['used'] = $this->safe_float($balance, 'lockedFunds');
-            $account['free'] = $this->safe_float($balance, 'availableFunds');
+            $account['used'] = $this->safe_string($balance, 'lockedFunds');
+            $account['free'] = $this->safe_string($balance, 'availableFunds');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -442,7 +437,7 @@ class bitbay extends Exchange {
             'id' => $this->market_id($symbol),
         );
         $orderbook = $this->publicGetIdOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -452,22 +447,22 @@ class bitbay extends Exchange {
         );
         $ticker = $this->publicGetIdTicker (array_merge($request, $params));
         $timestamp = $this->milliseconds();
-        $baseVolume = $this->safe_float($ticker, 'volume');
-        $vwap = $this->safe_float($ticker, 'vwap');
+        $baseVolume = $this->safe_number($ticker, 'volume');
+        $vwap = $this->safe_number($ticker, 'vwap');
         $quoteVolume = null;
         if ($baseVolume !== null && $vwap !== null) {
             $quoteVolume = $baseVolume * $vwap;
         }
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'max'),
-            'low' => $this->safe_float($ticker, 'min'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'max'),
+            'low' => $this->safe_number($ticker, 'min'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
@@ -476,7 +471,7 @@ class bitbay extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_float($ticker, 'average'),
+            'average' => $this->safe_number($ticker, 'average'),
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
@@ -777,7 +772,7 @@ class bitbay extends Exchange {
         $currencyId = $this->safe_string($balance, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $change = $this->safe_value($item, 'change', array());
-        $amount = $this->safe_float($change, 'total');
+        $amount = $this->safe_number($change, 'total');
         $direction = 'in';
         if ($amount < 0) {
             $direction = 'out';
@@ -789,9 +784,9 @@ class bitbay extends Exchange {
         $referenceId = $this->safe_string($item, 'detailId');
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $fundsBefore = $this->safe_value($item, 'fundsBefore', array());
-        $before = $this->safe_float($fundsBefore, 'total');
+        $before = $this->safe_number($fundsBefore, 'total');
         $fundsAfter = $this->safe_value($item, 'fundsAfter', array());
-        $after = $this->safe_float($fundsAfter, 'total');
+        $after = $this->safe_number($fundsAfter, 'total');
         return array(
             'info' => $item,
             'id' => $id,
@@ -848,11 +843,11 @@ class bitbay extends Exchange {
         $first = $this->safe_value($ohlcv, 1, array());
         return array(
             $this->safe_integer($ohlcv, 0),
-            $this->safe_float($first, 'o'),
-            $this->safe_float($first, 'h'),
-            $this->safe_float($first, 'l'),
-            $this->safe_float($first, 'c'),
-            $this->safe_float($first, 'v'),
+            $this->safe_number($first, 'o'),
+            $this->safe_number($first, 'h'),
+            $this->safe_number($first, 'l'),
+            $this->safe_number($first, 'c'),
+            $this->safe_number($first, 'v'),
         );
     }
 
@@ -935,15 +930,12 @@ class bitbay extends Exchange {
         if ($wasTaker !== null) {
             $takerOrMaker = $wasTaker ? 'taker' : 'maker';
         }
-        $price = $this->safe_float_2($trade, 'rate', 'r');
-        $amount = $this->safe_float_2($trade, 'amount', 'a');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
-        $feeCost = $this->safe_float($trade, 'commissionValue');
+        $priceString = $this->safe_string_2($trade, 'rate', 'r');
+        $amountString = $this->safe_string_2($trade, 'amount', 'a');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $feeCost = $this->safe_number($trade, 'commissionValue');
         $marketId = $this->safe_string($trade, 'market');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
@@ -1173,7 +1165,7 @@ class bitbay extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api];
+        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
         if ($api === 'public') {
             $query = $this->omit($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params) . '.json';

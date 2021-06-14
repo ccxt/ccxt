@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class luno(Exchange):
@@ -81,6 +82,10 @@ class luno(Exchange):
                         'quotes/{id}',
                         'withdrawals',
                         'withdrawals/{id}',
+                        'transfers',
+                        # GET /api/exchange/2/listorders
+                        # GET /api/exchange/2/orders/{id}
+                        # GET /api/exchange/3/order
                     ],
                     'post': [
                         'accounts',
@@ -154,12 +159,12 @@ class luno(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'min_volume'),
-                        'max': self.safe_float(market, 'max_volume'),
+                        'min': self.safe_number(market, 'min_volume'),
+                        'max': self.safe_number(market, 'max_volume'),
                     },
                     'price': {
-                        'min': self.safe_float(market, 'min_price'),
-                        'max': self.safe_float(market, 'max_price'),
+                        'min': self.safe_number(market, 'min_price'),
+                        'max': self.safe_number(market, 'max_price'),
                     },
                     'cost': {
                         'min': None,
@@ -201,23 +206,29 @@ class luno(Exchange):
         #     }
         #
         wallets = self.safe_value(response, 'balance', [])
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(wallets)):
             wallet = wallets[i]
             currencyId = self.safe_string(wallet, 'asset')
             code = self.safe_currency_code(currencyId)
-            reserved = self.safe_float(wallet, 'reserved')
-            unconfirmed = self.safe_float(wallet, 'unconfirmed')
-            balance = self.safe_float(wallet, 'balance')
+            reserved = self.safe_string(wallet, 'reserved')
+            unconfirmed = self.safe_string(wallet, 'unconfirmed')
+            balance = self.safe_string(wallet, 'balance')
+            reservedUnconfirmed = Precise.string_add(reserved, unconfirmed)
+            balanceUnconfirmed = Precise.string_add(balance, unconfirmed)
             if code in result:
-                result[code]['used'] = self.sum(result[code]['used'], reserved, unconfirmed)
-                result[code]['total'] = self.sum(result[code]['total'], balance, unconfirmed)
+                result[code]['used'] = Precise.string_add(result[code]['used'], reservedUnconfirmed)
+                result[code]['total'] = Precise.string_add(result[code]['total'], balanceUnconfirmed)
             else:
                 account = self.account()
-                account['used'] = self.sum(reserved, unconfirmed)
-                account['total'] = self.sum(balance, unconfirmed)
+                account['used'] = reservedUnconfirmed
+                account['total'] = balanceUnconfirmed
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -230,7 +241,7 @@ class luno(Exchange):
         }
         response = getattr(self, method)(self.extend(request, params))
         timestamp = self.safe_integer(response, 'timestamp')
-        return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'volume')
+        return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'volume')
 
     def parse_order_status(self, status):
         statuses = {
@@ -260,19 +271,20 @@ class luno(Exchange):
         timestamp = self.safe_integer(order, 'creation_timestamp')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         status = status if (status == 'open') else status
-        side = 'sell' if (order['type'] == 'ASK') else 'buy'
+        side = None
+        orderType = self.safe_string(order, 'type')
+        if (orderType == 'ASK') or (orderType == 'SELL'):
+            side = 'sell'
+        elif (orderType == 'BID') or (orderType == 'BUY'):
+            side = 'buy'
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market)
-        price = self.safe_float(order, 'limit_price')
-        amount = self.safe_float(order, 'limit_volume')
-        quoteFee = self.safe_float(order, 'fee_counter')
-        baseFee = self.safe_float(order, 'fee_base')
-        filled = self.safe_float(order, 'base')
-        cost = self.safe_float(order, 'counter')
-        remaining = None
-        if amount is not None:
-            if filled is not None:
-                remaining = max(0, amount - filled)
+        price = self.safe_number(order, 'limit_price')
+        amount = self.safe_number(order, 'limit_volume')
+        quoteFee = self.safe_number(order, 'fee_counter')
+        baseFee = self.safe_number(order, 'fee_base')
+        filled = self.safe_number(order, 'base')
+        cost = self.safe_number(order, 'counter')
         fee = {'currency': None}
         if quoteFee:
             fee['cost'] = quoteFee
@@ -283,7 +295,7 @@ class luno(Exchange):
             if market is not None:
                 fee['currency'] = market['base']
         id = self.safe_string(order, 'order_id')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -300,12 +312,12 @@ class luno(Exchange):
             'amount': amount,
             'filled': filled,
             'cost': cost,
-            'remaining': remaining,
+            'remaining': None,
             'trades': None,
             'fee': fee,
             'info': order,
             'average': None,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -342,16 +354,16 @@ class luno(Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last_trade')
+        last = self.safe_number(ticker, 'last_trade')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_float(ticker, 'bid'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -361,7 +373,7 @@ class luno(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'rolling_24_hour_volume'),
+            'baseVolume': self.safe_number(ticker, 'rolling_24_hour_volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -397,7 +409,11 @@ class luno(Exchange):
         takerOrMaker = None
         side = None
         if orderId is not None:
-            side = 'sell' if (trade['type'] == 'ASK') else 'buy'
+            type = self.safe_string(trade, 'type')
+            if (type == 'ASK') or (type == 'SELL'):
+                side = 'sell'
+            elif (type == 'BID') or (type == 'BUY'):
+                side = 'buy'
             if side == 'sell' and trade['is_buy']:
                 takerOrMaker = 'maker'
             elif side == 'buy' and not trade['is_buy']:
@@ -406,8 +422,8 @@ class luno(Exchange):
                 takerOrMaker = 'taker'
         else:
             side = 'buy' if trade['is_buy'] else 'sell'
-        feeBase = self.safe_float(trade, 'fee_base')
-        feeCounter = self.safe_float(trade, 'fee_counter')
+        feeBase = self.safe_number(trade, 'fee_base')
+        feeCounter = self.safe_number(trade, 'fee_counter')
         feeCurrency = None
         feeCost = None
         if feeBase is not None:
@@ -429,10 +445,10 @@ class luno(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'volume'),
+            'price': self.safe_number(trade, 'price'),
+            'amount': self.safe_number(trade, 'volume'),
             # Does not include potential fee costs
-            'cost': self.safe_float(trade, 'counter'),
+            'cost': self.safe_number(trade, 'counter'),
             'fee': {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -453,7 +469,7 @@ class luno(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -472,8 +488,8 @@ class luno(Exchange):
         response = self.privateGetFeeInfo(params)
         return {
             'info': response,
-            'maker': self.safe_float(response, 'maker_fee'),
-            'taker': self.safe_float(response, 'taker_fee'),
+            'maker': self.safe_number(response, 'maker_fee'),
+            'taker': self.safe_number(response, 'taker_fee'),
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -485,14 +501,15 @@ class luno(Exchange):
         if type == 'market':
             method += 'Marketorder'
             request['type'] = side.upper()
+            # todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if side == 'buy':
-                request['counter_volume'] = amount
+                request['counter_volume'] = float(self.amount_to_precision(symbol, amount))
             else:
-                request['base_volume'] = amount
+                request['base_volume'] = float(self.amount_to_precision(symbol, amount))
         else:
             method += 'Postorder'
-            request['volume'] = amount
-            request['price'] = price
+            request['volume'] = float(self.amount_to_precision(symbol, amount))
+            request['price'] = float(self.price_to_precision(symbol, price))
             request['type'] = 'BID' if (side == 'buy') else 'ASK'
         response = getattr(self, method)(self.extend(request, params))
         return {
@@ -589,9 +606,9 @@ class luno(Exchange):
         timestamp = self.safe_value(entry, 'timestamp')
         currencyId = self.safe_string(entry, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        available_delta = self.safe_float(entry, 'available_delta')
-        balance_delta = self.safe_float(entry, 'balance_delta')
-        after = self.safe_float(entry, 'balance')
+        available_delta = self.safe_number(entry, 'available_delta')
+        balance_delta = self.safe_number(entry, 'balance_delta')
+        after = self.safe_number(entry, 'balance')
         comment = self.safe_string(entry, 'description')
         before = after
         amount = 0.0

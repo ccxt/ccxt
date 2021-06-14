@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
+from ccxt.base.precise import Precise
 
 
 class lykke(Exchange):
@@ -144,6 +144,7 @@ class lykke(Exchange):
                 },
             },
             'commonCurrencies': {
+                'CAN': 'CanYaCoin',
                 'XPD': 'Lykke XPD',
             },
         })
@@ -185,16 +186,15 @@ class lykke(Exchange):
         id = self.safe_string_2(trade, 'id', 'Id')
         orderId = self.safe_string(trade, 'OrderId')
         timestamp = self.parse8601(self.safe_string_2(trade, 'dateTime', 'DateTime'))
-        price = self.safe_float_2(trade, 'price', 'Price')
-        amount = self.safe_float_2(trade, 'volume', 'Amount')
+        priceString = self.safe_string_2(trade, 'price', 'Price')
+        amountString = self.safe_string_2(trade, 'volume', 'Amount')
         side = self.safe_string_lower(trade, 'action')
         if side is None:
-            if amount < 0:
-                side = 'sell'
-            else:
-                side = 'buy'
-        amount = abs(amount)
-        cost = price * amount
+            side = 'sell' if (amountString[0] == '-') else 'buy'
+        amountString = Precise.string_abs(amountString)
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = {
             'cost': 0,  # There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
             'currency': market['quote'],
@@ -249,10 +249,10 @@ class lykke(Exchange):
             currencyId = self.safe_string(balance, 'AssetId')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'Balance')
-            account['used'] = self.safe_float(balance, 'Reserved')
+            account['total'] = self.safe_string(balance, 'Balance')
+            account['used'] = self.safe_string(balance, 'Reserved')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def cancel_order(self, id, symbol=None, params={}):
         request = {'id': id}
@@ -294,7 +294,7 @@ class lykke(Exchange):
         #     }
         #
         id = self.safe_string(result, 'Id')
-        price = self.safe_float(result, 'Price')
+        price = self.safe_number(result, 'Price')
         return {
             'id': id,
             'info': result,
@@ -345,8 +345,10 @@ class lykke(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            pricePrecision = self.safe_string(market, 'Accuracy')
+            priceLimit = self.parse_precision(pricePrecision)
             precision = {
-                'price': self.safe_integer(market, 'Accuracy'),
+                'price': int(pricePrecision),
                 'amount': self.safe_integer(market, 'InvertedAccuracy'),
             }
             result.append({
@@ -359,15 +361,15 @@ class lykke(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'min': self.safe_number(market, 'MinVolume'),
+                        'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': self.parse_number(priceLimit),
+                        'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'MinInvertedVolume'),
                         'max': None,
                     },
                 },
@@ -381,16 +383,16 @@ class lykke(Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        close = self.safe_float(ticker, 'lastPrice')
+        close = self.safe_number(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_float(ticker, 'bid'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -401,7 +403,7 @@ class lykke(Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'volume24H'),
+            'quoteVolume': self.safe_number(ticker, 'volume24H'),
             'info': ticker,
         }
 
@@ -455,19 +457,17 @@ class lykke(Exchange):
             timestamp = self.parse8601(order['Registered'])
         elif ('CreatedAt' in order) and (order['CreatedAt']):
             timestamp = self.parse8601(order['CreatedAt'])
-        price = self.safe_float(order, 'Price')
+        price = self.safe_number(order, 'Price')
         side = None
-        amount = self.safe_float(order, 'Volume')
+        amount = self.safe_number(order, 'Volume')
         if amount < 0:
             side = 'sell'
             amount = abs(amount)
         else:
             side = 'buy'
-        remaining = abs(self.safe_float(order, 'RemainingVolume'))
-        filled = amount - remaining
-        cost = filled * price
+        remaining = abs(self.safe_number(order, 'RemainingVolume'))
         id = self.safe_string(order, 'Id')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -481,15 +481,15 @@ class lykke(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'average': None,
             'amount': amount,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -538,11 +538,11 @@ class lykke(Exchange):
                 orderbook['asks'] = self.array_concat(orderbook['asks'], side['Prices'])
             sideTimestamp = self.parse8601(side['Timestamp'])
             timestamp = sideTimestamp if (timestamp is None) else max(timestamp, sideTimestamp)
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'Price', 'Volume')
+        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'Price', 'Volume')
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
-        price = self.safe_float(bidask, priceKey)
-        amount = self.safe_float(bidask, amountKey)
+        price = self.safe_number(bidask, priceKey)
+        amount = self.safe_number(bidask, amountKey)
         if amount < 0:
             amount = -amount
         return [price, amount]

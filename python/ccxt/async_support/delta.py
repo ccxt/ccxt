@@ -15,6 +15,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class delta(Exchange):
@@ -265,14 +266,12 @@ class delta(Exchange):
                 'name': self.safe_string(currency, 'name'),
                 'info': currency,  # the original payload
                 'active': active,
-                'fee': self.safe_float(currency, 'base_withdrawal_fee'),
+                'fee': self.safe_number(currency, 'base_withdrawal_fee'),
                 'precision': 1 / math.pow(10, precision),
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {
-                        'min': self.safe_float(currency, 'min_withdrawal_amount'),
+                        'min': self.safe_number(currency, 'min_withdrawal_amount'),
                         'max': None,
                     },
                 },
@@ -385,7 +384,8 @@ class delta(Exchange):
                 swap = True
                 future = False
                 option = False
-                symbol = base + '/' + quote
+                if id.find('_') < 0:
+                    symbol = base + '/' + quote
             elif (type == 'call_options') or (type == 'put_options') or (type == 'move_options'):
                 type = 'option'
                 swap = False
@@ -398,26 +398,26 @@ class delta(Exchange):
                 future = True
             precision = {
                 'amount': 1.0,  # number of contracts
-                'price': self.safe_float(market, 'tick_size'),
+                'price': self.safe_number(market, 'tick_size'),
             }
             limits = {
                 'amount': {
                     'min': 1.0,
-                    'max': self.safe_float(market, 'position_size_limit'),
+                    'max': self.safe_number(market, 'position_size_limit'),
                 },
                 'price': {
                     'min': precision['price'],
                     'max': None,
                 },
                 'cost': {
-                    'min': self.safe_float(market, 'min_size'),
+                    'min': self.safe_number(market, 'min_size'),
                     'max': None,
                 },
             }
             state = self.safe_string(market, 'state')
             active = (state == 'live')
-            maker = self.safe_float(market, 'maker_commission_rate')
-            taker = self.safe_float(market, 'taker_commission_rate')
+            maker = self.safe_number(market, 'maker_commission_rate')
+            taker = self.safe_number(market, 'taker_commission_rate')
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -463,8 +463,8 @@ class delta(Exchange):
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.001)
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_float(ticker, 'close')
-        open = self.safe_float(ticker, 'open')
+        last = self.safe_number(ticker, 'close')
+        open = self.safe_number(ticker, 'open')
         change = None
         average = None
         percentage = None
@@ -473,15 +473,15 @@ class delta(Exchange):
             average = self.sum(last, open) / 2
             if open != 0.0:
                 percentage = (change / open) * 100
-        baseVolume = self.safe_float(ticker, 'volume')
-        quoteVolume = self.safe_float(ticker, 'turnover')
+        baseVolume = self.safe_number(ticker, 'volume')
+        quoteVolume = self.safe_number(ticker, 'turnover')
         vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -591,7 +591,7 @@ class delta(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return self.parse_order_book(result, None, 'buy', 'sell', 'price', 'size')
+        return self.parse_order_book(result, symbol, None, 'buy', 'sell', 'price', 'size')
 
     def parse_trade(self, trade, market=None):
         #
@@ -645,11 +645,11 @@ class delta(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         timestamp = self.safe_integer_product(trade, 'timestamp', 0.001, timestamp)
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'size')
-        cost = None
-        if (amount is not None) and (price is not None):
-            cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'size')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         product = self.safe_value(trade, 'product', {})
         marketId = self.safe_string(product, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -665,7 +665,7 @@ class delta(Exchange):
         type = self.safe_string(metaData, 'order_type')
         if type is not None:
             type = type.replace('_order', '')
-        feeCost = self.safe_float(trade, 'commission')
+        feeCost = self.safe_number(trade, 'commission')
         fee = None
         if feeCost is not None:
             settlingAsset = self.safe_value(product, 'settling_asset', {})
@@ -729,11 +729,11 @@ class delta(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 'time'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -800,10 +800,10 @@ class delta(Exchange):
             currency = self.safe_value(currenciesByNumericId, currencyId)
             code = currencyId if (currency is None) else currency['code']
             account = self.account()
-            account['total'] = self.safe_float(balance, 'balance')
-            account['free'] = self.safe_float(balance, 'available_balance')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'available_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_position(self, symbol, params=None):
         await self.load_markets()
@@ -825,7 +825,7 @@ class delta(Exchange):
         result = self.safe_value(response, 'result', {})
         return result
 
-    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+    async def fetch_positions(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.privateGetPositionsMargined(params)
         #
@@ -904,18 +904,12 @@ class delta(Exchange):
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'order_type')
         type = type.replace('_order', '')
-        price = self.safe_float(order, 'limit_price')
-        amount = self.safe_float(order, 'size')
-        remaining = self.safe_float(order, 'unfilled_size')
-        filled = None
-        if (amount is not None) and (remaining is not None):
-            filled = max(0, amount - remaining)
-        cost = None
-        average = self.safe_float(order, 'average_fill_price')
-        if (average is not None) and filled:
-            cost = average * filled
+        price = self.safe_number(order, 'limit_price')
+        amount = self.safe_number(order, 'size')
+        remaining = self.safe_number(order, 'unfilled_size')
+        average = self.safe_number(order, 'average_fill_price')
         fee = None
-        feeCost = self.safe_float(order, 'paid_commission')
+        feeCost = self.safe_number(order, 'paid_commission')
         if feeCost is not None:
             feeCurrencyCode = None
             if market is not None:
@@ -926,7 +920,7 @@ class delta(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -938,14 +932,14 @@ class delta(Exchange):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -1093,7 +1087,7 @@ class delta(Exchange):
 
     async def cancel_all_orders(self, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1318,9 +1312,9 @@ class delta(Exchange):
         currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId')
         currency = self.safe_value(currenciesByNumericId, currencyId, currency)
         code = None if (currency is None) else currency['code']
-        amount = self.safe_float(item, 'amount')
+        amount = self.safe_number(item, 'amount')
         timestamp = self.parse8601(self.safe_string(item, 'created_at'))
-        after = self.safe_float(item, 'balance')
+        after = self.safe_number(item, 'balance')
         before = max(0, after - amount)
         status = 'ok'
         return {

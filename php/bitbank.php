@@ -43,11 +43,13 @@ class bitbank extends Exchange {
                 '1d' => '1day',
                 '1w' => '1week',
             ),
+            'hostname' => 'bitbank.cc',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
                 'api' => array(
-                    'public' => 'https://public.bitbank.cc',
-                    'private' => 'https://api.bitbank.cc',
+                    'public' => 'https://public.{hostname}',
+                    'private' => 'https://api.{hostname}',
+                    'markets' => 'https://api.{hostname}',
                 ),
                 'www' => 'https://bitbank.cc/',
                 'doc' => 'https://docs.bitbank.cc/',
@@ -79,41 +81,11 @@ class bitbank extends Exchange {
                         'user/request_withdrawal',
                     ),
                 ),
-            ),
-            'markets' => array(
-                'BCH/BTC' => array( 'id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'bcc', 'quoteId' => 'btc' ),
-                'BCH/JPY' => array( 'id' => 'bcc_jpy', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bcc', 'quoteId' => 'jpy' ),
-                'MONA/BTC' => array( 'id' => 'mona_btc', 'symbol' => 'MONA/BTC', 'base' => 'MONA', 'quote' => 'BTC', 'baseId' => 'mona', 'quoteId' => 'btc' ),
-                'MONA/JPY' => array( 'id' => 'mona_jpy', 'symbol' => 'MONA/JPY', 'base' => 'MONA', 'quote' => 'JPY', 'baseId' => 'mona', 'quoteId' => 'jpy' ),
-                'ETH/BTC' => array( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc' ),
-                'LTC/BTC' => array( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc' ),
-                'XRP/JPY' => array( 'id' => 'xrp_jpy', 'symbol' => 'XRP/JPY', 'base' => 'XRP', 'quote' => 'JPY', 'baseId' => 'xrp', 'quoteId' => 'jpy' ),
-                'XLM/JPY' => array( 'id' => 'xlm_jpy', 'symbol' => 'XLM/JPY', 'base' => 'XLM', 'quote' => 'JPY', 'baseId' => 'xlm', 'quoteId' => 'jpy' ),
-                'BTC/JPY' => array( 'id' => 'btc_jpy', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy' ),
-                'ETH/JPY' => array( 'id' => 'eth_jpy', 'symbol' => 'ETH/JPY', 'base' => 'ETH', 'quote' => 'JPY', 'baseId' => 'eth', 'quoteId' => 'jpy' ),
-                'LTC/JPY' => array( 'id' => 'ltc_jpy', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy' ),
-                'XRP/BTC' => array( 'id' => 'xrp_btc', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'baseId' => 'xrp', 'quoteId' => 'btc' ),
-            ),
-            'fees' => array(
-                'trading' => array(
-                    'maker' => -0.02 / 100,
-                    'taker' => 0.12 / 100,
-                ),
-                'funding' => array(
-                    'withdraw' => array(
-                        // 'JPY' => (amount > 30000) ? 756 : 540,
-                        'BTC' => 0.001,
-                        'LTC' => 0.001,
-                        'XRP' => 0.15,
-                        'ETH' => 0.0005,
-                        'MONA' => 0.001,
-                        'BCC' => 0.001,
+                'markets' => array(
+                    'get' => array(
+                        'spot/pairs',
                     ),
                 ),
-            ),
-            'precision' => array(
-                'price' => 8,
-                'amount' => 8,
             ),
             'exceptions' => array(
                 '20001' => '\\ccxt\\AuthenticationError',
@@ -135,22 +107,105 @@ class bitbank extends Exchange {
         ));
     }
 
+    public function fetch_markets($params = array ()) {
+        $response = $this->marketsGetSpotPairs ($params);
+        //
+        //     {
+        //       "success" => 1,
+        //       "$data" => {
+        //         "$pairs" => array(
+        //           {
+        //             "name" => "btc_jpy",
+        //             "base_asset" => "btc",
+        //             "quote_asset" => "jpy",
+        //             "maker_fee_rate_base" => "0",
+        //             "taker_fee_rate_base" => "0",
+        //             "maker_fee_rate_quote" => "-0.0002",
+        //             "taker_fee_rate_quote" => "0.0012",
+        //             "unit_amount" => "0.0001",
+        //             "limit_max_amount" => "1000",
+        //             "market_max_amount" => "10",
+        //             "market_allowance_rate" => "0.2",
+        //             "price_digits" => 0,
+        //             "amount_digits" => 4,
+        //             "is_enabled" => true,
+        //             "stop_order" => false,
+        //             "stop_order_and_cancel" => false
+        //           }
+        //         )
+        //       }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $pairs = $this->safe_value($data, 'pairs', array());
+        $result = array();
+        for ($i = 0; $i < count($pairs); $i++) {
+            $entry = $pairs[$i];
+            $id = $this->safe_string($entry, 'name');
+            $baseId = $this->safe_string($entry, 'base_asset');
+            $quoteId = $this->safe_string($entry, 'quote_asset');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $maker = $this->safe_number($entry, 'maker_fee_rate_quote');
+            $taker = $this->safe_number($entry, 'taker_fee_rate_quote');
+            $pricePrecisionString = $this->safe_string($entry, 'price_digits');
+            $priceLimit = $this->parse_precision($pricePrecisionString);
+            $precision = array(
+                'price' => intval($pricePrecisionString),
+                'amount' => $this->safe_integer($entry, 'amount_digits'),
+            );
+            $active = $this->safe_value($entry, 'is_enabled');
+            $minAmountString = $this->safe_string($entry, 'unit_amount');
+            $minCost = Precise::string_mul($minAmountString, $priceLimit);
+            $limits = array(
+                'amount' => array(
+                    'min' => $this->safe_number($entry, 'unit_amount'),
+                    'max' => $this->safe_number($entry, 'limit_max_amount'),
+                ),
+                'price' => array(
+                    'min' => $this->parse_number($priceLimit),
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => $this->parse_number($minCost),
+                    'max' => null,
+                ),
+            );
+            $result[] = array(
+                'info' => $entry,
+                'id' => $id,
+                'symbol' => $symbol,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'base' => $base,
+                'quote' => $quote,
+                'precision' => $precision,
+                'limits' => $limits,
+                'active' => $active,
+                'maker' => $maker,
+                'taker' => $taker,
+            );
+        }
+        return $result;
+    }
+
     public function parse_ticker($ticker, $market = null) {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -160,7 +215,7 @@ class bitbank extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -185,7 +240,7 @@ class bitbank extends Exchange {
         $response = $this->publicGetPairDepth (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -196,22 +251,19 @@ class bitbank extends Exchange {
             $symbol = $market['symbol'];
             $feeCurrency = $market['quote'];
         }
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $id = $this->safe_string_2($trade, 'transaction_id', 'trade_id');
         $takerOrMaker = $this->safe_string($trade, 'maker_taker');
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee_amount_quote');
+        $feeCost = $this->safe_number($trade, 'fee_amount_quote');
         if ($feeCost !== null) {
             $fee = array(
-                'currency' => $market['quote'],
-                'cost' => $feeCurrency,
+                'currency' => $feeCurrency,
+                'cost' => $feeCost,
             );
         }
         $orderId = $this->safe_string($trade, 'order_id');
@@ -259,11 +311,11 @@ class bitbank extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 5),
-            $this->safe_float($ohlcv, 0),
-            $this->safe_float($ohlcv, 1),
-            $this->safe_float($ohlcv, 2),
-            $this->safe_float($ohlcv, 3),
-            $this->safe_float($ohlcv, 4),
+            $this->safe_number($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
         );
     }
 
@@ -307,21 +359,57 @@ class bitbank extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetUserAssets ($params);
-        $result = array( 'info' => $response );
+        //
+        //     {
+        //       "success" => "1",
+        //       "$data" => {
+        //         "$assets" => array(
+        //           {
+        //             "asset" => "jpy",
+        //             "amount_precision" => "4",
+        //             "onhand_amount" => "0.0000",
+        //             "locked_amount" => "0.0000",
+        //             "free_amount" => "0.0000",
+        //             "stop_deposit" => false,
+        //             "stop_withdrawal" => false,
+        //             "withdrawal_fee" => array(
+        //               "threshold" => "30000.0000",
+        //               "under" => "550.0000",
+        //               "over" => "770.0000"
+        //             }
+        //           ),
+        //           array(
+        //             "asset" => "btc",
+        //             "amount_precision" => "8",
+        //             "onhand_amount" => "0.00000000",
+        //             "locked_amount" => "0.00000000",
+        //             "free_amount" => "0.00000000",
+        //             "stop_deposit" => false,
+        //             "stop_withdrawal" => false,
+        //             "withdrawal_fee" => "0.00060000"
+        //           ),
+        //         )
+        //       }
+        //     }
+        //
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $data = $this->safe_value($response, 'data', array());
         $assets = $this->safe_value($data, 'assets', array());
         for ($i = 0; $i < count($assets); $i++) {
             $balance = $assets[$i];
             $currencyId = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_float($balance, 'free_amount'),
-                'used' => $this->safe_float($balance, 'locked_amount'),
-                'total' => $this->safe_float($balance, 'onhand_amount'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'free_amount');
+            $account['used'] = $this->safe_string($balance, 'locked_amount');
+            $account['total'] = $this->safe_string($balance, 'onhand_amount');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order_status($status) {
@@ -346,21 +434,15 @@ class bitbank extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->safe_integer($order, 'ordered_at');
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'start_amount');
-        $filled = $this->safe_float($order, 'executed_amount');
-        $remaining = $this->safe_float($order, 'remaining_amount');
-        $average = $this->safe_float($order, 'average_price');
-        $cost = null;
-        if ($filled !== null) {
-            if ($average !== null) {
-                $cost = $filled * $average;
-            }
-        }
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'start_amount');
+        $filled = $this->safe_number($order, 'executed_amount');
+        $remaining = $this->safe_number($order, 'remaining_amount');
+        $average = $this->safe_number($order, 'average_price');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -374,7 +456,7 @@ class bitbank extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
@@ -382,14 +464,14 @@ class bitbank extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $order,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($price === null) {
-            throw new InvalidOrder($this->id . ' createOrder requires a $price argument for both $market and limit orders');
+            throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for both $market and limit orders');
         }
         $request = array(
             'pair' => $market['id'],
@@ -512,8 +594,8 @@ class bitbank extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api'][$api] . '/';
-        if ($api === 'public') {
+        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . '/';
+        if (($api === 'public') || ($api === 'markets')) {
             $url .= $this->implode_params($path, $params);
             if ($query) {
                 $url .= '?' . $this->urlencode($query);

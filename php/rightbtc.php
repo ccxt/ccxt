@@ -159,9 +159,13 @@ class rightbtc extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $amountPrecision = $this->safe_string($market, 'bid_asset_decimals');
+            $pricePrecision = $this->safe_string($market, 'ask_asset_decimals');
+            $amountLimit = $this->parse_precision($amountPrecision);
+            $priceLimit = $this->parse_precision($pricePrecision);
             $precision = array(
-                'amount' => $this->safe_integer($market, 'bid_asset_decimals'),
-                'price' => $this->safe_integer($market, 'ask_asset_decimals'),
+                'amount' => intval($amountPrecision),
+                'price' => intval($pricePrecision),
             );
             $result[] = array(
                 'id' => $id,
@@ -174,12 +178,12 @@ class rightbtc extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
-                        'max' => pow(10, $precision['price']),
+                        'min' => $this->parse_number($amountLimit),
+                        'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
-                        'max' => pow(10, $precision['price']),
+                        'min' => $this->parse_number($priceLimit),
+                        'max' => null,
                     ),
                     'cost' => array(
                         'min' => null,
@@ -192,8 +196,8 @@ class rightbtc extends Exchange {
         return $result;
     }
 
-    public function divide_safe_float($x, $key, $divisor) {
-        $value = $this->safe_float($x, $key);
+    public function divide_safe_number($x, $key, $divisor) {
+        $value = $this->safe_number($x, $key);
         if ($value !== null) {
             return $value / $divisor;
         }
@@ -203,12 +207,12 @@ class rightbtc extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 'date');
-        $last = $this->divide_safe_float($ticker, 'last', 1e8);
-        $high = $this->divide_safe_float($ticker, 'high', 1e8);
-        $low = $this->divide_safe_float($ticker, 'low', 1e8);
-        $bid = $this->divide_safe_float($ticker, 'buy', 1e8);
-        $ask = $this->divide_safe_float($ticker, 'sell', 1e8);
-        $baseVolume = $this->divide_safe_float($ticker, 'vol24h', 1e8);
+        $last = $this->divide_safe_number($ticker, 'last', 1e8);
+        $high = $this->divide_safe_number($ticker, 'high', 1e8);
+        $low = $this->divide_safe_number($ticker, 'low', 1e8);
+        $bid = $this->divide_safe_number($ticker, 'buy', 1e8);
+        $ask = $this->divide_safe_number($ticker, 'sell', 1e8);
+        $baseVolume = $this->divide_safe_number($ticker, 'vol24h', 1e8);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -290,7 +294,7 @@ class rightbtc extends Exchange {
                 );
             }
         }
-        return $this->parse_order_book($bidsasks, null, 'bid', 'ask');
+        return $this->parse_order_book($bidsasks, $symbol, null, 'bid', 'ask');
     }
 
     public function parse_trade($trade, $market = null) {
@@ -312,9 +316,9 @@ class rightbtc extends Exchange {
         $id = $this->safe_string($trade, 'tid');
         $id = $this->safe_string($trade, 'trade_id', $id);
         $orderId = $this->safe_string($trade, 'order_id');
-        $price = $this->divide_safe_float($trade, 'price', 1e8);
-        $amount = $this->safe_float($trade, 'amount');
-        $amount = $this->safe_float($trade, 'quantity', $amount);
+        $price = $this->divide_safe_number($trade, 'price', 1e8);
+        $amount = $this->safe_number($trade, 'amount');
+        $amount = $this->safe_number($trade, 'quantity', $amount);
         if ($amount !== null) {
             $amount = $amount / 1e8;
         }
@@ -411,8 +415,8 @@ class rightbtc extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             // https://github.com/ccxt/ccxt/issues/3873
-            $account['free'] = $this->divide_safe_float($balance, 'balance', 1e8);
-            $account['used'] = $this->divide_safe_float($balance, 'frozen', 1e8);
+            $account['free'] = $this->divide_safe_number($balance, 'balance', 1e8);
+            $account['used'] = $this->divide_safe_number($balance, 'frozen', 1e8);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -437,7 +441,7 @@ class rightbtc extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -500,30 +504,18 @@ class rightbtc extends Exchange {
         } else if (is_array($order) && array_key_exists('transactTime', $order)) {
             $timestamp = $order['transactTime'];
         }
-        $price = $this->safe_float_2($order, 'limit', 'price');
+        $price = $this->safe_number_2($order, 'limit', 'price');
         if ($price !== null) {
             $price = $price / 1e8;
         }
-        $amount = $this->divide_safe_float($order, 'quantity', 1e8);
-        $filled = $this->divide_safe_float($order, 'filled_quantity', 1e8);
-        $remaining = $this->divide_safe_float($order, 'rest', 1e8);
-        $cost = $this->divide_safe_float($order, 'cost', 1e8);
+        $amount = $this->divide_safe_number($order, 'quantity', 1e8);
+        $filled = $this->divide_safe_number($order, 'filled_quantity', 1e8);
+        $remaining = $this->divide_safe_number($order, 'rest', 1e8);
+        $cost = $this->divide_safe_number($order, 'cost', 1e8);
         // lines 483-494 should be generalized into a base class method
-        if ($amount !== null) {
-            if ($remaining === null) {
-                if ($filled !== null) {
-                    $remaining = max (0, $amount - $filled);
-                }
-            }
-            if ($filled === null) {
-                if ($remaining !== null) {
-                    $filled = max (0, $amount - $remaining);
-                }
-            }
-        }
         $type = 'limit';
         $side = $this->safe_string_lower($order, 'side');
-        $feeCost = $this->divide_safe_float($order, 'min_fee', 1e8);
+        $feeCost = $this->divide_safe_number($order, 'min_fee', 1e8);
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrency = null;
@@ -531,13 +523,13 @@ class rightbtc extends Exchange {
                 $feeCurrency = $market['quote'];
             }
             $fee = array(
-                'rate' => $this->safe_float($order, 'fee'),
+                'rate' => $this->safe_number($order, 'fee'),
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
             );
         }
         $trades = null;
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -559,12 +551,12 @@ class rightbtc extends Exchange {
             'fee' => $fee,
             'trades' => $trades,
             'average' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -602,7 +594,7 @@ class rightbtc extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -639,7 +631,7 @@ class rightbtc extends Exchange {
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $ids = $this->safe_string($params, 'ids');
         if (($symbol === null) || ($ids === null)) {
-            throw new ArgumentsRequired($this->id . " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order $ids separated with slashes."); // eslint-disable-line quotes
+            throw new ArgumentsRequired($this->id . " fetchOrders() requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order $ids separated with slashes."); // eslint-disable-line quotes
         }
         if (gettype($ids) === 'array' && count(array_filter(array_keys($ids), 'is_string')) == 0) {
             $ids = implode('/', $ids);
@@ -678,7 +670,7 @@ class rightbtc extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

@@ -82,6 +82,10 @@ class luno extends Exchange {
                         'quotes/{id}',
                         'withdrawals',
                         'withdrawals/{id}',
+                        'transfers',
+                        // GET /api/exchange/2/listorders
+                        // GET /api/exchange/2/orders/{id}
+                        // GET /api/exchange/3/order
                     ),
                     'post' => array(
                         'accounts',
@@ -156,12 +160,12 @@ class luno extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'min_volume'),
-                        'max' => $this->safe_float($market, 'max_volume'),
+                        'min' => $this->safe_number($market, 'min_volume'),
+                        'max' => $this->safe_number($market, 'max_volume'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($market, 'min_price'),
-                        'max' => $this->safe_float($market, 'max_price'),
+                        'min' => $this->safe_number($market, 'min_price'),
+                        'max' => $this->safe_number($market, 'max_price'),
                     ),
                     'cost' => array(
                         'min' => null,
@@ -207,25 +211,31 @@ class luno extends Exchange {
         //     }
         //
         $wallets = $this->safe_value($response, 'balance', array());
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($wallets); $i++) {
             $wallet = $wallets[$i];
             $currencyId = $this->safe_string($wallet, 'asset');
             $code = $this->safe_currency_code($currencyId);
-            $reserved = $this->safe_float($wallet, 'reserved');
-            $unconfirmed = $this->safe_float($wallet, 'unconfirmed');
-            $balance = $this->safe_float($wallet, 'balance');
+            $reserved = $this->safe_string($wallet, 'reserved');
+            $unconfirmed = $this->safe_string($wallet, 'unconfirmed');
+            $balance = $this->safe_string($wallet, 'balance');
+            $reservedUnconfirmed = Precise::string_add($reserved, $unconfirmed);
+            $balanceUnconfirmed = Precise::string_add($balance, $unconfirmed);
             if (is_array($result) && array_key_exists($code, $result)) {
-                $result[$code]['used'] = $this->sum($result[$code]['used'], $reserved, $unconfirmed);
-                $result[$code]['total'] = $this->sum($result[$code]['total'], $balance, $unconfirmed);
+                $result[$code]['used'] = Precise::string_add($result[$code]['used'], $reservedUnconfirmed);
+                $result[$code]['total'] = Precise::string_add($result[$code]['total'], $balanceUnconfirmed);
             } else {
                 $account = $this->account();
-                $account['used'] = $this->sum($reserved, $unconfirmed);
-                $account['total'] = $this->sum($balance, $unconfirmed);
+                $account['used'] = $reservedUnconfirmed;
+                $account['total'] = $balanceUnconfirmed;
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -241,7 +251,7 @@ class luno extends Exchange {
         );
         $response = $this->$method (array_merge($request, $params));
         $timestamp = $this->safe_integer($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp, 'bids', 'asks', 'price', 'volume');
+        return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
     public function parse_order_status($status) {
@@ -273,21 +283,21 @@ class luno extends Exchange {
         $timestamp = $this->safe_integer($order, 'creation_timestamp');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $status = ($status === 'open') ? $status : $status;
-        $side = ($order['type'] === 'ASK') ? 'sell' : 'buy';
+        $side = null;
+        $orderType = $this->safe_string($order, 'type');
+        if (($orderType === 'ASK') || ($orderType === 'SELL')) {
+            $side = 'sell';
+        } else if (($orderType === 'BID') || ($orderType === 'BUY')) {
+            $side = 'buy';
+        }
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
-        $price = $this->safe_float($order, 'limit_price');
-        $amount = $this->safe_float($order, 'limit_volume');
-        $quoteFee = $this->safe_float($order, 'fee_counter');
-        $baseFee = $this->safe_float($order, 'fee_base');
-        $filled = $this->safe_float($order, 'base');
-        $cost = $this->safe_float($order, 'counter');
-        $remaining = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $remaining = max (0, $amount - $filled);
-            }
-        }
+        $price = $this->safe_number($order, 'limit_price');
+        $amount = $this->safe_number($order, 'limit_volume');
+        $quoteFee = $this->safe_number($order, 'fee_counter');
+        $baseFee = $this->safe_number($order, 'fee_base');
+        $filled = $this->safe_number($order, 'base');
+        $cost = $this->safe_number($order, 'counter');
         $fee = array( 'currency' => null );
         if ($quoteFee) {
             $fee['cost'] = $quoteFee;
@@ -301,7 +311,7 @@ class luno extends Exchange {
             }
         }
         $id = $this->safe_string($order, 'order_id');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -318,12 +328,12 @@ class luno extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'cost' => $cost,
-            'remaining' => $remaining,
+            'remaining' => null,
             'trades' => null,
             'fee' => $fee,
             'info' => $order,
             'average' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -369,16 +379,16 @@ class luno extends Exchange {
         if ($market) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'last_trade');
+        $last = $this->safe_number($ticker, 'last_trade');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -388,7 +398,7 @@ class luno extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'rolling_24_hour_volume'),
+            'baseVolume' => $this->safe_number($ticker, 'rolling_24_hour_volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -422,13 +432,18 @@ class luno extends Exchange {
 
     public function parse_trade($trade, $market) {
         // For public $trade data (is_buy === True) indicates 'buy' $side but for private $trade data
-        // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy $side->
+        // is_buy indicates maker or taker. The value of "$type" (ASK/BID) indicate sell/buy $side->
         // Private $trade data includes ID field which public $trade data does not.
         $orderId = $this->safe_string($trade, 'order_id');
         $takerOrMaker = null;
         $side = null;
         if ($orderId !== null) {
-            $side = ($trade['type'] === 'ASK') ? 'sell' : 'buy';
+            $type = $this->safe_string($trade, 'type');
+            if (($type === 'ASK') || ($type === 'SELL')) {
+                $side = 'sell';
+            } else if (($type === 'BID') || ($type === 'BUY')) {
+                $side = 'buy';
+            }
             if ($side === 'sell' && $trade['is_buy']) {
                 $takerOrMaker = 'maker';
             } else if ($side === 'buy' && !$trade['is_buy']) {
@@ -439,8 +454,8 @@ class luno extends Exchange {
         } else {
             $side = $trade['is_buy'] ? 'buy' : 'sell';
         }
-        $feeBase = $this->safe_float($trade, 'fee_base');
-        $feeCounter = $this->safe_float($trade, 'fee_counter');
+        $feeBase = $this->safe_number($trade, 'fee_base');
+        $feeCounter = $this->safe_number($trade, 'fee_counter');
         $feeCurrency = null;
         $feeCost = null;
         if ($feeBase !== null) {
@@ -465,10 +480,10 @@ class luno extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'volume'),
+            'price' => $this->safe_number($trade, 'price'),
+            'amount' => $this->safe_number($trade, 'volume'),
             // Does not include potential fee costs
-            'cost' => $this->safe_float($trade, 'counter'),
+            'cost' => $this->safe_number($trade, 'counter'),
             'fee' => array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
@@ -492,7 +507,7 @@ class luno extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -515,8 +530,8 @@ class luno extends Exchange {
         $response = $this->privateGetFeeInfo ($params);
         return array(
             'info' => $response,
-            'maker' => $this->safe_float($response, 'maker_fee'),
-            'taker' => $this->safe_float($response, 'taker_fee'),
+            'maker' => $this->safe_number($response, 'maker_fee'),
+            'taker' => $this->safe_number($response, 'taker_fee'),
         );
     }
 
@@ -529,15 +544,16 @@ class luno extends Exchange {
         if ($type === 'market') {
             $method .= 'Marketorder';
             $request['type'] = strtoupper($side);
+            // todo add createMarketBuyOrderRequires $price logic as it is implemented in the other exchanges
             if ($side === 'buy') {
-                $request['counter_volume'] = $amount;
+                $request['counter_volume'] = floatval($this->amount_to_precision($symbol, $amount));
             } else {
-                $request['base_volume'] = $amount;
+                $request['base_volume'] = floatval($this->amount_to_precision($symbol, $amount));
             }
         } else {
             $method .= 'Postorder';
-            $request['volume'] = $amount;
-            $request['price'] = $price;
+            $request['volume'] = floatval($this->amount_to_precision($symbol, $amount));
+            $request['price'] = floatval($this->price_to_precision($symbol, $price));
             $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -649,9 +665,9 @@ class luno extends Exchange {
         $timestamp = $this->safe_value($entry, 'timestamp');
         $currencyId = $this->safe_string($entry, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $available_delta = $this->safe_float($entry, 'available_delta');
-        $balance_delta = $this->safe_float($entry, 'balance_delta');
-        $after = $this->safe_float($entry, 'balance');
+        $available_delta = $this->safe_number($entry, 'available_delta');
+        $balance_delta = $this->safe_number($entry, 'balance_delta');
+        $after = $this->safe_number($entry, 'balance');
         $comment = $this->safe_string($entry, 'description');
         $before = $after;
         $amount = 0.0;

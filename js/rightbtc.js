@@ -152,9 +152,13 @@ module.exports = class rightbtc extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const amountPrecision = this.safeString (market, 'bid_asset_decimals');
+            const pricePrecision = this.safeString (market, 'ask_asset_decimals');
+            const amountLimit = this.parsePrecision (amountPrecision);
+            const priceLimit = this.parsePrecision (pricePrecision);
             const precision = {
-                'amount': this.safeInteger (market, 'bid_asset_decimals'),
-                'price': this.safeInteger (market, 'ask_asset_decimals'),
+                'amount': parseInt (amountPrecision),
+                'price': parseInt (pricePrecision),
             };
             result.push ({
                 'id': id,
@@ -167,12 +171,12 @@ module.exports = class rightbtc extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': this.parseNumber (amountLimit),
+                        'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': this.parseNumber (priceLimit),
+                        'max': undefined,
                     },
                     'cost': {
                         'min': undefined,
@@ -185,8 +189,8 @@ module.exports = class rightbtc extends Exchange {
         return result;
     }
 
-    divideSafeFloat (x, key, divisor) {
-        const value = this.safeFloat (x, key);
+    divideSafeNumber (x, key, divisor) {
+        const value = this.safeNumber (x, key);
         if (value !== undefined) {
             return value / divisor;
         }
@@ -196,12 +200,12 @@ module.exports = class rightbtc extends Exchange {
     parseTicker (ticker, market = undefined) {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 'date');
-        const last = this.divideSafeFloat (ticker, 'last', 1e8);
-        const high = this.divideSafeFloat (ticker, 'high', 1e8);
-        const low = this.divideSafeFloat (ticker, 'low', 1e8);
-        const bid = this.divideSafeFloat (ticker, 'buy', 1e8);
-        const ask = this.divideSafeFloat (ticker, 'sell', 1e8);
-        const baseVolume = this.divideSafeFloat (ticker, 'vol24h', 1e8);
+        const last = this.divideSafeNumber (ticker, 'last', 1e8);
+        const high = this.divideSafeNumber (ticker, 'high', 1e8);
+        const low = this.divideSafeNumber (ticker, 'low', 1e8);
+        const bid = this.divideSafeNumber (ticker, 'buy', 1e8);
+        const ask = this.divideSafeNumber (ticker, 'sell', 1e8);
+        const baseVolume = this.divideSafeNumber (ticker, 'vol24h', 1e8);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -283,7 +287,7 @@ module.exports = class rightbtc extends Exchange {
                 ]);
             }
         }
-        return this.parseOrderBook (bidsasks, undefined, 'bid', 'ask');
+        return this.parseOrderBook (bidsasks, symbol, undefined, 'bid', 'ask');
     }
 
     parseTrade (trade, market = undefined) {
@@ -305,9 +309,9 @@ module.exports = class rightbtc extends Exchange {
         let id = this.safeString (trade, 'tid');
         id = this.safeString (trade, 'trade_id', id);
         const orderId = this.safeString (trade, 'order_id');
-        const price = this.divideSafeFloat (trade, 'price', 1e8);
-        let amount = this.safeFloat (trade, 'amount');
-        amount = this.safeFloat (trade, 'quantity', amount);
+        const price = this.divideSafeNumber (trade, 'price', 1e8);
+        let amount = this.safeNumber (trade, 'amount');
+        amount = this.safeNumber (trade, 'quantity', amount);
         if (amount !== undefined) {
             amount = amount / 1e8;
         }
@@ -404,8 +408,8 @@ module.exports = class rightbtc extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             // https://github.com/ccxt/ccxt/issues/3873
-            account['free'] = this.divideSafeFloat (balance, 'balance', 1e8);
-            account['used'] = this.divideSafeFloat (balance, 'frozen', 1e8);
+            account['free'] = this.divideSafeNumber (balance, 'balance', 1e8);
+            account['used'] = this.divideSafeNumber (balance, 'frozen', 1e8);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -431,7 +435,7 @@ module.exports = class rightbtc extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -494,30 +498,18 @@ module.exports = class rightbtc extends Exchange {
         } else if ('transactTime' in order) {
             timestamp = order['transactTime'];
         }
-        let price = this.safeFloat2 (order, 'limit', 'price');
+        let price = this.safeNumber2 (order, 'limit', 'price');
         if (price !== undefined) {
             price = price / 1e8;
         }
-        const amount = this.divideSafeFloat (order, 'quantity', 1e8);
-        let filled = this.divideSafeFloat (order, 'filled_quantity', 1e8);
-        let remaining = this.divideSafeFloat (order, 'rest', 1e8);
-        const cost = this.divideSafeFloat (order, 'cost', 1e8);
+        const amount = this.divideSafeNumber (order, 'quantity', 1e8);
+        const filled = this.divideSafeNumber (order, 'filled_quantity', 1e8);
+        const remaining = this.divideSafeNumber (order, 'rest', 1e8);
+        const cost = this.divideSafeNumber (order, 'cost', 1e8);
         // lines 483-494 should be generalized into a base class method
-        if (amount !== undefined) {
-            if (remaining === undefined) {
-                if (filled !== undefined) {
-                    remaining = Math.max (0, amount - filled);
-                }
-            }
-            if (filled === undefined) {
-                if (remaining !== undefined) {
-                    filled = Math.max (0, amount - remaining);
-                }
-            }
-        }
         const type = 'limit';
         const side = this.safeStringLower (order, 'side');
-        const feeCost = this.divideSafeFloat (order, 'min_fee', 1e8);
+        const feeCost = this.divideSafeNumber (order, 'min_fee', 1e8);
         let fee = undefined;
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
@@ -525,13 +517,13 @@ module.exports = class rightbtc extends Exchange {
                 feeCurrency = market['quote'];
             }
             fee = {
-                'rate': this.safeFloat (order, 'fee'),
+                'rate': this.safeNumber (order, 'fee'),
                 'cost': feeCost,
                 'currency': feeCurrency,
             };
         }
         const trades = undefined;
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -553,12 +545,12 @@ module.exports = class rightbtc extends Exchange {
             'fee': fee,
             'trades': trades,
             'average': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -596,7 +588,7 @@ module.exports = class rightbtc extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -633,7 +625,7 @@ module.exports = class rightbtc extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let ids = this.safeString (params, 'ids');
         if ((symbol === undefined) || (ids === undefined)) {
-            throw new ArgumentsRequired (this.id + " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order ids separated with slashes."); // eslint-disable-line quotes
+            throw new ArgumentsRequired (this.id + " fetchOrders() requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order ids separated with slashes."); // eslint-disable-line quotes
         }
         if (Array.isArray (ids)) {
             ids = ids.join ('/');
@@ -672,7 +664,7 @@ module.exports = class rightbtc extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
