@@ -147,6 +147,11 @@ class bitget extends Exchange {
                         'trace/closeTrack',
                         'trace/currentTrack',
                         'trace/historyTrack',
+                        'trace/summary',
+                        'trace/profitSettleTokenIdGroup',
+                        'trace/profitDateGroupList',
+                        'trace/profitDateList',
+                        'trace/waitProfitDateList',
                     ),
                     'post' => array(
                         'account/leverage',

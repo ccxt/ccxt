@@ -29,13 +29,14 @@ SOFTWARE.
 //-----------------------------------------------------------------------------
 
 const Exchange  = require ('./js/base/Exchange')
+    , Precise   = require ('./js/base/Precise')
     , functions = require ('./js/base/functions')
     , errors    = require ('./js/base/errors')
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.51.42'
+const version = '1.51.44'
 
 Exchange.ccxtVersion = version
 
@@ -160,6 +161,6 @@ const exchanges = {
 
 //-----------------------------------------------------------------------------
 
-module.exports = Object.assign ({ version, Exchange, 'exchanges': Object.keys (exchanges) }, exchanges, functions, errors)
+module.exports = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges) }, exchanges, functions, errors)
 
 //-----------------------------------------------------------------------------

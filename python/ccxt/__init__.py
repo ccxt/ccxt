@@ -22,11 +22,12 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.51.42'
+__version__ = '1.51.44'
 
 # ----------------------------------------------------------------------------
 
 from ccxt.base.exchange import Exchange                     # noqa: F401
+from ccxt.base.precise import Precise                       # noqa: F401
 
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
@@ -302,6 +303,7 @@ exchanges = [
 
 base = [
     'Exchange',
+    'Precise',
     'exchanges',
     'decimal_to_precision',
 ]
