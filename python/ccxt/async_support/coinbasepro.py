@@ -654,7 +654,7 @@ class coinbasepro(Exchange):
                 limit = 300  # max = 300
             else:
                 limit = min(300, limit)
-            request['end'] = self.iso8601(self.sum(limit * granularity * 1000, since))
+            request['end'] = self.iso8601(self.sum((limit - 1) * granularity * 1000, since))
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         #
         #     [
