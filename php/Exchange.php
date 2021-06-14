@@ -3074,7 +3074,7 @@ class Exchange {
         if ($string_number === null) {
             return null;
         }
-        if (floatval($string_number) === null) {
+        if (floatval($string_number) === 0.0) {
             return null;
         }
         return $string_number;
