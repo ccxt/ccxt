@@ -29,6 +29,7 @@ SOFTWARE.
 //-----------------------------------------------------------------------------
 
 const Exchange  = require ('./js/base/Exchange')
+    , Precise   = require ('./js/base/Precise')
     , functions = require ('./js/base/functions')
     , errors    = require ('./js/base/errors')
 
@@ -155,11 +156,11 @@ const exchanges = {
     'xena':                    require ('./js/xena.js'),
     'yobit':                   require ('./js/yobit.js'),
     'zaif':                    require ('./js/zaif.js'),
-    'zb':                      require ('./js/zb.js'),    
+    'zb':                      require ('./js/zb.js'),
 }
 
 //-----------------------------------------------------------------------------
 
-module.exports = Object.assign ({ version, Exchange, 'exchanges': Object.keys (exchanges) }, exchanges, functions, errors)
+module.exports = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges) }, exchanges, functions, errors)
 
 //-----------------------------------------------------------------------------
