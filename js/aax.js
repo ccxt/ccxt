@@ -76,11 +76,11 @@ module.exports = class aax extends ccxt.aax {
         const symbol = market['symbol'];
         const parsed = [
             this.safeTimestamp (message, 's'),
-            this.safeFloat (message, 'o'),
-            this.safeFloat (message, 'h'),
-            this.safeFloat (message, 'l'),
-            this.safeFloat (message, 'c'),
-            this.safeFloat (message, 'v'),
+            this.safeNumber (message, 'o'),
+            this.safeNumber (message, 'h'),
+            this.safeNumber (message, 'l'),
+            this.safeNumber (message, 'c'),
+            this.safeNumber (message, 'v'),
         ];
         const subParts = timeframeName.split ('_');
         const interval = this.safeString (subParts, 0);
@@ -410,13 +410,13 @@ module.exports = class aax extends ccxt.aax {
         const currencyId = this.safeString (data, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        account['free'] = this.safeFloat (data, 'available');
-        account['used'] = this.safeFloat (data, 'unavailable');
+        account['free'] = this.safeNumber (data, 'available');
+        account['used'] = this.safeNumber (data, 'unavailable');
         if (!(accountType in this.balance)) {
             this.balance[accountType] = {};
         }
         this.balance[accountType][code] = account;
-        this.balance[accountType] = this.parseBalance (this.balance[accountType]);
+        this.balance[accountType] = this.parseBalance (this.balance[accountType], false);
         client.resolve (this.balance[accountType], messageHash);
     }
 
