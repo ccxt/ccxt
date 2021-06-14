@@ -299,11 +299,11 @@ class gateio(Exchange, ccxt.gateio):
         marketId = self.safe_string_lower(ohlcv, 7)
         parsed = [
             self.safe_timestamp(ohlcv, 0),  # t
-            self.safe_float(ohlcv, 1),  # o
-            self.safe_float(ohlcv, 3),  # h
-            self.safe_float(ohlcv, 4),  # l
-            self.safe_float(ohlcv, 2),  # c
-            self.safe_float(ohlcv, 5),  # v
+            self.safe_number(ohlcv, 1),  # o
+            self.safe_number(ohlcv, 3),  # h
+            self.safe_number(ohlcv, 4),  # l
+            self.safe_number(ohlcv, 2),  # c
+            self.safe_number(ohlcv, 5),  # v
         ]
         symbol = self.safe_symbol(marketId, None, '_')
         # gateio sends candles without a timeframe identifier
@@ -404,10 +404,11 @@ class gateio(Exchange, ccxt.gateio):
             key = keys[i]
             code = self.safe_currency_code(key)
             balance = result[key]
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'freeze')
+            account['free'] = self.safe_number(balance, 'available')
+            account['used'] = self.safe_number(balance, 'freeze')
             self.balance[code] = account
-        client.resolve(self.parse_balance(self.balance), messageHash)
+        self.balance = self.parse_balance(self.balance, False)
+        client.resolve(self.balance, messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.check_required_credentials()

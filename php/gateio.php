@@ -316,11 +316,11 @@ class gateio extends \ccxt\async\gateio {
         $marketId = $this->safe_string_lower($ohlcv, 7);
         $parsed = array(
             $this->safe_timestamp($ohlcv, 0), // t
-            $this->safe_float($ohlcv, 1), // o
-            $this->safe_float($ohlcv, 3), // h
-            $this->safe_float($ohlcv, 4), // l
-            $this->safe_float($ohlcv, 2), // c
-            $this->safe_float($ohlcv, 5), // v
+            $this->safe_number($ohlcv, 1), // o
+            $this->safe_number($ohlcv, 3), // h
+            $this->safe_number($ohlcv, 4), // l
+            $this->safe_number($ohlcv, 2), // c
+            $this->safe_number($ohlcv, 5), // v
         );
         $symbol = $this->safe_symbol($marketId, null, '_');
         // gateio sends candles without a timeframe identifier
@@ -430,11 +430,12 @@ class gateio extends \ccxt\async\gateio {
             $key = $keys[$i];
             $code = $this->safe_currency_code($key);
             $balance = $result[$key];
-            $account['free'] = $this->safe_float($balance, 'available');
-            $account['used'] = $this->safe_float($balance, 'freeze');
+            $account['free'] = $this->safe_number($balance, 'available');
+            $account['used'] = $this->safe_number($balance, 'freeze');
             $this->balance[$code] = $account;
         }
-        $client->resolve ($this->parse_balance($this->balance), $messageHash);
+        $this->balance = $this->parse_balance($this->balance, false);
+        $client->resolve ($this->balance, $messageHash);
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

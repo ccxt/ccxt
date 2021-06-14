@@ -1,6 +1,6 @@
 {
   "name": "ccxt.pro",
-  "version": "0.7.22",
+  "version": "0.7.23",
   "description": "A professional tool for algorithmic cryptocurrency trading",
   "main": "./ccxt.pro.js",
   "unpkg": "dist/ccxt.pro.browser.js",
