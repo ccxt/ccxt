@@ -6,6 +6,7 @@
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
 from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
+from ccxt.base.precise import Precise
 
 
 class currencycom(Exchange, ccxt.currencycom):
@@ -165,8 +166,11 @@ class currencycom(Exchange, ccxt.currencycom):
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, None, '/')
         timestamp = self.safe_integer(trade, 'ts')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'size')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'size')
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         id = self.safe_string_2(trade, 'id')
         orderId = self.safe_string(trade, 'orderId')
         buyer = self.safe_value(trade, 'buyer')
@@ -183,7 +187,7 @@ class currencycom(Exchange, ccxt.currencycom):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': None,
         }
 
@@ -254,10 +258,10 @@ class currencycom(Exchange, ccxt.currencycom):
         messageHash = destination + ':' + timeframe + ':' + symbol
         result = [
             self.safe_integer(payload, 't'),
-            self.safe_float(payload, 'o'),
-            self.safe_float(payload, 'h'),
-            self.safe_float(payload, 'l'),
-            self.safe_float(payload, 'c'),
+            self.safe_number(payload, 'o'),
+            self.safe_number(payload, 'h'),
+            self.safe_number(payload, 'l'),
+            self.safe_number(payload, 'c'),
             None,  # no volume v in OHLCV
         ]
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
