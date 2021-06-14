@@ -350,6 +350,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         //   order_id: '88bf7086-7b15-40ff-8b19-ab4e08516d69',
         //   reason: 'filled'
         // }
+        //
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -420,6 +421,8 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
                         }
                     }
                 }
+                // update the newUpdates count
+                orders.append (previousOrder);
             }
             client.resolve (orders, messageHash);
         }
