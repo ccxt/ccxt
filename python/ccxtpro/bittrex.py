@@ -266,10 +266,10 @@ class bittrex(Exchange, ccxt.bittrex):
         currencyId = self.safe_string(delta, 'currencySymbol')
         code = self.safe_currency_code(currencyId)
         account = self.account()
-        account['free'] = self.safe_float(delta, 'available')
-        account['total'] = self.safe_float(delta, 'total')
+        account['free'] = self.safe_number(delta, 'available')
+        account['total'] = self.safe_number(delta, 'total')
         self.balance[code] = account
-        self.balance = self.parse_balance(self.balance)
+        self.balance = self.parse_balance(self.balance, False)
         messageHash = 'balance'
         client.resolve(self.balance, messageHash)
 
