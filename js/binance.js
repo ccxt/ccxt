@@ -3235,7 +3235,7 @@ module.exports = class binance extends Exchange {
         }
         const contracts = this.parseNumber (contractsStringAbs);
         const leverageBrackets = this.safeValue (this.options, 'leverageBrackets', {});
-        const leverageBracket = this.safeValue (leverageBrackets, 'leverageBracket', []);
+        const leverageBracket = this.safeValue (leverageBrackets, symbol, []);
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
@@ -3394,7 +3394,8 @@ module.exports = class binance extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const leverageBracket = this.options['leverageBrackets'][symbol];
+        const leverageBrackets = this.safeValue (this.options, 'leverageBrackets', {});
+        const leverageBracket = this.safeValue (leverageBrackets, symbol, []);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
         const notionalFloatAbs = parseFloat (notionalStringAbs);
@@ -3478,7 +3479,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        const leverageBrackets = this.safeValue (this.options, 'leverageBrackets', {});
+        const leverageBrackets = this.safeValue (this.options, 'leverageBrackets');
         if ((leverageBrackets === undefined) || (reload)) {
             let method = undefined;
             const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType', 'future');

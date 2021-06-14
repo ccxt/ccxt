@@ -3241,7 +3241,7 @@ class binance extends Exchange {
         }
         $contracts = $this->parse_number($contractsStringAbs);
         $leverageBrackets = $this->safe_value($this->options, 'leverageBrackets', array());
-        $leverageBracket = $this->safe_value($leverageBrackets, 'leverageBracket', array());
+        $leverageBracket = $this->safe_value($leverageBrackets, $symbol, array());
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
@@ -3400,7 +3400,8 @@ class binance extends Exchange {
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $leverageBracket = $this->options['leverageBrackets'][$symbol];
+        $leverageBrackets = $this->safe_value($this->options, 'leverageBrackets', array());
+        $leverageBracket = $this->safe_value($leverageBrackets, $symbol, array());
         $notionalString = $this->safe_string_2($position, 'notional', 'notionalValue');
         $notionalStringAbs = Precise::string_abs($notionalString);
         $notionalFloatAbs = floatval($notionalStringAbs);
@@ -3484,7 +3485,7 @@ class binance extends Exchange {
         $this->load_markets();
         // by default cache the leverage $bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        $leverageBrackets = $this->safe_value($this->options, 'leverageBrackets', array());
+        $leverageBrackets = $this->safe_value($this->options, 'leverageBrackets');
         if (($leverageBrackets === null) || ($reload)) {
             $method = null;
             $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType', 'future');

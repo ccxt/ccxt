@@ -194,7 +194,7 @@ class okex5(Exchange):
                     'maker': 0.0002,
                 },
                 'swap': {
-                    'taker': 0.00075,
+                    'taker': 0.00050,
                     'maker': 0.00020,
                 },
             },

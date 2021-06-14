@@ -3075,7 +3075,7 @@ class binance(Exchange):
             contractsStringAbs = Precise.string_div(Precise.string_add(contractsString, '0.5'), '1', 0)
         contracts = self.parse_number(contractsStringAbs)
         leverageBrackets = self.safe_value(self.options, 'leverageBrackets', {})
-        leverageBracket = self.safe_value(leverageBrackets, 'leverageBracket', [])
+        leverageBracket = self.safe_value(leverageBrackets, symbol, [])
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
@@ -3224,7 +3224,8 @@ class binance(Exchange):
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        leverageBracket = self.options['leverageBrackets'][symbol]
+        leverageBrackets = self.safe_value(self.options, 'leverageBrackets', {})
+        leverageBracket = self.safe_value(leverageBrackets, symbol, [])
         notionalString = self.safe_string_2(position, 'notional', 'notionalValue')
         notionalStringAbs = Precise.string_abs(notionalString)
         notionalFloatAbs = float(notionalStringAbs)
@@ -3301,7 +3302,7 @@ class binance(Exchange):
         await self.load_markets()
         # by default cache the leverage bracket
         # it contains useful stuff like the maintenance margin and initial margin for positions
-        leverageBrackets = self.safe_value(self.options, 'leverageBrackets', {})
+        leverageBrackets = self.safe_value(self.options, 'leverageBrackets')
         if (leverageBrackets is None) or (reload):
             method = None
             defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType', 'future')
