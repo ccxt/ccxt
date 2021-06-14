@@ -353,6 +353,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         //   order_id => '88bf7086-7b15-40ff-8b19-ab4e08516d69',
         //   reason => 'filled'
         // }
+        //
         $orders = $this->orders;
         if ($orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -423,6 +424,8 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                         }
                     }
                 }
+                // update the newUpdates count
+                $orders->append ($previousOrder);
             }
             $client->resolve ($orders, $messageHash);
         }
