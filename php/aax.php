@@ -81,11 +81,11 @@ class aax extends \ccxt\async\aax {
         $symbol = $market['symbol'];
         $parsed = array(
             $this->safe_timestamp($message, 's'),
-            $this->safe_float($message, 'o'),
-            $this->safe_float($message, 'h'),
-            $this->safe_float($message, 'l'),
-            $this->safe_float($message, 'c'),
-            $this->safe_float($message, 'v'),
+            $this->safe_number($message, 'o'),
+            $this->safe_number($message, 'h'),
+            $this->safe_number($message, 'l'),
+            $this->safe_number($message, 'c'),
+            $this->safe_number($message, 'v'),
         );
         $subParts = explode('_', $timeframeName);
         $interval = $this->safe_string($subParts, 0);
@@ -415,13 +415,13 @@ class aax extends \ccxt\async\aax {
         $currencyId = $this->safe_string($data, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();
-        $account['free'] = $this->safe_float($data, 'available');
-        $account['used'] = $this->safe_float($data, 'unavailable');
+        $account['free'] = $this->safe_number($data, 'available');
+        $account['used'] = $this->safe_number($data, 'unavailable');
         if (!(is_array($this->balance) && array_key_exists($accountType, $this->balance))) {
             $this->balance[$accountType] = array();
         }
         $this->balance[$accountType][$code] = $account;
-        $this->balance[$accountType] = $this->parse_balance($this->balance[$accountType]);
+        $this->balance[$accountType] = $this->parse_balance($this->balance[$accountType], false);
         $client->resolve ($this->balance[$accountType], $messageHash);
     }
 

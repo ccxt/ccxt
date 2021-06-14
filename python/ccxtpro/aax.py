@@ -84,11 +84,11 @@ class aax(Exchange, ccxt.aax):
         symbol = market['symbol']
         parsed = [
             self.safe_timestamp(message, 's'),
-            self.safe_float(message, 'o'),
-            self.safe_float(message, 'h'),
-            self.safe_float(message, 'l'),
-            self.safe_float(message, 'c'),
-            self.safe_float(message, 'v'),
+            self.safe_number(message, 'o'),
+            self.safe_number(message, 'h'),
+            self.safe_number(message, 'l'),
+            self.safe_number(message, 'c'),
+            self.safe_number(message, 'v'),
         ]
         subParts = timeframeName.split('_')
         interval = self.safe_string(subParts, 0)
@@ -394,12 +394,12 @@ class aax(Exchange, ccxt.aax):
         currencyId = self.safe_string(data, 'currency')
         code = self.safe_currency_code(currencyId)
         account = self.account()
-        account['free'] = self.safe_float(data, 'available')
-        account['used'] = self.safe_float(data, 'unavailable')
+        account['free'] = self.safe_number(data, 'available')
+        account['used'] = self.safe_number(data, 'unavailable')
         if not (accountType in self.balance):
             self.balance[accountType] = {}
         self.balance[accountType][code] = account
-        self.balance[accountType] = self.parse_balance(self.balance[accountType])
+        self.balance[accountType] = self.parse_balance(self.balance[accountType], False)
         client.resolve(self.balance[accountType], messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
