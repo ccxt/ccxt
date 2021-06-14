@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const Precise = ccxt.Precise;
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -171,8 +172,11 @@ module.exports = class currencycom extends ccxt.currencycom {
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, undefined, '/');
         const timestamp = this.safeInteger (trade, 'ts');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'size');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'size');
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         const id = this.safeString2 (trade, 'id');
         const orderId = this.safeString (trade, 'orderId');
         const buyer = this.safeValue (trade, 'buyer');
@@ -189,7 +193,7 @@ module.exports = class currencycom extends ccxt.currencycom {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': undefined,
         };
     }
@@ -266,10 +270,10 @@ module.exports = class currencycom extends ccxt.currencycom {
         const messageHash = destination + ':' + timeframe + ':' + symbol;
         const result = [
             this.safeInteger (payload, 't'),
-            this.safeFloat (payload, 'o'),
-            this.safeFloat (payload, 'h'),
-            this.safeFloat (payload, 'l'),
-            this.safeFloat (payload, 'c'),
+            this.safeNumber (payload, 'o'),
+            this.safeNumber (payload, 'h'),
+            this.safeNumber (payload, 'l'),
+            this.safeNumber (payload, 'c'),
             undefined, // no volume v in OHLCV
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
