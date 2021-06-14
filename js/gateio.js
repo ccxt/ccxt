@@ -312,11 +312,11 @@ module.exports = class gateio extends ccxt.gateio {
         const marketId = this.safeStringLower (ohlcv, 7);
         const parsed = [
             this.safeTimestamp (ohlcv, 0), // t
-            this.safeFloat (ohlcv, 1), // o
-            this.safeFloat (ohlcv, 3), // h
-            this.safeFloat (ohlcv, 4), // l
-            this.safeFloat (ohlcv, 2), // c
-            this.safeFloat (ohlcv, 5), // v
+            this.safeNumber (ohlcv, 1), // o
+            this.safeNumber (ohlcv, 3), // h
+            this.safeNumber (ohlcv, 4), // l
+            this.safeNumber (ohlcv, 2), // c
+            this.safeNumber (ohlcv, 5), // v
         ];
         const symbol = this.safeSymbol (marketId, undefined, '_');
         // gateio sends candles without a timeframe identifier
@@ -426,11 +426,12 @@ module.exports = class gateio extends ccxt.gateio {
             const key = keys[i];
             const code = this.safeCurrencyCode (key);
             const balance = result[key];
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'freeze');
+            account['free'] = this.safeNumber (balance, 'available');
+            account['used'] = this.safeNumber (balance, 'freeze');
             this.balance[code] = account;
         }
-        client.resolve (this.parseBalance (this.balance), messageHash);
+        this.balance = this.parseBalance (this.balance, false);
+        client.resolve (this.balance, messageHash);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

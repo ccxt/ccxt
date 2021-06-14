@@ -6,6 +6,7 @@ namespace ccxtpro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\Precise;
 
 class currencycom extends \ccxt\async\currencycom {
 
@@ -174,8 +175,11 @@ class currencycom extends \ccxt\async\currencycom {
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, null, '/');
         $timestamp = $this->safe_integer($trade, 'ts');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'size');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'size');
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $id = $this->safe_string_2($trade, 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $buyer = $this->safe_value($trade, 'buyer');
@@ -192,7 +196,7 @@ class currencycom extends \ccxt\async\currencycom {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $price * $amount,
+            'cost' => $cost,
             'fee' => null,
         );
     }
@@ -269,10 +273,10 @@ class currencycom extends \ccxt\async\currencycom {
         $messageHash = $destination . ':' . $timeframe . ':' . $symbol;
         $result = array(
             $this->safe_integer($payload, 't'),
-            $this->safe_float($payload, 'o'),
-            $this->safe_float($payload, 'h'),
-            $this->safe_float($payload, 'l'),
-            $this->safe_float($payload, 'c'),
+            $this->safe_number($payload, 'o'),
+            $this->safe_number($payload, 'h'),
+            $this->safe_number($payload, 'l'),
+            $this->safe_number($payload, 'c'),
             null, // no volume v in OHLCV
         );
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
