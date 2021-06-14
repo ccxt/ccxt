@@ -329,6 +329,7 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
         #   order_id: '88bf7086-7b15-40ff-8b19-ab4e08516d69',
         #   reason: 'filled'
         # }
+        #
         orders = self.orders
         if orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
@@ -387,6 +388,8 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
                         key = keys[i]
                         if order[key] is not None:
                             previousOrder[key] = order[key]
+                # update the newUpdates count
+                orders.append(previousOrder)
             client.resolve(orders, messageHash)
 
     def parse_ws_order(self, order):
