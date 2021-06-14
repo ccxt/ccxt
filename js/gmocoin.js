@@ -229,6 +229,7 @@ module.exports = class gmocoin extends Exchange {
         return this.parseOrderBook (
             orderbook,
             undefined,
+            'timestamp',
             'bids',
             'asks',
             'price',
