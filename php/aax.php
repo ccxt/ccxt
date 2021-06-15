@@ -769,7 +769,7 @@ class aax extends Exchange {
         //  }
         $order = $this->parse_order($this->safe_value($response, 'data'), $market, $this->safe_string($response, 'ts'));
         if ($order['status'] === 'rejected') {
-            throw new InvalidOrder(' $order was rejected by the exchange ' . $this->safeValue($order->info, 'rejectReason'));
+            throw new InvalidOrder(' $order was rejected by the exchange ' . $this->safe_value($order->info, 'rejectReason'));
         }
         return $order;
     }
@@ -990,6 +990,9 @@ class aax extends Exchange {
         $request = array(
             'orderID' => $id,
         );
+        if (is_array($params) && array_key_exists('orderDate', $params)) {
+            $request['startDate'] = $this->ymd ($params['orderDate']);
+        }
         $response = $this->privateGetV2SpotOrders (array_merge($request, $params));
         $result = $this->safe_value($response, 'data');
         $list = $this->safe_value($result, 'list', array());
