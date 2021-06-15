@@ -84,10 +84,12 @@ setup(
             'yarl==1.6.3',
         ],
         'qa': [
-            'flake8==3.7.9'
+            'flake8==3.7.9',
         ],
         'doc': [
-            'Sphinx==1.7.0'
+            'Sphinx==1.7.0',
+            'm2r2==0.2.7',
+            'sphinx-rtd-theme==0.5.2',
         ]
     }
 )
