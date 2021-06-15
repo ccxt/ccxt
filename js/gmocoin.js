@@ -182,12 +182,12 @@ module.exports = class gmocoin extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const timestamp = this.safeTimestamp (ticker, 'timestamp');
+        const datetime = this.safeString (ticker, 'timestamp');
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
@@ -215,7 +215,9 @@ module.exports = class gmocoin extends Exchange {
         params['symbol'] = market['id'];
         const response = await this.publicGetTicker (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        return this.parseTicker (data, market);
+        if (data.length > 0) {
+            return this.parseTicker (data[0], market);
+        }
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
