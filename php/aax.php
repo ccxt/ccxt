@@ -736,7 +736,7 @@ class aax extends Exchange {
         // Response
         // {
         //     "code":1,
-        //     "data":array(
+        //     "$data":array(
         //        "avgPrice":"0",
         //        "base":"BTC",
         //        "clOrdID":"aax",
@@ -767,9 +767,10 @@ class aax extends Exchange {
         //     "message":"success",
         //     "ts":1573530401264
         //  }
-        $order = $this->parse_order($this->safe_value($response, 'data'), $market, $this->safe_string($response, 'ts'));
+        $data = $this->safe_value($response, 'data');
+        $order = $this->fetch_order($data['orderID']);
         if ($order['status'] === 'rejected') {
-            throw new InvalidOrder(' $order was rejected by the exchange ' . $this->safeValue($order->info, 'rejectReason'));
+            throw new InvalidOrder(' $order was rejected by the exchange ' . $this->safe_value($order->info, 'rejectReason'));
         }
         return $order;
     }
