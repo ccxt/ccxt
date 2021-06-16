@@ -17,6 +17,12 @@ window.addEventListener ("load", () => {
             lastP = null
         }
     }
+    // link the sidebar links and the sections
+    const $topLinks = $links.find ('a.reference.internal[href="#"]')
+    $topLinks.each (function () {
+        const text = this.innerText.toLowerCase ()
+        $(this).attr ('href', '#' + text)
+    })
     // set the height values for the sticky css property
     const $linkGroups = $links.parents ('ul')
     const heights = {}
@@ -25,16 +31,12 @@ window.addEventListener ("load", () => {
         let height = 1
         for (const link of $sublinks) {
             const $link = $(link)
+            console.log ($link.children ().first ().attr ('href'))
             heights[$link.children ().first ().attr ('href')] = -Math.ceil (height)
             height += $link.innerHeight ()
         }
     })
-    // link the sidebar links and the sections
-    const $topLinks = $links.find ('a.reference.internal[href="#"]')
-    $topLinks.each (function () {
-        const text = this.innerText.toLowerCase ()
-        $(this).attr ('href', '#' + text)
-    })
+    console.log (heights)
     const linksBySectionId = {}
     $sections.each (function () {
         linksBySectionId[this.id] = $allLinks.find ('a.reference.internal[href="#' + this.id + '"]').parent ().filter ('li')

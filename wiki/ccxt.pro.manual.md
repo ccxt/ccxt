@@ -519,7 +519,7 @@ The obvious downside of the throttling mode is being less reactive or responsive
 
 ##### watchOrderBook
 
-The `watchOrderBook`'s interface is identical to [`fetchOrderBook`](https://github.com/ccxt/ccxt/wiki/Manual#order-book). It accepts three arguments:
+The `watchOrderBook`'s interface is identical to [fetchOrderBook](https://github.com/ccxt/ccxt/wiki/Manual#order-book). It accepts three arguments:
 
 - `symbol` – string, a unified CCXT symbol, required
 - `limit` – integer, the max number of bids/asks returned, optional

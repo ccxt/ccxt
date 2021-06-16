@@ -1,13 +1,49 @@
+.. role:: raw-html-m2r(raw)
+   :format: html
+
+
 CCXT – CryptoCurrency eXchange Trading Library
 ==============================================
 
-`Build Status <https://travis-ci.org/ccxt/ccxt>`__ `npm <https://npmjs.com/package/ccxt>`__ `PyPI <https://pypi.python.org/pypi/ccxt>`__ `NPM Downloads <https://www.npmjs.com/package/ccxt>`__ `Discord <https://discord.gg/dhzSKYU>`__ `Supported Exchanges <https://github.com/ccxt/ccxt/wiki/Exchange-Markets>`__ `Open Collective <https://opencollective.com/ccxt>`__
-`Twitter Follow <https://twitter.com/ccxt_official>`__
+
+.. image:: https://travis-ci.com/ccxt/ccxt.svg?branch=master
+     :target: https://travis-ci.com/ccxt/ccxt
+     :alt: Build Status
+ 
+.. image:: https://img.shields.io/npm/v/ccxt.svg
+     :target: https://npmjs.com/package/ccxt
+     :alt: npm
+ 
+.. image:: https://img.shields.io/pypi/v/ccxt.svg
+     :target: https://pypi.python.org/pypi/ccxt
+     :alt: PyPI
+ 
+.. image:: https://img.shields.io/npm/dy/ccxt.svg
+     :target: https://www.npmjs.com/package/ccxt
+     :alt: NPM Downloads
+ 
+.. image:: https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white
+     :target: https://discord.gg/dhzSKYU
+     :alt: Discord
+ 
+.. image:: https://img.shields.io/badge/exchanges-114-blue.svg
+     :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
+     :alt: Supported Exchanges
+ 
+.. image:: https://opencollective.com/ccxt/backers/badge.svg
+     :target: https://opencollective.com/ccxt
+     :alt: Open Collective
+
+
+.. image:: https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT
+     :target: https://twitter.com/ccxt_official
+     :alt: Twitter Follow
+
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-`Install <#install>`__ · `Usage <#usage>`__ · `Manual <https://github.com/ccxt/ccxt/wiki>`__ · `FAQ <https://github.com/ccxt/ccxt/wiki/FAQ>`__ · `Examples <https://github.com/ccxt/ccxt/tree/master/examples>`__ · `Contributing <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__ · `Social <#social>`__
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:ref:`Install <install>` · :ref:`Usage <usage>` · `Manual <https://github.com/ccxt/ccxt/wiki>`__ · `FAQ <https://github.com/ccxt/ccxt/wiki/FAQ>`__ · `Examples <https://github.com/ccxt/ccxt/tree/master/examples>`__ · `Contributing <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__ · :ref:`Social <social>` · `CCXT Pro <https://ccxt.pro>`__
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The **CCXT** library is used to connect and trade with cryptocurrency exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, and related software engineering.
 
@@ -15,430 +51,1670 @@ It is intended to be used by **coders, developers, technically-skilled traders, 
 
 Current feature list:
 
--  support for many cryptocurrency exchanges — more coming soon
--  fully implemented public and private APIs
--  optional normalized data for cross-exchange analytics and arbitrage
--  an out of the box unified API that is extremely easy to integrate
--  works in Node 7.6+, Python 3, PHP 5.4+, and web browsers
+
+* support for many cryptocurrency exchanges — more coming soon
+* fully implemented public and private APIs
+* optional normalized data for cross-exchange analytics and arbitrage
+* an out of the box unified API that is extremely easy to integrate
+* works in Node 7.6+, Python 3, PHP 5.4+, and web browsers
 
 Sponsored Promotion
 -------------------
 
-+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| `Bitvavo – Trade The Future <https://bitvavo.com>`__                                                                                                                                                                                             |
-+==================================================================================================================================================================================================================================================+
-| `CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals <https://ccxt.pro>`__ `A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals <https://ccxt.pro>`__ |
-+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+.. image:: https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png
+     :target: https://ccxt.pro
+     :alt: CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals
+
 
 See Also
 --------
 
--  \ `Quadency <https://quadency.com?utm_source=ccxt>`__\   `Quadency <https://quadency.com?utm_source=ccxt>`__ — professional crypto terminal, algo trading, and unified streaming APIs.
--  \ `TabTrader <https://tab-trader.com/?utm_source=ccxt>`__\   `TabTrader <https://tab-trader.com/?utm_source=ccxt>`__ — trading on all exchanges in one app. Avaliable on `Android <https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt>`__ and `iOS <https://itunes.apple.com/app/apple-store/id1095716562?mt=8>`__.
--  \ `Currency.com <https://currency.com/?utm_source=ccxt>`__\   `Currency.com <https://currency.com/?utm_source=ccxt>`__ — Award-winning regulated tokenized assets platform with 1500+ available tokens and cryptos.
+
+* :raw-html-m2r:`[![TabTrader](https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png)](https://tab-trader.com/?utm_source=ccxt)`\ &nbsp; **\ `TabTrader <https://tab-trader.com/?utm_source=ccxt>`__\ **\ &nbsp;&mdash;&nbsp;trading on all exchanges in one app. Avaliable on `Android <https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt>`__ and `iOS <https://itunes.apple.com/app/apple-store/id1095716562?mt=8>`__.
+* :raw-html-m2r:`[![AAX](https://user-images.githubusercontent.com/1294454/106509642-ef957980-64de-11eb-92e0-8323cda7874e.png)](https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=one-liner&utm_campaign=futures)`\ &nbsp; **\ `AAX <https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=one-liner&utm_campaign=futures>`__\ **\ &nbsp;&mdash;&nbsp;trade bitcoin futures with fees as low as 0.02% and up to 100x leverage!
+* :raw-html-m2r:`[![Freqtrade](https://user-images.githubusercontent.com/1294454/114340585-8e35fa80-9b60-11eb-860f-4379125e2db6.png)](https://www.freqtrade.io)`\ &nbsp; **\ `Freqtrade <https://www.freqtrade.io>`__\ **\ &nbsp;&mdash;&nbsp;leading opensource cryptocurrency algorithmic trading software!
+* :raw-html-m2r:`[![BitcoinPoint](https://user-images.githubusercontent.com/1294454/117208884-512af400-adfe-11eb-90dc-9e5281b8fc29.png)](https://bitcoinpoint.com)`\ &nbsp; **\ `BitcoinPoint <https://bitcoinpoint.com>`__\ **\ &nbsp;&mdash;&nbsp;sell bitcoin via a network of over 18000 ATMs.
 
 Certified Cryptocurrency Exchanges
 ----------------------------------
 
-+-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-|        logo                                                                 | id        | name                                                                        | ver | doc                                                                                   | certified                                                            | pro                             |
-+=============================================================================+===========+=============================================================================+=====+=======================================================================================+======================================================================+=================================+
-| `binance <https://www.binance.com/?ref=10205187>`__                         | binance   | `Binance <https://www.binance.com/?ref=10205187>`__                         | \*  | `API <https://binance-docs.github.io/apidocs/spot/en>`__                              | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__                   | bitfinex  | `Bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__                   | 1   | `API <https://docs.bitfinex.com/v1/docs>`__                                           | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__ | bittrex   | `Bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__ | 1.1 | `API <https://bittrex.github.io/api/>`__                                              | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitvavo <https://bitvavo.com/?a=24F34952F7>`__                             | bitvavo   | `Bitvavo <https://bitvavo.com/?a=24F34952F7>`__                             | 2   | `API <https://docs.bitvavo.com/>`__                                                   | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bytetrade <https://www.byte-trade.com>`__                                  | bytetrade | `ByteTrade <https://www.byte-trade.com>`__                                  | \*  | `API <https://github.com/Bytetrade/bytetrade-official-api-docs/wiki>`__               | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |                                 |
-+-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `eterbase <https://www.eterbase.com>`__                                     | eterbase  | `Eterbase <https://www.eterbase.com>`__                                     | 1   | `API <https://developers.eterbase.exchange>`__                                        | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |                                 |
-+-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `ftx <https://ftx.com/#a=1623029>`__                                        | ftx       | `FTX <https://ftx.com/#a=1623029>`__                                        | \*  | `API <https://github.com/ftexchange/ftx>`__                                           | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `idex <https://idex.market>`__                                              | idex      | `IDEX <https://idex.market>`__                                              | \*  | `API <https://docs.idex.market/>`__                                                   | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |                                 |
-+-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `kraken <https://www.kraken.com>`__                                         | kraken    | `Kraken <https://www.kraken.com>`__                                         | 0   | `API <https://www.kraken.com/features/api>`__                                         | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__                       | poloniex  | `Poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__                       | \*  | `API <https://docs.poloniex.com>`__                                                   | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `upbit <https://upbit.com>`__                                               | upbit     | `Upbit <https://upbit.com>`__                                               | 1   | `API <https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C>`__ | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+.. list-table::
+   :header-rows: 1
+
+   * - logo
+     - id
+     - name
+     - ver
+     - doc
+     - certified
+     - pro
+   * - .. image:: https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg
+          :target: https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
+          :alt: aax
+     
+     - aax
+     - `AAX <https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
+     - 2
+     - `API <https://www.aaxpro.com/apidoc/index.html>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
+          :target: https://www.binance.com/?ref=10205187
+          :alt: binance
+     
+     - binance
+     - `Binance <https://www.binance.com/?ref=10205187>`__
+     - *
+     - `API <https://binance-docs.github.io/apidocs/spot/en>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
+          :target: https://www.binance.com/?ref=10205187
+          :alt: binancecoinm
+     
+     - binancecoinm
+     - `Binance COIN-M <https://www.binance.com/?ref=10205187>`__
+     - *
+     - `API <https://binance-docs.github.io/apidocs/spot/en>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
+          :target: https://www.binance.com/?ref=10205187
+          :alt: binanceusdm
+     
+     - binanceusdm
+     - `Binance USDⓈ-M <https://www.binance.com/?ref=10205187>`__
+     - *
+     - `API <https://binance-docs.github.io/apidocs/spot/en>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
+          :target: https://bitvavo.com/?a=24F34952F7
+          :alt: bitvavo
+     
+     - bitvavo
+     - `Bitvavo <https://bitvavo.com/?a=24F34952F7>`__
+     - 2
+     - `API <https://docs.bitvavo.com/>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg
+          :target: https://www.byte-trade.com
+          :alt: bytetrade
+     
+     - bytetrade
+     - `ByteTrade <https://www.byte-trade.com>`__
+     - *
+     - `API <https://docs.byte-trade.com/#description>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg
+          :target: https://currency.com/trading/signup?c=362jaimv&pid=referral
+          :alt: currencycom
+     
+     - currencycom
+     - `Currency.com <https://currency.com/trading/signup?c=362jaimv&pid=referral>`__
+     - 1
+     - `API <https://currency.com/api>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
+          :target: https://ftx.com/#a=1623029
+          :alt: ftx
+     
+     - ftx
+     - `FTX <https://ftx.com/#a=1623029>`__
+     - *
+     - `API <https://github.com/ftexchange/ftx>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg
+          :target: https://www.gopax.co.kr
+          :alt: gopax
+     
+     - gopax
+     - `GOPAX <https://www.gopax.co.kr>`__
+     - 1
+     - `API <https://gopax.github.io/API/index.en.html>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg
+          :target: https://idex.io
+          :alt: idex
+     
+     - idex
+     - `IDEX <https://idex.io>`__
+     - 2
+     - `API <https://docs.idex.io/>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg
+          :target: https://www.kraken.com
+          :alt: kraken
+     
+     - kraken
+     - `Kraken <https://www.kraken.com>`__
+     - 0
+     - `API <https://www.kraken.com/features/api>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg
+          :target: https://waves.exchange
+          :alt: wavesexchange
+     
+     - wavesexchange
+     - `Waves.Exchange <https://waves.exchange>`__
+     - *
+     - `API <https://docs.waves.exchange>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87489843-bb469280-c64c-11ea-91aa-69c6326506af.jpg
+          :target: https://xena.exchange
+          :alt: xena
+     
+     - xena
+     - `Xena Exchange <https://xena.exchange>`__
+     - *
+     - `API <https://support.xena.exchange/support/solutions/44000808700>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg
+          :target: https://www.zb.com
+          :alt: zb
+     
+     - zb
+     - `ZB <https://www.zb.com>`__
+     - 1
+     - `API <https://www.zb.com/i/developer>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     -
+
 
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 124 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
 
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-|        logo                                                                             | id                 | name                                                                                    | ver | doc                                                                                             | certified                                                            | pro                             |
-+=========================================================================================+====================+=========================================================================================+=====+=================================================================================================+======================================================================+=================================+
-| `_1btcxe  <https://1btcxe.com>`__                                                       | _1btcxe            | `1BTCXE <https://1btcxe.com>`__                                                         | \*  | `API <https://1btcxe.com/api-docs.php>`__                                                       |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `acx <https://acx.io>`__                                                                | acx                | `ACX <https://acx.io>`__                                                                | 2   | `API <https://acx.io/documents/api_v2>`__                                                       |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `anxpro <https://anxpro.com>`__                                                         | anxpro             | `ANXPro <https://anxpro.com>`__                                                         | \*  | `API <https://anxv2.docs.apiary.io>`__                                                          |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `aofex <https://aofex.com/#/register?key=9763840>`__                                    | aofex              | `AOFEX <https://aofex.com/#/register?key=9763840>`__                                    | \*  | `API <https://aofex.zendesk.com/hc/en-us/sections/360005576574-API>`__                          |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bcex <https://www.bcex.top/register?invite_code=758978&lang=en>`__                     | bcex               | `BCEX <https://www.bcex.top/register?invite_code=758978&lang=en>`__                     | 1   | `API <https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface>`__                    |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bequant <https://bequant.io>`__                                                        | bequant            | `Bequant <https://bequant.io>`__                                                        | 2   | `API <https://api.bequant.io/>`__                                                               |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bibox <https://w2.bibox.com/login/register?invite_code=05Kj3I>`__                      | bibox              | `Bibox <https://w2.bibox.com/login/register?invite_code=05Kj3I>`__                      | 1   | `API <https://biboxcom.github.io/en/>`__                                                        |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bigone <https://b1.run/users/new?code=D3LLBVFT>`__                                     | bigone             | `BigONE <https://b1.run/users/new?code=D3LLBVFT>`__                                     | 3   | `API <https://open.big.one/docs/api.html>`__                                                    |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `binance <https://www.binance.com/?ref=10205187>`__                                     | binance            | `Binance <https://www.binance.com/?ref=10205187>`__                                     | \*  | `API <https://binance-docs.github.io/apidocs/spot/en>`__                                        | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `binanceje <https://www.binance.je/?ref=35047921>`__                                    | binanceje          | `Binance Jersey <https://www.binance.je/?ref=35047921>`__                               | \*  | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__ |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `binanceus <https://www.binance.us/?ref=35005074>`__                                    | binanceus          | `Binance US <https://www.binance.us/?ref=35005074>`__                                   | \*  | `API <https://github.com/binance-us/binance-official-api-docs>`__                               |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bit2c <https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf>`__                | bit2c              | `Bit2C <https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf>`__                | \*  | `API <https://www.bit2c.co.il/home/api>`__                                                      |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitbank <https://bitbank.cc/>`__                                                       | bitbank            | `bitbank <https://bitbank.cc/>`__                                                       | 1   | `API <https://docs.bitbank.cc/>`__                                                              |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitbay <https://auth.bitbay.net/ref/jHlbB4mIkdS1>`__                                   | bitbay             | `BitBay <https://auth.bitbay.net/ref/jHlbB4mIkdS1>`__                                   | \*  | `API <https://bitbay.net/public-api>`__                                                         |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__                               | bitfinex           | `Bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__                               | 1   | `API <https://docs.bitfinex.com/v1/docs>`__                                                     | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitfinex2 <https://www.bitfinex.com/?refcode=P61eYxFL>`__                              | bitfinex2          | `Bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__                               | 2   | `API <https://docs.bitfinex.com/v2/docs/>`__                                                    |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitflyer <https://bitflyer.jp>`__                                                      | bitflyer           | `bitFlyer <https://bitflyer.jp>`__                                                      | 1   | `API <https://lightning.bitflyer.com/docs?lang=en>`__                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitforex <https://www.bitforex.com/en/invitationRegister?inviterId=1867438>`__         | bitforex           | `Bitforex <https://www.bitforex.com/en/invitationRegister?inviterId=1867438>`__         | 1   | `API <https://github.com/githubdev2020/API_Doc_en/wiki>`__                                      |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bithumb <https://www.bithumb.com>`__                                                   | bithumb            | `Bithumb <https://www.bithumb.com>`__                                                   | \*  | `API <https://apidocs.bithumb.com>`__                                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitkk <https://www.bitkk.com>`__                                                       | bitkk              | `bitkk <https://www.bitkk.com>`__                                                       | 1   | `API <https://www.bitkk.com/i/developer>`__                                                     |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitmart <http://www.bitmart.com/?r=rQCFLh>`__                                          | bitmart            | `BitMart <http://www.bitmart.com/?r=rQCFLh>`__                                          | 2   | `API <https://github.com/bitmartexchange/bitmart-official-api-docs>`__                          |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitmax <https://bitmax.io/#/register?inviteCode=EL6BXBQM>`__                           | bitmax             | `BitMax <https://bitmax.io/#/register?inviteCode=EL6BXBQM>`__                           | 1   | `API <https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation>`__        |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitmex <https://www.bitmex.com/register/upZpOX>`__                                     | bitmex             | `BitMEX <https://www.bitmex.com/register/upZpOX>`__                                     | 1   | `API <https://www.bitmex.com/app/apiOverview>`__                                                |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitso <https://bitso.com/?ref=itej>`__                                                 | bitso              | `Bitso <https://bitso.com/?ref=itej>`__                                                 | 3   | `API <https://bitso.com/api_info>`__                                                            |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitstamp <https://www.bitstamp.net>`__                                                 | bitstamp           | `Bitstamp <https://www.bitstamp.net>`__                                                 | 2   | `API <https://www.bitstamp.net/api>`__                                                          |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitstamp1 <https://www.bitstamp.net>`__                                                | bitstamp1          | `Bitstamp <https://www.bitstamp.net>`__                                                 | 1   | `API <https://www.bitstamp.net/api>`__                                                          |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__             | bittrex            | `Bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__             | 1.1 | `API <https://bittrex.github.io/api/>`__                                                        | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitvavo <https://bitvavo.com/?a=24F34952F7>`__                                         | bitvavo            | `Bitvavo <https://bitvavo.com/?a=24F34952F7>`__                                         | 2   | `API <https://docs.bitvavo.com/>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitz <https://u.bitz.com/register?invite_code=1429193>`__                              | bitz               | `Bit-Z <https://u.bitz.com/register?invite_code=1429193>`__                             | 2   | `API <https://apidoc.bitz.com/en/>`__                                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bl3p <https://bl3p.eu>`__                                                              | bl3p               | `BL3P <https://bl3p.eu>`__                                                              | 1   | `API <https://github.com/BitonicNL/bl3p-api/tree/master/docs>`__                                |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bleutrade <https://bleutrade.com>`__                                                   | bleutrade          | `Bleutrade <https://bleutrade.com>`__                                                   | \*  | `API <https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0>`__                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `braziliex <https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465>`__             | braziliex          | `Braziliex <https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465>`__             | \*  | `API <https://braziliex.com/exchange/api.php>`__                                                |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `btcalpha <https://btc-alpha.com/?r=123788>`__                                          | btcalpha           | `BTC-Alpha <https://btc-alpha.com/?r=123788>`__                                         | 1   | `API <https://btc-alpha.github.io/api-docs>`__                                                  |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `btcbox <https://www.btcbox.co.jp/>`__                                                  | btcbox             | `BtcBox <https://www.btcbox.co.jp/>`__                                                  | 1   | `API <https://www.btcbox.co.jp/help/asm>`__                                                     |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `btcmarkets <https://btcmarkets.net>`__                                                 | btcmarkets         | `BTC Markets <https://btcmarkets.net>`__                                                | \*  | `API <https://github.com/BTCMarkets/API>`__                                                     |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `btctradeim <https://m.baobi.com/invite?inv=1765b2>`__                                  | btctradeim         | `BtcTrade.im <https://m.baobi.com/invite?inv=1765b2>`__                                 | \*  | `API <https://www.btctrade.im/help.api.html>`__                                                 |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `btctradeua <https://btc-trade.com.ua/registration/22689>`__                            | btctradeua         | `BTC Trade UA <https://btc-trade.com.ua/registration/22689>`__                          | \*  | `API <https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit>`__  |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `btcturk <https://www.btcturk.com>`__                                                   | btcturk            | `BTCTurk <https://www.btcturk.com>`__                                                   | \*  | `API <https://github.com/BTCTrader/broker-api-docs>`__                                          |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `buda <https://www.buda.com>`__                                                         | buda               | `Buda <https://www.buda.com>`__                                                         | 2   | `API <https://api.buda.com>`__                                                                  |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bw <https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0>`__                            | bw                 | `BW <https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0>`__                            | 1   | `API <https://github.com/bw-exchange/api_docs_en/wiki>`__                                       |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bybit <https://www.bybit.com/app/register?ref=X7Prm>`__                                | bybit              | `Bybit <https://www.bybit.com/app/register?ref=X7Prm>`__                                | 2   | `API <https://bybit-exchange.github.io/docs/inverse/>`__                                        |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bytetrade <https://www.byte-trade.com>`__                                              | bytetrade          | `ByteTrade <https://www.byte-trade.com>`__                                              | \*  | `API <https://github.com/Bytetrade/bytetrade-official-api-docs/wiki>`__                         | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `cex <https://cex.io/r/0/up105393824/0/>`__                                             | cex                | `CEX.IO <https://cex.io/r/0/up105393824/0/>`__                                          | \*  | `API <https://cex.io/cex-api>`__                                                                |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `chilebit <https://chilebit.net>`__                                                     | chilebit           | `ChileBit <https://chilebit.net>`__                                                     | 1   | `API <https://blinktrade.com/docs>`__                                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinbase <https://www.coinbase.com/join/58cbe25a355148797479dbd2>`__                   | coinbase           | `Coinbase <https://www.coinbase.com/join/58cbe25a355148797479dbd2>`__                   | 2   | `API <https://developers.coinbase.com/api/v2>`__                                                |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinbaseprime <https://prime.coinbase.com>`__                                          | coinbaseprime      | `Coinbase Prime <https://prime.coinbase.com>`__                                         | \*  | `API <https://docs.prime.coinbase.com>`__                                                       |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinbasepro <https://pro.coinbase.com/>`__                                             | coinbasepro        | `Coinbase Pro <https://pro.coinbase.com/>`__                                            | \*  | `API <https://docs.pro.coinbase.com>`__                                                         |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coincheck <https://coincheck.com>`__                                                   | coincheck          | `coincheck <https://coincheck.com>`__                                                   | \*  | `API <https://coincheck.com/documents/exchange/api>`__                                          |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinegg <https://www.coinegg.com/user/register?invite=523218>`__                       | coinegg            | `CoinEgg <https://www.coinegg.com/user/register?invite=523218>`__                       | \*  | `API <https://www.coinegg.com/explain.api.html>`__                                              |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinex <https://www.coinex.com/register?refer_code=yw5fz>`__                           | coinex             | `CoinEx <https://www.coinex.com/register?refer_code=yw5fz>`__                           | 1   | `API <https://github.com/coinexcom/coinex_exchange_api/wiki>`__                                 |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinfalcon <https://coinfalcon.com/?ref=CFJSVGTUPASB>`__                               | coinfalcon         | `CoinFalcon <https://coinfalcon.com/?ref=CFJSVGTUPASB>`__                               | 1   | `API <https://docs.coinfalcon.com>`__                                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinfloor <https://www.coinfloor.co.uk>`__                                             | coinfloor          | `coinfloor <https://www.coinfloor.co.uk>`__                                             | \*  | `API <https://github.com/coinfloor/api>`__                                                      |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coingi <https://www.coingi.com/?r=XTPPMC>`__                                           | coingi             | `Coingi <https://www.coingi.com/?r=XTPPMC>`__                                           | \*  | `API <https://coingi.docs.apiary.io>`__                                                         |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinmarketcap <https://coinmarketcap.com>`__                                           | coinmarketcap      | `CoinMarketCap <https://coinmarketcap.com>`__                                           | 1   | `API <https://coinmarketcap.com/api>`__                                                         |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinmate <https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0>`__ | coinmate           | `CoinMate <https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0>`__ | \*  | `API <https://coinmate.docs.apiary.io>`__                                                       |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinone <https://coinone.co.kr>`__                                                     | coinone            | `CoinOne <https://coinone.co.kr>`__                                                     | 2   | `API <https://doc.coinone.co.kr>`__                                                             |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinspot <https://www.coinspot.com.au/register?code=PJURCU>`__                         | coinspot           | `CoinSpot <https://www.coinspot.com.au/register?code=PJURCU>`__                         | \*  | `API <https://www.coinspot.com.au/api>`__                                                       |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coolcoin <https://www.coolcoin.com/user/register?invite_code=bhaega>`__                | coolcoin           | `CoolCoin <https://www.coolcoin.com/user/register?invite_code=bhaega>`__                | \*  | `API <https://www.coolcoin.com/help.api.html>`__                                                |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coss <https://www.coss.io/c/reg?r=OWCMHQVW2Q>`__                                       | coss               | `COSS <https://www.coss.io/c/reg?r=OWCMHQVW2Q>`__                                       | 1   | `API <https://api.coss.io/v1/spec>`__                                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `crex24 <https://crex24.com/?refid=slxsjsjtil8xexl9hksr>`__                             | crex24             | `CREX24 <https://crex24.com/?refid=slxsjsjtil8xexl9hksr>`__                             | 2   | `API <https://docs.crex24.com/trade-api/v2>`__                                                  |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `currencycom <https://currency.com/trading/signup?c=362jaimv&pid=referral>`__           | currencycom        | `Currency.com <https://currency.com/trading/signup?c=362jaimv&pid=referral>`__          | 1   | `API <https://currency.com/api>`__                                                              |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `deribit <https://www.deribit.com/reg-1189.4038>`__                                     | deribit            | `Deribit <https://www.deribit.com/reg-1189.4038>`__                                     | 2   | `API <https://docs.deribit.com/v2>`__                                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `digifinex <https://www.digifinex.vip/en-ww/from/DhOzBg/3798****5114>`__                | digifinex          | `DigiFinex <https://www.digifinex.vip/en-ww/from/DhOzBg/3798****5114>`__                | 3   | `API <https://docs.digifinex.vip>`__                                                            |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `dsx <https://dsxglobal.com>`__                                                         | dsx                | `DSX <https://dsxglobal.com>`__                                                         | 3   | `API <https://dsxglobal.com/developers/publicApi>`__                                            |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `eterbase <https://www.eterbase.com>`__                                                 | eterbase           | `Eterbase <https://www.eterbase.com>`__                                                 | 1   | `API <https://developers.eterbase.exchange>`__                                                  | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `exmo <https://exmo.me/?ref=131685>`__                                                  | exmo               | `EXMO <https://exmo.me/?ref=131685>`__                                                  | 1.1 | `API <https://exmo.me/en/api_doc?ref=131685>`__                                                 |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `exx <https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f?recommQd=1>`__             | exx                | `EXX <https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f?recommQd=1>`__             | \*  | `API <https://www.exx.com/help/restApi>`__                                                      |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `fcoin <https://www.fcoin.com/i/Z5P7V>`__                                               | fcoin              | `FCoin <https://www.fcoin.com/i/Z5P7V>`__                                               | 2   | `API <https://developer.fcoin.com>`__                                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `fcoinjp <https://www.fcoinjp.com>`__                                                   | fcoinjp            | `FCoinJP <https://www.fcoinjp.com>`__                                                   | 2   | `API <https://developer.fcoin.com>`__                                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `flowbtc <https://www.flowbtc.com.br>`__                                                | flowbtc            | `flowBTC <https://www.flowbtc.com.br>`__                                                | 1   | `API <https://www.flowbtc.com.br/api.html>`__                                                   |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `foxbit <https://foxbit.com.br/exchange>`__                                             | foxbit             | `FoxBit <https://foxbit.com.br/exchange>`__                                             | 1   | `API <https://foxbit.com.br/api/>`__                                                            |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `ftx <https://ftx.com/#a=1623029>`__                                                    | ftx                | `FTX <https://ftx.com/#a=1623029>`__                                                    | \*  | `API <https://github.com/ftexchange/ftx>`__                                                     | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `fybse <https://www.fybse.se>`__                                                        | fybse              | `FYB-SE <https://www.fybse.se>`__                                                       | \*  | `API <https://fyb.docs.apiary.io>`__                                                            |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `gateio <https://www.gate.io/signup/2436035>`__                                         | gateio             | `Gate.io <https://www.gate.io/signup/2436035>`__                                        | 2   | `API <https://gate.io/api2>`__                                                                  |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `gemini <https://gemini.com/>`__                                                        | gemini             | `Gemini <https://gemini.com/>`__                                                        | 1   | `API <https://docs.gemini.com/rest-api>`__                                                      |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `hbtc <https://www.hbtc.com/register/O2S8NS>`__                                         | hbtc               | `HBTC <https://www.hbtc.com/register/O2S8NS>`__                                         | 1   | `API <https://github.com/bhexopen/BHEX-OpenApi/tree/master/doc>`__                              |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `hitbtc <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                                   | hitbtc             | `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                                   | 2   | `API <https://api.hitbtc.com>`__                                                                |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `hollaex <https://pro.hollaex.com/signup?affiliation_code=QSWA6G>`__                    | hollaex            | `HollaEx <https://pro.hollaex.com/signup?affiliation_code=QSWA6G>`__                    | 1   | `API <https://apidocs.hollaex.com>`__                                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `huobipro <https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3>`__              | huobipro           | `Huobi Pro <https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3>`__             | 1   | `API <https://huobiapi.github.io/docs/spot/v1/cn/>`__                                           |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `huobiru <https://www.huobi.com.ru/invite?invite_code=esc74>`__                         | huobiru            | `Huobi Russia <https://www.huobi.com.ru/invite?invite_code=esc74>`__                    | 1   | `API <https://github.com/cloudapidoc/API_Docs_en>`__                                            |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `ice3x <https://ice3x.com?ref=14341802>`__                                              | ice3x              | `ICE3X <https://ice3x.com?ref=14341802>`__                                              | 1   | `API <https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017>`__          |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `idex <https://idex.market>`__                                                          | idex               | `IDEX <https://idex.market>`__                                                          | \*  | `API <https://docs.idex.market/>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `independentreserve <https://www.independentreserve.com>`__                             | independentreserve | `Independent Reserve <https://www.independentreserve.com>`__                            | \*  | `API <https://www.independentreserve.com/API>`__                                                |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `indodax <https://indodax.com/ref/testbitcoincoid/1>`__                                 | indodax            | `INDODAX <https://indodax.com/ref/testbitcoincoid/1>`__                                 | 2.0 | `API <https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf>`__                       |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `itbit <https://www.itbit.com>`__                                                       | itbit              | `itBit <https://www.itbit.com>`__                                                       | 1   | `API <https://api.itbit.com/docs>`__                                                            |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `kkex <https://kkex.com>`__                                                             | kkex               | `KKEX <https://kkex.com>`__                                                             | 2   | `API <https://kkex.com/api_wiki/cn/>`__                                                         |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `kraken <https://www.kraken.com>`__                                                     | kraken             | `Kraken <https://www.kraken.com>`__                                                     | 0   | `API <https://www.kraken.com/features/api>`__                                                   | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `kucoin <https://www.kucoin.com/?rcode=E5wkqe>`__                                       | kucoin             | `KuCoin <https://www.kucoin.com/?rcode=E5wkqe>`__                                       | 2   | `API <https://docs.kucoin.com>`__                                                               |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `kuna <https://kuna.io?r=kunaid-gvfihe8az7o4>`__                                        | kuna               | `Kuna <https://kuna.io?r=kunaid-gvfihe8az7o4>`__                                        | 2   | `API <https://kuna.io/documents/api>`__                                                         |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `lakebtc <https://www.lakebtc.com>`__                                                   | lakebtc            | `LakeBTC <https://www.lakebtc.com>`__                                                   | 2   | `API <https://www.lakebtc.com/s/api_v2>`__                                                      |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `latoken <https://latoken.com>`__                                                       | latoken            | `Latoken <https://latoken.com>`__                                                       | 1   | `API <https://api.latoken.com>`__                                                               |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `lbank <https://www.lbex.io/invite?icode=7QCY>`__                                       | lbank              | `LBank <https://www.lbex.io/invite?icode=7QCY>`__                                       | 1   | `API <https://github.com/LBank-exchange/lbank-official-api-docs>`__                             |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `liquid <https://www.liquid.com?affiliate=SbzC62lt30976>`__                             | liquid             | `Liquid <https://www.liquid.com?affiliate=SbzC62lt30976>`__                             | 2   | `API <https://developers.liquid.com>`__                                                         |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `livecoin <https://livecoin.net/?from=Livecoin-CQ1hfx44>`__                             | livecoin           | `LiveCoin <https://livecoin.net/?from=Livecoin-CQ1hfx44>`__                             | \*  | `API <https://www.livecoin.net/api?lang=en>`__                                                  |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `luno <https://www.luno.com/invite/44893A>`__                                           | luno               | `luno <https://www.luno.com/invite/44893A>`__                                           | 1   | `API <https://www.luno.com/en/api>`__                                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `lykke <https://www.lykke.com>`__                                                       | lykke              | `Lykke <https://www.lykke.com>`__                                                       | 1   | `API <https://hft-api.lykke.com/swagger/ui/>`__                                                 |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `mercado <https://www.mercadobitcoin.com.br>`__                                         | mercado            | `Mercado Bitcoin <https://www.mercadobitcoin.com.br>`__                                 | 3   | `API <https://www.mercadobitcoin.com.br/api-doc>`__                                             |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `mixcoins <https://mixcoins.com>`__                                                     | mixcoins           | `MixCoins <https://mixcoins.com>`__                                                     | 1   | `API <https://mixcoins.com/help/api/>`__                                                        |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `oceanex <https://oceanex.pro/signup?referral=VE24QX>`__                                | oceanex            | `OceanEx <https://oceanex.pro/signup?referral=VE24QX>`__                                | 1   | `API <https://api.oceanex.pro/doc/v1>`__                                                        |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `okcoin <https://www.okcoin.com/account/register?flag=activity&channelId=600001513>`__  | okcoin             | `OKCoin <https://www.okcoin.com/account/register?flag=activity&channelId=600001513>`__  | 3   | `API <https://www.okcoin.com/docs/en/>`__                                                       |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `okex <https://www.okex.com/join/1888677>`__                                            | okex               | `OKEX <https://www.okex.com/join/1888677>`__                                            | 3   | `API <https://www.okex.com/docs/en/>`__                                                         |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `paymium <https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj>`__        | paymium            | `Paymium <https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj>`__        | 1   | `API <https://github.com/Paymium/api-documentation>`__                                          |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__                                   | poloniex           | `Poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__                                   | \*  | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `probit <https://www.probit.com/r/34608773>`__                                          | probit             | `ProBit <https://www.probit.com/r/34608773>`__                                          | 1   | `API <https://docs-en.probit.com>`__                                                            |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `qtrade <https://qtrade.io/?ref=BKOQWVFGRH2C>`__                                        | qtrade             | `qTrade <https://qtrade.io/?ref=BKOQWVFGRH2C>`__                                        | 1   | `API <https://qtrade-exchange.github.io/qtrade-docs>`__                                         |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `rightbtc <https://www.rightbtc.com>`__                                                 | rightbtc           | `RightBTC <https://www.rightbtc.com>`__                                                 | \*  | `API <https://docs.rightbtc.com/api/>`__                                                        |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `southxchange <https://www.southxchange.com>`__                                         | southxchange       | `SouthXchange <https://www.southxchange.com>`__                                         | \*  | `API <https://www.southxchange.com/Home/Api>`__                                                 |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `stex <https://app.stex.com?ref=36416021>`__                                            | stex               | `STEX <https://app.stex.com?ref=36416021>`__                                            | 3   | `API <https://help.stex.com/en/collections/1593608-api-v3-documentation>`__                     |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `stronghold <https://stronghold.co>`__                                                  | stronghold         | `Stronghold <https://stronghold.co>`__                                                  | 1   | `API <https://docs.stronghold.co>`__                                                            |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `surbitcoin <https://surbitcoin.com>`__                                                 | surbitcoin         | `SurBitcoin <https://surbitcoin.com>`__                                                 | 1   | `API <https://blinktrade.com/docs>`__                                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `theocean <https://theocean.trade>`__                                                   | theocean           | `The Ocean <https://theocean.trade>`__                                                  | 1   | `API <https://docs.theocean.trade>`__                                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `therock <https://therocktrading.com>`__                                                | therock            | `TheRockTrading <https://therocktrading.com>`__                                         | 1   | `API <https://api.therocktrading.com/doc/v1/index.html>`__                                      |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `tidebit <http://bit.ly/2IX0LrM>`__                                                     | tidebit            | `TideBit <http://bit.ly/2IX0LrM>`__                                                     | 2   | `API <https://www.tidebit.com/documents/api/guide>`__                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__                                | tidex              | `Tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__                                | 3   | `API <https://tidex.com/exchange/public-api>`__                                                 |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `timex <https://timex.io/?refcode=1x27vNkTbP1uwkCck>`__                                 | timex              | `TimeX <https://timex.io/?refcode=1x27vNkTbP1uwkCck>`__                                 | 1   | `API <https://docs.timex.io>`__                                                                 |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `topq <https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0>`__                          | topq               | `TOP.Q <https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0>`__                         | 1   | `API <https://github.com/topq-exchange/api_docs_en/wiki/REST_api_reference>`__                  |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `upbit <https://upbit.com>`__                                                           | upbit              | `Upbit <https://upbit.com>`__                                                           | 1   | `API <https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C>`__           | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `vaultoro <https://www.vaultoro.com>`__                                                 | vaultoro           | `Vaultoro <https://www.vaultoro.com>`__                                                 | 1   | `API <https://api.vaultoro.com>`__                                                              |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `vbtc <https://vbtc.exchange>`__                                                        | vbtc               | `VBTC <https://vbtc.exchange>`__                                                        | 1   | `API <https://blinktrade.com/docs>`__                                                           |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `whitebit <https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963>`__       | whitebit           | `WhiteBit <https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963>`__       | 2   | `API <https://documenter.getpostman.com/view/7473075/SVSPomwS?version=latest#intro>`__          |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `xbtce <https://xbtce.com/?agent=XX97BTCXXXG687021000B>`__                              | xbtce              | `xBTCe <https://xbtce.com/?agent=XX97BTCXXXG687021000B>`__                              | 1   | `API <https://www.xbtce.com/tradeapi>`__                                                        |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `yobit <https://www.yobit.net>`__                                                       | yobit              | `YoBit <https://www.yobit.net>`__                                                       | 3   | `API <https://www.yobit.net/en/api/>`__                                                         |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `zaif <https://zaif.jp>`__                                                              | zaif               | `Zaif <https://zaif.jp>`__                                                              | 1   | `API <https://techbureau-api-document.readthedocs.io/ja/latest/index.html>`__                   |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `zb <https://www.zb.com>`__                                                             | zb                 | `ZB <https://www.zb.com>`__                                                             | 1   | `API <https://www.zb.com/i/developer>`__                                                        |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+.. list-table::
+   :header-rows: 1
 
-The list above is updated frequently, new crypto markets, exchanges, bug fixes, and API endpoints are introduced on a regular basis. See the `Manual <https://github.com/ccxt/ccxt/wiki>`__ for more details. If you can’t find a cryptocurrency exchange in the list above and want it to be added, post a link to it by opening an issue here on GitHub or send us an email.
+   * - logo
+     - id
+     - name
+     - ver
+     - doc
+     - certified
+     - pro
+   * - .. image:: https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg
+          :target: https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
+          :alt: aax
+     
+     - aax
+     - `AAX <https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
+     - 2
+     - `API <https://www.aaxpro.com/apidoc/index.html>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg
+          :target: https://aofex.com/#/register?key=9763840
+          :alt: aofex
+     
+     - aofex
+     - `AOFEX <https://aofex.com/#/register?key=9763840>`__
+     - *
+     - `API <https://aofex.zendesk.com/hc/en-us/sections/360005576574-API>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg
+          :target: https://bitmax.io/#/register?inviteCode=EL6BXBQM
+          :alt: ascendex
+     
+     - ascendex
+     - `AscendEX <https://bitmax.io/#/register?inviteCode=EL6BXBQM>`__
+     - 1
+     - `API <https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg
+          :target: https://bequant.io
+          :alt: bequant
+     
+     - bequant
+     - `Bequant <https://bequant.io>`__
+     - 2
+     - `API <https://api.bequant.io/>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg
+          :target: https://w2.bibox365.com/login/register?invite_code=05Kj3I
+          :alt: bibox
+     
+     - bibox
+     - `Bibox <https://w2.bibox365.com/login/register?invite_code=05Kj3I>`__
+     - 1
+     - `API <https://biboxcom.github.io/en/>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg
+          :target: https://b1.run/users/new?code=D3LLBVFT
+          :alt: bigone
+     
+     - bigone
+     - `BigONE <https://b1.run/users/new?code=D3LLBVFT>`__
+     - 3
+     - `API <https://open.big.one/docs/api.html>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
+          :target: https://www.binance.com/?ref=10205187
+          :alt: binance
+     
+     - binance
+     - `Binance <https://www.binance.com/?ref=10205187>`__
+     - *
+     - `API <https://binance-docs.github.io/apidocs/spot/en>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
+          :target: https://www.binance.com/?ref=10205187
+          :alt: binancecoinm
+     
+     - binancecoinm
+     - `Binance COIN-M <https://www.binance.com/?ref=10205187>`__
+     - *
+     - `API <https://binance-docs.github.io/apidocs/spot/en>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg
+          :target: https://www.binance.us/?ref=35005074
+          :alt: binanceus
+     
+     - binanceus
+     - `Binance US <https://www.binance.us/?ref=35005074>`__
+     - *
+     - `API <https://github.com/binance-us/binance-official-api-docs>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
+          :target: https://www.binance.com/?ref=10205187
+          :alt: binanceusdm
+     
+     - binanceusdm
+     - `Binance USDⓈ-M <https://www.binance.com/?ref=10205187>`__
+     - *
+     - `API <https://binance-docs.github.io/apidocs/spot/en>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg
+          :target: https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf
+          :alt: bit2c
+     
+     - bit2c
+     - `Bit2C <https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf>`__
+     - *
+     - `API <https://www.bit2c.co.il/home/api>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg
+          :target: https://bitbank.cc/
+          :alt: bitbank
+     
+     - bitbank
+     - `bitbank <https://bitbank.cc/>`__
+     - 1
+     - `API <https://docs.bitbank.cc/>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
+          :target: https://auth.bitbay.net/ref/jHlbB4mIkdS1
+          :alt: bitbay
+     
+     - bitbay
+     - `BitBay <https://auth.bitbay.net/ref/jHlbB4mIkdS1>`__
+     - *
+     - `API <https://bitbay.net/public-api>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg
+          :target: https://ref.bitbns.com/1090961
+          :alt: bitbns
+     
+     - bitbns
+     - `Bitbns <https://ref.bitbns.com/1090961>`__
+     - *
+     - `API <https://bitbns.com/trade/#/api-trading/>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg
+          :target: https://exchange.bitcoin.com/referral/da948b21d6c92d69
+          :alt: bitcoincom
+     
+     - bitcoincom
+     - `bitcoin.com <https://exchange.bitcoin.com/referral/da948b21d6c92d69>`__
+     - 2
+     - `API <https://api.exchange.bitcoin.com/api/2/explore>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
+          :target: https://www.bitfinex.com/?refcode=P61eYxFL
+          :alt: bitfinex
+     
+     - bitfinex
+     - `Bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__
+     - 1
+     - `API <https://docs.bitfinex.com/v1/docs>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
+          :target: https://www.bitfinex.com/?refcode=P61eYxFL
+          :alt: bitfinex2
+     
+     - bitfinex2
+     - `Bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__
+     - 2
+     - `API <https://docs.bitfinex.com/v2/docs/>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg
+          :target: https://bitflyer.com
+          :alt: bitflyer
+     
+     - bitflyer
+     - `bitFlyer <https://bitflyer.com>`__
+     - 1
+     - `API <https://lightning.bitflyer.com/docs?lang=en>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87295553-1160ec00-c50e-11ea-8ea0-df79276a9646.jpg
+          :target: https://www.bitforex.com/en/invitationRegister?inviterId=1867438
+          :alt: bitforex
+     
+     - bitforex
+     - `Bitforex <https://www.bitforex.com/en/invitationRegister?inviterId=1867438>`__
+     - 1
+     - `API <https://github.com/githubdev2020/API_Doc_en/wiki>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg
+          :target: https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j
+          :alt: bitget
+     
+     - bitget
+     - `Bitget <https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j>`__
+     - 3
+     - `API <https://bitgetlimited.github.io/apidoc/en/swap>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg
+          :target: https://www.bithumb.com
+          :alt: bithumb
+     
+     - bithumb
+     - `Bithumb <https://www.bithumb.com>`__
+     - *
+     - `API <https://apidocs.bithumb.com>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg
+          :target: http://www.bitmart.com/?r=rQCFLh
+          :alt: bitmart
+     
+     - bitmart
+     - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
+     - 1
+     - `API <https://developer-pro.bitmart.com/>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg
+          :target: https://www.bitmex.com/register/upZpOX
+          :alt: bitmex
+     
+     - bitmex
+     - `BitMEX <https://www.bitmex.com/register/upZpOX>`__
+     - 1
+     - `API <https://www.bitmex.com/app/apiOverview>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg
+          :target: https://www.bitpanda.com/en/pro
+          :alt: bitpanda
+     
+     - bitpanda
+     - `Bitpanda Pro <https://www.bitpanda.com/en/pro>`__
+     - 1
+     - `API <https://developers.bitpanda.com/exchange/>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg
+          :target: https://bitso.com/?ref=itej
+          :alt: bitso
+     
+     - bitso
+     - `Bitso <https://bitso.com/?ref=itej>`__
+     - 3
+     - `API <https://bitso.com/api_info>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
+          :target: https://www.bitstamp.net
+          :alt: bitstamp
+     
+     - bitstamp
+     - `Bitstamp <https://www.bitstamp.net>`__
+     - 2
+     - `API <https://www.bitstamp.net/api>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
+          :target: https://www.bitstamp.net
+          :alt: bitstamp1
+     
+     - bitstamp1
+     - `Bitstamp <https://www.bitstamp.net>`__
+     - 1
+     - `API <https://www.bitstamp.net/api>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg
+          :target: https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B
+          :alt: bittrex
+     
+     - bittrex
+     - `Bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__
+     - 3
+     - `API <https://bittrex.github.io/api/v3>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
+          :target: https://bitvavo.com/?a=24F34952F7
+          :alt: bitvavo
+     
+     - bitvavo
+     - `Bitvavo <https://bitvavo.com/?a=24F34952F7>`__
+     - 2
+     - `API <https://docs.bitvavo.com/>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87443304-fec5e000-c5fd-11ea-98f8-ba8e67f7eaff.jpg
+          :target: https://u.bitz.com/register?invite_code=1429193
+          :alt: bitz
+     
+     - bitz
+     - `Bit-Z <https://u.bitz.com/register?invite_code=1429193>`__
+     - 2
+     - `API <https://apidocv2.bitz.plus/en/>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg
+          :target: https://bl3p.eu
+          :alt: bl3p
+     
+     - bl3p
+     - `BL3P <https://bl3p.eu>`__
+     - 1
+     - `API <https://github.com/BitonicNL/bl3p-api/tree/master/docs>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg
+          :target: https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465
+          :alt: braziliex
+     
+     - braziliex
+     - `Braziliex <https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465>`__
+     - *
+     - `API <https://braziliex.com/exchange/api.php>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg
+          :target: https://btc-alpha.com/?r=123788
+          :alt: btcalpha
+     
+     - btcalpha
+     - `BTC-Alpha <https://btc-alpha.com/?r=123788>`__
+     - 1
+     - `API <https://btc-alpha.github.io/api-docs>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87327317-98c55400-c53c-11ea-9a11-81f7d951cc74.jpg
+          :target: https://www.btcbox.co.jp/
+          :alt: btcbox
+     
+     - btcbox
+     - `BtcBox <https://www.btcbox.co.jp/>`__
+     - 1
+     - `API <https://blog.btcbox.jp/en/archives/8762>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg
+          :target: https://btcmarkets.net
+          :alt: btcmarkets
+     
+     - btcmarkets
+     - `BTC Markets <https://btcmarkets.net>`__
+     - 3
+     - `API <https://api.btcmarkets.net/doc/v3>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg
+          :target: https://btc-trade.com.ua/registration/22689
+          :alt: btctradeua
+     
+     - btctradeua
+     - `BTC Trade UA <https://btc-trade.com.ua/registration/22689>`__
+     - *
+     - `API <https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg
+          :target: https://www.btcturk.com
+          :alt: btcturk
+     
+     - btcturk
+     - `BTCTurk <https://www.btcturk.com>`__
+     - *
+     - `API <https://github.com/BTCTrader/broker-api-docs>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg
+          :target: https://www.buda.com
+          :alt: buda
+     
+     - buda
+     - `Buda <https://www.buda.com>`__
+     - 2
+     - `API <https://api.buda.com>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg
+          :target: https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0
+          :alt: bw
+     
+     - bw
+     - `BW <https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0>`__
+     - 1
+     - `API <https://github.com/bw-exchange/api_docs_en/wiki>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg
+          :target: https://www.bybit.com/app/register?ref=X7Prm
+          :alt: bybit
+     
+     - bybit
+     - `Bybit <https://www.bybit.com/app/register?ref=X7Prm>`__
+     - 2
+     - `API <https://bybit-exchange.github.io/docs/inverse/>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg
+          :target: https://www.byte-trade.com
+          :alt: bytetrade
+     
+     - bytetrade
+     - `ByteTrade <https://www.byte-trade.com>`__
+     - *
+     - `API <https://docs.byte-trade.com/#description>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg
+          :target: https://cdax.io/invite?invite_code=esc74
+          :alt: cdax
+     
+     - cdax
+     - `CDAX <https://cdax.io/invite?invite_code=esc74>`__
+     - 1
+     - `API <https://github.com/cloudapidoc/API_Docs>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg
+          :target: https://cex.io/r/0/up105393824/0/
+          :alt: cex
+     
+     - cex
+     - `CEX.IO <https://cex.io/r/0/up105393824/0/>`__
+     - *
+     - `API <https://cex.io/cex-api>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg
+          :target: https://www.coinbase.com/join/58cbe25a355148797479dbd2
+          :alt: coinbase
+     
+     - coinbase
+     - `Coinbase <https://www.coinbase.com/join/58cbe25a355148797479dbd2>`__
+     - 2
+     - `API <https://developers.coinbase.com/api/v2>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg
+          :target: https://exchange.coinbase.com
+          :alt: coinbaseprime
+     
+     - coinbaseprime
+     - `Coinbase Prime <https://exchange.coinbase.com>`__
+     - *
+     - `API <https://docs.exchange.coinbase.com>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg
+          :target: https://pro.coinbase.com/
+          :alt: coinbasepro
+     
+     - coinbasepro
+     - `Coinbase Pro <https://pro.coinbase.com/>`__
+     - *
+     - `API <https://docs.pro.coinbase.com>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg
+          :target: https://coincheck.com
+          :alt: coincheck
+     
+     - coincheck
+     - `coincheck <https://coincheck.com>`__
+     - *
+     - `API <https://coincheck.com/documents/exchange/api>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg
+          :target: https://www.coinegg.com/user/register?invite=523218
+          :alt: coinegg
+     
+     - coinegg
+     - `CoinEgg <https://www.coinegg.com/user/register?invite=523218>`__
+     - *
+     - `API <https://www.coinegg.com/explain.api.html>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg
+          :target: https://www.coinex.com/register?refer_code=yw5fz
+          :alt: coinex
+     
+     - coinex
+     - `CoinEx <https://www.coinex.com/register?refer_code=yw5fz>`__
+     - 1
+     - `API <https://github.com/coinexcom/coinex_exchange_api/wiki>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg
+          :target: https://coinfalcon.com/?ref=CFJSVGTUPASB
+          :alt: coinfalcon
+     
+     - coinfalcon
+     - `CoinFalcon <https://coinfalcon.com/?ref=CFJSVGTUPASB>`__
+     - 1
+     - `API <https://docs.coinfalcon.com>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87153925-ef265e80-c2c0-11ea-91b5-020c804b90e0.jpg
+          :target: https://www.coinfloor.co.uk
+          :alt: coinfloor
+     
+     - coinfloor
+     - `coinfloor <https://www.coinfloor.co.uk>`__
+     - *
+     - `API <https://github.com/coinfloor/api>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg
+          :target: https://coinmarketcap.com
+          :alt: coinmarketcap
+     
+     - coinmarketcap
+     - `CoinMarketCap <https://coinmarketcap.com>`__
+     - 1
+     - `API <https://coinmarketcap.com/api>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg
+          :target: https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0
+          :alt: coinmate
+     
+     - coinmate
+     - `CoinMate <https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0>`__
+     - *
+     - `API <https://coinmate.docs.apiary.io>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg
+          :target: https://coinone.co.kr
+          :alt: coinone
+     
+     - coinone
+     - `CoinOne <https://coinone.co.kr>`__
+     - 2
+     - `API <https://doc.coinone.co.kr>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg
+          :target: https://www.coinspot.com.au/register?code=PJURCU
+          :alt: coinspot
+     
+     - coinspot
+     - `CoinSpot <https://www.coinspot.com.au/register?code=PJURCU>`__
+     - *
+     - `API <https://www.coinspot.com.au/api>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg
+          :target: https://crex24.com/?refid=slxsjsjtil8xexl9hksr
+          :alt: crex24
+     
+     - crex24
+     - `CREX24 <https://crex24.com/?refid=slxsjsjtil8xexl9hksr>`__
+     - 2
+     - `API <https://docs.crex24.com/trade-api/v2>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg
+          :target: https://currency.com/trading/signup?c=362jaimv&pid=referral
+          :alt: currencycom
+     
+     - currencycom
+     - `Currency.com <https://currency.com/trading/signup?c=362jaimv&pid=referral>`__
+     - 1
+     - `API <https://currency.com/api>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/99450025-3be60a00-2931-11eb-9302-f4fd8d8589aa.jpg
+          :target: https://www.delta.exchange/app/signup/?code=IULYNB
+          :alt: delta
+     
+     - delta
+     - `Delta Exchange <https://www.delta.exchange/app/signup/?code=IULYNB>`__
+     - 2
+     - `API <https://docs.delta.exchange>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg
+          :target: https://www.deribit.com/reg-1189.4038
+          :alt: deribit
+     
+     - deribit
+     - `Deribit <https://www.deribit.com/reg-1189.4038>`__
+     - 2
+     - `API <https://docs.deribit.com/v2>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg
+          :target: https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp
+          :alt: digifinex
+     
+     - digifinex
+     - `DigiFinex <https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp>`__
+     - 3
+     - `API <https://docs.digifinex.com>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/107758499-05edd180-6d38-11eb-9e09-0b69602a7a15.jpg
+          :target: https://equos.io?referredByCode=zpa8kij4ouvBFup3
+          :alt: equos
+     
+     - equos
+     - `EQUOS <https://equos.io?referredByCode=zpa8kij4ouvBFup3>`__
+     - *
+     - `API <https://developer.equos.io>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg
+          :target: https://exmo.me/?ref=131685
+          :alt: exmo
+     
+     - exmo
+     - `EXMO <https://exmo.me/?ref=131685>`__
+     - 1.1
+     - `API <https://exmo.me/en/api_doc?ref=131685>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/37770292-fbf613d0-2de4-11e8-9f79-f2dc451b8ccb.jpg
+          :target: https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f?recommQd=1
+          :alt: exx
+     
+     - exx
+     - `EXX <https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f?recommQd=1>`__
+     - *
+     - `API <https://www.exx.com/help/restApi>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87443317-01c0d080-c5fe-11ea-95c2-9ebe1a8fafd9.jpg
+          :target: https://www.flowbtc.com.br
+          :alt: flowbtc
+     
+     - flowbtc
+     - `flowBTC <https://www.flowbtc.com.br>`__
+     - 1
+     - `API <https://www.flowbtc.com.br/api.html>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
+          :target: https://ftx.com/#a=1623029
+          :alt: ftx
+     
+     - ftx
+     - `FTX <https://ftx.com/#a=1623029>`__
+     - *
+     - `API <https://github.com/ftexchange/ftx>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
+          :target: https://www.gate.io/signup/2436035
+          :alt: gateio
+     
+     - gateio
+     - `Gate.io <https://www.gate.io/signup/2436035>`__
+     - 2
+     - `API <https://gate.io/api2>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg
+          :target: https://gemini.com/
+          :alt: gemini
+     
+     - gemini
+     - `Gemini <https://gemini.com/>`__
+     - 1
+     - `API <https://docs.gemini.com/rest-api>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg
+          :target: https://www.gopax.co.kr
+          :alt: gopax
+     
+     - gopax
+     - `GOPAX <https://www.gopax.co.kr>`__
+     - 1
+     - `API <https://gopax.github.io/API/index.en.html>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/80134449-70663300-85a7-11ea-8942-e204cdeaab5d.jpg
+          :target: https://www.hbtc.com/register/O2S8NS
+          :alt: hbtc
+     
+     - hbtc
+     - `HBTC <https://www.hbtc.com/register/O2S8NS>`__
+     - 1
+     - `API <https://github.com/bhexopen/BHEX-OpenApi/tree/master/doc>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
+          :target: https://hitbtc.com/?ref_id=5a5d39a65d466
+          :alt: hitbtc
+     
+     - hitbtc
+     - `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__
+     - 2
+     - `API <https://api.hitbtc.com>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg
+          :target: https://pro.hollaex.com/signup?affiliation_code=QSWA6G
+          :alt: hollaex
+     
+     - hollaex
+     - `HollaEx <https://pro.hollaex.com/signup?affiliation_code=QSWA6G>`__
+     - 2
+     - `API <https://apidocs.hollaex.com>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg
+          :target: https://www.huobi.co.jp/register/?invite_code=znnq3
+          :alt: huobijp
+     
+     - huobijp
+     - `Huobi Japan <https://www.huobi.co.jp/register/?invite_code=znnq3>`__
+     - 1
+     - `API <https://api-doc.huobi.co.jp>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
+          :target: https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3
+          :alt: huobipro
+     
+     - huobipro
+     - `Huobi Pro <https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3>`__
+     - 1
+     - `API <https://huobiapi.github.io/docs/spot/v1/cn/>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg
+          :target: https://idex.io
+          :alt: idex
+     
+     - idex
+     - `IDEX <https://idex.io>`__
+     - 2
+     - `API <https://docs.idex.io/>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg
+          :target: https://www.independentreserve.com
+          :alt: independentreserve
+     
+     - independentreserve
+     - `Independent Reserve <https://www.independentreserve.com>`__
+     - *
+     - `API <https://www.independentreserve.com/API>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg
+          :target: https://indodax.com/ref/testbitcoincoid/1
+          :alt: indodax
+     
+     - indodax
+     - `INDODAX <https://indodax.com/ref/testbitcoincoid/1>`__
+     - 2.0
+     - `API <https://github.com/btcid/indodax-official-api-docs>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg
+          :target: https://www.itbit.com
+          :alt: itbit
+     
+     - itbit
+     - `itBit <https://www.itbit.com>`__
+     - 1
+     - `API <https://api.itbit.com/docs>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg
+          :target: https://www.kraken.com
+          :alt: kraken
+     
+     - kraken
+     - `Kraken <https://www.kraken.com>`__
+     - 0
+     - `API <https://www.kraken.com/features/api>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg
+          :target: https://www.kucoin.com/?rcode=E5wkqe
+          :alt: kucoin
+     
+     - kucoin
+     - `KuCoin <https://www.kucoin.com/?rcode=E5wkqe>`__
+     - 2
+     - `API <https://docs.kucoin.com>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg
+          :target: https://kuna.io?r=kunaid-gvfihe8az7o4
+          :alt: kuna
+     
+     - kuna
+     - `Kuna <https://kuna.io?r=kunaid-gvfihe8az7o4>`__
+     - 2
+     - `API <https://kuna.io/documents/api>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg
+          :target: https://latoken.com
+          :alt: latoken
+     
+     - latoken
+     - `Latoken <https://latoken.com>`__
+     - 1
+     - `API <https://api.latoken.com>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg
+          :target: https://www.lbex.io/invite?icode=7QCY
+          :alt: lbank
+     
+     - lbank
+     - `LBank <https://www.lbex.io/invite?icode=7QCY>`__
+     - 1
+     - `API <https://github.com/LBank-exchange/lbank-official-api-docs>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg
+          :target: https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976
+          :alt: liquid
+     
+     - liquid
+     - `Liquid <https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976>`__
+     - 2
+     - `API <https://developers.liquid.com>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg
+          :target: https://www.luno.com/invite/44893A
+          :alt: luno
+     
+     - luno
+     - `luno <https://www.luno.com/invite/44893A>`__
+     - 1
+     - `API <https://www.luno.com/en/api>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg
+          :target: https://www.lykke.com
+          :alt: lykke
+     
+     - lykke
+     - `Lykke <https://www.lykke.com>`__
+     - 1
+     - `API <https://hft-api.lykke.com/swagger/ui/>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg
+          :target: https://www.mercadobitcoin.com.br
+          :alt: mercado
+     
+     - mercado
+     - `Mercado Bitcoin <https://www.mercadobitcoin.com.br>`__
+     - 3
+     - `API <https://www.mercadobitcoin.com.br/api-doc>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87460810-1dd06c00-c616-11ea-9276-956f400d6ffa.jpg
+          :target: https://mixcoins.com
+          :alt: mixcoins
+     
+     - mixcoins
+     - `MixCoins <https://mixcoins.com>`__
+     - 1
+     - `API <https://mixcoins.com/help/api/>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg
+          :target: https://one.ndax.io/bfQiSL
+          :alt: ndax
+     
+     - ndax
+     - `NDAX <https://one.ndax.io/bfQiSL>`__
+     - *
+     - `API <https://apidoc.ndax.io/>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg
+          :target: https://www.novadax.com.br/?s=ccxt
+          :alt: novadax
+     
+     - novadax
+     - `NovaDAX <https://www.novadax.com.br/?s=ccxt>`__
+     - 1
+     - `API <https://doc.novadax.com/pt-BR/>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg
+          :target: https://oceanex.pro/signup?referral=VE24QX
+          :alt: oceanex
+     
+     - oceanex
+     - `OceanEx <https://oceanex.pro/signup?referral=VE24QX>`__
+     - 1
+     - `API <https://api.oceanex.pro/doc/v1>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg
+          :target: https://www.okcoin.com/account/register?flag=activity&channelId=600001513
+          :alt: okcoin
+     
+     - okcoin
+     - `OKCoin <https://www.okcoin.com/account/register?flag=activity&channelId=600001513>`__
+     - 3
+     - `API <https://www.okcoin.com/docs/en/>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
+          :target: https://www.okex.com/join/1888677
+          :alt: okex
+     
+     - okex
+     - `OKEX <https://www.okex.com/join/1888677>`__
+     - 3
+     - `API <https://www.okex.com/docs/en/>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
+          :target: https://www.okex.com/join/1888677
+          :alt: okex5
+     
+     - okex5
+     - `OKEX <https://www.okex.com/join/1888677>`__
+     - 5
+     - `API <https://www.okex.com/docs/en/>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg
+          :target: https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj
+          :alt: paymium
+     
+     - paymium
+     - `Paymium <https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj>`__
+     - 1
+     - `API <https://github.com/Paymium/api-documentation>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg
+          :target: https://phemex.com/register?referralCode=EDNVJ
+          :alt: phemex
+     
+     - phemex
+     - `Phemex <https://phemex.com/register?referralCode=EDNVJ>`__
+     - 1
+     - `API <https://github.com/phemex/phemex-api-docs>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg
+          :target: https://poloniex.com/signup?c=UBFZJRPJ
+          :alt: poloniex
+     
+     - poloniex
+     - `Poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__
+     - *
+     - `API <https://docs.poloniex.com>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg
+          :target: https://www.probit.com/r/34608773
+          :alt: probit
+     
+     - probit
+     - `ProBit <https://www.probit.com/r/34608773>`__
+     - 1
+     - `API <https://docs-en.probit.com>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg
+          :target: https://qtrade.io/?ref=BKOQWVFGRH2C
+          :alt: qtrade
+     
+     - qtrade
+     - `qTrade <https://qtrade.io/?ref=BKOQWVFGRH2C>`__
+     - 1
+     - `API <https://qtrade-exchange.github.io/qtrade-docs>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87182092-1f372700-c2ec-11ea-8f9e-01b4d3ff8941.jpg
+          :target: https://www.rightbtc.com
+          :alt: rightbtc
+     
+     - rightbtc
+     - `RightBTC <https://www.rightbtc.com>`__
+     - *
+     - `API <https://docs.rightbtc.com/api/>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/94507548-a83d6a80-0218-11eb-9998-28b9cec54165.jpg
+          :target: https://exchange.ripio.com
+          :alt: ripio
+     
+     - ripio
+     - `Ripio <https://exchange.ripio.com>`__
+     - 1
+     - `API <https://exchange.ripio.com/en/api/>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg
+          :target: https://www.southxchange.com
+          :alt: southxchange
+     
+     - southxchange
+     - `SouthXchange <https://www.southxchange.com>`__
+     - *
+     - `API <https://www.southxchange.com/Home/Api>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/69680782-03fd0b80-10bd-11ea-909e-7f603500e9cc.jpg
+          :target: https://app.stex.com?ref=36416021
+          :alt: stex
+     
+     - stex
+     - `STEX <https://app.stex.com?ref=36416021>`__
+     - 3
+     - `API <https://help.stex.com/en/collections/1593608-api-v3-documentation>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg
+          :target: https://therocktrading.com
+          :alt: therock
+     
+     - therock
+     - `TheRockTrading <https://therocktrading.com>`__
+     - 1
+     - `API <https://api.therocktrading.com/doc/v1/index.html>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg
+          :target: http://bit.ly/2IX0LrM
+          :alt: tidebit
+     
+     - tidebit
+     - `TideBit <http://bit.ly/2IX0LrM>`__
+     - 2
+     - `API <https://www.tidebit.com/documents/api/guide>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg
+          :target: https://tidex.com/exchange/?ref=57f5638d9cd7
+          :alt: tidex
+     
+     - tidex
+     - `Tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__
+     - 3
+     - `API <https://tidex.com/exchange/public-api>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg
+          :target: https://timex.io/?refcode=1x27vNkTbP1uwkCck
+          :alt: timex
+     
+     - timex
+     - `TimeX <https://timex.io/?refcode=1x27vNkTbP1uwkCck>`__
+     - 1
+     - `API <https://docs.timex.io>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg
+          :target: https://upbit.com
+          :alt: upbit
+     
+     - upbit
+     - `Upbit <https://upbit.com>`__
+     - 1
+     - `API <https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C>`__
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/100545356-8427f500-326c-11eb-9539-7d338242d61b.jpg
+          :target: https://vcc.exchange?ref=l4xhrH
+          :alt: vcc
+     
+     - vcc
+     - `VCC Exchange <https://vcc.exchange?ref=l4xhrH>`__
+     - 3
+     - `API <https://vcc.exchange/api>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg
+          :target: https://waves.exchange
+          :alt: wavesexchange
+     
+     - wavesexchange
+     - `Waves.Exchange <https://waves.exchange>`__
+     - *
+     - `API <https://docs.waves.exchange>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg
+          :target: https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963
+          :alt: whitebit
+     
+     - whitebit
+     - `WhiteBit <https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963>`__
+     - 2
+     - `API <https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87489843-bb469280-c64c-11ea-91aa-69c6326506af.jpg
+          :target: https://xena.exchange
+          :alt: xena
+     
+     - xena
+     - `Xena Exchange <https://xena.exchange>`__
+     - *
+     - `API <https://support.xena.exchange/support/solutions/44000808700>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg
+          :target: https://www.yobit.net
+          :alt: yobit
+     
+     - yobit
+     - `YoBit <https://www.yobit.net>`__
+     - 3
+     - `API <https://www.yobit.net/en/api/>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg
+          :target: https://zaif.jp
+          :alt: zaif
+     
+     - zaif
+     - `Zaif <https://zaif.jp>`__
+     - 1
+     - `API <https://techbureau-api-document.readthedocs.io/ja/latest/index.html>`__
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg
+          :target: https://www.zb.com
+          :alt: zb
+     
+     - zb
+     - `ZB <https://www.zb.com>`__
+     - 1
+     - `API <https://www.zb.com/i/developer>`__
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     -
 
-The library is under `MIT license <https://github.com/ccxt/ccxt/blob/master/LICENSE.txt>`__, that means it’s absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
 
---------------
+The list above is updated frequently, new crypto markets, exchanges, bug fixes, and API endpoints are introduced on a regular basis. See the `Manual <https://github.com/ccxt/ccxt/wiki>`__ for more details. If you can't find a cryptocurrency exchange in the list above and want it to be added, post a link to it by opening an issue here on GitHub or send us an email.
+
+The library is under `MIT license <https://github.com/ccxt/ccxt/blob/master/LICENSE.txt>`__\ , that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
+
+----
 
 Install
 -------
 
 The easiest way to install the CCXT library is to use a package manager:
 
--  `ccxt in NPM <https://www.npmjs.com/package/ccxt>`__ (JavaScript / Node v7.6+)
--  `ccxt in PyPI <https://pypi.python.org/pypi/ccxt>`__ (Python 3.5.3+)
--  `ccxt in Packagist/Composer <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.4+)
+
+* `ccxt in **NPM** <https://www.npmjs.com/package/ccxt>`__ (JavaScript / Node v7.6+)
+* `ccxt in **PyPI** <https://pypi.python.org/pypi/ccxt>`__ (Python 3.5.3+)
+* `ccxt in **Packagist/Composer** <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.4+)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
--  ```js/`` <https://github.com/ccxt/ccxt/blob/master/js/>`__ in JavaScript
--  ```python/`` <https://github.com/ccxt/ccxt/blob/master/python/>`__ in Python (generated from JS)
--  ```php/`` <https://github.com/ccxt/ccxt/blob/master/php/>`__ in PHP (generated from JS)
 
-You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/ccxt/ccxt>`__:
+* `js/ <https://github.com/ccxt/ccxt/blob/master/js/>`__ in JavaScript
+* `python/ <https://github.com/ccxt/ccxt/blob/master/python/>`__ in Python (generated from JS)
+* `php/ <https://github.com/ccxt/ccxt/blob/master/php/>`__ in PHP (generated from JS)
 
-.. code:: shell
+You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/ccxt/ccxt>`__\ :
+
+.. code-block:: shell
 
    git clone https://github.com/ccxt/ccxt.git
 
 JavaScript (NPM)
-~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^
 
 JavaScript version of CCXT works in both Node and web browsers. Requires ES6 and ``async/await`` syntax support (Node 7.6.0+). When compiling with Webpack and Babel, make sure it is `not excluded <https://github.com/ccxt/ccxt/issues/225#issuecomment-331905178>`__ in your ``babel-loader`` config.
 
-`ccxt in NPM <https://www.npmjs.com/package/ccxt>`__
+`ccxt in **NPM** <https://www.npmjs.com/package/ccxt>`__
 
-.. code:: shell
+.. code-block:: shell
 
    npm install ccxt
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    var ccxt = require ('ccxt')
 
    console.log (ccxt.exchanges) // print all available exchanges
 
 JavaScript (for use with the ``<script>`` tag):
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.29.75/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.29.75/dist/ccxt.browser.js
+
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.51.49/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.51.49/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
-.. code:: html
+.. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.29.75/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.51.49/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    console.log (ccxt.exchanges) // print all available exchanges
 
 Python
-~~~~~~
+^^^^^^
 
-`ccxt in PyPI <https://pypi.python.org/pypi/ccxt>`__
+`ccxt in **PyPI** <https://pypi.python.org/pypi/ccxt>`__
 
-.. code:: shell
+.. code-block:: shell
 
    pip install ccxt
 
-.. code:: python
+.. code-block:: Python
 
    import ccxt
    print(ccxt.exchanges) # print a list of all available exchange classes
 
 The library supports concurrent asynchronous mode with asyncio and async/await in Python 3.5.3+
 
-.. code:: python
+.. code-block:: Python
 
    import ccxt.async_support as ccxt # link against the asynchronous version of ccxt
 
 PHP
-~~~
+^^^
 
-`ccxt in PHP with Packagist/Composer <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.4+)
+`ccxt in PHP with **Packagist/Composer** <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.4+)
 
 It requires common PHP modules:
 
--  cURL
--  mbstring (using UTF-8 is highly recommended)
--  PCRE
--  iconv
--  gmp (this is a built-in extension as of PHP 7.2+)
 
-.. code:: php
+* cURL
+* mbstring (using UTF-8 is highly recommended)
+* PCRE
+* iconv
+* gmp (this is a built-in extension as of PHP 7.2+)
+
+.. code-block:: PHP
 
    include "ccxt.php";
    var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 
-Docker
-~~~~~~
+The library supports concurrent asynchronous mode using tools from `RecoilPHP <https://github.com/recoilphp/recoil>`__ and `ReactPHP <https://reactphp.org/>`__ in PHP 7.1+. Read the `Manual <https://github.com/ccxt/ccxt/wiki>`__ for more details.
 
-You can get CCXT installed in a container along with all the supported languages and dependencies. This may be useful if you want to contribute to CCXT (e.g. run the build scripts and tests — please see the `Contributing <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__ document for the details on that).
+Docker
+^^^^^^
+
+You can get CCXT installed in a container along with all the supported languages and dependencies. This may be useful if you want to contribute to CCXT (e.g. run the build scripts and tests — please see the `Contributing <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__ document for the details on that).
 
 Using ``docker-compose`` (in the cloned CCXT repository):
 
-.. code:: shell
+.. code-block:: shell
 
    docker-compose run --rm ccxt
 
-You don’t need the Docker image if you’re not going to develop CCXT. If you just want to use CCXT – just install it as a regular package into your project.
+You don't need the Docker image if you're not going to develop CCXT. If you just want to use CCXT – just install it as a regular package into your project.
 
---------------
+----
 
 Documentation
 -------------
@@ -449,39 +1725,41 @@ Usage
 -----
 
 Intro
-~~~~~
+^^^^^
 
 The CCXT library consists of a public part and a private part. Anyone can use the public part immediately after installation. Public APIs provide unrestricted access to public information for all exchange markets without the need to register a user account or have an API key.
 
 Public APIs include the following:
 
--  market data
--  instruments/trading pairs
--  price feeds (exchange rates)
--  order books
--  trade history
--  tickers
--  OHLC(V) for charting
--  other public endpoints
 
-In order to trade with private APIs you need to obtain API keys from an exchange’s website. It usually means signing up to the exchange and creating API keys for your account. Some exchanges require personal info or identification. Sometimes verification may be necessary as well. In this case you will need to register yourself, this library will not create accounts or API keys for you. Some exchanges expose API endpoints for registering an account, but most exchanges don’t. You will have to sign up and create API keys on their websites.
+* market data
+* instruments/trading pairs
+* price feeds (exchange rates)
+* order books
+* trade history
+* tickers
+* OHLC(V) for charting
+* other public endpoints
+
+In order to trade with private APIs you need to obtain API keys from an exchange's website. It usually means signing up to the exchange and creating API keys for your account. Some exchanges require personal info or identification. Sometimes verification may be necessary as well. In this case you will need to register yourself, this library will not create accounts or API keys for you. Some exchanges expose API endpoints for registering an account, but most exchanges don't. You will have to sign up and create API keys on their websites.
 
 Private APIs allow the following:
 
--  manage personal account info
--  query account balances
--  trade by making market and limit orders
--  deposit and withdraw fiat and crypto funds
--  query personal orders
--  get ledger history
--  transfer funds between accounts
--  use merchant services
 
-This library implements full public and private REST APIs for all exchanges. WebSocket and FIX implementations in JavaScript, PHP, Python are available in `CCXT Pro <https://ccxt.pro>`__, which is a professional addon to CCXT with support for WebSocket streams.
+* manage personal account info
+* query account balances
+* trade by making market and limit orders
+* deposit and withdraw fiat and crypto funds
+* query personal orders
+* get ledger history
+* transfer funds between accounts
+* use merchant services
+
+This library implements full public and private REST APIs for all exchanges. WebSocket and FIX implementations in JavaScript, PHP, Python are available in `CCXT Pro <https://ccxt.pro>`__\ , which is a professional addon to CCXT with support for WebSocket streams.
 
 The CCXT library supports both camelcase notation (preferred in JavaScript) and underscore notation (preferred in Python and PHP), therefore all methods can be called in either notation or coding style in any language.
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    // both of these notations work in JavaScript/Python/PHP
    exchange.methodName ()  // camelcase pseudocode
@@ -490,9 +1768,9 @@ The CCXT library supports both camelcase notation (preferred in JavaScript) and 
 Read the `Manual <https://github.com/ccxt/ccxt/wiki>`__ for more details.
 
 JavaScript
-~~~~~~~~~~
+^^^^^^^^^^
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    'use strict';
    const ccxt = require ('ccxt');
@@ -511,8 +1789,6 @@ JavaScript
            , exchange = new exchangeClass ({
                'apiKey': 'YOUR_API_KEY',
                'secret': 'YOUR_SECRET',
-               'timeout': 30000,
-               'enableRateLimit': true,
            })
 
        console.log (kraken.id,    await kraken.loadMarkets ())
@@ -521,7 +1797,7 @@ JavaScript
 
        console.log (kraken.id,    await kraken.fetchOrderBook (kraken.symbols[0]))
        console.log (bitfinex.id,  await bitfinex.fetchTicker ('BTC/USD'))
-       console.log (huobipro.id,  await huobipro.fetchTrades ('ETH/CNY'))
+       console.log (huobipro.id,  await huobipro.fetchTrades ('ETH/USDT'))
 
        console.log (okcoinusd.id, await okcoinusd.fetchBalance ())
 
@@ -537,12 +1813,10 @@ JavaScript
 
    }) ();
 
-.. _python-1:
-
 Python
-~~~~~~
+^^^^^^
 
-.. code:: python
+.. code-block:: Python
 
    # coding=utf-8
 
@@ -565,8 +1839,6 @@ Python
    exchange = exchange_class({
        'apiKey': 'YOUR_API_KEY',
        'secret': 'YOUR_SECRET',
-       'timeout': 30000,
-       'enableRateLimit': True,
    })
 
    hitbtc_markets = hitbtc.load_markets()
@@ -577,7 +1849,7 @@ Python
 
    print(hitbtc.fetch_order_book(hitbtc.symbols[0]))
    print(bitmex.fetch_ticker('BTC/USD'))
-   print(huobipro.fetch_trades('LTC/CNY'))
+   print(huobipro.fetch_trades('LTC/USDT'))
 
    print(exmo.fetch_balance())
 
@@ -590,12 +1862,10 @@ Python
    # pass/redefine custom exchange-specific order params: type, amount, price, flags, etc...
    kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 
-.. _php-1:
-
 PHP
-~~~
+^^^
 
-.. code:: php
+.. code-block:: PHP
 
    include 'ccxt.php';
 
@@ -616,8 +1886,6 @@ PHP
    $exchange = new $exchange_class (array (
        'apiKey' => 'YOUR_API_KEY',
        'secret' => 'YOUR_SECRET',
-       'timeout' => 30000,
-       'enableRateLimit' => true,
    ));
 
    $poloniex_markets = $poloniex->load_markets ();
@@ -653,48 +1921,60 @@ Support Developer Team
 We are investing a significant amount of time into the development of this library. If CCXT made your life easier and you want to help us improve it further, or if you want to speed up development of new features and exchanges, please support us with a tip. We appreciate all contributions!
 
 Sponsors
-~~~~~~~~
+^^^^^^^^
 
 Support this project by becoming a sponsor. Your logo will show up here with a link to your website.
 
-[`Become a sponsor <https://opencollective.com/ccxt#sponsor>`__]
+[\ `Become a sponsor <https://opencollective.com/ccxt#sponsor>`__\ ]
+
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/sponsor/0/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/sponsor/0/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/sponsor/1/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/sponsor/1/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/sponsor/2/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/sponsor/2/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/sponsor/3/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/sponsor/3/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/sponsor/4/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/sponsor/4/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/sponsor/5/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/sponsor/5/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/sponsor/6/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/sponsor/6/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/sponsor/7/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/sponsor/7/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/sponsor/8/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/sponsor/8/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/sponsor/9/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/sponsor/9/avatar.svg"></a>`
 
 Supporters
-~~~~~~~~~~
+^^^^^^^^^^
 
 Support this project by becoming a supporter. Your avatar will show up here with a link to your website.
 
-[`Become a supporter <https://opencollective.com/ccxt#supporter>`__]
+[\ `Become a supporter <https://opencollective.com/ccxt#supporter>`__\ ]
+
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/supporter/0/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/supporter/0/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/supporter/1/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/supporter/1/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/supporter/2/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/supporter/2/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/supporter/3/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/supporter/3/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/supporter/4/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/supporter/4/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/supporter/5/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/supporter/5/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/supporter/6/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/supporter/6/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/supporter/7/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/supporter/7/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/supporter/8/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/supporter/8/avatar.svg"></a>`
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt/tiers/supporter/9/website" target="_blank"><img src="https://opencollective.com/ccxt/tiers/supporter/9/avatar.svg"></a>`
 
 Backers
-~~~~~~~
+^^^^^^^
 
-Thank you to all our backers! [`Become a backer <https://opencollective.com/ccxt#backer>`__]
+Thank you to all our backers! [\ `Become a backer <https://opencollective.com/ccxt#backer>`__\ ]
 
-Crypto
-~~~~~~
-
-::
-
-   ETH 0x26a3CB49578F07000575405a57888681249c35Fd (ETH only)
-   BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva
-   BCH 1GN9p233TvNcNQFthCgfiHUnj5JRKEc2Ze
-   LTC LbT8mkAqQBphc4yxLXEDgYDfEax74et3bP
+:raw-html-m2r:`<a href="https://opencollective.com/ccxt#backers" target="_blank"><img src="https://opencollective.com/ccxt/tiers/backer.svg?width=890"></a>`
 
 Thank you!
 
 Social
 ------
 
--  `Follow us on Twitter <https://twitter.com/ccxt_official>`__
--  `Read our blog on Medium <https://medium.com/@ccxt>`__
--  \ `Discord <https://discord.gg/dhzSKYU>`__\ 
 
-Team
-----
-
--  `Igor Kroitor <https://github.com/kroitor>`__
--  `Carlo Revelli <https://github.com/frosty00>`__
+* `Follow us on Twitter <https://twitter.com/ccxt_official>`__
+* `Read our blog on Medium <https://medium.com/@ccxt>`__
+* 
+  .. image:: https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white
+       :target: https://discord.gg/dhzSKYU
+       :alt: Discord
 
 Contact Us
 ----------
