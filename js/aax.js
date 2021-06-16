@@ -760,7 +760,8 @@ module.exports = class aax extends Exchange {
         //     "message":"success",
         //     "ts":1573530401264
         //  }
-        const order = this.parseOrder (this.safeValue (response, 'data'), market, this.safeString (response, 'ts'));
+        const data = this.safeValue (response, 'data');
+        const order = await this.fetchOrder (data['orderID']);
         if (order['status'] === 'rejected') {
             throw new InvalidOrder (' order was rejected by the exchange ' + this.safeValue (order.info, 'rejectReason'));
         }
