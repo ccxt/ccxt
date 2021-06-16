@@ -252,6 +252,7 @@ module.exports = class zb extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'ANG': 'Anagram',
                 'ENT': 'ENTCash',
             },
         });
