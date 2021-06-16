@@ -11,8 +11,8 @@ A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce wi
    :includehidden:
    :caption: General Information
 
-   Exchange-Markets.rst
-   Exchange-Markets-By-Country.rst
+   exchange-markets.rst
+   exchange-markets-by-country.rst
 
 .. toctree::
    :maxdepth: 2
@@ -24,7 +24,7 @@ A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce wi
    :maxdepth: 2
    :caption: Usage
 
-   Manual.rst
+   manual.rst
 
 .. toctree::
    :caption: CCXT Pro

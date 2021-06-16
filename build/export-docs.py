@@ -19,5 +19,6 @@ for file in files:
     remove_sublinks = re.sub(r'^\* :ref:`.+`$\n', '', reference_links3, 0, re.MULTILINE)
     fix_table = re.sub(r' {5}\n\n', '     -\n\n', remove_sublinks)
     basename = os.path.basename(file)
-    with open('./doc/' + basename + '.rst', 'w') as f:
+    lowername = basename.lower()
+    with open('./doc/' + lowername + '.rst', 'w') as f:
         f.write(fix_table)
