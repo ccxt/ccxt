@@ -762,7 +762,7 @@ module.exports = class aax extends Exchange {
         //  }
         const order = this.parseOrder (this.safeValue (response, 'data'), market, this.safeString (response, 'ts'));
         if (order['status'] === 'rejected') {
-            throw new InvalidOrder (' order was rejected by the exchange ' + this.safeValue(order.info, 'rejectReason'));
+            throw new InvalidOrder (' order was rejected by the exchange ' + this.safeValue (order.info, 'rejectReason'));
         }
         return order;
     }
@@ -983,6 +983,9 @@ module.exports = class aax extends Exchange {
         const request = {
             'orderID': id,
         };
+        if ('orderDate' in params) {
+            request['startDate'] = this.ymd (params['orderDate']);
+        }
         const response = await this.privateGetV2SpotOrders (this.extend (request, params));
         const result = this.safeValue (response, 'data');
         const list = this.safeValue (result, 'list', []);

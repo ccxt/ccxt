@@ -717,7 +717,7 @@ class aax(Exchange):
         #  }
         order = self.parse_order(self.safe_value(response, 'data'), market, self.safe_string(response, 'ts'))
         if order['status'] == 'rejected':
-            raise InvalidOrder(' order was rejected by the exchange ' + self.safeValue(order.info, 'rejectReason'))
+            raise InvalidOrder(' order was rejected by the exchange ' + self.safe_value(order.info, 'rejectReason'))
         return order
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -924,6 +924,8 @@ class aax(Exchange):
         request = {
             'orderID': id,
         }
+        if 'orderDate' in params:
+            request['startDate'] = self.ymd(params['orderDate'])
         response = self.privateGetV2SpotOrders(self.extend(request, params))
         result = self.safe_value(response, 'data')
         list = self.safe_value(result, 'list', [])
