@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\InvalidOrder;
 
 class okex5 extends Exchange {
 
@@ -24,7 +25,7 @@ class okex5 extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchCurrencies' => true,
+                'fetchCurrencies' => false, // see below
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -420,16 +421,8 @@ class okex5 extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        if (is_array($params) && array_key_exists('marketType', $params)) {
-            return $this->fetch_markets_by_type ($params['marketType'], $params);
-        }
-        $types = $this->safe_value($this->options, 'fetchMarkets');
-        $result = array();
-        for ($i = 0; $i < count($types); $i++) {
-            $markets = $this->fetch_markets_by_type ($types[$i], $params);
-            $result = $this->array_concat($result, $markets);
-        }
-        return $result;
+        // TODO => add support for futures, swap, option if required
+        return $this->fetch_markets_by_type ('spot', $params);
     }
 
     public function parse_markets ($markets) {
@@ -484,8 +477,9 @@ class okex5 extends Exchange {
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $spot ? ($base . '/' . $quote) : $id;
         $tickSize = $this->safe_string($market, 'tickSz');
+        $lotSize = $this->safe_string($market, 'lotSz');
         $precision = array(
-            'amount' => $this->safe_float($market, 'lotSz'),
+            'amount' => $this->precision_from_string($lotSize),
             'price' => $this->precision_from_string($tickSize),
         );
         $minAmountString = $this->safe_string($market, 'minSz');
@@ -870,6 +864,613 @@ class okex5 extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
+    public function fetch_balance ($params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'ccy' => 'XRP'
+        );
+        $response = $this->privateGetAccountBalance (array_merge($request, $params));
+        //
+        //     {
+        //         "$code":"0",
+        //         "$data":array(
+        //             {
+        //                 "adjEq":"",
+        //                 "$details":array(
+        //                     {
+        //                         "availBal":"",
+        //                         "availEq":"28.21006347",
+        //                         "cashBal":"28.21006347",
+        //                         "ccy":"USDT",
+        //                         "crossLiab":"",
+        //                         "disEq":"28.2687404020176",
+        //                         "eq":"28.21006347",
+        //                         "eqUsd":"28.2687404020176",
+        //                         "frozenBal":"0",
+        //                         "interest":"",
+        //                         "isoEq":"0",
+        //                         "isoLiab":"",
+        //                         "liab":"",
+        //                         "maxLoan":"",
+        //                         "mgnRatio":"",
+        //                         "notionalLever":"0",
+        //                         "ordFrozen":"0",
+        //                         "twap":"0",
+        //                         "uTime":"1621556539861",
+        //                         "upl":"0",
+        //                         "uplLiab":""
+        //                     }
+        //                 ),
+        //                 "imr":"",
+        //                 "isoEq":"0",
+        //                 "mgnRatio":"",
+        //                 "mmr":"",
+        //                 "notionalUsd":"",
+        //                 "ordFroz":"",
+        //                 "totalEq":"28.2687404020176",
+        //                 "uTime":"1621556553510"
+        //             }
+        //         ),
+        //         "msg":""
+        //     }
+        //
+        $result = array( 'info' => $response );
+        $data = $this->safe_value($response, 'data', array());
+        $first = $this->safe_value($data, 0, array());
+        $details = $this->safe_value($first, 'details', array());
+        for ($i = 0; $i < count($details); $i++) {
+            $balance = $details[$i];
+            $currencyId = $this->safe_string($balance, 'ccy');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'availBal');
+            $account['used'] = $this->safe_float($balance, 'frozenBal');
+            $result[$code] = $account;
+        }
+        return $this->parse_balance($result);
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array(
+            'canceled' => 'canceled',
+            'live' => 'open',
+            'partially_filled' => 'open',
+            'filled' => 'closed',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_order ($order, $market = null) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "clOrdId" => "oktswap6",
+        //         "ordId" => "312269865356374016",
+        //         "tag" => "",
+        //         "sCode" => "0",
+        //         "sMsg" => ""
+        //     }
+        //
+        // fetchOrder, fetchOpenOrders
+        //
+        //     {
+        //         "accFillSz":"0",
+        //         "avgPx":"",
+        //         "cTime":"1621910749815",
+        //         "category":"normal",
+        //         "ccy":"",
+        //         "clOrdId":"",
+        //         "$fee":"0",
+        //         "feeCcy":"ETH",
+        //         "fillPx":"",
+        //         "fillSz":"0",
+        //         "fillTime":"",
+        //         "instId":"ETH-USDT",
+        //         "instType":"SPOT",
+        //         "lever":"",
+        //         "ordId":"317251910906576896",
+        //         "ordType":"limit",
+        //         "pnl":"0",
+        //         "posSide":"net",
+        //         "px":"2000",
+        //         "rebate":"0",
+        //         "rebateCcy":"USDT",
+        //         "$side":"buy",
+        //         "slOrdPx":"",
+        //         "slTriggerPx":"",
+        //         "state":"live",
+        //         "sz":"0.001",
+        //         "tag":"",
+        //         "tdMode":"cash",
+        //         "tpOrdPx":"",
+        //         "tpTriggerPx":"",
+        //         "tradeId":"",
+        //         "uTime":"1621910749815"
+        //     }
+        //
+        $id = $this->safe_string($order, 'ordId');
+        $timestamp = $this->safe_integer($order, 'cTime');
+        $lastTradeTimestamp = $this->safe_integer($order, 'fillTime');
+        $side = $this->safe_string($order, 'side');
+        $type = $this->safe_string($order, 'ordType');
+        if ($type !== 'market') {
+            $type = 'limit';
+        }
+        $marketId = $this->safe_string($order, 'instId');
+        if ($market === null && $marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
+        }
+        $symbol = $market['symbol'];
+        $amount = $this->safe_number($order, 'sz');
+        $filled = $this->safe_number($order, 'accFillSz');
+        $price = $this->safe_float_2($order, 'px', 'slOrdPx');
+        if ($price === null) {
+            $price = $this->safe_number($order, 'avgPx');
+        }
+        $average = $this->safe_number($order, 'avgPx');
+        $status = $this->parse_order_status($this->safe_string($order, 'state'));
+        $feeCost = $this->safe_number($order, 'fee');
+        if (strtolower($type) === 'market' && strtolower($side) === 'buy') {
+            $avgPrice = $this->safe_number($order, 'avgPx');
+            if ($avgPrice !== null && $amount !== null && $filled !== null) {
+                $amount = $filled;
+            }
+        }
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($order, 'feeCcy');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+            );
+        }
+        $clientOrderId = $this->safe_string($order, 'clOrdId');
+        if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
+            $clientOrderId = null;
+        }
+        $stopPrice = $this->safe_number($order, 'slTriggerPx');
+        return array(
+            'info' => $order,
+            'id' => $id,
+            'clientOrderId' => $clientOrderId,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => $this->iso8601 ($lastTradeTimestamp),
+            'symbol' => $symbol,
+            'type' => $type,
+            'timeInForce' => null,
+            'side' => $side,
+            'price' => $price,
+            'stopPrice' => $stopPrice,
+            'average' => $average,
+            'cost' => null,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => null,
+            'status' => $status,
+            'fee' => $fee,
+            'trades' => null,
+        );
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array(
+            'instId' => $market['id'],
+            'side' => strtolower($side),
+            'tdMode' => 'cash',
+            'ordType' => $type, // $market, limit, post_only, fok, ioc
+            // 'sz' => $this->amount_to_precision($symbol, $amount),
+            // 'px' => $this->price_to_precision($symbol, $price), // limit orders only
+            // 'reduceOnly' => false, // MARGIN orders only
+        );
+        $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clOrdId'] = $clientOrderId;
+            $params = $this->omit ($params, array( 'clOrdId', 'clientOrderId' ));
+        }
+        if ($type === 'market') {
+            // for $market buy it requires the $amount of quote currency to spend
+            if ($side === 'buy') {
+                $notional = $this->safe_value($params, 'notional');
+                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+                if ($createMarketBuyOrderRequiresPrice) {
+                    if ($price !== null) {
+                        if ($notional === null) {
+                            $notional = $amount * $price;
+                        }
+                    } else if ($notional === null) {
+                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
+                    }
+                } else {
+                    $notional = ($notional === null) ? $amount : $notional;
+                }
+                $precision = $market['precision']['price'];
+                $request['sz'] = $this->decimal_to_precision($notional, TRUNCATE, $precision, $this->precisionMode);
+            } else {
+                $request['sz'] = $this->amount_to_precision($symbol, $amount);
+            }
+        } else {
+            $request['px'] = $this->price_to_precision($symbol, $price);
+            $request['sz'] = $this->amount_to_precision($symbol, $amount);
+        }
+        $response = $this->privatePostTradeOrder (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "$data" => array(
+        //             {
+        //                 "clOrdId" => "oktswap6",
+        //                 "ordId" => "312269865356374016",
+        //                 "tag" => "",
+        //                 "sCode" => "0",
+        //                 "sMsg" => ""
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $first = $this->safe_value($data, 0);
+        return $this->fetch_order($this->safe_string($first, 'ordId'), $symbol);
+    }
+
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array(
+            'instId' => $market['id'],
+            // 'ordId' => $id, // either ordId or clOrdId is required
+            // 'clOrdId' => $clientOrderId,
+        );
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clOrdId'] = $clientOrderId;
+        } else {
+            $request['ordId'] = $id;
+        }
+        $query = $this->omit ($params, array( 'clOrdId', 'clientOrderId' ));
+        $response = $this->privatePostTradeCancelOrder (array_merge($request, $query));
+        // array("code":"0","$data":[array("clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":"")],"msg":"")
+        $data = $this->safe_value($response, 'data', array());
+        $order = $this->safe_value($data, 0);
+        return $this->parse_order($order, $market);
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array(
+            'instId' => $market['id'],
+        );
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clOrdId'] = $clientOrderId;
+        } else {
+            $request['ordId'] = $id;
+        }
+        $query = $this->omit ($params, array( 'clOrdId', 'clientOrderId' ));
+        $response = $this->privateGetTradeOrder (array_merge($request, $query));
+        //
+        //     {
+        //         "code":"0",
+        //         "$data":array(
+        //             {
+        //                 "accFillSz":"0",
+        //                 "avgPx":"",
+        //                 "cTime":"1621910749815",
+        //                 "category":"normal",
+        //                 "ccy":"",
+        //                 "clOrdId":"",
+        //                 "fee":"0",
+        //                 "feeCcy":"ETH",
+        //                 "fillPx":"",
+        //                 "fillSz":"0",
+        //                 "fillTime":"",
+        //                 "instId":"ETH-USDT",
+        //                 "instType":"SPOT",
+        //                 "lever":"",
+        //                 "ordId":"317251910906576896",
+        //                 "ordType":"limit",
+        //                 "pnl":"0",
+        //                 "posSide":"net",
+        //                 "px":"2000",
+        //                 "rebate":"0",
+        //                 "rebateCcy":"USDT",
+        //                 "side":"buy",
+        //                 "slOrdPx":"",
+        //                 "slTriggerPx":"",
+        //                 "state":"live",
+        //                 "sz":"0.001",
+        //                 "tag":"",
+        //                 "tdMode":"cash",
+        //                 "tpOrdPx":"",
+        //                 "tpTriggerPx":"",
+        //                 "tradeId":"",
+        //                 "uTime":"1621910749815"
+        //             }
+        //         ),
+        //         "msg":""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $order = $this->safe_value($data, 0);
+        return $this->parse_order($order, $market);
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            // 'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'uly' => currency['id'],
+            // 'instId' => $market['id'],
+            // 'ordId' => orderId,
+            // 'after' => billId,
+            // 'before' => billId,
+            // 'limit' => $limit, // default 100, max 100
+        );
+        $market = null;
+        $this->load_markets();
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['instId'] = $market['id'];
+        }
+        if (is_array($params) && array_key_exists('marketType', $params)) {
+            $request['instType'] = strtoupper($params['marketType']);
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100, max 100
+        }
+        $response = $this->privateGetTradeFills (array_merge($request, $params));
+        //
+        //     {
+        //         "code":"0",
+        //         "$data":array(
+        //             {
+        //                 "side":"buy",
+        //                 "fillSz":"0.007533",
+        //                 "fillPx":"2654.98",
+        //                 "fee":"-0.000007533",
+        //                 "ordId":"317321390244397056",
+        //                 "instType":"SPOT",
+        //                 "instId":"ETH-USDT",
+        //                 "clOrdId":"",
+        //                 "posSide":"net",
+        //                 "billId":"317321390265368576",
+        //                 "tag":"0",
+        //                 "execType":"T",
+        //                 "tradeId":"107601752",
+        //                 "feeCcy":"ETH",
+        //                 "ts":"1621927314985"
+        //             }
+        //         ),
+        //         "msg":""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit, $params);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'uly' => currency['id'],
+            // 'instId' => $market['id'],
+            // 'ordType' => 'limit', // $market, $limit, post_only, fok, ioc, comma-separated
+            // 'state' => 'live', // live, partially_filled
+            // 'after' => orderId,
+            // 'before' => orderId,
+            // 'limit' => $limit, // default 100, max 100
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['instId'] = $market['id'];
+        }
+        if (is_array($params) && array_key_exists('marketType', $params)) {
+            $request['instType'] = strtoupper($params['marketType']);
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100, max 100
+        }
+        $response = $this->privateGetTradeOrdersPending (array_merge($request, $params));
+        //
+        //     {
+        //         "code":"0",
+        //         "$data":array(
+        //             {
+        //                 "accFillSz":"0",
+        //                 "avgPx":"",
+        //                 "cTime":"1621910749815",
+        //                 "category":"normal",
+        //                 "ccy":"",
+        //                 "clOrdId":"",
+        //                 "fee":"0",
+        //                 "feeCcy":"ETH",
+        //                 "fillPx":"",
+        //                 "fillSz":"0",
+        //                 "fillTime":"",
+        //                 "instId":"ETH-USDT",
+        //                 "instType":"SPOT",
+        //                 "lever":"",
+        //                 "ordId":"317251910906576896",
+        //                 "ordType":"$limit",
+        //                 "pnl":"0",
+        //                 "posSide":"net",
+        //                 "px":"2000",
+        //                 "rebate":"0",
+        //                 "rebateCcy":"USDT",
+        //                 "side":"buy",
+        //                 "slOrdPx":"",
+        //                 "slTriggerPx":"",
+        //                 "state":"live",
+        //                 "sz":"0.001",
+        //                 "tag":"",
+        //                 "tdMode":"cash",
+        //                 "tpOrdPx":"",
+        //                 "tpTriggerPx":"",
+        //                 "tradeId":"",
+        //                 "uTime":"1621910749815"
+        //             }
+        //         ),
+        //         "msg":""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $options = $this->safe_string($this->options, 'fetchClosedOrders', array());
+        $type = $this->safe_string($options, 'type', $defaultType);
+        $type = $this->safe_string($params, 'type', $type);
+        $params = $this->omit ($params, 'type');
+        $request = array(
+            // 'instType' => strtoupper($type), // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'uly' => currency['id'],
+            // 'instId' => $market['id'],
+            // 'ordType' => 'limit', // $market, $limit, post_only, fok, ioc, comma-separated
+            // 'state' => 'filled', // filled, canceled
+            // 'after' => orderId,
+            // 'before' => orderId,
+            // 'limit' => $limit, // default 100, max 100
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            if ($market['futures'] || $market['swap']) {
+                $type = $market['type'];
+            }
+            $request['instId'] = $market['id'];
+        }
+        $request['instType'] = strtoupper($type);
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100, max 100
+        }
+        $method = $this->safe_string($options, 'method', 'privateGetTradeOrdersHistory');
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "code":"0",
+        //         "$data":array(
+        //             {
+        //                 "accFillSz":"0",
+        //                 "avgPx":"",
+        //                 "cTime":"1621910749815",
+        //                 "category":"normal",
+        //                 "ccy":"",
+        //                 "clOrdId":"",
+        //                 "fee":"0",
+        //                 "feeCcy":"ETH",
+        //                 "fillPx":"",
+        //                 "fillSz":"0",
+        //                 "fillTime":"",
+        //                 "instId":"ETH-USDT",
+        //                 "instType":"SPOT",
+        //                 "lever":"",
+        //                 "ordId":"317251910906576896",
+        //                 "ordType":"$limit",
+        //                 "pnl":"0",
+        //                 "posSide":"net",
+        //                 "px":"2000",
+        //                 "rebate":"0",
+        //                 "rebateCcy":"USDT",
+        //                 "side":"buy",
+        //                 "slOrdPx":"",
+        //                 "slTriggerPx":"",
+        //                 "state":"live",
+        //                 "sz":"0.001",
+        //                 "tag":"",
+        //                 "tdMode":"cash",
+        //                 "tpOrdPx":"",
+        //                 "tpTriggerPx":"",
+        //                 "tradeId":"",
+        //                 "uTime":"1621910749815"
+        //             }
+        //         ),
+        //         "msg":""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
+    }
+
+    public function fetch_currencies ($params = array ()) {
+        // it will reply with array("msg":"Request header “OK_ACCESS_KEY“ can't be empty.","$code":"50103")
+        // if you attempt to access it without authentication
+        $response = $this->privateGetAssetCurrencies ($params);
+        //
+        //     {
+        //         "$code":"0",
+        //         "$data":array(
+        //             {
+        //                 "canDep":true,
+        //                 "$canInternal":true,
+        //                 "canWd":true,
+        //                 "ccy":"USDT",
+        //                 "chain":"USDT-ERC20",
+        //                 "maxFee":"40",
+        //                 "minFee":"20",
+        //                 "minWd":"2",
+        //                 "$name":""
+        //             }
+        //         ),
+        //         "msg":""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
+        $dataByCurrencyId = $this->group_by($data, 'ccy');
+        $currencyIds = is_array($dataByCurrencyId) ? array_keys($dataByCurrencyId) : array();
+        for ($i = 0; $i < count($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $chains = $dataByCurrencyId[$currencyId];
+            $first = $this->safe_value($chains, 0);
+            $id = $this->safe_string($first, 'ccy');
+            $code = $this->safe_currency_code($id);
+            $precision = 0.00000001; // default $precision, todo => fix "magic constants"
+            $name = $this->safe_string($first, 'name');
+            if (($name !== null) && (strlen($name) < 1)) {
+                $name = null;
+            }
+            $canDeposit = $this->safe_value($first, 'canDep');
+            $canWithdraw = $this->safe_value($first, 'canWd');
+            $canInternal = $this->safe_value($first, 'canInternal');
+            $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
+            $result[$code] = array(
+                'id' => $id,
+                'code' => $code,
+                'info' => $chains,
+                'type' => null,
+                'name' => $name,
+                'active' => $active,
+                'fee' => $this->safe_number($first, 'minFee'),
+                'precision' => $precision,
+                'limits' => array(
+                    'amount' => array( 'min' => null, 'max' => null ),
+                    'withdraw' => array(
+                        'min' => $this->safe_number($first, 'ccy'),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $isArray = gettype($params) === 'array' && count(array_filter(array_keys($params), 'is_string')) == 0;
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
@@ -932,7 +1533,7 @@ class okex5 extends Exchange {
                 }
             }
             $feedback = $feedback . ' ' . $message;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $message);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
     }

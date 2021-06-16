@@ -22,6 +22,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.precise import Precise
 
 
@@ -40,7 +41,7 @@ class okex5(Exchange):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': True,
+                'fetchCurrencies': False,  # see below
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -435,14 +436,8 @@ class okex5(Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        if 'marketType' in params:
-            return await self.fetch_markets_by_type(params['marketType'], params)
-        types = self.safe_value(self.options, 'fetchMarkets')
-        result = []
-        for i in range(0, len(types)):
-            markets = await self.fetch_markets_by_type(types[i], params)
-            result = self.array_concat(result, markets)
-        return result
+        # TODO: add support for futures, swap, option if required
+        return await self.fetch_markets_by_type('spot', params)
 
     def parse_markets(self, markets):
         result = []
@@ -493,8 +488,9 @@ class okex5(Exchange):
         quote = self.safe_currency_code(quoteId)
         symbol = (base + '/' + quote) if spot else id
         tickSize = self.safe_string(market, 'tickSz')
+        lotSize = self.safe_string(market, 'lotSz')
         precision = {
-            'amount': self.safe_float(market, 'lotSz'),
+            'amount': self.precision_from_string(lotSize),
             'price': self.precision_from_string(tickSize),
         }
         minAmountString = self.safe_string(market, 'minSz')
@@ -858,6 +854,573 @@ class okex5(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        request = {
+            # 'ccy': 'XRP'
+        }
+        response = await self.privateGetAccountBalance(self.extend(request, params))
+        #
+        #     {
+        #         "code":"0",
+        #         "data":[
+        #             {
+        #                 "adjEq":"",
+        #                 "details":[
+        #                     {
+        #                         "availBal":"",
+        #                         "availEq":"28.21006347",
+        #                         "cashBal":"28.21006347",
+        #                         "ccy":"USDT",
+        #                         "crossLiab":"",
+        #                         "disEq":"28.2687404020176",
+        #                         "eq":"28.21006347",
+        #                         "eqUsd":"28.2687404020176",
+        #                         "frozenBal":"0",
+        #                         "interest":"",
+        #                         "isoEq":"0",
+        #                         "isoLiab":"",
+        #                         "liab":"",
+        #                         "maxLoan":"",
+        #                         "mgnRatio":"",
+        #                         "notionalLever":"0",
+        #                         "ordFrozen":"0",
+        #                         "twap":"0",
+        #                         "uTime":"1621556539861",
+        #                         "upl":"0",
+        #                         "uplLiab":""
+        #                     }
+        #                 ],
+        #                 "imr":"",
+        #                 "isoEq":"0",
+        #                 "mgnRatio":"",
+        #                 "mmr":"",
+        #                 "notionalUsd":"",
+        #                 "ordFroz":"",
+        #                 "totalEq":"28.2687404020176",
+        #                 "uTime":"1621556553510"
+        #             }
+        #         ],
+        #         "msg":""
+        #     }
+        #
+        result = {'info': response}
+        data = self.safe_value(response, 'data', [])
+        first = self.safe_value(data, 0, {})
+        details = self.safe_value(first, 'details', [])
+        for i in range(0, len(details)):
+            balance = details[i]
+            currencyId = self.safe_string(balance, 'ccy')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'availBal')
+            account['used'] = self.safe_float(balance, 'frozenBal')
+            result[code] = account
+        return self.parse_balance(result)
+
+    def parse_order_status(self, status):
+        statuses = {
+            'canceled': 'canceled',
+            'live': 'open',
+            'partially_filled': 'open',
+            'filled': 'closed',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_order(self, order, market=None):
+        #
+        # createOrder
+        #
+        #     {
+        #         "clOrdId": "oktswap6",
+        #         "ordId": "312269865356374016",
+        #         "tag": "",
+        #         "sCode": "0",
+        #         "sMsg": ""
+        #     }
+        #
+        # fetchOrder, fetchOpenOrders
+        #
+        #     {
+        #         "accFillSz":"0",
+        #         "avgPx":"",
+        #         "cTime":"1621910749815",
+        #         "category":"normal",
+        #         "ccy":"",
+        #         "clOrdId":"",
+        #         "fee":"0",
+        #         "feeCcy":"ETH",
+        #         "fillPx":"",
+        #         "fillSz":"0",
+        #         "fillTime":"",
+        #         "instId":"ETH-USDT",
+        #         "instType":"SPOT",
+        #         "lever":"",
+        #         "ordId":"317251910906576896",
+        #         "ordType":"limit",
+        #         "pnl":"0",
+        #         "posSide":"net",
+        #         "px":"2000",
+        #         "rebate":"0",
+        #         "rebateCcy":"USDT",
+        #         "side":"buy",
+        #         "slOrdPx":"",
+        #         "slTriggerPx":"",
+        #         "state":"live",
+        #         "sz":"0.001",
+        #         "tag":"",
+        #         "tdMode":"cash",
+        #         "tpOrdPx":"",
+        #         "tpTriggerPx":"",
+        #         "tradeId":"",
+        #         "uTime":"1621910749815"
+        #     }
+        #
+        id = self.safe_string(order, 'ordId')
+        timestamp = self.safe_integer(order, 'cTime')
+        lastTradeTimestamp = self.safe_integer(order, 'fillTime')
+        side = self.safe_string(order, 'side')
+        type = self.safe_string(order, 'ordType')
+        if type != 'market':
+            type = 'limit'
+        marketId = self.safe_string(order, 'instId')
+        if market is None and marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        symbol = market['symbol']
+        amount = self.safe_number(order, 'sz')
+        filled = self.safe_number(order, 'accFillSz')
+        price = self.safe_float_2(order, 'px', 'slOrdPx')
+        if price is None:
+            price = self.safe_number(order, 'avgPx')
+        average = self.safe_number(order, 'avgPx')
+        status = self.parse_order_status(self.safe_string(order, 'state'))
+        feeCost = self.safe_number(order, 'fee')
+        if type.lower() == 'market' and side.lower() == 'buy':
+            avgPrice = self.safe_number(order, 'avgPx')
+            if avgPrice is not None and amount is not None and filled is not None:
+                amount = filled
+        fee = None
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(order, 'feeCcy')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
+        clientOrderId = self.safe_string(order, 'clOrdId')
+        if (clientOrderId is not None) and (len(clientOrderId) < 1):
+            clientOrderId = None
+        stopPrice = self.safe_number(order, 'slTriggerPx')
+        return {
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': self.iso8601(lastTradeTimestamp),
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': None,
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'average': average,
+            'cost': None,
+            'amount': amount,
+            'filled': filled,
+            'remaining': None,
+            'status': status,
+            'fee': fee,
+            'trades': None,
+        }
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instId': market['id'],
+            'side': side.lower(),
+            'tdMode': 'cash',
+            'ordType': type,  # market, limit, post_only, fok, ioc
+            # 'sz': self.amount_to_precision(symbol, amount),
+            # 'px': self.price_to_precision(symbol, price),  # limit orders only
+            # 'reduceOnly': False,  # MARGIN orders only
+        }
+        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        if clientOrderId is not None:
+            request['clOrdId'] = clientOrderId
+            params = self.omit(params, ['clOrdId', 'clientOrderId'])
+        if type == 'market':
+            # for market buy it requires the amount of quote currency to spend
+            if side == 'buy':
+                notional = self.safe_value(params, 'notional')
+                createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
+                if createMarketBuyOrderRequiresPrice:
+                    if price is not None:
+                        if notional is None:
+                            notional = amount * price
+                    elif notional is None:
+                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter(the exchange-specific behaviour)")
+                else:
+                    notional = amount if (notional is None) else notional
+                precision = market['precision']['price']
+                request['sz'] = self.decimal_to_precision(notional, TRUNCATE, precision, self.precisionMode)
+            else:
+                request['sz'] = self.amount_to_precision(symbol, amount)
+        else:
+            request['px'] = self.price_to_precision(symbol, price)
+            request['sz'] = self.amount_to_precision(symbol, amount)
+        response = await self.privatePostTradeOrder(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "",
+        #         "data": [
+        #             {
+        #                 "clOrdId": "oktswap6",
+        #                 "ordId": "312269865356374016",
+        #                 "tag": "",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        first = self.safe_value(data, 0)
+        return await self.fetch_order(self.safe_string(first, 'ordId'), symbol)
+
+    async def cancel_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instId': market['id'],
+            # 'ordId': id,  # either ordId or clOrdId is required
+            # 'clOrdId': clientOrderId,
+        }
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['clOrdId'] = clientOrderId
+        else:
+            request['ordId'] = id
+        query = self.omit(params, ['clOrdId', 'clientOrderId'])
+        response = await self.privatePostTradeCancelOrder(self.extend(request, query))
+        # {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
+        data = self.safe_value(response, 'data', [])
+        order = self.safe_value(data, 0)
+        return self.parse_order(order, market)
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instId': market['id'],
+        }
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['clOrdId'] = clientOrderId
+        else:
+            request['ordId'] = id
+        query = self.omit(params, ['clOrdId', 'clientOrderId'])
+        response = await self.privateGetTradeOrder(self.extend(request, query))
+        #
+        #     {
+        #         "code":"0",
+        #         "data":[
+        #             {
+        #                 "accFillSz":"0",
+        #                 "avgPx":"",
+        #                 "cTime":"1621910749815",
+        #                 "category":"normal",
+        #                 "ccy":"",
+        #                 "clOrdId":"",
+        #                 "fee":"0",
+        #                 "feeCcy":"ETH",
+        #                 "fillPx":"",
+        #                 "fillSz":"0",
+        #                 "fillTime":"",
+        #                 "instId":"ETH-USDT",
+        #                 "instType":"SPOT",
+        #                 "lever":"",
+        #                 "ordId":"317251910906576896",
+        #                 "ordType":"limit",
+        #                 "pnl":"0",
+        #                 "posSide":"net",
+        #                 "px":"2000",
+        #                 "rebate":"0",
+        #                 "rebateCcy":"USDT",
+        #                 "side":"buy",
+        #                 "slOrdPx":"",
+        #                 "slTriggerPx":"",
+        #                 "state":"live",
+        #                 "sz":"0.001",
+        #                 "tag":"",
+        #                 "tdMode":"cash",
+        #                 "tpOrdPx":"",
+        #                 "tpTriggerPx":"",
+        #                 "tradeId":"",
+        #                 "uTime":"1621910749815"
+        #             }
+        #         ],
+        #         "msg":""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        order = self.safe_value(data, 0)
+        return self.parse_order(order, market)
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        request = {
+            # 'instType': 'SPOT',  # SPOT, MARGIN, SWAP, FUTURES, OPTION
+            # 'uly': currency['id'],
+            # 'instId': market['id'],
+            # 'ordId': orderId,
+            # 'after': billId,
+            # 'before': billId,
+            # 'limit': limit,  # default 100, max 100
+        }
+        market = None
+        await self.load_markets()
+        if symbol is not None:
+            market = self.market(symbol)
+            request['instId'] = market['id']
+        if 'marketType' in params:
+            request['instType'] = params['marketType'].upper()
+        if limit is not None:
+            request['limit'] = limit  # default 100, max 100
+        response = await self.privateGetTradeFills(self.extend(request, params))
+        #
+        #     {
+        #         "code":"0",
+        #         "data":[
+        #             {
+        #                 "side":"buy",
+        #                 "fillSz":"0.007533",
+        #                 "fillPx":"2654.98",
+        #                 "fee":"-0.000007533",
+        #                 "ordId":"317321390244397056",
+        #                 "instType":"SPOT",
+        #                 "instId":"ETH-USDT",
+        #                 "clOrdId":"",
+        #                 "posSide":"net",
+        #                 "billId":"317321390265368576",
+        #                 "tag":"0",
+        #                 "execType":"T",
+        #                 "tradeId":"107601752",
+        #                 "feeCcy":"ETH",
+        #                 "ts":"1621927314985"
+        #             }
+        #         ],
+        #         "msg":""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_trades(data, market, since, limit, params)
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # 'instType': 'SPOT',  # SPOT, MARGIN, SWAP, FUTURES, OPTION
+            # 'uly': currency['id'],
+            # 'instId': market['id'],
+            # 'ordType': 'limit',  # market, limit, post_only, fok, ioc, comma-separated
+            # 'state': 'live',  # live, partially_filled
+            # 'after': orderId,
+            # 'before': orderId,
+            # 'limit': limit,  # default 100, max 100
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['instId'] = market['id']
+        if 'marketType' in params:
+            request['instType'] = params['marketType'].upper()
+        if limit is not None:
+            request['limit'] = limit  # default 100, max 100
+        response = await self.privateGetTradeOrdersPending(self.extend(request, params))
+        #
+        #     {
+        #         "code":"0",
+        #         "data":[
+        #             {
+        #                 "accFillSz":"0",
+        #                 "avgPx":"",
+        #                 "cTime":"1621910749815",
+        #                 "category":"normal",
+        #                 "ccy":"",
+        #                 "clOrdId":"",
+        #                 "fee":"0",
+        #                 "feeCcy":"ETH",
+        #                 "fillPx":"",
+        #                 "fillSz":"0",
+        #                 "fillTime":"",
+        #                 "instId":"ETH-USDT",
+        #                 "instType":"SPOT",
+        #                 "lever":"",
+        #                 "ordId":"317251910906576896",
+        #                 "ordType":"limit",
+        #                 "pnl":"0",
+        #                 "posSide":"net",
+        #                 "px":"2000",
+        #                 "rebate":"0",
+        #                 "rebateCcy":"USDT",
+        #                 "side":"buy",
+        #                 "slOrdPx":"",
+        #                 "slTriggerPx":"",
+        #                 "state":"live",
+        #                 "sz":"0.001",
+        #                 "tag":"",
+        #                 "tdMode":"cash",
+        #                 "tpOrdPx":"",
+        #                 "tpTriggerPx":"",
+        #                 "tradeId":"",
+        #                 "uTime":"1621910749815"
+        #             }
+        #         ],
+        #         "msg":""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_orders(data, market, since, limit)
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        defaultType = self.safe_string(self.options, 'defaultType')
+        options = self.safe_string(self.options, 'fetchClosedOrders', {})
+        type = self.safe_string(options, 'type', defaultType)
+        type = self.safe_string(params, 'type', type)
+        params = self.omit(params, 'type')
+        request = {
+            # 'instType': type.upper(),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
+            # 'uly': currency['id'],
+            # 'instId': market['id'],
+            # 'ordType': 'limit',  # market, limit, post_only, fok, ioc, comma-separated
+            # 'state': 'filled',  # filled, canceled
+            # 'after': orderId,
+            # 'before': orderId,
+            # 'limit': limit,  # default 100, max 100
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            if market['futures'] or market['swap']:
+                type = market['type']
+            request['instId'] = market['id']
+        request['instType'] = type.upper()
+        if limit is not None:
+            request['limit'] = limit  # default 100, max 100
+        method = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "code":"0",
+        #         "data":[
+        #             {
+        #                 "accFillSz":"0",
+        #                 "avgPx":"",
+        #                 "cTime":"1621910749815",
+        #                 "category":"normal",
+        #                 "ccy":"",
+        #                 "clOrdId":"",
+        #                 "fee":"0",
+        #                 "feeCcy":"ETH",
+        #                 "fillPx":"",
+        #                 "fillSz":"0",
+        #                 "fillTime":"",
+        #                 "instId":"ETH-USDT",
+        #                 "instType":"SPOT",
+        #                 "lever":"",
+        #                 "ordId":"317251910906576896",
+        #                 "ordType":"limit",
+        #                 "pnl":"0",
+        #                 "posSide":"net",
+        #                 "px":"2000",
+        #                 "rebate":"0",
+        #                 "rebateCcy":"USDT",
+        #                 "side":"buy",
+        #                 "slOrdPx":"",
+        #                 "slTriggerPx":"",
+        #                 "state":"live",
+        #                 "sz":"0.001",
+        #                 "tag":"",
+        #                 "tdMode":"cash",
+        #                 "tpOrdPx":"",
+        #                 "tpTriggerPx":"",
+        #                 "tradeId":"",
+        #                 "uTime":"1621910749815"
+        #             }
+        #         ],
+        #         "msg":""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_orders(data, market, since, limit)
+
+    async def fetch_currencies(self, params={}):
+        # it will reply with {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
+        # if you attempt to access it without authentication
+        response = await self.privateGetAssetCurrencies(params)
+        #
+        #     {
+        #         "code":"0",
+        #         "data":[
+        #             {
+        #                 "canDep":true,
+        #                 "canInternal":true,
+        #                 "canWd":true,
+        #                 "ccy":"USDT",
+        #                 "chain":"USDT-ERC20",
+        #                 "maxFee":"40",
+        #                 "minFee":"20",
+        #                 "minWd":"2",
+        #                 "name":""
+        #             }
+        #         ],
+        #         "msg":""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = {}
+        dataByCurrencyId = self.group_by(data, 'ccy')
+        currencyIds = list(dataByCurrencyId.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            chains = dataByCurrencyId[currencyId]
+            first = self.safe_value(chains, 0)
+            id = self.safe_string(first, 'ccy')
+            code = self.safe_currency_code(id)
+            precision = 0.00000001  # default precision, todo: fix "magic constants"
+            name = self.safe_string(first, 'name')
+            if (name is not None) and (len(name) < 1):
+                name = None
+            canDeposit = self.safe_value(first, 'canDep')
+            canWithdraw = self.safe_value(first, 'canWd')
+            canInternal = self.safe_value(first, 'canInternal')
+            active = True if (canDeposit and canWithdraw and canInternal) else False
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': chains,
+                'type': None,
+                'name': name,
+                'active': active,
+                'fee': self.safe_number(first, 'minFee'),
+                'precision': precision,
+                'limits': {
+                    'amount': {'min': None, 'max': None},
+                    'withdraw': {
+                        'min': self.safe_number(first, 'ccy'),
+                        'max': None,
+                    },
+                },
+            }
+        return result
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         isArray = isinstance(params, list)
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
@@ -910,5 +1473,5 @@ class okex5(Exchange):
                     feedback = feedback + ' ' + message
                     self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             feedback = feedback + ' ' + message
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, message)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             raise ExchangeError(feedback)  # unknown message
