@@ -267,6 +267,7 @@ class zb(Exchange):
                 },
             },
             'commonCurrencies': {
+                'ANG': 'Anagram',
                 'ENT': 'ENTCash',
             },
         })

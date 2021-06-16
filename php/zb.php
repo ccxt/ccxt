@@ -257,6 +257,7 @@ class zb extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'ANG' => 'Anagram',
                 'ENT' => 'ENTCash',
             ),
         ));
