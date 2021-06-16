@@ -31,12 +31,10 @@ window.addEventListener ("load", () => {
         let height = 1
         for (const link of $sublinks) {
             const $link = $(link)
-            console.log ($link.children ().first ().attr ('href'))
             heights[$link.children ().first ().attr ('href')] = -Math.ceil (height)
             height += $link.innerHeight ()
         }
     })
-    console.log (heights)
     const linksBySectionId = {}
     $sections.each (function () {
         linksBySectionId[this.id] = $allLinks.find ('a.reference.internal[href="#' + this.id + '"]').parent ().filter ('li')
