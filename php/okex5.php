@@ -1007,15 +1007,16 @@ class okex5 extends Exchange {
         $amount = $this->safe_number($order, 'sz');
         $filled = $this->safe_number($order, 'accFillSz');
         $price = $this->safe_float_2($order, 'px', 'slOrdPx');
+        if ($price === null) {
+            $price = $this->safe_number($order, 'avgPx');
+        }
         $average = $this->safe_number($order, 'avgPx');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCost = $this->safe_number($order, 'fee');
         if (strtolower($type) === 'market' && strtolower($side) === 'buy') {
             $avgPrice = $this->safe_number($order, 'avgPx');
-            if ($avgPrice !== null && $amount !== null) {
-                $precisionOfFilled = $this->precision_from_string($this->safe_string($order, 'accFillSz'));
-                $amount = $amount / $avgPrice;
-                $amount = sprintf('%.' . $precisionOfFilled . 'f', $this->number($amount));
+            if ($avgPrice !== null && $amount !== null && $filled !== null) {
+                $amount = $filled;
             }
         }
         $fee = null;

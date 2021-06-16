@@ -1004,16 +1004,17 @@ module.exports = class okex5 extends Exchange {
         const symbol = market['symbol'];
         let amount = this.safeNumber (order, 'sz');
         const filled = this.safeNumber (order, 'accFillSz');
-        const price = this.safeFloat2 (order, 'px', 'slOrdPx');
+        let price = this.safeFloat2 (order, 'px', 'slOrdPx');
+        if (price === undefined) {
+            price = this.safeNumber (order, 'avgPx');
+        }
         const average = this.safeNumber (order, 'avgPx');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const feeCost = this.safeNumber (order, 'fee');
         if (type.toLowerCase () === 'market' && side.toLowerCase () === 'buy') {
             const avgPrice = this.safeNumber (order, 'avgPx');
-            if (avgPrice !== undefined && amount !== undefined) {
-                const precisionOfFilled = this.precisionFromString (this.safeString (order, 'accFillSz'));
-                amount = amount / avgPrice;
-                amount = this.number(amount.toFixed (precisionOfFilled));
+            if (avgPrice !== undefined && amount !== undefined && filled !== undefined) {
+                amount = filled;
             }
         }
         let fee = undefined;

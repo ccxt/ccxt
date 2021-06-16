@@ -991,15 +991,15 @@ class okex5(Exchange):
         amount = self.safe_number(order, 'sz')
         filled = self.safe_number(order, 'accFillSz')
         price = self.safe_float_2(order, 'px', 'slOrdPx')
+        if price is None:
+            price = self.safe_number(order, 'avgPx')
         average = self.safe_number(order, 'avgPx')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         feeCost = self.safe_number(order, 'fee')
         if type.lower() == 'market' and side.lower() == 'buy':
             avgPrice = self.safe_number(order, 'avgPx')
-            if avgPrice is not None and amount is not None:
-                precisionOfFilled = self.precision_from_string(self.safe_string(order, 'accFillSz'))
-                amount = amount / avgPrice
-                amount = ('{:.' + str(precisionOfFilled) + 'f}').format(self.number(amount))
+            if avgPrice is not None and amount is not None and filled is not None:
+                amount = filled
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'feeCcy')
