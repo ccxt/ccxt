@@ -2299,7 +2299,7 @@ module.exports = class okex5 extends Exchange {
         //     {"code":"1","data":[{"clOrdId":"","ordId":"","sCode":"51119","sMsg":"Order placement failed due to insufficient balance. ","tag":""}],"msg":""}
         //
         const code = this.safeInteger (response, 'code');
-        if (code === 1) {
+        if ((code !== undefined) && (code > 0)) {
             const feedback = this.id + ' ' + body;
             const data = this.safeValue (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
