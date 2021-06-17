@@ -520,7 +520,7 @@ module.exports = class coinone extends Exchange {
             'average': undefined,
             'amount': amount,
             'filled': undefined,
-            'remaining': amount,
+            'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': undefined,
