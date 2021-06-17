@@ -548,6 +548,76 @@ module.exports = class binance extends Exchange {
                     'taker': 0.001,
                     'maker': 0.001,
                 },
+                'future': {
+                    'trading': {
+                        'feeSide': 'quote',
+                        'tierBased': true,
+                        'percentage': true,
+                        'taker': this.parseNumber ('0.000400'),
+                        'maker': this.parseNumber ('0.000200'),
+                        'tiers': {
+                            'taker': [
+                                [ this.parseNumber ('0'), this.parseNumber ('0.000400') ],
+                                [ this.parseNumber ('250'), this.parseNumber ('0.000400') ],
+                                [ this.parseNumber ('2500'), this.parseNumber ('0.000350') ],
+                                [ this.parseNumber ('7500'), this.parseNumber ('0.000320') ],
+                                [ this.parseNumber ('22500'), this.parseNumber ('0.000300') ],
+                                [ this.parseNumber ('50000'), this.parseNumber ('0.000270') ],
+                                [ this.parseNumber ('100000'), this.parseNumber ('0.000250') ],
+                                [ this.parseNumber ('200000'), this.parseNumber ('0.000220') ],
+                                [ this.parseNumber ('400000'), this.parseNumber ('0.000200') ],
+                                [ this.parseNumber ('750000'), this.parseNumber ('0.000170') ],
+                            ],
+                            'maker': [
+                                [ this.parseNumber ('0'), this.parseNumber ('0.000200') ],
+                                [ this.parseNumber ('250'), this.parseNumber ('0.000160') ],
+                                [ this.parseNumber ('2500'), this.parseNumber ('0.000140') ],
+                                [ this.parseNumber ('7500'), this.parseNumber ('0.000120') ],
+                                [ this.parseNumber ('22500'), this.parseNumber ('0.000100') ],
+                                [ this.parseNumber ('50000'), this.parseNumber ('0.000080') ],
+                                [ this.parseNumber ('100000'), this.parseNumber ('0.000060') ],
+                                [ this.parseNumber ('200000'), this.parseNumber ('0.000040') ],
+                                [ this.parseNumber ('400000'), this.parseNumber ('0.000020') ],
+                                [ this.parseNumber ('750000'), this.parseNumber ('0') ],
+                            ],
+                        },
+                    },
+                },
+                'delivery': {
+                    'trading': {
+                        'feeSide': 'base',
+                        'tierBased': true,
+                        'percentage': true,
+                        'taker': this.parseNumber ('0.000500'),
+                        'maker': this.parseNumber ('0.000100'),
+                        'tiers': {
+                            'taker': [
+                                [ this.parseNumber ('0'), this.parseNumber ('0.000500') ],
+                                [ this.parseNumber ('250'), this.parseNumber ('0.000450') ],
+                                [ this.parseNumber ('2500'), this.parseNumber ('0.000400') ],
+                                [ this.parseNumber ('7500'), this.parseNumber ('0.000300') ],
+                                [ this.parseNumber ('22500'), this.parseNumber ('0.000250') ],
+                                [ this.parseNumber ('50000'), this.parseNumber ('0.000240') ],
+                                [ this.parseNumber ('100000'), this.parseNumber ('0.000240') ],
+                                [ this.parseNumber ('200000'), this.parseNumber ('0.000240') ],
+                                [ this.parseNumber ('400000'), this.parseNumber ('0.000240') ],
+                                [ this.parseNumber ('750000'), this.parseNumber ('0.000240') ],
+                            ],
+                            'maker': [
+                                [ this.parseNumber ('0'), this.parseNumber ('0.000100') ],
+                                [ this.parseNumber ('250'), this.parseNumber ('0.000080') ],
+                                [ this.parseNumber ('2500'), this.parseNumber ('0.000050') ],
+                                [ this.parseNumber ('7500'), this.parseNumber ('0.0000030') ],
+                                [ this.parseNumber ('22500'), this.parseNumber ('0') ],
+                                [ this.parseNumber ('50000'), this.parseNumber ('-0.000050') ],
+                                [ this.parseNumber ('100000'), this.parseNumber ('-0.000060') ],
+                                [ this.parseNumber ('200000'), this.parseNumber ('-0.000070') ],
+                                [ this.parseNumber ('400000'), this.parseNumber ('-0.000080') ],
+                                [ this.parseNumber ('750000'), this.parseNumber ('-0.000090') ],
+                            ],
+                        },
+                    },
+                },
             },
             'commonCurrencies': {
                 'BCC': 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
@@ -3003,7 +3073,20 @@ module.exports = class binance extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.sapiGetAssetTradeFee (params);
+        let method = undefined;
+        const defaultType = this.safeString2 (this.options, 'fetchFundingRates', 'defaultType', 'future');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        if ((type === 'spot') || (type === 'margin')) {
+            method = 'sapiGetAssetTradeFee';
+        } else if (type === 'future') {
+            method = 'fapiPrivateGetAccount';
+        } else if (type === 'delivery') {
+            method = 'dapiPrivateGetAccount';
+        }
+        const response = await this[method] (query);
+        //
+        // sapi / spot
         //
         //    [
         //       {
@@ -3018,13 +3101,129 @@ module.exports = class binance extends Exchange {
         //       },
         //    ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const fee = this.parseTradingFee (response[i]);
-            const symbol = fee['symbol'];
-            result[symbol] = fee;
+        // fapi / future / linear
+        //
+        //     {
+        //         "feeTier": 0,       // account commisssion tier
+        //         "canTrade": true,   // if can trade
+        //         "canDeposit": true,     // if can transfer in asset
+        //         "canWithdraw": true,    // if can transfer out asset
+        //         "updateTime": 0,
+        //         "totalInitialMargin": "0.00000000",    // total initial margin required with current mark price (useless with isolated positions), only for USDT asset
+        //         "totalMaintMargin": "0.00000000",     // total maintenance margin required, only for USDT asset
+        //         "totalWalletBalance": "23.72469206",     // total wallet balance, only for USDT asset
+        //         "totalUnrealizedProfit": "0.00000000",   // total unrealized profit, only for USDT asset
+        //         "totalMarginBalance": "23.72469206",     // total margin balance, only for USDT asset
+        //         "totalPositionInitialMargin": "0.00000000",    // initial margin required for positions with current mark price, only for USDT asset
+        //         "totalOpenOrderInitialMargin": "0.00000000",   // initial margin required for open orders with current mark price, only for USDT asset
+        //         "totalCrossWalletBalance": "23.72469206",      // crossed wallet balance, only for USDT asset
+        //         "totalCrossUnPnl": "0.00000000",      // unrealized profit of crossed positions, only for USDT asset
+        //         "availableBalance": "23.72469206",       // available balance, only for USDT asset
+        //         "maxWithdrawAmount": "23.72469206"     // maximum amount for transfer out, only for USDT asset
+        //         ...
+        //     }
+        //
+        // dapi / delivery / inverse
+        //
+        //     {
+        //         "canDeposit": true,
+        //         "canTrade": true,
+        //         "canWithdraw": true,
+        //         "feeTier": 2,
+        //         "updateTime": 0
+        //     }
+        //
+        if ((type === 'spot') || (type === 'margin')) {
+            //
+            //    [
+            //       {
+            //         "symbol": "ZRXBNB",
+            //         "makerCommission": "0.001",
+            //         "takerCommission": "0.001"
+            //       },
+            //       {
+            //         "symbol": "ZRXBTC",
+            //         "makerCommission": "0.001",
+            //         "takerCommission": "0.001"
+            //       },
+            //    ]
+            //
+            const result = {};
+            for (let i = 0; i < response.length; i++) {
+                const fee = this.parseTradingFee (response[i]);
+                const symbol = fee['symbol'];
+                result[symbol] = fee;
+            }
+            return result;
+        } else if (type === 'future') {
+            //
+            //     {
+            //         "feeTier": 0,       // account commisssion tier
+            //         "canTrade": true,   // if can trade
+            //         "canDeposit": true,     // if can transfer in asset
+            //         "canWithdraw": true,    // if can transfer out asset
+            //         "updateTime": 0,
+            //         "totalInitialMargin": "0.00000000",    // total initial margin required with current mark price (useless with isolated positions), only for USDT asset
+            //         "totalMaintMargin": "0.00000000",     // total maintenance margin required, only for USDT asset
+            //         "totalWalletBalance": "23.72469206",     // total wallet balance, only for USDT asset
+            //         "totalUnrealizedProfit": "0.00000000",   // total unrealized profit, only for USDT asset
+            //         "totalMarginBalance": "23.72469206",     // total margin balance, only for USDT asset
+            //         "totalPositionInitialMargin": "0.00000000",    // initial margin required for positions with current mark price, only for USDT asset
+            //         "totalOpenOrderInitialMargin": "0.00000000",   // initial margin required for open orders with current mark price, only for USDT asset
+            //         "totalCrossWalletBalance": "23.72469206",      // crossed wallet balance, only for USDT asset
+            //         "totalCrossUnPnl": "0.00000000",      // unrealized profit of crossed positions, only for USDT asset
+            //         "availableBalance": "23.72469206",       // available balance, only for USDT asset
+            //         "maxWithdrawAmount": "23.72469206"     // maximum amount for transfer out, only for USDT asset
+            //         ...
+            //     }
+            //
+            const symbols = Object.keys (this.markets);
+            const result = {};
+            const feeTier = this.safeInteger (response, 'feeTier');
+            const feeTiers = this.fees[type]['trading']['tiers'];
+            const maker = feeTiers['maker'][feeTier][1];
+            const taker = feeTiers['taker'][feeTier][1];
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                result[symbol] = {
+                    'info': {
+                        'feeTier': feeTier,
+                    },
+                    'symbol': symbol,
+                    'maker': maker,
+                    'taker': taker,
+                };
+            }
+            return result;
+        } else if (type === 'delivery') {
+            //
+            //     {
+            //         "canDeposit": true,
+            //         "canTrade": true,
+            //         "canWithdraw": true,
+            //         "feeTier": 2,
+            //         "updateTime": 0
+            //     }
+            //
+            const symbols = Object.keys (this.markets);
+            const result = {};
+            const feeTier = this.safeInteger (response, 'feeTier');
+            const feeTiers = this.fees[type]['trading']['tiers'];
+            const maker = feeTiers['maker'][feeTier][1];
+            const taker = feeTiers['taker'][feeTier][1];
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                result[symbol] = {
+                    'info': {
+                        'feeTier': feeTier,
+                    },
+                    'symbol': symbol,
+                    'maker': maker,
+                    'taker': taker,
+                };
+            }
+            return result;
         }
-        return result;
     }
 
     async futuresTransfer (code, amount, type, params = {}) {
