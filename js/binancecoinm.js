@@ -27,75 +27,7 @@ module.exports = class binancecoinm extends binance {
                 'setLeverage': true,
                 'setMode': true,
             },
-            // https://www.binance.com/en/fee/deliveryFee
-            'fees': {
-                'trading': {
-                    'tierBased': true,
-                    'percentage': true,
-                    'taker': this.parseNumber ('0.000500'),
-                    'maker': this.parseNumber ('0.000100'),
-                    'tiers': {
-                        'taker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.000500') ],
-                            [ this.parseNumber ('250'), this.parseNumber ('0.000450') ],
-                            [ this.parseNumber ('2500'), this.parseNumber ('0.000400') ],
-                            [ this.parseNumber ('7500'), this.parseNumber ('0.000300') ],
-                            [ this.parseNumber ('22500'), this.parseNumber ('0.000250') ],
-                            [ this.parseNumber ('50000'), this.parseNumber ('0.000240') ],
-                            [ this.parseNumber ('100000'), this.parseNumber ('0.000240') ],
-                            [ this.parseNumber ('200000'), this.parseNumber ('0.000240') ],
-                            [ this.parseNumber ('400000'), this.parseNumber ('0.000240') ],
-                            [ this.parseNumber ('750000'), this.parseNumber ('0.000240') ],
-                        ],
-                        'maker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.000100') ],
-                            [ this.parseNumber ('250'), this.parseNumber ('0.000080') ],
-                            [ this.parseNumber ('2500'), this.parseNumber ('0.000050') ],
-                            [ this.parseNumber ('7500'), this.parseNumber ('0.0000030') ],
-                            [ this.parseNumber ('22500'), this.parseNumber ('0') ],
-                            [ this.parseNumber ('50000'), this.parseNumber ('-0.000050') ],
-                            [ this.parseNumber ('100000'), this.parseNumber ('-0.000060') ],
-                            [ this.parseNumber ('200000'), this.parseNumber ('-0.000070') ],
-                            [ this.parseNumber ('400000'), this.parseNumber ('-0.000080') ],
-                            [ this.parseNumber ('750000'), this.parseNumber ('-0.000090') ],
-                        ],
-                    },
-                },
-            },
         });
-    }
-
-    async fetchTradingFees (params = {}) {
-        await this.loadMarkets ();
-        const marketSymbols = Object.keys (this.markets);
-        const fees = {};
-        const accountInfo = await this.dapiPrivateGetAccount (params);
-        //
-        // {
-        //      "canDeposit": true,
-        //      "canTrade": true,
-        //      "canWithdraw": true,
-        //      "feeTier": 2,
-        //      "updateTime": 0
-        //      ...
-        //  }
-        //
-        const feeTier = this.safeInteger (accountInfo, 'feeTier');
-        const feeTiers = this.fees['trading']['tiers'];
-        const maker = feeTiers['maker'][feeTier][1];
-        const taker = feeTiers['taker'][feeTier][1];
-        for (let i = 0; i < marketSymbols.length; i++) {
-            const symbol = marketSymbols[i];
-            fees[symbol] = {
-                'info': {
-                    'feeTier': feeTier,
-                },
-                'symbol': symbol,
-                'maker': maker,
-                'taker': taker,
-            };
-        }
-        return fees;
     }
 
     async transferIn (code, amount, params = {}) {
@@ -143,67 +75,6 @@ module.exports = class binancecoinm extends binance {
             result.push (parsed);
         }
         return this.filterByArray (result, 'symbol', symbols);
-    }
-
-    async loadLeverageBrackets (reload = false, params = {}) {
-        await this.loadMarkets ();
-        // by default cache the leverage bracket
-        // it contains useful stuff like the maintenance margin and initial margin for positions
-        const leverageBrackets = this.safeValue (this.options, 'leverageBrackets');
-        if ((leverageBrackets === undefined) || (reload)) {
-            const response = await this.dapiPrivateV2GetLeverageBracket (params);
-            this.options['leverageBrackets'] = {};
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
-                const marketId = this.safeString (entry, 'symbol');
-                const symbol = this.safeSymbol (marketId);
-                const brackets = this.safeValue (entry, 'brackets');
-                const result = [];
-                for (let j = 0; j < brackets.length; j++) {
-                    const bracket = brackets[j];
-                    // we use floats here internally on purpose
-                    const qtyFloor = this.safeFloat (bracket, 'qtyFloor');
-                    const maintenanceMarginPercentage = this.safeString (bracket, 'maintMarginRatio');
-                    result.push ([ qtyFloor, maintenanceMarginPercentage ]);
-                }
-                this.options['leverageBrackets'][symbol] = result;
-            }
-        }
-        return this.options['leverageBrackets'];
-    }
-
-    async fetchPositions (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        await this.loadLeverageBrackets ();
-        const account = await this.dapiPrivateGetAccount (params);
-        const result = this.parseAccountPositions (account);
-        return this.filterByArray (result, 'symbol', symbols, false);
-    }
-
-    async fetchIsolatedPositions (symbol = undefined, params = {}) {
-        // only supported in usdm futures
-        await this.loadMarkets ();
-        await this.loadLeverageBrackets ();
-        const request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            // not the unified id here
-            request['pair'] = market['info']['pair'];
-        }
-        const response = await this.dapiPrivateGetPositionRisk (this.extend (request, params));
-        if (symbol === undefined) {
-            const result = [];
-            for (let i = 0; i < response.length; i++) {
-                const parsed = this.parsePositionRisk (response[i], market);
-                if (parsed['marginType'] === 'isolated') {
-                    result.push (parsed);
-                }
-            }
-            return result;
-        } else {
-            return this.parsePositionRisk (this.safeValue (response, 0), market);
-        }
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
