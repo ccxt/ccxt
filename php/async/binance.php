@@ -555,6 +555,76 @@ class binance extends Exchange {
                     'taker' => 0.001,
                     'maker' => 0.001,
                 ),
+                'future' => array(
+                    'trading' => array(
+                        'feeSide' => 'quote',
+                        'tierBased' => true,
+                        'percentage' => true,
+                        'taker' => $this->parse_number('0.000400'),
+                        'maker' => $this->parse_number('0.000200'),
+                        'tiers' => array(
+                            'taker' => array(
+                                array( $this->parse_number('0'), $this->parse_number('0.000400') ),
+                                array( $this->parse_number('250'), $this->parse_number('0.000400') ),
+                                array( $this->parse_number('2500'), $this->parse_number('0.000350') ),
+                                array( $this->parse_number('7500'), $this->parse_number('0.000320') ),
+                                array( $this->parse_number('22500'), $this->parse_number('0.000300') ),
+                                array( $this->parse_number('50000'), $this->parse_number('0.000270') ),
+                                array( $this->parse_number('100000'), $this->parse_number('0.000250') ),
+                                array( $this->parse_number('200000'), $this->parse_number('0.000220') ),
+                                array( $this->parse_number('400000'), $this->parse_number('0.000200') ),
+                                array( $this->parse_number('750000'), $this->parse_number('0.000170') ),
+                            ),
+                            'maker' => array(
+                                array( $this->parse_number('0'), $this->parse_number('0.000200') ),
+                                array( $this->parse_number('250'), $this->parse_number('0.000160') ),
+                                array( $this->parse_number('2500'), $this->parse_number('0.000140') ),
+                                array( $this->parse_number('7500'), $this->parse_number('0.000120') ),
+                                array( $this->parse_number('22500'), $this->parse_number('0.000100') ),
+                                array( $this->parse_number('50000'), $this->parse_number('0.000080') ),
+                                array( $this->parse_number('100000'), $this->parse_number('0.000060') ),
+                                array( $this->parse_number('200000'), $this->parse_number('0.000040') ),
+                                array( $this->parse_number('400000'), $this->parse_number('0.000020') ),
+                                array( $this->parse_number('750000'), $this->parse_number('0') ),
+                            ),
+                        ),
+                    ),
+                ),
+                'delivery' => array(
+                    'trading' => array(
+                        'feeSide' => 'base',
+                        'tierBased' => true,
+                        'percentage' => true,
+                        'taker' => $this->parse_number('0.000500'),
+                        'maker' => $this->parse_number('0.000100'),
+                        'tiers' => array(
+                            'taker' => array(
+                                array( $this->parse_number('0'), $this->parse_number('0.000500') ),
+                                array( $this->parse_number('250'), $this->parse_number('0.000450') ),
+                                array( $this->parse_number('2500'), $this->parse_number('0.000400') ),
+                                array( $this->parse_number('7500'), $this->parse_number('0.000300') ),
+                                array( $this->parse_number('22500'), $this->parse_number('0.000250') ),
+                                array( $this->parse_number('50000'), $this->parse_number('0.000240') ),
+                                array( $this->parse_number('100000'), $this->parse_number('0.000240') ),
+                                array( $this->parse_number('200000'), $this->parse_number('0.000240') ),
+                                array( $this->parse_number('400000'), $this->parse_number('0.000240') ),
+                                array( $this->parse_number('750000'), $this->parse_number('0.000240') ),
+                            ),
+                            'maker' => array(
+                                array( $this->parse_number('0'), $this->parse_number('0.000100') ),
+                                array( $this->parse_number('250'), $this->parse_number('0.000080') ),
+                                array( $this->parse_number('2500'), $this->parse_number('0.000050') ),
+                                array( $this->parse_number('7500'), $this->parse_number('0.0000030') ),
+                                array( $this->parse_number('22500'), $this->parse_number('0') ),
+                                array( $this->parse_number('50000'), $this->parse_number('-0.000050') ),
+                                array( $this->parse_number('100000'), $this->parse_number('-0.000060') ),
+                                array( $this->parse_number('200000'), $this->parse_number('-0.000070') ),
+                                array( $this->parse_number('400000'), $this->parse_number('-0.000080') ),
+                                array( $this->parse_number('750000'), $this->parse_number('-0.000090') ),
+                            ),
+                        ),
+                    ),
+                ),
             ),
             'commonCurrencies' => array(
                 'BCC' => 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
@@ -3010,7 +3080,20 @@ class binance extends Exchange {
 
     public function fetch_trading_fees($params = array ()) {
         yield $this->load_markets();
-        $response = yield $this->sapiGetAssetTradeFee ($params);
+        $method = null;
+        $defaultType = $this->safe_string_2($this->options, 'fetchFundingRates', 'defaultType', 'future');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $query = $this->omit($params, 'type');
+        if (($type === 'spot') || ($type === 'margin')) {
+            $method = 'sapiGetAssetTradeFee';
+        } else if ($type === 'future') {
+            $method = 'fapiPrivateGetAccount';
+        } else if ($type === 'delivery') {
+            $method = 'dapiPrivateGetAccount';
+        }
+        $response = yield $this->$method ($query);
+        //
+        // sapi / spot
         //
         //    array(
         //       array(
@@ -3025,13 +3108,129 @@ class binance extends Exchange {
         //       ),
         //    )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $fee = $this->parse_trading_fee($response[$i]);
-            $symbol = $fee['symbol'];
-            $result[$symbol] = $fee;
+        // fapi / future / linear
+        //
+        //     {
+        //         "$feeTier" => 0,       // account commisssion tier
+        //         "canTrade" => true,   // if can trade
+        //         "canDeposit" => true,     // if can transfer in asset
+        //         "canWithdraw" => true,    // if can transfer out asset
+        //         "updateTime" => 0,
+        //         "totalInitialMargin" => "0.00000000",    // total initial margin required with current mark price (useless with isolated positions), only for USDT asset
+        //         "totalMaintMargin" => "0.00000000",     // total maintenance margin required, only for USDT asset
+        //         "totalWalletBalance" => "23.72469206",     // total wallet balance, only for USDT asset
+        //         "totalUnrealizedProfit" => "0.00000000",   // total unrealized profit, only for USDT asset
+        //         "totalMarginBalance" => "23.72469206",     // total margin balance, only for USDT asset
+        //         "totalPositionInitialMargin" => "0.00000000",    // initial margin required for positions with current mark price, only for USDT asset
+        //         "totalOpenOrderInitialMargin" => "0.00000000",   // initial margin required for open orders with current mark price, only for USDT asset
+        //         "totalCrossWalletBalance" => "23.72469206",      // crossed wallet balance, only for USDT asset
+        //         "totalCrossUnPnl" => "0.00000000",      // unrealized profit of crossed positions, only for USDT asset
+        //         "availableBalance" => "23.72469206",       // available balance, only for USDT asset
+        //         "maxWithdrawAmount" => "23.72469206"     // maximum amount for transfer out, only for USDT asset
+        //         ...
+        //     }
+        //
+        // dapi / delivery / inverse
+        //
+        //     {
+        //         "canDeposit" => true,
+        //         "canTrade" => true,
+        //         "canWithdraw" => true,
+        //         "$feeTier" => 2,
+        //         "updateTime" => 0
+        //     }
+        //
+        if (($type === 'spot') || ($type === 'margin')) {
+            //
+            //    array(
+            //       array(
+            //         "$symbol" => "ZRXBNB",
+            //         "makerCommission" => "0.001",
+            //         "takerCommission" => "0.001"
+            //       ),
+            //       array(
+            //         "$symbol" => "ZRXBTC",
+            //         "makerCommission" => "0.001",
+            //         "takerCommission" => "0.001"
+            //       ),
+            //    )
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $fee = $this->parse_trading_fee($response[$i]);
+                $symbol = $fee['symbol'];
+                $result[$symbol] = $fee;
+            }
+            return $result;
+        } else if ($type === 'future') {
+            //
+            //     {
+            //         "$feeTier" => 0,       // account commisssion tier
+            //         "canTrade" => true,   // if can trade
+            //         "canDeposit" => true,     // if can transfer in asset
+            //         "canWithdraw" => true,    // if can transfer out asset
+            //         "updateTime" => 0,
+            //         "totalInitialMargin" => "0.00000000",    // total initial margin required with current mark price (useless with isolated positions), only for USDT asset
+            //         "totalMaintMargin" => "0.00000000",     // total maintenance margin required, only for USDT asset
+            //         "totalWalletBalance" => "23.72469206",     // total wallet balance, only for USDT asset
+            //         "totalUnrealizedProfit" => "0.00000000",   // total unrealized profit, only for USDT asset
+            //         "totalMarginBalance" => "23.72469206",     // total margin balance, only for USDT asset
+            //         "totalPositionInitialMargin" => "0.00000000",    // initial margin required for positions with current mark price, only for USDT asset
+            //         "totalOpenOrderInitialMargin" => "0.00000000",   // initial margin required for open orders with current mark price, only for USDT asset
+            //         "totalCrossWalletBalance" => "23.72469206",      // crossed wallet balance, only for USDT asset
+            //         "totalCrossUnPnl" => "0.00000000",      // unrealized profit of crossed positions, only for USDT asset
+            //         "availableBalance" => "23.72469206",       // available balance, only for USDT asset
+            //         "maxWithdrawAmount" => "23.72469206"     // maximum amount for transfer out, only for USDT asset
+            //         ...
+            //     }
+            //
+            $symbols = is_array($this->markets) ? array_keys($this->markets) : array();
+            $result = array();
+            $feeTier = $this->safe_integer($response, 'feeTier');
+            $feeTiers = $this->fees[$type]['trading']['tiers'];
+            $maker = $feeTiers['maker'][$feeTier][1];
+            $taker = $feeTiers['taker'][$feeTier][1];
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $result[$symbol] = array(
+                    'info' => array(
+                        'feeTier' => $feeTier,
+                    ),
+                    'symbol' => $symbol,
+                    'maker' => $maker,
+                    'taker' => $taker,
+                );
+            }
+            return $result;
+        } else if ($type === 'delivery') {
+            //
+            //     {
+            //         "canDeposit" => true,
+            //         "canTrade" => true,
+            //         "canWithdraw" => true,
+            //         "$feeTier" => 2,
+            //         "updateTime" => 0
+            //     }
+            //
+            $symbols = is_array($this->markets) ? array_keys($this->markets) : array();
+            $result = array();
+            $feeTier = $this->safe_integer($response, 'feeTier');
+            $feeTiers = $this->fees[$type]['trading']['tiers'];
+            $maker = $feeTiers['maker'][$feeTier][1];
+            $taker = $feeTiers['taker'][$feeTier][1];
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $result[$symbol] = array(
+                    'info' => array(
+                        'feeTier' => $feeTier,
+                    ),
+                    'symbol' => $symbol,
+                    'maker' => $maker,
+                    'taker' => $taker,
+                );
+            }
+            return $result;
         }
-        return $result;
     }
 
     public function futures_transfer($code, $amount, $type, $params = array ()) {
