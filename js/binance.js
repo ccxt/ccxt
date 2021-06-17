@@ -3688,6 +3688,8 @@ module.exports = class binance extends Exchange {
                 method = 'fapiPrivateGetLeverageBracket';
             } else if (type === 'delivery') {
                 method = 'dapiPrivateV2GetLeverageBracket';
+            } else {
+                throw new NotSupported (this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
             }
             const response = await this[method] (query);
             this.options['leverageBrackets'] = {};
@@ -3721,6 +3723,8 @@ module.exports = class binance extends Exchange {
             method = 'fapiPrivateGetAccount';
         } else if (type === 'delivery') {
             method = 'dapiPrivateGetAccount';
+        } else {
+            throw new NotSupported (this.id + ' fetchPositions() supports linear and inverse contracts only');
         }
         const account = await this[method] (query);
         const result = this.parseAccountPositions (account);
