@@ -51,6 +51,8 @@ class okex5(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': False,
                 'fetchTrades': True,
+                'fetchWithdrawals': True,
+                'fetchDeposits': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -100,6 +102,8 @@ class okex5(Exchange):
                         'trade/orders-pending',
                         'trade/orders-history',
                         'trade/fills',
+                        'asset/withdrawal-history',
+                        'asset/deposit-history',
                     ],
                     'post': [
                         'trade/order',
@@ -1420,6 +1424,235 @@ class okex5(Exchange):
                 },
             }
         return result
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # 'ccy': currency['id'],
+            # 'state': 2,  # 0 waiting for confirmation, 1 deposit credited, 2 deposit successful
+            # 'after': since,
+            # 'before' self.milliseconds(),
+            # 'limit': limit,  # default 100, max 100
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['ccy'] = currency['id']
+        if since is not None:
+            request['after'] = since
+        if limit is not None:
+            request['limit'] = limit  # default 100, max 100
+        response = await self.privateGetAssetDepositHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "",
+        #         "data": [
+        #             {
+        #                 "amt": "0.01044408",
+        #                 "txId": "1915737_3_0_0_asset",
+        #                 "ccy": "BTC",
+        #                 "from": "13801825426",
+        #                 "to": "",
+        #                 "ts": "1597026383085",
+        #                 "state": "2",
+        #                 "depId": "4703879"
+        #             },
+        #             {
+        #                 "amt": "491.6784211",
+        #                 "txId": "1744594_3_184_0_asset",
+        #                 "ccy": "OKB",
+        #                 "from": "",
+        #                 "to": "",
+        #                 "ts": "1597026383085",
+        #                 "state": "2",
+        #                 "depId": "4703809"
+        #             },
+        #             {
+        #                 "amt": "223.18782496",
+        #                 "txId": "6d892c669225b1092c780bf0da0c6f912fc7dc8f6b8cc53b003288624c",
+        #                 "ccy": "USDT",
+        #                 "from": "",
+        #                 "to": "39kK4XvgEuM7rX9frgyHoZkWqx4iKu1spD",
+        #                 "ts": "1597026383085",
+        #                 "state": "2",
+        #                 "depId": "4703779"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_transactions(data, currency, since, limit, params)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # 'ccy': currency['id'],
+            # 'state': 2,  # -3: pending cancel, -2 canceled, -1 failed, 0, pending, 1 sending, 2 sent, 3 awaiting email verification, 4 awaiting manual verification, 5 awaiting identity verification
+            # 'after': since,
+            # 'before': self.milliseconds(),
+            # 'limit': limit,  # default 100, max 100
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['ccy'] = currency['id']
+        if since is not None:
+            request['after'] = since
+        if limit is not None:
+            request['limit'] = limit  # default 100, max 100
+        response = await self.privateGetAssetWithdrawalHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "",
+        #         "data": [
+        #             {
+        #                 "amt": "0.094",
+        #                 "wdId": "4703879",
+        #                 "fee": "0.01000000eth",
+        #                 "txId": "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
+        #                 "ccy": "ETH",
+        #                 "from": "13426335357",
+        #                 "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
+        #                 "ts": "1597026383085",
+        #                 "state": "2"
+        #             },
+        #             {
+        #                 "amt": "0.01",
+        #                 "wdId": "4703879",
+        #                 "fee": "0.00000000btc",
+        #                 "txId": "",
+        #                 "ccy": "BTC",
+        #                 "from": "13426335357",
+        #                 "to": "13426335357",
+        #                 "ts": "1597026383085",
+        #                 "state": "2"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_transactions(data, currency, since, limit, params)
+
+    def parse_transaction_status(self, status):
+        #
+        # deposit statuses
+        #
+        #     {
+        #         '0': 'waiting for confirmation',
+        #         '1': 'deposit credited',
+        #         '2': 'deposit successful'
+        #     }
+        #
+        # withdrawal statuses
+        #
+        #     {
+        #        '-3': 'pending cancel',
+        #        '-2': 'canceled',
+        #        '-1': 'failed',
+        #         '0': 'pending',
+        #         '1': 'sending',
+        #         '2': 'sent',
+        #         '3': 'awaiting email verification',
+        #         '4': 'awaiting manual verification',
+        #         '5': 'awaiting identity verification'
+        #     }
+        #
+        statuses = {
+            '-3': 'pending',
+            '-2': 'canceled',
+            '-1': 'failed',
+            '0': 'pending',
+            '1': 'pending',
+            '2': 'ok',
+            '3': 'pending',
+            '4': 'pending',
+            '5': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchWithdrawals
+        #
+        #     {
+        #         "amt": "0.094",
+        #         "wdId": "4703879",
+        #         "fee": "0.01000000eth",
+        #         "txId": "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
+        #         "ccy": "ETH",
+        #         "from": "13426335357",
+        #         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
+        #         'tag': string,
+        #         'pmtId': string,
+        #         'memo': string,
+        #         "ts": "1597026383085",
+        #         "state": "2"
+        #     }
+        #
+        # fetchDeposits
+        #
+        #     {
+        #         "amt": "0.01044408",
+        #         "txId": "1915737_3_0_0_asset",
+        #         "ccy": "BTC",
+        #         "from": "13801825426",
+        #         "to": "",
+        #         "ts": "1597026383085",
+        #         "state": "2",
+        #         "depId": "4703879"
+        #     }
+        #
+        type = None
+        id = None
+        withdrawalId = self.safe_string(transaction, 'wdId')
+        addressFrom = self.safe_string(transaction, 'from')
+        addressTo = self.safe_string(transaction, 'to')
+        address = addressTo
+        tagTo = self.safe_string_2(transaction, 'tag', 'memo')
+        tagTo = self.safe_string_2(transaction, 'pmtId', tagTo)
+        if withdrawalId is not None:
+            type = 'withdrawal'
+            id = withdrawalId
+        else:
+            # the payment_id will appear on new deposits but appears to be removed from the response after 2 months
+            id = self.safe_string(transaction, 'depId')
+            type = 'deposit'
+        currencyId = self.safe_string(transaction, 'ccy')
+        code = self.safe_currency_code(currencyId)
+        amount = self.safe_number(transaction, 'amt')
+        status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
+        txid = self.safe_string(transaction, 'txId')
+        timestamp = self.safe_integer(transaction, 'ts')
+        feeCost = None
+        if type == 'deposit':
+            feeCost = 0
+        else:
+            feeCost = self.safe_number(transaction, 'fee')
+        # todo parse tags
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
+            'address': address,
+            'tagFrom': None,
+            'tagTo': tagTo,
+            'tag': tagTo,
+            'status': status,
+            'type': type,
+            'updated': None,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         isArray = isinstance(params, list)

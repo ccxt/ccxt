@@ -35,6 +35,8 @@ class okex5 extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => false,
                 'fetchTrades' => true,
+                'fetchWithdrawals' => true,
+                'fetchDeposits' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -84,6 +86,8 @@ class okex5 extends Exchange {
                         'trade/orders-pending',
                         'trade/orders-history',
                         'trade/fills',
+                        'asset/withdrawal-history',
+                        'asset/deposit-history',
                     ),
                     'post' => array(
                         'trade/order',
@@ -1469,6 +1473,247 @@ class okex5 extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'ccy' => $currency['id'],
+            // 'state' => 2, // 0 waiting for confirmation, 1 deposit credited, 2 deposit successful
+            // 'after' => $since,
+            // 'before' $this->milliseconds (),
+            // 'limit' => $limit, // default 100, max 100
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $request['ccy'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['after'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100, max 100
+        }
+        $response = $this->privateGetAssetDepositHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "$code" => "0",
+        //         "msg" => "",
+        //         "$data" => array(
+        //             array(
+        //                 "amt" => "0.01044408",
+        //                 "txId" => "1915737_3_0_0_asset",
+        //                 "ccy" => "BTC",
+        //                 "from" => "13801825426",
+        //                 "to" => "",
+        //                 "ts" => "1597026383085",
+        //                 "state" => "2",
+        //                 "depId" => "4703879"
+        //             ),
+        //             array(
+        //                 "amt" => "491.6784211",
+        //                 "txId" => "1744594_3_184_0_asset",
+        //                 "ccy" => "OKB",
+        //                 "from" => "",
+        //                 "to" => "",
+        //                 "ts" => "1597026383085",
+        //                 "state" => "2",
+        //                 "depId" => "4703809"
+        //             ),
+        //             {
+        //                 "amt" => "223.18782496",
+        //                 "txId" => "6d892c669225b1092c780bf0da0c6f912fc7dc8f6b8cc53b003288624c",
+        //                 "ccy" => "USDT",
+        //                 "from" => "",
+        //                 "to" => "39kK4XvgEuM7rX9frgyHoZkWqx4iKu1spD",
+        //                 "ts" => "1597026383085",
+        //                 "state" => "2",
+        //                 "depId" => "4703779"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit, $params);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'ccy' => $currency['id'],
+            // 'state' => 2, // -3 => pending cancel, -2 canceled, -1 failed, 0, pending, 1 sending, 2 sent, 3 awaiting email verification, 4 awaiting manual verification, 5 awaiting identity verification
+            // 'after' => $since,
+            // 'before' => $this->milliseconds (),
+            // 'limit' => $limit, // default 100, max 100
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $request['ccy'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['after'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100, max 100
+        }
+        $response = $this->privateGetAssetWithdrawalHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "$code" => "0",
+        //         "msg" => "",
+        //         "$data" => array(
+        //             array(
+        //                 "amt" => "0.094",
+        //                 "wdId" => "4703879",
+        //                 "fee" => "0.01000000eth",
+        //                 "txId" => "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
+        //                 "ccy" => "ETH",
+        //                 "from" => "13426335357",
+        //                 "to" => "0xA41446125D0B5b6785f6898c9D67874D763A1519",
+        //                 "ts" => "1597026383085",
+        //                 "state" => "2"
+        //             ),
+        //             {
+        //                 "amt" => "0.01",
+        //                 "wdId" => "4703879",
+        //                 "fee" => "0.00000000btc",
+        //                 "txId" => "",
+        //                 "ccy" => "BTC",
+        //                 "from" => "13426335357",
+        //                 "to" => "13426335357",
+        //                 "ts" => "1597026383085",
+        //                 "state" => "2"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit, $params);
+    }
+
+    public function parse_transaction_status ($status) {
+        //
+        // deposit $statuses
+        //
+        //     {
+        //         '0' => 'waiting for confirmation',
+        //         '1' => 'deposit credited',
+        //         '2' => 'deposit successful'
+        //     }
+        //
+        // withdrawal $statuses
+        //
+        //     {
+        //        '-3' => 'pending cancel',
+        //        '-2' => 'canceled',
+        //        '-1' => 'failed',
+        //         '0' => 'pending',
+        //         '1' => 'sending',
+        //         '2' => 'sent',
+        //         '3' => 'awaiting email verification',
+        //         '4' => 'awaiting manual verification',
+        //         '5' => 'awaiting identity verification'
+        //     }
+        //
+        $statuses = array(
+            '-3' => 'pending',
+            '-2' => 'canceled',
+            '-1' => 'failed',
+            '0' => 'pending',
+            '1' => 'pending',
+            '2' => 'ok',
+            '3' => 'pending',
+            '4' => 'pending',
+            '5' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "amt" => "0.094",
+        //         "wdId" => "4703879",
+        //         "fee" => "0.01000000eth",
+        //         "txId" => "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
+        //         "ccy" => "ETH",
+        //         "from" => "13426335357",
+        //         "to" => "0xA41446125D0B5b6785f6898c9D67874D763A1519",
+        //         'tag' => string,
+        //         'pmtId' => string,
+        //         'memo' => string,
+        //         "ts" => "1597026383085",
+        //         "state" => "2"
+        //     }
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "amt" => "0.01044408",
+        //         "txId" => "1915737_3_0_0_asset",
+        //         "ccy" => "BTC",
+        //         "from" => "13801825426",
+        //         "to" => "",
+        //         "ts" => "1597026383085",
+        //         "state" => "2",
+        //         "depId" => "4703879"
+        //     }
+        //
+        $type = null;
+        $id = null;
+        $withdrawalId = $this->safe_string($transaction, 'wdId');
+        $addressFrom = $this->safe_string($transaction, 'from');
+        $addressTo = $this->safe_string($transaction, 'to');
+        $address = $addressTo;
+        $tagTo = $this->safe_string_2($transaction, 'tag', 'memo');
+        $tagTo = $this->safe_string_2($transaction, 'pmtId', $tagTo);
+        if ($withdrawalId !== null) {
+            $type = 'withdrawal';
+            $id = $withdrawalId;
+        } else {
+            // the payment_id will appear on new deposits but appears to be removed from the response after 2 months
+            $id = $this->safe_string($transaction, 'depId');
+            $type = 'deposit';
+        }
+        $currencyId = $this->safe_string($transaction, 'ccy');
+        $code = $this->safe_currency_code($currencyId);
+        $amount = $this->safe_number($transaction, 'amt');
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'state'));
+        $txid = $this->safe_string($transaction, 'txId');
+        $timestamp = $this->safe_integer($transaction, 'ts');
+        $feeCost = null;
+        if ($type === 'deposit') {
+            $feeCost = 0;
+        } else {
+            $feeCost = $this->safe_number($transaction, 'fee');
+        }
+        // todo parse tags
+        return array(
+            'info' => $transaction,
+            'id' => $id,
+            'currency' => $code,
+            'amount' => $amount,
+            'addressFrom' => $addressFrom,
+            'addressTo' => $addressTo,
+            'address' => $address,
+            'tagFrom' => null,
+            'tagTo' => $tagTo,
+            'tag' => $tagTo,
+            'status' => $status,
+            'type' => $type,
+            'updated' => null,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => array(
+                'currency' => $code,
+                'cost' => $feeCost,
+            ),
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
