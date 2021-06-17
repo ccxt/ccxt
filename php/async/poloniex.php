@@ -204,6 +204,7 @@ class poloniex extends Exchange {
                     'Rate must be greater than zero.' => '\\ccxt\\InvalidOrder', // array("error":"Rate must be greater than zero.")
                     'Invalid currency pair.' => '\\ccxt\\BadSymbol', // array("error":"Invalid currency pair.")
                     'Invalid currencyPair parameter.' => '\\ccxt\\BadSymbol', // array("error":"Invalid currencyPair parameter.")
+                    'Trading is disabled in this market.' => '\\ccxt\\BadSymbol', // array("error":"Trading is disabled in this market.")
                 ),
                 'broad' => array(
                     'Total must be at least' => '\\ccxt\\InvalidOrder', // array("error":"Total must be at least 0.0001.")
