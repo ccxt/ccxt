@@ -42,3 +42,7 @@ ul > .toctree-l1.current > ul > .toctree-l2 {
 .caption-text {
     padding: 20px 0 20px 0;
 }
+
+.bnc-broker-widget-footer {
+    display: none!important;
+}

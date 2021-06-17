@@ -55,7 +55,7 @@ master_doc = 'index'
 # General information about the project.
 project = package['name']
 author = package['author']['name']
-copyright = '{0}, {1}'.format(datetime.now().year, author)
+copyright = str(datetime.now().year) + ' CCXT'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -139,11 +139,29 @@ html_js_files = [
     'javascript/jquery-ui.min.js',
 ]
 
+# Disable showing Sphinx footer message:
+# "Built with Sphinx using a theme provided by Read the Docs. "
+html_show_sphinx = False
+
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'ccxtdoc'
 
+# binance broker sdk
+# important: keep blank line after ".. raw:: html"
+rst_prolog = """
+:github_url: https://ccxt.trade
+.. raw:: html
+
+   <div id="widget"></div> 
+"""
+
+rst_epilog = """
+.. raw:: html
+
+   <script src="https://public.bnbstatic.com/static/js/broker-sdk/broker-sdk@1.0.0.min.js"></script>
+"""
 
 # -- Options for LaTeX output ---------------------------------------------
 

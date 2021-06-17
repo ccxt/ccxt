@@ -23,6 +23,12 @@ window.addEventListener ("load", () => {
         const text = this.innerText.toLowerCase ()
         $(this).attr ('href', '#' + text)
     })
+    // limit faq to just one question per link
+    const $faq = $('a.reference.internal[href="#frequently asked questions"]')
+    const $faqlinks = $faq.siblings ().children ().children ()
+    $faqlinks.each (function () {
+        this.innerText = this.innerText.split ('?')[0] + '?'
+    })
     // set the height values for the sticky css property
     const $linkGroups = $links.parents ('ul')
     const heights = {}
@@ -85,4 +91,20 @@ window.addEventListener ("load", () => {
            }
         })
     })
+    // change the width here to whatever...
+    const width = 300
+    const height = width * 0.5625;
+    const footerHeight = Math.max((width / 400) * 32, 16);
+    const iconSize = Math.max((width / 400) * 24, 16);
+    const footerPadding = Math.max((width / 400) * 20, 10);
+    const style = `.CLS-slider.swiper-wrapper{height: ${height}px}.CLS-footer{height: ${footerHeight}px;padding: 0 ${footerPadding}px}.CLS-prev > svg, .CLS-next > svg{width: ${iconSize}px; height: ${iconSize}px}`
+    window.binanceBrokerPortalSdk.initBrokerSDK ('#widget', {
+        apiHost: 'https://www.binance.com',
+        brokerId: 'R4BD3S82',
+        slideTime: 5.0e8,
+        overrideStyle: style,
+    })
+    $('.bnc-broker-widget-slide').css ('width', width + 'px')
+    $('.bnc-broker-widget-container').css ('max-width', width + 'px')
+
 });

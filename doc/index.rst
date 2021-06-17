@@ -1,5 +1,3 @@
-:github_url: https://github.com/ccxt/ccxt
-
 CCXT – CryptoCurrency eXchange Trading Library
 ==============================================
 
@@ -33,9 +31,10 @@ A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce wi
    ccxt.pro.manual.rst
 
 .. toctree::
-   :maxdepth: 2
+   :hidden:
+   :maxdepth: 1
    :caption: Frequently Asked Questions
 
    FAQ.rst
 
-.. include:: README.rst
+.. include:: readme.rst
