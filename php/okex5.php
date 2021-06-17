@@ -2302,7 +2302,7 @@ class okex5 extends Exchange {
         //     array("$code":"1","$data":[array("clOrdId":"","ordId":"","sCode":"51119","sMsg":"Order placement failed due to insufficient balance. ","tag":"")],"msg":"")
         //
         $code = $this->safe_integer($response, 'code');
-        if ($code === 1) {
+        if (($code !== null) && ($code > 0)) {
             $feedback = $this->id . ' ' . $body;
             $data = $this->safe_value($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
