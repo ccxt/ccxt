@@ -2220,7 +2220,7 @@ class okex5(Exchange):
         #     {"code":"1","data":[{"clOrdId":"","ordId":"","sCode":"51119","sMsg":"Order placement failed due to insufficient balance. ","tag":""}],"msg":""}
         #
         code = self.safe_integer(response, 'code')
-        if code == 1:
+        if (code is not None) and (code > 0):
             feedback = self.id + ' ' + body
             data = self.safe_value(response, 'data', [])
             for i in range(0, len(data)):
