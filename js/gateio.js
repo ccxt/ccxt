@@ -175,6 +175,7 @@ module.exports = class gateio extends Exchange {
                 'GTC': 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'GTC_HT': 'Game.com HT',
                 'GTC_BSC': 'Game.com BSC',
+                'HIT': 'HitChain',
                 'MPH': 'Morpher', // conflict with 88MPH
                 'RAI': 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
