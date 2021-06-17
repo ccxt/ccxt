@@ -3257,6 +3257,8 @@ module.exports = class binance extends Exchange {
             method = 'fapiPublicGetPremiumIndex';
         } else if (market['inverse']) {
             method = 'dapiPublicGetPremiumIndex';
+        } else {
+            throw NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -3284,6 +3286,8 @@ module.exports = class binance extends Exchange {
             method = 'fapiPublicGetPremiumIndex';
         } else if (type === 'delivery') {
             method = 'dapiPublicGetPremiumIndex';
+        } else {
+            throw NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
         }
         const response = await this[method] (query);
         const result = [];
