@@ -2301,10 +2301,11 @@ class okex5 extends Exchange {
         //
         //     array("$code":"1","$data":[array("clOrdId":"","ordId":"","sCode":"51119","sMsg":"Order placement failed due to insufficient balance. ","tag":"")],"msg":"")
         //
-        $code = $this->safe_integer($response, 'code');
-        if (($code !== null) && ($code > 0)) {
+        $code = $this->safe_string($response, 'code');
+        if ($code !== '0') {
             $feedback = $this->id . ' ' . $body;
             $data = $this->safe_value($response, 'data', array());
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             for ($i = 0; $i < count($data); $i++) {
                 $error = $data[$i];
                 $errorCode = $this->safe_string($error, 'sCode');

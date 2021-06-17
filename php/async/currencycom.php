@@ -144,6 +144,7 @@ class currencycom extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'BNS' => 'Bank of Nova Scotia',
                 'ETN' => 'Eaton',
                 'IQ' => 'iQIYI',
                 'PLAY' => "Dave & Buster's Entertainment",

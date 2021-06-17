@@ -2219,10 +2219,11 @@ class okex5(Exchange):
         #
         #     {"code":"1","data":[{"clOrdId":"","ordId":"","sCode":"51119","sMsg":"Order placement failed due to insufficient balance. ","tag":""}],"msg":""}
         #
-        code = self.safe_integer(response, 'code')
-        if (code is not None) and (code > 0):
+        code = self.safe_string(response, 'code')
+        if code != '0':
             feedback = self.id + ' ' + body
             data = self.safe_value(response, 'data', [])
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             for i in range(0, len(data)):
                 error = data[i]
                 errorCode = self.safe_string(error, 'sCode')

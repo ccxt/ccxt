@@ -492,7 +492,7 @@ class coinone(Exchange):
             'average': None,
             'amount': amount,
             'filled': None,
-            'remaining': amount,
+            'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': None,
