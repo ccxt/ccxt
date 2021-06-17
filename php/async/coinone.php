@@ -523,7 +523,7 @@ class coinone extends Exchange {
             'average' => null,
             'amount' => $amount,
             'filled' => null,
-            'remaining' => $amount,
+            'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
