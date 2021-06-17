@@ -2298,10 +2298,11 @@ module.exports = class okex5 extends Exchange {
         //
         //     {"code":"1","data":[{"clOrdId":"","ordId":"","sCode":"51119","sMsg":"Order placement failed due to insufficient balance. ","tag":""}],"msg":""}
         //
-        const code = this.safeInteger (response, 'code');
-        if ((code !== undefined) && (code > 0)) {
+        const code = this.safeString (response, 'code');
+        if (code !== '0') {
             const feedback = this.id + ' ' + body;
             const data = this.safeValue (response, 'data', []);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             for (let i = 0; i < data.length; i++) {
                 const error = data[i];
                 const errorCode = this.safeString (error, 'sCode');
