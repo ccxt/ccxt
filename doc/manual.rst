@@ -1339,7 +1339,7 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
-     
+     -
 
 
 Besides making basic market and limit orders, some exchanges offer margin trading (leverage), various derivatives (like futures contracts and options) and also have `dark pools <https://en.wikipedia.org/wiki/Dark_pool>`__\ , `OTC <https://en.wikipedia.org/wiki/Over-the-counter_(finance>`__\ ) (over-the-counter trading), merchant APIs and much more.
@@ -2377,11 +2377,11 @@ Each exchange has an associative array of substitutions for cryptocurrency symbo
 Questions On Naming Consistency
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**\ *Is it possible for symbols to change?*\ **
+*Is it possible for symbols to change?*
 
 In short, yes, sometimes, but rarely. Symbolic mappings can be changed if that is absolutely required and cannot be avoided. However, all previous symbolic changes were related to resolving conflicts or forks. So far, there was no precedent of a market cap of one coin overtaking another coin with the same symbolic code in CCXT.
 
-**\ *Can we rely on always listing the same crypto with the same symbol?*\ **
+*Can we rely on always listing the same crypto with the same symbol?*
 
 More or less ) First, this library is a work in progress, and it is trying to adapt to the everchanging reality, so there may be conflicts that we will fix by changing some mappings in the future. Ultimately, the license says "no warranties, use at your own risk". However, we don't change symbolic mappings randomly all over the place, because we understand the consequences and we'd want to rely on the library as well and we don't like to break the backward-compatibility at all.
 
