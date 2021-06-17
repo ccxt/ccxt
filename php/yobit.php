@@ -93,6 +93,7 @@ class yobit extends Exchange {
                 'BCS' => 'BitcoinStake',
                 'BITS' => 'Bitstar',
                 'BLN' => 'Bulleon',
+                'BNS' => 'Benefit Bonus Coin',
                 'BOT' => 'BOTcoin',
                 'BON' => 'BONES',
                 'BPC' => 'BitcoinPremium',
