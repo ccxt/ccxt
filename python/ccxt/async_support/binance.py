@@ -566,6 +566,76 @@ class binance(Exchange):
                     'taker': 0.001,
                     'maker': 0.001,
                 },
+                'future': {
+                    'trading': {
+                        'feeSide': 'quote',
+                        'tierBased': True,
+                        'percentage': True,
+                        'taker': self.parse_number('0.000400'),
+                        'maker': self.parse_number('0.000200'),
+                        'tiers': {
+                            'taker': [
+                                [self.parse_number('0'), self.parse_number('0.000400')],
+                                [self.parse_number('250'), self.parse_number('0.000400')],
+                                [self.parse_number('2500'), self.parse_number('0.000350')],
+                                [self.parse_number('7500'), self.parse_number('0.000320')],
+                                [self.parse_number('22500'), self.parse_number('0.000300')],
+                                [self.parse_number('50000'), self.parse_number('0.000270')],
+                                [self.parse_number('100000'), self.parse_number('0.000250')],
+                                [self.parse_number('200000'), self.parse_number('0.000220')],
+                                [self.parse_number('400000'), self.parse_number('0.000200')],
+                                [self.parse_number('750000'), self.parse_number('0.000170')],
+                            ],
+                            'maker': [
+                                [self.parse_number('0'), self.parse_number('0.000200')],
+                                [self.parse_number('250'), self.parse_number('0.000160')],
+                                [self.parse_number('2500'), self.parse_number('0.000140')],
+                                [self.parse_number('7500'), self.parse_number('0.000120')],
+                                [self.parse_number('22500'), self.parse_number('0.000100')],
+                                [self.parse_number('50000'), self.parse_number('0.000080')],
+                                [self.parse_number('100000'), self.parse_number('0.000060')],
+                                [self.parse_number('200000'), self.parse_number('0.000040')],
+                                [self.parse_number('400000'), self.parse_number('0.000020')],
+                                [self.parse_number('750000'), self.parse_number('0')],
+                            ],
+                        },
+                    },
+                },
+                'delivery': {
+                    'trading': {
+                        'feeSide': 'base',
+                        'tierBased': True,
+                        'percentage': True,
+                        'taker': self.parse_number('0.000500'),
+                        'maker': self.parse_number('0.000100'),
+                        'tiers': {
+                            'taker': [
+                                [self.parse_number('0'), self.parse_number('0.000500')],
+                                [self.parse_number('250'), self.parse_number('0.000450')],
+                                [self.parse_number('2500'), self.parse_number('0.000400')],
+                                [self.parse_number('7500'), self.parse_number('0.000300')],
+                                [self.parse_number('22500'), self.parse_number('0.000250')],
+                                [self.parse_number('50000'), self.parse_number('0.000240')],
+                                [self.parse_number('100000'), self.parse_number('0.000240')],
+                                [self.parse_number('200000'), self.parse_number('0.000240')],
+                                [self.parse_number('400000'), self.parse_number('0.000240')],
+                                [self.parse_number('750000'), self.parse_number('0.000240')],
+                            ],
+                            'maker': [
+                                [self.parse_number('0'), self.parse_number('0.000100')],
+                                [self.parse_number('250'), self.parse_number('0.000080')],
+                                [self.parse_number('2500'), self.parse_number('0.000050')],
+                                [self.parse_number('7500'), self.parse_number('0.0000030')],
+                                [self.parse_number('22500'), self.parse_number('0')],
+                                [self.parse_number('50000'), self.parse_number('-0.000050')],
+                                [self.parse_number('100000'), self.parse_number('-0.000060')],
+                                [self.parse_number('200000'), self.parse_number('-0.000070')],
+                                [self.parse_number('400000'), self.parse_number('-0.000080')],
+                                [self.parse_number('750000'), self.parse_number('-0.000090')],
+                            ],
+                        },
+                    },
+                },
             },
             'commonCurrencies': {
                 'BCC': 'BCC',  # kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
@@ -2858,7 +2928,19 @@ class binance(Exchange):
 
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()
-        response = await self.sapiGetAssetTradeFee(params)
+        method = None
+        defaultType = self.safe_string_2(self.options, 'fetchFundingRates', 'defaultType', 'future')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        if (type == 'spot') or (type == 'margin'):
+            method = 'sapiGetAssetTradeFee'
+        elif type == 'future':
+            method = 'fapiPrivateGetAccount'
+        elif type == 'delivery':
+            method = 'dapiPrivateGetAccount'
+        response = await getattr(self, method)(query)
+        #
+        # sapi / spot
         #
         #    [
         #       {
@@ -2873,12 +2955,125 @@ class binance(Exchange):
         #       },
         #    ]
         #
-        result = {}
-        for i in range(0, len(response)):
-            fee = self.parse_trading_fee(response[i])
-            symbol = fee['symbol']
-            result[symbol] = fee
-        return result
+        # fapi / future / linear
+        #
+        #     {
+        #         "feeTier": 0,       # account commisssion tier
+        #         "canTrade": True,   # if can trade
+        #         "canDeposit": True,     # if can transfer in asset
+        #         "canWithdraw": True,    # if can transfer out asset
+        #         "updateTime": 0,
+        #         "totalInitialMargin": "0.00000000",    # total initial margin required with current mark price(useless with isolated positions), only for USDT asset
+        #         "totalMaintMargin": "0.00000000",     # total maintenance margin required, only for USDT asset
+        #         "totalWalletBalance": "23.72469206",     # total wallet balance, only for USDT asset
+        #         "totalUnrealizedProfit": "0.00000000",   # total unrealized profit, only for USDT asset
+        #         "totalMarginBalance": "23.72469206",     # total margin balance, only for USDT asset
+        #         "totalPositionInitialMargin": "0.00000000",    # initial margin required for positions with current mark price, only for USDT asset
+        #         "totalOpenOrderInitialMargin": "0.00000000",   # initial margin required for open orders with current mark price, only for USDT asset
+        #         "totalCrossWalletBalance": "23.72469206",      # crossed wallet balance, only for USDT asset
+        #         "totalCrossUnPnl": "0.00000000",      # unrealized profit of crossed positions, only for USDT asset
+        #         "availableBalance": "23.72469206",       # available balance, only for USDT asset
+        #         "maxWithdrawAmount": "23.72469206"     # maximum amount for transfer out, only for USDT asset
+        #         ...
+        #     }
+        #
+        # dapi / delivery / inverse
+        #
+        #     {
+        #         "canDeposit": True,
+        #         "canTrade": True,
+        #         "canWithdraw": True,
+        #         "feeTier": 2,
+        #         "updateTime": 0
+        #     }
+        #
+        if (type == 'spot') or (type == 'margin'):
+            #
+            #    [
+            #       {
+            #         "symbol": "ZRXBNB",
+            #         "makerCommission": "0.001",
+            #         "takerCommission": "0.001"
+            #       },
+            #       {
+            #         "symbol": "ZRXBTC",
+            #         "makerCommission": "0.001",
+            #         "takerCommission": "0.001"
+            #       },
+            #    ]
+            #
+            result = {}
+            for i in range(0, len(response)):
+                fee = self.parse_trading_fee(response[i])
+                symbol = fee['symbol']
+                result[symbol] = fee
+            return result
+        elif type == 'future':
+            #
+            #     {
+            #         "feeTier": 0,       # account commisssion tier
+            #         "canTrade": True,   # if can trade
+            #         "canDeposit": True,     # if can transfer in asset
+            #         "canWithdraw": True,    # if can transfer out asset
+            #         "updateTime": 0,
+            #         "totalInitialMargin": "0.00000000",    # total initial margin required with current mark price(useless with isolated positions), only for USDT asset
+            #         "totalMaintMargin": "0.00000000",     # total maintenance margin required, only for USDT asset
+            #         "totalWalletBalance": "23.72469206",     # total wallet balance, only for USDT asset
+            #         "totalUnrealizedProfit": "0.00000000",   # total unrealized profit, only for USDT asset
+            #         "totalMarginBalance": "23.72469206",     # total margin balance, only for USDT asset
+            #         "totalPositionInitialMargin": "0.00000000",    # initial margin required for positions with current mark price, only for USDT asset
+            #         "totalOpenOrderInitialMargin": "0.00000000",   # initial margin required for open orders with current mark price, only for USDT asset
+            #         "totalCrossWalletBalance": "23.72469206",      # crossed wallet balance, only for USDT asset
+            #         "totalCrossUnPnl": "0.00000000",      # unrealized profit of crossed positions, only for USDT asset
+            #         "availableBalance": "23.72469206",       # available balance, only for USDT asset
+            #         "maxWithdrawAmount": "23.72469206"     # maximum amount for transfer out, only for USDT asset
+            #         ...
+            #     }
+            #
+            symbols = list(self.markets.keys())
+            result = {}
+            feeTier = self.safe_integer(response, 'feeTier')
+            feeTiers = self.fees[type]['trading']['tiers']
+            maker = feeTiers['maker'][feeTier][1]
+            taker = feeTiers['taker'][feeTier][1]
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                result[symbol] = {
+                    'info': {
+                        'feeTier': feeTier,
+                    },
+                    'symbol': symbol,
+                    'maker': maker,
+                    'taker': taker,
+                }
+            return result
+        elif type == 'delivery':
+            #
+            #     {
+            #         "canDeposit": True,
+            #         "canTrade": True,
+            #         "canWithdraw": True,
+            #         "feeTier": 2,
+            #         "updateTime": 0
+            #     }
+            #
+            symbols = list(self.markets.keys())
+            result = {}
+            feeTier = self.safe_integer(response, 'feeTier')
+            feeTiers = self.fees[type]['trading']['tiers']
+            maker = feeTiers['maker'][feeTier][1]
+            taker = feeTiers['taker'][feeTier][1]
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                result[symbol] = {
+                    'info': {
+                        'feeTier': feeTier,
+                    },
+                    'symbol': symbol,
+                    'maker': maker,
+                    'taker': taker,
+                }
+            return result
 
     async def futures_transfer(self, code, amount, type, params={}):
         if (type < 1) or (type > 4):
