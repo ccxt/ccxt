@@ -3104,6 +3104,8 @@ class binance(Exchange):
             method = 'fapiPublicGetPremiumIndex'
         elif market['inverse']:
             method = 'dapiPublicGetPremiumIndex'
+        else:
+            raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -3129,6 +3131,8 @@ class binance(Exchange):
             method = 'fapiPublicGetPremiumIndex'
         elif type == 'delivery':
             method = 'dapiPublicGetPremiumIndex'
+        else:
+            raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
         response = getattr(self, method)(query)
         result = []
         for i in range(0, len(response)):
@@ -3507,6 +3511,8 @@ class binance(Exchange):
                 method = 'fapiPrivateGetLeverageBracket'
             elif type == 'delivery':
                 method = 'dapiPrivateV2GetLeverageBracket'
+            else:
+                raise NotSupported(self.id + ' loadLeverageBrackets() supports linear and inverse contracts only')
             response = getattr(self, method)(query)
             self.options['leverageBrackets'] = {}
             for i in range(0, len(response)):
@@ -3535,6 +3541,8 @@ class binance(Exchange):
             method = 'fapiPrivateGetAccount'
         elif type == 'delivery':
             method = 'dapiPrivateGetAccount'
+        else:
+            raise NotSupported(self.id + ' fetchPositions() supports linear and inverse contracts only')
         account = getattr(self, method)(query)
         result = self.parse_account_positions(account)
         return self.filter_by_array(result, 'symbol', symbols, False)
