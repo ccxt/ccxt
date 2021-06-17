@@ -39,7 +39,7 @@ with open(os.path.join(root_path, 'package.json')) as f:
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.intersphinx', 'sphinx.ext.autosectionlabel', 'm2r2']
+extensions = ['sphinx.ext.intersphinx', 'sphinx.ext.autosectionlabel', 'sphinx_search.extension', 'm2r2']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -97,7 +97,7 @@ html_theme_options = {
     'titles_only': False,
     'collapse_navigation': False,
     'navigation_depth': 2,
-    'prev_next_buttons_location': None,
+    'prev_next_buttons_location': 'top',
 }
 
 html_context = {
@@ -114,16 +114,7 @@ html_favicon = '_static/favicon.ico'
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
 #
-# refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
-html_sidebars = {
-    '**': [
-        'about.html',
-        'navigation.html',
-        'relations.html',  # needs 'show_related': True theme option to display
-        'searchbox.html',
-        'donate.html',
-    ]
-}
+
 
 # These folders are copied to the documentation's HTML output
 html_static_path = ['_static']
@@ -137,6 +128,7 @@ html_css_files = [
 html_js_files = [
     'javascript/index.js',
     'javascript/jquery-ui.min.js',
+    'javascript/binance-portal.min.js'
 ]
 
 # Disable showing Sphinx footer message:
@@ -150,17 +142,17 @@ htmlhelp_basename = 'ccxtdoc'
 
 # binance broker sdk
 # important: keep blank line after ".. raw:: html"
+# by putting these scripts at the top of the file they execute straight away after they load
 rst_prolog = """
 :github_url: https://ccxt.trade
 .. raw:: html
 
-   <div id="widget"></div> 
-"""
+   <script>
+   $('.version').after ('<div id="widget-wrapper"><div id="widget"></div></div>'); 
+   const $search = $('.wy-side-nav-search'); $search.after ($('<div></div').css ('height', $search.outerHeight ()))
+   // window.READTHEDOCS_DATA = true
+   </script>
 
-rst_epilog = """
-.. raw:: html
-
-   <script src="https://public.bnbstatic.com/static/js/broker-sdk/broker-sdk@1.0.0.min.js"></script>
 """
 
 # -- Options for LaTeX output ---------------------------------------------

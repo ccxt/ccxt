@@ -43,6 +43,26 @@ ul > .toctree-l1.current > ul > .toctree-l2 {
     padding: 20px 0 20px 0;
 }
 
-.bnc-broker-widget-footer {
-    display: none!important;
+#widget {
+    display: none;
+}
+
+#widget-wrapper {
+    height: calc(200px * 0.5625 + 18px);
+    width: 200px;
+    margin: 0 auto 20px auto;
+    border-style: dashed;
+    border-color: #69A2CC;
+    border-width: 1px;
+    border-radius: 5px;
+}
+
+.wy-side-nav-search {
+    position: fixed;
+    top: -1px;
+    z-index: 10000;
+}
+
+.version {
+    display: inline;
 }
