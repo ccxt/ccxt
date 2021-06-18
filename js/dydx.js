@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -15,7 +16,7 @@ module.exports = class dydx extends Exchange {
             'rateLimit': 100,
             'version': 'v3',
             'has': {
-                'CORS': false,
+                'CORS': true,
                 'publicAPI': true,
                 'privateAPI': true,
                 'cancelOrder': true,
@@ -105,6 +106,17 @@ module.exports = class dydx extends Exchange {
                         'users',
                     ],
                 },
+            },
+            'exceptions': {
+                'InvalidOrder': InvalidOrder,
+                'InsufficientFunds': InsufficientFunds,
+                'ExchangeNotAvailable': ExchangeNotAvailable,
+                'DDoSProtection': DDoSProtection,
+                'BadRequest': BadRequest,
+                'InvalidAddress': InvalidAddress,
+                'AuthenticationError': AuthenticationError,
+                'ExchangeError': ExchangeError,
+                'NotSupported': NotSupported,
             },
             'requiredCredentials': {
                 'ethereumAddress': true,
@@ -951,5 +963,21 @@ module.exports = class dydx extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': payload, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        const resultString = this.safeString (response, 'result', '');
+        if (resultString !== 'false') {
+            return;
+        }
+        const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'message', body);
+        if (errorCode !== undefined) {
+            const feedback = this.safeString (this.exceptions['errorCodeNames'], errorCode, message);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        }
     }
 };
