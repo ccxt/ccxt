@@ -246,7 +246,6 @@ module.exports = class ironx extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // console.log (ohlcv);
         return [
             this.parse8601 (ohlcv['timestamp']),
             this.safeFloat (ohlcv, 'open'),
