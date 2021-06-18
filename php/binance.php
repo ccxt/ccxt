@@ -3263,6 +3263,8 @@ class binance extends Exchange {
             $method = 'fapiPublicGetPremiumIndex';
         } else if ($market['inverse']) {
             $method = 'dapiPublicGetPremiumIndex';
+        } else {
+            throw NotSupported ($this->id . ' setMarginMode() supports linear and inverse contracts only');
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -3290,6 +3292,8 @@ class binance extends Exchange {
             $method = 'fapiPublicGetPremiumIndex';
         } else if ($type === 'delivery') {
             $method = 'dapiPublicGetPremiumIndex';
+        } else {
+            throw NotSupported ($this->id . ' setMarginMode() supports linear and inverse contracts only');
         }
         $response = $this->$method ($query);
         $result = array();
@@ -3694,6 +3698,8 @@ class binance extends Exchange {
                 $method = 'fapiPrivateGetLeverageBracket';
             } else if ($type === 'delivery') {
                 $method = 'dapiPrivateV2GetLeverageBracket';
+            } else {
+                throw new NotSupported($this->id . ' loadLeverageBrackets() supports linear and inverse contracts only');
             }
             $response = $this->$method ($query);
             $this->options['leverageBrackets'] = array();
@@ -3727,6 +3733,8 @@ class binance extends Exchange {
             $method = 'fapiPrivateGetAccount';
         } else if ($type === 'delivery') {
             $method = 'dapiPrivateGetAccount';
+        } else {
+            throw new NotSupported($this->id . ' fetchPositions() supports linear and inverse contracts only');
         }
         $account = $this->$method ($query);
         $result = $this->parse_account_positions ($account);

@@ -1136,11 +1136,11 @@ Each exchange has an associative array of substitutions for cryptocurrency symbo
 
 #### Questions On Naming Consistency
 
-**_Is it possible for symbols to change?_**
+_Is it possible for symbols to change?_
 
 In short, yes, sometimes, but rarely. Symbolic mappings can be changed if that is absolutely required and cannot be avoided. However, all previous symbolic changes were related to resolving conflicts or forks. So far, there was no precedent of a market cap of one coin overtaking another coin with the same symbolic code in CCXT.
 
-**_Can we rely on always listing the same crypto with the same symbol?_**
+_Can we rely on always listing the same crypto with the same symbol?_
 
 More or less ) First, this library is a work in progress, and it is trying to adapt to the everchanging reality, so there may be conflicts that we will fix by changing some mappings in the future. Ultimately, the license says "no warranties, use at your own risk". However, we don't change symbolic mappings randomly all over the place, because we understand the consequences and we'd want to rely on the library as well and we don't like to break the backward-compatibility at all.
 

@@ -5,7 +5,7 @@
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social) · [CCXT Pro](https://ccxt.pro)
+### [Install](#install) · [Usage](#usage) · [Manual](https://ccxt.readthedocs.io/en/latest) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social) · [CCXT Pro](https://ccxt.pro)
 
 The **CCXT** library is used to connect and trade with cryptocurrency exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, and related software engineering.
 
@@ -28,7 +28,6 @@ Current feature list:
 - <sub>[![TabTrader](https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png)](https://tab-trader.com/?utm_source=ccxt)</sub>&nbsp; **[TabTrader](https://tab-trader.com/?utm_source=ccxt)**&nbsp;&mdash;&nbsp;trading on all exchanges in one app. Avaliable on [Android](https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt) and [iOS](https://itunes.apple.com/app/apple-store/id1095716562?mt=8).
 - <sub>[![AAX](https://user-images.githubusercontent.com/1294454/106509642-ef957980-64de-11eb-92e0-8323cda7874e.png)](https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=one-liner&utm_campaign=futures)</sub>&nbsp; **[AAX](https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=one-liner&utm_campaign=futures)**&nbsp;&mdash;&nbsp;trade bitcoin futures with fees as low as 0.02% and up to 100x leverage!
 - <sub>[![Freqtrade](https://user-images.githubusercontent.com/1294454/114340585-8e35fa80-9b60-11eb-860f-4379125e2db6.png)](https://www.freqtrade.io)</sub>&nbsp; **[Freqtrade](https://www.freqtrade.io)**&nbsp;&mdash;&nbsp;leading opensource cryptocurrency algorithmic trading software!
-- <sub>[![BitcoinPoint](https://user-images.githubusercontent.com/1294454/117208884-512af400-adfe-11eb-90dc-9e5281b8fc29.png)](https://bitcoinpoint.com)</sub>&nbsp; **[BitcoinPoint](https://bitcoinpoint.com)**&nbsp;&mdash;&nbsp;sell bitcoin via a network of over 18000 ATMs.
 
 
 ## Certified Cryptocurrency Exchanges
@@ -172,7 +171,7 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
 | [![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)](https://zaif.jp)                                                                  | zaif               | [Zaif](https://zaif.jp)                                                                 | 1   | [API](https://techbureau-api-document.readthedocs.io/ja/latest/index.html)                  |                                                                                                                             |                                                                              |
 | [![zb](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)](https://www.zb.com)                                                                 | zb                 | [ZB](https://www.zb.com)                                                                | 1   | [API](https://www.zb.com/i/developer)                                                       | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
 
-The list above is updated frequently, new crypto markets, exchanges, bug fixes, and API endpoints are introduced on a regular basis. See the [Manual](https://github.com/ccxt/ccxt/wiki) for more details. If you can't find a cryptocurrency exchange in the list above and want it to be added, post a link to it by opening an issue here on GitHub or send us an email.
+The list above is updated frequently, new crypto markets, exchanges, bug fixes, and API endpoints are introduced on a regular basis. See the [Manual](https://ccxt.readthedocs.io/en/latest) for more details. If you can't find a cryptocurrency exchange in the list above and want it to be added, post a link to it by opening an issue here on GitHub or send us an email.
 
 The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICENSE.txt), that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
 
@@ -188,9 +187,9 @@ The easiest way to install the CCXT library is to use a package manager:
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
-- [`js/`](https://github.com/ccxt/ccxt/blob/master/js/) in JavaScript
-- [`python/`](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
-- [`php/`](https://github.com/ccxt/ccxt/blob/master/php/) in PHP (generated from JS)
+- [js/](https://github.com/ccxt/ccxt/blob/master/js/) in JavaScript
+- [python/](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
+- [php/](https://github.com/ccxt/ccxt/blob/master/php/) in PHP (generated from JS)
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt):
 
@@ -218,13 +217,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.51.59/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.51.59/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.51.61/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.51.61/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.51.59/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.51.61/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -269,7 +268,7 @@ include "ccxt.php";
 var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
 
-The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.1+. Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
+The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.1+. Read the [Manual](https://ccxt.readthedocs.io/en/latest) for more details.
 
 ### Docker
 
@@ -287,7 +286,7 @@ You don't need the Docker image if you're not going to develop CCXT. If you just
 
 ## Documentation
 
-Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
+Read the [Manual](https://ccxt.readthedocs.io/en/latest) for more details.
 
 ## Usage
 
@@ -329,7 +328,7 @@ exchange.methodName ()  // camelcase pseudocode
 exchange.method_name () // underscore pseudocode
 ```
 
-Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
+Read the [Manual](https://ccxt.readthedocs.io/en/latest) for more details.
 
 ### JavaScript
 
@@ -473,7 +472,7 @@ $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId
 
 ## Contributing
 
-Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
+Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://ccxt.readthedocs.io/en/latest) for more details.
 
 ## Support Developer Team
 
@@ -525,7 +524,7 @@ Thank you!
 
 - [Follow us on Twitter](https://twitter.com/ccxt_official)
 - [Read our blog on Medium](https://medium.com/@ccxt)
-- <sub><sub>[![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/dhzSKYU)</sub></sub>
+- [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/dhzSKYU)
 
 ## Contact Us
 

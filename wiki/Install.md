@@ -7,9 +7,9 @@ The easiest way to install the ccxt library is to use builtin package managers:
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
-- [`ccxt.js`](https://github.com/ccxt/ccxt/blob/master/ccxt.js) in JavaScript
-- [`./python/`](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
-- [`ccxt.php`](https://github.com/ccxt/ccxt/blob/master/ccxt.php) in PHP (generated from JS)
+- [ccxt.js](https://github.com/ccxt/ccxt/blob/master/ccxt.js) in JavaScript
+- [./python/](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
+- [ccxt.php](https://github.com/ccxt/ccxt/blob/master/ccxt.php) in PHP (generated from JS)
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt) and copy files
 manually into your working directory with language extension appropriate for your environment.
@@ -40,13 +40,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.51.59/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.51.59/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.51.61/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.51.61/dist/ccxt.browser.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.51.59/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.51.61/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
