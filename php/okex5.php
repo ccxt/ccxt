@@ -2305,7 +2305,6 @@ class okex5 extends Exchange {
         if ($code !== '0') {
             $feedback = $this->id . ' ' . $body;
             $data = $this->safe_value($response, 'data', array());
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             for ($i = 0; $i < count($data); $i++) {
                 $error = $data[$i];
                 $errorCode = $this->safe_string($error, 'sCode');
@@ -2313,6 +2312,7 @@ class okex5 extends Exchange {
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
     }
