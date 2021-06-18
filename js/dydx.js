@@ -110,7 +110,7 @@ module.exports = class dydx extends Exchange {
             'exceptions': {
                 'InvalidOrder': InvalidOrder,
                 'InsufficientFunds': InsufficientFunds,
-                'ExchangeNotAvailable': ExchangeNotAvailable,
+                'Not Found': ExchangeNotAvailable,
                 'DDoSProtection': DDoSProtection,
                 'BadRequest': BadRequest,
                 'InvalidAddress': InvalidAddress,
