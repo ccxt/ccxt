@@ -36,14 +36,25 @@ while True:
     trades = exchange.fetch_my_trades(symbol, since, limit, params)
     if len(trades):
         first_trade = trades[0]
+        if(end_time == first_trade['timestamp'] + 1000): break
         last_trade = trades[len(trades) - 1]
-        end_time = first_trade['timestamp']
+        end_time = first_trade['timestamp'] + 1000
         all_trades = trades + all_trades
         print('Fetched', len(trades), 'trades from', first_trade['datetime'], 'till', last_trade['datetime'])
     else:
         print('Done')
         break
 
+        
+ret_list = []
+dup_ids = set()
+for trade in all_trades:
+    if trade['id'] in dup_ids: continue
+    dup_ids.add(trade['id'])
+    ret_list = [trade] + ret_list
+all_trades = ret_list
+
+   
 
 print('Fetched', len(all_trades), 'trades')
 for i in range(0, len(all_trades)):
