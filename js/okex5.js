@@ -2302,7 +2302,6 @@ module.exports = class okex5 extends Exchange {
         if (code !== '0') {
             const feedback = this.id + ' ' + body;
             const data = this.safeValue (response, 'data', []);
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             for (let i = 0; i < data.length; i++) {
                 const error = data[i];
                 const errorCode = this.safeString (error, 'sCode');
@@ -2310,6 +2309,7 @@ module.exports = class okex5 extends Exchange {
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             }
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }
