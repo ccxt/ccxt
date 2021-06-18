@@ -975,9 +975,10 @@ module.exports = class dydx extends Exchange {
         }
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'message', body);
-        if (errorCode !== undefined) {
-            const feedback = this.safeString (this.exceptions['errorCodeNames'], errorCode, message);
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        if (errorCode in this.exceptions) {
+            const Exception = this.exceptions[errorCode];
+            throw new Exception (this.id + ' ' + message);
         }
+        throw new ExchangeError (this.id + ' ' + message);
     }
 };
