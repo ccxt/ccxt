@@ -1002,7 +1002,7 @@ class tprexchange(Exchange):
             if i.get('symbol') == symbol:
                 return i.get('close')
 
-    def fetch_trades(self, orderId, pageNo=None, pageSize=None):
+    def fetch_trades(self, orderId, since, pageNo=None, pageSize=None):
         # Responce example:
         # [
         #    {
@@ -1033,10 +1033,11 @@ class tprexchange(Exchange):
         if pageSize is None:
             pageSize = 100
 
-        request = { 'orderId': '',
+        request = { 'orderId': orderId,
+                    'since': since,
                     'pageNo': pageNo,
                     'pageSize': pageSize }
-        return self.parse_trade(self.privatePostExchangeOrderMyTrades(request))
+        return self.parse_trade(self.privatePostExchangeOrderTrades(request))
 
     def parse_trade(self, response):
         listData = []
@@ -1064,7 +1065,7 @@ class tprexchange(Exchange):
                 'cost': cost,
                 'fee':
                 {
-                    'cost': 0.005,
+                    'cost': ExchangeOrder.get('fee'),
                     'currency': ExchangeOrder.get('coinSymbol'),
                     'rate': 'None',
                 }
