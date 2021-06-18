@@ -206,7 +206,6 @@ module.exports = class ironx extends Exchange {
         const currencies = Object.keys (balance.available);
         for (let i = 0; i < currencies.length; i++) {
             const code = currencies[i];
-            // console.log (this.asFloat (balances.available[code]));
             const fValue = this.asFloat (balance.available[code]);
             const tValue = this.asFloat (balance.total[code]);
             const uValue = this.asFloat (this.decimalToPrecision (this.sum (tValue, -fValue), 3, 6));
@@ -228,7 +227,6 @@ module.exports = class ironx extends Exchange {
             'symbol': this.marketId (symbol),
         }, params));
         const orderbook = this.safeValue (response, 'result', []);
-        // console.log (orderbook);
         return this.parseOrderBook (orderbook, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
     }
 
@@ -246,7 +244,6 @@ module.exports = class ironx extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // console.log (ohlcv);
         return [
             this.parse8601 (ohlcv['timestamp']),
             this.safeFloat (ohlcv, 'open'),
@@ -325,7 +322,6 @@ module.exports = class ironx extends Exchange {
         }
         const response = await this.publicGetTradesAll (this.extend (request, params));
         const trades = this.safeValue (response, 'result', []);
-        // return trades;
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -349,7 +345,6 @@ module.exports = class ironx extends Exchange {
         };
         const response = await this.privateGetUserTrades (this.extend (request, params));
         const trades = this.safeValue (this.safeValue (response, 'result'), 'trades', []);
-        // return trades;
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -357,7 +352,8 @@ module.exports = class ironx extends Exchange {
         const datetime = this.safeString (trade, 'created');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'quantity');
-        const cost = price * amount; // total cost (including fees), `price * amount`
+        // total cost (including fees), `price * amount`
+        const cost = price * amount;
         return {
             'info': trade,
             'id': this.safeString (trade, 'tradeId'),
@@ -381,7 +377,6 @@ module.exports = class ironx extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        // const market = this.market (symbol);
         amount = this.asFloat (amount);
         const request = {
             'symbol': symbol,
@@ -639,17 +634,17 @@ module.exports = class ironx extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        // console.log(response);
         if (!response) {
-            return; // fallback to default error handler
+            // fallback to default error handler
+            return;
         }
         const status = this.safeValue (response, 'status', false);
         if (!status) {
             const type = this.safeValue (response, 'type');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], type, feedback);
-            // this.throwBroadlyMatchedException (this.exceptions['broad'], response, feedback);
-            throw new ExchangeError (feedback); // unknown error
+            // unknown error
+            throw new ExchangeError (feedback);
         }
     }
 };
