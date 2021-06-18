@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } = require ('./base/errors');
+const { ExchangeNotAvailable, AuthenticationError } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -108,15 +108,11 @@ module.exports = class dydx extends Exchange {
                 },
             },
             'exceptions': {
-                'InvalidOrder': InvalidOrder,
-                'InsufficientFunds': InsufficientFunds,
-                'Not Found': ExchangeNotAvailable,
-                'DDoSProtection': DDoSProtection,
-                'BadRequest': BadRequest,
-                'InvalidAddress': InvalidAddress,
-                'AuthenticationError': AuthenticationError,
-                'ExchangeError': ExchangeError,
-                'NotSupported': NotSupported,
+                'exact': {
+                    'Not Found': ExchangeNotAvailable,
+                    '404': ExchangeNotAvailable,
+                    '403': AuthenticationError,
+                },
             },
             'requiredCredentials': {
                 'ethereumAddress': true,
@@ -967,18 +963,11 @@ module.exports = class dydx extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
-        }
-        const resultString = this.safeString (response, 'result', '');
-        if (resultString !== 'false') {
-            return;
+            return; // fallback to default error handler
         }
         const errorCode = this.safeString (response, 'code');
-        const message = this.safeString (response, 'message', body);
-        if (errorCode in this.exceptions) {
-            const Exception = this.exceptions[errorCode];
-            throw new Exception (this.id + ' ' + message);
-        }
-        throw new ExchangeError (this.id + ' ' + message);
+        const message = this.safeString (response, 'error', '');
+        this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + message);
     }
 };
