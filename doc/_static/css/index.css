@@ -66,3 +66,22 @@ ul > .toctree-l1.current > ul > .toctree-l2 {
 .version {
     display: inline;
 }
+
+/* this fixes a bug in the broker widget in safari */
+/* it interacts with the code of the binance portal sdk and stops the css translate from glitching */
+.swiper-container {
+    direction: rtl;
+}
+
+.bnc-broker-widget-prev, .bnc-broker-widget-next {
+    transform: rotate(180deg);
+}
+
+/* another change due to rtl */
+.swiper-pagination-bullet:first-of-type {
+    margin-right: 0!important;
+}
+
+.swiper-pagination-bullet {
+    margin-right: 8px!important;
+}
