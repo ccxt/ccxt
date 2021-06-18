@@ -80,7 +80,13 @@ class huobipro extends Exchange {
                 ),
                 'www' => 'https://www.huobi.com',
                 'referral' => 'https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3',
-                'doc' => 'https://huobiapi.github.io/docs/spot/v1/cn/',
+                'doc' => array(
+                    'https://huobiapi.github.io/docs/spot/v1/cn/',
+                    'https://huobiapi.github.io/docs/dm/v1/cn/',
+                    'https://huobiapi.github.io/docs/coin_margined_swap/v1/cn/',
+                    'https://huobiapi.github.io/docs/usdt_swap/v1/cn/',
+                    'https://huobiapi.github.io/docs/option/v1/cn/',
+                ),
                 'fees' => 'https://www.huobi.com/about/fee/',
             ),
             'api' => array(
