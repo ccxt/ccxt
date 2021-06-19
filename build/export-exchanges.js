@@ -89,20 +89,41 @@ const ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT
 
 // ----------------------------------------------------------------------------
 
+function getFirstDocUrl (exchange) {
+    return Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
+}
+
+// ----------------------------------------------------------------------------
+
+
+function getVersion (exchange) {
+    return exchange.version ? exchange.version.replace (/[^0-9\.]+/, '') : '\*'
+}
+
+// ----------------------------------------------------------------------------
+
+function getVersionLink (exchange) {
+    const version = getVersion (exchange)
+        , doc = getFirstDocUrl (exchange)
+    return '[' + version + '](' + doc + ')'
+}
+
+// ----------------------------------------------------------------------------
+
 function createMarkdownListOfExchanges (exchanges) {
 
     return exchanges.map ((exchange) => {
 
         const www = exchange.urls.www
             , url = exchange.urls.referral ? exchange.urls.referral : www
-            , doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
+            , doc = getFirstDocUrl (exchange)
             , version = exchange.version ? exchange.version.replace (/[^0-9\.]+/, '') : '\*'
 
         return {
             'logo': '[![' + exchange.id + '](' + exchange.urls.logo + ')](' + url + ')',
             'id': exchange.id,
             'name': '[' + exchange.name + '](' + url + ')',
-            'ver': version,
+            'ver': getVersionLink (exchange),
             'doc': '[API](' + doc + ')',
             'certified': exchange.certified ? ccxtCertifiedBadge : '',
             'pro': exchange.pro ? ccxtProBadge : '',
@@ -140,7 +161,7 @@ function createMarkdownListOfExchangesByCountries (exchanges) {
 
             const website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
                 , url = exchange.urls.referral || website
-                , doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
+                , doc = getFirstDocUrl (exchange)
                 , version = exchange.version ? exchange.version.replace (/[^0-9\.]+/, '') : '\*'
 
             const exchangeInCountry =
@@ -154,7 +175,7 @@ function createMarkdownListOfExchangesByCountries (exchanges) {
                     'logo': '[![' + exchange.id + '](' + exchange.urls.logo + ')](' + url + ')',
                     'id': exchange.id,
                     'name': '[' + exchange.name + '](' + url + ')',
-                    'ver': '[' + version + '](' + doc + ')',
+                    'ver': getVersionLink (exchange),
                     'doc': '[API](' + doc + ')',
                 })
             }
@@ -436,6 +457,9 @@ if (require.main === module) {
 
 module.exports = {
     cloneGitHubWiki,
+    getFirstDocUrl,
+    getVersion,
+    getVersionLink,
     getIncludedExchangeIds,
     exportExchanges,
     createExchanges,
