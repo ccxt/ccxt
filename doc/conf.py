@@ -41,6 +41,10 @@ with open(os.path.join(root_path, 'package.json')) as f:
 # ones.
 extensions = ['sphinx.ext.intersphinx', 'sphinx.ext.autosectionlabel', 'sphinx_search.extension', 'm2r2']
 
+# enable dark mode by default
+# user starts in light mode
+default_dark_mode = False
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -123,12 +127,13 @@ html_static_path = ['_static']
 # or fully qualified paths (eg. https://...)
 html_css_files = [
     'css/index.css',
+    'css/dark.css',
 ]
 
 html_js_files = [
     'javascript/index.js',
     'javascript/jquery-ui.min.js',
-    'javascript/binance-portal.min.js'
+    'javascript/binance-portal.min.js',
 ]
 
 # Disable showing Sphinx footer message:

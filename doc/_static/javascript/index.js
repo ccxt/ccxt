@@ -135,4 +135,38 @@ window.addEventListener ('load', () => {
         'slideTime': 5.0e8,
         'overrideStyle': style,
     });
+
+    const createThemeSwitcher = () => {
+        const btn = document.createElement ('BUTTON');
+        btn.className = 'theme-switcher';
+        btn.id = 'themeSwitcher';
+        btn.innerHTML = '<i id=themeMoon class="fa fa-moon-o"></i><i id=themeSun class="fa fa-sun-o"></i>';
+        document.body.appendChild (btn);
+        if (localStorage.getItem ('theme') === 'dark') {
+            $('#themeMoon').hide (0);
+        } else {
+            $('#themeSun').hide (0);
+        }
+    };
+
+    const switchTheme = () => {
+        if (localStorage.getItem ('theme') === 'dark') {
+            localStorage.setItem ('theme', 'light');
+            document.documentElement.setAttribute ('data-theme', 'light');
+            $('#themeSun').fadeOut (200, () => {
+                $('#themeMoon').fadeIn (200);
+            });
+        } else {
+            localStorage.setItem ('theme', 'dark');
+            document.documentElement.setAttribute ('data-theme', 'dark');
+            $('#themeMoon').fadeOut (200, () => {
+                $('#themeSun').fadeIn (200);
+            });
+        }
+    };
+
+    createThemeSwitcher ();
+    $('#themeSwitcher').click (switchTheme);
+    const theme = localStorage.getItem ('theme')
+    document.documentElement.setAttribute ('data-theme', theme)
 });

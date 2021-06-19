@@ -1,0 +1,76 @@
+/*!
+ * @name          Readthedocs
+ * @namespace     http://userstyles.org
+ * @description	  Styles the documentation pages hosted on Readthedocs.io
+ * @author        Anthony Post
+ * @homepage      https://userstyles.org/styles/142968
+ * @version       0.20170529055029
+ *
+ * Modified by Aloïs Dreyfus: 20200527-1037
+ * Modified by Carlo Revelli
+ */
+
+:root {
+    --dark-body: #3c3c3c;
+    --dark-outer: rgba(0,0,0,.6);
+    --dark-code: #2d2d2d;
+    --dark-text: #FAFAFA;
+}
+
+html[data-theme='dark'] pre {
+	background-color: var(--dark-code); !important;
+}
+
+html[data-theme='dark'] .wy-nav-content {
+	background: var(--dark-body);
+	color: var(--dark-text);
+}
+
+html[data-theme='dark'] .method dt, .class dt, .data dt, .attribute dt, .function dt,
+	.descclassname, .descname {
+	background-color: #525252 !important;
+	color: var(--dark-text) !important;
+}
+
+html[data-theme='dark'] code.literal {
+	background-color: var(--dark-body) !important;
+	border: 1px solid #6d6d6d !important;
+}
+
+html[data-theme='dark'] .wy-nav-content-wrap {
+	background-color: var(--dark-outer) !important;
+}
+
+html[data-theme='dark'] .xref, .py-meth {
+	color: #7ec3e6 !important;
+}
+
+html[data-theme='dark'] ul > .toctree-l1.current > ul > .toctree-l2 {
+   background: #343131 !important;
+}
+
+html[data-theme='dark'] ul > .toctree-l1.current > ul > .toctree-l2 > a {
+   color: var(--dark-text) !important;
+}
+
+html[data-theme='dark'] ul > .toctree-l1.current > ul > .toctree-l2.current > a, .wy-menu-vertical a:hover {
+   color: rgb(64,64,64) !important;
+}
+
+.theme-switcher {
+    border-radius: 50%;
+    position: fixed;
+    right: 1.6em;
+    bottom: 1.4em;
+    z-index: 3;
+    border: none;
+    height: 2.2em;
+    width: 2.2em;
+    background-color: #fcfcfc;
+    font-size: 20px;
+    -webkit-box-shadow: 0px 3px 14px 2px rgba(0, 0, 0, 0.62);
+    box-shadow: 0px 3px 14px 2px rgba(0, 0, 0, 0.62);
+    color: #404040;
+    transition: all 0.3s ease-in-out;
+
+}
