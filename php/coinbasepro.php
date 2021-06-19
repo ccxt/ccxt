@@ -282,77 +282,81 @@ class coinbasepro extends \ccxt\async\coinbasepro {
     public function handle_order($client, $message) {
         //
         // Order is created
-        // {
-        //   $type => 'received',
-        //   side => 'sell',
-        //   product_id => 'BTC-USDC',
-        //   time => '2021-03-05T16:42:21.878177Z',
-        //   sequence => 5641953814,
-        //   profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //   user_id => '54fc141576dcf32596000133',
-        //   order_id => '11838707-bf9c-4d65-8cec-b57c9a7cab42',
-        //   order_type => 'limit',
-        //   size => '0.0001',
-        //   price => '50000',
-        //   client_oid => 'a317abb9-2b30-4370-ebfe-0deecb300180'
-        // }
         //
-        // {
-        //     "$type" => "received",
-        //     "time" => "2014-11-09T08:19:27.028459Z",
-        //     "product_id" => "BTC-USD",
-        //     "sequence" => 12,
-        //     "order_id" => "dddec984-77a8-460a-b958-66f114b0de9b",
-        //     "funds" => "3000.234",
-        //     "side" => "buy",
-        //     "order_type" => "market"
-        // }
+        //     {
+        //         $type => 'received',
+        //         side => 'sell',
+        //         product_id => 'BTC-USDC',
+        //         time => '2021-03-05T16:42:21.878177Z',
+        //         $sequence => 5641953814,
+        //         profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
+        //         user_id => '54fc141576dcf32596000133',
+        //         order_id => '11838707-bf9c-4d65-8cec-b57c9a7cab42',
+        //         order_type => 'limit',
+        //         size => '0.0001',
+        //         price => '50000',
+        //         client_oid => 'a317abb9-2b30-4370-ebfe-0deecb300180'
+        //     }
+        //
+        //     {
+        //         "$type" => "received",
+        //         "time" => "2014-11-09T08:19:27.028459Z",
+        //         "product_id" => "BTC-USD",
+        //         "$sequence" => 12,
+        //         "order_id" => "dddec984-77a8-460a-b958-66f114b0de9b",
+        //         "funds" => "3000.234",
+        //         "side" => "buy",
+        //         "order_type" => "market"
+        //     }
         //
         // Order is on the $order book
-        // {
-        //   $type => 'open',
-        //   side => 'sell',
-        //   product_id => 'BTC-USDC',
-        //   time => '2021-03-05T16:42:21.878177Z',
-        //   sequence => 5641953815,
-        //   profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //   user_id => '54fc141576dcf32596000133',
-        //   price => '50000',
-        //   order_id => '11838707-bf9c-4d65-8cec-b57c9a7cab42',
-        //   remaining_size => '0.0001'
-        // }
+        //
+        //     {
+        //         $type => 'open',
+        //         side => 'sell',
+        //         product_id => 'BTC-USDC',
+        //         time => '2021-03-05T16:42:21.878177Z',
+        //         $sequence => 5641953815,
+        //         profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
+        //         user_id => '54fc141576dcf32596000133',
+        //         price => '50000',
+        //         order_id => '11838707-bf9c-4d65-8cec-b57c9a7cab42',
+        //         remaining_size => '0.0001'
+        //     }
         //
         // Order is partially or completely filled
-        // {
-        //   $type => 'match',
-        //   side => 'sell',
-        //   product_id => 'BTC-USDC',
-        //   time => '2021-03-05T16:37:13.396107Z',
-        //   sequence => 5641897876,
-        //   profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //   user_id => '54fc141576dcf32596000133',
-        //   trade_id => 5455505,
-        //   maker_order_id => 'e5f5754d-70a3-4346-95a6-209bcb503629',
-        //   taker_order_id => '88bf7086-7b15-40ff-8b19-ab4e08516d69',
-        //   size => '0.00021019',
-        //   price => '47338.46',
-        //   taker_profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //   taker_user_id => '54fc141576dcf32596000133',
-        //   taker_fee_rate => '0.005'
-        // }
         //
-        //  Order is canceled / closed
-        // {
-        //   $type => 'done',
-        //   side => 'buy',
-        //   product_id => 'BTC-USDC',
-        //   time => '2021-03-05T16:37:13.396107Z',
-        //   sequence => 5641897877,
-        //   profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //   user_id => '54fc141576dcf32596000133',
-        //   order_id => '88bf7086-7b15-40ff-8b19-ab4e08516d69',
-        //   reason => 'filled'
-        // }
+        //     {
+        //         $type => 'match',
+        //         side => 'sell',
+        //         product_id => 'BTC-USDC',
+        //         time => '2021-03-05T16:37:13.396107Z',
+        //         $sequence => 5641897876,
+        //         profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
+        //         user_id => '54fc141576dcf32596000133',
+        //         trade_id => 5455505,
+        //         maker_order_id => 'e5f5754d-70a3-4346-95a6-209bcb503629',
+        //         taker_order_id => '88bf7086-7b15-40ff-8b19-ab4e08516d69',
+        //         size => '0.00021019',
+        //         price => '47338.46',
+        //         taker_profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
+        //         taker_user_id => '54fc141576dcf32596000133',
+        //         taker_fee_rate => '0.005'
+        //     }
+        //
+        // Order is canceled / closed
+        //
+        //     {
+        //         $type => 'done',
+        //         side => 'buy',
+        //         product_id => 'BTC-USDC',
+        //         time => '2021-03-05T16:37:13.396107Z',
+        //         $sequence => 5641897877,
+        //         profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
+        //         user_id => '54fc141576dcf32596000133',
+        //         order_id => '88bf7086-7b15-40ff-8b19-ab4e08516d69',
+        //         reason => 'filled'
+        //     }
         //
         $orders = $this->orders;
         if ($orders === null) {
@@ -378,54 +382,59 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 $parsed = $this->parse_ws_order($message);
                 $orders->append ($parsed);
             } else {
-                if ($type === 'match') {
-                    $trade = $this->parse_ws_trade($message);
-                    if ($previousOrder['trades'] === null) {
-                        $previousOrder['trades'] = array();
-                    }
-                    $previousOrder['trades'][] = $trade;
-                    $previousOrder['lastTradeTimestamp'] = $trade['timestamp'];
-                    $totalCost = 0;
-                    $totalAmount = 0;
-                    $trades = $previousOrder['trades'];
-                    for ($i = 0; $i < count($trades); $i++) {
-                        $trade = $trades[$i];
-                        $totalCost = $this->sum($totalCost, $trade['cost']);
-                        $totalAmount = $this->sum($totalAmount, $trade['amount']);
-                    }
-                    if ($totalAmount > 0) {
-                        $previousOrder['average'] = $totalCost / $totalAmount;
-                    }
-                    $previousOrder['cost'] = $totalCost;
-                    if ($previousOrder['filled'] !== null) {
-                        $previousOrder['filled'] .= $trade['amount'];
-                        if ($previousOrder['amount'] !== null) {
-                            $previousOrder['remaining'] = $previousOrder['amount'] - $previousOrder['filled'];
+                $sequence = $this->safe_integer($message, 'sequence');
+                $previousInfo = $this->safe_value($previousOrder, 'info', array());
+                $previousSequence = $this->safe_integer($previousInfo, 'sequence');
+                if (($previousSequence === null) || ($sequence > $previousSequence)) {
+                    if ($type === 'match') {
+                        $trade = $this->parse_ws_trade($message);
+                        if ($previousOrder['trades'] === null) {
+                            $previousOrder['trades'] = array();
+                        }
+                        $previousOrder['trades'][] = $trade;
+                        $previousOrder['lastTradeTimestamp'] = $trade['timestamp'];
+                        $totalCost = 0;
+                        $totalAmount = 0;
+                        $trades = $previousOrder['trades'];
+                        for ($i = 0; $i < count($trades); $i++) {
+                            $trade = $trades[$i];
+                            $totalCost = $this->sum($totalCost, $trade['cost']);
+                            $totalAmount = $this->sum($totalAmount, $trade['amount']);
+                        }
+                        if ($totalAmount > 0) {
+                            $previousOrder['average'] = $totalCost / $totalAmount;
+                        }
+                        $previousOrder['cost'] = $totalCost;
+                        if ($previousOrder['filled'] !== null) {
+                            $previousOrder['filled'] .= $trade['amount'];
+                            if ($previousOrder['amount'] !== null) {
+                                $previousOrder['remaining'] = $previousOrder['amount'] - $previousOrder['filled'];
+                            }
+                        }
+                        if ($previousOrder['fee'] === null) {
+                            $previousOrder['fee'] = array(
+                                'cost' => 0,
+                                'currency' => $trade['fee']['currency'],
+                            );
+                        }
+                        if (($previousOrder['fee']['cost'] !== null) && ($trade['fee']['cost'] !== null)) {
+                            $previousOrder['fee']['cost'] = $this->sum($previousOrder['fee']['cost'], $trade['fee']['cost']);
+                        }
+                    } else {
+                        $info = array_merge($previousOrder['info'], $message);
+                        $order = $this->parse_ws_order($info);
+                        $keys = is_array($order) ? array_keys($order) : array();
+                        // update the reference
+                        for ($i = 0; $i < count($keys); $i++) {
+                            $key = $keys[$i];
+                            if ($order[$key] !== null) {
+                                $previousOrder[$key] = $order[$key];
+                            }
                         }
                     }
-                    if ($previousOrder['fee'] === null) {
-                        $previousOrder['fee'] = array(
-                            'cost' => 0,
-                            'currency' => $trade['fee']['currency'],
-                        );
-                    }
-                    if (($previousOrder['fee']['cost'] !== null) && ($trade['fee']['cost'] !== null)) {
-                        $previousOrder['fee']['cost'] = $this->sum($previousOrder['fee']['cost'], $trade['fee']['cost']);
-                    }
-                } else {
-                    $info = array_merge($previousOrder['info'], $message);
-                    $order = $this->parse_ws_order($info);
-                    $keys = is_array($order) ? array_keys($order) : array();
-                    // update the reference
-                    for ($i = 0; $i < count($keys); $i++) {
-                        $key = $keys[$i];
-                        if ($order[$key] !== null) {
-                            $previousOrder[$key] = $order[$key];
-                        }
-                    }
+                    // update the newUpdates count
+                    $orders->append ($previousOrder);
                 }
-                // update the newUpdates count
-                $orders->append ($previousOrder);
             }
             $client->resolve ($orders, $messageHash);
         }
