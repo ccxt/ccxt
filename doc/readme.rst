@@ -26,7 +26,7 @@ CCXT – CryptoCurrency eXchange Trading Library
      :target: https://discord.gg/dhzSKYU
      :alt: Discord
  
-.. image:: https://img.shields.io/badge/exchanges-114-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-115-blue.svg
      :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
      :alt: Supported Exchanges
  
@@ -304,7 +304,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -982,14 +982,24 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
      - `API <https://docs.digifinex.com>`__
      - 
      - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg
+          :target: https://eqonex.com?referredByCode=zpa8kij4ouvBFup3
+          :alt: eqonex
+     
+     - eqonex
+     - `EQONEX <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
+     - *
+     - `API <https://developer.eqonex.com>`__
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/107758499-05edd180-6d38-11eb-9e09-0b69602a7a15.jpg
-          :target: https://equos.io?referredByCode=zpa8kij4ouvBFup3
+          :target: https://eqonex.com?referredByCode=zpa8kij4ouvBFup3
           :alt: equos
      
      - equos
-     - `EQUOS <https://equos.io?referredByCode=zpa8kij4ouvBFup3>`__
+     - `EQUOS <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
      - *
-     - `API <https://developer.equos.io>`__
+     - `API <https://developer.eqonex.com>`__
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg
@@ -1644,14 +1654,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.51.65/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.51.65/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.51.66/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.51.66/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.51.65/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.51.66/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
