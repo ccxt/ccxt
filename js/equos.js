@@ -11,7 +11,7 @@ module.exports = class equos extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'equos',
-            'name': 'EQUOS',
+            'name': 'EQONEX',
             'countries': [ 'US', 'SG' ], // United States, Singapore
             'rateLimit': 10,
             'has': {
@@ -49,18 +49,18 @@ module.exports = class equos extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/107758499-05edd180-6d38-11eb-9e09-0b69602a7a15.jpg',
                 'test': {
-                    'public': 'https://testnet.equos.io/api',
-                    'private': 'https://testnet.equos.io/api',
+                    'public': 'https://testnet.eqonex.com/api',
+                    'private': 'https://testnet.eqonex.com/api',
                 },
                 'api': {
-                    'public': 'https://equos.io/api',
-                    'private': 'https://equos.io/api',
+                    'public': 'https://eqonex.com/api',
+                    'private': 'https://eqonex.com/api',
                 },
-                'www': 'https://equos.io',
+                'www': 'https://eqonex.com',
                 'doc': [
-                    'https://developer.equos.io',
+                    'https://developer.eqonex.com',
                 ],
-                'referral': 'https://equos.io?referredByCode=zpa8kij4ouvBFup3',
+                'referral': 'https://eqonex.com?referredByCode=zpa8kij4ouvBFup3',
             },
             'api': {
                 'public': {
