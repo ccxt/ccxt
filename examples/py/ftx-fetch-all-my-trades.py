@@ -22,7 +22,7 @@ markets = exchange.load_markets ()
 
 # exchange.verbose = True  # uncomment for debugging
 
-all_trades = []
+all_trades = {}
 symbol = None
 since = None
 limit = 200
@@ -37,13 +37,23 @@ while True:
     if len(trades):
         first_trade = trades[0]
         last_trade = trades[len(trades) - 1]
-        end_time = first_trade['timestamp']
-        all_trades = trades + all_trades
+        end_time = first_trade['timestamp'] + 1000
         print('Fetched', len(trades), 'trades from', first_trade['datetime'], 'till', last_trade['datetime'])
+        fetched_new_trades = False
+        for trade in trades:
+            trade_id = trade['id']
+            if trade_id not in all_trades:
+                fetched_new_trades = True
+                all_trades[trade_id] = trade
+        if not fetched_new_trades:
+            print('Done')
+            break
     else:
         print('Done')
         break
 
+        
+all_trades = list(all_trades.values())
 
 print('Fetched', len(all_trades), 'trades')
 for i in range(0, len(all_trades)):
