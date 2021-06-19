@@ -887,14 +887,23 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - 3
      - `API <https://docs.digifinex.com>`__
    * - Singapore
+     - .. image:: https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg
+          :target: https://eqonex.com?referredByCode=zpa8kij4ouvBFup3
+          :alt: eqonex
+     
+     - eqonex
+     - `EQONEX <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
+     - *
+     - `API <https://developer.eqonex.com>`__
+   * - Singapore
      - .. image:: https://user-images.githubusercontent.com/1294454/107758499-05edd180-6d38-11eb-9e09-0b69602a7a15.jpg
-          :target: https://equos.io?referredByCode=zpa8kij4ouvBFup3
+          :target: https://eqonex.com?referredByCode=zpa8kij4ouvBFup3
           :alt: equos
      
      - equos
-     - `EQUOS <https://equos.io?referredByCode=zpa8kij4ouvBFup3>`__
+     - `EQUOS <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
      - *
-     - `API <https://developer.equos.io>`__
+     - `API <https://developer.eqonex.com>`__
    * - Singapore
      - .. image:: https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg
           :target: https://www.luno.com/invite/44893A
@@ -1247,14 +1256,23 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - 1
      - `API <https://coinmarketcap.com/api>`__
    * - US
+     - .. image:: https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg
+          :target: https://eqonex.com?referredByCode=zpa8kij4ouvBFup3
+          :alt: eqonex
+     
+     - eqonex
+     - `EQONEX <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
+     - *
+     - `API <https://developer.eqonex.com>`__
+   * - US
      - .. image:: https://user-images.githubusercontent.com/1294454/107758499-05edd180-6d38-11eb-9e09-0b69602a7a15.jpg
-          :target: https://equos.io?referredByCode=zpa8kij4ouvBFup3
+          :target: https://eqonex.com?referredByCode=zpa8kij4ouvBFup3
           :alt: equos
      
      - equos
-     - `EQUOS <https://equos.io?referredByCode=zpa8kij4ouvBFup3>`__
+     - `EQUOS <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
      - *
-     - `API <https://developer.equos.io>`__
+     - `API <https://developer.eqonex.com>`__
    * - US
      - .. image:: https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg
           :target: https://gemini.com/
