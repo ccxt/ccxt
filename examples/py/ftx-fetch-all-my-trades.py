@@ -38,15 +38,14 @@ while True:
         first_trade = trades[0]
         last_trade = trades[len(trades) - 1]
         end_time = first_trade['timestamp'] + 1000
+        print('Fetched', len(trades), 'trades from', first_trade['datetime'], 'till', last_trade['datetime'])
         fetched_new_trades = False
         for trade in trades:
             trade_id = trade['id']
             if trade_id not in all_trades:
                 fetched_new_trades = True
                 all_trades[trade_id] = trade
-        if fetched_new_trades:
-            print('Fetched', len(trades), 'trades from', first_trade['datetime'], 'till', last_trade['datetime'])
-        else:
+        if not fetched_new_trades:
             print('Done')
             break
     else:
