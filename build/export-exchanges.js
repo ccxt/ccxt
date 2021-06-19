@@ -94,7 +94,7 @@ function createMarkdownListOfExchanges (exchanges) {
     return exchanges.map ((exchange) => {
 
         const www = exchange.urls.www
-            , url = exchange.urls.referral || www
+            , url = exchange.urls.referral ? referral : www
             , doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
             , version = exchange.version ? exchange.version.replace (/[^0-9\.]+/, '') : '\*'
 
@@ -154,7 +154,7 @@ function createMarkdownListOfExchangesByCountries (exchanges) {
                     'logo': '[![' + exchange.id + '](' + exchange.urls.logo + ')](' + url + ')',
                     'id': exchange.id,
                     'name': '[' + exchange.name + '](' + url + ')',
-                    'ver': version,
+                    'ver': '[' + version + '](' + doc + ')',
                     'doc': '[API](' + doc + ')',
                 })
             }
