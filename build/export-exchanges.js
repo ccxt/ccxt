@@ -94,7 +94,7 @@ function createMarkdownListOfExchanges (exchanges) {
     return exchanges.map ((exchange) => {
 
         const www = exchange.urls.www
-            , url = exchange.urls.referral ? referral : www
+            , url = exchange.urls.referral ? exchange.urls.referral : www
             , doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
             , version = exchange.version ? exchange.version.replace (/[^0-9\.]+/, '') : '\*'
 
