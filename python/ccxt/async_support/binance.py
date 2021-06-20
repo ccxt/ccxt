@@ -123,7 +123,10 @@ class binance(Exchange):
                     'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
-                'referral': 'https://www.binance.com/?ref=10205187',
+                'referral': {
+                    'url': 'https://www.binance.com/en/register?ref=DHW57RGL',
+                    'discount': 0.1,
+                },
                 'doc': [
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],

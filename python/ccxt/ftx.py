@@ -49,7 +49,10 @@ class ftx(Exchange):
                 },
                 'doc': 'https://github.com/ftexchange/ftx',
                 'fees': 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
-                'referral': 'https://ftx.com/#a=1623029',
+                'referral': {
+                    'url': 'https://ftx.com/#a=ccxt',
+                    'discount': 0.05,
+                },
             },
             'has': {
                 'cancelAllOrders': True,

@@ -105,11 +105,11 @@ Certified Cryptocurrency Exchanges
      
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
-          :target: https://www.binance.com/?ref=10205187
+          :target: https://www.binance.com/en/register?ref=DHW57RGL
           :alt: binance
      
      - binance
-     - `Binance <https://www.binance.com/?ref=10205187>`__
+     - `Binance <https://www.binance.com/en/register?ref=DHW57RGL>`__
      - `* <https://binance-docs.github.io/apidocs/spot/en>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -119,13 +119,16 @@ Certified Cryptocurrency Exchanges
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-     - 
+     - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d10%25&color=orange
+          :target: https://www.binance.com/en/register?ref=DHW57RGL
+          :alt: Sign up with Binance using CCXT's referral link for a 10% discount!
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/?ref=10205187
+          :target: https://www.binance.com/en/register?ref=DHW57RGL
           :alt: binancecoinm
      
      - binancecoinm
-     - `Binance COIN-M <https://www.binance.com/?ref=10205187>`__
+     - `Binance COIN-M <https://www.binance.com/en/register?ref=DHW57RGL>`__
      - `* <https://binance-docs.github.io/apidocs/delivery/en/>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -135,13 +138,16 @@ Certified Cryptocurrency Exchanges
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-     - 
+     - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d10%25&color=orange
+          :target: https://www.binance.com/en/register?ref=DHW57RGL
+          :alt: Sign up with Binance COIN-M using CCXT's referral link for a 10% discount!
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/?ref=10205187
+          :target: https://www.binance.com/en/register?ref=DHW57RGL
           :alt: binanceusdm
      
      - binanceusdm
-     - `Binance USDⓈ-M <https://www.binance.com/?ref=10205187>`__
+     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=DHW57RGL>`__
      - `* <https://binance-docs.github.io/apidocs/futures/en/>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -151,7 +157,10 @@ Certified Cryptocurrency Exchanges
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-     - 
+     - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d10%25&color=orange
+          :target: https://www.binance.com/en/register?ref=DHW57RGL
+          :alt: Sign up with Binance USDⓈ-M using CCXT's referral link for a 10% discount!
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
           :target: https://bitvavo.com/?a=24F34952F7
           :alt: bitvavo
@@ -198,11 +207,11 @@ Certified Cryptocurrency Exchanges
      
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
-          :target: https://ftx.com/#a=1623029
+          :target: https://ftx.com/#a=ccxt
           :alt: ftx
      
      - ftx
-     - `FTX <https://ftx.com/#a=1623029>`__
+     - `FTX <https://ftx.com/#a=ccxt>`__
      - `* <https://github.com/ftexchange/ftx>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -212,7 +221,10 @@ Certified Cryptocurrency Exchanges
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-     - 
+     - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d5%25&color=orange
+          :target: https://ftx.com/#a=ccxt
+          :alt: Sign up with FTX using CCXT's referral link for a 5% discount!
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg
           :target: https://www.gopax.co.kr
           :alt: gopax
@@ -379,11 +391,11 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
-          :target: https://www.binance.com/?ref=10205187
+          :target: https://www.binance.com/en/register?ref=DHW57RGL
           :alt: binance
      
      - binance
-     - `Binance <https://www.binance.com/?ref=10205187>`__
+     - `Binance <https://www.binance.com/en/register?ref=DHW57RGL>`__
      - `* <https://binance-docs.github.io/apidocs/spot/en>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -394,11 +406,11 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/?ref=10205187
+          :target: https://www.binance.com/en/register?ref=DHW57RGL
           :alt: binancecoinm
      
      - binancecoinm
-     - `Binance COIN-M <https://www.binance.com/?ref=10205187>`__
+     - `Binance COIN-M <https://www.binance.com/en/register?ref=DHW57RGL>`__
      - `* <https://binance-docs.github.io/apidocs/delivery/en/>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -421,11 +433,11 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/?ref=10205187
+          :target: https://www.binance.com/en/register?ref=DHW57RGL
           :alt: binanceusdm
      
      - binanceusdm
-     - `Binance USDⓈ-M <https://www.binance.com/?ref=10205187>`__
+     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=DHW57RGL>`__
      - `* <https://binance-docs.github.io/apidocs/futures/en/>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -967,11 +979,11 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
-          :target: https://ftx.com/#a=1623029
+          :target: https://ftx.com/#a=ccxt
           :alt: ftx
      
      - ftx
-     - `FTX <https://ftx.com/#a=1623029>`__
+     - `FTX <https://ftx.com/#a=ccxt>`__
      - `* <https://github.com/ftexchange/ftx>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -1538,14 +1550,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.51.74/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.51.74/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.51.75/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.51.75/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.51.74/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.51.75/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
