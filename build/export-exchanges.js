@@ -89,6 +89,18 @@ const ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT
 
 // ----------------------------------------------------------------------------
 
+function getFirstWebsiteUrl (exchange) {
+    return Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
+}
+
+// ----------------------------------------------------------------------------
+
+function getReferralOrWebsiteUrl (exchange) {
+    return exchange.urls.referral ? exchange.urls.referral : getFirstWebsiteUrl ()
+}
+
+// ----------------------------------------------------------------------------
+
 function getFirstDocUrl (exchange) {
     return Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
 }
@@ -110,25 +122,25 @@ function getVersionLink (exchange) {
 
 // ----------------------------------------------------------------------------
 
+function createMarkdownExchange (exchanges) {
+    const url = getReferralOrWebsiteUrl (exchange)
+        , doc = getFirstDocUrl (exchange)
+
+    return {
+        'logo': '[![' + exchange.id + '](' + exchange.urls.logo + ')](' + url + ')',
+        'id': exchange.id,
+        'name': '[' + exchange.name + '](' + url + ')',
+        'ver': getVersionLink (exchange),
+        'doc': '[API](' + doc + ')',
+        'certified': exchange.certified ? ccxtCertifiedBadge : '',
+        'pro': exchange.pro ? ccxtProBadge : '',
+    }
+}
+
+// ----------------------------------------------------------------------------
+
 function createMarkdownListOfExchanges (exchanges) {
-
-    return exchanges.map ((exchange) => {
-
-        const www = exchange.urls.www
-            , url = exchange.urls.referral ? exchange.urls.referral : www
-            , doc = getFirstDocUrl (exchange)
-            , version = exchange.version ? exchange.version.replace (/[^0-9\.]+/, '') : '\*'
-
-        return {
-            'logo': '[![' + exchange.id + '](' + exchange.urls.logo + ')](' + url + ')',
-            'id': exchange.id,
-            'name': '[' + exchange.name + '](' + url + ')',
-            'ver': getVersionLink (exchange),
-            'doc': '[API](' + doc + ')',
-            'certified': exchange.certified ? ccxtCertifiedBadge : '',
-            'pro': exchange.pro ? ccxtProBadge : '',
-        }
-    })
+    return exchanges.map ((exchange) => createMarkdownExchange (exchange))
 }
 
 // ----------------------------------------------------------------------------
@@ -159,24 +171,21 @@ function createMarkdownListOfExchangesByCountries (exchanges) {
 
         exchanges.forEach (exchange => {
 
-            const website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
-                , url = exchange.urls.referral || website
-                , doc = getFirstDocUrl (exchange)
-                , version = exchange.version ? exchange.version.replace (/[^0-9\.]+/, '') : '\*'
-
             const exchangeInCountry =
                 (Array.isArray (exchange.countries) && exchange.countries.includes (code)) ||
                 (code === exchange.countries)
 
             if (exchangeInCountry) {
 
+                const { logo, id, name, ver, doc } = createMarkdownExchange (exchange)
+
                 exchangesByCountries.push ({
                     'country / region': countries[code],
-                    'logo': '[![' + exchange.id + '](' + exchange.urls.logo + ')](' + url + ')',
-                    'id': exchange.id,
-                    'name': '[' + exchange.name + '](' + url + ')',
-                    'ver': getVersionLink (exchange),
-                    'doc': '[API](' + doc + ')',
+                    logo,
+                    id,
+                    name,
+                    ver,
+                    doc,
                 })
             }
         })
@@ -457,12 +466,17 @@ if (require.main === module) {
 
 module.exports = {
     cloneGitHubWiki,
+    createExchanges,
+    createMarkdownExchange,
+    createMarkdownListOfExchanges,
+    createMarkdownListOfExchangesByCountries,
+    getFirstWebsiteUrl,
+    getReferralOrWebsiteUrl,
     getFirstDocUrl,
     getVersion,
     getVersionLink,
     getIncludedExchangeIds,
     exportExchanges,
-    createExchanges,
     exportSupportedAndCertifiedExchanges,
     exportExchangeIdsToExchangesJson,
     exportWikiToGitHub,
