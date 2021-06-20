@@ -50,9 +50,7 @@
     "postinstall": "node postinstall"
   },
   "types": "./ccxt.d.ts",
-  "dependencies": {
-    "react": "^17.0.2"
-  },
+  "dependencies": {},
   "devDependencies": {
     "ansicolor": "1.1.81",
     "as-table": "1.0.37",
