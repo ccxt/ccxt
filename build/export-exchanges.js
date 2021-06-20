@@ -96,7 +96,7 @@ function getFirstWebsiteUrl (exchange) {
 // ----------------------------------------------------------------------------
 
 function getReferralOrWebsiteUrl (exchange) {
-    return exchange.urls.referral ? exchange.urls.referral : getFirstWebsiteUrl ()
+    return exchange.urls.referral ? exchange.urls.referral : getFirstWebsiteUrl (exchange)
 }
 
 // ----------------------------------------------------------------------------
@@ -122,7 +122,7 @@ function getVersionLink (exchange) {
 
 // ----------------------------------------------------------------------------
 
-function createMarkdownExchange (exchanges) {
+function createMarkdownExchange (exchange) {
     const url = getReferralOrWebsiteUrl (exchange)
         , doc = getFirstDocUrl (exchange)
 
