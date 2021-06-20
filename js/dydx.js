@@ -368,8 +368,8 @@ module.exports = class dydx extends Exchange {
         //   "collateralAssetId":"0x02893294412a4c8f915f75892b395ebbf6859ec246ec365c3b1f56f47c3a0a5d"
         // }
         //
-        const maker = parseFloat (configResponse, 'defaultMakerFee');
-        const taker = parseFloat (configResponse, 'defaultTakerFee');
+        const maker = parseFloat (configResponse['defaultMakerFee']);
+        const taker = parseFloat (configResponse['defaultTakerFee']);
         const response = await this.publicGetMarkets (params);
         //
         // {
