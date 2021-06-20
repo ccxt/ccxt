@@ -109,11 +109,13 @@ module.exports = class dydx extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'Not Found': ExchangeNotAvailable,
                     '404': ExchangeNotAvailable,
-                    '403 Forbidden See /corsdemo for more info': AuthenticationError,
+                    '403': AuthenticationError,
                 },
-                'broad': {},
+                'broad': {
+                    'See /corsdemo for more info': AuthenticationError,
+                    'Not Found': ExchangeNotAvailable,
+                },
             },
             'requiredCredentials': {
                 'ethereumAddress': true,
@@ -964,12 +966,15 @@ module.exports = class dydx extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
+            if (typeof body === 'string') {
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, this.id + ' ' + body);
+            }
             return; // fallback to default error handler
         }
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'error', '');
         this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + message);
-        this.throwBroadlyMatchedException (this.exceptions['broad'], message, this.id + ' ' + message);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], body, this.id + ' ' + body);
     }
 };
