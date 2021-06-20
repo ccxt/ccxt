@@ -29,7 +29,7 @@ module.exports = class ftx extends Exchange {
                 'doc': 'https://github.com/ftexchange/ftx',
                 'fees': 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
                 'referral': {
-                    'url': 'https://ftx.com/#a=CCXT',
+                    'url': 'https://ftx.com/#a=ccxt',
                     'discount': 0.05,
                 },
             },
