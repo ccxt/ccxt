@@ -6,6 +6,7 @@ files = [
     'wiki/Manual',
     'wiki/Exchange-Markets-By-Country',
     'wiki/Exchange-Markets',
+    'wiki/ccxt.pro.manual',
     'README',
 ]
 

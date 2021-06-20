@@ -14,7 +14,7 @@
     --dark-body: #3c3c3c;
     --dark-outer: rgba(0,0,0,.6);
     --dark-code: #2d2d2d;
-    --dark-text: #FAFAFA;
+    --dark-text: #d9d9d9;
 }
 
 html[data-theme='dark'] pre {
@@ -34,7 +34,6 @@ html[data-theme='dark'] .method dt, .class dt, .data dt, .attribute dt, .functio
 
 html[data-theme='dark'] code.literal {
 	background-color: var(--dark-body) !important;
-	border: 1px solid #6d6d6d !important;
 }
 
 html[data-theme='dark'] .wy-nav-content-wrap {
@@ -50,11 +49,15 @@ html[data-theme='dark'] ul > .toctree-l1.current > ul > .toctree-l2 {
 }
 
 html[data-theme='dark'] ul > .toctree-l1.current > ul > .toctree-l2 > a {
-   color: var(--dark-text) !important;
+   color: var(--dark-text);
 }
 
 html[data-theme='dark'] ul > .toctree-l1.current > ul > .toctree-l2.current > a, .wy-menu-vertical a:hover {
-   color: rgb(64,64,64) !important;
+   color: #343131 !important;
+}
+
+html[data-theme='dark'] .rst-content div[class^=highlight-], .rst-content pre.literal-block {
+    border: 1px solid var(--dark-body);
 }
 
 .theme-switcher {

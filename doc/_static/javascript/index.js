@@ -1,6 +1,6 @@
 'use strict';
 
-window.addEventListener ('load', () => {
+window.addEventListener ('load', function () {
     const $links = $('ul > .toctree-l1');
     const $sublinks = $('.toctree-l2');
     const $allLinks = $('ul > .toctree-l1,.toctree-l2');
@@ -28,7 +28,10 @@ window.addEventListener ('load', () => {
     });
     // limit faq to just one question per link
     const $faq = $('a.reference.internal[href="#frequently asked questions"]');
-    const $faqlinks = $faq.siblings ().children ().children ();
+    let $faqlinks = $faq.siblings ().children ().children ();
+    if ($faqlinks.length === 0) {
+        $faqlinks = $('a.reference.internal[href^="FAQ.html#"]')
+    }
     $faqlinks.each (function () {
         this.innerText = this.innerText.split ('?')[0] + '?';
     });
@@ -132,7 +135,7 @@ window.addEventListener ('load', () => {
     window.binanceBrokerPortalSdk.initBrokerSDK ('#widget', {
         'apiHost': 'https://www.binance.com',
         'brokerId': 'R4BD3S82',
-        'slideTime': 5.0e8,
+        'slideTime': 20.0e3,
         'overrideStyle': style,
     });
 
@@ -167,6 +170,7 @@ window.addEventListener ('load', () => {
 
     createThemeSwitcher ();
     $('#themeSwitcher').click (switchTheme);
-    const theme = localStorage.getItem ('theme')
+    let theme = localStorage.getItem ('theme')
+    theme = theme === null ? 'light' : theme
     document.documentElement.setAttribute ('data-theme', theme)
 });
