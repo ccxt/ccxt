@@ -494,6 +494,7 @@ module.exports = {
     createExchanges,
     createMarkdownExchange,
     createMarkdownListOfExchanges,
+    createMarkdownListOfCertifiedExchanges,
     createMarkdownListOfExchangesByCountries,
     getFirstWebsiteUrl,
     getReferralUrlOrWebsiteUrl,
