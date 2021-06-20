@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.7.26'
+__version__ = '0.7.27'
 
 # -----------------------------------------------------------------------------
 
@@ -102,6 +102,7 @@ from ccxt.async_support.crex24 import crex24                              # noqa
 from ccxt.async_support.delta import delta                                # noqa: F401
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
+from ccxt.async_support.eqonex import eqonex                              # noqa: F401
 from ccxt.async_support.equos import equos                                # noqa: F401
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.exx import exx                                    # noqa: F401
