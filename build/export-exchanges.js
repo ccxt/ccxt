@@ -95,8 +95,28 @@ function getFirstWebsiteUrl (exchange) {
 
 // ----------------------------------------------------------------------------
 
-function getReferralOrWebsiteUrl (exchange) {
-    return exchange.urls.referral ? exchange.urls.referral : getFirstWebsiteUrl (exchange)
+function getReferralUrlOrWebsiteUrl (exchange) {
+    return exchange.urls.referral ?
+        (exchange.urls.referral.url ? exchange.urls.referral.url : exchange.urls.referral) :
+        getFirstWebsiteUrl (exchange)
+}
+
+// ----------------------------------------------------------------------------
+
+function getReferralDiscountBadgeLink (exchange) {
+    const url = getReferralUrlOrWebsiteUrl (exchange)
+    if (exchange.urls.referral && exchange.urls.referral.discount) {
+        const discountPercentage = parseInt (exchange.urls.referral.discount * 100)
+
+        // this badge does not work with a minus sign
+        // const badge = '(https://img.shields.io/badge/fee-%2D' + discountPercentage.toString () + '%25-yellow)'
+
+        const badge = '(https://img.shields.io/static/v1?label=Fee&message=%2d' + discountPercentage.toString () + '%25&color=orange)'
+        const alt = "![Sign up with " + exchange.name + " using CCXT's referral link for a " + discountPercentage.toString () + "% discount!]"
+        return  '[' + alt + badge + '](' + url + ')'
+    } else {
+        return ''
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -123,7 +143,7 @@ function getVersionLink (exchange) {
 // ----------------------------------------------------------------------------
 
 function createMarkdownExchange (exchange) {
-    const url = getReferralOrWebsiteUrl (exchange)
+    const url = getReferralUrlOrWebsiteUrl (exchange)
     return {
         'logo': '[![' + exchange.id + '](' + exchange.urls.logo + ')](' + url + ')',
         'id': exchange.id,
@@ -138,6 +158,15 @@ function createMarkdownExchange (exchange) {
 
 function createMarkdownListOfExchanges (exchanges) {
     return exchanges.map ((exchange) => createMarkdownExchange (exchange))
+}
+
+// ----------------------------------------------------------------------------
+
+function createMarkdownListOfCertifiedExchanges (exchanges) {
+    return exchanges.map ((exchange) => {
+        const discount = getReferralDiscountBadgeLink (exchange)
+        return { ... createMarkdownExchange (exchange), discount }
+    })
 }
 
 // ----------------------------------------------------------------------------
@@ -174,7 +203,7 @@ function createMarkdownListOfExchangesByCountries (exchanges) {
 
             if (exchangeInCountry) {
 
-                const { logo, id, name, ver } = createMarkdownExchange (exchange)
+                const { logo, id, name, discount, ver } = createMarkdownExchange (exchange)
 
                 exchangesByCountries.push ({
                     'country / region': countries[code],
@@ -274,7 +303,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
     const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified)
     if (certifiedExchangesPaths && certifiedExchanges.length) {
-        const certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfExchanges, [ 3  ])
+        const certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfCertifiedExchanges, [ 3, 6 ])
             , certifiedExchangesReplacement = '$1' + certifiedExchangesMarkdownTable + "\n"
             , certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
         for (const path of certifiedExchangesPaths) {
@@ -467,7 +496,7 @@ module.exports = {
     createMarkdownListOfExchanges,
     createMarkdownListOfExchangesByCountries,
     getFirstWebsiteUrl,
-    getReferralOrWebsiteUrl,
+    getReferralUrlOrWebsiteUrl,
     getFirstDocUrl,
     getVersion,
     getVersionLink,
