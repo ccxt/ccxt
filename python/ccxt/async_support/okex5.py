@@ -2223,11 +2223,11 @@ class okex5(Exchange):
         if code != '0':
             feedback = self.id + ' ' + body
             data = self.safe_value(response, 'data', [])
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             for i in range(0, len(data)):
                 error = data[i]
                 errorCode = self.safe_string(error, 'sCode')
                 message = self.safe_string(error, 'sMsg')
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             raise ExchangeError(feedback)  # unknown message
