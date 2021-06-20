@@ -126,8 +126,8 @@ Certified Cryptocurrency Exchanges
      
      - binancecoinm
      - `Binance COIN-M <https://www.binance.com/?ref=10205187>`__
-     - `* <https://binance-docs.github.io/apidocs/spot/en>`__
-     - `API <https://binance-docs.github.io/apidocs/spot/en>`__
+     - `* <https://binance-docs.github.io/apidocs/delivery/en/>`__
+     - `API <https://binance-docs.github.io/apidocs/delivery/en/>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -142,8 +142,8 @@ Certified Cryptocurrency Exchanges
      
      - binanceusdm
      - `Binance USDⓈ-M <https://www.binance.com/?ref=10205187>`__
-     - `* <https://binance-docs.github.io/apidocs/spot/en>`__
-     - `API <https://binance-docs.github.io/apidocs/spot/en>`__
+     - `* <https://binance-docs.github.io/apidocs/futures/en/>`__
+     - `API <https://binance-docs.github.io/apidocs/futures/en/>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -407,8 +407,8 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - binancecoinm
      - `Binance COIN-M <https://www.binance.com/?ref=10205187>`__
-     - `* <https://binance-docs.github.io/apidocs/spot/en>`__
-     - `API <https://binance-docs.github.io/apidocs/spot/en>`__
+     - `* <https://binance-docs.github.io/apidocs/delivery/en/>`__
+     - `API <https://binance-docs.github.io/apidocs/delivery/en/>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -436,8 +436,8 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - binanceusdm
      - `Binance USDⓈ-M <https://www.binance.com/?ref=10205187>`__
-     - `* <https://binance-docs.github.io/apidocs/spot/en>`__
-     - `API <https://binance-docs.github.io/apidocs/spot/en>`__
+     - `* <https://binance-docs.github.io/apidocs/futures/en/>`__
+     - `API <https://binance-docs.github.io/apidocs/futures/en/>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -1654,14 +1654,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.51.70/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.51.70/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.51.71/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.51.71/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.51.70/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.51.71/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

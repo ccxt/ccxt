@@ -587,8 +587,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - binancecoinm
      - `Binance COIN-M <https://www.binance.com/?ref=10205187>`__
-     - `* <https://binance-docs.github.io/apidocs/spot/en>`__
-     - `API <https://binance-docs.github.io/apidocs/spot/en>`__
+     - `* <https://binance-docs.github.io/apidocs/delivery/en/>`__
+     - `API <https://binance-docs.github.io/apidocs/delivery/en/>`__
    * - Japan
      - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
           :target: https://www.binance.com/?ref=10205187
@@ -596,8 +596,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - binanceusdm
      - `Binance USDⓈ-M <https://www.binance.com/?ref=10205187>`__
-     - `* <https://binance-docs.github.io/apidocs/spot/en>`__
-     - `API <https://binance-docs.github.io/apidocs/spot/en>`__
+     - `* <https://binance-docs.github.io/apidocs/futures/en/>`__
+     - `API <https://binance-docs.github.io/apidocs/futures/en/>`__
    * - Japan
      - .. image:: https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg
           :target: https://bitbank.cc/
@@ -704,8 +704,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - binancecoinm
      - `Binance COIN-M <https://www.binance.com/?ref=10205187>`__
-     - `* <https://binance-docs.github.io/apidocs/spot/en>`__
-     - `API <https://binance-docs.github.io/apidocs/spot/en>`__
+     - `* <https://binance-docs.github.io/apidocs/delivery/en/>`__
+     - `API <https://binance-docs.github.io/apidocs/delivery/en/>`__
    * - Malta
      - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
           :target: https://www.binance.com/?ref=10205187
@@ -713,8 +713,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - binanceusdm
      - `Binance USDⓈ-M <https://www.binance.com/?ref=10205187>`__
-     - `* <https://binance-docs.github.io/apidocs/spot/en>`__
-     - `API <https://binance-docs.github.io/apidocs/spot/en>`__
+     - `* <https://binance-docs.github.io/apidocs/futures/en/>`__
+     - `API <https://binance-docs.github.io/apidocs/futures/en/>`__
    * - Malta
      - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
           :target: https://auth.bitbay.net/ref/jHlbB4mIkdS1
