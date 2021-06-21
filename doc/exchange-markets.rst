@@ -77,11 +77,11 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://www.binance.com/en/register?ref=BLEJC98C
           :alt: binance
      
      - binance
-     - `Binance <https://www.binance.com/en/register?ref=D7YA7CLY>`__
+     - `Binance <https://www.binance.com/en/register?ref=BLEJC98C>`__
      - `* <https://binance-docs.github.io/apidocs/spot/en>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -92,11 +92,11 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://www.binance.com/en/register?ref=BLEJC98C
           :alt: binancecoinm
      
      - binancecoinm
-     - `Binance COIN-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
+     - `Binance COIN-M <https://www.binance.com/en/register?ref=BLEJC98C>`__
      - `* <https://binance-docs.github.io/apidocs/delivery/en/>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -119,11 +119,11 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://www.binance.com/en/register?ref=BLEJC98C
           :alt: binanceusdm
      
      - binanceusdm
-     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
+     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=BLEJC98C>`__
      - `* <https://binance-docs.github.io/apidocs/futures/en/>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
