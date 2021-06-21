@@ -64,11 +64,11 @@ class okex5 extends Exchange {
                 '6M' => '6M',
                 '1y' => '1Y',
             ),
-            'hostname' => 'okex.com',
+            'hostname' => 'www.okex.com',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
                 'api' => array(
-                    'rest' => 'https://www.{hostname}',
+                    'rest' => 'https://{hostname}',
                 ),
                 'www' => 'https://www.okex.com',
                 'doc' => 'https://www.okex.com/docs/en/',
