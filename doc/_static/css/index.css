@@ -65,7 +65,7 @@ ul > .toctree-l1.current > ul > .toctree-l2 {
 }
 
 .version {
-    display: inline;
+    display: inline-block;
 }
 
 /* this fixes a bug in the broker widget in safari */
@@ -97,7 +97,7 @@ nav.wy-nav-side {
 }
 
 /* fix for mobile */
-.wy-side-scroll, .wy-side-nav-search {
+.wy-side-nav-search {
     width: inherit;
 }
 

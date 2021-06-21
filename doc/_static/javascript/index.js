@@ -140,11 +140,8 @@ window.addEventListener ('load', function () {
     });
 
     const createThemeSwitcher = () => {
-        const btn = document.createElement ('BUTTON');
-        btn.className = 'theme-switcher';
-        btn.id = 'themeSwitcher';
-        btn.innerHTML = '<i id=themeMoon class="fa fa-moon-o"></i><i id=themeSun class="fa fa-sun-o"></i>';
-        document.body.appendChild (btn);
+        const $btn = $('<btn id="themeSwitcher" class="theme-switcher"><i id="themeMoon" class="fa fa-moon-o"></i><i id="themeSun" class="fa fa-sun-o"></i></btn>');
+        $('.wy-breadcrumbs-aside').before ($btn)
         if (localStorage.getItem ('theme') === 'dark') {
             $('#themeMoon').hide (0);
         } else {
