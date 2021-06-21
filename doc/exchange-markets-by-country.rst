@@ -318,11 +318,11 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - `1 <https://github.com/phemex/phemex-api-docs>`__
    * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg
-          :target: https://www.zb.com
+          :target: https://www.zbex.club/en/register?ref=1625gesp
           :alt: zb
      
      - zb
-     - `ZB <https://www.zb.com>`__
+     - `ZB <https://www.zbex.club/en/register?ref=1625gesp>`__
      - `1 <https://www.zb.com/i/developer>`__
    * - Colombia
      - .. image:: https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg
