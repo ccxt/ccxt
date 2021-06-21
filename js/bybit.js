@@ -62,9 +62,19 @@ module.exports = class bybit extends Exchange {
                 '1y': 'Y',
             },
             'urls': {
-                'test': 'https://api-testnet.{hostname}',
+                'test': {
+                    'futures': 'https://api-testnet.{hostname}',
+                    'v2': 'https://api-testnet.{hostname}',
+                    'public': 'https://api-testnet.{hostname}',
+                    'private': 'https://api-testnet.{hostname}',
+                },
                 'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'futures': 'https://api.{hostname}',
+                    'v2': 'https://api.{hostname}',
+                    'public': 'https://api.{hostname}',
+                    'private': 'https://api.{hostname}',
+                },
                 'www': 'https://www.bybit.com',
                 'doc': [
                     'https://bybit-exchange.github.io/docs/inverse/',
@@ -2334,9 +2344,9 @@ module.exports = class bybit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
         const type = this.safeString (api, 0);
         const section = this.safeString (api, 1);
+        let url = this.implodeParams (this.urls['api'][type], { 'hostname': this.hostname });
         let request = '/' + type + '/' + section + '/' + path;
         // public v2
         if (section === 'public') {
