@@ -142,13 +142,21 @@ function getVersionLink (exchange) {
 
 // ----------------------------------------------------------------------------
 
+function getVersionBadge (exchange) {
+    const version = getVersion (exchange)
+        , doc = getFirstDocUrl (exchange)
+    return '[![API Version ' + version + '](https://img.shields.io/badge/v.' + version + '-white)](' + doc + ')'
+}
+
+// ----------------------------------------------------------------------------
+
 function createMarkdownExchange (exchange) {
     const url = getReferralUrlOrWebsiteUrl (exchange)
     return {
         'logo': '[![' + exchange.id + '](' + exchange.urls.logo + ')](' + url + ')',
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
-        'ver': getVersionLink (exchange),
+        'ver': getVersionBadge (exchange),
         'certified': exchange.certified ? ccxtCertifiedBadge : '',
         'pro': exchange.pro ? ccxtProBadge : '',
     }
@@ -203,7 +211,7 @@ function createMarkdownListOfExchangesByCountries (exchanges) {
 
             if (exchangeInCountry) {
 
-                const { logo, id, name, discount, ver } = createMarkdownExchange (exchange)
+                const { logo, id, name, ver } = createMarkdownExchange (exchange)
 
                 exchangesByCountries.push ({
                     'country / region': countries[code],
@@ -231,13 +239,13 @@ function createMarkdownTable (array, markdownMethod, centeredColumns) {
     //
     // asTable creates a header underline like
     //
-    //      logo | id | name | ver | certified | pro
-    //     ------------------------------------------
+    //      logo | id | name | version | certified | pro
+    //     ----------------------------------------------
     //
     // we fix it to match markdown underline like
     //
-    //      logo | id | name | ver | certified | pro
-    //     ------|----|------|-----|-----------|-----
+    //      logo | id | name | version | certified | pro
+    //     ------|----|------|---------|-----------|-----
     //
 
     const underline = lines[0].replace (/[^\|]/g, '-')
@@ -245,8 +253,8 @@ function createMarkdownTable (array, markdownMethod, centeredColumns) {
     //
     // ver and doc columns should be centered so we convert it to
     //
-    //      logo | id | name | ver | certified | pro
-    //     ------|----|------|:---:|-----------|-----
+    //      logo | id | name | version | certified | pro
+    //     ------|----|------|:-------:|-----------|-----
     //
 
     const columns = underline.split ('|')
@@ -259,8 +267,8 @@ function createMarkdownTable (array, markdownMethod, centeredColumns) {
     //
     // prepend and append a vertical bar to each line
     //
-    //     | logo | id | name | ver | certified | pro |
-    //     |------|----|------|:---:|-----------|-----|
+    //     | logo | id | name | version | certified | pro |
+    //     |------|----|------|:-------:|-----------|-----|
     //
 
     return lines.map (line => '|' + line + '|').join ("\n")
@@ -501,6 +509,7 @@ module.exports = {
     getFirstDocUrl,
     getVersion,
     getVersionLink,
+    getVersionBadge,
     getIncludedExchangeIds,
     exportExchanges,
     exportSupportedAndCertifiedExchanges,
