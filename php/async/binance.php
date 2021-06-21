@@ -113,7 +113,7 @@ class binance extends Exchange {
                 ),
                 'www' => 'https://www.binance.com',
                 'referral' => array(
-                    'url' => 'https://www.binance.com/en/register?ref=DHW57RGL',
+                    'url' => 'https://www.binance.com/en/register?ref=D7YA7CLY',
                     'discount' => 0.1,
                 ),
                 'doc' => array(

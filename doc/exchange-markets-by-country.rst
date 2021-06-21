@@ -510,27 +510,27 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - `* <https://www.bit2c.co.il/home/api>`__
    * - Japan
      - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
-          :target: https://www.binance.com/en/register?ref=DHW57RGL
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binance
      
      - binance
-     - `Binance <https://www.binance.com/en/register?ref=DHW57RGL>`__
+     - `Binance <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - `* <https://binance-docs.github.io/apidocs/spot/en>`__
    * - Japan
      - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/en/register?ref=DHW57RGL
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binancecoinm
      
      - binancecoinm
-     - `Binance COIN-M <https://www.binance.com/en/register?ref=DHW57RGL>`__
+     - `Binance COIN-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - `* <https://binance-docs.github.io/apidocs/delivery/en/>`__
    * - Japan
      - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/en/register?ref=DHW57RGL
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binanceusdm
      
      - binanceusdm
-     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=DHW57RGL>`__
+     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - `* <https://binance-docs.github.io/apidocs/futures/en/>`__
    * - Japan
      - .. image:: https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg
@@ -614,27 +614,27 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - `2 <https://api.bequant.io/>`__
    * - Malta
      - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
-          :target: https://www.binance.com/en/register?ref=DHW57RGL
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binance
      
      - binance
-     - `Binance <https://www.binance.com/en/register?ref=DHW57RGL>`__
+     - `Binance <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - `* <https://binance-docs.github.io/apidocs/spot/en>`__
    * - Malta
      - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/en/register?ref=DHW57RGL
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binancecoinm
      
      - binancecoinm
-     - `Binance COIN-M <https://www.binance.com/en/register?ref=DHW57RGL>`__
+     - `Binance COIN-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - `* <https://binance-docs.github.io/apidocs/delivery/en/>`__
    * - Malta
      - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/en/register?ref=DHW57RGL
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binanceusdm
      
      - binanceusdm
-     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=DHW57RGL>`__
+     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - `* <https://binance-docs.github.io/apidocs/futures/en/>`__
    * - Malta
      - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
