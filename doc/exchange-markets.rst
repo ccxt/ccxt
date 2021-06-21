@@ -1172,11 +1172,11 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg
-          :target: https://www.zb.com
+          :target: https://www.zbex.club/en/register?ref=1625gesp
           :alt: zb
      
      - zb
-     - `ZB <https://www.zb.com>`__
+     - `ZB <https://www.zbex.club/en/register?ref=1625gesp>`__
      - `1 <https://www.zb.com/i/developer>`__
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
