@@ -106,8 +106,8 @@ module.exports = class binance extends Exchange {
                 },
                 'www': 'https://www.binance.com',
                 'referral': {
-                    'url': 'https://www.binance.com/en/register?ref=D7YA7CLY',
-                    'discount': 0.1,
+                    'url': 'https://www.binance.com/en/register?ref=BLEJC98C',
+                    'discount': 0.2,
                 },
                 'doc': [
                     'https://binance-docs.github.io/apidocs/spot/en',
