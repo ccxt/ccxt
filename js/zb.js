@@ -146,7 +146,7 @@ module.exports = class zb extends Exchange {
                 'referral': {
                     'url': 'https://www.zbex.club/en/register?ref=1625gesp',
                     'discount': 0.06,
-                }
+                },
             },
             'api': {
                 'trade': {
