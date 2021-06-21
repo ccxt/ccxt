@@ -64,9 +64,19 @@ class bybit extends Exchange {
                 '1y' => 'Y',
             ),
             'urls' => array(
-                'test' => 'https://api-testnet.{hostname}',
+                'test' => array(
+                    'futures' => 'https://api-testnet.{hostname}',
+                    'v2' => 'https://api-testnet.{hostname}',
+                    'public' => 'https://api-testnet.{hostname}',
+                    'private' => 'https://api-testnet.{hostname}',
+                ),
                 'logo' => 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
-                'api' => 'https://api.{hostname}',
+                'api' => array(
+                    'futures' => 'https://api.{hostname}',
+                    'v2' => 'https://api.{hostname}',
+                    'public' => 'https://api.{hostname}',
+                    'private' => 'https://api.{hostname}',
+                ),
                 'www' => 'https://www.bybit.com',
                 'doc' => array(
                     'https://bybit-exchange.github.io/docs/inverse/',
@@ -2336,9 +2346,9 @@ class bybit extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname ));
         $type = $this->safe_string($api, 0);
         $section = $this->safe_string($api, 1);
+        $url = $this->implode_params($this->urls['api'][$type], array( 'hostname' => $this->hostname ));
         $request = '/' . $type . '/' . $section . '/' . $path;
         // public v2
         if ($section === 'public') {

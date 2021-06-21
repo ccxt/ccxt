@@ -95,8 +95,28 @@ function getFirstWebsiteUrl (exchange) {
 
 // ----------------------------------------------------------------------------
 
-function getReferralOrWebsiteUrl (exchange) {
-    return exchange.urls.referral ? exchange.urls.referral : getFirstWebsiteUrl (exchange)
+function getReferralUrlOrWebsiteUrl (exchange) {
+    return exchange.urls.referral ?
+        (exchange.urls.referral.url ? exchange.urls.referral.url : exchange.urls.referral) :
+        getFirstWebsiteUrl (exchange)
+}
+
+// ----------------------------------------------------------------------------
+
+function getReferralDiscountBadgeLink (exchange) {
+    const url = getReferralUrlOrWebsiteUrl (exchange)
+    if (exchange.urls.referral && exchange.urls.referral.discount) {
+        const discountPercentage = parseInt (exchange.urls.referral.discount * 100)
+
+        // this badge does not work with a minus sign
+        // const badge = '(https://img.shields.io/badge/fee-%2D' + discountPercentage.toString () + '%25-yellow)'
+
+        const badge = '(https://img.shields.io/static/v1?label=Fee&message=%2d' + discountPercentage.toString () + '%25&color=orange)'
+        const alt = "![Sign up with " + exchange.name + " using CCXT's referral link for a " + discountPercentage.toString () + "% discount!]"
+        return  '[' + alt + badge + '](' + url + ')'
+    } else {
+        return ''
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -122,13 +142,21 @@ function getVersionLink (exchange) {
 
 // ----------------------------------------------------------------------------
 
+function getVersionBadge (exchange) {
+    const version = getVersion (exchange)
+        , doc = getFirstDocUrl (exchange)
+    return '[![API Version ' + version + '](https://img.shields.io/badge/v.' + version + '-white)](' + doc + ')'
+}
+
+// ----------------------------------------------------------------------------
+
 function createMarkdownExchange (exchange) {
-    const url = getReferralOrWebsiteUrl (exchange)
+    const url = getReferralUrlOrWebsiteUrl (exchange)
     return {
         'logo': '[![' + exchange.id + '](' + exchange.urls.logo + ')](' + url + ')',
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
-        'ver': getVersionLink (exchange),
+        'ver': getVersionBadge (exchange),
         'certified': exchange.certified ? ccxtCertifiedBadge : '',
         'pro': exchange.pro ? ccxtProBadge : '',
     }
@@ -138,6 +166,15 @@ function createMarkdownExchange (exchange) {
 
 function createMarkdownListOfExchanges (exchanges) {
     return exchanges.map ((exchange) => createMarkdownExchange (exchange))
+}
+
+// ----------------------------------------------------------------------------
+
+function createMarkdownListOfCertifiedExchanges (exchanges) {
+    return exchanges.map ((exchange) => {
+        const discount = getReferralDiscountBadgeLink (exchange)
+        return { ... createMarkdownExchange (exchange), discount }
+    })
 }
 
 // ----------------------------------------------------------------------------
@@ -202,13 +239,13 @@ function createMarkdownTable (array, markdownMethod, centeredColumns) {
     //
     // asTable creates a header underline like
     //
-    //      logo | id | name | ver | certified | pro
-    //     ------------------------------------------
+    //      logo | id | name | version | certified | pro
+    //     ----------------------------------------------
     //
     // we fix it to match markdown underline like
     //
-    //      logo | id | name | ver | certified | pro
-    //     ------|----|------|-----|-----------|-----
+    //      logo | id | name | version | certified | pro
+    //     ------|----|------|---------|-----------|-----
     //
 
     const underline = lines[0].replace (/[^\|]/g, '-')
@@ -216,8 +253,8 @@ function createMarkdownTable (array, markdownMethod, centeredColumns) {
     //
     // ver and doc columns should be centered so we convert it to
     //
-    //      logo | id | name | ver | certified | pro
-    //     ------|----|------|:---:|-----------|-----
+    //      logo | id | name | version | certified | pro
+    //     ------|----|------|:-------:|-----------|-----
     //
 
     const columns = underline.split ('|')
@@ -230,8 +267,8 @@ function createMarkdownTable (array, markdownMethod, centeredColumns) {
     //
     // prepend and append a vertical bar to each line
     //
-    //     | logo | id | name | ver | certified | pro |
-    //     |------|----|------|:---:|-----------|-----|
+    //     | logo | id | name | version | certified | pro |
+    //     |------|----|------|:-------:|-----------|-----|
     //
 
     return lines.map (line => '|' + line + '|').join ("\n")
@@ -274,7 +311,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
     const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified)
     if (certifiedExchangesPaths && certifiedExchanges.length) {
-        const certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfExchanges, [ 3  ])
+        const certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfCertifiedExchanges, [ 3, 6 ])
             , certifiedExchangesReplacement = '$1' + certifiedExchangesMarkdownTable + "\n"
             , certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
         for (const path of certifiedExchangesPaths) {
@@ -465,12 +502,14 @@ module.exports = {
     createExchanges,
     createMarkdownExchange,
     createMarkdownListOfExchanges,
+    createMarkdownListOfCertifiedExchanges,
     createMarkdownListOfExchangesByCountries,
     getFirstWebsiteUrl,
-    getReferralOrWebsiteUrl,
+    getReferralUrlOrWebsiteUrl,
     getFirstDocUrl,
     getVersion,
     getVersionLink,
+    getVersionBadge,
     getIncludedExchangeIds,
     exportExchanges,
     exportSupportedAndCertifiedExchanges,
