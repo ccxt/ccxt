@@ -60,7 +60,7 @@ ul > .toctree-l1.current > ul > .toctree-l2 {
 
 .wy-side-nav-search {
     position: fixed;
-    top: -1px;
+    top: 0px;
     z-index: 10000;
 }
 

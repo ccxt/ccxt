@@ -11,7 +11,7 @@
     --dark-code: #2d2d2d;
     --dark-text: #d9d9d9;
     --dark-hover: #343131;
-    --dark-blue: #06314e;
+    --dark-blue: #222222;
 }
 
 html[data-theme='dark'] pre {
