@@ -4929,8 +4929,6 @@ Position Structure
       'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
       'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
       'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
-      'realizedPnl': 10,           // float, the total funding and trading fees incurred by this position so far, can be negative
-      'pnl ': 310,                 // float, the sum of the realizedPnl and the unrealizedPnl, can be negative
       'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
       'status': 'open',            // string, can be "open", "closed" or "liquidating"
    }
@@ -4963,23 +4961,6 @@ It is the price at which the ``initialMargin + unrealized = collateral = mainten
    // if inverse short
    (1/price - 1/liquidationPrice) * contracts = maintenanceMargin
 
-Loading Futures Markets
-^^^^^^^^^^^^^^^^^^^^^^^
-
-All the market types defined in ``this.options['fetchMarkets']`` are loaded upon calling ``exchange.loadMarkets``\ , including futures and swaps. Some exchanges serve linear and inverse markets from different endpoints, and they might also have different endpoints for futures (that expire) and swaps (that are perpetual). Thoughout the library we will use the term ``linear`` to reference USD settled futures, ``inverse`` to reference base currency settled futures, ``swap`` to reference perpertual swaps, and ``future`` to reference a contract that expires to the price of an underlying index. You might want to change
-
-.. code-block:: Javascript
-
-   binance.options['fetchMarkets'] = [ 'linear' ]
-
-if you are only interested in loading the USDT-margined futures and
-
-.. code-block:: Javascript
-
-   binance.options['fetchMarkets'] = [ 'linear', 'inverse' ]
-
-if you are interested in loading both the USDT-margined futures and the COIN-margined futures.
-
 Using fetchPositions
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -4987,19 +4968,13 @@ Information about the positions can be served from different endpoints depending
 
 .. code-block:: Javascript
 
-   binance.options['fetchPositions'] = 'inverse'
-   await binance.fetchPositions ()
+   await binanceusdm.fetchPositions ()
 
-   // equivalent to the above
-   await binance.fetchPositions (undefined, undefined, undefined, { 'type': 'inverse' }}
+   // for inverse positions
+   await binancecoinm.fetchPositions ()
 
-You can also filter out the open positions by doing
-
-.. code-block:: Javascript
-
-   await binance.fetchOpenPositions ()
-
-This is an emulated function and just filters data from ``fetchPositions``.
+   // for isolated positions
+   await binancecoinm.fetchIsolatedPositions ()
 
 Contract Naming Conventions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
