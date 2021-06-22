@@ -1751,9 +1751,9 @@ To switch to the sandbox one has to call the ``exchange.setSandboxMode (true)`` 
    $exchange->set_sandbox_mode(true); // enable sandbox mode
 
 
-* The ``exchange.setSandboxMode (true) / exchange.set_sandbox_mode (True)`` has to be your first call immediately after creating the exchange (before any other calls)
-* To obtain the :ref:`API keys <authentication>` to the sandbox the user has to register with the sandbox website of the exchange in question and create a sandbox keypair
-* **Sandbox keys are not interchangeable with production keys!**
+ * The ``exchange.setSandboxMode (true) / exchange.set_sandbox_mode (True)`` has to be your first call immediately after creating the exchange (before any other calls)
+ * To obtain the :ref:`API keys <authentication>` to the sandbox the user has to register with the sandbox website of the exchange in question and create a sandbox keypair
+ * **Sandbox keys are not interchangeable with production keys!**
 
 Exchange Structure
 ------------------
@@ -1829,52 +1829,52 @@ Exchange Properties
 Below is a detailed description of each of the base exchange properties:
 
 
-* 
+ * 
   ``id``\ : Each exchange has a default id. The id is not used for anything, it's a string literal for user-land exchange instance identification purposes. You can have multiple links to the same exchange and differentiate them by ids. Default ids are all lowercase and correspond to exchange names.
 
-* 
+ * 
   ``name``\ : This is a string literal containing the human-readable exchange name.
 
-* 
+ * 
   ``countries``\ : An array of string literals of 2-symbol ISO country codes, where the exchange is operating from.
 
-* 
+ * 
   ``urls['api']``\ : The single string literal base URL for API calls or an associative array of separate URLs for private and public APIs.
 
-* 
+ * 
   ``urls['www']``\ : The main HTTP website URL.
 
-* 
+ * 
   ``urls['doc']``\ : A single string URL link to original documentation for exchange API on their website or an array of links to docs.
 
-* 
+ * 
   ``version``\ : A string literal containing version identifier for current exchange API. The ccxt library will append this version string to the API Base URL upon each request. You don't have to modify it, unless you are implementing a new exchange API. The version identifier is a usually a numeric string starting with a letter 'v' in some cases, like v1.1. Do not override it unless you are implementing your own new crypto exchange class.
 
-* 
+ * 
   ``api``\ : An associative array containing a definition of all API endpoints exposed by a crypto exchange. The API definition is used by ccxt to automatically construct callable instance methods for each available endpoint.
 
-* 
+ * 
   ``has``\ : This is an associative array of exchange capabilities (e.g ``fetchTickers``\ , ``fetchOHLCV`` or ``CORS``\ ).
 
-* 
+ * 
   ``timeframes``\ : An associative array of timeframes, supported by the fetchOHLCV method of the exchange. This is only populated when ``has['fetchOHLCV']`` property is true.
 
-* 
+ * 
   ``timeout``\ : A timeout in milliseconds for a request-response roundtrip (default timeout is 10000 ms = 10 seconds). You should always set it to a reasonable value, hanging forever with no timeout is not your option, for sure.
 
-* 
+ * 
   ``rateLimit``\ : A request rate limit in milliseconds. Specifies the required minimal delay between two consequent HTTP requests to the same exchange. The built-in rate-limiter is disabled by default and is turned on by setting the ``enableRateLimit`` property to true.
 
-* 
+ * 
   ``enableRateLimit``\ : A boolean (true/false) value that enables the built-in rate limiter and throttles consecutive requests. This setting is ``true`` (enabled) by default. **The user is required to implement own :ref:`rate limiting <rate limit>` or leave the built-in rate limiter enabled to avoid being banned from the exchange**.
 
-* 
+ * 
   ``userAgent``\ : An object to set HTTP User-Agent header to. The ccxt library will set its User-Agent by default. Some exchanges may not like it. If you are having difficulties getting a reply from an exchange and want to turn User-Agent off or use the default one, set this value to false, undefined, or an empty string. The value of ``userAgent`` may be overrided by HTTP ``headers`` property below.
 
-* 
+ * 
   ``headers``\ : An associative array of HTTP headers and their values. Default value is empty ``{}``. All headers will be prepended to all requests. If the ``User-Agent`` header is set within ``headers``\ , it will override whatever value is set in the ``userAgent`` property above.
 
-* 
+ * 
   `verbose`: A boolean flag indicating whether to log HTTP requests to stdout (verbose flag is false by default). Python people have an alternative way of DEBUG logging with a standard pythonic logger, which is enabled by adding these two lines to the beginning of their code:
 
   .. code-block:: Python
@@ -1882,40 +1882,40 @@ Below is a detailed description of each of the base exchange properties:
      import logging
      logging.basicConfig(level=logging.DEBUG)
 
-* 
+ * 
   ``markets``\ : An associative array of markets indexed by common trading pairs or symbols. Markets should be loaded prior to accessing this property. Markets are unavailable until you call the ``loadMarkets() / load_markets()`` method on exchange instance.
 
-* 
+ * 
   ``symbols``\ : A non-associative array (a list) of symbols available with an exchange, sorted in alphabetical order. These are the keys of the ``markets`` property. Symbols are loaded and reloaded from markets. This property is a convenient shorthand for all market keys.
 
-* 
+ * 
   ``currencies``\ : An associative array (a dict) of currencies by codes (usually 3 or 4 letters) available with an exchange. Currencies are loaded and reloaded from markets.
 
-* 
+ * 
   ``markets_by_id``\ : An associative array of markets indexed by exchange-specific ids. Markets should be loaded prior to accessing this property.
 
-* 
+ * 
   `proxy`: A string literal containing base URL of http(s) proxy, `''` by default. For use with web browsers and from blocked locations. An example of a proxy string is `'http://crossorigin.me/'`. The absolute exchange endpoint URL is appended to this string before sending the HTTP request.
 
-* 
+ * 
   ``apiKey``\ : This is your public API key string literal. Most exchanges require :ref:`API keys setup <api keys setup>`.
 
-* 
+ * 
   ``secret``\ : Your private secret API key string literal. Most exchanges require this as well together with the apiKey.
 
-* 
+ * 
   ``password``\ : A string literal with your password/phrase. Some exchanges require this parameter for trading, but most of them don't.
 
-* 
+ * 
   ``uid``\ : A unique id of your account. This can be a string literal or a number. Some exchanges also require this for trading, but most of them don't.
 
-* 
+ * 
   ``requiredCredentials``\ : A unified associative dictionary that shows which of the above API credentials are required for sending private API calls to the underlying exchange (an exchange may require a specific set of keys).
 
-* 
+ * 
   ``options``\ : An exchange-specific associative dictionary containing special keys and options that are accepted by the underlying exchange and supported in CCXT.
 
-* 
+ * 
   ``precisionMode``\ : The exchange decimal precision counting mode, read more about :ref:`Precision And Limits <precision and limits>`
 
 See this section on :ref:`Overriding exchange properties <overriding-exchange-properties-upon-instantiation>`.
@@ -1924,7 +1924,7 @@ Exchange Metadata
 ~~~~~~~~~~~~~~~~~
 
 
-* 
+ * 
   `has`: An assoc-array containing flags for exchange capabilities, including the following:
 
   .. code-block:: JavaScript
@@ -1974,11 +1974,11 @@ Rate Limit
 
 Exchanges usually impose what is called a *rate limit*. Exchanges will remember and track your user credentials and your IP address and will not allow you to query the API too frequently. They balance their load and control traffic congestion to protect API servers from (D)DoS and misuse.
 
-**WARNING: Stay under the rate limit to avoid ban!**
+ **WARNING: Stay under the rate limit to avoid ban!**
 
 Most exchanges allow **up to 1 or 2 requests per second**. Exchanges may temporarily restrict your access to their API or ban you for some period of time if you are too aggressive with your requests.
 
-**The ``exchange.rateLimit`` property is set to a safe default which is sub-optimal. Some exchanges may have varying rate limits for different endpoints. It is up to the user to tweak ``rateLimit`` according to application-specific purposes.**
+ **The ``exchange.rateLimit`` property is set to a safe default which is sub-optimal. Some exchanges may have varying rate limits for different endpoints. It is up to the user to tweak ``rateLimit`` according to application-specific purposes.**
 
 The CCXT library has a built-in experimental rate-limiter that will do the necessary throttling in background transparently to the user. **WARNING: users are responsible for at least some type of rate-limiting: either by implementing a custom algorithm or by doing it with the built-in rate-limiter.**.
 
@@ -2026,10 +2026,10 @@ Turn on/off the built-in rate-limiter with ``.enableRateLimit`` property, like s
 In case your calls hit a rate limit or get nonce errors, the ccxt library will throw an ``InvalidNonce`` exception, or, in some cases, one of the following types:
 
 
-* ``DDoSProtectionError``
-* ``ExchangeNotAvailable``
-* ``ExchangeError``
-* ``InvalidNonce``
+ * ``DDoSProtectionError``
+ * ``ExchangeNotAvailable``
+ * ``ExchangeError``
+ * ``InvalidNonce``
 
 A later retry is usually enough to handle that.
 
@@ -2116,26 +2116,26 @@ Some exchanges are `DDoS <https://en.wikipedia.org/wiki/Denial-of-service_attack
 The most common symptoms for a DDoS protection problem, rate-limiting problem or for a location-based filtering issue:
 
 
-* Getting ``RequestTimeout`` exceptions with all types of exchange methods
-* Catching ``ExchangeError`` or ``ExchangeNotAvailable`` with HTTP error codes 400, 403, 404, 429, 500, 501, 503, etc..
-* Having DNS resolving issues, SSL certificate issues and low-level connectivity issues
-* Getting a template HTML page instead of JSON from the exchange
+ * Getting ``RequestTimeout`` exceptions with all types of exchange methods
+ * Catching ``ExchangeError`` or ``ExchangeNotAvailable`` with HTTP error codes 400, 403, 404, 429, 500, 501, 503, etc..
+ * Having DNS resolving issues, SSL certificate issues and low-level connectivity issues
+ * Getting a template HTML page instead of JSON from the exchange
 
 If you encounter DDoS protection errors and cannot reach a particular exchange then:
 
 
-* try using a cloudscraper:
+ * try using a cloudscraper:
 
   * https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
   * https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
   * https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare-with-cookies.py
 
-* use a proxy (this is less responsive, though)
-* ask the exchange support to add you to a whitelist
-* run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
-* try an alternative IP within a different geographic region
-* run your software in a distributed network of servers
-* ...
+ * use a proxy (this is less responsive, though)
+ * ask the exchange support to add you to a whitelist
+ * run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
+ * try an alternative IP within a different geographic region
+ * run your software in a distributed network of servers
+ * ...
 
 Markets
 =======
@@ -2182,27 +2182,27 @@ Market Structure
 Each market is an associative array (aka dictionary) with the following keys:
 
 
-* ``id``. The string or numeric ID of the market or trade instrument within the exchange. Market ids are used inside exchanges internally to identify trading pairs during the request/response process.
-* ``symbol``. An uppercase string code representation of a particular trading pair or instrument. This is usually written as ``BaseCurrency/QuoteCurrency`` with a slash as in ``BTC/USD``\ , ``LTC/CNY`` or ``ETH/EUR``\ , etc. Symbols are used to reference markets within the ccxt library (explained below).
-* ``base``. A unified uppercase string code of base fiat or crypto currency. This is the standardized currency code that is used to refer to that currency or token throughout CCXT and throughout the Unified CCXT API, it's the language that CCXT understands.
-* ``quote``. A unified uppercase string code of quoted fiat or crypto currency.
-* ``baseId``. An exchange-specific id of the base currency for this market, not unified. Can be any string, literally. This is communicated to the exchange using the language the exchange understands.
-* ``quoteId``. An exchange-specific id of the quote currency, not unified.
-* ``active``. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and :ref:`reload market cache periodically, as explained below <market cache force reload>`.
-* ``maker``. Float, 0.0015 = 0.15%. Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Fees can be negative, this is very common amongst derivative exchanges. A negative fee means the exchange will pay a rebate (reward) to the user for trading this market.
-* ``taker``. Float, 0.002 = 0.2%. Taker fees are paid when you *take* liquidity from the exchange and fill someone else's order.
-* ``percentage``. A boolean true/false value indicating whether ``taker`` and ``maker`` are multipliers or fixed flat amounts.
-* ``tierBased``. A boolean true/false value indicating whether the fee depends on your trading tier (usually, your traded volume over a period of time).
-* ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
-* ``precision``. Precision accepted in order values by exchanges upon order placement for price, amount and cost. The values inside this market property depend on the ``exchange.precisionMode``.
+ * ``id``. The string or numeric ID of the market or trade instrument within the exchange. Market ids are used inside exchanges internally to identify trading pairs during the request/response process.
+ * ``symbol``. An uppercase string code representation of a particular trading pair or instrument. This is usually written as ``BaseCurrency/QuoteCurrency`` with a slash as in ``BTC/USD``\ , ``LTC/CNY`` or ``ETH/EUR``\ , etc. Symbols are used to reference markets within the ccxt library (explained below).
+ * ``base``. A unified uppercase string code of base fiat or crypto currency. This is the standardized currency code that is used to refer to that currency or token throughout CCXT and throughout the Unified CCXT API, it's the language that CCXT understands.
+ * ``quote``. A unified uppercase string code of quoted fiat or crypto currency.
+ * ``baseId``. An exchange-specific id of the base currency for this market, not unified. Can be any string, literally. This is communicated to the exchange using the language the exchange understands.
+ * ``quoteId``. An exchange-specific id of the quote currency, not unified.
+ * ``active``. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and :ref:`reload market cache periodically, as explained below <market cache force reload>`.
+ * ``maker``. Float, 0.0015 = 0.15%. Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Fees can be negative, this is very common amongst derivative exchanges. A negative fee means the exchange will pay a rebate (reward) to the user for trading this market.
+ * ``taker``. Float, 0.002 = 0.2%. Taker fees are paid when you *take* liquidity from the exchange and fill someone else's order.
+ * ``percentage``. A boolean true/false value indicating whether ``taker`` and ``maker`` are multipliers or fixed flat amounts.
+ * ``tierBased``. A boolean true/false value indicating whether the fee depends on your trading tier (usually, your traded volume over a period of time).
+ * ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
+ * ``precision``. Precision accepted in order values by exchanges upon order placement for price, amount and cost. The values inside this market property depend on the ``exchange.precisionMode``.
 
   * If ``exchange.precisionMode`` is ``DECIMAL_PLACES`` then the ``market['precision']`` designates the number of decimal digits after the dot.
   * If ``exchange.precisionMode`` is ``SIGNIFICANT_DIGITS`` then the ``market['precision']`` designates the number of non-zero digits after the dot.
   * When ``exchange.precisionMode`` is ``TICK_SIZE`` then the ``market['precision']`` designates the smallest possible float fractions.
 
-* ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
+ * ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
 
-**WARNING! fee related information is experimental, unstable and may only be partial available or not at all.**
+ **WARNING! fee related information is experimental, unstable and may only be partial available or not at all.**
 
 Currency Structure
 ------------------
@@ -2229,29 +2229,30 @@ Currency Structure
 Each currency is an associative array (aka dictionary) with the following keys:
 
 
-* ``id``. The string or numeric ID of the currency within the exchange. Currency ids are used inside exchanges internally to identify coins during the request/response process.
-* ``code``. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
-* ``name``. Self-explaining.
-* ``fee``. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the ``fee`` can be ``undefined/None/null`` or missing.
-* ``active``. A boolean indicating whether or not trading and funding (depositing and withdrawing) this currency is currently possible. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and :ref:`reload markets periodically, as explained below <market cache force reload>`.
-* ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
-* ``precision``. Precision accepted in values by exchanges upon referencing this currency. The value inside this property depend on the ``exchange.precisionMode``.
+ * ``id``. The string or numeric ID of the currency within the exchange. Currency ids are used inside exchanges internally to identify coins during the request/response process.
+ * ``code``. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
+ * ``name``. Self-explaining.
+ * ``fee``. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the ``fee`` can be ``undefined/None/null`` or missing.
+ * ``active``. A boolean indicating whether or not trading and funding (depositing and withdrawing) this currency is currently possible. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and :ref:`reload markets periodically, as explained below <market cache force reload>`.
+ * ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
+ * ``precision``. Precision accepted in values by exchanges upon referencing this currency. The value inside this property depend on the ``exchange.precisionMode``.
 
   * If ``exchange.precisionMode`` is ``DECIMAL_PLACES`` then the ``currency['precision']`` designates the number of decimal digits after the dot.
   * If ``exchange.precisionMode`` is ``SIGNIFICANT_DIGITS`` then the ``currency['precision']`` designates the number of non-zero digits after the dot.
   * When ``exchange.precisionMode`` is ``TICK_SIZE`` then the ``currency['precision']`` designates the smallest possible float fractions.
 
-* ``limits``. The minimums and maximums for amounts (volumes) and withdrawals.
+ * ``limits``. The minimums and maximums for amounts (volumes) and withdrawals.
 
 Precision And Limits
 --------------------
 
-**Do not confuse ``limits`` with ``precision``\ !** Precision has nothing to do with min limits. A precision of 8 digits does not necessarily mean a min limit of 0.00000001. The opposite is also true: a min limit of 0.0001 does not necessarily mean a precision of 4.
+ **Do not confuse ``limits`` with ``precision``\ !** Precision has nothing to do with min limits. A precision of 8 digits does not necessarily mean a min limit of 0.00000001. The opposite is also true: a min limit of 0.0001 does not necessarily mean a precision of 4.
 
 Examples:
 
 
 #. 
+
    ``(market['limits']['amount']['min'] == 0.05) && (market['precision']['amount'] == 4)``
 
    In the first example the **amount** of any order placed on the market **must satisfy both conditions**\ :
@@ -2270,6 +2271,7 @@ Examples:
         - bad: 0.05001, 0.05000, 0.06001
 
 #. 
+
    ``(market['limits']['price']['min'] == 0.019) && (market['precision']['price'] == 5)``
 
    In the second example the **price** of any order placed on the market **must satisfy both conditions**\ :
@@ -2288,6 +2290,7 @@ Examples:
         - bad: 0.017000, 0.017001, ...
 
 #. 
+
    ``(market['limits']['amount']['min'] == 50) && (market['precision']['amount'] == -1)``
 
 
@@ -2303,7 +2306,7 @@ Examples:
         + good: 50, ..., 110, ... 1230, ..., 1000000, ..., 1234560, ...
         - bad: 9.5, ... 10.1, ..., 11, ... 200.71, ...
 
-*The ``precision`` and ``limits`` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The ``active`` flag is not yet supported and/or implemented by all markets.*
+ *The ``precision`` and ``limits`` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The ``active`` flag is not yet supported and/or implemented by all markets.*
 
 Notes On Precision And Limits
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2311,14 +2314,14 @@ Notes On Precision And Limits
 The user is required to stay within all limits and precision! The values of the order should satisfy the following conditions:
 
 
-* Order ``amount`` >= ``limits['amount']['min']``
-* Order ``amount`` <= ``limits['amount']['max']``
-* Order ``price`` >= ``limits['price']['min']``
-* Order ``price`` <= ``limits['price']['max']``
-* Order ``cost`` (\ ``amount * price``\ ) >= ``limits['cost']['min']``
-* Order ``cost`` (\ ``amount * price``\ ) <= ``limits['cost']['max']``
-* Precision of ``amount`` must be <= ``precision['amount']``
-* Precision of ``price`` must be <= ``precision['price']``
+ * Order ``amount`` >= ``limits['amount']['min']``
+ * Order ``amount`` <= ``limits['amount']['max']``
+ * Order ``price`` >= ``limits['price']['min']``
+ * Order ``price`` <= ``limits['price']['max']``
+ * Order ``cost`` (\ ``amount * price``\ ) >= ``limits['cost']['min']``
+ * Order ``cost`` (\ ``amount * price``\ ) <= ``limits['cost']['max']``
+ * Precision of ``amount`` must be <= ``precision['amount']``
+ * Precision of ``price`` must be <= ``precision['price']``
 
 The above values can be missing with some exchanges that don't provide info on limits from their API or don't have it implemented yet.
 
@@ -2330,23 +2333,23 @@ Each exchange has its own rounding, counting and padding modes.
 Supported rounding modes are:
 
 
-* ``ROUND`` – will round the last decimal digits to precision
-* ``TRUNCATE``\ – will cut off the digits after certain precision
+ * ``ROUND`` – will round the last decimal digits to precision
+ * ``TRUNCATE``\ – will cut off the digits after certain precision
 
 The decimal precision counting mode is available in the ``exchange.precisionMode`` property.
 
 Supported precision modes are:
 
 
-* ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in ``market['precision']`` designate the number of decimal digits after the dot for further rounding or truncation.
-* ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (\ ``bitfinex`` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in ``market['precision']`` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
-* ``TICK_SIZE`` – some exchanges only allow a multiple of a specific value (\ ``bitmex`` and ``ftx`` use this mode, for example). In this mode, the numbers in ``market['precision']`` designate the minimal precision fractions (floats) for rounding or truncating.
+ * ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in ``market['precision']`` designate the number of decimal digits after the dot for further rounding or truncation.
+ * ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (\ ``bitfinex`` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in ``market['precision']`` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
+ * ``TICK_SIZE`` – some exchanges only allow a multiple of a specific value (\ ``bitmex`` and ``ftx`` use this mode, for example). In this mode, the numbers in ``market['precision']`` designate the minimal precision fractions (floats) for rounding or truncating.
 
 Supported padding modes are:
 
 
-* ``NO_PADDING`` – default for most cases
-* ``PAD_WITH_ZERO`` – appends zero characters up to precision
+ * ``NO_PADDING`` – default for most cases
+ * ``PAD_WITH_ZERO`` – appends zero characters up to precision
 
 The exchange base class contains the ``decimalToPrecision`` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
 
@@ -2369,11 +2372,11 @@ The exchange base class contains the ``decimalToPrecision`` method to help forma
 For examples of how to use the ``decimalToPrecision`` to format strings and floats, please, see the following files:
 
 
-* JavaScript: https://github.com/ccxt/ccxt/blob/master/js/test/base/functions/test.number.js
-* Python: https://github.com/ccxt/ccxt/blob/master/python/ccxt/test/test_decimal_to_precision.py
-* PHP: https://github.com/ccxt/ccxt/blob/master/php/test/decimal_to_precision.php
+ * JavaScript: https://github.com/ccxt/ccxt/blob/master/js/test/base/functions/test.number.js
+ * Python: https://github.com/ccxt/ccxt/blob/master/python/ccxt/test/test_decimal_to_precision.py
+ * PHP: https://github.com/ccxt/ccxt/blob/master/php/test/decimal_to_precision.php
 
-**Python WARNING! The ``decimal_to_precision`` method is susceptible to ``getcontext().prec!``\ **
+ **Python WARNING! The ``decimal_to_precision`` method is susceptible to ``getcontext().prec!``\ **
 
 For users' convenience CCXT base exchange class also implements the following methods:
 
@@ -2403,7 +2406,7 @@ For users' convenience CCXT base exchange class also implements the following me
 
 Every exchange has its own precision settings, the above methods will help format those values according to exchange-specific precision rules, in a way that is portable and agnostic of the underlying exchange. In order to make that possible, markets and currencies have to be loaded prior to formatting any values.
 
-**Make sure to :ref:`load the markets with ``exchange.loadMarkets()`` <loading markets>` before calling these methods!**
+ **Make sure to :ref:`load the markets with ``exchange.loadMarkets()`` <loading markets>` before calling these methods!**
 
 For example:
 
@@ -2591,14 +2594,14 @@ There is a bit of term ambiguity across various exchanges that may cause confusi
 Historically various symbolic names have been used to designate same trading pairs. Some cryptocurrencies (like Dash) even changed their names more than once during their ongoing lifetime. For consistency across exchanges the ccxt library will perform the following known substitutions for symbols and currencies:
 
 
-* `XBT → BTC`: `XBT` is newer but `BTC` is more common among exchanges and sounds more like bitcoin ([read more](https://www.google.ru/search?q=xbt+vs+btc)).
-* `BCC → BCH`: The Bitcoin Cash fork is often called with two different symbolic names: ``BCC`` and ``BCH``. The name ``BCC`` is ambiguous for Bitcoin Cash, it is confused with BitConnect. The ccxt library will convert ``BCC`` to ``BCH`` where it is appropriate (some exchanges and aggregators confuse them).
-* `DRK → DASH`: `DASH` was Darkcoin then became Dash ([read more](https://minergate.com/blog/dashcoin-and-dash/)).
-* ``BCHABC → BCH``\ : On November 15 2018 Bitcoin Cash forked the second time, so, now there is ``BCH`` (for BCH ABC) and ``BSV`` (for BCH SV).
-* ``BCHSV → BSV``\ : This is a common substitution mapping for the Bitcoin Cash SV fork (some exchanges call it ``BSV``\ , others call it ``BCHSV``\ , we use the former).
-* ``DSH → DASH``\ : Try not to confuse symbols and currencies. The ``DSH`` (Dashcoin) is not the same as ``DASH`` (Dash). Some exchanges have ``DASH`` labelled inconsistently as ``DSH``\ , the ccxt library does a correction for that as well (\ ``DSH → DASH``\ ), but only on certain exchanges that have these two currencies confused, whereas most exchanges have them both correct. Just remember that ``DASH/BTC`` is not the same as ``DSH/BTC``.
-* ``XRB`` → `NANO`: `NANO` is the newer code for RaiBlocks, thus, CCXT unified API uses will replace the older `XRB` with `NANO` where needed. https://hackernoon.com/nano-rebrand-announcement-9101528a7b76
-* ``USD`` → ``USDT``\ : Some exchanges, like Bitfinex, HitBTC and a few other name the currency as ``USD`` in their listings, but those markets are actually trading ``USDT``. The confusion can come from a 3-letter limitation on symbol names or may be due to other reasons. In cases where the traded currency is actually ``USDT`` and is not ``USD`` – the CCXT library will perform ``USD`` → \ ``USDT`` conversion. Note, however, that some exchanges  have both ``USD`` and ``USDT`` symbols, for example, Kraken has a ``USDT/USD`` trading pair.
+ * `XBT → BTC`: `XBT` is newer but `BTC` is more common among exchanges and sounds more like bitcoin ([read more](https://www.google.ru/search?q=xbt+vs+btc)).
+ * `BCC → BCH`: The Bitcoin Cash fork is often called with two different symbolic names: ``BCC`` and ``BCH``. The name ``BCC`` is ambiguous for Bitcoin Cash, it is confused with BitConnect. The ccxt library will convert ``BCC`` to ``BCH`` where it is appropriate (some exchanges and aggregators confuse them).
+ * `DRK → DASH`: `DASH` was Darkcoin then became Dash ([read more](https://minergate.com/blog/dashcoin-and-dash/)).
+ * ``BCHABC → BCH``\ : On November 15 2018 Bitcoin Cash forked the second time, so, now there is ``BCH`` (for BCH ABC) and ``BSV`` (for BCH SV).
+ * ``BCHSV → BSV``\ : This is a common substitution mapping for the Bitcoin Cash SV fork (some exchanges call it ``BSV``\ , others call it ``BCHSV``\ , we use the former).
+ * ``DSH → DASH``\ : Try not to confuse symbols and currencies. The ``DSH`` (Dashcoin) is not the same as ``DASH`` (Dash). Some exchanges have ``DASH`` labelled inconsistently as ``DSH``\ , the ccxt library does a correction for that as well (\ ``DSH → DASH``\ ), but only on certain exchanges that have these two currencies confused, whereas most exchanges have them both correct. Just remember that ``DASH/BTC`` is not the same as ``DSH/BTC``.
+ * ``XRB`` → `NANO`: `NANO` is the newer code for RaiBlocks, thus, CCXT unified API uses will replace the older `XRB` with `NANO` where needed. https://hackernoon.com/nano-rebrand-announcement-9101528a7b76
+ * ``USD`` → ``USDT``\ : Some exchanges, like Bitfinex, HitBTC and a few other name the currency as ``USD`` in their listings, but those markets are actually trading ``USDT``. The confusion can come from a 3-letter limitation on symbol names or may be due to other reasons. In cases where the traded currency is actually ``USDT`` and is not ``USD`` – the CCXT library will perform ``USD`` → \ ``USDT`` conversion. Note, however, that some exchanges  have both ``USD`` and ``USDT`` symbols, for example, Kraken has a ``USDT/USD`` trading pair.
 
 Notes On Naming Consistency
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2606,21 +2609,21 @@ Notes On Naming Consistency
 Each exchange has an associative array of substitutions for cryptocurrency symbolic codes in the ``exchange.commonCurrencies`` property. Sometimes the user may notice exotic symbol names with mixed-case words and spaces in the code. The logic behind having these names is explained by the rules for resolving conflicts in naming and currency-coding when one or more currencies have the same symbolic code with different exchanges:
 
 
-* First, we gather all info available from the exchanges themselves about the currency codes in question. They usually have a description of their coin listings somewhere in their API or their docs, knowledgebases or elsewhere on their websites.
-* When we identify each particular cryptocurrency standing behind the currency code, we look them up on `CoinMarketCap <https://coinmarketcap.com>`__.
-* The currency that has the greatest market capitalization of all wins the currency code and keeps it. For example, HOT often stand for either ``Holo`` or ``Hydro Protocol``. In this case ``Holo`` retains the code ``HOT``\ , and ``Hydro Protocol`` will have its name as its code, literally, ``Hydro Protocol``. So, there may be trading pairs with symbols like ``HOT/USD`` (for ``Holo``\ ) and ``Hydro Protocol/USD`` – those are two different markets.
-* If market cap of a particular coin is unknown or is not enough to determine the winner, we also take trading volumes and other factors into consideration.
-* When the winner is determined all other competing currencies get their code names properly remapped and substituted within conflicting exchanges via ``.commonCurrencies``.
-* Unfortunately this is a work in progress, because new currencies get listed daily and new exchanges are added from time to time, so, in general this is a never-ending process of self-correction in a quickly changing environment, practically, in *"live mode"*. We are thankful for all reported conflicts and mismatches you may find.
+ * First, we gather all info available from the exchanges themselves about the currency codes in question. They usually have a description of their coin listings somewhere in their API or their docs, knowledgebases or elsewhere on their websites.
+ * When we identify each particular cryptocurrency standing behind the currency code, we look them up on `CoinMarketCap <https://coinmarketcap.com>`__.
+ * The currency that has the greatest market capitalization of all wins the currency code and keeps it. For example, HOT often stand for either ``Holo`` or ``Hydro Protocol``. In this case ``Holo`` retains the code ``HOT``\ , and ``Hydro Protocol`` will have its name as its code, literally, ``Hydro Protocol``. So, there may be trading pairs with symbols like ``HOT/USD`` (for ``Holo``\ ) and ``Hydro Protocol/USD`` – those are two different markets.
+ * If market cap of a particular coin is unknown or is not enough to determine the winner, we also take trading volumes and other factors into consideration.
+ * When the winner is determined all other competing currencies get their code names properly remapped and substituted within conflicting exchanges via ``.commonCurrencies``.
+ * Unfortunately this is a work in progress, because new currencies get listed daily and new exchanges are added from time to time, so, in general this is a never-ending process of self-correction in a quickly changing environment, practically, in *"live mode"*. We are thankful for all reported conflicts and mismatches you may find.
 
 Questions On Naming Consistency
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*Is it possible for symbols to change?*
+ *Is it possible for symbols to change?*
 
 In short, yes, sometimes, but rarely. Symbolic mappings can be changed if that is absolutely required and cannot be avoided. However, all previous symbolic changes were related to resolving conflicts or forks. So far, there was no precedent of a market cap of one coin overtaking another coin with the same symbolic code in CCXT.
 
-*Can we rely on always listing the same crypto with the same symbol?*
+ *Can we rely on always listing the same crypto with the same symbol?*
 
 More or less ) First, this library is a work in progress, and it is trying to adapt to the everchanging reality, so there may be conflicts that we will fix by changing some mappings in the future. Ultimately, the license says "no warranties, use at your own risk". However, we don't change symbolic mappings randomly all over the place, because we understand the consequences and we'd want to rely on the library as well and we don't like to break the backward-compatibility at all.
 
@@ -2701,8 +2704,8 @@ Usually, there is an endpoint for getting a list of markets from an exchange, an
 Because the set of methods differs from exchange to exchange, the ccxt library implements the following:
 
 
-* a public and private API for all possible URLs and methods
-* a unified API supporting a subset of common methods
+ * a public and private API for all possible URLs and methods
+ * a unified API supporting a subset of common methods
 
 The endpoint URLs are predefined in the ``api`` property for each exchange. You don't have to override it, unless you are implementing a new exchange API (at least you should know what you're doing).
 
@@ -2739,13 +2742,13 @@ A public API is used to access market data and does not require any authenticati
 Public APIs include the following:
 
 
-* instruments/trading pairs
-* price feeds (exchange rates)
-* order books (L1, L2, L3...)
-* trade history (closed orders, transactions, executions)
-* tickers (spot / 24h price)
-* OHLCV series for charting
-* other public endpoints
+ * instruments/trading pairs
+ * price feeds (exchange rates)
+ * order books (L1, L2, L3...)
+ * trade history (closed orders, transactions, executions)
+ * tickers (spot / 24h price)
+ * OHLCV series for charting
+ * other public endpoints
 
 For trading with private API you need to obtain API keys from/to exchanges. It often means registering with exchanges and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well.
 
@@ -2754,16 +2757,16 @@ If you want to trade you need to register yourself, this library will not create
 Private APIs allow the following:
 
 
-* manage personal account info
-* query account balances
-* trade by making market and limit orders
-* create deposit addresses and fund accounts
-* request withdrawal of fiat and crypto funds
-* query personal open / closed orders
-* query positions in margin/leverage trading
-* get ledger history
-* transfer funds between accounts
-* use merchant services
+ * manage personal account info
+ * query account balances
+ * trade by making market and limit orders
+ * create deposit addresses and fund accounts
+ * request withdrawal of fiat and crypto funds
+ * query personal open / closed orders
+ * query positions in margin/leverage trading
+ * get ledger history
+ * transfer funds between accounts
+ * use merchant services
 
 Some exchanges offer the same logic under different names. For example, a public API is also often called *market data*\ , *basic*\ , *market*\ , *mapi*\ , *api*\ , *price*\ , etc... All of them mean a set of methods for accessing data available to public. A private API is also often called *trading*\ , *trade*\ , *tapi*\ , *exchange*\ , *account*\ , etc...
 
@@ -2914,27 +2917,27 @@ Unified API
 The unified ccxt API is a subset of methods common among the exchanges. It currently contains the following methods:
 
 
-* ``fetchMarkets ()``\ : Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as ``symbol``\ , ``base``\ , ``quote`` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
-* ``fetchCurrencies ()``\ : Fetches  all available currencies an exchange and returns an associative dictionary of currencies (objects with properties such as ``code``\ , ``name``\ , etc.). Some exchanges do not have means for obtaining currencies via their online API. For those, the currencies will be extracted from market pairs or hardcoded.
-* ``loadMarkets ([reload])``\ : Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the ``reload = true`` flag is forced.
-* ``fetchOrderBook (symbol[, limit = undefined[, params = {}]])``\ : Fetch L2/L3 order book for a particular market trading symbol.
-* ``fetchStatus ([, params = {}])``\ : Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
-* ``fetchL2OrderBook (symbol[, limit = undefined[, params]])``\ : Level 2 (price-aggregated) order book for a particular symbol.
-* ``fetchTrades (symbol[, since[, [limit, [params]]]])``\ : Fetch recent trades for a particular trading symbol.
-* ``fetchTicker (symbol)``\ : Fetch latest ticker data by trading symbol.
-* ``fetchBalance ()``\ : Fetch Balance.
-* ``createOrder (symbol, type, side, amount[, price[, params]])``
-* ``createLimitBuyOrder (symbol, amount, price[, params])``
-* ``createLimitSellOrder (symbol, amount, price[, params])``
-* ``createMarketBuyOrder (symbol, amount[, params])``
-* ``createMarketSellOrder (symbol, amount[, params])``
-* ``cancelOrder (id[, symbol[, params]])``
-* ``fetchOrder (id[, symbol[, params]])``
-* ``fetchOrders ([symbol[, since[, limit[, params]]]])``
-* ``fetchOpenOrders ([symbol[, since, limit, params]]]])``
-* ``fetchClosedOrders ([symbol[, since[, limit[, params]]]])``
-* ``fetchMyTrades ([symbol[, since[, limit[, params]]]])``
-* ...
+ * ``fetchMarkets ()``\ : Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as ``symbol``\ , ``base``\ , ``quote`` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
+ * ``fetchCurrencies ()``\ : Fetches  all available currencies an exchange and returns an associative dictionary of currencies (objects with properties such as ``code``\ , ``name``\ , etc.). Some exchanges do not have means for obtaining currencies via their online API. For those, the currencies will be extracted from market pairs or hardcoded.
+ * ``loadMarkets ([reload])``\ : Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the ``reload = true`` flag is forced.
+ * ``fetchOrderBook (symbol[, limit = undefined[, params = {}]])``\ : Fetch L2/L3 order book for a particular market trading symbol.
+ * ``fetchStatus ([, params = {}])``\ : Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
+ * ``fetchL2OrderBook (symbol[, limit = undefined[, params]])``\ : Level 2 (price-aggregated) order book for a particular symbol.
+ * ``fetchTrades (symbol[, since[, [limit, [params]]]])``\ : Fetch recent trades for a particular trading symbol.
+ * ``fetchTicker (symbol)``\ : Fetch latest ticker data by trading symbol.
+ * ``fetchBalance ()``\ : Fetch Balance.
+ * ``createOrder (symbol, type, side, amount[, price[, params]])``
+ * ``createLimitBuyOrder (symbol, amount, price[, params])``
+ * ``createLimitSellOrder (symbol, amount, price[, params])``
+ * ``createMarketBuyOrder (symbol, amount[, params])``
+ * ``createMarketSellOrder (symbol, amount[, params])``
+ * ``cancelOrder (id[, symbol[, params]])``
+ * ``fetchOrder (id[, symbol[, params]])``
+ * ``fetchOrders ([symbol[, since[, limit[, params]]]])``
+ * ``fetchOpenOrders ([symbol[, since, limit, params]]]])``
+ * ``fetchClosedOrders ([symbol[, since[, limit[, params]]]])``
+ * ``fetchMyTrades ([symbol[, since[, limit[, params]]]])``
+ * ...
 
 .. code-block::
 
@@ -2991,15 +2994,15 @@ To fetch historical orders or trades, the user will need to traverse the data in
 In most cases users are **required to use at least some type of pagination** in order to get the expected results consistently. If the user does not apply any pagination, most methods will return the exchanges' default, which may start from the beginning of history or may be a subset of most recent objects. The default behaviour (without pagination) is exchange-specific! The means of pagination are often used with the following methods in particular:
 
 
-* ``fetchTrades()``
-* ``fetchOHLCV()``
-* ``fetchOrders()``
-* ``fetchOpenOrders()``
-* ``fetchClosedOrders()``
-* ``fetchMyTrades()``
-* ``fetchTransactions()``
-* ``fetchDeposits()``
-* ``fetchWithdrawals()``
+ * ``fetchTrades()``
+ * ``fetchOHLCV()``
+ * ``fetchOrders()``
+ * ``fetchOpenOrders()``
+ * ``fetchClosedOrders()``
+ * ``fetchMyTrades()``
+ * ``fetchTransactions()``
+ * ``fetchDeposits()``
+ * ``fetchWithdrawals()``
 
 With methods returning lists of objects, exchanges may offer one or more types of pagination. CCXT unifies **date-based pagination** by default, with timestamps **in milliseconds** throughout the entire library.
 
@@ -3294,7 +3297,7 @@ The structure of a returned order book is as follows:
        'nonce': 1499280391811, // an increasing unique identifier of the orderbook snapshot
    }
 
-**The timestamp and datetime may be missing (\ ``undefined/None/null``\ ) if the exchange in question does not provide a corresponding value in the API response.**
+ **The timestamp and datetime may be missing (\ ``undefined/None/null``\ ) if the exchange in question does not provide a corresponding value in the API response.**
 
 Prices and amounts are floats. The bids array is sorted by price in descending order. The best (highest) bid price is the first element and the worst (lowest) bid price is the last element. The asks array is sorted by price in ascending order. The best (lowest) ask price is the first element and the worst (highest) ask price is the last element. Bid/ask arrays can be empty if there are no corresponding orders in the order book of an exchange.
 
@@ -3304,10 +3307,10 @@ Notes On Order Book Structure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-* The ``orderbook['timestamp']`` is the time when the exchange generated this orderbook response (before replying it back to you). This may be missing (\ ``undefined/None/null``\ ), as documented in the Manual, not all exchanges provide a timestamp there. If it is defined, then it is the UTC timestamp **in milliseconds** since 1 Jan 1970 00:00:00.
-* Some exchanges may index orders in the orderbook by order ids, in that case the order id may be returned as the third element of bids and asks: ``[ price, amount, id ]``. This is often the case with L3 orderbooks without aggregation. The order ``id``\ , if shown in the orderbook, refers to the orderbook and does not necessarily correspond to the actual order id from the exchanges' database as seen by the owner or by the others. The order id is an ``id`` of the row inside the orderbook, but not necessarily the true-\ ``id`` of the order (though, they may be equal as well, depending on the exchange in question).
-* In some cases the exchanges may supply L2 aggregated orderbooks with order counts for each aggregated level, in that case the order count may be returned as the third element of bids and asks: ``[ price, amount, count ]``. The ``count`` tells how many orders are aggregated on each price level in bids and asks.
-* Also, some exchanges may return the order timestamp as the third element of bids and asks: ``[ price, amount, timestamp ]``. The ``timestamp`` tells when the order was placed on the orderbook.
+ * The ``orderbook['timestamp']`` is the time when the exchange generated this orderbook response (before replying it back to you). This may be missing (\ ``undefined/None/null``\ ), as documented in the Manual, not all exchanges provide a timestamp there. If it is defined, then it is the UTC timestamp **in milliseconds** since 1 Jan 1970 00:00:00.
+ * Some exchanges may index orders in the orderbook by order ids, in that case the order id may be returned as the third element of bids and asks: ``[ price, amount, id ]``. This is often the case with L3 orderbooks without aggregation. The order ``id``\ , if shown in the orderbook, refers to the orderbook and does not necessarily correspond to the actual order id from the exchanges' database as seen by the owner or by the others. The order id is an ``id`` of the row inside the orderbook, but not necessarily the true-\ ``id`` of the order (though, they may be equal as well, depending on the exchange in question).
+ * In some cases the exchanges may supply L2 aggregated orderbooks with order counts for each aggregated level, in that case the order count may be returned as the third element of bids and asks: ``[ price, amount, count ]``. The ``count`` tells how many orders are aggregated on each price level in bids and asks.
+ * Also, some exchanges may return the order timestamp as the third element of bids and asks: ``[ price, amount, timestamp ]``. The ``timestamp`` tells when the order was placed on the orderbook.
 
 Market Depth
 ^^^^^^^^^^^^
@@ -3351,9 +3354,9 @@ Some exchanges accept a dictionary of extra parameters to the ``fetchOrderBook (
 The levels of detail or levels of order book aggregation are often number-labelled like L1, L2, L3...
 
 
-* **L1**\ : less detail for quickly obtaining very basic info, namely, the market price only. It appears to look like just one order in the order book.
-* **L2**\ : most common level of aggregation where order volumes are grouped by price. If two orders have the same price, they appear as one single order for a volume equal to their total sum. This is most likely the level of aggregation you need for the majority of purposes.
-* **L3**\ : most detailed level with no aggregation where each order is separate from other orders. This LOD naturally contains duplicates in the output. So, if two orders have equal prices they are **not** merged together and it's up to the exchange's matching engine to decide on their priority in the stack. You don't really need L3 detail for successful trading. In fact, you most probably don't need it at all. Therefore some exchanges don't support it and always return aggregated order books.
+ * **L1**\ : less detail for quickly obtaining very basic info, namely, the market price only. It appears to look like just one order in the order book.
+ * **L2**\ : most common level of aggregation where order volumes are grouped by price. If two orders have the same price, they appear as one single order for a volume equal to their total sum. This is most likely the level of aggregation you need for the majority of purposes.
+ * **L3**\ : most detailed level with no aggregation where each order is separate from other orders. This LOD naturally contains duplicates in the output. So, if two orders have equal prices they are **not** merged together and it's up to the exchange's matching engine to decide on their priority in the stack. You don't really need L3 detail for successful trading. In fact, you most probably don't need it at all. Therefore some exchanges don't support it and always return aggregated order books.
 
 If you want to get an L2 order book, whatever the exchange returns, use the ``fetchL2OrderBook(symbol, limit, params)`` or ``fetch_l2_order_book(symbol, limit, params)`` unified method for that.
 
@@ -3423,7 +3426,7 @@ Multiple Tickers For All Or Many Symbols
 
 Check the ``exchange.has['fetchTicker']`` and ``exchange.has['fetchTickers']`` properties of the exchange instance to determine if the exchange in question does support these methods.
 
-**Please, note, that calling ``fetchTickers ()`` without a symbol is usually strictly rate-limited, an exchange may ban you if you poll that endpoint too frequently.**
+ **Please, note, that calling ``fetchTickers ()`` without a symbol is usually strictly rate-limited, an exchange may ban you if you poll that endpoint too frequently.**
 
 Ticker structure
 ^^^^^^^^^^^^^^^^
@@ -3461,13 +3464,13 @@ Notes On Ticker Structure
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-* All fields in the ticker represent the past 24 hours prior to ``timestamp``.
-* The ``bidVolume`` is the volume (amount) of current best bid in the orderbook.
-* The ``askVolume`` is the volume (amount) of current best ask in the orderbook.
-* The ``baseVolume`` is the amount of base currency traded (bought or sold) in last 24 hours.
-* The ``quoteVolume`` is the amount of quote currency traded (bought or sold) in last 24 hours.
+ * All fields in the ticker represent the past 24 hours prior to ``timestamp``.
+ * The ``bidVolume`` is the volume (amount) of current best bid in the orderbook.
+ * The ``askVolume`` is the volume (amount) of current best ask in the orderbook.
+ * The ``baseVolume`` is the amount of base currency traded (bought or sold) in last 24 hours.
+ * The ``quoteVolume`` is the amount of quote currency traded (bought or sold) in last 24 hours.
 
-**All prices in ticker structure are in quote currency. Some fields in a returned ticker structure may be undefined/None/null.**
+ **All prices in ticker structure are in quote currency. Some fields in a returned ticker structure may be undefined/None/null.**
 
 .. code-block::
 
@@ -3480,8 +3483,8 @@ Notes On Ticker Structure
 Timestamp and datetime are both Universal Time Coordinated (UTC) in milliseconds.
 
 
-* ``ticker['timestamp']`` is the time when the exchange generated this response (before replying it back to you). It may be missing (\ ``undefined/None/null``\ ), as documented in the Manual, not all exchanges provide a timestamp there. If it is defined, then it is a UTC timestamp **in milliseconds** since 1 Jan 1970 00:00:00.
-* ``exchange.last_response_headers['Date']`` is the date-time string of the last HTTP response received (from HTTP headers). The 'Date' parser should respect the timezone designated there. The precision of the date-time is 1 second, 1000 milliseconds. This date should be set by the exchange server when the message originated according to the following standards:
+ * ``ticker['timestamp']`` is the time when the exchange generated this response (before replying it back to you). It may be missing (\ ``undefined/None/null``\ ), as documented in the Manual, not all exchanges provide a timestamp there. If it is defined, then it is a UTC timestamp **in milliseconds** since 1 Jan 1970 00:00:00.
+ * ``exchange.last_response_headers['Date']`` is the date-time string of the last HTTP response received (from HTTP headers). The 'Date' parser should respect the timezone designated there. The precision of the date-time is 1 second, 1000 milliseconds. This date should be set by the exchange server when the message originated according to the following standards:
 
   * https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18
   * https://tools.ietf.org/html/rfc1123#section-5.2.14
@@ -3494,8 +3497,8 @@ To get historical prices and volumes use the unified :ref:`\ ``fetchOHLCV`` <ohl
 Methods for fetching tickers:
 
 
-* ``fetchTicker (symbol[, params = {}])``\ , symbol is required, params are optional
-* ``fetchTickers ([symbols = undefined[, params = {}]])``\ , both arguments optional
+ * ``fetchTicker (symbol[, params = {}])``\ , symbol is required, params are optional
+ * ``fetchTickers ([symbols = undefined[, params = {}]])``\ , both arguments optional
 
 Individually By Symbol
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -3659,9 +3662,9 @@ To get the list of available timeframes for your exchange see the ``timeframes``
 
 The returned list of candles may have one or more missing periods, if the exchange did not have any trades for the specified timerange and symbol. To a user that would appear as gaps in a continuous list of candles. That is considered normal. If the exchange did not have any candles at that time, the CCXT library will show the results as returned from the exchange itself.
 
-**There's a limit on how far back in time your requests can go.** Most of exchanges will not allow to query detailed candlestick history (like those for 1-minute and 5-minute timeframes) too far in the past. They usually keep a reasonable amount of most recent candles, like 1000 last candles for any timeframe is more than enough for most of needs. You can work around that limitation by continuously fetching (aka *REST polling*\ ) latest OHLCVs and storing them in a CSV file or in a database.
+ **There's a limit on how far back in time your requests can go.** Most of exchanges will not allow to query detailed candlestick history (like those for 1-minute and 5-minute timeframes) too far in the past. They usually keep a reasonable amount of most recent candles, like 1000 last candles for any timeframe is more than enough for most of needs. You can work around that limitation by continuously fetching (aka *REST polling*\ ) latest OHLCVs and storing them in a CSV file or in a database.
 
-**Note that the info from the last (current) candle may be incomplete until the candle is closed (until the next candle starts).**
+ **Note that the info from the last (current) candle may be incomplete until the candle is closed (until the next candle starts).**
 
 Like with most other unified and implicit methods, the ``fetchOHLCV`` method accepts as its last argument an associative array (a dictionary) of extra ``params``\ , which is used to :ref:`override default values <overriding unified api params>` that are sent in requests to the exchanges. The contents of ``params`` are exchange-specific, consult the exchanges' API documentation for supported fields and values.
 
@@ -3695,7 +3698,7 @@ OHLCV Emulation
 
 Some exchanges don't offer any OHLCV method, and for those, the ccxt library will emulate OHLCV candles from :ref:`Public Trades <public trades>`. In that case you will see ``exchange.has['fetchOHLCV'] = 'emulated'``. However, because the trade history is usually very limited, the emulated fetchOHLCV methods cover most recent info only and should only be used as a fallback, when no other option is available.
 
-**WARNING: the fetchOHLCV emulation is experimental!**
+ **WARNING: the fetchOHLCV emulation is experimental!**
 
 .. code-block::
 
@@ -3794,9 +3797,9 @@ Exchange Status
 The exchange status describes the latest known information on the availability of the exchange API. This information is either hardcoded into the exchange class or fetched live directly from the exchange API. The ``fetchStatus(params = {})`` method can be used to get this information. The status returned by ``fetchStatus`` is one of:
 
 
-* Hardcoded into the exchange class, e.g. if the API has been broken or shutdown.
-* Updated using the exchange ping or ``fetchTime`` endpoint to see if its alive
-* Updated using the dedicated exchange API status endpoint.
+ * Hardcoded into the exchange class, e.g. if the API has been broken or shutdown.
+ * Updated using the exchange ping or ``fetchTime`` endpoint to see if its alive
+ * Updated using the dedicated exchange API status endpoint.
 
 .. code-block:: Javascript
 
@@ -3819,10 +3822,10 @@ The ``fetchStatus()`` method will return a status structure like shown below:
 The possible values in the ``status`` field are:
 
 
-* ``'ok'`` means the exchange API is fully operational
-* ``'shutdown``\ ' means the exchange was closed, and the ``updated`` field should contain the datetime of the shutdown
-* ``'error'`` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
-* ``'maintenance'`` means regular maintenance, and the ``eta`` field should contain the datetime when the exchange is expected to be operational again
+ * ``'ok'`` means the exchange API is fully operational
+ * ``'shutdown``\ ' means the exchange was closed, and the ``updated`` field should contain the datetime of the shutdown
+ * ``'error'`` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
+ * ``'maintenance'`` means regular maintenance, and the ``eta`` field should contain the datetime when the exchange is expected to be operational again
 
 Private API
 ===========
@@ -3844,9 +3847,9 @@ Authentication with all exchanges is handled automatically if provided with prop
 
 This process may differ from exchange to exchange. Some exchanges may want the signature in a different encoding, some of them vary in header and body param names and formats, but the general pattern is the same for all of them.
 
-**You should not share the same API keypair across multiple instances of an exchange running simultaneously, in separate scripts or in multiple threads. Using the same keypair from different instances simultaneously may cause all sorts of unexpected behaviour.**
+ **You should not share the same API keypair across multiple instances of an exchange running simultaneously, in separate scripts or in multiple threads. Using the same keypair from different instances simultaneously may cause all sorts of unexpected behaviour.**
 
-**DO NOT REUSE API KEYS WITH DIFFERENT SOFTWARE! The other software will screw your nonce too high. If you get :ref:`InvalidNonce <invalid nonce>` errors – make sure to generate a fresh new keypair first and foremost.**
+ **DO NOT REUSE API KEYS WITH DIFFERENT SOFTWARE! The other software will screw your nonce too high. If you get :ref:`InvalidNonce <invalid nonce>` errors – make sure to generate a fresh new keypair first and foremost.**
 
 The authentication is already handled for you, so you don't need to perform any of those steps manually unless you are implementing a new exchange class. The only thing you need for trading is the actual API key pair.
 
@@ -3859,14 +3862,14 @@ Required Credentials
 The API credentials usually include the following:
 
 
-* ``apiKey``. This is your public API Key and/or Token. This part is *non-secret*\ , it is included in your request header or body and sent over HTTPS in open text to identify your request. It is often a string in Hex or Base64 encoding or an UUID identifier.
-* ``secret``. This is your private key. Keep it secret, don't tell it to anybody. It is used to sign your requests locally before sending them to exchanges. The secret key does not get sent over the internet in the request-response process and should not be published or emailed. It is used together with the nonce to generate a cryptographically strong signature. That signature is sent with your public key to authenticate your identity. Each request has a unique nonce and therefore a unique cryptographic signature.
-* ``uid``. Some exchanges (not all of them) also generate a user id or *uid* for short. It can be a string or numeric literal. You should set it, if that is explicitly required by your exchange. See :ref:`their docs <exchanges>` for details.
-* ``password``. Some exchanges (not all of them) also require your password/phrase for trading. You should set this string, if that is explicitly required by your exchange. See :ref:`their docs <exchanges>` for details.
+ * ``apiKey``. This is your public API Key and/or Token. This part is *non-secret*\ , it is included in your request header or body and sent over HTTPS in open text to identify your request. It is often a string in Hex or Base64 encoding or an UUID identifier.
+ * ``secret``. This is your private key. Keep it secret, don't tell it to anybody. It is used to sign your requests locally before sending them to exchanges. The secret key does not get sent over the internet in the request-response process and should not be published or emailed. It is used together with the nonce to generate a cryptographically strong signature. That signature is sent with your public key to authenticate your identity. Each request has a unique nonce and therefore a unique cryptographic signature.
+ * ``uid``. Some exchanges (not all of them) also generate a user id or *uid* for short. It can be a string or numeric literal. You should set it, if that is explicitly required by your exchange. See :ref:`their docs <exchanges>` for details.
+ * ``password``. Some exchanges (not all of them) also require your password/phrase for trading. You should set this string, if that is explicitly required by your exchange. See :ref:`their docs <exchanges>` for details.
 
 In order to create API keys find the API tab or button in your user settings on the exchange website. Then create your keys and copy-paste them to your config file. Your config file permissions should be set appropriately, unreadable to anyone except the owner.
 
-**Remember to keep your apiKey and secret key safe from unauthorized use, do not send or tell it to anybody. A leak of the secret key or a breach in security can cost you a fund loss.**
+ **Remember to keep your apiKey and secret key safe from unauthorized use, do not send or tell it to anybody. A leak of the secret key or a breach in security can cost you a fund loss.**
 
 Credential Validation
 ^^^^^^^^^^^^^^^^^^^^^
@@ -3988,16 +3991,16 @@ Note that your private requests will fail with an exception or error if you don'
 Overriding The Nonce
 ^^^^^^^^^^^^^^^^^^^^
 
-**The default nonce is defined by the underlying exchange. You can override it with a milliseconds-nonce if you want to make private requests more frequently than once per second! Most exchanges will throttle your requests if you hit their rate limits, read `API docs for your exchange <https://github.com/ccxt/ccxt/wiki/Exchanges>`__ carefully!**
+ **The default nonce is defined by the underlying exchange. You can override it with a milliseconds-nonce if you want to make private requests more frequently than once per second! Most exchanges will throttle your requests if you hit their rate limits, read `API docs for your exchange <https://github.com/ccxt/ccxt/wiki/Exchanges>`__ carefully!**
 
 In case you need to reset the nonce it is much easier to create another pair of keys for using with private APIs. Creating new keys and setting up a fresh unused keypair in your config is usually enough for that.
 
 In some cases you are unable to create new keys due to lack of permissions or whatever. If that happens you can still override the nonce. Base market class has the following methods for convenience:
 
 
-* ``seconds ()``\ : returns a Unix Timestamp in seconds.
-* ``milliseconds ()``\ : same in milliseconds (ms = 1000 * s, thousandths of a second).
-* ``microseconds ()``\ : same in microseconds (μs = 1000 * ms, millionths of a second).
+ * ``seconds ()``\ : returns a Unix Timestamp in seconds.
+ * ``milliseconds ()``\ : same in milliseconds (ms = 1000 * s, thousandths of a second).
+ * ``microseconds ()``\ : same in microseconds (μs = 1000 * ms, millionths of a second).
 
 There are exchanges that confuse milliseconds with microseconds in their API docs, let's all forgive them for that, folks. You can use methods listed above to override the nonce value. If you need to use the same keypair from multiple instances simultaneously use closures or a common function to avoid nonce conflicts. In Javascript you can override the nonce by providing a ``nonce`` parameter to the exchange constructor or by setting it explicitly on exchange object:
 
@@ -4165,10 +4168,10 @@ Most of the time you can query orders by an id or by a symbol, though not all ex
 The list of methods for querying orders consists of the following:
 
 
-* ``fetchOrder (id, symbol = undefined, params = {})``
-* ``fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})``
-* ``fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})``
-* ``fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})``
+ * ``fetchOrder (id, symbol = undefined, params = {})``
+ * ``fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})``
+ * ``fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})``
+ * ``fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})``
 
 Note that the naming of those methods indicates if the method returns a single order or multiple orders (an array/list of orders). The ``fetchOrder()`` method requires a mandatory order id argument (a string). Some exchanges also require a symbol to fetch an order by id, where order ids can intersect with various trading pairs. Also, note that all other methods above return an array (a list) of orders. Most of them will require a symbol argument as well, however, some exchanges allow querying with a symbol unspecified (meaning *all symbols*\ ).
 
@@ -4225,17 +4228,17 @@ Querying Multiple Orders And Trades
 All methods returning lists of trades and lists of orders, accept the second ``since`` argument and the third ``limit`` argument:
 
 
-* ``fetchTrades()`` (public)
-* ``fetchMyTrades()`` (private)
-* ``fetchOrders()``
-* ``fetchOpenOrders()``
-* ``fetchClosedOrders()``
+ * ``fetchTrades()`` (public)
+ * ``fetchMyTrades()`` (private)
+ * ``fetchOrders()``
+ * ``fetchOpenOrders()``
+ * ``fetchClosedOrders()``
 
 The second  argument ``since`` reduces the array by timestamp, the third ``limit`` argument reduces by number (count) of returned items.
 
 If the user does not specify ``since``\ , the ``fetchTrades()/fetchOrders()`` methods will return the default set of results from the exchange. The default set is exchange-specific, some exchanges will return trades or recent orders starting from the date of listing a pair on the exchange, other exchanges will return a reduced set of trades or orders (like, last 24 hours, last 100 trades, first 100 orders, etc). If the user wants precise control over the timeframe, the user is responsible for specifying the ``since`` argument.
 
-**NOTE: not all exchanges provide means for filtering the lists of trades and orders by starting time, so, the support for ``since`` and ``limit`` is exchange-specific. However, most exchanges do provide at least some alternative for "pagination" and "scrolling" which can be overrided with extra ``params`` argument.**
+ **NOTE: not all exchanges provide means for filtering the lists of trades and orders by starting time, so, the support for ``since`` and ``limit`` is exchange-specific. However, most exchanges do provide at least some alternative for "pagination" and "scrolling" which can be overrided with extra ``params`` argument.**
 
 Some exchanges do not have a method for fetching closed orders or all orders. They will offer just the ``fetchOpenOrders()`` endpoint, and sometimes also a ``fetchOrder`` endpoint as well. Those exchanges don't have any methods for fetching the order history. To maintain the order history for those exchanges the user has to store a dictionary or a database of orders in the userland and update the orders in the database after calling methods like ``createOrder()``\ , ``fetchOpenOrders()``\ , ``cancelOrder()``\ , ``cancelAllOrders()``.
 
@@ -4253,7 +4256,7 @@ The signature of the fetchOrder/fetch_order method is as follows:
        let order = await exchange.fetchOrder (id, symbol = undefined, params = {})
    }
 
-**Some exchanges don't have an endpoint for fetching an order by id, ccxt will emulate it where possible.** For now it may still be missing here and there, as this is a work in progress.
+ **Some exchanges don't have an endpoint for fetching an order by id, ccxt will emulate it where possible.** For now it may still be missing here and there, as this is a work in progress.
 
 You can pass custom overrided key-values in the additional params argument to supply a specific order type, or some other setting if needed.
 
@@ -4297,7 +4300,7 @@ All Orders
    if (exchange.has['fetchOrders'])
        exchange.fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 
-**Some exchanges don't have an endpoint for fetching all orders, ccxt will emulate it where possible.** For now it may still be missing here and there, as this is a work in progress.
+ **Some exchanges don't have an endpoint for fetching all orders, ccxt will emulate it where possible.** For now it may still be missing here and there, as this is a work in progress.
 
 Open Orders
 ~~~~~~~~~~~
@@ -4312,7 +4315,7 @@ Closed Orders
 
 Do not confuse *closed orders* with *trades* aka *fills* ! An order can be closed (filled) with multiple opposing trades! So, a *closed order* is not the same as a *trade*. In general, the order does not have a ``fee`` at all, but each particular user trade does have ``fee``\ , ``cost`` and other properties. However, many exchanges propagate those properties to the orders as well.
 
-**Some exchanges don't have an endpoint for fetching closed orders, ccxt will emulate it where possible.** For now it may still be missing here and there, as this is a work in progress.
+ **Some exchanges don't have an endpoint for fetching closed orders, ccxt will emulate it where possible.** For now it may still be missing here and there, as this is a work in progress.
 
 .. code-block:: JavaScript
 
@@ -4353,18 +4356,18 @@ Most of methods returning orders within ccxt unified API will usually yield an o
    }
 
 
-* The ``status`` of an order is usually either ``'open'`` (not filled or partially filled), ``'closed'`` (fully filled), or ``'canceled'`` (unfilled and canceled, or partially filled then canceled).
-* Some exchanges allow the user to specify an expiration timestamp upon placing a new order. If the order is not filled by that time, its ``status`` becomes ``'expired'``.
-* Use the ``filled`` value to determine if the order is filled, partially filled or fully filled, and by how much.
-* The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
-* The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
-* The ``lastTradeTimestamp`` timestamp may have no value and may be ``undefined/None/null`` where not supported by the exchange or in case of an open order (an order that has not been filled nor partially filled yet).
-* The ``lastTradeTimestamp``\ , if any, designates the timestamp of the last trade, in case the order is filled fully or partially, otherwise ``lastTradeTimestamp`` is ``undefined/None/null``.
-* Order ``status`` prevails or has precedence over the ``lastTradeTimestamp``.
-* The ``cost`` of an order is: ``{ filled * price }``
-* The ``cost`` of an order means the total *quote* volume of the order (whereas the ``amount`` is the *base* volume). The value of ``cost`` should be as close to the actual most recent known order cost as possible. The ``cost`` field itself is there mostly for convenience and can be deduced from other fields.
-* The ``clientOrderId`` field can be set upon placing orders by the user with :ref:`custom order params <custom order params>`. Using the ``clientOrderId`` the user can later distinguish between own orders. This is only available for the exchanges that do support ``clientOrderId`` at this time.
-* The ``timeInForce`` field may be ``undefined/None/null`` if not specified by the exchange. The unification of ``timeInForce`` is a work in progress. Possible values for the\ ``timeInForce`` field:
+ * The ``status`` of an order is usually either ``'open'`` (not filled or partially filled), ``'closed'`` (fully filled), or ``'canceled'`` (unfilled and canceled, or partially filled then canceled).
+ * Some exchanges allow the user to specify an expiration timestamp upon placing a new order. If the order is not filled by that time, its ``status`` becomes ``'expired'``.
+ * Use the ``filled`` value to determine if the order is filled, partially filled or fully filled, and by how much.
+ * The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
+ * The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
+ * The ``lastTradeTimestamp`` timestamp may have no value and may be ``undefined/None/null`` where not supported by the exchange or in case of an open order (an order that has not been filled nor partially filled yet).
+ * The ``lastTradeTimestamp``\ , if any, designates the timestamp of the last trade, in case the order is filled fully or partially, otherwise ``lastTradeTimestamp`` is ``undefined/None/null``.
+ * Order ``status`` prevails or has precedence over the ``lastTradeTimestamp``.
+ * The ``cost`` of an order is: ``{ filled * price }``
+ * The ``cost`` of an order means the total *quote* volume of the order (whereas the ``amount`` is the *base* volume). The value of ``cost`` should be as close to the actual most recent known order cost as possible. The ``cost`` field itself is there mostly for convenience and can be deduced from other fields.
+ * The ``clientOrderId`` field can be set upon placing orders by the user with :ref:`custom order params <custom order params>`. Using the ``clientOrderId`` the user can later distinguish between own orders. This is only available for the exchanges that do support ``clientOrderId`` at this time.
+ * The ``timeInForce`` field may be ``undefined/None/null`` if not specified by the exchange. The unification of ``timeInForce`` is a work in progress. Possible values for the\ ``timeInForce`` field:
 
   * ``'GTC'`` = *Good Till Cancel(ed)*\ , the order stays on the orderbook until it is matched or canceled.
   * ``'IOC'`` = *Immediate Or Cancel*\ , the order has to be matched immediately and filled either partially or completely, the unfilled remainder is canceled (or the entire order is canceled).
@@ -4377,11 +4380,11 @@ Placing Orders
 To place an order you will need the following information:
 
 
-* ``symbol``\ , a string literal symbol of the market you wish to trade on, like ``BTC/USD``\ , ``ZEC/ETH``\ , ``DOGE/DASH``\ , etc... Make sure the symbol in question exists with the target exchange and is available for trading.
-* ``side``\ , a string literal for the direction of your order, ``buy`` or ``sell``. When you place a buy order you give quote currency and receive base currency. For example, buying ``BTC/USD`` means that you will receive bitcoins for your dollars. When you are selling ``BTC/USD`` the outcome is the opposite and you receive dollars for your bitcoins.
-* ``type``\ , a string literal type of order, **ccxt currently unifies ``market`` and ``limit`` orders only**\ , see #custom-order-params and #other-order-types
-* ``amount``\ , how much of currency you want to trade. This usually refers to base currency of the trading pair symbol, though some exchanges require the amount in quote currency and a few of them require base or quote amount depending on the side of the order. See their API docs for details.
-* ``price``\ , how much quote currency you are willing to pay for a trade lot of base currency (for limit orders only)
+ * ``symbol``\ , a string literal symbol of the market you wish to trade on, like ``BTC/USD``\ , ``ZEC/ETH``\ , ``DOGE/DASH``\ , etc... Make sure the symbol in question exists with the target exchange and is available for trading.
+ * ``side``\ , a string literal for the direction of your order, ``buy`` or ``sell``. When you place a buy order you give quote currency and receive base currency. For example, buying ``BTC/USD`` means that you will receive bitcoins for your dollars. When you are selling ``BTC/USD`` the outcome is the opposite and you receive dollars for your bitcoins.
+ * ``type``\ , a string literal type of order, **ccxt currently unifies ``market`` and ``limit`` orders only**\ , see #custom-order-params and #other-order-types
+ * ``amount``\ , how much of currency you want to trade. This usually refers to base currency of the trading pair symbol, though some exchanges require the amount in quote currency and a few of them require base or quote amount depending on the side of the order. See their API docs for details.
+ * ``price``\ , how much quote currency you are willing to pay for a trade lot of base currency (for limit orders only)
 
 A successful call to a unified method for placing market or limit orders returns the unified :ref:`order structure <order structure>`.
 
@@ -4397,7 +4400,7 @@ Note, that some fields from the order structure returned from ``createOrder`` ma
 You can use the ``id`` from the returned unified :ref:`order structure <order structure>` to query the status and the state of the order later.
 
 
-* **Some exchanges will allow to trade with limit orders only.** See :ref:`their docs <exchanges>` for details.
+ * **Some exchanges will allow to trade with limit orders only.** See :ref:`their docs <exchanges>` for details.
 
 Market Orders
 ~~~~~~~~~~~~~
@@ -4420,7 +4423,7 @@ The exchange will close your market order for the best price available. You are 
    exchange.createOrder (symbol, 'market', 'sell', amount, ...)
    exchange.create_order (symbol, 'market', 'buy', amount, ...)
 
-**Note, that some exchanges will not accept market orders (they allow limit orders only).** In order to detect programmatically if the exchange in question does support market orders or not, you can use the ``.has['createMarketOrder']`` exchange property:
+ **Note, that some exchanges will not accept market orders (they allow limit orders only).** In order to detect programmatically if the exchange in question does support market orders or not, you can use the ``.has['createMarketOrder']`` exchange property:
 
 .. code-block:: JavaScript
 
@@ -4449,7 +4452,7 @@ In general, when placing a ``market buy`` or ``market sell`` order the user has 
 
 Suppose you're trading BTC/USD and the current market price for BTC is over 9000 USD. For a market buy or market sell you could specify an ``amount`` of 2 BTC and that would result in *plus or minus* 18000 USD (more or less ;)) on your account, depending on the side of the order.
 
-**With market buys some exchanges require the total cost of the order in the quote currency!** The logic behind it is simple, instead of taking the amount of base currency to buy or sell some exchanges operate with *"how much quote currency you want to spend on buying in total"*.
+ **With market buys some exchanges require the total cost of the order in the quote currency!** The logic behind it is simple, instead of taking the amount of base currency to buy or sell some exchanges operate with *"how much quote currency you want to spend on buying in total"*.
 
 To place a market buy order with those exchanges you would not specify an amount of 2 BTC, instead you should somehow specify the total cost of the order, that is, 18000 USD in this example. The exchanges that treat ``market buy`` orders in this way have an exchange-specific option ``createMarketBuyOrderRequiresPrice`` that allows specifying the total cost of a ``market buy`` order in two ways.
 
@@ -4522,17 +4525,17 @@ The second alternative is useful in cases when the user wants to calculate and s
 More about it:
 
 
-* https://github.com/ccxt/ccxt/issues/564#issuecomment-347458566
-* https://github.com/ccxt/ccxt/issues/4914#issuecomment-478199357
-* https://github.com/ccxt/ccxt/issues/4799#issuecomment-470966769
-* https://github.com/ccxt/ccxt/issues/5197#issuecomment-496270785
+ * https://github.com/ccxt/ccxt/issues/564#issuecomment-347458566
+ * https://github.com/ccxt/ccxt/issues/4914#issuecomment-478199357
+ * https://github.com/ccxt/ccxt/issues/4799#issuecomment-470966769
+ * https://github.com/ccxt/ccxt/issues/5197#issuecomment-496270785
 
 Emulating Market Orders With Limit Orders
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It is also possible to emulate a ``market`` order with a ``limit`` order.
 
-**WARNING this method can be risky due to high volatility, use it at your own risk and only use it when you know really well what you're doing!**
+ **WARNING this method can be risky due to high volatility, use it at your own risk and only use it when you know really well what you're doing!**
 
 Most of the time a ``market sell`` can be emulated with a ``limit sell`` at a very low price – the exchange will automatically make it a taker order for market price (the price that is currently in your best interest from the ones that are available in the order book). When the exchange detects that you're selling for a very low price it will automatically offer you the best buyer price available from the order book. That is effectively the same as placing a market sell order. Thus market orders can be emulated with limit orders (where missing).
 
@@ -4687,8 +4690,8 @@ A cancel-request might also throw a ``NetworkError`` indicating that the order m
 As such, ``cancelOrder()`` can throw an ``OrderNotFound`` exception in these cases:
 
 
-* canceling an already-closed order
-* canceling an already-canceled order
+ * canceling an already-closed order
+ * canceling an already-canceled order
 
 My Trades
 ---------
@@ -4854,10 +4857,10 @@ Trade structure
    }
 
 
-* The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
-* The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
-* The ``cost`` of the trade means ``amount * price``. It is the total *quote* volume of the trade (whereas ``amount`` is the *base* volume). The cost field itself is there mostly for convenience and can be deduced from other fields.
-* The ``cost`` of the trade is a *"gross"* value. That is the value pre-fee, and the fee has to be applied afterwards.
+ * The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
+ * The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
+ * The ``cost`` of the trade means ``amount * price``. It is the total *quote* volume of the trade (whereas ``amount`` is the *base* volume). The cost field itself is there mostly for convenience and can be deduced from other fields.
+ * The ``cost`` of the trade is a *"gross"* value. That is the value pre-fee, and the fee has to be applied afterwards.
 
 Trades By Order Id
 ^^^^^^^^^^^^^^^^^^
@@ -5047,8 +5050,8 @@ The address for depositing can be either an already existing address that was cr
    createDepositAddress (code, params = {})
 
 
-* ``code`` is the unified currency code (uppercase string)
-* ``params`` contains optional extra overrides
+ * ``code`` is the unified currency code (uppercase string)
+ * ``params`` contains optional extra overrides
 
 Some exchanges may also have a method for fetching multiple deposit addresses at once or all of them at once:
 
@@ -5147,13 +5150,13 @@ Notes On Transaction Structure
 """"""""""""""""""""""""""""""
 
 
-* ``addressFrom`` or ``addressTo`` may be ``undefined/None/null``\ , if the exchange in question does not specify all sides of the transaction
-* The semantics of the ``address`` field is exchange-specific. In some cases it can contain the address of the sender, in other cases it may contain the address of the receiver. The actual value depends on the exchange.
-* The ``updated`` field is the UTC timestamp in milliseconds of the most recent change of status of that funding operation, be it ``withdrawal`` or ``deposit``. It is necessary if you want to track your changes in time, beyond a static snapshot. For example, if the exchange in question reports ``created_at`` and ``confirmed_at`` for a transaction, then the ``updated`` field will take the value of ``Math.max (created_at, confirmed_at)``\ , that is, the timestamp of the most recent change of the status.
-* The ``updated`` field may be ``undefined/None/null`` in certain exchange-specific cases.
-* The ``fee`` substructure may be missing, if not supplied within the reply coming from the exchange.
-* The ``comment`` field may be ``undefined/None/null``\ , otherwise it will contain a message or note defined by the user upon creating the transaction.
-* Be careful when handling the ``tag`` and the ``address``. The ``tag`` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the ``tag``. The purpose of the ``tag`` field is to address your wallet properly, so it must be correct. You should only use the ``tag`` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
+ * ``addressFrom`` or ``addressTo`` may be ``undefined/None/null``\ , if the exchange in question does not specify all sides of the transaction
+ * The semantics of the ``address`` field is exchange-specific. In some cases it can contain the address of the sender, in other cases it may contain the address of the receiver. The actual value depends on the exchange.
+ * The ``updated`` field is the UTC timestamp in milliseconds of the most recent change of status of that funding operation, be it ``withdrawal`` or ``deposit``. It is necessary if you want to track your changes in time, beyond a static snapshot. For example, if the exchange in question reports ``created_at`` and ``confirmed_at`` for a transaction, then the ``updated`` field will take the value of ``Math.max (created_at, confirmed_at)``\ , that is, the timestamp of the most recent change of the status.
+ * The ``updated`` field may be ``undefined/None/null`` in certain exchange-specific cases.
+ * The ``fee`` substructure may be missing, if not supplied within the reply coming from the exchange.
+ * The ``comment`` field may be ``undefined/None/null``\ , otherwise it will contain a message or note defined by the user upon creating the transaction.
+ * Be careful when handling the ``tag`` and the ``address``. The ``tag`` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the ``tag``. The purpose of the ``tag`` field is to address your wallet properly, so it must be correct. You should only use the ``tag`` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
 
 Deposits
 ^^^^^^^^
@@ -5263,13 +5266,13 @@ All Transactions
 Fees
 ----
 
-**This section of the Unified CCXT API is under development.**
+ **This section of the Unified CCXT API is under development.**
 
 Fees are often grouped into two categories:
 
 
-* Trading fees. Trading fee is the amount payable to the exchange, usually a percentage of volume traded (filled)).
-* Funding fees. The amount payable to the exchange upon depositing and withdrawing as well as the underlying crypto transaction fees (tx fees).
+ * Trading fees. Trading fee is the amount payable to the exchange, usually a percentage of volume traded (filled)).
+ * Funding fees. The amount payable to the exchange upon depositing and withdrawing as well as the underlying crypto transaction fees (tx fees).
 
 Because the fee structure can depend on the actual volume of currencies traded by the user, the fees can be account-specific. Methods to work with account-specific fees:
 
@@ -5283,7 +5286,7 @@ The fee methods will return a unified fee structure, which is often present with
 
 Because this is still a work in progress, some or all of methods and info described in this section may be missing with this or that exchange.
 
-**DO NOT use the ``.fees`` property of the exchange instance as most often it contains the predefined/hardcoded info. Actual fees should only be accessed from markets and currencies.**
+ **DO NOT use the ``.fees`` property of the exchange instance as most often it contains the predefined/hardcoded info. Actual fees should only be accessed from markets and currencies.**
 
 ``fetchFees`` will automatically call both ``fetchFundingFees`` and ``fetchTradingFees`` to get all the fee information. You can call fetchFundingFees or fetchTradingFees for more precise control over what endpoint on the exchange is requested.
 
@@ -5381,7 +5384,7 @@ The markets stored under the ``.markets`` property may contain additional fee re
        },
    }
 
-**WARNING! fee related information is experimental, unstable and may only be partial available or not at all.**
+ **WARNING! fee related information is experimental, unstable and may only be partial available or not at all.**
 
 Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Similarly, taker fees are paid when you *take* liquidity from the exchange and fill someone else's order.
 
@@ -5495,15 +5498,15 @@ Notes on Ledger Entry Structure
 The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is is associated with a corresponding transaction.
 
 
-* ``trade``
-* ``transaction``
-* ``fee``
-* ``rebate``
-* ``cashback``
-* ``referral``
-* ``transfer``
-* ``whatever``
-* ...
+ * ``trade``
+ * ``transaction``
+ * ``fee``
+ * ``rebate``
+ * ``cashback``
+ * ``referral``
+ * ``transfer``
+ * ``whatever``
+ * ...
 
 The ``referenceId`` field holds the id of the corresponding event that was registered by adding a new item to the ledger.
 
@@ -5683,8 +5686,8 @@ The ``BaseError`` class is a generic error class for all sorts of errors, includ
 There's two generic families of special cases or subtrees in the error hierarchy, both derived from ``BaseError``\ :
 
 
-* ``NetworkError``
-* ``ExchangeError``
+ * ``NetworkError``
+ * ``ExchangeError``
 
 A ``NetworkError`` is a non-critical non-breaking error, not really an error in a full sense, but more like a temporary unavailability situation, that could be caused by any condition or by any factor, including maintenance, DDoS protections, and temporary bans. The reason for having a big family of ``NetworkError`` is to group all exceptions that can reappear or disappear upon a later retry or upon a retry from a different location, all the rest being equal (with the same user input, put simply, same order price and amount, same symbol, etc...).
 
@@ -5698,22 +5701,22 @@ ExchangeError
 This exception is thrown when an exchange server replies with an error in JSON. Possible reasons:
 
 
-* endpoint is switched off by the exchange
-* symbol not found on the exchange
-* required parameter is missing
-* the format of parameters is incorrect
-* an exchange replies with an unclear answer
+ * endpoint is switched off by the exchange
+ * symbol not found on the exchange
+ * required parameter is missing
+ * the format of parameters is incorrect
+ * an exchange replies with an unclear answer
 
 Other exceptions derived from ``ExchangeError``\ :
 
 
-* ``NotSupported``\ : This exception is raised if the endpoint is not offered/not supported by the exchange API.
-* ``AuthenticationError``\ : Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need ``apiKey`` and ``secret``\ , sometimes you also need ``uid`` and/or ``password``.
-* ``PermissionDenied``\ : Raised when there's no access for specified action or insufficient permissions on the specified ``apiKey``.
-* ``InsufficientFunds``\ : This exception is raised when you don't have enough currency on your account balance to place an order.
-* ``InvalidAddress``\ : This exception is raised upon encountering a bad funding address or a funding address shorter than ``.minFundingAddressLength`` (10 characters by default) in a call to ``fetchDepositAddress``\ , ``createDepositAddress`` or ``withdraw``.
-* ``InvalidOrder``\ : This exception is the base class for all exceptions related to the unified order API.
-* ``OrderNotFound``\ : Raised when you are trying to fetch or cancel a non-existent order.
+ * ``NotSupported``\ : This exception is raised if the endpoint is not offered/not supported by the exchange API.
+ * ``AuthenticationError``\ : Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need ``apiKey`` and ``secret``\ , sometimes you also need ``uid`` and/or ``password``.
+ * ``PermissionDenied``\ : Raised when there's no access for specified action or insufficient permissions on the specified ``apiKey``.
+ * ``InsufficientFunds``\ : This exception is raised when you don't have enough currency on your account balance to place an order.
+ * ``InvalidAddress``\ : This exception is raised upon encountering a bad funding address or a funding address shorter than ``.minFundingAddressLength`` (10 characters by default) in a call to ``fetchDepositAddress``\ , ``createDepositAddress`` or ``withdraw``.
+ * ``InvalidOrder``\ : This exception is the base class for all exceptions related to the unified order API.
+ * ``OrderNotFound``\ : Raised when you are trying to fetch or cancel a non-existent order.
 
 NetworkError
 ------------
@@ -5726,16 +5729,16 @@ DDoSProtection
 This exception is thrown in either of two cases:
 
 
-* when Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location
-* when the exchange restricts user access for requesting the endpoints in question too frequently
+ * when Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location
+ * when the exchange restricts user access for requesting the endpoints in question too frequently
 
 In addition to default error handling, the ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
 
 
-* ``cloudflare``
-* ``incapsula``
-* ``overload``
-* ``ddos``
+ * ``cloudflare``
+ * ``incapsula``
+ * ``overload``
+ * ``ddos``
 
 RequestTimeout
 --------------
@@ -5745,13 +5748,13 @@ This exception is raised when the connection with the exchange fails or data is 
 Thus it's advised to handle this type of exception in the following manner:
 
 
-* for fetching requests it is safe to retry the call
-* for a request to ``cancelOrder()`` a user is required to retry the same call the second time. A subsequent retry to ``cancelOrder()`` will return one of the following possible results:
+ * for fetching requests it is safe to retry the call
+ * for a request to ``cancelOrder()`` a user is required to retry the same call the second time. A subsequent retry to ``cancelOrder()`` will return one of the following possible results:
 
   * a request is completed successfully, meaning the order has been properly canceled now
   * an ``OrderNotFound`` exception is raised, which means the order was either already canceled on the first attempt or has been executed (filled and closed) in the meantime between the two attempts.
 
-* if a request to ``createOrder()`` fails with a ``RequestTimeout`` the user should:
+ * if a request to ``createOrder()`` fails with a ``RequestTimeout`` the user should:
 
   * call ``fetchOrders()``\ , ``fetchOpenOrders()``\ , ``fetchClosedOrders()`` to check if the request to place the order has succeeded and the order is now open
   * if the order is not ``'open'`` the user should ``fetchBalance()`` to check if the balance has changed since the order was created on the first run and then was filled and closed by the time of the second check.
@@ -5764,14 +5767,14 @@ This type of exception is thrown when the underlying exchange is unreachable.
 The ccxt library also throws this error if it detects any of the following keywords in response:
 
 
-* ``offline``
-* ``unavailable``
-* ``busy``
-* ``retry``
-* ``wait``
-* ``maintain``
-* ``maintenance``
-* ``maintenancing``
+ * ``offline``
+ * ``unavailable``
+ * ``busy``
+ * ``retry``
+ * ``wait``
+ * ``maintain``
+ * ``maintenance``
+ * ``maintenancing``
 
 InvalidNonce
 ------------
@@ -5779,10 +5782,10 @@ InvalidNonce
 Raised when your nonce is less than the previous nonce used with your keypair, as described in the :ref:`Authentication <authentication>` section. This type of exception is thrown in these cases (in order of precedence for checking):
 
 
-* You are not rate-limiting your requests or sending too many of them too often.
-* Your API keys are not fresh and new (have been used with some different software or script already, just always create a new keypair when you add this or that exchange).
-* The same keypair is shared across multiple instances of the exchange class (for example, in a multithreaded environment or in separate processes).
-* Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *"time synch frequency"* for your OS).
+ * You are not rate-limiting your requests or sending too many of them too often.
+ * Your API keys are not fresh and new (have been used with some different software or script already, just always create a new keypair when you add this or that exchange).
+ * The same keypair is shared across multiple instances of the exchange class (for example, in a multithreaded environment or in separate processes).
+ * Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *"time synch frequency"* for your OS).
 
 Troubleshooting
 ===============
@@ -5790,7 +5793,7 @@ Troubleshooting
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
 
 
-* Make sure that you have the most recent version of ccxt.
+ * Make sure that you have the most recent version of ccxt.
   Never trust your package installer (whether it is ``npm``\ , ``pip`` or ``composer``\ ), instead always check your **actual (real) runtime version number** by running this code in your environment:
   .. code-block:: JavaScript
 
@@ -5804,9 +5807,9 @@ In case you experience any difficulty connecting to a particular exchange, do th
 
      echo "CCXT v." . \ccxt\Exchange::VERSION . "\n"; // PHP
 
-* Check the `Issues <https://github.com/ccxt/ccxt/issues>`__ for recent updates.
-* Make sure you have :ref:`rate-limiter enabled with ``enableRateLimit: true`` <rate limit>` (either the built-in rate-limiter or your own custom rate-limiter).
-* Turn ``verbose = true`` to get more detail about it!
+ * Check the `Issues <https://github.com/ccxt/ccxt/issues>`__ for recent updates.
+ * Make sure you have :ref:`rate-limiter enabled with ``enableRateLimit: true`` <rate limit>` (either the built-in rate-limiter or your own custom rate-limiter).
+ * Turn ``verbose = true`` to get more detail about it!
   .. code-block:: Python
 
      import ccxt
@@ -5814,42 +5817,37 @@ In case you experience any difficulty connecting to a particular exchange, do th
      exchange.load_markets()
      exchange.verbose = True  # enable verbose mode after loading the markets
   Your `code to reproduce the issue + verbose output is required <https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help>`__ in order to get help.
-* Python people can turn on DEBUG logging level with a standard pythonic logger, by adding these two lines to the beginning of their code:
+ * Python people can turn on DEBUG logging level with a standard pythonic logger, by adding these two lines to the beginning of their code:
   .. code-block:: Python
 
      import logging
      logging.basicConfig(level=logging.DEBUG)
 
-* Use verbose mode to make sure that the used API credentials correspond to the keys you intend to use. Make sure there's no confusion of keypairs.
-* **Try a fresh new keypair if possible.**
-* Read the answers to Frequently Asked Questions: https://github.com/ccxt/ccxt/wiki/FAQ
-* Check the permissions on the keypair with the exchange website!
-* If it is a Cloudflare protection error, try these examples:
+ * Use verbose mode to make sure that the used API credentials correspond to the keys you intend to use. Make sure there's no confusion of keypairs.
+ * **Try a fresh new keypair if possible.**
+ * Read the answers to Frequently Asked Questions: https://github.com/ccxt/ccxt/wiki/FAQ
+ * Check the permissions on the keypair with the exchange website!
+ * If it is a Cloudflare protection error, try these examples:
 
   * https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
   * https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
   * https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare-with-cookies.py
 
-* Check your nonce. If you used your API keys with other software, you most likely should :ref:`override your nonce function <overriding the nonce>` to match your previous nonce value. A nonce usually can be easily reset by generating a new unused keypair. If you are getting nonce errors with an existing key, try with a new API key that hasn't been used yet.
-* Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests or enable the built-in rate-limiter, like shown in the long-poller `examples <https://github.com/ccxt/ccxt/tree/master/examples>`__\ , also :ref:`here <order-book--market-depth>`.
-* Read the `docs for your exchange <https://github.com/ccxt/ccxt/wiki/Exchanges>`__ and compare your verbose output to the docs.
-* Check your connectivity with the exchange by accessing it with your browser.
-* Check your connection with the exchange through a proxy. Read the `Proxy <https://github.com/ccxt/ccxt/wiki/Install#proxy>`__ section for more details.
-* Try accesing the exchange from a different computer or a remote server, to see if this is a local or global issue with the exchange.
-* Check if there were any news from the exchange recently regarding downtime for maintenance. Some exchanges go offline for updates regularly (like once a week).
-* Make sure that your system time in sync with the rest of the world's clocks since otherwise you may get invalid nonce errors.
+ * Check your nonce. If you used your API keys with other software, you most likely should :ref:`override your nonce function <overriding the nonce>` to match your previous nonce value. A nonce usually can be easily reset by generating a new unused keypair. If you are getting nonce errors with an existing key, try with a new API key that hasn't been used yet.
+ * Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests or enable the built-in rate-limiter, like shown in the long-poller `examples <https://github.com/ccxt/ccxt/tree/master/examples>`__\ , also :ref:`here <order-book--market-depth>`.
+ * Read the `docs for your exchange <https://github.com/ccxt/ccxt/wiki/Exchanges>`__ and compare your verbose output to the docs.
+ * Check your connectivity with the exchange by accessing it with your browser.
+ * Check your connection with the exchange through a proxy. Read the `Proxy <https://github.com/ccxt/ccxt/wiki/Install#proxy>`__ section for more details.
+ * Try accesing the exchange from a different computer or a remote server, to see if this is a local or global issue with the exchange.
+ * Check if there were any news from the exchange recently regarding downtime for maintenance. Some exchanges go offline for updates regularly (like once a week).
+ * Make sure that your system time in sync with the rest of the world's clocks since otherwise you may get invalid nonce errors.
 
 Notes
 ^^^^^
 
 
-* Use the ``verbose = true`` option or instantiate your troublesome exchange with ``new ccxt.exchange ({ 'verbose': true })`` to see the HTTP requests and responses in details. The verbose output will also be of use for us to debug it if you submit an issue on GitHub.
-* Use DEBUG logging in Python!
-* As written above, some exchanges are not available in certain countries. You should use a proxy or get a server somewhere closer to the exchange.
-* If you are getting authentication errors or *'invalid keys'* errors, those are most likely due to a nonce issue.
-* Some exchanges do not state it clearly if they fail to authenticate your request. In those circumstances they might respond with an exotic error code, like HTTP 502 Bad Gateway Error or something that's even less related to the actual cause of the error.
-
-CCXT Pro
-========
-
-See the CCXT Pro Manual here: :doc:`CCXT Pro Manual <ccxt.pro>`
+ * Use the ``verbose = true`` option or instantiate your troublesome exchange with ``new ccxt.exchange ({ 'verbose': true })`` to see the HTTP requests and responses in details. The verbose output will also be of use for us to debug it if you submit an issue on GitHub.
+ * Use DEBUG logging in Python!
+ * As written above, some exchanges are not available in certain countries. You should use a proxy or get a server somewhere closer to the exchange.
+ * If you are getting authentication errors or *'invalid keys'* errors, those are most likely due to a nonce issue.
+ * Some exchanges do not state it clearly if they fail to authenticate your request. In those circumstances they might respond with an exotic error code, like HTTP 502 Bad Gateway Error or something that's even less related to the actual cause of the error.

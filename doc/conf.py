@@ -123,6 +123,7 @@ html_static_path = ['_static']
 # or fully qualified paths (eg. https://...)
 html_css_files = [
     'css/index.css',
+    'css/dark.css',
 ]
 
 html_js_files = [
@@ -150,7 +151,9 @@ rst_prolog = """
    <script>
    $('.version').after ('<div id="widget-wrapper"><div id="widget"></div></div>'); 
    const $search = $('.wy-side-nav-search'); $search.after ($('<div></div').css ('height', $search.outerHeight ()))
-   // window.READTHEDOCS_DATA = true
+   let theme = localStorage.getItem ('theme')
+   theme = theme === null ? 'light' : theme
+   document.documentElement.setAttribute ('data-theme', theme)
    </script>
 
 """

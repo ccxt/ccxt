@@ -1,6 +1,6 @@
 'use strict';
 
-window.addEventListener ('load', () => {
+window.addEventListener ('load', function () {
     const $links = $('ul > .toctree-l1');
     const $sublinks = $('.toctree-l2');
     const $allLinks = $('ul > .toctree-l1,.toctree-l2');
@@ -28,7 +28,10 @@ window.addEventListener ('load', () => {
     });
     // limit faq to just one question per link
     const $faq = $('a.reference.internal[href="#frequently asked questions"]');
-    const $faqlinks = $faq.siblings ().children ().children ();
+    let $faqlinks = $faq.siblings ().children ().children ();
+    if ($faqlinks.length === 0) {
+        $faqlinks = $('a.reference.internal[href^="FAQ.html#"]')
+    }
     $faqlinks.each (function () {
         this.innerText = this.innerText.split ('?')[0] + '?';
     });
@@ -132,7 +135,52 @@ window.addEventListener ('load', () => {
     window.binanceBrokerPortalSdk.initBrokerSDK ('#widget', {
         'apiHost': 'https://www.binance.com',
         'brokerId': 'R4BD3S82',
-        'slideTime': 5.0e8,
+        'slideTime': 20.0e3,
         'overrideStyle': style,
     });
+
+    const createThemeSwitcher = () => {
+        const $btn = $('<div id="btn-wrapper"><btn id="themeSwitcher" class="theme-switcher"><i id="themeMoon" class="fa fa-moon-o"></i><i id="themeSun" class="fa fa-sun-o"></i></btn></div>');
+        const $previous = $('.btn.float-left')
+        if ($previous.length) {
+            $previous.after ($btn)
+        } else {
+            const $next = $('.btn.float-right')
+            $next.after ($btn)
+        }
+        if (localStorage.getItem ('theme') === 'dark') {
+            $('#themeMoon').hide (0);
+        } else {
+            $('#themeSun').hide (0);
+        }
+    };
+
+    const switchTheme = function () {
+        const $this = $(this)
+        if ($this.attr ('disabled')) {
+            return
+        }
+        $this.attr ('disabled', true)
+        if (localStorage.getItem ('theme') === 'dark') {
+            localStorage.setItem ('theme', 'light');
+            document.documentElement.setAttribute ('data-theme', 'light');
+            $('#themeSun').fadeOut (150, () => {
+                $('#themeMoon').fadeIn (150, () => {
+                    $this.attr ('disabled', false)
+                });
+            });
+        } else {
+            localStorage.setItem ('theme', 'dark');
+            document.documentElement.setAttribute ('data-theme', 'dark');
+            $('#themeMoon').fadeOut (150, () => {
+                $('#themeSun').fadeIn (150, () => {
+                    $this.attr ('disabled', false)
+                });
+            });
+        }
+    };
+
+    createThemeSwitcher ();
+    $('#themeSwitcher').click (switchTheme);
+    $('colgroup').remove ()
 });
