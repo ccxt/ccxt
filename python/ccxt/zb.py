@@ -563,11 +563,42 @@ class zb(Exchange):
             'market': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
-        ticker = response['ticker']
+        #
+        #     {
+        #         "date":"1624399623587",
+        #         "ticker":{
+        #             "high":"33298.38",
+        #             "vol":"56152.9012",
+        #             "last":"32578.55",
+        #             "low":"28808.19",
+        #             "buy":"32572.68",
+        #             "sell":"32615.37",
+        #             "turnover":"1764201303.6100",
+        #             "open":"31664.85",
+        #             "riseRate":"2.89"
+        #         }
+        #     }
+        #
+        ticker = self.safe_value(response, 'ticker', {})
+        ticker['date'] = self.safe_value(response, 'date')
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.milliseconds()
+        #
+        #     {
+        #         "date":"1624399623587",  # injected from outside
+        #         "high":"33298.38",
+        #         "vol":"56152.9012",
+        #         "last":"32578.55",
+        #         "low":"28808.19",
+        #         "buy":"32572.68",
+        #         "sell":"32615.37",
+        #         "turnover":"1764201303.6100",
+        #         "open":"31664.85",
+        #         "riseRate":"2.89"
+        #     }
+        #
+        timestamp = self.safe_integer(ticker, 'date', self.milliseconds())
         symbol = None
         if market is not None:
             symbol = market['symbol']

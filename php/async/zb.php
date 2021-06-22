@@ -571,12 +571,43 @@ class zb extends Exchange {
             'market' => $market['id'],
         );
         $response = yield $this->publicGetTicker (array_merge($request, $params));
-        $ticker = $response['ticker'];
+        //
+        //     {
+        //         "date":"1624399623587",
+        //         "$ticker":{
+        //             "high":"33298.38",
+        //             "vol":"56152.9012",
+        //             "last":"32578.55",
+        //             "low":"28808.19",
+        //             "buy":"32572.68",
+        //             "sell":"32615.37",
+        //             "turnover":"1764201303.6100",
+        //             "open":"31664.85",
+        //             "riseRate":"2.89"
+        //         }
+        //     }
+        //
+        $ticker = $this->safe_value($response, 'ticker', array());
+        $ticker['date'] = $this->safe_value($response, 'date');
         return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_ticker($ticker, $market = null) {
-        $timestamp = $this->milliseconds();
+        //
+        //     {
+        //         "date":"1624399623587", // injected from outside
+        //         "high":"33298.38",
+        //         "vol":"56152.9012",
+        //         "$last":"32578.55",
+        //         "low":"28808.19",
+        //         "buy":"32572.68",
+        //         "sell":"32615.37",
+        //         "turnover":"1764201303.6100",
+        //         "open":"31664.85",
+        //         "riseRate":"2.89"
+        //     }
+        //
+        $timestamp = $this->safe_integer($ticker, 'date', $this->milliseconds());
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
