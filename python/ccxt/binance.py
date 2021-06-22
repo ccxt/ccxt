@@ -2837,35 +2837,101 @@ class binance(Exchange):
         }
 
     def fetch_funding_fees(self, codes=None, params={}):
-        response = self.sapiGetAssetAssetDetail(params)
+        response = self.sapiGetCapitalConfigGetall(params)
         #
+        #  [
         #     {
-        #       "VRAB": {
-        #         "withdrawFee": "100",
-        #         "minWithdrawAmount": "200",
-        #         "withdrawStatus": True,
-        #         "depositStatus": True
-        #       },
-        #       "NZD": {
-        #         "withdrawFee": "0",
-        #         "minWithdrawAmount": "0",
-        #         "withdrawStatus": False,
-        #         "depositStatus": False
-        #       },
-        #       "AKRO": {
-        #         "withdrawFee": "313",
-        #         "minWithdrawAmount": "626",
-        #         "withdrawStatus": True,
-        #         "depositStatus": True
-        #       },
+        #       coin: 'BAT',
+        #       depositAllEnable: True,
+        #       withdrawAllEnable: True,
+        #       name: 'Basic Attention Token',
+        #       free: '0',
+        #       locked: '0',
+        #       freeze: '0',
+        #       withdrawing: '0',
+        #       ipoing: '0',
+        #       ipoable: '0',
+        #       storage: '0',
+        #       isLegalMoney: False,
+        #       trading: True,
+        #       networkList: [
+        #         {
+        #           network: 'BNB',
+        #           coin: 'BAT',
+        #           withdrawIntegerMultiple: '0.00000001',
+        #           isDefault: False,
+        #           depositEnable: True,
+        #           withdrawEnable: True,
+        #           depositDesc: '',
+        #           withdrawDesc: '',
+        #           specialTips: 'The name of self asset is Basic Attention Token(BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        #           name: 'BEP2',
+        #           resetAddressStatus: False,
+        #           addressRegex: '^(bnb1)[0-9a-z]{38}$',
+        #           memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
+        #           withdrawFee: '0.27',
+        #           withdrawMin: '0.54',
+        #           withdrawMax: '10000000000',
+        #           minConfirm: '1',
+        #           unLockConfirm: '0'
+        #         },
+        #         {
+        #           network: 'BSC',
+        #           coin: 'BAT',
+        #           withdrawIntegerMultiple: '0.00000001',
+        #           isDefault: False,
+        #           depositEnable: True,
+        #           withdrawEnable: True,
+        #           depositDesc: '',
+        #           withdrawDesc: '',
+        #           specialTips: 'The name of self asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token(BAT) tokens under the contract address ending in 9766e.',
+        #           name: 'BEP20(BSC)',
+        #           resetAddressStatus: False,
+        #           addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
+        #           memoRegex: '',
+        #           withdrawFee: '0.27',
+        #           withdrawMin: '0.54',
+        #           withdrawMax: '10000000000',
+        #           minConfirm: '15',
+        #           unLockConfirm: '0'
+        #         },
+        #         {
+        #           network: 'ETH',
+        #           coin: 'BAT',
+        #           withdrawIntegerMultiple: '0.00000001',
+        #           isDefault: True,
+        #           depositEnable: True,
+        #           withdrawEnable: True,
+        #           depositDesc: '',
+        #           withdrawDesc: '',
+        #           specialTips: 'The name of self asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token(BAT) tokens under the contract address ending in 887ef.',
+        #           name: 'ERC20',
+        #           resetAddressStatus: False,
+        #           addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
+        #           memoRegex: '',
+        #           withdrawFee: '27',
+        #           withdrawMin: '54',
+        #           withdrawMax: '10000000000',
+        #           minConfirm: '12',
+        #           unLockConfirm: '0'
+        #         }
+        #       ]
         #     }
+        #  ]
         #
-        ids = list(response.keys())
         withdrawFees = {}
-        for i in range(0, len(ids)):
-            id = ids[i]
-            code = self.safe_currency_code(id)
-            withdrawFees[code] = self.safe_number(response[id], 'withdrawFee')
+        for i in range(0, len(response)):
+            entry = response[i]
+            currencyId = self.safe_string(entry, 'coin')
+            code = self.safe_currency_code(currencyId)
+            networkList = self.safe_value(entry, 'networkList')
+            withdrawFees[code] = {}
+            for j in range(0, len(networkList)):
+                networkEntry = networkList[j]
+                networkId = self.safe_string(networkEntry, 'network')
+                networkCode = self.safe_currency_code(networkId)
+                fee = self.safe_number(networkEntry, 'withdrawFee')
+                withdrawFees[code][networkCode] = fee
         return {
             'withdraw': withdrawFees,
             'deposit': {},

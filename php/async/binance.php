@@ -2983,35 +2983,102 @@ class binance extends Exchange {
     }
 
     public function fetch_funding_fees($codes = null, $params = array ()) {
-        $response = yield $this->sapiGetAssetAssetDetail ($params);
+        $response = yield $this->sapiGetCapitalConfigGetall ($params);
         //
+        //  [
         //     {
-        //       "VRAB" => array(
-        //         "withdrawFee" => "100",
-        //         "minWithdrawAmount" => "200",
-        //         "withdrawStatus" => true,
-        //         "depositStatus" => true
-        //       ),
-        //       "NZD" => array(
-        //         "withdrawFee" => "0",
-        //         "minWithdrawAmount" => "0",
-        //         "withdrawStatus" => false,
-        //         "depositStatus" => false
-        //       ),
-        //       "AKRO" => array(
-        //         "withdrawFee" => "313",
-        //         "minWithdrawAmount" => "626",
-        //         "withdrawStatus" => true,
-        //         "depositStatus" => true
-        //       ),
+        //       coin => 'BAT',
+        //       depositAllEnable => true,
+        //       withdrawAllEnable => true,
+        //       name => 'Basic Attention Token',
+        //       free => '0',
+        //       locked => '0',
+        //       freeze => '0',
+        //       withdrawing => '0',
+        //       ipoing => '0',
+        //       ipoable => '0',
+        //       storage => '0',
+        //       isLegalMoney => false,
+        //       trading => true,
+        //       $networkList => [
+        //         array(
+        //           network => 'BNB',
+        //           coin => 'BAT',
+        //           withdrawIntegerMultiple => '0.00000001',
+        //           isDefault => false,
+        //           depositEnable => true,
+        //           withdrawEnable => true,
+        //           depositDesc => '',
+        //           withdrawDesc => '',
+        //           specialTips => 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        //           name => 'BEP2',
+        //           resetAddressStatus => false,
+        //           addressRegex => '^(bnb1)[0-9a-z]{38}$',
+        //           memoRegex => '^[0-9A-Za-z\\-_]array(1,120)$',
+        //           withdrawFee => '0.27',
+        //           withdrawMin => '0.54',
+        //           withdrawMax => '10000000000',
+        //           minConfirm => '1',
+        //           unLockConfirm => '0'
+        //         ),
+        //         array(
+        //           network => 'BSC',
+        //           coin => 'BAT',
+        //           withdrawIntegerMultiple => '0.00000001',
+        //           isDefault => false,
+        //           depositEnable => true,
+        //           withdrawEnable => true,
+        //           depositDesc => '',
+        //           withdrawDesc => '',
+        //           specialTips => 'The name of this asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token (BAT) tokens under the contract address ending in 9766e.',
+        //           name => 'BEP20 (BSC)',
+        //           resetAddressStatus => false,
+        //           addressRegex => '^(0x)[0-9A-Fa-f]{40}$',
+        //           memoRegex => '',
+        //           withdrawFee => '0.27',
+        //           withdrawMin => '0.54',
+        //           withdrawMax => '10000000000',
+        //           minConfirm => '15',
+        //           unLockConfirm => '0'
+        //         ),
+        //         {
+        //           network => 'ETH',
+        //           coin => 'BAT',
+        //           withdrawIntegerMultiple => '0.00000001',
+        //           isDefault => true,
+        //           depositEnable => true,
+        //           withdrawEnable => true,
+        //           depositDesc => '',
+        //           withdrawDesc => '',
+        //           specialTips => 'The name of this asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token (BAT) tokens under the contract address ending in 887ef.',
+        //           name => 'ERC20',
+        //           resetAddressStatus => false,
+        //           addressRegex => '^(0x)[0-9A-Fa-f]{40}$',
+        //           memoRegex => '',
+        //           withdrawFee => '27',
+        //           withdrawMin => '54',
+        //           withdrawMax => '10000000000',
+        //           minConfirm => '12',
+        //           unLockConfirm => '0'
+        //         }
+        //       ]
         //     }
+        //  ]
         //
-        $ids = is_array($response) ? array_keys($response) : array();
         $withdrawFees = array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $code = $this->safe_currency_code($id);
-            $withdrawFees[$code] = $this->safe_number($response[$id], 'withdrawFee');
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $currencyId = $this->safe_string($entry, 'coin');
+            $code = $this->safe_currency_code($currencyId);
+            $networkList = $this->safe_value($entry, 'networkList');
+            $withdrawFees[$code] = array();
+            for ($j = 0; $j < count($networkList); $j++) {
+                $networkEntry = $networkList[$j];
+                $networkId = $this->safe_string($networkEntry, 'network');
+                $networkCode = $this->safe_currency_code($networkId);
+                $fee = $this->safe_number($networkEntry, 'withdrawFee');
+                $withdrawFees[$code][$networkCode] = $fee;
+            }
         }
         return array(
             'withdraw' => $withdrawFees,
