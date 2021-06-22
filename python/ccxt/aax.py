@@ -48,6 +48,7 @@ class aax(Exchange):
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -436,6 +437,72 @@ class aax(Exchange):
                     },
                 },
             })
+        return result
+
+    def fetch_currencies(self, params={}):
+        response = self.publicGetCurrencies(params)
+        #
+        #     {
+        #         "code":1,
+        #         "data":[
+        #             {
+        #                 "chain":"BTC",
+        #                 "displayName":"Bitcoin",
+        #                 "withdrawFee":"0.0004",
+        #                 "withdrawMin":"0.001",
+        #                 "otcFee":"0",
+        #                 "enableOTC":true,
+        #                 "visible":true,
+        #                 "enableTransfer":true,
+        #                 "transferMin":"0.00001",
+        #                 "depositMin":"0.0005",
+        #                 "enableWithdraw":true,
+        #                 "enableDeposit":true,
+        #                 "addrWithMemo":false,
+        #                 "withdrawPrecision":"0.00000001",
+        #                 "currency":"BTC",
+        #                 "network":"BTC",  # ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
+        #                 "minConfirm":"2"
+        #             },
+        #         ],
+        #         "message":"success",
+        #         "ts":1624330530697
+        #     }
+        #
+        result = {}
+        data = self.safe_value(response, 'data', [])
+        for i in range(0, len(data)):
+            currency = data[i]
+            id = self.safe_string(currency, 'chain')
+            name = self.safe_string(currency, 'displayName')
+            code = self.safe_currency_code(id)
+            precision = self.safe_number(currency, 'withdrawPrecision')
+            enableWithdraw = self.safe_value(currency, 'enableWithdraw')
+            enableDeposit = self.safe_value(currency, 'enableDeposit')
+            fee = self.safe_number(currency, 'withdrawFee')
+            visible = self.safe_value(currency, 'visible')
+            active = (enableWithdraw and enableDeposit and visible)
+            network = self.safe_string(currency, 'network')
+            result[code] = {
+                'id': id,
+                'name': name,
+                'code': code,
+                'precision': precision,
+                'info': currency,
+                'active': active,
+                'fee': fee,
+                'network': network,
+                'limits': {
+                    'deposit': {
+                        'min': self.safe_number(currency, 'depositMin'),
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.safe_number(currency, 'withdrawMin'),
+                        'max': None,
+                    },
+                },
+            }
         return result
 
     def parse_ticker(self, ticker, market=None):
