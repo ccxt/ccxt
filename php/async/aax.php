@@ -32,6 +32,7 @@ class aax extends Exchange {
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -421,6 +422,74 @@ class aax extends Exchange {
                     ),
                     'cost' => array(
                         'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_currencies($params = array ()) {
+        $response = yield $this->publicGetCurrencies ($params);
+        //
+        //     {
+        //         "$code":1,
+        //         "$data":array(
+        //             array(
+        //                 "chain":"BTC",
+        //                 "displayName":"Bitcoin",
+        //                 "withdrawFee":"0.0004",
+        //                 "withdrawMin":"0.001",
+        //                 "otcFee":"0",
+        //                 "enableOTC":true,
+        //                 "$visible":true,
+        //                 "enableTransfer":true,
+        //                 "transferMin":"0.00001",
+        //                 "depositMin":"0.0005",
+        //                 "$enableWithdraw":true,
+        //                 "$enableDeposit":true,
+        //                 "addrWithMemo":false,
+        //                 "withdrawPrecision":"0.00000001",
+        //                 "$currency":"BTC",
+        //                 "$network":"BTC", // ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
+        //                 "minConfirm":"2"
+        //             ),
+        //         ),
+        //         "message":"success",
+        //         "ts":1624330530697
+        //     }
+        //
+        $result = array();
+        $data = $this->safe_value($response, 'data', array());
+        for ($i = 0; $i < count($data); $i++) {
+            $currency = $data[$i];
+            $id = $this->safe_string($currency, 'chain');
+            $name = $this->safe_string($currency, 'displayName');
+            $code = $this->safe_currency_code($id);
+            $precision = $this->safe_number($currency, 'withdrawPrecision');
+            $enableWithdraw = $this->safe_value($currency, 'enableWithdraw');
+            $enableDeposit = $this->safe_value($currency, 'enableDeposit');
+            $fee = $this->safe_number($currency, 'withdrawFee');
+            $visible = $this->safe_value($currency, 'visible');
+            $active = ($enableWithdraw && $enableDeposit && $visible);
+            $network = $this->safe_string($currency, 'network');
+            $result[$code] = array(
+                'id' => $id,
+                'name' => $name,
+                'code' => $code,
+                'precision' => $precision,
+                'info' => $currency,
+                'active' => $active,
+                'fee' => $fee,
+                'network' => $network,
+                'limits' => array(
+                    'deposit' => array(
+                        'min' => $this->safe_number($currency, 'depositMin'),
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $this->safe_number($currency, 'withdrawMin'),
                         'max' => null,
                     ),
                 ),
