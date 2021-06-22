@@ -89,7 +89,7 @@ html[data-theme='dark'] .theme-switcher {
 #btn-wrapper {
     display: inline-block;
     text-align: center;
-    width: calc(100% - 151px - 128px - 31px - 10px);
+    width: calc(100% - 151px - 200px - 31px - 10px);
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select:none;
