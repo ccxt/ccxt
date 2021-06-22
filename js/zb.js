@@ -565,12 +565,43 @@ module.exports = class zb extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
-        const ticker = response['ticker'];
+        //
+        //     {
+        //         "date":"1624399623587",
+        //         "ticker":{
+        //             "high":"33298.38",
+        //             "vol":"56152.9012",
+        //             "last":"32578.55",
+        //             "low":"28808.19",
+        //             "buy":"32572.68",
+        //             "sell":"32615.37",
+        //             "turnover":"1764201303.6100",
+        //             "open":"31664.85",
+        //             "riseRate":"2.89"
+        //         }
+        //     }
+        //
+        const ticker = this.safeValue (response, 'ticker', {});
+        ticker['date'] = this.safeValue (response, 'date');
         return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.milliseconds ();
+        //
+        //     {
+        //         "date":"1624399623587", // injected from outside
+        //         "high":"33298.38",
+        //         "vol":"56152.9012",
+        //         "last":"32578.55",
+        //         "low":"28808.19",
+        //         "buy":"32572.68",
+        //         "sell":"32615.37",
+        //         "turnover":"1764201303.6100",
+        //         "open":"31664.85",
+        //         "riseRate":"2.89"
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 'date', this.milliseconds ());
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
