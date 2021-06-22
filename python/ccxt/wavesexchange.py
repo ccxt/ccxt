@@ -69,7 +69,7 @@ class wavesexchange(Exchange):
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
                     'forward': 'https://waves.exchange/api/v1/forward/matcher',
-                    'market': 'https://marketdata.wavesplatform.com/api/v1',
+                    'market': 'https://waves.exchange/api/v1/forward/marketdata/api/v1',
                 },
                 'doc': 'https://docs.waves.exchange',
                 'www': 'https://waves.exchange',
