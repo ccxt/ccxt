@@ -135,7 +135,7 @@ window.addEventListener ('load', function () {
     window.binanceBrokerPortalSdk.initBrokerSDK ('#widget', {
         'apiHost': 'https://www.binance.com',
         'brokerId': 'R4BD3S82',
-        'slideTime': 20.0e3,
+        'slideTime': 40.0e3,
         'overrideStyle': style,
     });
 
