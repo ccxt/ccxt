@@ -427,7 +427,6 @@ module.exports = class aax extends Exchange {
         return result;
     }
 
-
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCurrencies (params);
         //
