@@ -96,11 +96,6 @@ nav.wy-nav-side {
     padding-bottom: 0!important;
 }
 
-/* fix for mobile */
-.wy-side-nav-search {
-    width: inherit;
-}
-
 /* don't change color of visited links */
 a:visited:not(.icon) {
     color: #2980b9;
@@ -108,4 +103,25 @@ a:visited:not(.icon) {
 
 .wy-menu-vertical a, .wy-menu-vertical a:visited {
     color: #d9d9d9;
+}
+
+/* fix for mobile */
+@media screen and (max-width: 768px) {
+    .shift .wy-side-nav-search {
+        width: 85%;
+    }
+}
+
+.wy-side-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.wy-side-scroll {
+   scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+td:first-child {
+    box-sizing: content-box;
+    width: 85px;
 }

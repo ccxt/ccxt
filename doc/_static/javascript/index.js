@@ -140,7 +140,7 @@ window.addEventListener ('load', function () {
     });
 
     const createThemeSwitcher = () => {
-        const $btn = $('<btn id="themeSwitcher" class="theme-switcher"><i id="themeMoon" class="fa fa-moon-o"></i><i id="themeSun" class="fa fa-sun-o"></i></btn>');
+        const $btn = $('<div id="btn-wrapper"><btn id="themeSwitcher" class="theme-switcher"><i id="themeMoon" class="fa fa-moon-o"></i><i id="themeSun" class="fa fa-sun-o"></i></btn></div>');
         $('.wy-breadcrumbs-aside').before ($btn)
         if (localStorage.getItem ('theme') === 'dark') {
             $('#themeMoon').hide (0);
@@ -149,18 +149,27 @@ window.addEventListener ('load', function () {
         }
     };
 
-    const switchTheme = () => {
+    const switchTheme = function () {
+        const $this = $(this)
+        if ($this.attr ('disabled')) {
+            return
+        }
+        $this.attr ('disabled', true)
         if (localStorage.getItem ('theme') === 'dark') {
             localStorage.setItem ('theme', 'light');
             document.documentElement.setAttribute ('data-theme', 'light');
-            $('#themeSun').fadeOut (200, () => {
-                $('#themeMoon').fadeIn (200);
+            $('#themeSun').fadeOut (150, () => {
+                $('#themeMoon').fadeIn (150, () => {
+                    $this.attr ('disabled', false)
+                });
             });
         } else {
             localStorage.setItem ('theme', 'dark');
             document.documentElement.setAttribute ('data-theme', 'dark');
-            $('#themeMoon').fadeOut (200, () => {
-                $('#themeSun').fadeIn (200);
+            $('#themeMoon').fadeOut (150, () => {
+                $('#themeSun').fadeIn (150, () => {
+                    $this.attr ('disabled', false)
+                });
             });
         }
     };
@@ -170,4 +179,5 @@ window.addEventListener ('load', function () {
     let theme = localStorage.getItem ('theme')
     theme = theme === null ? 'light' : theme
     document.documentElement.setAttribute ('data-theme', theme)
+    $('colgroup').remove ()
 });

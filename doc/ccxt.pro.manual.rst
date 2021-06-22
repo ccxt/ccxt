@@ -8,9 +8,9 @@ Manual
 The CCXT Pro stack is built upon `CCXT <https://ccxt.trade>`__ and extends the core CCXT classes, using:
 
 
-* JavaScript prototype-level mixins
-* Python multiple inheritance
-* PHP Traits
+ * JavaScript prototype-level mixins
+ * Python multiple inheritance
+ * PHP Traits
 
 The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguge support <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support>`__.
 
@@ -74,7 +74,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - aax
      - `AAX <https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
-     - `2 <https://www.aaxpro.com/apidoc/index.html>`__
+     - .. image:: https://img.shields.io/badge/v.2-white
+          :target: https://www.aaxpro.com/apidoc/index.html
+          :alt: API Version 2
+     
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -89,19 +92,25 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - bequant
      - `Bequant <https://bequant.io>`__
-     - `2 <https://api.bequant.io/>`__
+     - .. image:: https://img.shields.io/badge/v.2-white
+          :target: https://api.bequant.io/
+          :alt: API Version 2
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
-          :target: https://www.binance.com/?ref=10205187
+          :target: https://www.binance.com/en/register?ref=BLEJC98C
           :alt: binance
      
      - binance
-     - `Binance <https://www.binance.com/?ref=10205187>`__
-     - `* <https://binance-docs.github.io/apidocs/spot/en>`__
+     - `Binance <https://www.binance.com/en/register?ref=BLEJC98C>`__
+     - .. image:: https://img.shields.io/badge/v.*-white
+          :target: https://binance-docs.github.io/apidocs/spot/en
+          :alt: API Version *
+     
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -111,12 +120,15 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/?ref=10205187
+          :target: https://www.binance.com/en/register?ref=BLEJC98C
           :alt: binancecoinm
      
      - binancecoinm
-     - `Binance COIN-M <https://www.binance.com/?ref=10205187>`__
-     - `* <https://binance-docs.github.io/apidocs/delivery/en/>`__
+     - `Binance COIN-M <https://www.binance.com/en/register?ref=BLEJC98C>`__
+     - .. image:: https://img.shields.io/badge/v.*-white
+          :target: https://binance-docs.github.io/apidocs/delivery/en/
+          :alt: API Version *
+     
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -131,19 +143,25 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - binanceus
      - `Binance US <https://www.binance.us/?ref=35005074>`__
-     - `* <https://github.com/binance-us/binance-official-api-docs>`__
+     - .. image:: https://img.shields.io/badge/v.*-white
+          :target: https://github.com/binance-us/binance-official-api-docs
+          :alt: API Version *
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/?ref=10205187
+          :target: https://www.binance.com/en/register?ref=BLEJC98C
           :alt: binanceusdm
      
      - binanceusdm
-     - `Binance USDⓈ-M <https://www.binance.com/?ref=10205187>`__
-     - `* <https://binance-docs.github.io/apidocs/futures/en/>`__
+     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=BLEJC98C>`__
+     - .. image:: https://img.shields.io/badge/v.*-white
+          :target: https://binance-docs.github.io/apidocs/futures/en/
+          :alt: API Version *
+     
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -158,7 +176,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - bitcoincom
      - `bitcoin.com <https://exchange.bitcoin.com/referral/da948b21d6c92d69>`__
-     - `2 <https://api.exchange.bitcoin.com/api/2/explore>`__
+     - .. image:: https://img.shields.io/badge/v.2-white
+          :target: https://api.exchange.bitcoin.com/api/2/explore
+          :alt: API Version 2
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -170,7 +191,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - bitfinex
      - `Bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__
-     - `1 <https://docs.bitfinex.com/v1/docs>`__
+     - .. image:: https://img.shields.io/badge/v.1-white
+          :target: https://docs.bitfinex.com/v1/docs
+          :alt: API Version 1
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -182,7 +206,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - bitmex
      - `BitMEX <https://www.bitmex.com/register/upZpOX>`__
-     - `1 <https://www.bitmex.com/app/apiOverview>`__
+     - .. image:: https://img.shields.io/badge/v.1-white
+          :target: https://www.bitmex.com/app/apiOverview
+          :alt: API Version 1
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -194,7 +221,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - bitstamp
      - `Bitstamp <https://www.bitstamp.net>`__
-     - `2 <https://www.bitstamp.net/api>`__
+     - .. image:: https://img.shields.io/badge/v.2-white
+          :target: https://www.bitstamp.net/api
+          :alt: API Version 2
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -206,7 +236,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - bittrex
      - `Bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__
-     - `3 <https://bittrex.github.io/api/v3>`__
+     - .. image:: https://img.shields.io/badge/v.3-white
+          :target: https://bittrex.github.io/api/v3
+          :alt: API Version 3
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -218,7 +251,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - bitvavo
      - `Bitvavo <https://bitvavo.com/?a=24F34952F7>`__
-     - `2 <https://docs.bitvavo.com/>`__
+     - .. image:: https://img.shields.io/badge/v.2-white
+          :target: https://docs.bitvavo.com/
+          :alt: API Version 2
+     
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -233,7 +269,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - coinbaseprime
      - `Coinbase Prime <https://exchange.coinbase.com>`__
-     - `* <https://docs.exchange.coinbase.com>`__
+     - .. image:: https://img.shields.io/badge/v.*-white
+          :target: https://docs.exchange.coinbase.com
+          :alt: API Version *
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -245,7 +284,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - coinbasepro
      - `Coinbase Pro <https://pro.coinbase.com/>`__
-     - `* <https://docs.pro.coinbase.com>`__
+     - .. image:: https://img.shields.io/badge/v.*-white
+          :target: https://docs.pro.coinbase.com
+          :alt: API Version *
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -257,7 +299,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - currencycom
      - `Currency.com <https://currency.com/trading/signup?c=362jaimv&pid=referral>`__
-     - `1 <https://currency.com/api>`__
+     - .. image:: https://img.shields.io/badge/v.1-white
+          :target: https://currency.com/api
+          :alt: API Version 1
+     
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -267,12 +312,15 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
-          :target: https://ftx.com/#a=1623029
+          :target: https://ftx.com/#a=ccxt
           :alt: ftx
      
      - ftx
-     - `FTX <https://ftx.com/#a=1623029>`__
-     - `* <https://github.com/ftexchange/ftx>`__
+     - `FTX <https://ftx.com/#a=ccxt>`__
+     - .. image:: https://img.shields.io/badge/v.*-white
+          :target: https://github.com/ftexchange/ftx
+          :alt: API Version *
+     
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -287,7 +335,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - gateio
      - `Gate.io <https://www.gate.io/signup/2436035>`__
-     - `2 <https://gate.io/api2>`__
+     - .. image:: https://img.shields.io/badge/v.2-white
+          :target: https://gate.io/api2
+          :alt: API Version 2
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -299,7 +350,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - gopax
      - `GOPAX <https://www.gopax.co.kr>`__
-     - `1 <https://gopax.github.io/API/index.en.html>`__
+     - .. image:: https://img.shields.io/badge/v.1-white
+          :target: https://gopax.github.io/API/index.en.html
+          :alt: API Version 1
+     
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -314,7 +368,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - hitbtc
      - `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__
-     - `2 <https://api.hitbtc.com>`__
+     - .. image:: https://img.shields.io/badge/v.2-white
+          :target: https://api.hitbtc.com
+          :alt: API Version 2
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -326,7 +383,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - huobijp
      - `Huobi Japan <https://www.huobi.co.jp/register/?invite_code=znnq3>`__
-     - `1 <https://api-doc.huobi.co.jp>`__
+     - .. image:: https://img.shields.io/badge/v.1-white
+          :target: https://api-doc.huobi.co.jp
+          :alt: API Version 1
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -338,7 +398,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - huobipro
      - `Huobi Pro <https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3>`__
-     - `1 <https://huobiapi.github.io/docs/spot/v1/cn/>`__
+     - .. image:: https://img.shields.io/badge/v.1-white
+          :target: https://huobiapi.github.io/docs/spot/v1/cn/
+          :alt: API Version 1
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -350,7 +413,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - idex
      - `IDEX <https://idex.io>`__
-     - `2 <https://docs.idex.io/>`__
+     - .. image:: https://img.shields.io/badge/v.2-white
+          :target: https://docs.idex.io/
+          :alt: API Version 2
+     
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -365,7 +431,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - kraken
      - `Kraken <https://www.kraken.com>`__
-     - `0 <https://www.kraken.com/features/api>`__
+     - .. image:: https://img.shields.io/badge/v.0-white
+          :target: https://www.kraken.com/features/api
+          :alt: API Version 0
+     
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -380,7 +449,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - kucoin
      - `KuCoin <https://www.kucoin.com/?rcode=E5wkqe>`__
-     - `2 <https://docs.kucoin.com>`__
+     - .. image:: https://img.shields.io/badge/v.2-white
+          :target: https://docs.kucoin.com
+          :alt: API Version 2
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -392,7 +464,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - ndax
      - `NDAX <https://one.ndax.io/bfQiSL>`__
-     - `* <https://apidoc.ndax.io/>`__
+     - .. image:: https://img.shields.io/badge/v.*-white
+          :target: https://apidoc.ndax.io/
+          :alt: API Version *
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -404,7 +479,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - okcoin
      - `OKCoin <https://www.okcoin.com/account/register?flag=activity&channelId=600001513>`__
-     - `3 <https://www.okcoin.com/docs/en/>`__
+     - .. image:: https://img.shields.io/badge/v.3-white
+          :target: https://www.okcoin.com/docs/en/
+          :alt: API Version 3
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -416,7 +494,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - okex
      - `OKEX <https://www.okex.com/join/1888677>`__
-     - `3 <https://www.okex.com/docs/en/>`__
+     - .. image:: https://img.shields.io/badge/v.3-white
+          :target: https://www.okex.com/docs/en/
+          :alt: API Version 3
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -428,7 +509,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - phemex
      - `Phemex <https://phemex.com/register?referralCode=EDNVJ>`__
-     - `1 <https://github.com/phemex/phemex-api-docs>`__
+     - .. image:: https://img.shields.io/badge/v.1-white
+          :target: https://github.com/phemex/phemex-api-docs
+          :alt: API Version 1
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -440,7 +524,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - poloniex
      - `Poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__
-     - `* <https://docs.poloniex.com>`__
+     - .. image:: https://img.shields.io/badge/v.*-white
+          :target: https://docs.poloniex.com
+          :alt: API Version *
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -452,7 +539,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - ripio
      - `Ripio <https://exchange.ripio.com>`__
-     - `1 <https://exchange.ripio.com/en/api/>`__
+     - .. image:: https://img.shields.io/badge/v.1-white
+          :target: https://exchange.ripio.com/en/api/
+          :alt: API Version 1
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -464,7 +554,10 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
      
      - upbit
      - `Upbit <https://upbit.com>`__
-     - `1 <https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C>`__
+     - .. image:: https://img.shields.io/badge/v.1-white
+          :target: https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C
+          :alt: API Version 1
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -491,12 +584,12 @@ Prerequisites
 The best way to understand CCXT Pro is to make sure you grasp the entire CCXT Manual and practice standard CCXT first. CCXT Pro borrows from CCXT. The two libraries share a lot of commonalities, including:
 
 
-* the concepts of public API and private authenticated API
-* markets, symbols, currency codes and ids
-* unified data structures and formats, orderbooks, trades, orders, candles, timeframes, ...
-* exceptions and error mappings
-* authentication and API keys (for private feeds and calls)
-* configuration options
+ * the concepts of public API and private authenticated API
+ * markets, symbols, currency codes and ids
+ * unified data structures and formats, orderbooks, trades, orders, candles, timeframes, ...
+ * exceptions and error mappings
+ * authentication and API keys (for private feeds and calls)
+ * configuration options
 
 The CCXT Pro audience consists mostly of professional algorithmic traders and developers. In order to work efficiently with this library the user is required to be well-familiar with the concepts of streaming. One has to understand the underlying differences between connection-based streaming APIs (\ `WebSocket <https://en.wikipedia.org/wiki/WebSocket>`__\ , CCXT Pro) and request-response based APIs (\ `REST <https://en.wikipedia.org/wiki/Representational_state_transfer>`__\ , CCXT).
 
@@ -526,7 +619,7 @@ The general async-style flow for a CCXT application is as follows:
 In CCXT Pro each public and private unified RESTful method having a ``fetch*`` prefix also has a corresponding stream-based counterpart method prefixed with ``watch*``\ , as follows:
 
 
-* Public API
+ * Public API
 
   * ``fetchStatus`` → ``watchStatus``
   * ``fetchOrderBook`` → ``watchOrderBook``
@@ -535,7 +628,7 @@ In CCXT Pro each public and private unified RESTful method having a ``fetch*`` p
   * ``fetchOHLCV`` → ``watchOHLCV``
   * ``fetchTrades`` → ``watchTrades``
 
-* Private API
+ * Private API
 
   * ``fetchBalance`` → ``watchBalance``
   * ``fetchOrders`` → ``watchOrders``
@@ -575,10 +668,10 @@ That usage pattern is usually wrapped up into a core business-logic method calle
 Many of the CCXT rules and concepts also apply to CCXT Pro:
 
 
-* CCXT Pro will load markets and will cache markets upon the first call to a unified API method
-* CCXT Pro will call CCXT RESTful methods under the hood if necessary
-* CCXT Pro will throw standard CCXT exceptions where necessary
-* ...
+ * CCXT Pro will load markets and will cache markets upon the first call to a unified API method
+ * CCXT Pro will call CCXT RESTful methods under the hood if necessary
+ * CCXT Pro will throw standard CCXT exceptions where necessary
+ * ...
 
 Streaming Specifics
 -------------------
@@ -596,8 +689,8 @@ Most of the exchanges only have a single base URL for streaming APIs (usually, W
 Exchanges' Streaming APIs can be classified into two different categories:
 
 
-* *sub* or *subscribe* allows receiving only
-* *pub* or *publish* allows sending and receiving
+ * *sub* or *subscribe* allows receiving only
+ * *pub* or *publish* allows sending and receiving
 
 Sub
 ^^^
@@ -607,21 +700,21 @@ A *sub* interface usually allows to subscribe to a stream of data and listen for
 Commonly appearing types of public data streams:
 
 
-* order book (most common) - updates on added, edited and deleted orders (aka *change deltas*\ )
-* ticker updates upon changing of 24 hour stats
-* fills feed (also common) - a live stream of public trades
-* ohlcv candlestick feed
-* heartbeat
-* exchange chat/trollbox
+ * order book (most common) - updates on added, edited and deleted orders (aka *change deltas*\ )
+ * ticker updates upon changing of 24 hour stats
+ * fills feed (also common) - a live stream of public trades
+ * ohlcv candlestick feed
+ * heartbeat
+ * exchange chat/trollbox
 
 Less common types of private user data streams:
 
 
-* the stream of private trades of the user
-* live order updates
-* balance updates
-* custom streams
-* exchange-specific and other streams
+ * the stream of private trades of the user
+ * live order updates
+ * balance updates
+ * custom streams
+ * exchange-specific and other streams
 
 Pub
 ^^^
@@ -629,13 +722,13 @@ Pub
 A *pub* interface usually allows users to send data requests towards the server. This usually includes common user actions, like:
 
 
-* placing orders
-* canceling orders
-* placing withdrawal requests
-* posting chat/trollbox messages
-* etc
+ * placing orders
+ * canceling orders
+ * placing withdrawal requests
+ * posting chat/trollbox messages
+ * etc
 
-**Some exchanges do not offer a *pub* WS API, they will offer *sub* WS API only.** However, there are exchanges that have a complete Streaming API as well. In most cases a user cannot operate effectively having just the Streaming API. Exchanges will stream public market data *sub*\ , and the REST API is still needed for the *pub* part where missing.
+ **Some exchanges do not offer a *pub* WS API, they will offer *sub* WS API only.** However, there are exchanges that have a complete Streaming API as well. In most cases a user cannot operate effectively having just the Streaming API. Exchanges will stream public market data *sub*\ , and the REST API is still needed for the *pub* part where missing.
 
 Incremental Data Structures
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -705,7 +798,7 @@ When there is space left in the cache, new elements are simply appended to the e
 
 The user can configure the cache limits using the ``exchange.options`` as was shown above. Do not confuse the cache limits with the pagination limit.
 
-**Note, that the ``since`` and ``limit`` :doc:`date-based pagination <Manual>` params have a different meaning and are always applied within the cached window!** If the user specifies a ``since`` argument to the ``watchTrades()`` call, CCXT Pro will return all cached trades having ``timestamp >= since``. If the user does not specify a ``since`` argument, CCXT pro will return cached trades from the beginning of the sliding window. If the user specifies a ``limit`` argument, the library will return up to ``limit`` candles starting from ``since`` or from the beginning of the cache. For that reason the user cannot paginate beyond the cached frame due to the WebSocket real-time specifics.
+ **Note, that the ``since`` and ``limit`` :doc:`date-based pagination <Manual>` params have a different meaning and are always applied within the cached window!** If the user specifies a ``since`` argument to the ``watchTrades()`` call, CCXT Pro will return all cached trades having ``timestamp >= since``. If the user does not specify a ``since`` argument, CCXT pro will return cached trades from the beginning of the sliding window. If the user specifies a ``limit`` argument, the library will return up to ``limit`` candles starting from ``since`` or from the beginning of the cache. For that reason the user cannot paginate beyond the cached frame due to the WebSocket real-time specifics.
 
 .. code-block:: Python
 
@@ -748,7 +841,7 @@ The result from the newUpdates mode will be one or more updates that have occurr
        ...
    ]
 
-*Deprecation Warning*\ : in the future ``newUpdates: true`` will be the default mode and you will have to set newUpdates to false to get the sliding cache.
+ *Deprecation Warning*\ : in the future ``newUpdates: true`` will be the default mode and you will have to set newUpdates to false to get the sliding cache.
 
 Linking
 -------
@@ -932,9 +1025,9 @@ watchOrderBook
 The ``watchOrderBook``\ 's interface is identical to `fetchOrderBook <https://github.com/ccxt/ccxt/wiki/Manual#order-book>`__. It accepts three arguments:
 
 
-* ``symbol`` – string, a unified CCXT symbol, required
-* ``limit`` – integer, the max number of bids/asks returned, optional
-* ``params`` – assoc dictionary, optional overrides as described in `Overriding Unified API Params <https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params>`__
+ * ``symbol`` – string, a unified CCXT symbol, required
+ * ``limit`` – integer, the max number of bids/asks returned, optional
+ * ``params`` – assoc dictionary, optional overrides as described in `Overriding Unified API Params <https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params>`__
 
 In general, the exchanges can be divided in two categories:
 

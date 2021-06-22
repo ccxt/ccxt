@@ -1694,5 +1694,5 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/v.3-white
           :target: https://vcc.exchange/api
           :alt: API Version 3
-     -
+     
 
