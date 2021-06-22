@@ -151,7 +151,9 @@ rst_prolog = """
    <script>
    $('.version').after ('<div id="widget-wrapper"><div id="widget"></div></div>'); 
    const $search = $('.wy-side-nav-search'); $search.after ($('<div></div').css ('height', $search.outerHeight ()))
-   // window.READTHEDOCS_DATA = true
+   let theme = localStorage.getItem ('theme')
+   theme = theme === null ? 'light' : theme
+   document.documentElement.setAttribute ('data-theme', theme)
    </script>
 
 """

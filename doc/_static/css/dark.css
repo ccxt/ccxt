@@ -83,13 +83,12 @@ html[data-theme='dark'] .theme-switcher {
     width: 20px;
     height: 20px;
     cursor: pointer;
-    transform: translate(0, 35px);
 }
 
 #btn-wrapper {
     display: inline-block;
     text-align: center;
-    width: calc(100% - 151px - 200px - 31px - 10px);
+    width: calc(100% - 104px - 78px - 5px);
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select:none;
