@@ -141,7 +141,13 @@ window.addEventListener ('load', function () {
 
     const createThemeSwitcher = () => {
         const $btn = $('<div id="btn-wrapper"><btn id="themeSwitcher" class="theme-switcher"><i id="themeMoon" class="fa fa-moon-o"></i><i id="themeSun" class="fa fa-sun-o"></i></btn></div>');
-        $('.btn.float-left').after ($btn)
+        const $previous = $('.btn.float-left')
+        if ($previous.length) {
+            $previous.after ($btn)
+        } else {
+            const $next = $('.btn.float-right')
+            $next.after ($btn)
+        }
         if (localStorage.getItem ('theme') === 'dark') {
             $('#themeMoon').hide (0);
         } else {
