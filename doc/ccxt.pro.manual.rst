@@ -1,6 +1,3 @@
-.. role:: raw-html-m2r(raw)
-   :format: html
-
 
 Manual
 ======
@@ -635,8 +632,8 @@ In CCXT Pro each public and private unified RESTful method having a ``fetch*`` p
   * ``fetchMyTrades`` → ``watchMyTrades``
   * ``fetchTransactions`` → ``watchTransactions``
   * ``fetchLedger`` → ``watchLedger``
-  * ``createOrder`` → ``watchCreateOrder`` :raw-html-m2r:`<sup>*(notice the `watch` prefix)*</sup>`
-  * ``cancelOrder`` → ``watchCancelOrder`` :raw-html-m2r:`<sup>*(notice the `watch` prefix)*</sup>`
+  * ``createOrder`` → ``watchCreateOrder`` *(notice the ``watch`` prefix)*
+  * ``cancelOrder`` → ``watchCancelOrder`` *(notice the ``watch`` prefix)*
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
 

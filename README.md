@@ -25,9 +25,9 @@ Current feature list:
 
 ## See Also
 
-- [![TabTrader](https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png)](https://tab-trader.com/?utm_source=ccxt) [TabTrader](https://tab-trader.com/?utm_source=ccxt) **trading on all exchanges in one app. Avaliable on** [Android](https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt) **and** [iOS](https://itunes.apple.com/app/apple-store/id1095716562?mt=8)
-- [![AAX](https://user-images.githubusercontent.com/1294454/106509642-ef957980-64de-11eb-92e0-8323cda7874e.png)](https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=one-liner&utm_campaign=futures) [AAX](https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=one-liner&utm_campaign=futures) **trade bitcoin futures with fees as low as 0.02% and up to 100x leverage!**
-- [![Freqtrade](https://user-images.githubusercontent.com/1294454/114340585-8e35fa80-9b60-11eb-860f-4379125e2db6.png)](https://www.freqtrade.io) [Freqtrade](https://www.freqtrade.io) **leading opensource cryptocurrency algorithmic trading software!**
+- <sub>[![TabTrader](https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png)](https://tab-trader.com/?utm_source=ccxt) [TabTrader](https://tab-trader.com/?utm_source=ccxt) **trading on all exchanges in one app. Avaliable on** [Android](https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt) **and** [iOS](https://itunes.apple.com/app/apple-store/id1095716562?mt=8)</sub>
+- <sub>[![AAX](https://user-images.githubusercontent.com/1294454/106509642-ef957980-64de-11eb-92e0-8323cda7874e.png)](https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=one-liner&utm_campaign=futures) [AAX](https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=one-liner&utm_campaign=futures) **trade bitcoin futures with fees as low as 0.02% and up to 100x leverage!**</sub>
+- <sub>[![Freqtrade](https://user-images.githubusercontent.com/1294454/114340585-8e35fa80-9b60-11eb-860f-4379125e2db6.png)](https://www.freqtrade.io) [Freqtrade](https://www.freqtrade.io) **leading opensource cryptocurrency algorithmic trading software!**</sub>
 
 
 ## Certified Cryptocurrency Exchanges
@@ -525,7 +525,7 @@ Thank you!
 
 - [Follow us on Twitter](https://twitter.com/ccxt_official)
 - [Read our blog on Medium](https://medium.com/@ccxt)
-- [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/dhzSKYU)
+- <sub>[![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/dhzSKYU)</sub>
 
 ## Contact Us
 
