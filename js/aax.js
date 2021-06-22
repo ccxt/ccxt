@@ -495,10 +495,6 @@ module.exports = class aax extends Exchange {
         return result;
     }
 
-
-
-
-
     parseTicker (ticker, market = undefined) {
         //
         //     {
