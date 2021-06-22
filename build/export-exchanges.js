@@ -145,7 +145,7 @@ function getVersionLink (exchange) {
 function getVersionBadge (exchange) {
     const version = getVersion (exchange)
         , doc = getFirstDocUrl (exchange)
-    return '[![API Version ' + version + '](https://img.shields.io/badge/v.' + version + '-white)](' + doc + ')'
+    return '[![API Version ' + version + '](https://img.shields.io/badge/' + version + '-white)](' + doc + ')'
 }
 
 // ----------------------------------------------------------------------------

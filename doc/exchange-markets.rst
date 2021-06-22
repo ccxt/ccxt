@@ -19,7 +19,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - aax
      - `AAX <https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://www.aaxpro.com/apidoc/index.html
           :alt: API Version 2
      
@@ -37,7 +37,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - aofex
      - `AOFEX <https://aofex.com/#/register?key=9763840>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://aofex.zendesk.com/hc/en-us/sections/360005576574-API
           :alt: API Version *
      
@@ -49,7 +49,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - ascendex
      - `AscendEX <https://bitmax.io/#/register?inviteCode=EL6BXBQM>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation
           :alt: API Version 1
      
@@ -61,7 +61,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bequant
      - `Bequant <https://bequant.io>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://api.bequant.io/
           :alt: API Version 2
      
@@ -76,7 +76,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bibox
      - `Bibox <https://w2.bibox365.com/login/register?invite_code=05Kj3I>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://biboxcom.github.io/en/
           :alt: API Version 1
      
@@ -88,7 +88,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bigone
      - `BigONE <https://b1.run/users/new?code=D3LLBVFT>`__
-     - .. image:: https://img.shields.io/badge/v.3-white
+     - .. image:: https://img.shields.io/badge/3-white
           :target: https://open.big.one/docs/api.html
           :alt: API Version 3
      
@@ -100,7 +100,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - binance
      - `Binance <https://www.binance.com/en/register?ref=BLEJC98C>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://binance-docs.github.io/apidocs/spot/en
           :alt: API Version *
      
@@ -118,7 +118,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - binancecoinm
      - `Binance COIN-M <https://www.binance.com/en/register?ref=BLEJC98C>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://binance-docs.github.io/apidocs/delivery/en/
           :alt: API Version *
      
@@ -136,7 +136,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - binanceus
      - `Binance US <https://www.binance.us/?ref=35005074>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://github.com/binance-us/binance-official-api-docs
           :alt: API Version *
      
@@ -151,7 +151,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - binanceusdm
      - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=BLEJC98C>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://binance-docs.github.io/apidocs/futures/en/
           :alt: API Version *
      
@@ -169,7 +169,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bit2c
      - `Bit2C <https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://www.bit2c.co.il/home/api
           :alt: API Version *
      
@@ -181,7 +181,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitbank
      - `bitbank <https://bitbank.cc/>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://docs.bitbank.cc/
           :alt: API Version 1
      
@@ -193,7 +193,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitbay
      - `BitBay <https://auth.bitbay.net/ref/jHlbB4mIkdS1>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://bitbay.net/public-api
           :alt: API Version *
      
@@ -205,7 +205,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitbns
      - `Bitbns <https://ref.bitbns.com/1090961>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://bitbns.com/trade/#/api-trading/
           :alt: API Version *
      
@@ -217,7 +217,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitcoincom
      - `bitcoin.com <https://exchange.bitcoin.com/referral/da948b21d6c92d69>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://api.exchange.bitcoin.com/api/2/explore
           :alt: API Version 2
      
@@ -232,7 +232,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitfinex
      - `Bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://docs.bitfinex.com/v1/docs
           :alt: API Version 1
      
@@ -247,7 +247,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitfinex2
      - `Bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://docs.bitfinex.com/v2/docs/
           :alt: API Version 2
      
@@ -259,7 +259,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitflyer
      - `bitFlyer <https://bitflyer.com>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://lightning.bitflyer.com/docs?lang=en
           :alt: API Version 1
      
@@ -271,7 +271,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitforex
      - `Bitforex <https://www.bitforex.com/en/invitationRegister?inviterId=1867438>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://github.com/githubdev2020/API_Doc_en/wiki
           :alt: API Version 1
      
@@ -283,7 +283,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitget
      - `Bitget <https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j>`__
-     - .. image:: https://img.shields.io/badge/v.3-white
+     - .. image:: https://img.shields.io/badge/3-white
           :target: https://bitgetlimited.github.io/apidoc/en/swap
           :alt: API Version 3
      
@@ -295,7 +295,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bithumb
      - `Bithumb <https://www.bithumb.com>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://apidocs.bithumb.com
           :alt: API Version *
      
@@ -307,7 +307,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitmart
      - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://developer-pro.bitmart.com/
           :alt: API Version 1
      
@@ -319,7 +319,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitmex
      - `BitMEX <https://www.bitmex.com/register/upZpOX>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://www.bitmex.com/app/apiOverview
           :alt: API Version 1
      
@@ -334,7 +334,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitpanda
      - `Bitpanda Pro <https://www.bitpanda.com/en/pro>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://developers.bitpanda.com/exchange/
           :alt: API Version 1
      
@@ -346,7 +346,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitso
      - `Bitso <https://bitso.com/?ref=itej>`__
-     - .. image:: https://img.shields.io/badge/v.3-white
+     - .. image:: https://img.shields.io/badge/3-white
           :target: https://bitso.com/api_info
           :alt: API Version 3
      
@@ -358,7 +358,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitstamp
      - `Bitstamp <https://www.bitstamp.net>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://www.bitstamp.net/api
           :alt: API Version 2
      
@@ -373,7 +373,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitstamp1
      - `Bitstamp <https://www.bitstamp.net>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://www.bitstamp.net/api
           :alt: API Version 1
      
@@ -385,7 +385,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bittrex
      - `Bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__
-     - .. image:: https://img.shields.io/badge/v.3-white
+     - .. image:: https://img.shields.io/badge/3-white
           :target: https://bittrex.github.io/api/v3
           :alt: API Version 3
      
@@ -400,7 +400,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitvavo
      - `Bitvavo <https://bitvavo.com/?a=24F34952F7>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://docs.bitvavo.com/
           :alt: API Version 2
      
@@ -418,7 +418,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bitz
      - `Bit-Z <https://u.bitz.com/register?invite_code=1429193>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://apidocv2.bitz.plus/en/
           :alt: API Version 2
      
@@ -430,7 +430,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bl3p
      - `BL3P <https://bl3p.eu>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://github.com/BitonicNL/bl3p-api/tree/master/docs
           :alt: API Version 1
      
@@ -442,7 +442,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - braziliex
      - `Braziliex <https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://braziliex.com/exchange/api.php
           :alt: API Version *
      
@@ -454,7 +454,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - btcalpha
      - `BTC-Alpha <https://btc-alpha.com/?r=123788>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://btc-alpha.github.io/api-docs
           :alt: API Version 1
      
@@ -466,7 +466,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - btcbox
      - `BtcBox <https://www.btcbox.co.jp/>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://blog.btcbox.jp/en/archives/8762
           :alt: API Version 1
      
@@ -478,7 +478,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - btcmarkets
      - `BTC Markets <https://btcmarkets.net>`__
-     - .. image:: https://img.shields.io/badge/v.3-white
+     - .. image:: https://img.shields.io/badge/3-white
           :target: https://api.btcmarkets.net/doc/v3
           :alt: API Version 3
      
@@ -490,7 +490,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - btctradeua
      - `BTC Trade UA <https://btc-trade.com.ua/registration/22689>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit
           :alt: API Version *
      
@@ -502,7 +502,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - btcturk
      - `BTCTurk <https://www.btcturk.com>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://github.com/BTCTrader/broker-api-docs
           :alt: API Version *
      
@@ -514,7 +514,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - buda
      - `Buda <https://www.buda.com>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://api.buda.com
           :alt: API Version 2
      
@@ -526,7 +526,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bw
      - `BW <https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://github.com/bw-exchange/api_docs_en/wiki
           :alt: API Version 1
      
@@ -538,7 +538,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bybit
      - `Bybit <https://www.bybit.com/app/register?ref=X7Prm>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://bybit-exchange.github.io/docs/inverse/
           :alt: API Version 2
      
@@ -550,7 +550,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - bytetrade
      - `ByteTrade <https://www.byte-trade.com>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://docs.byte-trade.com/#description
           :alt: API Version *
      
@@ -565,7 +565,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - cdax
      - `CDAX <https://cdax.io/invite?invite_code=esc74>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://github.com/cloudapidoc/API_Docs
           :alt: API Version 1
      
@@ -577,7 +577,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - cex
      - `CEX.IO <https://cex.io/r/0/up105393824/0/>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://cex.io/cex-api
           :alt: API Version *
      
@@ -589,7 +589,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - coinbase
      - `Coinbase <https://www.coinbase.com/join/58cbe25a355148797479dbd2>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://developers.coinbase.com/api/v2
           :alt: API Version 2
      
@@ -601,7 +601,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - coinbaseprime
      - `Coinbase Prime <https://exchange.coinbase.com>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://docs.exchange.coinbase.com
           :alt: API Version *
      
@@ -616,7 +616,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - coinbasepro
      - `Coinbase Pro <https://pro.coinbase.com/>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://docs.pro.coinbase.com
           :alt: API Version *
      
@@ -631,7 +631,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - coincheck
      - `coincheck <https://coincheck.com>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://coincheck.com/documents/exchange/api
           :alt: API Version *
      
@@ -643,7 +643,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - coinegg
      - `CoinEgg <https://www.coinegg.com/user/register?invite=523218>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://www.coinegg.com/explain.api.html
           :alt: API Version *
      
@@ -655,7 +655,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - coinex
      - `CoinEx <https://www.coinex.com/register?refer_code=yw5fz>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://github.com/coinexcom/coinex_exchange_api/wiki
           :alt: API Version 1
      
@@ -667,7 +667,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - coinfalcon
      - `CoinFalcon <https://coinfalcon.com/?ref=CFJSVGTUPASB>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://docs.coinfalcon.com
           :alt: API Version 1
      
@@ -679,7 +679,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - coinfloor
      - `coinfloor <https://www.coinfloor.co.uk>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://github.com/coinfloor/api
           :alt: API Version *
      
@@ -691,7 +691,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - coinmarketcap
      - `CoinMarketCap <https://coinmarketcap.com>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://coinmarketcap.com/api
           :alt: API Version 1
      
@@ -703,7 +703,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - coinmate
      - `CoinMate <https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://coinmate.docs.apiary.io
           :alt: API Version *
      
@@ -715,7 +715,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - coinone
      - `CoinOne <https://coinone.co.kr>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://doc.coinone.co.kr
           :alt: API Version 2
      
@@ -727,7 +727,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - coinspot
      - `CoinSpot <https://www.coinspot.com.au/register?code=PJURCU>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://www.coinspot.com.au/api
           :alt: API Version *
      
@@ -739,7 +739,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - crex24
      - `CREX24 <https://crex24.com/?refid=slxsjsjtil8xexl9hksr>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://docs.crex24.com/trade-api/v2
           :alt: API Version 2
      
@@ -751,7 +751,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - currencycom
      - `Currency.com <https://currency.com/trading/signup?c=362jaimv&pid=referral>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://currency.com/api
           :alt: API Version 1
      
@@ -769,7 +769,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - delta
      - `Delta Exchange <https://www.delta.exchange/app/signup/?code=IULYNB>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://docs.delta.exchange
           :alt: API Version 2
      
@@ -781,7 +781,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - deribit
      - `Deribit <https://www.deribit.com/reg-1189.4038>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://docs.deribit.com/v2
           :alt: API Version 2
      
@@ -793,7 +793,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - digifinex
      - `DigiFinex <https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp>`__
-     - .. image:: https://img.shields.io/badge/v.3-white
+     - .. image:: https://img.shields.io/badge/3-white
           :target: https://docs.digifinex.com
           :alt: API Version 3
      
@@ -805,7 +805,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - eqonex
      - `EQONEX <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://developer.eqonex.com
           :alt: API Version *
      
@@ -817,7 +817,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - equos
      - `EQUOS <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://developer.eqonex.com
           :alt: API Version *
      
@@ -829,7 +829,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - exmo
      - `EXMO <https://exmo.me/?ref=131685>`__
-     - .. image:: https://img.shields.io/badge/v.1.1-white
+     - .. image:: https://img.shields.io/badge/1.1-white
           :target: https://exmo.me/en/api_doc?ref=131685
           :alt: API Version 1.1
      
@@ -841,7 +841,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - exx
      - `EXX <https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f?recommQd=1>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://www.exx.com/help/restApi
           :alt: API Version *
      
@@ -853,7 +853,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - flowbtc
      - `flowBTC <https://www.flowbtc.com.br>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://www.flowbtc.com.br/api.html
           :alt: API Version 1
      
@@ -865,7 +865,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - ftx
      - `FTX <https://ftx.com/#a=ccxt>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://github.com/ftexchange/ftx
           :alt: API Version *
      
@@ -883,7 +883,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - gateio
      - `Gate.io <https://www.gate.io/signup/2436035>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://gate.io/api2
           :alt: API Version 2
      
@@ -898,7 +898,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - gemini
      - `Gemini <https://gemini.com/>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://docs.gemini.com/rest-api
           :alt: API Version 1
      
@@ -910,7 +910,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - gopax
      - `GOPAX <https://www.gopax.co.kr>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://gopax.github.io/API/index.en.html
           :alt: API Version 1
      
@@ -928,7 +928,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - hbtc
      - `HBTC <https://www.hbtc.com/register/O2S8NS>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://github.com/bhexopen/BHEX-OpenApi/tree/master/doc
           :alt: API Version 1
      
@@ -940,7 +940,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - hitbtc
      - `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://api.hitbtc.com
           :alt: API Version 2
      
@@ -955,7 +955,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - hollaex
      - `HollaEx <https://pro.hollaex.com/signup?affiliation_code=QSWA6G>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://apidocs.hollaex.com
           :alt: API Version 2
      
@@ -967,7 +967,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - huobijp
      - `Huobi Japan <https://www.huobi.co.jp/register/?invite_code=znnq3>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://api-doc.huobi.co.jp
           :alt: API Version 1
      
@@ -982,7 +982,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - huobipro
      - `Huobi Pro <https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
      
@@ -997,7 +997,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - idex
      - `IDEX <https://idex.io>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://docs.idex.io/
           :alt: API Version 2
      
@@ -1015,7 +1015,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - independentreserve
      - `Independent Reserve <https://www.independentreserve.com>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://www.independentreserve.com/API
           :alt: API Version *
      
@@ -1027,7 +1027,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - indodax
      - `INDODAX <https://indodax.com/ref/testbitcoincoid/1>`__
-     - .. image:: https://img.shields.io/badge/v.2.0-white
+     - .. image:: https://img.shields.io/badge/2.0-white
           :target: https://github.com/btcid/indodax-official-api-docs
           :alt: API Version 2.0
      
@@ -1039,7 +1039,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - itbit
      - `itBit <https://www.itbit.com>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://api.itbit.com/docs
           :alt: API Version 1
      
@@ -1051,7 +1051,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - kraken
      - `Kraken <https://www.kraken.com>`__
-     - .. image:: https://img.shields.io/badge/v.0-white
+     - .. image:: https://img.shields.io/badge/0-white
           :target: https://www.kraken.com/features/api
           :alt: API Version 0
      
@@ -1069,7 +1069,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - kucoin
      - `KuCoin <https://www.kucoin.com/?rcode=E5wkqe>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://docs.kucoin.com
           :alt: API Version 2
      
@@ -1084,7 +1084,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - kuna
      - `Kuna <https://kuna.io?r=kunaid-gvfihe8az7o4>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://kuna.io/documents/api
           :alt: API Version 2
      
@@ -1096,7 +1096,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - latoken
      - `Latoken <https://latoken.com>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://api.latoken.com
           :alt: API Version 1
      
@@ -1108,7 +1108,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - lbank
      - `LBank <https://www.lbex.io/invite?icode=7QCY>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://github.com/LBank-exchange/lbank-official-api-docs
           :alt: API Version 1
      
@@ -1120,7 +1120,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - liquid
      - `Liquid <https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://developers.liquid.com
           :alt: API Version 2
      
@@ -1132,7 +1132,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - luno
      - `luno <https://www.luno.com/invite/44893A>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://www.luno.com/en/api
           :alt: API Version 1
      
@@ -1144,7 +1144,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - lykke
      - `Lykke <https://www.lykke.com>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://hft-api.lykke.com/swagger/ui/
           :alt: API Version 1
      
@@ -1156,7 +1156,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - mercado
      - `Mercado Bitcoin <https://www.mercadobitcoin.com.br>`__
-     - .. image:: https://img.shields.io/badge/v.3-white
+     - .. image:: https://img.shields.io/badge/3-white
           :target: https://www.mercadobitcoin.com.br/api-doc
           :alt: API Version 3
      
@@ -1168,7 +1168,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - mixcoins
      - `MixCoins <https://mixcoins.com>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://mixcoins.com/help/api/
           :alt: API Version 1
      
@@ -1180,7 +1180,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - ndax
      - `NDAX <https://one.ndax.io/bfQiSL>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://apidoc.ndax.io/
           :alt: API Version *
      
@@ -1195,7 +1195,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - novadax
      - `NovaDAX <https://www.novadax.com.br/?s=ccxt>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://doc.novadax.com/pt-BR/
           :alt: API Version 1
      
@@ -1207,7 +1207,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - oceanex
      - `OceanEx <https://oceanex.pro/signup?referral=VE24QX>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://api.oceanex.pro/doc/v1
           :alt: API Version 1
      
@@ -1219,7 +1219,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - okcoin
      - `OKCoin <https://www.okcoin.com/account/register?flag=activity&channelId=600001513>`__
-     - .. image:: https://img.shields.io/badge/v.3-white
+     - .. image:: https://img.shields.io/badge/3-white
           :target: https://www.okcoin.com/docs/en/
           :alt: API Version 3
      
@@ -1234,7 +1234,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - okex
      - `OKEX <https://www.okex.com/join/1888677>`__
-     - .. image:: https://img.shields.io/badge/v.3-white
+     - .. image:: https://img.shields.io/badge/3-white
           :target: https://www.okex.com/docs/en/
           :alt: API Version 3
      
@@ -1249,7 +1249,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - okex5
      - `OKEX <https://www.okex.com/join/1888677>`__
-     - .. image:: https://img.shields.io/badge/v.5-white
+     - .. image:: https://img.shields.io/badge/5-white
           :target: https://www.okex.com/docs/en/
           :alt: API Version 5
      
@@ -1261,7 +1261,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - paymium
      - `Paymium <https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://github.com/Paymium/api-documentation
           :alt: API Version 1
      
@@ -1273,7 +1273,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - phemex
      - `Phemex <https://phemex.com/register?referralCode=EDNVJ>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://github.com/phemex/phemex-api-docs
           :alt: API Version 1
      
@@ -1288,7 +1288,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - poloniex
      - `Poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://docs.poloniex.com
           :alt: API Version *
      
@@ -1303,7 +1303,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - probit
      - `ProBit <https://www.probit.com/r/34608773>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://docs-en.probit.com
           :alt: API Version 1
      
@@ -1315,7 +1315,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - qtrade
      - `qTrade <https://qtrade.io/?ref=BKOQWVFGRH2C>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://qtrade-exchange.github.io/qtrade-docs
           :alt: API Version 1
      
@@ -1327,7 +1327,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - rightbtc
      - `RightBTC <https://www.rightbtc.com>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://docs.rightbtc.com/api/
           :alt: API Version *
      
@@ -1339,7 +1339,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - ripio
      - `Ripio <https://exchange.ripio.com>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://exchange.ripio.com/en/api/
           :alt: API Version 1
      
@@ -1354,7 +1354,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - southxchange
      - `SouthXchange <https://www.southxchange.com>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://www.southxchange.com/Home/Api
           :alt: API Version *
      
@@ -1366,7 +1366,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - stex
      - `STEX <https://app.stex.com?ref=36416021>`__
-     - .. image:: https://img.shields.io/badge/v.3-white
+     - .. image:: https://img.shields.io/badge/3-white
           :target: https://help.stex.com/en/collections/1593608-api-v3-documentation
           :alt: API Version 3
      
@@ -1378,7 +1378,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - therock
      - `TheRockTrading <https://therocktrading.com>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://api.therocktrading.com/doc/v1/index.html
           :alt: API Version 1
      
@@ -1390,7 +1390,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - tidebit
      - `TideBit <http://bit.ly/2IX0LrM>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://www.tidebit.com/documents/api/guide
           :alt: API Version 2
      
@@ -1402,7 +1402,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - tidex
      - `Tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__
-     - .. image:: https://img.shields.io/badge/v.3-white
+     - .. image:: https://img.shields.io/badge/3-white
           :target: https://tidex.com/exchange/public-api
           :alt: API Version 3
      
@@ -1414,7 +1414,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - timex
      - `TimeX <https://timex.io/?refcode=1x27vNkTbP1uwkCck>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://docs.timex.io
           :alt: API Version 1
      
@@ -1426,7 +1426,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - upbit
      - `Upbit <https://upbit.com>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C
           :alt: API Version 1
      
@@ -1441,7 +1441,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - vcc
      - `VCC Exchange <https://vcc.exchange?ref=l4xhrH>`__
-     - .. image:: https://img.shields.io/badge/v.3-white
+     - .. image:: https://img.shields.io/badge/3-white
           :target: https://vcc.exchange/api
           :alt: API Version 3
      
@@ -1453,7 +1453,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - wavesexchange
      - `Waves.Exchange <https://waves.exchange>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://docs.waves.exchange
           :alt: API Version *
      
@@ -1468,7 +1468,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - whitebit
      - `WhiteBit <https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963>`__
-     - .. image:: https://img.shields.io/badge/v.2-white
+     - .. image:: https://img.shields.io/badge/2-white
           :target: https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest
           :alt: API Version 2
      
@@ -1480,7 +1480,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - xena
      - `Xena Exchange <https://xena.exchange>`__
-     - .. image:: https://img.shields.io/badge/v.*-white
+     - .. image:: https://img.shields.io/badge/*-white
           :target: https://support.xena.exchange/support/solutions/44000808700
           :alt: API Version *
      
@@ -1495,7 +1495,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - yobit
      - `YoBit <https://www.yobit.net>`__
-     - .. image:: https://img.shields.io/badge/v.3-white
+     - .. image:: https://img.shields.io/badge/3-white
           :target: https://www.yobit.net/en/api/
           :alt: API Version 3
      
@@ -1507,7 +1507,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - zaif
      - `Zaif <https://zaif.jp>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://techbureau-api-document.readthedocs.io/ja/latest/index.html
           :alt: API Version 1
      
@@ -1519,7 +1519,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - zb
      - `ZB <https://www.zbex.club/en/register?ref=1625gesp>`__
-     - .. image:: https://img.shields.io/badge/v.1-white
+     - .. image:: https://img.shields.io/badge/1-white
           :target: https://www.zb.com/i/developer
           :alt: API Version 1
      
