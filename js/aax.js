@@ -89,6 +89,7 @@ module.exports = class aax extends Exchange {
                     //     'tickers/{market}', // Get ticker of specific market
                     // ],
                     'get': [
+                        'currencies',
                         'announcement/maintenance', // System Maintenance Notice
                         'instruments', // Retrieve all trading pairs information
                         'market/orderbook', // Order Book
