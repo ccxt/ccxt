@@ -33,6 +33,8 @@ module.exports = class okex5 extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
+                'fetchDeposits': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -82,6 +84,8 @@ module.exports = class okex5 extends Exchange {
                         'trade/orders-pending',
                         'trade/orders-history',
                         'trade/fills',
+                        'asset/withdrawal-history',
+                        'asset/deposit-history',
                     ],
                     'post': [
                         'trade/order',
@@ -1467,6 +1471,247 @@ module.exports = class okex5 extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'ccy': currency['id'],
+            // 'state': 2, // 0 waiting for confirmation, 1 deposit credited, 2 deposit successful
+            // 'after': since,
+            // 'before' this.milliseconds (),
+            // 'limit': limit, // default 100, max 100
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['ccy'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['after'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
+        const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "amt": "0.01044408",
+        //                 "txId": "1915737_3_0_0_asset",
+        //                 "ccy": "BTC",
+        //                 "from": "13801825426",
+        //                 "to": "",
+        //                 "ts": "1597026383085",
+        //                 "state": "2",
+        //                 "depId": "4703879"
+        //             },
+        //             {
+        //                 "amt": "491.6784211",
+        //                 "txId": "1744594_3_184_0_asset",
+        //                 "ccy": "OKB",
+        //                 "from": "",
+        //                 "to": "",
+        //                 "ts": "1597026383085",
+        //                 "state": "2",
+        //                 "depId": "4703809"
+        //             },
+        //             {
+        //                 "amt": "223.18782496",
+        //                 "txId": "6d892c669225b1092c780bf0da0c6f912fc7dc8f6b8cc53b003288624c",
+        //                 "ccy": "USDT",
+        //                 "from": "",
+        //                 "to": "39kK4XvgEuM7rX9frgyHoZkWqx4iKu1spD",
+        //                 "ts": "1597026383085",
+        //                 "state": "2",
+        //                 "depId": "4703779"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit, params);
+    }
+    
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'ccy': currency['id'],
+            // 'state': 2, // -3: pending cancel, -2 canceled, -1 failed, 0, pending, 1 sending, 2 sent, 3 awaiting email verification, 4 awaiting manual verification, 5 awaiting identity verification
+            // 'after': since,
+            // 'before': this.milliseconds (),
+            // 'limit': limit, // default 100, max 100
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['ccy'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['after'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
+        const response = await this.privateGetAssetWithdrawalHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "amt": "0.094",
+        //                 "wdId": "4703879",
+        //                 "fee": "0.01000000eth",
+        //                 "txId": "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
+        //                 "ccy": "ETH",
+        //                 "from": "13426335357",
+        //                 "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
+        //                 "ts": "1597026383085",
+        //                 "state": "2"
+        //             },
+        //             {
+        //                 "amt": "0.01",
+        //                 "wdId": "4703879",
+        //                 "fee": "0.00000000btc",
+        //                 "txId": "",
+        //                 "ccy": "BTC",
+        //                 "from": "13426335357",
+        //                 "to": "13426335357",
+        //                 "ts": "1597026383085",
+        //                 "state": "2"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit, params);
+    }
+
+    parseTransactionStatus (status) {
+        //
+        // deposit statuses
+        //
+        //     {
+        //         '0': 'waiting for confirmation',
+        //         '1': 'deposit credited',
+        //         '2': 'deposit successful'
+        //     }
+        //
+        // withdrawal statuses
+        //
+        //     {
+        //        '-3': 'pending cancel',
+        //        '-2': 'canceled',
+        //        '-1': 'failed',
+        //         '0': 'pending',
+        //         '1': 'sending',
+        //         '2': 'sent',
+        //         '3': 'awaiting email verification',
+        //         '4': 'awaiting manual verification',
+        //         '5': 'awaiting identity verification'
+        //     }
+        //
+        const statuses = {
+            '-3': 'pending',
+            '-2': 'canceled',
+            '-1': 'failed',
+            '0': 'pending',
+            '1': 'pending',
+            '2': 'ok',
+            '3': 'pending',
+            '4': 'pending',
+            '5': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "amt": "0.094",
+        //         "wdId": "4703879",
+        //         "fee": "0.01000000eth",
+        //         "txId": "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
+        //         "ccy": "ETH",
+        //         "from": "13426335357",
+        //         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
+        //         'tag': string,
+        //         'pmtId': string,
+        //         'memo': string,
+        //         "ts": "1597026383085",
+        //         "state": "2"
+        //     }
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "amt": "0.01044408",
+        //         "txId": "1915737_3_0_0_asset",
+        //         "ccy": "BTC",
+        //         "from": "13801825426",
+        //         "to": "",
+        //         "ts": "1597026383085",
+        //         "state": "2",
+        //         "depId": "4703879"
+        //     }
+        //
+        let type = undefined;
+        let id = undefined;
+        const withdrawalId = this.safeString (transaction, 'wdId');
+        const addressFrom = this.safeString (transaction, 'from');
+        const addressTo = this.safeString (transaction, 'to');
+        const address = addressTo;
+        let tagTo = this.safeString2 (transaction, 'tag', 'memo');
+        tagTo = this.safeString2 (transaction, 'pmtId', tagTo);
+        if (withdrawalId !== undefined) {
+            type = 'withdrawal';
+            id = withdrawalId;
+        } else {
+            // the payment_id will appear on new deposits but appears to be removed from the response after 2 months
+            id = this.safeString (transaction, 'depId');
+            type = 'deposit';
+        }
+        const currencyId = this.safeString (transaction, 'ccy');
+        const code = this.safeCurrencyCode (currencyId);
+        const amount = this.safeNumber (transaction, 'amt');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const txid = this.safeString (transaction, 'txId');
+        const timestamp = this.safeInteger (transaction, 'ts');
+        let feeCost = undefined;
+        if (type === 'deposit') {
+            feeCost = 0;
+        } else {
+            feeCost = this.safeNumber (transaction, 'fee');
+        }
+        // todo parse tags
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
+            'address': address,
+            'tagFrom': undefined,
+            'tagTo': tagTo,
+            'tag': tagTo,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
