@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
 
@@ -358,12 +359,11 @@ module.exports = class eqonex extends Exchange {
         //     ]
         //
         const timestamp = this.safeInteger (ohlcv, 0);
-        const open = this.convertFromScale (ohlcv[1], market['precision']['price']);
-        const high = this.convertFromScale (ohlcv[2], market['precision']['price']);
-        const low = this.convertFromScale (ohlcv[3], market['precision']['price']);
-        const close = this.convertFromScale (ohlcv[4], market['precision']['price']);
-        const volume = this.convertFromScale (ohlcv[5], market['precision']['amount']);
-        // volume = ohlcv[5];
+        const open = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 1), market['precision']['price']));
+        const high = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 2), market['precision']['price']));
+        const low = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 3), market['precision']['price']));
+        const close = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 4), market['precision']['price']));
+        const volume = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 5), market['precision']['amount']));
         return [timestamp, open, high, low, close, volume];
     }
 
@@ -371,11 +371,11 @@ module.exports = class eqonex extends Exchange {
         if (market === undefined) {
             throw new ArgumentsRequired (this.id + ' parseBidAsk() requires a market argument');
         }
-        const price = this.safeNumber (bidask, priceKey);
-        const amount = this.safeNumber (bidask, amountKey);
+        const priceString = this.safeString (bidask, priceKey);
+        const amountString = this.safeString (bidask, amountKey);
         return [
-            this.convertFromScale (price, market['precision']['price']),
-            this.convertFromScale (amount, market['precision']['amount']),
+            this.parseNumber (this.convertFromScale (priceString, market['precision']['price'])),
+            this.parseNumber (this.convertFromScale (amountString, market['precision']['amount'])),
         ];
     }
 
@@ -494,15 +494,15 @@ module.exports = class eqonex extends Exchange {
         let orderId = undefined;
         let type = undefined;
         let side = undefined;
-        let price = undefined;
-        let amount = undefined;
-        let cost = undefined;
+        let priceString = undefined;
+        let amountString = undefined;
+        let costString = undefined;
         let fee = undefined;
         let symbol = undefined;
         if (Array.isArray (trade)) {
             id = this.safeString (trade, 3);
-            price = this.convertFromScale (this.safeInteger (trade, 0), market['precision']['price']);
-            amount = this.convertFromScale (this.safeInteger (trade, 1), market['precision']['amount']);
+            priceString = this.convertFromScale (this.safeString (trade, 0), market['precision']['price']);
+            amountString = this.convertFromScale (this.safeString (trade, 1), market['precision']['amount']);
             timestamp = this.toMilliseconds (this.safeString (trade, 2));
             const takerSide = this.safeInteger (trade, 4);
             if (takerSide === 1) {
@@ -518,8 +518,9 @@ module.exports = class eqonex extends Exchange {
             orderId = this.safeString (trade, 'orderId');
             side = this.safeStringLower (trade, 'side');
             type = this.parseOrderType (this.safeString (trade, 'ordType'));
-            price = this.safeNumber (trade, 'lastPx');
-            amount = this.safeNumber (trade, 'quoteQty');
+            priceString = this.safeString (trade, 'lastPx');
+            amountString = this.safeString (trade, 'qty');
+            costString = this.safeString (trade, 'quoteQty');
             let feeCost = this.safeNumber (trade, 'commission');
             if (feeCost !== undefined) {
                 feeCost = -feeCost;
@@ -534,11 +535,12 @@ module.exports = class eqonex extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        if (cost === undefined) {
-            if ((amount !== undefined) && (price !== undefined)) {
-                cost = amount * price;
-            }
+        if (costString === undefined) {
+            costString = Precise.stringMul (amountString, priceString);
         }
+        const cost = this.parseNumber (costString);
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         return {
             'info': trade,
             'id': id,
@@ -591,16 +593,16 @@ module.exports = class eqonex extends Exchange {
             if (assetType === 'ASSET') {
                 const currencyId = this.safeString (position, 'symbol');
                 const code = this.safeCurrencyCode (currencyId);
-                const quantity = this.safeNumber (position, 'quantity');
-                const availableQuantity = this.safeNumber (position, 'availableQuantity');
+                const quantityString = this.safeString (position, 'quantity');
+                const availableQuantityString = this.safeString (position, 'availableQuantity');
                 const scale = this.safeInteger (position, 'quantity_scale');
                 const account = this.account ();
-                account['free'] = this.convertFromScale (availableQuantity, scale);
-                account['total'] = this.convertFromScale (quantity, scale);
+                account['free'] = this.convertFromScale (availableQuantityString, scale);
+                account['total'] = this.convertFromScale (quantityString, scale);
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -618,7 +620,7 @@ module.exports = class eqonex extends Exchange {
             // 'ordType': 1, // 1 = market, 2 = limit, 3 = stop market, 4 = stop limit
             // 'price': this.priceToPrecision (symbol, price), // required for limit and stop limit orders
             // 'price_scale': this.getScale (price),
-            'quantity': this.convertToScale (amount, quantityScale),
+            'quantity': this.convertToScale (this.numberToString (amount), quantityScale),
             'quantity_scale': quantityScale,
             // 'stopPx': this.priceToPrecision (symbol, stopPx),
             // 'stopPx_scale': this.getScale (stopPx),
@@ -636,7 +638,7 @@ module.exports = class eqonex extends Exchange {
             request['ordType'] = 1;
         } else if (type === 'limit') {
             request['ordType'] = 2;
-            request['price'] = this.convertToScale (price, this.getScale (price));
+            request['price'] = this.convertToScale (this.numberToString (price), this.getScale (price));
         } else {
             const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stopPx');
             params = this.omit (params, [ 'stopPrice', 'stopPx' ]);
@@ -646,22 +648,22 @@ module.exports = class eqonex extends Exchange {
                         throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument or a stopPrice parameter or a stopPx parameter for ' + type + ' orders');
                     }
                     request['ordType'] = 3;
-                    request['stopPx'] = this.convertToScale (price, this.getScale (price));
+                    request['stopPx'] = this.convertToScale (this.numberToString (price), this.getScale (price));
                 } else if (type === 'stop limit') {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter or a stopPx parameter for ' + type + ' orders');
                 }
             } else {
                 if (type === 'stop') {
                     request['ordType'] = 3;
-                    request['stopPx'] = this.convertToScale (stopPrice, this.getScale (stopPrice));
+                    request['stopPx'] = this.convertToScale (this.numberToString (stopPrice), this.getScale (stopPrice));
                 } else if (type === 'stop limit') {
                     request['ordType'] = 4;
                     const priceScale = this.getScale (price);
                     const stopPriceScale = this.getScale (stopPrice);
                     request['price_scale'] = priceScale;
                     request['stopPx_scale'] = stopPriceScale;
-                    request['stopPx'] = this.convertToScale (stopPrice, stopPriceScale);
-                    request['price'] = this.convertToScale (price, priceScale);
+                    request['stopPx'] = this.convertToScale (this.numberToString (stopPrice), stopPriceScale);
+                    request['price'] = this.convertToScale (this.numberToString (price), priceScale);
                 }
             }
         }
@@ -723,7 +725,7 @@ module.exports = class eqonex extends Exchange {
             // 'ordType': 1, // 1 = market, 2 = limit, 3 = stop market, 4 = stop limit
             // 'price': this.priceToPrecision (symbol, price), // required for limit and stop limit orders
             // 'price_scale': this.getScale (price),
-            'quantity': this.convertToScale (amount, quantityScale),
+            'quantity': this.convertToScale (this.numberToString (amount), quantityScale),
             'quantity_scale': quantityScale,
             // 'stopPx': this.priceToPrecision (symbol, stopPx),
             // 'stopPx_scale': this.getScale (stopPx),
@@ -733,7 +735,7 @@ module.exports = class eqonex extends Exchange {
             request['ordType'] = 1;
         } else if (type === 'limit') {
             request['ordType'] = 2;
-            request['price'] = this.convertToScale (price, this.getScale (price));
+            request['price'] = this.convertToScale (this.numberToString (price), this.getScale (price));
         } else {
             const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stopPx');
             params = this.omit (params, [ 'stopPrice', 'stopPx' ]);
@@ -743,22 +745,22 @@ module.exports = class eqonex extends Exchange {
                         throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument or a stopPrice parameter or a stopPx parameter for ' + type + ' orders');
                     }
                     request['ordType'] = 3;
-                    request['stopPx'] = this.convertToScale (price, this.getScale (price));
+                    request['stopPx'] = this.convertToScale (this.numberToString (price), this.getScale (price));
                 } else if (type === 'stop limit') {
                     throw new ArgumentsRequired (this.id + ' editOrder() requires a stopPrice parameter or a stopPx parameter for ' + type + ' orders');
                 }
             } else {
                 if (type === 'stop') {
                     request['ordType'] = 3;
-                    request['stopPx'] = this.convertToScale (stopPrice, this.getScale (stopPrice));
+                    request['stopPx'] = this.convertToScale (this.numberToString (stopPrice), this.getScale (stopPrice));
                 } else if (type === 'stop limit') {
                     request['ordType'] = 4;
                     const priceScale = this.getScale (price);
                     const stopPriceScale = this.getScale (stopPrice);
                     request['price_scale'] = priceScale;
                     request['stopPx_scale'] = stopPriceScale;
-                    request['stopPx'] = this.convertToScale (stopPrice, stopPriceScale);
-                    request['price'] = this.convertToScale (price, priceScale);
+                    request['stopPx'] = this.convertToScale (this.numberToString (stopPrice), stopPriceScale);
+                    request['price'] = this.convertToScale (this.numberToString (price), priceScale);
                 }
             }
         }
@@ -1110,9 +1112,9 @@ module.exports = class eqonex extends Exchange {
         const type = this.safeString (transaction, 'type');
         let amount = this.safeNumber (transaction, 'balance_change');
         if (amount === undefined) {
-            amount = this.safeInteger (transaction, 'quantity');
+            amount = this.safeString (transaction, 'quantity');
             const amountScale = this.safeInteger (transaction, 'quantity_scale');
-            amount = this.convertFromScale (amount, amountScale);
+            amount = this.parseNumber (this.convertFromScale (amount, amountScale));
         }
         const currencyId = this.safeString (transaction, 'symbol');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -1305,32 +1307,26 @@ module.exports = class eqonex extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.toMilliseconds (this.safeString (order, 'timeStamp'));
         const lastTradeTimestamp = undefined;
-        let price = this.safeInteger (order, 'price');
-        if (price === 0) {
-            price = undefined;
-        }
+        const priceString = this.safeString (order, 'price');
         const priceScale = this.safeInteger (order, 'price_scale');
-        price = this.convertFromScale (price, priceScale);
-        let amount = this.safeInteger (order, 'quantity');
-        if (amount === 0) {
-            amount = undefined;
-        }
+        const price = this.parseNumber (this.convertFromScale (priceString, priceScale));
+        const amountString = this.safeString (order, 'quantity');
         const amountScale = this.safeInteger (order, 'quantity_scale');
-        amount = this.convertFromScale (amount, amountScale);
-        let filled = this.safeInteger (order, 'cumQty');
+        const amount = this.parseNumber (this.convertFromScale (amountString, amountScale));
+        const filledString = this.safeString (order, 'cumQty');
         const filledScale = this.safeInteger (order, 'cumQty_scale');
-        filled = this.convertFromScale (filled, filledScale);
-        let remaining = this.safeInteger (order, 'leavesQty');
+        const filled = this.parseNumber (this.convertFromScale (filledString, filledScale));
+        const remainingString = this.safeString (order, 'leavesQty');
         const remainingScale = this.safeInteger (order, 'leavesQty_scale');
-        remaining = this.convertFromScale (remaining, remainingScale);
+        const remaining = this.parseNumber (this.convertFromScale (remainingString, remainingScale));
         let fee = undefined;
         const currencyId = this.safeInteger (order, 'feeInstrumentId');
         const feeCurrencyCode = this.safeCurrencyCode (currencyId);
-        let feeCost = this.safeInteger (order, 'feeTotal');
+        let feeCost = this.safeString (order, 'feeTotal');
         const feeScale = this.safeInteger (order, 'fee_scale');
         if (feeCost !== undefined) {
-            feeCost = -feeCost;
-            feeCost = this.convertFromScale (feeCost, feeScale);
+            feeCost = Precise.stringNeg (feeCost);
+            feeCost = this.parseNumber (this.convertFromScale (feeCost, feeScale));
         }
         if (feeCost !== undefined) {
             fee = {
@@ -1344,7 +1340,7 @@ module.exports = class eqonex extends Exchange {
             timeInForce = undefined;
         }
         const stopPriceScale = this.safeInteger (order, 'stopPx_scale', 0);
-        const stopPrice = this.convertFromScale (this.safeInteger (order, 'stopPx'), stopPriceScale);
+        const stopPrice = this.parseNumber (this.convertFromScale (this.safeString (order, 'stopPx'), stopPriceScale));
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1440,10 +1436,13 @@ module.exports = class eqonex extends Exchange {
     }
 
     convertFromScale (number, scale) {
-        if ((number === undefined) || (scale === undefined)) {
+        if (number === undefined) {
             return undefined;
         }
-        return this.fromWei (number, scale);
+        const precise = new Precise (number);
+        precise.decimals = precise.decimals + scale;
+        precise.reduce ();
+        return precise.toString ();
     }
 
     getScale (num) {
