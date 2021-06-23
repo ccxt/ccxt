@@ -498,10 +498,10 @@ class okex5(Exchange):
             'price': self.precision_from_string(tickSize),
         }
         minAmountString = self.safe_string(market, 'minSz')
-        minAmount = self.precision_from_string(minAmountString)
+        minAmount = self.parse_number(minAmountString)
         minCost = None
         if (minAmount is not None) and (tickSize is not None):
-            minCost = self.precision_from_string(Precise.string_mul(tickSize, minAmountString))
+            minCost = self.parse_number(Precise.string_mul(tickSize, minAmountString))
         active = True
         fees = self.safe_value_2(self.fees, type, 'trading', {})
         return self.extend(fees, {
@@ -525,7 +525,7 @@ class okex5(Exchange):
                     'max': None,
                 },
                 'price': {
-                    'min': precision['price'],
+                    'min': self.parse_number(tickSize),
                     'max': None,
                 },
                 'cost': {

@@ -485,10 +485,10 @@ module.exports = class okex5 extends Exchange {
             'price': this.precisionFromString (tickSize),
         };
         const minAmountString = this.safeString (market, 'minSz');
-        const minAmount = this.precisionFromString (minAmountString);
+        const minAmount = this.parseNumber (minAmountString);
         let minCost = undefined;
         if ((minAmount !== undefined) && (tickSize !== undefined)) {
-            minCost = this.precisionFromString (Precise.stringMul (tickSize, minAmountString));
+            minCost = this.parseNumber (Precise.stringMul (tickSize, minAmountString));
         }
         const active = true;
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
@@ -513,7 +513,7 @@ module.exports = class okex5 extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': precision['price'],
+                    'min': this.parseNumber (tickSize),
                     'max': undefined,
                 },
                 'cost': {

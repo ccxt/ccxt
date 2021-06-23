@@ -487,10 +487,10 @@ class okex5 extends Exchange {
             'price' => $this->precision_from_string($tickSize),
         );
         $minAmountString = $this->safe_string($market, 'minSz');
-        $minAmount = $this->precision_from_string($minAmountString);
+        $minAmount = $this->parse_number($minAmountString);
         $minCost = null;
         if (($minAmount !== null) && ($tickSize !== null)) {
-            $minCost = $this->precision_from_string(Precise.stringMul ($tickSize, $minAmountString));
+            $minCost = $this->parse_number(Precise.stringMul ($tickSize, $minAmountString));
         }
         $active = true;
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
@@ -515,7 +515,7 @@ class okex5 extends Exchange {
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => $precision['price'],
+                    'min' => $this->parse_number($tickSize),
                     'max' => null,
                 ),
                 'cost' => array(
