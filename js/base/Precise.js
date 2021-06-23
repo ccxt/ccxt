@@ -98,8 +98,16 @@ class Precise {
     }
 
     toString () {
-        const sign = this.integer < 0 ? '-' : ''
-        const integerArray = Array.from ((this.integer < 0 ? this.integer * minusOne : this.integer).toString (this.base).padStart (this.decimals, '0'))
+        let sign
+        let abs
+        if (this.integer < 0) {
+            sign = '-'
+            abs = -this.integer
+        } else {
+            sign = ''
+            abs = this.integer
+        }
+        const integerArray = Array.from (abs.toString (this.base).padStart (this.decimals, '0'))
         const index = integerArray.length - this.decimals
         let item
         if (index === 0) {
