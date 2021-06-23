@@ -496,7 +496,6 @@ module.exports = class eqonex extends Exchange {
         let side = undefined;
         let priceString = undefined;
         let amountString = undefined;
-        let costString = undefined;
         let fee = undefined;
         let symbol = undefined;
         if (Array.isArray (trade)) {
@@ -520,7 +519,6 @@ module.exports = class eqonex extends Exchange {
             type = this.parseOrderType (this.safeString (trade, 'ordType'));
             priceString = this.safeString (trade, 'lastPx');
             amountString = this.safeString (trade, 'qty');
-            costString = this.safeString (trade, 'quoteQty');
             let feeCost = this.safeNumber (trade, 'commission');
             if (feeCost !== undefined) {
                 feeCost = -feeCost;
@@ -535,10 +533,7 @@ module.exports = class eqonex extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        if (costString === undefined) {
-            costString = Precise.stringMul (amountString, priceString);
-        }
-        const cost = this.parseNumber (costString);
+        const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         return {
