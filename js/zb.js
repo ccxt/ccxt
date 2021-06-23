@@ -33,7 +33,7 @@ module.exports = class zb extends ccxt.zb {
         });
     }
 
-    async watchPublic (name, symbol, params = {}) {
+    async watchPublic (name, symbol, method, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = market['baseId'] + market['quoteId'] + '_' + name;
@@ -48,36 +48,36 @@ module.exports = class zb extends ccxt.zb {
             'symbol': symbol,
             'marketId': market['id'],
             'messageHash': messageHash,
-        }
+            'method': method,
+        };
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
     async watchTicker (symbol, params = {}) {
-        return await this.watchPublic ('ticker', symbol, params);
+        return await this.watchPublic ('ticker', symbol, this.handleTicker, params);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client, message, subscription) {
         //
         //     {
-        //         event: 'ticker24h',
-        //         data: [
-        //             {
-        //                 market: 'ETH-EUR',
-        //                 open: '193.5',
-        //                 high: '202.72',
-        //                 low: '192.46',
-        //                 last: '199.01',
-        //                 volume: '3587.05020246',
-        //                 volumeQuote: '708030.17',
-        //                 bid: '199.56',
-        //                 bidSize: '4.14730803',
-        //                 ask: '199.57',
-        //                 askSize: '6.13642074',
-        //                 timestamp: 1590770885217
-        //             }
-        //         ]
+        //         date: '1624398991255',
+        //         ticker: {
+        //             high: '33298.38',
+        //             vol: '56375.9469',
+        //             last: '32396.95',
+        //             low: '28808.19',
+        //             buy: '32395.81',
+        //             sell: '32409.3',
+        //             turnover: '1771122527.0000',
+        //             open: '31652.44',
+        //             riseRate: '2.36'
+        //         },
+        //         dataType: 'ticker',
+        //         channel: 'btcusdt_ticker'
         //     }
         //
+        const symbol = this.safeString (subscription, 'symbol');
+        const market = this.market (symbol);
         const event = this.safeString (message, 'event');
         const tickers = this.safeValue (message, 'data', []);
         for (let i = 0; i < tickers.length; i++) {
@@ -601,72 +601,54 @@ module.exports = class zb extends ccxt.zb {
 
     handleMessage (client, message) {
         //
-        //     {
-        //         event: 'subscribed',
-        //         subscriptions: {
-        //             book: [ 'BTC-EUR' ]
-        //         }
-        //     }
-        //
         //
         //     {
-        //         event: 'book',
-        //         market: 'BTC-EUR',
-        //         nonce: 36729561,
-        //         bids: [
-        //             [ '8513.3', '0' ],
-        //             [ '8518.8', '0.64236203' ],
-        //             [ '8513.6', '0.32435481' ],
-        //         ],
-        //         asks: []
+        //         no: '0',
+        //         code: 1007,
+        //         success: false,
+        //         channel: 'btc_usdt_ticker',
+        //         message: 'Channel is empty'
         //     }
         //
         //     {
-        //         action: 'getBook',
-        //         response: {
-        //             market: 'BTC-EUR',
-        //             nonce: 36946120,
-        //             bids: [
-        //                 [ '8494.9', '0.24399521' ],
-        //                 [ '8494.8', '0.34884085' ],
-        //                 [ '8493.9', '0.14535128' ],
-        //             ],
-        //             asks: [
-        //                 [ '8495', '0.46982463' ],
-        //                 [ '8495.1', '0.12178267' ],
-        //                 [ '8496.2', '0.21924143' ],
-        //             ]
-        //         }
+        //         date: '1624398991255',
+        //         ticker: {
+        //             high: '33298.38',
+        //             vol: '56375.9469',
+        //             last: '32396.95',
+        //             low: '28808.19',
+        //             buy: '32395.81',
+        //             sell: '32409.3',
+        //             turnover: '1771122527.0000',
+        //             open: '31652.44',
+        //             riseRate: '2.36'
+        //         },
+        //         dataType: 'ticker',
+        //         channel: 'btcusdt_ticker'
         //     }
         //
-        //     {
-        //         event: 'authenticate',
-        //         authenticated: true
-        //     }
-        //
-        const methods = {
-            'subscribed': this.handleSubscriptionStatus,
-            'book': this.handleOrderBook,
-            'getBook': this.handleOrderBookSnapshot,
-            'trade': this.handleTrade,
-            'candle': this.handleOHLCV,
-            'ticker24h': this.handleTicker,
-            'authenticate': this.handleAuthenticationMessage,
-            'order': this.handleOrder,
-            'fill': this.handleMyTrade,
-        };
-        const event = this.safeString (message, 'event');
-        let method = this.safeValue (methods, event);
-        if (method === undefined) {
-            const action = this.safeString (message, 'action');
-            method = this.safeValue (methods, action);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+        const dataType = this.safeString (message, 'dataType');
+        if (dataType !== undefined) {
+            // const methods = {
+            //     'subscribed': this.handleSubscriptionStatus,
+            //     'book': this.handleOrderBook,
+            //     'getBook': this.handleOrderBookSnapshot,
+            //     'trade': this.handleTrade,
+            //     'candle': this.handleOHLCV,
+            //     'ticker': this.handleTicker,
+            //     'authenticate': this.handleAuthenticationMessage,
+            //     'order': this.handleOrder,
+            //     'fill': this.handleMyTrade,
+            // };
+            const channel = this.safeString (message, 'channel');
+            const subscription = this.safeValue (client.subscriptions, channel);
+            if (subscription !== undefined) {
+                const method = this.safeValue (subscription, 'method');
+                if (method !== undefined) {
+                    return method.call (this, client, message);
+                }
             }
-        } else {
-            return method.call (this, client, message);
+            return message;
         }
     }
 };
