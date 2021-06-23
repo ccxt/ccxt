@@ -361,12 +361,11 @@ class eqonex extends Exchange {
         //     )
         //
         $timestamp = $this->safe_integer($ohlcv, 0);
-        $open = $this->convert_from_scale($ohlcv[1], $market['precision']['price']);
-        $high = $this->convert_from_scale($ohlcv[2], $market['precision']['price']);
-        $low = $this->convert_from_scale($ohlcv[3], $market['precision']['price']);
-        $close = $this->convert_from_scale($ohlcv[4], $market['precision']['price']);
-        $volume = $this->convert_from_scale($ohlcv[5], $market['precision']['amount']);
-        // $volume = $ohlcv[5];
+        $open = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 1), $market['precision']['price']));
+        $high = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 2), $market['precision']['price']));
+        $low = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 3), $market['precision']['price']));
+        $close = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 4), $market['precision']['price']));
+        $volume = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 5), $market['precision']['amount']));
         return [$timestamp, $open, $high, $low, $close, $volume];
     }
 
@@ -374,11 +373,11 @@ class eqonex extends Exchange {
         if ($market === null) {
             throw new ArgumentsRequired($this->id . ' parseBidAsk() requires a $market argument');
         }
-        $price = $this->safe_number($bidask, $priceKey);
-        $amount = $this->safe_number($bidask, $amountKey);
+        $priceString = $this->safe_string($bidask, $priceKey);
+        $amountString = $this->safe_string($bidask, $amountKey);
         return [
-            $this->convert_from_scale($price, $market['precision']['price']),
-            $this->convert_from_scale($amount, $market['precision']['amount']),
+            $this->parse_number($this->convert_from_scale($priceString, $market['precision']['price'])),
+            $this->parse_number($this->convert_from_scale($amountString, $market['precision']['amount'])),
         ];
     }
 
@@ -497,15 +496,14 @@ class eqonex extends Exchange {
         $orderId = null;
         $type = null;
         $side = null;
-        $price = null;
-        $amount = null;
-        $cost = null;
+        $priceString = null;
+        $amountString = null;
         $fee = null;
         $symbol = null;
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
             $id = $this->safe_string($trade, 3);
-            $price = $this->convert_from_scale($this->safe_integer($trade, 0), $market['precision']['price']);
-            $amount = $this->convert_from_scale($this->safe_integer($trade, 1), $market['precision']['amount']);
+            $priceString = $this->convert_from_scale($this->safe_string($trade, 0), $market['precision']['price']);
+            $amountString = $this->convert_from_scale($this->safe_string($trade, 1), $market['precision']['amount']);
             $timestamp = $this->to_milliseconds($this->safe_string($trade, 2));
             $takerSide = $this->safe_integer($trade, 4);
             if ($takerSide === 1) {
@@ -521,8 +519,8 @@ class eqonex extends Exchange {
             $orderId = $this->safe_string($trade, 'orderId');
             $side = $this->safe_string_lower($trade, 'side');
             $type = $this->parse_order_type($this->safe_string($trade, 'ordType'));
-            $price = $this->safe_number($trade, 'lastPx');
-            $amount = $this->safe_number($trade, 'quoteQty');
+            $priceString = $this->safe_string($trade, 'lastPx');
+            $amountString = $this->safe_string($trade, 'qty');
             $feeCost = $this->safe_number($trade, 'commission');
             if ($feeCost !== null) {
                 $feeCost = -$feeCost;
@@ -537,11 +535,9 @@ class eqonex extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        if ($cost === null) {
-            if (($amount !== null) && ($price !== null)) {
-                $cost = $amount * $price;
-            }
-        }
+        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         return array(
             'info' => $trade,
             'id' => $id,
@@ -567,8 +563,8 @@ class eqonex extends Exchange {
         //             array(
         //                 "instrumentId":1,
         //                 "userId":3583,
-        //                 "$quantity":0,
-        //                 "$availableQuantity":0,
+        //                 "quantity":0,
+        //                 "availableQuantity":0,
         //                 "quantity_scale":6,
         //                 "symbol":"USDC",
         //                 "$assetType":"ASSET",
@@ -594,16 +590,16 @@ class eqonex extends Exchange {
             if ($assetType === 'ASSET') {
                 $currencyId = $this->safe_string($position, 'symbol');
                 $code = $this->safe_currency_code($currencyId);
-                $quantity = $this->safe_number($position, 'quantity');
-                $availableQuantity = $this->safe_number($position, 'availableQuantity');
+                $quantityString = $this->safe_string($position, 'quantity');
+                $availableQuantityString = $this->safe_string($position, 'availableQuantity');
                 $scale = $this->safe_integer($position, 'quantity_scale');
                 $account = $this->account();
-                $account['free'] = $this->convert_from_scale($availableQuantity, $scale);
-                $account['total'] = $this->convert_from_scale($quantity, $scale);
+                $account['free'] = $this->convert_from_scale($availableQuantityString, $scale);
+                $account['total'] = $this->convert_from_scale($quantityString, $scale);
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -621,7 +617,7 @@ class eqonex extends Exchange {
             // 'ordType' => 1, // 1 = $market, 2 = limit, 3 = stop $market, 4 = stop limit
             // 'price' => $this->price_to_precision($symbol, $price), // required for limit and stop limit orders
             // 'price_scale' => $this->get_scale($price),
-            'quantity' => $this->convert_to_scale($amount, $quantityScale),
+            'quantity' => $this->convert_to_scale($this->number_to_string($amount), $quantityScale),
             'quantity_scale' => $quantityScale,
             // 'stopPx' => $this->price_to_precision($symbol, stopPx),
             // 'stopPx_scale' => $this->get_scale(stopPx),
@@ -639,7 +635,7 @@ class eqonex extends Exchange {
             $request['ordType'] = 1;
         } else if ($type === 'limit') {
             $request['ordType'] = 2;
-            $request['price'] = $this->convert_to_scale($price, $this->get_scale($price));
+            $request['price'] = $this->convert_to_scale($this->number_to_string($price), $this->get_scale($price));
         } else {
             $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stopPx');
             $params = $this->omit($params, array( 'stopPrice', 'stopPx' ));
@@ -649,22 +645,22 @@ class eqonex extends Exchange {
                         throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument or a $stopPrice parameter or a stopPx parameter for ' . $type . ' orders');
                     }
                     $request['ordType'] = 3;
-                    $request['stopPx'] = $this->convert_to_scale($price, $this->get_scale($price));
+                    $request['stopPx'] = $this->convert_to_scale($this->number_to_string($price), $this->get_scale($price));
                 } else if ($type === 'stop limit') {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter or a stopPx parameter for ' . $type . ' orders');
                 }
             } else {
                 if ($type === 'stop') {
                     $request['ordType'] = 3;
-                    $request['stopPx'] = $this->convert_to_scale($stopPrice, $this->get_scale($stopPrice));
+                    $request['stopPx'] = $this->convert_to_scale($this->number_to_string($stopPrice), $this->get_scale($stopPrice));
                 } else if ($type === 'stop limit') {
                     $request['ordType'] = 4;
                     $priceScale = $this->get_scale($price);
                     $stopPriceScale = $this->get_scale($stopPrice);
                     $request['price_scale'] = $priceScale;
                     $request['stopPx_scale'] = $stopPriceScale;
-                    $request['stopPx'] = $this->convert_to_scale($stopPrice, $stopPriceScale);
-                    $request['price'] = $this->convert_to_scale($price, $priceScale);
+                    $request['stopPx'] = $this->convert_to_scale($this->number_to_string($stopPrice), $stopPriceScale);
+                    $request['price'] = $this->convert_to_scale($this->number_to_string($price), $priceScale);
                 }
             }
         }
@@ -726,7 +722,7 @@ class eqonex extends Exchange {
             // 'ordType' => 1, // 1 = $market, 2 = limit, 3 = stop $market, 4 = stop limit
             // 'price' => $this->price_to_precision($symbol, $price), // required for limit and stop limit orders
             // 'price_scale' => $this->get_scale($price),
-            'quantity' => $this->convert_to_scale($amount, $quantityScale),
+            'quantity' => $this->convert_to_scale($this->number_to_string($amount), $quantityScale),
             'quantity_scale' => $quantityScale,
             // 'stopPx' => $this->price_to_precision($symbol, stopPx),
             // 'stopPx_scale' => $this->get_scale(stopPx),
@@ -736,7 +732,7 @@ class eqonex extends Exchange {
             $request['ordType'] = 1;
         } else if ($type === 'limit') {
             $request['ordType'] = 2;
-            $request['price'] = $this->convert_to_scale($price, $this->get_scale($price));
+            $request['price'] = $this->convert_to_scale($this->number_to_string($price), $this->get_scale($price));
         } else {
             $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stopPx');
             $params = $this->omit($params, array( 'stopPrice', 'stopPx' ));
@@ -746,22 +742,22 @@ class eqonex extends Exchange {
                         throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument or a $stopPrice parameter or a stopPx parameter for ' . $type . ' orders');
                     }
                     $request['ordType'] = 3;
-                    $request['stopPx'] = $this->convert_to_scale($price, $this->get_scale($price));
+                    $request['stopPx'] = $this->convert_to_scale($this->number_to_string($price), $this->get_scale($price));
                 } else if ($type === 'stop limit') {
                     throw new ArgumentsRequired($this->id . ' editOrder() requires a $stopPrice parameter or a stopPx parameter for ' . $type . ' orders');
                 }
             } else {
                 if ($type === 'stop') {
                     $request['ordType'] = 3;
-                    $request['stopPx'] = $this->convert_to_scale($stopPrice, $this->get_scale($stopPrice));
+                    $request['stopPx'] = $this->convert_to_scale($this->number_to_string($stopPrice), $this->get_scale($stopPrice));
                 } else if ($type === 'stop limit') {
                     $request['ordType'] = 4;
                     $priceScale = $this->get_scale($price);
                     $stopPriceScale = $this->get_scale($stopPrice);
                     $request['price_scale'] = $priceScale;
                     $request['stopPx_scale'] = $stopPriceScale;
-                    $request['stopPx'] = $this->convert_to_scale($stopPrice, $stopPriceScale);
-                    $request['price'] = $this->convert_to_scale($price, $priceScale);
+                    $request['stopPx'] = $this->convert_to_scale($this->number_to_string($stopPrice), $stopPriceScale);
+                    $request['price'] = $this->convert_to_scale($this->number_to_string($price), $priceScale);
                 }
             }
         }
@@ -1113,9 +1109,9 @@ class eqonex extends Exchange {
         $type = $this->safe_string($transaction, 'type');
         $amount = $this->safe_number($transaction, 'balance_change');
         if ($amount === null) {
-            $amount = $this->safe_integer($transaction, 'quantity');
+            $amount = $this->safe_string($transaction, 'quantity');
             $amountScale = $this->safe_integer($transaction, 'quantity_scale');
-            $amount = $this->convert_from_scale($amount, $amountScale);
+            $amount = $this->parse_number($this->convert_from_scale($amount, $amountScale));
         }
         $currencyId = $this->safe_string($transaction, 'symbol');
         $code = $this->safe_currency_code($currencyId, $currency);
@@ -1308,32 +1304,26 @@ class eqonex extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->to_milliseconds($this->safe_string($order, 'timeStamp'));
         $lastTradeTimestamp = null;
-        $price = $this->safe_integer($order, 'price');
-        if ($price === 0) {
-            $price = null;
-        }
+        $priceString = $this->safe_string($order, 'price');
         $priceScale = $this->safe_integer($order, 'price_scale');
-        $price = $this->convert_from_scale($price, $priceScale);
-        $amount = $this->safe_integer($order, 'quantity');
-        if ($amount === 0) {
-            $amount = null;
-        }
+        $price = $this->parse_number($this->convert_from_scale($priceString, $priceScale));
+        $amountString = $this->safe_string($order, 'quantity');
         $amountScale = $this->safe_integer($order, 'quantity_scale');
-        $amount = $this->convert_from_scale($amount, $amountScale);
-        $filled = $this->safe_integer($order, 'cumQty');
+        $amount = $this->parse_number($this->convert_from_scale($amountString, $amountScale));
+        $filledString = $this->safe_string($order, 'cumQty');
         $filledScale = $this->safe_integer($order, 'cumQty_scale');
-        $filled = $this->convert_from_scale($filled, $filledScale);
-        $remaining = $this->safe_integer($order, 'leavesQty');
+        $filled = $this->parse_number($this->convert_from_scale($filledString, $filledScale));
+        $remainingString = $this->safe_string($order, 'leavesQty');
         $remainingScale = $this->safe_integer($order, 'leavesQty_scale');
-        $remaining = $this->convert_from_scale($remaining, $remainingScale);
+        $remaining = $this->parse_number($this->convert_from_scale($remainingString, $remainingScale));
         $fee = null;
         $currencyId = $this->safe_integer($order, 'feeInstrumentId');
         $feeCurrencyCode = $this->safe_currency_code($currencyId);
-        $feeCost = $this->safe_integer($order, 'feeTotal');
+        $feeCost = $this->safe_string($order, 'feeTotal');
         $feeScale = $this->safe_integer($order, 'fee_scale');
         if ($feeCost !== null) {
-            $feeCost = -$feeCost;
-            $feeCost = $this->convert_from_scale($feeCost, $feeScale);
+            $feeCost = Precise::string_neg($feeCost);
+            $feeCost = $this->parse_number($this->convert_from_scale($feeCost, $feeScale));
         }
         if ($feeCost !== null) {
             $fee = array(
@@ -1347,7 +1337,7 @@ class eqonex extends Exchange {
             $timeInForce = null;
         }
         $stopPriceScale = $this->safe_integer($order, 'stopPx_scale', 0);
-        $stopPrice = $this->convert_from_scale($this->safe_integer($order, 'stopPx'), $stopPriceScale);
+        $stopPrice = $this->parse_number($this->convert_from_scale($this->safe_string($order, 'stopPx'), $stopPriceScale));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1443,10 +1433,13 @@ class eqonex extends Exchange {
     }
 
     public function convert_from_scale($number, $scale) {
-        if (($number === null) || ($scale === null)) {
+        if ($number === null) {
             return null;
         }
-        return $this->from_wei($number, $scale);
+        $precise = new Precise ($number);
+        $precise->decimals = $precise->decimals . $scale;
+        $precise->reduce ();
+        return (string) $precise;
     }
 
     public function get_scale($num) {

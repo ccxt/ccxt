@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.precise import Precise
 
 
 class eqonex(Exchange):
@@ -353,22 +354,21 @@ class eqonex(Exchange):
         #     ]
         #
         timestamp = self.safe_integer(ohlcv, 0)
-        open = self.convert_from_scale(ohlcv[1], market['precision']['price'])
-        high = self.convert_from_scale(ohlcv[2], market['precision']['price'])
-        low = self.convert_from_scale(ohlcv[3], market['precision']['price'])
-        close = self.convert_from_scale(ohlcv[4], market['precision']['price'])
-        volume = self.convert_from_scale(ohlcv[5], market['precision']['amount'])
-        # volume = ohlcv[5]
+        open = self.parse_number(self.convert_from_scale(self.safe_string(ohlcv, 1), market['precision']['price']))
+        high = self.parse_number(self.convert_from_scale(self.safe_string(ohlcv, 2), market['precision']['price']))
+        low = self.parse_number(self.convert_from_scale(self.safe_string(ohlcv, 3), market['precision']['price']))
+        close = self.parse_number(self.convert_from_scale(self.safe_string(ohlcv, 4), market['precision']['price']))
+        volume = self.parse_number(self.convert_from_scale(self.safe_string(ohlcv, 5), market['precision']['amount']))
         return [timestamp, open, high, low, close, volume]
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1, market=None):
         if market is None:
             raise ArgumentsRequired(self.id + ' parseBidAsk() requires a market argument')
-        price = self.safe_number(bidask, priceKey)
-        amount = self.safe_number(bidask, amountKey)
+        priceString = self.safe_string(bidask, priceKey)
+        amountString = self.safe_string(bidask, amountKey)
         return [
-            self.convert_from_scale(price, market['precision']['price']),
-            self.convert_from_scale(amount, market['precision']['amount']),
+            self.parse_number(self.convert_from_scale(priceString, market['precision']['price'])),
+            self.parse_number(self.convert_from_scale(amountString, market['precision']['amount'])),
         ]
 
     def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market=None):
@@ -481,15 +481,14 @@ class eqonex(Exchange):
         orderId = None
         type = None
         side = None
-        price = None
-        amount = None
-        cost = None
+        priceString = None
+        amountString = None
         fee = None
         symbol = None
         if isinstance(trade, list):
             id = self.safe_string(trade, 3)
-            price = self.convert_from_scale(self.safe_integer(trade, 0), market['precision']['price'])
-            amount = self.convert_from_scale(self.safe_integer(trade, 1), market['precision']['amount'])
+            priceString = self.convert_from_scale(self.safe_string(trade, 0), market['precision']['price'])
+            amountString = self.convert_from_scale(self.safe_string(trade, 1), market['precision']['amount'])
             timestamp = self.to_milliseconds(self.safe_string(trade, 2))
             takerSide = self.safe_integer(trade, 4)
             if takerSide == 1:
@@ -504,8 +503,8 @@ class eqonex(Exchange):
             orderId = self.safe_string(trade, 'orderId')
             side = self.safe_string_lower(trade, 'side')
             type = self.parse_order_type(self.safe_string(trade, 'ordType'))
-            price = self.safe_number(trade, 'lastPx')
-            amount = self.safe_number(trade, 'quoteQty')
+            priceString = self.safe_string(trade, 'lastPx')
+            amountString = self.safe_string(trade, 'qty')
             feeCost = self.safe_number(trade, 'commission')
             if feeCost is not None:
                 feeCost = -feeCost
@@ -517,9 +516,9 @@ class eqonex(Exchange):
                 }
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        if cost is None:
-            if (amount is not None) and (price is not None):
-                cost = amount * price
+        cost = self.parse_number(Precise.string_mul(amountString, priceString))
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         return {
             'info': trade,
             'id': id,
@@ -571,14 +570,14 @@ class eqonex(Exchange):
             if assetType == 'ASSET':
                 currencyId = self.safe_string(position, 'symbol')
                 code = self.safe_currency_code(currencyId)
-                quantity = self.safe_number(position, 'quantity')
-                availableQuantity = self.safe_number(position, 'availableQuantity')
+                quantityString = self.safe_string(position, 'quantity')
+                availableQuantityString = self.safe_string(position, 'availableQuantity')
                 scale = self.safe_integer(position, 'quantity_scale')
                 account = self.account()
-                account['free'] = self.convert_from_scale(availableQuantity, scale)
-                account['total'] = self.convert_from_scale(quantity, scale)
+                account['free'] = self.convert_from_scale(availableQuantityString, scale)
+                account['total'] = self.convert_from_scale(quantityString, scale)
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -595,7 +594,7 @@ class eqonex(Exchange):
             # 'ordType': 1,  # 1 = market, 2 = limit, 3 = stop market, 4 = stop limit
             # 'price': self.price_to_precision(symbol, price),  # required for limit and stop limit orders
             # 'price_scale': self.get_scale(price),
-            'quantity': self.convert_to_scale(amount, quantityScale),
+            'quantity': self.convert_to_scale(self.number_to_string(amount), quantityScale),
             'quantity_scale': quantityScale,
             # 'stopPx': self.price_to_precision(symbol, stopPx),
             # 'stopPx_scale': self.get_scale(stopPx),
@@ -613,7 +612,7 @@ class eqonex(Exchange):
             request['ordType'] = 1
         elif type == 'limit':
             request['ordType'] = 2
-            request['price'] = self.convert_to_scale(price, self.get_scale(price))
+            request['price'] = self.convert_to_scale(self.number_to_string(price), self.get_scale(price))
         else:
             stopPrice = self.safe_number_2(params, 'stopPrice', 'stopPx')
             params = self.omit(params, ['stopPrice', 'stopPx'])
@@ -622,21 +621,21 @@ class eqonex(Exchange):
                     if price is None:
                         raise ArgumentsRequired(self.id + ' createOrder() requires a price argument or a stopPrice parameter or a stopPx parameter for ' + type + ' orders')
                     request['ordType'] = 3
-                    request['stopPx'] = self.convert_to_scale(price, self.get_scale(price))
+                    request['stopPx'] = self.convert_to_scale(self.number_to_string(price), self.get_scale(price))
                 elif type == 'stop limit':
                     raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a stopPx parameter for ' + type + ' orders')
             else:
                 if type == 'stop':
                     request['ordType'] = 3
-                    request['stopPx'] = self.convert_to_scale(stopPrice, self.get_scale(stopPrice))
+                    request['stopPx'] = self.convert_to_scale(self.number_to_string(stopPrice), self.get_scale(stopPrice))
                 elif type == 'stop limit':
                     request['ordType'] = 4
                     priceScale = self.get_scale(price)
                     stopPriceScale = self.get_scale(stopPrice)
                     request['price_scale'] = priceScale
                     request['stopPx_scale'] = stopPriceScale
-                    request['stopPx'] = self.convert_to_scale(stopPrice, stopPriceScale)
-                    request['price'] = self.convert_to_scale(price, priceScale)
+                    request['stopPx'] = self.convert_to_scale(self.number_to_string(stopPrice), stopPriceScale)
+                    request['price'] = self.convert_to_scale(self.number_to_string(price), priceScale)
         response = await self.privatePostOrder(self.extend(request, params))
         #
         #     {
@@ -692,7 +691,7 @@ class eqonex(Exchange):
             # 'ordType': 1,  # 1 = market, 2 = limit, 3 = stop market, 4 = stop limit
             # 'price': self.price_to_precision(symbol, price),  # required for limit and stop limit orders
             # 'price_scale': self.get_scale(price),
-            'quantity': self.convert_to_scale(amount, quantityScale),
+            'quantity': self.convert_to_scale(self.number_to_string(amount), quantityScale),
             'quantity_scale': quantityScale,
             # 'stopPx': self.price_to_precision(symbol, stopPx),
             # 'stopPx_scale': self.get_scale(stopPx),
@@ -702,7 +701,7 @@ class eqonex(Exchange):
             request['ordType'] = 1
         elif type == 'limit':
             request['ordType'] = 2
-            request['price'] = self.convert_to_scale(price, self.get_scale(price))
+            request['price'] = self.convert_to_scale(self.number_to_string(price), self.get_scale(price))
         else:
             stopPrice = self.safe_number_2(params, 'stopPrice', 'stopPx')
             params = self.omit(params, ['stopPrice', 'stopPx'])
@@ -711,21 +710,21 @@ class eqonex(Exchange):
                     if price is None:
                         raise ArgumentsRequired(self.id + ' editOrder() requires a price argument or a stopPrice parameter or a stopPx parameter for ' + type + ' orders')
                     request['ordType'] = 3
-                    request['stopPx'] = self.convert_to_scale(price, self.get_scale(price))
+                    request['stopPx'] = self.convert_to_scale(self.number_to_string(price), self.get_scale(price))
                 elif type == 'stop limit':
                     raise ArgumentsRequired(self.id + ' editOrder() requires a stopPrice parameter or a stopPx parameter for ' + type + ' orders')
             else:
                 if type == 'stop':
                     request['ordType'] = 3
-                    request['stopPx'] = self.convert_to_scale(stopPrice, self.get_scale(stopPrice))
+                    request['stopPx'] = self.convert_to_scale(self.number_to_string(stopPrice), self.get_scale(stopPrice))
                 elif type == 'stop limit':
                     request['ordType'] = 4
                     priceScale = self.get_scale(price)
                     stopPriceScale = self.get_scale(stopPrice)
                     request['price_scale'] = priceScale
                     request['stopPx_scale'] = stopPriceScale
-                    request['stopPx'] = self.convert_to_scale(stopPrice, stopPriceScale)
-                    request['price'] = self.convert_to_scale(price, priceScale)
+                    request['stopPx'] = self.convert_to_scale(self.number_to_string(stopPrice), stopPriceScale)
+                    request['price'] = self.convert_to_scale(self.number_to_string(price), priceScale)
         response = await self.privatePostOrder(self.extend(request, params))
         #
         #     {
@@ -1057,9 +1056,9 @@ class eqonex(Exchange):
         type = self.safe_string(transaction, 'type')
         amount = self.safe_number(transaction, 'balance_change')
         if amount is None:
-            amount = self.safe_integer(transaction, 'quantity')
+            amount = self.safe_string(transaction, 'quantity')
             amountScale = self.safe_integer(transaction, 'quantity_scale')
-            amount = self.convert_from_scale(amount, amountScale)
+            amount = self.parse_number(self.convert_from_scale(amount, amountScale))
         currencyId = self.safe_string(transaction, 'symbol')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
@@ -1243,30 +1242,26 @@ class eqonex(Exchange):
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.to_milliseconds(self.safe_string(order, 'timeStamp'))
         lastTradeTimestamp = None
-        price = self.safe_integer(order, 'price')
-        if price == 0:
-            price = None
+        priceString = self.safe_string(order, 'price')
         priceScale = self.safe_integer(order, 'price_scale')
-        price = self.convert_from_scale(price, priceScale)
-        amount = self.safe_integer(order, 'quantity')
-        if amount == 0:
-            amount = None
+        price = self.parse_number(self.convert_from_scale(priceString, priceScale))
+        amountString = self.safe_string(order, 'quantity')
         amountScale = self.safe_integer(order, 'quantity_scale')
-        amount = self.convert_from_scale(amount, amountScale)
-        filled = self.safe_integer(order, 'cumQty')
+        amount = self.parse_number(self.convert_from_scale(amountString, amountScale))
+        filledString = self.safe_string(order, 'cumQty')
         filledScale = self.safe_integer(order, 'cumQty_scale')
-        filled = self.convert_from_scale(filled, filledScale)
-        remaining = self.safe_integer(order, 'leavesQty')
+        filled = self.parse_number(self.convert_from_scale(filledString, filledScale))
+        remainingString = self.safe_string(order, 'leavesQty')
         remainingScale = self.safe_integer(order, 'leavesQty_scale')
-        remaining = self.convert_from_scale(remaining, remainingScale)
+        remaining = self.parse_number(self.convert_from_scale(remainingString, remainingScale))
         fee = None
         currencyId = self.safe_integer(order, 'feeInstrumentId')
         feeCurrencyCode = self.safe_currency_code(currencyId)
-        feeCost = self.safe_integer(order, 'feeTotal')
+        feeCost = self.safe_string(order, 'feeTotal')
         feeScale = self.safe_integer(order, 'fee_scale')
         if feeCost is not None:
-            feeCost = -feeCost
-            feeCost = self.convert_from_scale(feeCost, feeScale)
+            feeCost = Precise.string_neg(feeCost)
+            feeCost = self.parse_number(self.convert_from_scale(feeCost, feeScale))
         if feeCost is not None:
             fee = {
                 'currency': feeCurrencyCode,
@@ -1277,7 +1272,7 @@ class eqonex(Exchange):
         if timeInForce == '0':
             timeInForce = None
         stopPriceScale = self.safe_integer(order, 'stopPx_scale', 0)
-        stopPrice = self.convert_from_scale(self.safe_integer(order, 'stopPx'), stopPriceScale)
+        stopPrice = self.parse_number(self.convert_from_scale(self.safe_string(order, 'stopPx'), stopPriceScale))
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1364,9 +1359,12 @@ class eqonex(Exchange):
         return self.parse8601(date + ' ' + partTwo)
 
     def convert_from_scale(self, number, scale):
-        if (number is None) or (scale is None):
+        if number is None:
             return None
-        return self.from_wei(number, scale)
+        precise = Precise(number)
+        precise.decimals = precise.decimals + scale
+        precise.reduce()
+        return str(precise)
 
     def get_scale(self, num):
         s = self.number_to_string(num)
