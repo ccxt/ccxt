@@ -1744,7 +1744,7 @@ module.exports = class okex5 extends Exchange {
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
             // 'instrument_id': market['id'],
-            'order_id': id,
+            'ordId': id,
             // 'after': '1', // return the page after the specified page number
             // 'before': '1', // return the page before the specified page number
             // 'limit': limit, // optional, number of results per request, default = maximum = 100
