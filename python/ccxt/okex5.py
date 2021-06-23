@@ -1697,7 +1697,7 @@ class okex5(Exchange):
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         request = {
             # 'instrument_id': market['id'],
-            'order_id': id,
+            'ordId': id,
             # 'after': '1',  # return the page after the specified page number
             # 'before': '1',  # return the page before the specified page number
             # 'limit': limit,  # optional, number of results per request, default = maximum = 100

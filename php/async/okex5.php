@@ -1748,7 +1748,7 @@ class okex5 extends Exchange {
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             // 'instrument_id' => market['id'],
-            'order_id' => $id,
+            'ordId' => $id,
             // 'after' => '1', // return the page after the specified page number
             // 'before' => '1', // return the page before the specified page number
             // 'limit' => $limit, // optional, number of results per $request, default = maximum = 100
