@@ -970,6 +970,63 @@ module.exports = class gateio extends Exchange {
         }
     }
 
+    async fetchFundingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostFeelist (params);
+        //
+        //     {
+        //       BNB: {
+        //         no: '860',
+        //         symbol: 'BNB',
+        //         name: 'BinanceCoin',
+        //         name_cn: 'BinanceCoin',
+        //         fee_usdt: '0.2%',
+        //         fee_btc: '0.2%',
+        //         fee_eth: '0.2%',
+        //         deposit: '0',
+        //         withdraw_percent: '0%',
+        //         withdraw_fix: '0.0071',
+        //         withdraw_day_limit: '10000',
+        //         withdraw_day_limit_remain: '10000',
+        //         withdraw_amount_mini: '0.1071',
+        //         withdraw_eachtime_limit: '10000',
+        //         withdraw_fix_on_chain_BSC: '0.018'
+        //       }
+        //     }
+        //
+        const withdraw = {};
+        const deposit = {};
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const currencyId = keys[i];
+            const entry = response[currencyId];
+            const code = this.safeCurrencyCode (currencyId);
+            withdraw[code] = {};
+            deposit[code] = this.safeNumber (entry, 'deposit');
+            const properties = Object.keys (entry);
+            let empty = true;
+            for (let j = 0; j < properties.length; j++) {
+                const property = properties[j];
+                const start = property.slice (0, 22);
+                if (start === 'withdraw_fix_on_chain_') {
+                    empty = false;
+                    const chainId = property.slice (22);
+                    const chainCode = this.safeCurrencyCode (chainId);
+                    const fee = this.safeNumber (entry, property);
+                    withdraw[code][chainCode] = fee;
+                }
+            }
+            if (empty) {
+                withdraw[code][code] = this.safeNumber (entry, 'withdraw_fix');
+            }
+        }
+        return {
+            'info': response,
+            'withdraw': withdraw,
+            'deposit': deposit,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const prefix = (api === 'private') ? (api + '/') : '';
         let url = this.urls['api'][api] + this.version + '/1/' + prefix + this.implodeParams (path, params);
