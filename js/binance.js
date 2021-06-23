@@ -889,12 +889,12 @@ module.exports = class binance extends ccxt.binance {
             const currencyId = this.safeString (entry, 'a');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (entry, 'f');
-            account['used'] = this.safeFloat (entry, 'l');
-            account['total'] = this.safeFloat (entry, wallet);
+            account['free'] = this.safeString (entry, 'f');
+            account['used'] = this.safeString (entry, 'l');
+            account['total'] = this.safeString (entry, wallet);
             this.balance[accountType][code] = account;
         }
-        this.balance[accountType] = this.parseBalance (this.balance[accountType]);
+        this.balance[accountType] = this.parseBalance (this.balance[accountType], false);
         client.resolve (this.balance[accountType], messageHash);
     }
 
