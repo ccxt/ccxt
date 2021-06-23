@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "30661e7ecf47de174934d46436d956fd",
+    "content-hash": "1f3e8ddfa5e452d002bf4d6a777291d7",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.51.45",
+            "version": "1.51.91",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "8858c698302ccf81077388053394c5809b1c27dc"
+                "reference": "3105a2753ef271908cf511241469d26445726069"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/8858c698302ccf81077388053394c5809b1c27dc",
-                "reference": "8858c698302ccf81077388053394c5809b1c27dc",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/3105a2753ef271908cf511241469d26445726069",
+                "reference": "3105a2753ef271908cf511241469d26445726069",
                 "shasum": ""
             },
             "require": {
@@ -279,7 +279,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.51.45"
+                "source": "https://github.com/ccxt/ccxt/tree/1.51.91"
             },
             "funding": [
                 {
@@ -287,7 +287,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2021-06-14T17:35:46+00:00"
+            "time": "2021-06-22T22:25:18+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -809,16 +809,16 @@
         },
         {
             "name": "react/dns",
-            "version": "v1.5.0",
+            "version": "v1.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/dns.git",
-                "reference": "b22b0b20278e8535e633ab71a52472c5bf620aa1"
+                "reference": "bf76d1c312c0c280c4ce53119cd7d08db23ffb4c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/dns/zipball/b22b0b20278e8535e633ab71a52472c5bf620aa1",
-                "reference": "b22b0b20278e8535e633ab71a52472c5bf620aa1",
+                "url": "https://api.github.com/repos/reactphp/dns/zipball/bf76d1c312c0c280c4ce53119cd7d08db23ffb4c",
+                "reference": "bf76d1c312c0c280c4ce53119cd7d08db23ffb4c",
                 "shasum": ""
             },
             "require": {
@@ -873,7 +873,7 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/dns/issues",
-                "source": "https://github.com/reactphp/dns/tree/v1.5.0"
+                "source": "https://github.com/reactphp/dns/tree/v1.6.0"
             },
             "funding": [
                 {
@@ -885,7 +885,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-03-05T12:16:50+00:00"
+            "time": "2021-06-21T11:56:09+00:00"
         },
         {
             "name": "react/event-loop",
