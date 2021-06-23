@@ -52,6 +52,7 @@ class gateio(Exchange):
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
+                'fetchFundingFees': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -911,6 +912,58 @@ class gateio(Exchange):
         if errorCode is not None:
             feedback = self.safe_string(self.exceptions['errorCodeNames'], errorCode, message)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+
+    def fetch_funding_fees(self, params={}):
+        self.load_markets()
+        response = self.privatePostFeelist(params)
+        #
+        #     {
+        #       BNB: {
+        #         no: '860',
+        #         symbol: 'BNB',
+        #         name: 'BinanceCoin',
+        #         name_cn: 'BinanceCoin',
+        #         fee_usdt: '0.2%',
+        #         fee_btc: '0.2%',
+        #         fee_eth: '0.2%',
+        #         deposit: '0',
+        #         withdraw_percent: '0%',
+        #         withdraw_fix: '0.0071',
+        #         withdraw_day_limit: '10000',
+        #         withdraw_day_limit_remain: '10000',
+        #         withdraw_amount_mini: '0.1071',
+        #         withdraw_eachtime_limit: '10000',
+        #         withdraw_fix_on_chain_BSC: '0.018'
+        #       }
+        #     }
+        #
+        withdraw = {}
+        deposit = {}
+        keys = list(response.keys())
+        for i in range(0, len(keys)):
+            currencyId = keys[i]
+            entry = response[currencyId]
+            code = self.safe_currency_code(currencyId)
+            withdraw[code] = {}
+            deposit[code] = self.safe_number(entry, 'deposit')
+            properties = list(entry.keys())
+            empty = True
+            for j in range(0, len(properties)):
+                property = properties[j]
+                start = property[0:22]
+                if start == 'withdraw_fix_on_chain_':
+                    empty = False
+                    chainId = property[22:]
+                    chainCode = self.safe_currency_code(chainId)
+                    fee = self.safe_number(entry, property)
+                    withdraw[code][chainCode] = fee
+            if empty:
+                withdraw[code][code] = self.safe_number(entry, 'withdraw_fix')
+        return {
+            'info': response,
+            'withdraw': withdraw,
+            'deposit': deposit,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         prefix = (api + '/') if (api == 'private') else ''

@@ -45,6 +45,7 @@ class gateio extends Exchange {
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
+                'fetchFundingFees' => true,
             ),
             'timeframes' => array(
                 '1m' => 60,
@@ -971,6 +972,63 @@ class gateio extends Exchange {
             $feedback = $this->safe_string($this->exceptions['errorCodeNames'], $errorCode, $message);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         }
+    }
+
+    public function fetch_funding_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostFeelist ($params);
+        //
+        //     {
+        //       BNB => {
+        //         no => '860',
+        //         symbol => 'BNB',
+        //         name => 'BinanceCoin',
+        //         name_cn => 'BinanceCoin',
+        //         fee_usdt => '0.2%',
+        //         fee_btc => '0.2%',
+        //         fee_eth => '0.2%',
+        //         $deposit => '0',
+        //         withdraw_percent => '0%',
+        //         withdraw_fix => '0.0071',
+        //         withdraw_day_limit => '10000',
+        //         withdraw_day_limit_remain => '10000',
+        //         withdraw_amount_mini => '0.1071',
+        //         withdraw_eachtime_limit => '10000',
+        //         withdraw_fix_on_chain_BSC => '0.018'
+        //       }
+        //     }
+        //
+        $withdraw = array();
+        $deposit = array();
+        $keys = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $currencyId = $keys[$i];
+            $entry = $response[$currencyId];
+            $code = $this->safe_currency_code($currencyId);
+            $withdraw[$code] = array();
+            $deposit[$code] = $this->safe_number($entry, 'deposit');
+            $properties = is_array($entry) ? array_keys($entry) : array();
+            $empty = true;
+            for ($j = 0; $j < count($properties); $j++) {
+                $property = $properties[$j];
+                $start = mb_substr($property, 0, 22 - 0);
+                if ($start === 'withdraw_fix_on_chain_') {
+                    $empty = false;
+                    $chainId = mb_substr($property, 22);
+                    $chainCode = $this->safe_currency_code($chainId);
+                    $fee = $this->safe_number($entry, $property);
+                    $withdraw[$code][$chainCode] = $fee;
+                }
+            }
+            if ($empty) {
+                $withdraw[$code][$code] = $this->safe_number($entry, 'withdraw_fix');
+            }
+        }
+        return array(
+            'info' => $response,
+            'withdraw' => $withdraw,
+            'deposit' => $deposit,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
