@@ -1,15 +1,16 @@
 'use strict'
 
-const BN = require ('../static_dependencies/BN/bn')
+const zero = BigInt (0)
+const minusOne = BigInt (-1)
 
 class Precise {
     constructor (number, decimals = 0) {
-        const isBN = number instanceof BN
+        const isBigInt = typeof number === 'bigint'
         const isString = typeof number === 'string'
-        if (!(isBN || isString)) {
+        if (!(isBigInt || isString)) {
             throw new Error ('Precise initiated with something other than a string or BN')
         }
-        if (isBN) {
+        if (isBigInt) {
             this.integer = number
             this.decimals = decimals
         } else {
@@ -25,7 +26,7 @@ class Precise {
             const decimalIndex = number.indexOf ('.')
             this.decimals = (decimalIndex > -1) ? number.length - decimalIndex - 1 : 0
             const integerString = number.replace ('.', '')
-            this.integer = new BN (integerString)
+            this.integer = BigInt (integerString)
             this.decimals = this.decimals - modifier
         }
         this.base = 10
@@ -34,7 +35,7 @@ class Precise {
 
     mul (other) {
         // other must be another instance of Precise
-        const integerResult = this.integer.mul (other.integer)
+        const integerResult = this.integer * other.integer
         return new Precise (integerResult, this.decimals + other.decimals)
     }
 
@@ -44,62 +45,61 @@ class Precise {
         if (distance === 0) {
             numerator = this.integer
         } else if (distance < 0) {
-            const exponent = new BN (this.base).pow (new BN (-distance))
-            numerator = this.integer.div (exponent)
+            const exponent = BigInt (this.base) ** BigInt (-distance)
+            numerator = this.integer / exponent
         } else {
-            const exponent = new BN (this.base).pow (new BN (distance))
-            numerator = this.integer.mul (exponent)
+            const exponent = BigInt (this.base) ** BigInt (distance)
+            numerator = this.integer * exponent
         }
-        const result = numerator.div (other.integer)
+        const result = numerator / other.integer
         return new Precise (result, precision)
     }
 
     add (other) {
         if (this.decimals === other.decimals) {
-            const integerResult = this.integer.add (other.integer)
+            const integerResult = this.integer + other.integer
             return new Precise (integerResult, this.decimals)
         } else {
             const [ smaller, bigger ] =
                 (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
-            const exponent = new BN (bigger.decimals - smaller.decimals)
-            const normalised = smaller.integer.mul (new BN (this.base).pow (exponent))
-            const result = normalised.add (bigger.integer)
+            const exponent = bigger.decimals - smaller.decimals
+            const normalised = smaller.integer * (BigInt (this.base) ** BigInt (exponent))
+            const result = normalised + bigger.integer
             return new Precise (result, bigger.decimals)
         }
     }
 
     sub (other) {
-        const negative = new Precise (other.integer.neg (), other.decimals)
+        const negative = new Precise (-other.integer, other.decimals)
         return this.add (negative)
     }
 
     abs () {
-        return new Precise (this.integer.abs (), this.decimals)
+        return new Precise (this.integer < 0 ? this.integer * minusOne : this.integer, this.decimals)
     }
 
     neg () {
-        return new Precise (this.integer.neg (), this.decimals)
+        return new Precise (-this.integer, this.decimals)
     }
 
     reduce () {
-        const zero = new BN (0)
-        if (this.integer.eq (zero)) {
+        if (this.integer === zero) {
             this.decimals = 0
             return this
         }
-        const base = new BN (this.base)
-        let divmod = this.integer.divmod (base)
-        while (divmod.mod.eq (zero)) {
-            this.integer = divmod.div
+        const base = BigInt (this.base)
+        let mod = this.integer % base
+        while (mod === zero) {
+            this.integer = this.integer / base
+            mod = this.integer % base
             this.decimals--
-            divmod = this.integer.divmod (base)
         }
         return this
     }
 
     toString () {
-        const sign = this.integer.negative ? '-' : ''
-        const integerArray = Array.from (this.integer.abs ().toString (this.base).padStart (this.decimals, '0'))
+        const sign = this.integer < 0 ? '-' : ''
+        const integerArray = Array.from ((this.integer < 0 ? this.integer * minusOne : this.integer).toString (this.base).padStart (this.decimals, '0'))
         const index = integerArray.length - this.decimals
         let item
         if (index === 0) {
