@@ -42,6 +42,7 @@ module.exports = class gateio extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
+                'fetchFundingFees': true,
             },
             'timeframes': {
                 '1m': 60,
