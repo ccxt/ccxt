@@ -218,16 +218,6 @@ module.exports = class zb extends ccxt.zb {
         return orderbook.limit (limit);
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
-        const u = this.safeInteger (message, 'u');
-        this.handleDeltas (orderbook['asks'], this.safeValue (message, 'listUp', []));
-        this.handleDeltas (orderbook['bids'], this.safeValue (message, 'listDown', []));
-        const timestamp = this.safeInteger (message, 'E');
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601 (timestamp);
-        return orderbook;
-    }
-
     handleOrderBook (client, message, subscription) {
         //
         //     {
@@ -262,25 +252,15 @@ module.exports = class zb extends ccxt.zb {
         const channel = this.safeString (message, 'channel');
         const limit = this.safeInteger (subscription, 'limit');
         const symbol = this.safeString (subscription, 'symbol');
-        const timestamp = this.safeInteger (message, 'lastTime');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             orderbook = this.orderBook ({}, limit);
             this.orderbooks[symbol] = orderbook;
         }
-        const deltas = message[1];
-        for (let i = 0; i < deltas.length; i++) {
-            const delta = deltas[i];
-            const id = this.safeString (delta, 0);
-            const price = this.safeFloat (delta, 1);
-            const size = (delta[2] < 0) ? -delta[2] : delta[2];
-            const side = (delta[2] < 0) ? 'asks' : 'bids';
-            const bookside = orderbook[side];
-            bookside.store (price, size, id);
-        }
+        const timestamp = this.safeInteger (message, 'lastTime');
+        const parsed = this.parseOrderBook (message, symbol, timestamp, 'listDown', 'listUp');
+        orderbook.reset (parsed);
         orderbook['symbol'] = symbol;
-        orderbook['timestamp'] = timestamp;
-        orderbook['iso8601'] = this.iso8601 (timestamp);
         client.resolve (orderbook, channel);
     }
 
