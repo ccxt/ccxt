@@ -78,6 +78,7 @@ module.exports = class zb extends ccxt.zb {
         const data = this.safeValue (message, 'ticker');
         data['date'] = this.safeValue (message, 'date');
         const ticker = this.parseTicker (data, market);
+        ticker['symbol'] = symbol;
         this.tickers[symbol] = ticker;
         client.resolve (ticker, channel);
         return message;
@@ -192,6 +193,8 @@ module.exports = class zb extends ccxt.zb {
             if ((limit !== 5) && (limit !== 10) && (limit !== 20)) {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10 or 20');
             }
+        } else {
+            limit = 5; // default
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -201,10 +204,8 @@ module.exports = class zb extends ccxt.zb {
         const request = {
             'event': 'addChannel',
             'channel': messageHash,
+            'length': limit,
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         const message = this.extend (request, params);
         const subscription = {
             'name': name,
@@ -215,6 +216,16 @@ module.exports = class zb extends ccxt.zb {
         };
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit (limit);
+    }
+
+    handleOrderBookMessage (client, message, orderbook) {
+        const u = this.safeInteger (message, 'u');
+        this.handleDeltas (orderbook['asks'], this.safeValue (message, 'listUp', []));
+        this.handleDeltas (orderbook['bids'], this.safeValue (message, 'listDown', []));
+        const timestamp = this.safeInteger (message, 'E');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        return orderbook;
     }
 
     handleOrderBook (client, message, subscription) {
@@ -248,75 +259,29 @@ module.exports = class zb extends ccxt.zb {
         //         showMarket: 'btcusdt'
         //     }
         //
-
-        const symbol = this.safeString (subscription, 'symbol');
         const channel = this.safeString (message, 'channel');
-        const market = this.market (symbol);
-        const data = this.safeValue (message, 'ticker');
-        data['date'] = this.safeValue (message, 'date');
-        const ticker = this.parseTicker (data, market);
-        this.tickers[symbol] = ticker;
-        client.resolve (ticker, channel);
-        return message;
-
-        const marketId = this.safeString (subscription, 'pair');
-        const symbol = this.safeSymbol (marketId);
-        const channel = 'book';
-        const messageHash = channel + ':' + marketId;
-        const prec = this.safeString (subscription, 'prec', 'P0');
-        const isRaw = (prec === 'R0');
-        // if it is an initial snapshot
-        if (Array.isArray (message[1])) {
-            const limit = this.safeInteger (subscription, 'len');
-            if (isRaw) {
-                // raw order books
-                this.orderbooks[symbol] = this.indexedOrderBook ({}, limit);
-            } else {
-                // P0, P1, P2, P3, P4
-                this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
-            }
-            const orderbook = this.orderbooks[symbol];
-            if (isRaw) {
-                const deltas = message[1];
-                for (let i = 0; i < deltas.length; i++) {
-                    const delta = deltas[i];
-                    const id = this.safeString (delta, 0);
-                    const price = this.safeFloat (delta, 1);
-                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
-                    const side = (delta[2] < 0) ? 'asks' : 'bids';
-                    const bookside = orderbook[side];
-                    bookside.store (price, size, id);
-                }
-            } else {
-                const deltas = message[1];
-                for (let i = 0; i < deltas.length; i++) {
-                    const delta = deltas[i];
-                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
-                    const side = (delta[2] < 0) ? 'asks' : 'bids';
-                    const bookside = orderbook[side];
-                    bookside.store (delta[0], size, delta[1]);
-                }
-            }
-            client.resolve (orderbook, messageHash);
-        } else {
-            const orderbook = this.orderbooks[symbol];
-            if (isRaw) {
-                const id = this.safeString (message, 1);
-                const price = this.safeFloat (message, 2);
-                const size = (message[3] < 0) ? -message[3] : message[3];
-                const side = (message[3] < 0) ? 'asks' : 'bids';
-                const bookside = orderbook[side];
-                // price = 0 means that you have to remove the order from your book
-                const amount = (price > 0) ? size : 0;
-                bookside.store (price, amount, id);
-            } else {
-                const size = (message[3] < 0) ? -message[3] : message[3];
-                const side = (message[3] < 0) ? 'asks' : 'bids';
-                const bookside = orderbook[side];
-                bookside.store (message[1], size, message[2]);
-            }
-            client.resolve (orderbook, messageHash);
+        const limit = this.safeInteger (subscription, 'limit');
+        const symbol = this.safeString (subscription, 'symbol');
+        const timestamp = this.safeInteger (message, 'lastTime');
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ({}, limit);
+            this.orderbooks[symbol] = orderbook;
         }
+        const deltas = message[1];
+        for (let i = 0; i < deltas.length; i++) {
+            const delta = deltas[i];
+            const id = this.safeString (delta, 0);
+            const price = this.safeFloat (delta, 1);
+            const size = (delta[2] < 0) ? -delta[2] : delta[2];
+            const side = (delta[2] < 0) ? 'asks' : 'bids';
+            const bookside = orderbook[side];
+            bookside.store (price, size, id);
+        }
+        orderbook['symbol'] = symbol;
+        orderbook['timestamp'] = timestamp;
+        orderbook['iso8601'] = this.iso8601 (timestamp);
+        client.resolve (orderbook, channel);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
