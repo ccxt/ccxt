@@ -15,6 +15,7 @@ module.exports = class zb extends ccxt.zb {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchTicker': true,
+                'watchTrades': true,
             },
             'urls': {
                 'api': {
@@ -85,23 +86,23 @@ module.exports = class zb extends ccxt.zb {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const trades = await this.watchPublic ('trades', symbol, params);
+        const trades = await this.watchPublic ('trades', symbol, this.handleTrades, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client, message) {
+    handleTrades (client, message) {
         //
         //     {
-        //         event: 'trade',
-        //         timestamp: 1590779594547,
-        //         market: 'ETH-EUR',
-        //         id: '450c3298-f082-4461-9e2c-a0262cc7cc2e',
-        //         amount: '0.05026233',
-        //         price: '198.46',
-        //         side: 'buy'
+        //         data: [
+        //             { date: 1624537147, amount: '0.0357', price: '34066.11', trade_type: 'bid', type: 'buy', tid: 1718857158 },
+        //             { date: 1624537147, amount: '0.0255', price: '34071.04', trade_type: 'bid', type: 'buy', tid: 1718857159 },
+        //             { date: 1624537147, amount: '0.0153', price: '34071.29', trade_type: 'bid', type: 'buy', tid: 1718857160 }
+        //         ],
+        //         dataType: 'trades',
+        //         channel: 'btcusdt_trades'
         //     }
         //
         const marketId = this.safeString (message, 'market');
@@ -496,6 +497,16 @@ module.exports = class zb extends ccxt.zb {
         //         },
         //         dataType: 'ticker',
         //         channel: 'btcusdt_ticker'
+        //     }
+        //
+        //     {
+        //         data: [
+        //             { date: 1624537147, amount: '0.0357', price: '34066.11', trade_type: 'bid', type: 'buy', tid: 1718857158 },
+        //             { date: 1624537147, amount: '0.0255', price: '34071.04', trade_type: 'bid', type: 'buy', tid: 1718857159 },
+        //             { date: 1624537147, amount: '0.0153', price: '34071.29', trade_type: 'bid', type: 'buy', tid: 1718857160 }
+        //         ],
+        //         dataType: 'trades',
+        //         channel: 'btcusdt_trades'
         //     }
         //
         const dataType = this.safeString (message, 'dataType');
