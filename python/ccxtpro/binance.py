@@ -827,11 +827,11 @@ class binance(Exchange, ccxt.binance):
             currencyId = self.safe_string(entry, 'a')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(entry, 'f')
-            account['used'] = self.safe_float(entry, 'l')
-            account['total'] = self.safe_float(entry, wallet)
+            account['free'] = self.safe_string(entry, 'f')
+            account['used'] = self.safe_string(entry, 'l')
+            account['total'] = self.safe_string(entry, wallet)
             self.balance[accountType][code] = account
-        self.balance[accountType] = self.parse_balance(self.balance[accountType])
+        self.balance[accountType] = self.parse_balance(self.balance[accountType], False)
         client.resolve(self.balance[accountType], messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):

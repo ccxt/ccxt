@@ -892,12 +892,12 @@ class binance extends \ccxt\async\binance {
             $currencyId = $this->safe_string($entry, 'a');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($entry, 'f');
-            $account['used'] = $this->safe_float($entry, 'l');
-            $account['total'] = $this->safe_float($entry, $wallet);
+            $account['free'] = $this->safe_string($entry, 'f');
+            $account['used'] = $this->safe_string($entry, 'l');
+            $account['total'] = $this->safe_string($entry, $wallet);
             $this->balance[$accountType][$code] = $account;
         }
-        $this->balance[$accountType] = $this->parse_balance($this->balance[$accountType]);
+        $this->balance[$accountType] = $this->parse_balance($this->balance[$accountType], false);
         $client->resolve ($this->balance[$accountType], $messageHash);
     }
 
