@@ -13,12 +13,7 @@ module.exports = class zb extends ccxt.zb {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                // 'watchOrderBook': true,
-                // 'watchTrades': true,
                 'watchTicker': true,
-                // 'watchOHLCV': true,
-                // 'watchOrders': true,
-                // 'watchMyTrades': true,
             },
             'urls': {
                 'api': {
@@ -77,19 +72,13 @@ module.exports = class zb extends ccxt.zb {
         //     }
         //
         const symbol = this.safeString (subscription, 'symbol');
+        const channel = this.safeString (message, 'channel');
         const market = this.market (symbol);
-        const event = this.safeString (message, 'event');
-        const tickers = this.safeValue (message, 'data', []);
-        for (let i = 0; i < tickers.length; i++) {
-            const data = tickers[i];
-            const marketId = this.safeString (data, 'market');
-            const market = this.safeMarket (marketId, undefined, '-');
-            const messageHash = event + '@' + marketId;
-            const ticker = this.parseTicker (data, market);
-            const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
-            client.resolve (ticker, messageHash);
-        }
+        const data = this.safeValue (message, 'ticker');
+        data['date'] = this.safeValue (message, 'date');
+        const ticker = this.parseTicker (data, market);
+        this.tickers[symbol] = ticker;
+        client.resolve (ticker, channel);
         return message;
     }
 
@@ -629,23 +618,12 @@ module.exports = class zb extends ccxt.zb {
         //
         const dataType = this.safeString (message, 'dataType');
         if (dataType !== undefined) {
-            // const methods = {
-            //     'subscribed': this.handleSubscriptionStatus,
-            //     'book': this.handleOrderBook,
-            //     'getBook': this.handleOrderBookSnapshot,
-            //     'trade': this.handleTrade,
-            //     'candle': this.handleOHLCV,
-            //     'ticker': this.handleTicker,
-            //     'authenticate': this.handleAuthenticationMessage,
-            //     'order': this.handleOrder,
-            //     'fill': this.handleMyTrade,
-            // };
             const channel = this.safeString (message, 'channel');
             const subscription = this.safeValue (client.subscriptions, channel);
             if (subscription !== undefined) {
                 const method = this.safeValue (subscription, 'method');
                 if (method !== undefined) {
-                    return method.call (this, client, message);
+                    return method.call (this, client, message, subscription);
                 }
             }
             return message;
