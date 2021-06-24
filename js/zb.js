@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError, ArgumentsRequired } = require ('ccxt/js/base/errors');
+const { ExchangeError, AuthenticationError, ArgumentsRequired } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -13,6 +13,7 @@ module.exports = class zb extends ccxt.zb {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchOrderBook': true,
                 'watchTicker': true,
             },
             'urls': {
@@ -187,198 +188,134 @@ module.exports = class zb extends ccxt.zb {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        if (limit !== undefined) {
+            if ((limit !== 5) && (limit !== 10) && (limit !== 20)) {
+                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10 or 20');
+            }
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const name = 'book';
-        const messageHash = name + '@' + market['id'];
-        const url = this.urls['api']['ws'];
+        const name = 'quick_depth';
+        const messageHash = market['baseId'] + market['quoteId'] + '_' + name;
+        const url = this.urls['api']['ws'] + '/' + market['baseId'];
         const request = {
-            'action': 'subscribe',
-            'channels': [
-                {
-                    'name': name,
-                    'markets': [
-                        market['id'],
-                    ],
-                },
-            ],
+            'event': 'addChannel',
+            'channel': messageHash,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const message = this.extend (request, params);
         const subscription = {
-            'messageHash': messageHash,
             'name': name,
             'symbol': symbol,
             'marketId': market['id'],
-            'method': this.handleOrderBookSubscription,
-            'limit': limit,
-            'params': params,
+            'messageHash': messageHash,
+            'method': this.handleOrderBook,
         };
-        const message = this.extend (request, params);
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit (limit);
     }
 
-    handleDelta (bookside, delta) {
-        const price = this.safeFloat (delta, 0);
-        const amount = this.safeFloat (delta, 1);
-        bookside.store (price, amount);
-    }
-
-    handleDeltas (bookside, deltas) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
-        }
-    }
-
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBook (client, message, subscription) {
         //
         //     {
-        //         event: 'book',
-        //         market: 'BTC-EUR',
-        //         nonce: 36947383,
-        //         bids: [
-        //             [ '8477.8', '0' ]
+        //         lastTime: 1624524640066,
+        //         dataType: 'quickDepth',
+        //         channel: 'btcusdt_quick_depth',
+        //         currentPrice: 33183.79,
+        //         listDown: [
+        //             [ 33166.87, 0.2331 ],
+        //             [ 33166.86, 0.15 ],
+        //             [ 33166.76, 0.15 ],
+        //             [ 33161.02, 0.212 ],
+        //             [ 33146.35, 0.6066 ]
         //         ],
-        //         asks: [
-        //             [ '8550.9', '0' ]
-        //         ]
-        //     }
-        //
-        const nonce = this.safeInteger (message, 'nonce');
-        if (nonce > orderbook['nonce']) {
-            this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
-            this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));
-            orderbook['nonce'] = nonce;
-        }
-        return orderbook;
-    }
-
-    handleOrderBook (client, message) {
-        //
-        //     {
-        //         event: 'book',
-        //         market: 'BTC-EUR',
-        //         nonce: 36729561,
-        //         bids: [
-        //             [ '8513.3', '0' ],
-        //             [ '8518.8', '0.64236203' ],
-        //             [ '8513.6', '0.32435481' ],
+        //         market: 'btcusdt',
+        //         listUp: [
+        //             [ 33186.88, 0.15 ],
+        //             [ 33190.1, 0.15 ],
+        //             [ 33193.03, 0.2518 ],
+        //             [ 33195.05, 0.2031 ],
+        //             [ 33199.99, 0.6066 ]
         //         ],
-        //         asks: []
+        //         high: 34816.8,
+        //         rate: '6.484',
+        //         low: 32312.41,
+        //         currentIsBuy: true,
+        //         dayNumber: 26988.5536,
+        //         totalBtc: 26988.5536,
+        //         showMarket: 'btcusdt'
         //     }
         //
-        const event = this.safeString (message, 'event');
-        const marketId = this.safeString (message, 'market');
-        const market = this.safeMarket (marketId, undefined, '-');
-        const symbol = market['symbol'];
-        const messageHash = event + '@' + market['id'];
-        const orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            return;
-        }
-        if (orderbook['nonce'] === undefined) {
-            const subscription = this.safeValue (client.subscriptions, messageHash, {});
-            const watchingOrderBookSnapshot = this.safeValue (subscription, 'watchingOrderBookSnapshot');
-            if (watchingOrderBookSnapshot === undefined) {
-                subscription['watchingOrderBookSnapshot'] = true;
-                client.subscriptions[messageHash] = subscription;
-                const options = this.safeValue (this.options, 'watchOrderBookSnapshot', {});
-                const delay = this.safeInteger (options, 'delay', this.rateLimit);
-                // fetch the snapshot in a separate async call after a warmup delay
-                this.delay (delay, this.watchOrderBookSnapshot, client, message, subscription);
-            }
-            orderbook.cache.push (message);
-        } else {
-            this.handleOrderBookMessage (client, message, orderbook);
-            client.resolve (orderbook, messageHash);
-        }
-    }
 
-    async watchOrderBookSnapshot (client, message, subscription) {
-        const limit = this.safeInteger (subscription, 'limit');
-        const params = this.safeValue (subscription, 'params');
-        const marketId = this.safeString (subscription, 'marketId');
-        const name = 'getBook';
-        const messageHash = name + '@' + marketId;
-        const url = this.urls['api']['ws'];
-        const request = {
-            'action': name,
-            'market': marketId,
-        };
-        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return orderbook.limit (limit);
-    }
-
-    handleOrderBookSnapshot (client, message) {
-        //
-        //     {
-        //         action: 'getBook',
-        //         response: {
-        //             market: 'BTC-EUR',
-        //             nonce: 36946120,
-        //             bids: [
-        //                 [ '8494.9', '0.24399521' ],
-        //                 [ '8494.8', '0.34884085' ],
-        //                 [ '8493.9', '0.14535128' ],
-        //             ],
-        //             asks: [
-        //                 [ '8495', '0.46982463' ],
-        //                 [ '8495.1', '0.12178267' ],
-        //                 [ '8496.2', '0.21924143' ],
-        //             ]
-        //         }
-        //     }
-        //
-        const response = this.safeValue (message, 'response');
-        if (response === undefined) {
-            return message;
-        }
-        const marketId = this.safeString (response, 'market');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
-        const name = 'book';
-        const messageHash = name + '@' + marketId;
-        const orderbook = this.orderbooks[symbol];
-        const snapshot = this.parseOrderBook (response, symbol);
-        snapshot['nonce'] = this.safeInteger (response, 'nonce');
-        orderbook.reset (snapshot);
-        // unroll the accumulated deltas
-        const messages = orderbook.cache;
-        for (let i = 0; i < messages.length; i++) {
-            const message = messages[i];
-            this.handleOrderBookMessage (client, message, orderbook);
-        }
-        this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, messageHash);
-    }
-
-    handleOrderBookSubscription (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
-        }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
-    }
+        const channel = this.safeString (message, 'channel');
+        const market = this.market (symbol);
+        const data = this.safeValue (message, 'ticker');
+        data['date'] = this.safeValue (message, 'date');
+        const ticker = this.parseTicker (data, market);
+        this.tickers[symbol] = ticker;
+        client.resolve (ticker, channel);
+        return message;
 
-    handleOrderBookSubscriptions (client, message, marketIds) {
-        const name = 'book';
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = this.safeString (marketIds, i);
-            if (marketId in this.markets_by_id) {
-                const market = this.markets_by_id[marketId];
-                const symbol = market['symbol'];
-                const messageHash = name + '@' + marketId;
-                if (!(symbol in this.orderbooks)) {
-                    const subscription = this.safeValue (client.subscriptions, messageHash);
-                    const method = this.safeValue (subscription, 'method');
-                    if (method !== undefined) {
-                        method.call (this, client, message, subscription);
-                    }
+        const marketId = this.safeString (subscription, 'pair');
+        const symbol = this.safeSymbol (marketId);
+        const channel = 'book';
+        const messageHash = channel + ':' + marketId;
+        const prec = this.safeString (subscription, 'prec', 'P0');
+        const isRaw = (prec === 'R0');
+        // if it is an initial snapshot
+        if (Array.isArray (message[1])) {
+            const limit = this.safeInteger (subscription, 'len');
+            if (isRaw) {
+                // raw order books
+                this.orderbooks[symbol] = this.indexedOrderBook ({}, limit);
+            } else {
+                // P0, P1, P2, P3, P4
+                this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
+            }
+            const orderbook = this.orderbooks[symbol];
+            if (isRaw) {
+                const deltas = message[1];
+                for (let i = 0; i < deltas.length; i++) {
+                    const delta = deltas[i];
+                    const id = this.safeString (delta, 0);
+                    const price = this.safeFloat (delta, 1);
+                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
+                    const side = (delta[2] < 0) ? 'asks' : 'bids';
+                    const bookside = orderbook[side];
+                    bookside.store (price, size, id);
+                }
+            } else {
+                const deltas = message[1];
+                for (let i = 0; i < deltas.length; i++) {
+                    const delta = deltas[i];
+                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
+                    const side = (delta[2] < 0) ? 'asks' : 'bids';
+                    const bookside = orderbook[side];
+                    bookside.store (delta[0], size, delta[1]);
                 }
             }
+            client.resolve (orderbook, messageHash);
+        } else {
+            const orderbook = this.orderbooks[symbol];
+            if (isRaw) {
+                const id = this.safeString (message, 1);
+                const price = this.safeFloat (message, 2);
+                const size = (message[3] < 0) ? -message[3] : message[3];
+                const side = (message[3] < 0) ? 'asks' : 'bids';
+                const bookside = orderbook[side];
+                // price = 0 means that you have to remove the order from your book
+                const amount = (price > 0) ? size : 0;
+                bookside.store (price, amount, id);
+            } else {
+                const size = (message[3] < 0) ? -message[3] : message[3];
+                const side = (message[3] < 0) ? 'asks' : 'bids';
+                const bookside = orderbook[side];
+                bookside.store (message[1], size, message[2]);
+            }
+            client.resolve (orderbook, messageHash);
         }
     }
 
