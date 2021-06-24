@@ -539,6 +539,21 @@ class zb(Exchange):
         if limit is not None:
             request['size'] = limit
         response = self.publicGetDepth(self.extend(request, params))
+        #
+        #     {
+        #         "asks":[
+        #             [35000.0,0.2741],
+        #             [34949.0,0.0173],
+        #             [34900.0,0.5004],
+        #         ],
+        #         "bids":[
+        #             [34119.32,0.0030],
+        #             [34107.83,0.1500],
+        #             [34104.42,0.1500],
+        #         ],
+        #         "timestamp":1624536510
+        #     }
+        #
         return self.parse_order_book(response, symbol)
 
     def fetch_tickers(self, symbols=None, params={}):
@@ -653,6 +668,16 @@ class zb(Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
+        #
+        #     {
+        #         "date":1624537391,
+        #         "amount":"0.0142",
+        #         "price":"33936.42",
+        #         "trade_type":"ask",
+        #         "type":"sell",
+        #         "tid":1718869018
+        #     }
+        #
         timestamp = self.safe_timestamp(trade, 'date')
         side = self.safe_string(trade, 'trade_type')
         side = 'buy' if (side == 'bid') else 'sell'
@@ -689,6 +714,13 @@ class zb(Exchange):
             'market': market['id'],
         }
         response = self.publicGetTrades(self.extend(request, params))
+        #
+        #     [
+        #         {"date":1624537391,"amount":"0.0142","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869018},
+        #         {"date":1624537391,"amount":"0.0010","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869020},
+        #         {"date":1624537391,"amount":"0.0133","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869021},
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):

@@ -542,6 +542,21 @@ class zb extends Exchange {
             $request['size'] = $limit;
         }
         $response = $this->publicGetDepth (array_merge($request, $params));
+        //
+        //     {
+        //         "asks":[
+        //             [35000.0,0.2741],
+        //             [34949.0,0.0173],
+        //             [34900.0,0.5004],
+        //         ],
+        //         "bids":[
+        //             [34119.32,0.0030],
+        //             [34107.83,0.1500],
+        //             [34104.42,0.1500],
+        //         ],
+        //         "timestamp":1624536510
+        //     }
+        //
         return $this->parse_order_book($response, $symbol);
     }
 
@@ -667,6 +682,16 @@ class zb extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        //     {
+        //         "date":1624537391,
+        //         "$amount":"0.0142",
+        //         "$price":"33936.42",
+        //         "trade_type":"ask",
+        //         "type":"sell",
+        //         "tid":1718869018
+        //     }
+        //
         $timestamp = $this->safe_timestamp($trade, 'date');
         $side = $this->safe_string($trade, 'trade_type');
         $side = ($side === 'bid') ? 'buy' : 'sell';
@@ -705,6 +730,13 @@ class zb extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->publicGetTrades (array_merge($request, $params));
+        //
+        //     array(
+        //         array("date":1624537391,"amount":"0.0142","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869018),
+        //         array("date":1624537391,"amount":"0.0010","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869020),
+        //         array("date":1624537391,"amount":"0.0133","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869021),
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
