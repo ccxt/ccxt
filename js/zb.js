@@ -108,7 +108,7 @@ module.exports = class zb extends ccxt.zb {
         const channel = this.safeValue (message, 'channel');
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeValue (message, 'data');
         const trades = this.parseTrades (data, market);
         let array = this.safeValue (this.trades, symbol);
         if (array === undefined) {
