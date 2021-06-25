@@ -1604,7 +1604,7 @@ class ndax extends Exchange {
         $request = array(
             'OMSId' => intval($omsId),
             // 'AccountId' => $accountId,
-            'OrderId' => $id,
+            'OrderId' => intval($id),
         );
         $response = yield $this->privatePostGetOrderHistoryByOrderId (array_merge($request, $params));
         //

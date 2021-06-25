@@ -1547,7 +1547,7 @@ class ndax(Exchange):
         request = {
             'OMSId': int(omsId),
             # 'AccountId': accountId,
-            'OrderId': id,
+            'OrderId': int(id),
         }
         response = self.privatePostGetOrderHistoryByOrderId(self.extend(request, params))
         #
