@@ -53,5 +53,6 @@ Exchange::$exchanges = array(
     'poloniex',
     'ripio',
     'upbit',
+    'zb',
 );
 
