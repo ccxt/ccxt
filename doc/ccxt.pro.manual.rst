@@ -54,7 +54,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguge support 
 Exchanges
 =========
 
-The CCXT Pro library currently supports the following 31 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 32 cryptocurrency exchange markets and WebSocket trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -556,6 +556,24 @@ The CCXT Pro library currently supports the following 31 cryptocurrency exchange
           :alt: API Version 1
      
      - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg
+          :target: https://www.zbex.club/en/register?ref=1625gesp
+          :alt: zb
+     
+     - zb
+     - `ZB <https://www.zbex.club/en/register?ref=1625gesp>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://www.zb.com/i/developer
+          :alt: API Version 1
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro

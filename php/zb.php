@@ -22,6 +22,7 @@ class zb extends Exchange {
             'rateLimit' => 100,
             'version' => 'v1',
             'certified' => true,
+            'pro' => true,
             'has' => array(
                 'cancelOrder' => true,
                 'CORS' => false,

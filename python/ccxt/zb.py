@@ -32,6 +32,7 @@ class zb(Exchange):
             'rateLimit': 100,
             'version': 'v1',
             'certified': True,
+            'pro': True,
             'has': {
                 'cancelOrder': True,
                 'CORS': False,
