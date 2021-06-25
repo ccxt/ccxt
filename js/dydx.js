@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, AuthenticationError } = require ('./base/errors');
+const { ExchangeNotAvailable, AuthenticationError, BadSymbol } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -42,8 +42,8 @@ module.exports = class dydx extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                '1h': 1,
-                '1d': 2,
+                '1h': '1HOUR',
+                '1d': '1DAY',
             },
             'urls': {
                 'logo': 'https://camo.githubusercontent.com/8e8a96263dd0fa6946bd010ccf0e3379d35a3e577068d683e09002804a39c323/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f647964782d6173736574732f6c6f676f5f6c617267655f77686974652e706e67',
@@ -65,12 +65,12 @@ module.exports = class dydx extends Exchange {
                 'public': {
                     'get': [
                         'markets',
-                        'orderbook',
-                        'trades',
+                        'orderbook/{market}',
+                        'trades/{market}',
                         'fast-withdrawals',
                         'stats',
                         'historical-funding',
-                        'candles',
+                        'candles/{market}',
                         'users/exists',
                         'usernames',
                         'time',
@@ -115,6 +115,7 @@ module.exports = class dydx extends Exchange {
                 'broad': {
                     'See /corsdemo for more info': AuthenticationError,
                     'Not Found': ExchangeNotAvailable,
+                    'market must be a valid market (BTC-USD, etc)': BadSymbol,
                 },
             },
             'requiredCredentials': {
@@ -449,18 +450,22 @@ module.exports = class dydx extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            // 'limit': limit, // if set counts from now into the past
             'market': market['id'],
-            'resolution': timeframe,
-            'fromISO': since,
-            'toISO': undefined,
-            'limit': limit,
         };
-        const response = await this.publicGetCandles (this.extend (request, params));
+        if (timeframe === '1h') {
+            request['resolution'] = '1HOUR';
+        } else {
+            request['resolution'] = '1DAY';
+        }
+        if (since !== undefined) {
+            request['fromISO'] = this.safeInteger (since, 'time');
+        }
+        const response = await this.publicGetCandlesMarket (this.extend (request, params));
+        // const response = await this.public_get_candles_market ();
         //
         // "candles": [
         //   {
@@ -522,8 +527,7 @@ module.exports = class dydx extends Exchange {
         const request = {
             'market': market['id'],
         };
-        //
-        const response = await this.publicGetOrderbook (this.extend (request, params));
+        const response = await this.publicGetOrderbookMarket (this.extend (request, params));
         //
         // {
         //   "bids": [
@@ -584,19 +588,17 @@ module.exports = class dydx extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
-        }
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
         if (since !== undefined) {
             request['startingBeforeOrAt'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTradesMarket (this.extend (request, params));
         //
         // {
         //   "trades": [
