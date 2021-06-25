@@ -1602,7 +1602,7 @@ module.exports = class ndax extends Exchange {
         const request = {
             'OMSId': parseInt (omsId),
             // 'AccountId': accountId,
-            'OrderId': id,
+            'OrderId': parseInt (id),
         };
         const response = await this.privatePostGetOrderHistoryByOrderId (this.extend (request, params));
         //
