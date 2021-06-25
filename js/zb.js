@@ -93,7 +93,7 @@ module.exports = class zb extends ccxt.zb {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client, message, subscription) {
         //
         //     {
         //         data: [
@@ -105,20 +105,21 @@ module.exports = class zb extends ccxt.zb {
         //         channel: 'btcusdt_trades'
         //     }
         //
-        const marketId = this.safeString (message, 'market');
-        const market = this.safeMarket (marketId, undefined, '-');
-        const symbol = market['symbol'];
-        const name = 'trades';
-        const messageHash = name + '@' + marketId;
-        const trade = this.parseTrade (message, market);
+        const channel = this.safeValue (message, 'channel');
+        const symbol = this.safeString (subscription, 'symbol');
+        const market = this.market (symbol);
+        const data = this.safeValue (message, 'data', []);
+        const trades = this.parseTrades (data, market);
         let array = this.safeValue (this.trades, symbol);
         if (array === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             array = new ArrayCache (limit);
         }
-        array.append (trade);
+        for (let i = 0; i < trades.length; i++) {
+            array.append (trades[i]);
+        }
         this.trades[symbol] = array;
-        client.resolve (array, messageHash);
+        client.resolve (array, channel);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
