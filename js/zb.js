@@ -17,6 +17,7 @@ module.exports = class zb extends Exchange {
             'rateLimit': 100,
             'version': 'v1',
             'certified': true,
+            'pro': true,
             'has': {
                 'cancelOrder': true,
                 'CORS': false,
