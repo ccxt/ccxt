@@ -462,7 +462,7 @@ module.exports = class dydx extends Exchange {
             request['resolution'] = '1DAY';
         }
         if (since !== undefined) {
-            request['fromISO'] = this.safeInteger (since, 'time');
+            request['fromISO'] = this.safeTimestamp (since);
         }
         const response = await this.publicGetCandlesMarket (this.extend (request, params));
         // const response = await this.public_get_candles_market ();
