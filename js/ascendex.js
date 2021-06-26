@@ -427,6 +427,7 @@ module.exports = class ascendex extends Exchange {
             const type = ('useLot' in market) ? 'spot' : 'future';
             const spot = (type === 'spot');
             const future = (type === 'future');
+            const margin = this.safeValue (market, 'marginTradable', false);
             let symbol = id;
             if (!future) {
                 symbol = base + '/' + quote;
@@ -442,6 +443,7 @@ module.exports = class ascendex extends Exchange {
                 'info': market,
                 'type': type,
                 'spot': spot,
+                'margin': margin,
                 'future': future,
                 'active': active,
                 'precision': precision,
