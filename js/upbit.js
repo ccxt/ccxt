@@ -32,13 +32,17 @@ module.exports = class upbit extends ccxt.upbit {
         const market = this.market (symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
+        this.options[channel] = this.safeValue (this.options, channel, {});
+        this.options[channel][symbol] = true;
+        const symbols = Object.keys (this.options[channel]);
+        const marketIds = this.marketIds (symbols);
         const request = [
             {
                 'ticket': this.uuid (),
             },
             {
                 'type': channel,
-                'codes': [ marketId ],
+                'codes': marketIds,
                 // 'isOnlySnapshot': false,
                 // 'isOnlyRealtime': false,
             },
