@@ -546,8 +546,7 @@ module.exports = class dydx extends Exchange {
         //   ]
         // }
         //
-        const timestamp = this.safeInteger (response, 't'); // need unix type
-        return this.parseOrderBook (response, symbol, timestamp);
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'size');
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -614,6 +613,50 @@ module.exports = class dydx extends Exchange {
         //
         const trades = this.safeValue (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit, params);
+    }
+
+    parseTrade (trade, market) {
+        //
+        // {
+        //   "trades": [
+        //     {
+        //       "side": "BUY",
+        //       "size": "0.001",
+        //       "price": "29000",
+        //       "createdAt": "2021-01-05T16:33:43.163Z"
+        //     },
+        //     ...
+        //   ]
+        // }
+        //
+        const id = undefined;
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'size');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = undefined;
+        const timestamp = this.safeString (trade, 'createdAt');
+        const marketId = this.safeString (market);
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const side = undefined;
+        const takerOrMaker = undefined;
+        const fee = undefined;
+        const orderId = undefined;
+        return {
+            'info': trade,
+            'timestamp': this.parse8601 (timestamp),
+            'datetime': timestamp,
+            'symbol': symbol,
+            'id': id,
+            'order': orderId,
+            'type': 'limit',
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
     }
 
     async fetchTradingFees (params = {}) {
@@ -914,7 +957,7 @@ module.exports = class dydx extends Exchange {
 
     sign (path, api = 'private', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = this.safeString (this.options, 'version', 'v3');
-        let url = this.urls['api']['private'] + '/' + version + '/' + path;
+        let url = this.urls['api']['private'] + '/' + version + '/' + this.implodeParams (path, params);
         let payload = undefined;
         headers = {
             'Content-Type': 'application/json',
