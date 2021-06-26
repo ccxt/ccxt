@@ -431,6 +431,7 @@ module.exports = class ascendex extends Exchange {
             if (!future) {
                 symbol = base + '/' + quote;
             }
+            const fee = this.safeNumber (market, 'commissionReserveRate');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -444,6 +445,8 @@ module.exports = class ascendex extends Exchange {
                 'future': future,
                 'active': active,
                 'precision': precision,
+                'taker': fee,
+                'maker': fee,
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (market, 'minQty'),
