@@ -433,6 +433,7 @@ class ascendex extends Exchange {
             if (!$future) {
                 $symbol = $base . '/' . $quote;
             }
+            $fee = $this->safe_number($market, 'commissionReserveRate');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -446,6 +447,8 @@ class ascendex extends Exchange {
                 'future' => $future,
                 'active' => $active,
                 'precision' => $precision,
+                'taker' => $fee,
+                'maker' => $fee,
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minQty'),
