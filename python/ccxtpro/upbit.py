@@ -33,13 +33,17 @@ class upbit(Exchange, ccxt.upbit):
         market = self.market(symbol)
         marketId = market['id']
         url = self.urls['api']['ws']
+        self.options[channel] = self.safe_value(self.options, channel, {})
+        self.options[channel][symbol] = True
+        symbols = list(self.options[channel].keys())
+        marketIds = self.market_ids(symbols)
         request = [
             {
                 'ticket': self.uuid(),
             },
             {
                 'type': channel,
-                'codes': [marketId],
+                'codes': marketIds,
                 # 'isOnlySnapshot': False,
                 # 'isOnlyRealtime': False,
             },

@@ -35,13 +35,17 @@ class upbit extends \ccxt\async\upbit {
         $market = $this->market($symbol);
         $marketId = $market['id'];
         $url = $this->urls['api']['ws'];
+        $this->options[$channel] = $this->safe_value($this->options, $channel, array());
+        $this->options[$channel][$symbol] = true;
+        $symbols = is_array($this->options[$channel]) ? array_keys($this->options[$channel]) : array();
+        $marketIds = $this->market_ids($symbols);
         $request = array(
             array(
                 'ticket' => $this->uuid(),
             ),
             array(
                 'type' => $channel,
-                'codes' => array( $marketId ),
+                'codes' => $marketIds,
                 // 'isOnlySnapshot' => false,
                 // 'isOnlyRealtime' => false,
             ),
