@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError } = require ('./base/errors');
+const { ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -111,12 +111,21 @@ module.exports = class dydx extends Exchange {
                 'exact': {
                     '404': ExchangeNotAvailable,
                     '403': AuthenticationError,
+                    '400': ExchangeError,
                 },
                 'broad': {
                     'See /corsdemo for more info': AuthenticationError,
+                    'Invalid signature for onboarding request': AuthenticationError,
+                    'Invalid signature for ApiKey request': AuthenticationError,
                     'Not Found': ExchangeNotAvailable,
                     'market must be a valid market (BTC-USD, etc)': BadSymbol,
                     'Invalid value': ExchangeError,
+                    'AccountNotFoundError': AuthenticationError,
+                    'market must be a valid market': BadSymbol,
+                    'Invalid market': BadSymbol,
+                    'Order is below minimum size of 20000000000000000000': InvalidOrder,
+                    'Order would put account under the collateralization threshold': InsufficientFunds,
+                    'insufficient funds for gas * price + value': InsufficientFunds,
                 },
             },
             'requiredCredentials': {
