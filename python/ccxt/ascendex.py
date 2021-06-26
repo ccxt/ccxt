@@ -436,6 +436,7 @@ class ascendex(Exchange):
             symbol = id
             if not future:
                 symbol = base + '/' + quote
+            fee = self.safe_number(market, 'commissionReserveRate')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -449,6 +450,8 @@ class ascendex(Exchange):
                 'future': future,
                 'active': active,
                 'precision': precision,
+                'taker': fee,
+                'maker': fee,
                 'limits': {
                     'amount': {
                         'min': self.safe_number(market, 'minQty'),
