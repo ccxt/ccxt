@@ -27,7 +27,6 @@ class wavesexchange(Exchange):
             'name': 'Waves.Exchange',
             'countries': ['CH'],  # Switzerland
             'rateLimit': 500,
-            'certified': True,
             'pro': False,
             'has': {
                 'cancelOrder': True,
