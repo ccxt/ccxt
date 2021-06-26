@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, AuthenticationError, BadSymbol } = require ('./base/errors');
+const { ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -116,6 +116,7 @@ module.exports = class dydx extends Exchange {
                     'See /corsdemo for more info': AuthenticationError,
                     'Not Found': ExchangeNotAvailable,
                     'market must be a valid market (BTC-USD, etc)': BadSymbol,
+                    'Invalid value': ExchangeError,
                 },
             },
             'requiredCredentials': {
@@ -462,7 +463,7 @@ module.exports = class dydx extends Exchange {
             request['resolution'] = '1DAY';
         }
         if (since !== undefined) {
-            request['fromISO'] = this.safeTimestamp (since);
+            request['fromISO'] = this.parse8601 (since);
         }
         const response = await this.publicGetCandlesMarket (this.extend (request, params));
         // const response = await this.public_get_candles_market ();
