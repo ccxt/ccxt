@@ -430,6 +430,7 @@ class ascendex extends Exchange {
             $type = (is_array($market) && array_key_exists('useLot', $market)) ? 'spot' : 'future';
             $spot = ($type === 'spot');
             $future = ($type === 'future');
+            $margin = $this->safe_value($market, 'marginTradable', false);
             $symbol = $id;
             if (!$future) {
                 $symbol = $base . '/' . $quote;
@@ -445,6 +446,7 @@ class ascendex extends Exchange {
                 'info' => $market,
                 'type' => $type,
                 'spot' => $spot,
+                'margin' => $margin,
                 'future' => $future,
                 'active' => $active,
                 'precision' => $precision,

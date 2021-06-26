@@ -433,6 +433,7 @@ class ascendex(Exchange):
             type = 'spot' if ('useLot' in market) else 'future'
             spot = (type == 'spot')
             future = (type == 'future')
+            margin = self.safe_value(market, 'marginTradable', False)
             symbol = id
             if not future:
                 symbol = base + '/' + quote
@@ -447,6 +448,7 @@ class ascendex(Exchange):
                 'info': market,
                 'type': type,
                 'spot': spot,
+                'margin': margin,
                 'future': future,
                 'active': active,
                 'precision': precision,
