@@ -16,6 +16,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.precise import Precise
 
 
@@ -126,6 +127,7 @@ class qtrade(Exchange):
                     'insuff_funds': InsufficientFunds,
                     'market_not_found': BadSymbol,  # {"errors":[{"code":"market_not_found","title":"Requested market does not exist"}]}
                     'too_small': InvalidOrder,
+                    'limit_exceeded': RateLimitExceeded,  # {"errors":[{"code":"limit_exceeded","title":"You have exceeded the windowed rate limit. Please see docs."}]}
                 },
             },
         })
