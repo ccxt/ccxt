@@ -1800,15 +1800,18 @@ module.exports = class phemex extends Exchange {
                     }
                 }
                 cost = (cost === undefined) ? amount : cost;
-                request['quoteQtyEv'] = this.toEv (cost.toString (), market);
+                const costString = cost.toString ();
+                request['quoteQtyEv'] = this.toEv (costString, market);
             } else {
-                request['baseQtyEv'] = this.toEv (amount.toString (), market);
+                const amountString = amount.toString ();
+                request['baseQtyEv'] = this.toEv (amountString, market);
             }
         } else if (market['swap']) {
             request['orderQty'] = parseInt (amount);
         }
         if (type === 'Limit') {
-            request['priceEp'] = this.toEp (price.toString (), market);
+            const priceString = price.toString ();
+            request['priceEp'] = this.toEp (priceString, market);
         }
         const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
         if (stopPrice !== undefined) {
