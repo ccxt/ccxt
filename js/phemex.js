@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, NotSupported } = require ('./base/errors');
-const { TICK_SIZE, ROUND, TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const { TICK_SIZE, ROUND } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
@@ -681,21 +681,18 @@ module.exports = class phemex extends Exchange {
             const id = this.safeString (currency, 'currency');
             const name = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (id);
-            const valueScale = this.safeInteger (currency, 'valueScale');
-            const minValueEv = this.safeNumber (currency, 'minValueEv');
-            const maxValueEv = this.safeNumber (currency, 'maxValueEv');
+            const valueScaleString = this.safeString (currency, 'valueScale');
+            const valueScale = parseInt (valueScaleString);
+            const minValueEv = this.safeString (currency, 'minValueEv');
+            const maxValueEv = this.safeString (currency, 'maxValueEv');
             let minAmount = undefined;
             let maxAmount = undefined;
             let precision = undefined;
             if (valueScale !== undefined) {
-                precision = Math.pow (10, -valueScale);
-                precision = parseFloat (this.decimalToPrecision (precision, ROUND, 0.00000001, this.precisionMode));
-                if (minValueEv !== undefined) {
-                    minAmount = parseFloat (this.decimalToPrecision (minValueEv * precision, ROUND, 0.00000001, this.precisionMode));
-                }
-                if (maxValueEv !== undefined) {
-                    maxAmount = parseFloat (this.decimalToPrecision (maxValueEv * precision, ROUND, 0.00000001, this.precisionMode));
-                }
+                const precisionString = this.parsePrecision (valueScaleString);
+                precision = this.parseNumber (precisionString);
+                minAmount = this.parseNumber (Precise.stringMul (minValueEv, precisionString));
+                maxAmount = this.parseNumber (Precise.stringMul (maxValueEv, precisionString));
             }
             result[code] = {
                 'id': id,
