@@ -1613,11 +1613,11 @@ module.exports = class phemex extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const price = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'priceEp'), market)));
-        const amount = this.parseNumber (this.fromEv (this.safeString (order, 'baseQtyEv'), market));
-        const remaining = this.parseNumber (this.fromEv (this.safeString (order, 'leavesBaseQtyEv'), market));
-        const filled = this.parseNumber (this.fromEv (this.safeString (order, 'cumBaseQtyEv'), market));
-        const cost = this.parseNumber (this.fromEv (this.safeString (order, 'quoteQtyEv'), market));
-        const average = this.parseNumber (this.fromEp (this.safeString (order, 'avgPriceEp'), market));
+        const amount = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'baseQtyEv'), market)));
+        const remaining = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'leavesBaseQtyEv'), market)));
+        const filled = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'cumBaseQtyEv'), market)));
+        const cost = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'quoteQtyEv'), market)));
+        const average = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'avgPriceEp'), market)));
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
@@ -1631,7 +1631,7 @@ module.exports = class phemex extends Exchange {
             };
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.parseNumber (this.fromEp (this.safeString (order, 'stopPxEp', market)));
+        const stopPrice = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'stopPxEp', market))));
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'info': order,
