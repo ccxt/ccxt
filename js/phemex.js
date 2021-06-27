@@ -722,13 +722,13 @@ module.exports = class phemex extends Exchange {
         if (market === undefined) {
             throw new ArgumentsRequired (this.id + ' parseBidAsk() requires a market argument');
         }
-        let amount = this.safeNumber (bidask, amountKey);
+        let amount = this.safeString (bidask, amountKey);
         if (market['spot']) {
             amount = this.fromEv (amount, market);
         }
         return [
-            this.fromEp (this.safeNumber (bidask, priceKey), market),
-            amount,
+            this.parseNumber (this.fromEp (this.safeString (bidask, priceKey), market)),
+            this.parseNumber (amount),
         ];
     }
 
