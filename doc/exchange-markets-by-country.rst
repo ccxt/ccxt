@@ -1673,17 +1673,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://kuna.io/documents/api
           :alt: API Version 2
      
-   * - United Arab Emirates
-     - .. image:: https://user-images.githubusercontent.com/51840849/87182092-1f372700-c2ec-11ea-8f9e-01b4d3ff8941.jpg
-          :target: https://www.rightbtc.com
-          :alt: rightbtc
-     
-     - rightbtc
-     - `RightBTC <https://www.rightbtc.com>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://docs.rightbtc.com/api/
-          :alt: API Version *
-     
    * - Vietnam
      - .. image:: https://user-images.githubusercontent.com/1294454/100545356-8427f500-326c-11eb-9539-7d338242d61b.jpg
           :target: https://vcc.exchange?ref=l4xhrH
