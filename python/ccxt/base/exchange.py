@@ -2021,7 +2021,6 @@ class Exchange(object):
         exponential = '{:.14e}'.format(amount_float)
         n, exponent = exponential.split('e')
         new_exponent = int(exponent) + decimals
-        print(n + 'e' + str(new_exponent))
         return number_to_string(n + 'e' + str(new_exponent))
 
     def privateKeyToAddress(self, privateKey):
