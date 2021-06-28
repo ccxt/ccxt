@@ -378,6 +378,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             if (previousOrder === undefined) {
                 const parsed = this.parseWsOrder (message);
                 orders.append (parsed);
+                client.resolve (orders, messageHash);
             } else {
                 const sequence = this.safeInteger (message, 'sequence');
                 const previousInfo = this.safeValue (previousOrder, 'info', {});
@@ -417,7 +418,10 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
                         if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
                             previousOrder['fee']['cost'] = this.sum (previousOrder['fee']['cost'], trade['fee']['cost']);
                         }
-                    } else {
+                        // update the newUpdates count
+                        orders.append (previousOrder);
+                        client.resolve (orders, messageHash);
+                    } else if ((type === 'received') || (type === 'done')) {
                         const info = this.extend (previousOrder['info'], message);
                         const order = this.parseWsOrder (info);
                         const keys = Object.keys (order);
@@ -428,17 +432,18 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
                                 previousOrder[key] = order[key];
                             }
                         }
+                        // update the newUpdates count
+                        orders.append (previousOrder);
+                        client.resolve (orders, messageHash);
                     }
-                    // update the newUpdates count
-                    orders.append (previousOrder);
                 }
             }
-            client.resolve (orders, messageHash);
         }
     }
 
     parseWsOrder (order) {
         const id = this.safeString (order, 'order_id');
+        const clientOrderId = this.safeString (order, 'client_oid');
         const marketId = this.safeString (order, 'product_id');
         const symbol = this.safeSymbol (marketId);
         const side = this.safeString (order, 'side');
@@ -449,13 +454,16 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         const reason = this.safeString (order, 'reason');
         const status = this.parseWsOrderStatus (reason);
         const orderType = this.safeString (order, 'order_type');
-        const remaining = this.safeFloat (order, 'remaining_size');
+        let remaining = this.safeFloat (order, 'remaining_size');
         const type = this.safeString (order, 'type');
         let filled = undefined;
         if ((amount !== undefined) && (remaining !== undefined)) {
             filled = amount - remaining;
         } else if (type === 'received') {
             filled = 0;
+            if (amount !== undefined) {
+                remaining = amount - filled;
+            }
         }
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
@@ -465,7 +473,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             'info': order,
             'symbol': symbol,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
