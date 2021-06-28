@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError, InvalidNonce } = require ('ccxt/js/base/errors');
-const { ArrayCache } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ module.exports = class kucoin extends ccxt.kucoin {
                 'watchTicker': true,
                 'watchTrades': true,
                 'watchBalance': false, // for now
-                'watchOHLCV': false, // missing on the exchange side
+                'watchOHLCV': true,
             },
             'options': {
                 'tradesLimit': 1000,
@@ -84,9 +84,9 @@ module.exports = class kucoin extends ccxt.kucoin {
         return requestId;
     }
 
-    async subscribe (negotiation, topic, method, symbol, params = {}) {
+    async subscribe (negotiation, topic, messageHash, method, symbol, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        // const market = this.market (symbol);
         const data = this.safeValue (negotiation, 'data', {});
         const instanceServers = this.safeValue (data, 'instanceServers', []);
         const firstServer = this.safeValue (instanceServers, 0, {});
@@ -100,7 +100,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         };
         const url = endpoint + '?' + this.urlencode (query);
         // const topic = '/market/snapshot'; // '/market/ticker';
-        const messageHash = topic + ':' + market['id'];
+        // const messageHash = topic + ':' + market['id'];
         const subscribe = {
             'id': nonce,
             'type': 'subscribe',
@@ -120,9 +120,11 @@ module.exports = class kucoin extends ccxt.kucoin {
 
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const negotiation = await this.negotiate ();
         const topic = '/market/snapshot';
-        return await this.subscribe (negotiation, topic, undefined, symbol, params);
+        const messageHash = topic + ':' + market['id'];
+        return await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
     }
 
     handleTicker (client, message) {
@@ -172,11 +174,70 @@ module.exports = class kucoin extends ccxt.kucoin {
         return message;
     }
 
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const negotiation = await this.negotiate ();
+        const topic = '/market/candles';
+        const market = this.market (symbol);
+        const period = this.timeframes[timeframe];
+        const messageHash = topic + ':' + market['id'] + '_' + period;
+        const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleOHLCV (client, message) {
+        //
+        //     {
+        //         data: {
+        //             symbol: 'BTC-USDT',
+        //             candles: [
+        //                 '1624881240',
+        //                 '34138.8',
+        //                 '34121.6',
+        //                 '34138.8',
+        //                 '34097.9',
+        //                 '3.06097133',
+        //                 '104430.955068564'
+        //             ],
+        //             time: 1624881284466023700
+        //         },
+        //         subject: 'trade.candles.update',
+        //         topic: '/market/candles:BTC-USDT_1min',
+        //         type: 'message'
+        //     }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const marketId = this.safeString (data, 'symbol');
+        const candles = this.safeValue (data, 'candles', []);
+        const topic = this.safeString (message, 'topic');
+        const parts = topic.split ('_');
+        const interval = this.safeString (parts, 1);
+        // use a reverse lookup in a static map instead
+        const timeframe = this.findTimeframe (interval);
+        const symbol = this.safeSymbol (marketId);
+        const market = this.market (symbol);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        const ohlcv = this.parseOHLCV (candles, market);
+        stored.append (ohlcv);
+        client.resolve (stored, topic);
+    }
+
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const topic = '/market/match';
-        const trades = await this.subscribe (negotiation, topic, undefined, symbol, params);
+        const market = this.market (symbol);
+        const messageHash = topic + ':' + market['id'];
+        const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -242,7 +303,9 @@ module.exports = class kucoin extends ccxt.kucoin {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const topic = '/market/level2';
-        const orderbook = await this.subscribe (negotiation, topic, this.handleOrderBookSubscription, symbol, params);
+        const market = this.market (symbol);
+        const messageHash = topic + ':' + market['id'];
+        const orderbook = await this.subscribe (negotiation, topic, messageHash, this.handleOrderBookSubscription, symbol, params);
         return orderbook.limit (limit);
     }
 
@@ -475,6 +538,7 @@ module.exports = class kucoin extends ccxt.kucoin {
             'trade.l2update': this.handleOrderBook,
             'trade.snapshot': this.handleTicker,
             'trade.l3match': this.handleTrade,
+            'trade.candles.update': this.handleOHLCV,
         };
         const method = this.safeValue (methods, subject);
         if (method === undefined) {
