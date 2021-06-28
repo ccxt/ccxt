@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache
+from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidNonce
 
@@ -21,7 +21,7 @@ class kucoin(Exchange, ccxt.kucoin):
                 'watchTicker': True,
                 'watchTrades': True,
                 'watchBalance': False,  # for now
-                'watchOHLCV': False,  # missing on the exchange side
+                'watchOHLCV': True,
             },
             'options': {
                 'tradesLimit': 1000,
@@ -82,9 +82,9 @@ class kucoin(Exchange, ccxt.kucoin):
         self.options['requestId'] = requestId
         return requestId
 
-    async def subscribe(self, negotiation, topic, method, symbol, params={}):
+    async def subscribe(self, negotiation, topic, messageHash, method, symbol, params={}):
         await self.load_markets()
-        market = self.market(symbol)
+        # market = self.market(symbol)
         data = self.safe_value(negotiation, 'data', {})
         instanceServers = self.safe_value(data, 'instanceServers', [])
         firstServer = self.safe_value(instanceServers, 0, {})
@@ -98,7 +98,7 @@ class kucoin(Exchange, ccxt.kucoin):
         }
         url = endpoint + '?' + self.urlencode(query)
         # topic = '/market/snapshot'  # '/market/ticker'
-        messageHash = topic + ':' + market['id']
+        # messageHash = topic + ':' + market['id']
         subscribe = {
             'id': nonce,
             'type': 'subscribe',
@@ -117,9 +117,11 @@ class kucoin(Exchange, ccxt.kucoin):
 
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         negotiation = await self.negotiate()
         topic = '/market/snapshot'
-        return await self.subscribe(negotiation, topic, None, symbol, params)
+        messageHash = topic + ':' + market['id']
+        return await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
 
     def handle_ticker(self, client, message):
         #
@@ -166,11 +168,66 @@ class kucoin(Exchange, ccxt.kucoin):
             client.resolve(ticker, messageHash)
         return message
 
+    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        negotiation = await self.negotiate()
+        topic = '/market/candles'
+        market = self.market(symbol)
+        period = self.timeframes[timeframe]
+        messageHash = topic + ':' + market['id'] + '_' + period
+        trades = await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
+        if self.newUpdates:
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    def handle_ohlcv(self, client, message):
+        #
+        #     {
+        #         data: {
+        #             symbol: 'BTC-USDT',
+        #             candles: [
+        #                 '1624881240',
+        #                 '34138.8',
+        #                 '34121.6',
+        #                 '34138.8',
+        #                 '34097.9',
+        #                 '3.06097133',
+        #                 '104430.955068564'
+        #             ],
+        #             time: 1624881284466023700
+        #         },
+        #         subject: 'trade.candles.update',
+        #         topic: '/market/candles:BTC-USDT_1min',
+        #         type: 'message'
+        #     }
+        #
+        data = self.safe_value(message, 'data', {})
+        marketId = self.safe_string(data, 'symbol')
+        candles = self.safe_value(data, 'candles', [])
+        topic = self.safe_string(message, 'topic')
+        parts = topic.split('_')
+        interval = self.safe_string(parts, 1)
+        # use a reverse lookup in a static map instead
+        timeframe = self.find_timeframe(interval)
+        symbol = self.safe_symbol(marketId)
+        market = self.market(symbol)
+        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+            stored = ArrayCacheByTimestamp(limit)
+            self.ohlcvs[symbol][timeframe] = stored
+        ohlcv = self.parse_ohlcv(candles, market)
+        stored.append(ohlcv)
+        client.resolve(stored, topic)
+
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         negotiation = await self.negotiate()
         topic = '/market/match'
-        trades = await self.subscribe(negotiation, topic, None, symbol, params)
+        market = self.market(symbol)
+        messageHash = topic + ':' + market['id']
+        trades = await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -230,7 +287,9 @@ class kucoin(Exchange, ccxt.kucoin):
         await self.load_markets()
         negotiation = await self.negotiate()
         topic = '/market/level2'
-        orderbook = await self.subscribe(negotiation, topic, self.handle_order_book_subscription, symbol, params)
+        market = self.market(symbol)
+        messageHash = topic + ':' + market['id']
+        orderbook = await self.subscribe(negotiation, topic, messageHash, self.handle_order_book_subscription, symbol, params)
         return orderbook.limit(limit)
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
@@ -440,6 +499,7 @@ class kucoin(Exchange, ccxt.kucoin):
             'trade.l2update': self.handle_order_book,
             'trade.snapshot': self.handle_ticker,
             'trade.l3match': self.handle_trade,
+            'trade.candles.update': self.handle_ohlcv,
         }
         method = self.safe_value(methods, subject)
         if method is None:

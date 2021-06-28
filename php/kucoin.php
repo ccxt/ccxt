@@ -22,7 +22,7 @@ class kucoin extends \ccxt\async\kucoin {
                 'watchTicker' => true,
                 'watchTrades' => true,
                 'watchBalance' => false, // for now
-                'watchOHLCV' => false, // missing on the exchange side
+                'watchOHLCV' => true,
             ),
             'options' => array(
                 'tradesLimit' => 1000,
@@ -88,9 +88,9 @@ class kucoin extends \ccxt\async\kucoin {
         return $requestId;
     }
 
-    public function subscribe($negotiation, $topic, $method, $symbol, $params = array ()) {
+    public function subscribe($negotiation, $topic, $messageHash, $method, $symbol, $params = array ()) {
         yield $this->load_markets();
-        $market = $this->market($symbol);
+        // $market = $this->market($symbol);
         $data = $this->safe_value($negotiation, 'data', array());
         $instanceServers = $this->safe_value($data, 'instanceServers', array());
         $firstServer = $this->safe_value($instanceServers, 0, array());
@@ -104,7 +104,7 @@ class kucoin extends \ccxt\async\kucoin {
         );
         $url = $endpoint . '?' . $this->urlencode($query);
         // $topic = '/market/snapshot'; // '/market/ticker';
-        $messageHash = $topic . ':' . $market['id'];
+        // $messageHash = $topic . ':' . $market['id'];
         $subscribe = array(
             'id' => $nonce,
             'type' => 'subscribe',
@@ -124,9 +124,11 @@ class kucoin extends \ccxt\async\kucoin {
 
     public function watch_ticker($symbol, $params = array ()) {
         yield $this->load_markets();
+        $market = $this->market($symbol);
         $negotiation = yield $this->negotiate();
         $topic = '/market/snapshot';
-        return yield $this->subscribe($negotiation, $topic, null, $symbol, $params);
+        $messageHash = $topic . ':' . $market['id'];
+        return yield $this->subscribe($negotiation, $topic, $messageHash, null, $symbol, $params);
     }
 
     public function handle_ticker($client, $message) {
@@ -176,11 +178,70 @@ class kucoin extends \ccxt\async\kucoin {
         return $message;
     }
 
+    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $negotiation = yield $this->negotiate();
+        $topic = '/market/candles';
+        $market = $this->market($symbol);
+        $period = $this->timeframes[$timeframe];
+        $messageHash = $topic . ':' . $market['id'] . '_' . $period;
+        $trades = yield $this->subscribe($negotiation, $topic, $messageHash, null, $symbol, $params);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+    }
+
+    public function handle_ohlcv($client, $message) {
+        //
+        //     {
+        //         $data => array(
+        //             $symbol => 'BTC-USDT',
+        //             $candles => array(
+        //                 '1624881240',
+        //                 '34138.8',
+        //                 '34121.6',
+        //                 '34138.8',
+        //                 '34097.9',
+        //                 '3.06097133',
+        //                 '104430.955068564'
+        //             ),
+        //             time => 1624881284466023700
+        //         ),
+        //         subject => 'trade.candles.update',
+        //         $topic => '/market/candles:BTC-USDT_1min',
+        //         type => 'message'
+        //     }
+        //
+        $data = $this->safe_value($message, 'data', array());
+        $marketId = $this->safe_string($data, 'symbol');
+        $candles = $this->safe_value($data, 'candles', array());
+        $topic = $this->safe_string($message, 'topic');
+        $parts = explode('_', $topic);
+        $interval = $this->safe_string($parts, 1);
+        // use a reverse lookup in a static map instead
+        $timeframe = $this->find_timeframe($interval);
+        $symbol = $this->safe_symbol($marketId);
+        $market = $this->market($symbol);
+        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        if ($stored === null) {
+            $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+            $stored = new ArrayCacheByTimestamp ($limit);
+            $this->ohlcvs[$symbol][$timeframe] = $stored;
+        }
+        $ohlcv = $this->parse_ohlcv($candles, $market);
+        $stored->append ($ohlcv);
+        $client->resolve ($stored, $topic);
+    }
+
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $negotiation = yield $this->negotiate();
         $topic = '/market/match';
-        $trades = yield $this->subscribe($negotiation, $topic, null, $symbol, $params);
+        $market = $this->market($symbol);
+        $messageHash = $topic . ':' . $market['id'];
+        $trades = yield $this->subscribe($negotiation, $topic, $messageHash, null, $symbol, $params);
         if ($this->newUpdates) {
             $limit = $trades->getLimit ($symbol, $limit);
         }
@@ -224,7 +285,7 @@ class kucoin extends \ccxt\async\kucoin {
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         //
-        // https://docs.kucoin.com/#level-2-market-data
+        // https://docs.kucoin.com/#level-2-$market-data
         //
         // 1. After receiving the websocket Level 2 data flow, cache the data.
         // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
@@ -246,7 +307,9 @@ class kucoin extends \ccxt\async\kucoin {
         yield $this->load_markets();
         $negotiation = yield $this->negotiate();
         $topic = '/market/level2';
-        $orderbook = yield $this->subscribe($negotiation, $topic, array($this, 'handle_order_book_subscription'), $symbol, $params);
+        $market = $this->market($symbol);
+        $messageHash = $topic . ':' . $market['id'];
+        $orderbook = yield $this->subscribe($negotiation, $topic, $messageHash, array($this, 'handle_order_book_subscription'), $symbol, $params);
         return $orderbook->limit ($limit);
     }
 
@@ -479,6 +542,7 @@ class kucoin extends \ccxt\async\kucoin {
             'trade.l2update' => array($this, 'handle_order_book'),
             'trade.snapshot' => array($this, 'handle_ticker'),
             'trade.l3match' => array($this, 'handle_trade'),
+            'trade.candles.update' => array($this, 'handle_ohlcv'),
         );
         $method = $this->safe_value($methods, $subject);
         if ($method === null) {
