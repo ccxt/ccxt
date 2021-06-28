@@ -381,6 +381,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             if ($previousOrder === null) {
                 $parsed = $this->parse_ws_order($message);
                 $orders->append ($parsed);
+                $client->resolve ($orders, $messageHash);
             } else {
                 $sequence = $this->safe_integer($message, 'sequence');
                 $previousInfo = $this->safe_value($previousOrder, 'info', array());
@@ -420,7 +421,10 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                         if (($previousOrder['fee']['cost'] !== null) && ($trade['fee']['cost'] !== null)) {
                             $previousOrder['fee']['cost'] = $this->sum($previousOrder['fee']['cost'], $trade['fee']['cost']);
                         }
-                    } else {
+                        // update the newUpdates count
+                        $orders->append ($previousOrder);
+                        $client->resolve ($orders, $messageHash);
+                    } else if (($type === 'received') || ($type === 'done')) {
                         $info = array_merge($previousOrder['info'], $message);
                         $order = $this->parse_ws_order($info);
                         $keys = is_array($order) ? array_keys($order) : array();
@@ -431,17 +435,18 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                                 $previousOrder[$key] = $order[$key];
                             }
                         }
+                        // update the newUpdates count
+                        $orders->append ($previousOrder);
+                        $client->resolve ($orders, $messageHash);
                     }
-                    // update the newUpdates count
-                    $orders->append ($previousOrder);
                 }
             }
-            $client->resolve ($orders, $messageHash);
         }
     }
 
     public function parse_ws_order($order) {
         $id = $this->safe_string($order, 'order_id');
+        $clientOrderId = $this->safe_string($order, 'client_oid');
         $marketId = $this->safe_string($order, 'product_id');
         $symbol = $this->safe_symbol($marketId);
         $side = $this->safe_string($order, 'side');
@@ -459,6 +464,9 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $filled = $amount - $remaining;
         } else if ($type === 'received') {
             $filled = 0;
+            if ($amount !== null) {
+                $remaining = $amount - $filled;
+            }
         }
         $cost = null;
         if (($price !== null) && ($amount !== null)) {
@@ -468,7 +476,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             'info' => $order,
             'symbol' => $symbol,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

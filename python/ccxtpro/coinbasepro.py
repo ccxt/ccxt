@@ -355,6 +355,7 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             if previousOrder is None:
                 parsed = self.parse_ws_order(message)
                 orders.append(parsed)
+                client.resolve(orders, messageHash)
             else:
                 sequence = self.safe_integer(message, 'sequence')
                 previousInfo = self.safe_value(previousOrder, 'info', {})
@@ -387,7 +388,10 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
                             }
                         if (previousOrder['fee']['cost'] is not None) and (trade['fee']['cost'] is not None):
                             previousOrder['fee']['cost'] = self.sum(previousOrder['fee']['cost'], trade['fee']['cost'])
-                    else:
+                        # update the newUpdates count
+                        orders.append(previousOrder)
+                        client.resolve(orders, messageHash)
+                    elif (type == 'received') or (type == 'done'):
                         info = self.extend(previousOrder['info'], message)
                         order = self.parse_ws_order(info)
                         keys = list(order.keys())
@@ -396,12 +400,13 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
                             key = keys[i]
                             if order[key] is not None:
                                 previousOrder[key] = order[key]
-                    # update the newUpdates count
-                    orders.append(previousOrder)
-            client.resolve(orders, messageHash)
+                        # update the newUpdates count
+                        orders.append(previousOrder)
+                        client.resolve(orders, messageHash)
 
     def parse_ws_order(self, order):
         id = self.safe_string(order, 'order_id')
+        clientOrderId = self.safe_string(order, 'client_oid')
         marketId = self.safe_string(order, 'product_id')
         symbol = self.safe_symbol(marketId)
         side = self.safe_string(order, 'side')
@@ -419,6 +424,8 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             filled = amount - remaining
         elif type == 'received':
             filled = 0
+            if amount is not None:
+                remaining = amount - filled
         cost = None
         if (price is not None) and (amount is not None):
             cost = price * amount
@@ -426,7 +433,7 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             'info': order,
             'symbol': symbol,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
