@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError, BadSymbol } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError, RateLimitExceeded, BadSymbol } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -114,6 +114,7 @@ module.exports = class qtrade extends Exchange {
                     'insuff_funds': InsufficientFunds,
                     'market_not_found': BadSymbol, // {"errors":[{"code":"market_not_found","title":"Requested market does not exist"}]}
                     'too_small': InvalidOrder,
+                    'limit_exceeded': RateLimitExceeded, // {"errors":[{"code":"limit_exceeded","title":"You have exceeded the windowed rate limit. Please see docs."}]}
                 },
             },
         });

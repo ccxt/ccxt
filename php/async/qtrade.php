@@ -117,6 +117,7 @@ class qtrade extends Exchange {
                     'insuff_funds' => '\\ccxt\\InsufficientFunds',
                     'market_not_found' => '\\ccxt\\BadSymbol', // array("errors":[array("code":"market_not_found","title":"Requested market does not exist")])
                     'too_small' => '\\ccxt\\InvalidOrder',
+                    'limit_exceeded' => '\\ccxt\\RateLimitExceeded', // array("errors":[array("code":"limit_exceeded","title":"You have exceeded the windowed rate limit. Please see docs.")])
                 ),
             ),
         ));
