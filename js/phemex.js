@@ -39,15 +39,34 @@ module.exports = class phemex extends ccxt.phemex {
     }
 
     fromEn (en, scale) {
-        return super.fromEn (en, scale);
+        if (en === undefined) {
+            return undefined;
+        }
+        const precise = new Precise (en);
+        precise.decimals = precise.decimals + scale;
+        precise.reduce ();
+        return precise.toString ();
     }
 
     fromEp (ep, market = undefined) {
-        return super.fromEp (ep, market);
+        if ((ep === undefined) || (market === undefined)) {
+            return ep;
+        }
+        return this.fromEn (ep, market['priceScale']);
     }
 
     fromEv (ev, market = undefined) {
-        return super.fromEv (ev, market);
+        if ((ev === undefined) || (market === undefined)) {
+            return ev;
+        }
+        return this.fromEn (ev, market['valueScale']);
+    }
+
+    fromEr (er, market = undefined) {
+        if ((er === undefined) || (market === undefined)) {
+            return er;
+        }
+        return this.fromEn (er, market['ratioScale']);
     }
 
     requestId () {
