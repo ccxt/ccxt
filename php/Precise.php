@@ -86,13 +86,6 @@ class Precise {
     }
 
     public function mod($other) {
-        //         const base = BigInt (this.base)
-        //        const rationizerNumerator = Math.max (-this.decimals + other.decimals, 0)
-        //        const numerator = this.integer * (base ** BigInt (rationizerNumerator))
-        //        const rationizerDenominator = Math.max (-other.decimals + this.decimals, 0)
-        //        const denominator = other.integer * (base ** BigInt (rationizerDenominator))
-        //        const result = numerator % denominator
-        //        return new Precise (result, rationizerDenominator + other.decimals)
         $base = new BN($this->base);
         $rationizerNumerator = max(-$this->decimals + $other->decimals, 0);
         $numerator = $this->integer->mul($base->pow(new BN($rationizerNumerator)));

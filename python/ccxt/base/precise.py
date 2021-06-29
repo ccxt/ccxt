@@ -78,13 +78,6 @@ class Precise:
         return Precise(-self.integer, self.decimals)
 
     def mod(self, other):
-        #         const base = BigInt (this.base)
-        #         const rationizerNumerator = Math.max (-this.decimals + other.decimals, 0)
-        #         const numerator = this.integer * (base ** BigInt (rationizerNumerator))
-        #         const rationizerDenominator = Math.max (-other.decimals + this.decimals, 0)
-        #         const denominator = other.integer * (base ** BigInt (rationizerDenominator))
-        #         const result = numerator % denominator
-        #         return new Precise (result, rationizerDenominator + other.decimals
         rationizerNumberator = max(-self.decimals + other.decimals, 0)
         numerator = self.integer * (self.base ** rationizerNumberator)
         rationizerDenominator = max(-other.decimals + self.decimals, 0)
