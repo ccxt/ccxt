@@ -21,6 +21,7 @@ class wavesexchange extends Exchange {
             'name' => 'Waves.Exchange',
             'countries' => ['CH'], // Switzerland
             'rateLimit' => 500,
+            'certified' => true,
             'pro' => false,
             'has' => array(
                 'cancelOrder' => true,
