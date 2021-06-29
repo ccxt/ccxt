@@ -4,7 +4,6 @@
 
 const ccxt = require ('ccxt');
 const { NotSupported } = require ('ccxt/js/base/errors');
-const { ROUND } = require ('ccxt/js/base/functions/number');
 const Precise = require ('ccxt/js/base/Precise');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
@@ -67,7 +66,7 @@ module.exports = class phemex extends ccxt.phemex {
         const symbol = market['symbol'];
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
         const lastString = this.fromEp (this.safeString (ticker, 'close'), market);
-        const last = this.parseNumber (lastString)
+        const last = this.parseNumber (lastString);
         const quoteVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 'turnover'), market));
         const baseVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 'volume'), market));
         let change = undefined;
