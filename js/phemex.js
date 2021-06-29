@@ -38,6 +38,18 @@ module.exports = class phemex extends ccxt.phemex {
         });
     }
 
+    fromEn (en, scale) {
+        return super.fromEn (en, scale);
+    }
+
+    fromEp (ep, market = undefined) {
+        return super.fromEp (ep, market);
+    }
+
+    fromEv (ev, market = undefined) {
+        return super.fromEv (ev, market);
+    }
+
     requestId () {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
