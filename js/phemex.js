@@ -5,6 +5,7 @@
 const ccxt = require ('ccxt');
 const { NotSupported } = require ('ccxt/js/base/errors');
 const { ROUND } = require ('ccxt/js/base/functions/number');
+const Precise = require ('ccxt/js/base/Precise');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -72,7 +73,7 @@ module.exports = class phemex extends ccxt.phemex {
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
-        const openString = this.fromEp (this.safeString (ticker, 'open'), market);
+        const openString = this.omitZero (this.fromEp (this.safeString (ticker, 'open'), market));
         const open = this.parseNumber (openString);
         if ((openString !== undefined) && (lastString !== undefined)) {
             change = this.parseNumber (Precise.stringSub (lastString, openString));
