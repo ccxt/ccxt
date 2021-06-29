@@ -818,17 +818,17 @@ class phemex(Exchange):
     def from_ep(self, ep, market=None):
         if (ep is None) or (market is None):
             return ep
-        return self.from_en(ep, market['priceScale'])
+        return self.from_en(ep, self.safe_integer(market, 'priceScale'))
 
     def from_ev(self, ev, market=None):
         if (ev is None) or (market is None):
             return ev
-        return self.from_en(ev, market['valueScale'])
+        return self.from_en(ev, self.safe_integer(market, 'valueScale'))
 
     def from_er(self, er, market=None):
         if (er is None) or (market is None):
             return er
-        return self.from_en(er, market['ratioScale'])
+        return self.from_en(er, self.safe_integer(market, 'ratioScale'))
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

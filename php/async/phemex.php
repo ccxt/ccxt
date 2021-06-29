@@ -835,21 +835,21 @@ class phemex extends Exchange {
         if (($ep === null) || ($market === null)) {
             return $ep;
         }
-        return $this->from_en($ep, $market['priceScale']);
+        return $this->from_en($ep, $this->safe_integer($market, 'priceScale'));
     }
 
     public function from_ev($ev, $market = null) {
         if (($ev === null) || ($market === null)) {
             return $ev;
         }
-        return $this->from_en($ev, $market['valueScale']);
+        return $this->from_en($ev, $this->safe_integer($market, 'valueScale'));
     }
 
     public function from_er($er, $market = null) {
         if (($er === null) || ($market === null)) {
             return $er;
         }
-        return $this->from_en($er, $market['ratioScale']);
+        return $this->from_en($er, $this->safe_integer($market, 'ratioScale'));
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
