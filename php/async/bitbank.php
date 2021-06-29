@@ -428,8 +428,8 @@ class bitbank extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         $marketId = $this->safe_string($order, 'pair');
         $symbol = null;
-        if ($marketId && !$market && (is_array($this->marketsById) && array_key_exists($marketId, $this->marketsById))) {
-            $market = $this->marketsById[$marketId];
+        if ($marketId && !$market && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+            $market = $this->markets_by_id[$marketId];
         }
         if ($market !== null) {
             $symbol = $market['symbol'];
