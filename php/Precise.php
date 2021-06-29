@@ -100,7 +100,12 @@ class Precise {
         $denominator = $other->integer->mul($base->pow(new BN($denominatorRationizer)));
         $result = $numerator->mod($denominator);
         return new Precise($result, $denominatorRationizer + $other->decimals);
-}
+    }
+
+    public function pow($other) {
+        $result = $this->integer->pow($other->integer);
+        return new Precise($result, $this->decimals * $other->integer->bi->toBase($this->base));
+    }
 
     public function reduce() {
         $zero = new BN(0);
@@ -190,5 +195,12 @@ class Precise {
             return null;
         }
         return strval((new Precise($string1))->mod(new Precise($string2)));
+    }
+
+    public static function string_pow($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return strval((new Precise($string1))->pow(new Precise($string2)));
     }
 }

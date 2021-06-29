@@ -92,6 +92,10 @@ class Precise:
         result = numerator % denominator
         return Precise(result, rationizerDenominator + other.decimals)
 
+    def pow(self, other):
+        result = self.integer ** other.integer
+        return Precise(result, self.decimals * other.integer)
+
     def reduce(self):
         if self.integer == 0:
             self.decimals = 0
@@ -163,3 +167,9 @@ class Precise:
         if string1 is None or string2 is None:
             return None
         return str(Precise(string1).mod(Precise(string2)))
+
+    @staticmethod
+    def string_pow(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return str(Precise(string1).pow(Precise(string2)))

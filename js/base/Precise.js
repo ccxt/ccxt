@@ -79,6 +79,11 @@ class Precise {
         return new Precise (result, rationizerDenominator + other.decimals)
     }
 
+    pow (other) {
+        const result = this.integer ** other.integer
+        return new Precise (result, this.decimals * parseInt (other.integer))
+    }
+
     sub (other) {
         const negative = new Precise (-other.integer, other.decimals)
         return this.add (negative)
@@ -186,6 +191,13 @@ class Precise {
             return undefined
         }
         return (new Precise (string1)).mod (new Precise (string2)).toString ()
+    }
+
+    static stringPow (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).pow (new Precise (string2)).toString ()
     }
 }
 
