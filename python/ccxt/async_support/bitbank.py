@@ -416,8 +416,8 @@ class bitbank(Exchange):
         id = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'pair')
         symbol = None
-        if marketId and not market and (marketId in self.marketsById):
-            market = self.marketsById[marketId]
+        if marketId and not market and (marketId in self.markets_by_id):
+            market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'ordered_at')
