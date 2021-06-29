@@ -6,9 +6,8 @@
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
 from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
-import math
 from ccxt.base.errors import NotSupported
-from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.precise import Precise
 
 
 class phemex(Exchange, ccxt.phemex):
@@ -40,6 +39,29 @@ class phemex(Exchange, ccxt.phemex):
             },
         })
 
+    def from_en(self, en, scale):
+        if en is None:
+            return None
+        precise = Precise(en)
+        precise.decimals = self.sum(precise.decimals, scale)
+        precise.reduce()
+        return str(precise)
+
+    def from_ep(self, ep, market=None):
+        if (ep is None) or (market is None):
+            return ep
+        return self.from_en(ep, self.safe_integer(market, 'priceScale'))
+
+    def from_ev(self, ev, market=None):
+        if (ev is None) or (market is None):
+            return ev
+        return self.from_en(ev, self.safe_integer(market, 'valueScale'))
+
+    def from_er(self, er, market=None):
+        if (er is None) or (market is None):
+            return er
+        return self.from_en(er, self.safe_integer(market, 'ratioScale'))
+
     def request_id(self):
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
@@ -63,26 +85,28 @@ class phemex(Exchange, ccxt.phemex):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
-        last = self.from_ep(self.safe_float(ticker, 'close'), market)
-        quoteVolume = self.from_ev(self.safe_float(ticker, 'turnover'), market)
-        baseVolume = self.from_ev(self.safe_float(ticker, 'volume'), market)
+        lastString = self.from_ep(self.safe_string(ticker, 'close'), market)
+        last = self.parse_number(lastString)
+        quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 'turnover'), market))
+        baseVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 'volume'), market))
         change = None
         percentage = None
         average = None
-        open = self.from_ep(self.safe_float(ticker, 'open'), market)
-        if (open is not None) and (last is not None):
-            change = last - open
-            if open > 0:
-                percentage = change / open * 100
-            average = self.sum(open, last) / 2
+        openString = self.omit_zero(self.from_ep(self.safe_string(ticker, 'open'), market))
+        open = self.parse_number(openString)
+        if (openString is not None) and (lastString is not None):
+            change = self.parse_number(Precise.string_sub(lastString, openString))
+            average = self.parse_number(Precise.string_div(Precise.string_add(lastString, openString), '2'))
+            percentage = self.parse_number(Precise.string_mul(Precise.string_sub(Precise.string_div(lastString, openString), '1'), '100'))
         result = {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.from_ep(self.safe_float(ticker, 'high'), market),
-            'low': self.from_ep(self.safe_float(ticker, 'low'), market),
+            'high': self.parse_number(self.from_ep(self.safe_string(ticker, 'high'), market)),
+            'low': self.parse_number(self.from_ep(self.safe_string(ticker, 'low'), market)),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -360,23 +384,6 @@ class phemex(Exchange, ccxt.phemex):
                 orderbook['datetime'] = self.iso8601(timestamp)
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
-
-    def from_en(self, en, scale, precision, precisionMode=None):
-        precisionMode = self.precisionMode if (precisionMode is None) else precisionMode
-        return float(self.decimal_to_precision(en * math.pow(10, -scale), ROUND, precision, precisionMode))
-
-    def from_ep(self, ep, market=None):
-        if (ep is None) or (market is None):
-            return ep
-        return self.from_en(ep, market['priceScale'], market['precision']['price'])
-
-    def from_ev(self, ev, market=None):
-        if (ev is None) or (market is None):
-            return ev
-        if market['spot']:
-            return self.from_en(ev, market['valueScale'], market['precision']['amount'])
-        else:
-            return self.from_en(ev, market['valueScale'], 1 / math.pow(10, market['valueScale']))
 
     def handle_message(self, client, message):
         if ('market24h' in message) or ('spot_market24h' in message):

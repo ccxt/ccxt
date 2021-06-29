@@ -7,6 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\NotSupported;
+use \ccxt\Precise;
 
 class phemex extends \ccxt\async\phemex {
 
@@ -40,6 +41,37 @@ class phemex extends \ccxt\async\phemex {
         ));
     }
 
+    public function from_en($en, $scale) {
+        if ($en === null) {
+            return null;
+        }
+        $precise = new Precise ($en);
+        $precise->decimals = $this->sum($precise->decimals, $scale);
+        $precise->reduce ();
+        return (string) $precise;
+    }
+
+    public function from_ep($ep, $market = null) {
+        if (($ep === null) || ($market === null)) {
+            return $ep;
+        }
+        return $this->from_en($ep, $this->safe_integer($market, 'priceScale'));
+    }
+
+    public function from_ev($ev, $market = null) {
+        if (($ev === null) || ($market === null)) {
+            return $ev;
+        }
+        return $this->from_en($ev, $this->safe_integer($market, 'valueScale'));
+    }
+
+    public function from_er($er, $market = null) {
+        if (($er === null) || ($market === null)) {
+            return $er;
+        }
+        return $this->from_en($er, $this->safe_integer($market, 'ratioScale'));
+    }
+
     public function request_id() {
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
@@ -64,28 +96,29 @@ class phemex extends \ccxt\async\phemex {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId);
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
-        $last = $this->from_ep($this->safe_float($ticker, 'close'), $market);
-        $quoteVolume = $this->from_ev($this->safe_float($ticker, 'turnover'), $market);
-        $baseVolume = $this->from_ev($this->safe_float($ticker, 'volume'), $market);
+        $lastString = $this->from_ep($this->safe_string($ticker, 'close'), $market);
+        $last = $this->parse_number($lastString);
+        $quoteVolume = $this->parse_number($this->from_ev($this->safe_string($ticker, 'turnover'), $market));
+        $baseVolume = $this->parse_number($this->from_ev($this->safe_string($ticker, 'volume'), $market));
         $change = null;
         $percentage = null;
         $average = null;
-        $open = $this->from_ep($this->safe_float($ticker, 'open'), $market);
-        if (($open !== null) && ($last !== null)) {
-            $change = $last - $open;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-            $average = $this->sum($open, $last) / 2;
+        $openString = $this->omit_zero($this->from_ep($this->safe_string($ticker, 'open'), $market));
+        $open = $this->parse_number($openString);
+        if (($openString !== null) && ($lastString !== null)) {
+            $change = $this->parse_number(Precise::string_sub($lastString, $openString));
+            $average = $this->parse_number(Precise::string_div(Precise::string_add($lastString, $openString), '2'));
+            $percentage = $this->parse_number(Precise::string_mul(Precise::string_sub(Precise::string_div($lastString, $openString), '1'), '100'));
         }
         $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->from_ep($this->safe_float($ticker, 'high'), $market),
-            'low' => $this->from_ep($this->safe_float($ticker, 'low'), $market),
+            'high' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'high'), $market)),
+            'low' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'low'), $market)),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
@@ -384,29 +417,6 @@ class phemex extends \ccxt\async\phemex {
                 $this->orderbooks[$symbol] = $orderbook;
                 $client->resolve ($orderbook, $messageHash);
             }
-        }
-    }
-
-    public function from_en($en, $scale, $precision, $precisionMode = null) {
-        $precisionMode = ($precisionMode === null) ? $this->precisionMode : $precisionMode;
-        return floatval($this->decimal_to_precision($en * pow(10, -$scale), ROUND, $precision, $precisionMode));
-    }
-
-    public function from_ep($ep, $market = null) {
-        if (($ep === null) || ($market === null)) {
-            return $ep;
-        }
-        return $this->from_en($ep, $market['priceScale'], $market['precision']['price']);
-    }
-
-    public function from_ev($ev, $market = null) {
-        if (($ev === null) || ($market === null)) {
-            return $ev;
-        }
-        if ($market['spot']) {
-            return $this->from_en($ev, $market['valueScale'], $market['precision']['amount']);
-        } else {
-            return $this->from_en($ev, $market['valueScale'], 1 / pow(10, $market['valueScale']));
         }
     }
 
