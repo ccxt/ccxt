@@ -142,6 +142,7 @@ class yobit(Exchange):
                 'GENE': 'Genesiscoin',
                 'GOLD': 'GoldMint',
                 'GOT': 'Giotto Coin',
+                'GSX': 'GlowShares',
                 'HTML5': 'HTML',
                 'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
