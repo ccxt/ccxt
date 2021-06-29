@@ -811,7 +811,7 @@ class phemex(Exchange):
         if en is None:
             return None
         precise = Precise(en)
-        precise.decimals = precise.decimals + scale
+        precise.decimals = self.sum(precise.decimals, scale)
         precise.reduce()
         return str(precise)
 

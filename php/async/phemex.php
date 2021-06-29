@@ -826,7 +826,7 @@ class phemex extends Exchange {
             return null;
         }
         $precise = new Precise ($en);
-        $precise->decimals = $precise->decimals . $scale;
+        $precise->decimals = $this->sum($precise->decimals, $scale);
         $precise->reduce ();
         return (string) $precise;
     }
