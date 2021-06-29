@@ -6,7 +6,7 @@ const okex = require ('./okex.js');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class okcoin extends okex {
+module.exports = class okcoin extends okex3 {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okcoin',
