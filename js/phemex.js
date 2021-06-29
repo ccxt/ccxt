@@ -831,21 +831,21 @@ module.exports = class phemex extends Exchange {
         if ((ep === undefined) || (market === undefined)) {
             return ep;
         }
-        return this.fromEn (ep, market['priceScale']);
+        return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
     }
 
     fromEv (ev, market = undefined) {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
-        return this.fromEn (ev, market['valueScale']);
+        return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
     }
 
     fromEr (er, market = undefined) {
         if ((er === undefined) || (market === undefined)) {
             return er;
         }
-        return this.fromEn (er, market['ratioScale']);
+        return this.fromEn (er, this.safeInteger (market, 'ratioScale'));
     }
 
     parseOHLCV (ohlcv, market = undefined) {
