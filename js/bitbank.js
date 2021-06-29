@@ -425,8 +425,8 @@ module.exports = class bitbank extends Exchange {
         const id = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'pair');
         let symbol = undefined;
-        if (marketId && !market && (marketId in this.marketsById)) {
-            market = this.marketsById[marketId];
+        if (marketId && !market && (marketId in this.markets_by_id)) {
+            market = this.markets_by_id[marketId];
         }
         if (market !== undefined) {
             symbol = market['symbol'];
