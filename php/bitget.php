@@ -145,6 +145,7 @@ class bitget extends Exchange {
                         'order/history',
                         'order/historyPlan', // conditional
                         'trace/closeTrack',
+                        'trace/closeTrackOrder',
                         'trace/currentTrack',
                         'trace/historyTrack',
                         'trace/summary',
