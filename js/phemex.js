@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { NotSupported } = require ('ccxt/js/base/errors');
-const { ROUND } = require ('ccxt/js/base/functions/number');
+const Precise = require ('ccxt/js/base/Precise');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -38,6 +38,37 @@ module.exports = class phemex extends ccxt.phemex {
         });
     }
 
+    fromEn (en, scale) {
+        if (en === undefined) {
+            return undefined;
+        }
+        const precise = new Precise (en);
+        precise.decimals = this.sum (precise.decimals, scale);
+        precise.reduce ();
+        return precise.toString ();
+    }
+
+    fromEp (ep, market = undefined) {
+        if ((ep === undefined) || (market === undefined)) {
+            return ep;
+        }
+        return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
+    }
+
+    fromEv (ev, market = undefined) {
+        if ((ev === undefined) || (market === undefined)) {
+            return ev;
+        }
+        return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
+    }
+
+    fromEr (er, market = undefined) {
+        if ((er === undefined) || (market === undefined)) {
+            return er;
+        }
+        return this.fromEn (er, this.safeInteger (market, 'ratioScale'));
+    }
+
     requestId () {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
@@ -62,28 +93,29 @@ module.exports = class phemex extends ccxt.phemex {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId);
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
-        const last = this.fromEp (this.safeFloat (ticker, 'close'), market);
-        const quoteVolume = this.fromEv (this.safeFloat (ticker, 'turnover'), market);
-        const baseVolume = this.fromEv (this.safeFloat (ticker, 'volume'), market);
+        const lastString = this.fromEp (this.safeString (ticker, 'close'), market);
+        const last = this.parseNumber (lastString);
+        const quoteVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 'turnover'), market));
+        const baseVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 'volume'), market));
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
-        const open = this.fromEp (this.safeFloat (ticker, 'open'), market);
-        if ((open !== undefined) && (last !== undefined)) {
-            change = last - open;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-            average = this.sum (open, last) / 2;
+        const openString = this.omitZero (this.fromEp (this.safeString (ticker, 'open'), market));
+        const open = this.parseNumber (openString);
+        if ((openString !== undefined) && (lastString !== undefined)) {
+            change = this.parseNumber (Precise.stringSub (lastString, openString));
+            average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (lastString, openString), '2'));
+            percentage = this.parseNumber (Precise.stringMul (Precise.stringSub (Precise.stringDiv (lastString, openString), '1'), '100'));
         }
         const result = {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.fromEp (this.safeFloat (ticker, 'high'), market),
-            'low': this.fromEp (this.safeFloat (ticker, 'low'), market),
+            'high': this.parseNumber (this.fromEp (this.safeString (ticker, 'high'), market)),
+            'low': this.parseNumber (this.fromEp (this.safeString (ticker, 'low'), market)),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -382,29 +414,6 @@ module.exports = class phemex extends ccxt.phemex {
                 this.orderbooks[symbol] = orderbook;
                 client.resolve (orderbook, messageHash);
             }
-        }
-    }
-
-    fromEn (en, scale, precision, precisionMode = undefined) {
-        precisionMode = (precisionMode === undefined) ? this.precisionMode : precisionMode;
-        return parseFloat (this.decimalToPrecision (en * Math.pow (10, -scale), ROUND, precision, precisionMode));
-    }
-
-    fromEp (ep, market = undefined) {
-        if ((ep === undefined) || (market === undefined)) {
-            return ep;
-        }
-        return this.fromEn (ep, market['priceScale'], market['precision']['price']);
-    }
-
-    fromEv (ev, market = undefined) {
-        if ((ev === undefined) || (market === undefined)) {
-            return ev;
-        }
-        if (market['spot']) {
-            return this.fromEn (ev, market['valueScale'], market['precision']['amount']);
-        } else {
-            return this.fromEn (ev, market['valueScale'], 1 / Math.pow (10, market['valueScale']));
         }
     }
 
