@@ -69,6 +69,16 @@ class Precise {
         }
     }
 
+    mod (other) {
+        const base = BigInt (this.base)
+        const rationizerNumerator = Math.max (-this.decimals + other.decimals, 0)
+        const numerator = this.integer * (base ** BigInt (rationizerNumerator))
+        const rationizerDenominator = Math.max (-other.decimals + this.decimals, 0)
+        const denominator = other.integer * (base ** BigInt (rationizerDenominator))
+        const result = numerator % denominator
+        return new Precise (result, rationizerDenominator + other.decimals)
+    }
+
     sub (other) {
         const negative = new Precise (-other.integer, other.decimals)
         return this.add (negative)
@@ -169,6 +179,13 @@ class Precise {
             return undefined
         }
         return (new Precise (string)).neg ().toString ()
+    }
+
+    static stringMod (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).mod (new Precise (string2)).toString ()
     }
 }
 

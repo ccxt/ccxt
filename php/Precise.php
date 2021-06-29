@@ -85,6 +85,23 @@ class Precise {
         return new Precise($this->integer->neg(), $this->decimals);
     }
 
+    public function mod($other) {
+        //         const base = BigInt (this.base)
+        //        const rationizerNumerator = Math.max (-this.decimals + other.decimals, 0)
+        //        const numerator = this.integer * (base ** BigInt (rationizerNumerator))
+        //        const rationizerDenominator = Math.max (-other.decimals + this.decimals, 0)
+        //        const denominator = other.integer * (base ** BigInt (rationizerDenominator))
+        //        const result = numerator % denominator
+        //        return new Precise (result, rationizerDenominator + other.decimals)
+        $base = new BN($this->base);
+        $rationizerNumerator = max(-$this->decimals + $other->decimals, 0);
+        $numerator = $this->integer->mul($base->pow(new BN($rationizerNumerator)));
+        $denominatorRationizer = max(-$other->decimals + $this->decimals, 0);
+        $denominator = $other->integer->mul($base->pow(new BN($denominatorRationizer)));
+        $result = $numerator->mod($denominator);
+        return new Precise($result, $denominatorRationizer + $other->decimals);
+}
+
     public function reduce() {
         $zero = new BN(0);
         if ($this->integer->eq($zero)) {
@@ -166,5 +183,12 @@ class Precise {
             return null;
         }
         return strval((new Precise($string))->neg());
+    }
+
+    public static function string_mod($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return strval((new Precise($string1))->mod(new Precise($string2)));
     }
 }

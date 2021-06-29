@@ -77,6 +77,21 @@ class Precise:
     def neg(self):
         return Precise(-self.integer, self.decimals)
 
+    def mod(self, other):
+        #         const base = BigInt (this.base)
+        #         const rationizerNumerator = Math.max (-this.decimals + other.decimals, 0)
+        #         const numerator = this.integer * (base ** BigInt (rationizerNumerator))
+        #         const rationizerDenominator = Math.max (-other.decimals + this.decimals, 0)
+        #         const denominator = other.integer * (base ** BigInt (rationizerDenominator))
+        #         const result = numerator % denominator
+        #         return new Precise (result, rationizerDenominator + other.decimals
+        rationizerNumberator = max(-self.decimals + other.decimals, 0)
+        numerator = self.integer * (self.base ** rationizerNumberator)
+        rationizerDenominator = max(-other.decimals + self.decimals, 0)
+        denominator = other.integer * (self.base ** rationizerDenominator)
+        result = numerator % denominator
+        return Precise(result, rationizerDenominator + other.decimals)
+
     def reduce(self):
         if self.integer == 0:
             self.decimals = 0
@@ -142,3 +157,9 @@ class Precise:
         if string is None:
             return None
         return str(Precise(string).neg())
+
+    @staticmethod
+    def string_mod(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return str(Precise(string1).mod(Precise(string2)))

@@ -353,3 +353,9 @@ assert (Precise.stringNeg ('0') === '0');
 assert (Precise.stringNeg ('-0') === '0');
 assert (Precise.stringNeg ('-500.1') === '500.1');
 assert (Precise.stringNeg ('213') === '-213');
+
+assert (Precise.stringMod ('57.123', '10') === '7.123');
+assert (Precise.stringMod ('18', '6') === '0');
+assert (Precise.stringMod ('10.1', '0.5') === '0.1');
+assert (Precise.stringMod ('10000000', '5555') === '1000');
+assert (Precise.stringMod ('5550', '120') === '30');

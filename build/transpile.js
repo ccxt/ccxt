@@ -210,6 +210,7 @@ class Transpiler {
             [ /Precise\.stringSub\s/g, 'Precise.string_sub' ],
             [ /Precise\.stringAbs\s/g, 'Precise.string_abs' ],
             [ /Precise\.stringNeg\s/g, 'Precise.string_neg' ],
+            [ /Precise\.stringMod\s/g, 'Precise.string_mod' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -357,6 +358,7 @@ class Transpiler {
             [ /Precise\.stringSub\s/g, 'Precise::string_sub' ],
             [ /Precise\.stringAbs\s/g, 'Precise::string_abs' ],
             [ /Precise\.stringNeg\s/g, 'Precise::string_neg' ],
+            [ /Precise\.stringMod\s/g, 'Precise::string_mod' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
