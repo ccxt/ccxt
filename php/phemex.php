@@ -799,7 +799,8 @@ class phemex extends Exchange {
     }
 
     public function to_en($n, $scale) {
-        $precise = new Precise ($n);
+        $stringN = (string) $n;
+        $precise = new Precise ($stringN);
         $precise->decimals = $precise->decimals - $scale;
         $precise->reduce ();
         $stringValue = (string) $precise;

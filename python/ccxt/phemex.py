@@ -791,7 +791,8 @@ class phemex(Exchange):
         return orderbook
 
     def to_en(self, n, scale):
-        precise = Precise(n)
+        stringN = str(n)
+        precise = Precise(stringN)
         precise.decimals = precise.decimals - scale
         precise.reduce()
         stringValue = str(precise)
