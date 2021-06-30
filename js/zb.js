@@ -561,10 +561,10 @@ module.exports = class zb extends Exchange {
         const response = await this.publicGetAllTicker (params);
         const result = {};
         const anotherMarketsById = {};
-        const marketIds = Object.keys (this.marketsById);
+        const marketIds = Object.keys (this.markets_by_id);
         for (let i = 0; i < marketIds.length; i++) {
             const tickerId = marketIds[i].replace ('_', '');
-            anotherMarketsById[tickerId] = this.marketsById[marketIds[i]];
+            anotherMarketsById[tickerId] = this.markets_by_id[marketIds[i]];
         }
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
