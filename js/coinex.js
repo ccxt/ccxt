@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -50,7 +51,12 @@ module.exports = class coinex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg',
-                'api': 'https://api.coinex.com',
+                'api': {
+                    'public': 'https://api.coinex.com',
+                    'private': 'https://api.coinex.com',
+                    'perpetualPublic': 'https://api.coinex.com/perpetual',
+                    'perpetualPrivate': 'https://api.coinex.com/perpetual',
+                },
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees': 'https://www.coinex.com/fees',
@@ -92,6 +98,8 @@ module.exports = class coinex extends Exchange {
                         'order/status',
                         'order/status/batch',
                         'order/user/deals',
+                        'sub_account/balance',
+                        'sub_account/transfer/history',
                     ],
                     'post': [
                         'balance/coin/withdraw',
@@ -111,6 +119,46 @@ module.exports = class coinex extends Exchange {
                         'balance/coin/withdraw',
                         'order/pending/batch',
                         'order/pending',
+                    ],
+                },
+                'perpetualPublic': {
+                    'get': [
+                        'ping',
+                        'time',
+                        'market/list',
+                        'market/limit_config',
+                        'market/ticker',
+                        'market/ticker/all',
+                        'market/depth',
+                        'market/deals',
+                        'market/funding_history',
+                        'market/user_deals',
+                        'market/kline',
+                    ],
+                },
+                'perpetualPrivate': {
+                    'get': [
+                        'asset/query',
+                        'order/pending',
+                        'order/finished',
+                        'order/stop_pending',
+                        'order/status',
+                        'position/pending',
+                        'position/funding',
+                    ],
+                    'post': [
+                        'market/adjust_leverage',
+                        'market/position_expect',
+                        'order/put_limit',
+                        'order/put_market',
+                        'order/put_stop_limit',
+                        'order/cancel',
+                        'order/cancel_all',
+                        'order/cancel_stop',
+                        'order/cancel_stop_all',
+                        'order/close_limit',
+                        'order/close_market',
+                        'position/adjust_margin',
                     ],
                 },
             },
@@ -194,13 +242,13 @@ module.exports = class coinex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': this.safeFloat (market, 'taker_fee_rate'),
-                'maker': this.safeFloat (market, 'maker_fee_rate'),
+                'taker': this.safeNumber (market, 'taker_fee_rate'),
+                'maker': this.safeNumber (market, 'maker_fee_rate'),
                 'info': market,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'min_amount'),
+                        'min': this.safeNumber (market, 'min_amount'),
                         'max': undefined,
                     },
                     'price': {
@@ -220,16 +268,16 @@ module.exports = class coinex extends Exchange {
             symbol = market['symbol'];
         }
         ticker = this.safeValue (ticker, 'ticker', {});
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -239,7 +287,7 @@ module.exports = class coinex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat2 (ticker, 'vol', 'volume'),
+            'baseVolume': this.safeNumber2 (ticker, 'vol', 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -265,12 +313,8 @@ module.exports = class coinex extends Exchange {
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            let symbol = marketId;
-            let market = undefined;
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
             const ticker = this.parseTicker ({
                 'date': timestamp,
                 'ticker': tickers[marketId],
@@ -292,7 +336,7 @@ module.exports = class coinex extends Exchange {
             'limit': limit.toString (),
         };
         const response = await this.publicGetMarketDepth (this.extend (request, params));
-        return this.parseOrderBook (response['data']);
+        return this.parseOrderBook (response['data'], symbol);
     }
 
     parseTrade (trade, market = undefined) {
@@ -303,20 +347,18 @@ module.exports = class coinex extends Exchange {
         }
         const tradeId = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order_id');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         const marketId = this.safeString (trade, 'market');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        let cost = this.safeFloat (trade, 'deal_money');
-        if (!cost) {
-            cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        const symbol = this.safeSymbol (marketId, market);
+        let cost = this.safeNumber (trade, 'deal_money');
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_asset');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -369,11 +411,11 @@ module.exports = class coinex extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 5),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -384,6 +426,9 @@ module.exports = class coinex extends Exchange {
             'market': market['id'],
             'type': this.timeframes[timeframe],
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.publicGetMarketKline (this.extend (request, params));
         //
         //     {
@@ -424,18 +469,18 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'data');
+        const balances = this.safeValue (response, 'data', {});
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const balance = this.safeValue (balances, currencyId, {});
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'frozen');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'frozen');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrderStatus (status) {
@@ -474,14 +519,14 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp (order, 'create_time');
-        const price = this.safeFloat (order, 'price');
-        const cost = this.safeFloat (order, 'deal_money');
-        const amount = this.safeFloat (order, 'amount');
-        const filled = this.safeFloat (order, 'deal_amount');
-        const average = this.safeFloat (order, 'avg_price');
+        const price = this.safeNumber (order, 'price');
+        const cost = this.safeNumber (order, 'deal_money');
+        const amount = this.safeNumber (order, 'amount');
+        const filled = this.safeNumber (order, 'deal_amount');
+        const average = this.safeNumber (order, 'avg_price');
         let symbol = undefined;
         const marketId = this.safeString (order, 'market');
-        market = this.safeValue (this.markets_by_id, marketId);
+        market = this.safeMarket (marketId, market);
         const feeCurrencyId = this.safeString (order, 'fee_asset');
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         if (market !== undefined) {
@@ -490,11 +535,11 @@ module.exports = class coinex extends Exchange {
                 feeCurrency = market['quote'];
             }
         }
-        const remaining = this.safeFloat (order, 'left');
+        const remaining = this.safeNumber (order, 'left');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.safeString (order, 'order_type');
         const side = this.safeString (order, 'type');
-        return {
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -503,8 +548,11 @@ module.exports = class coinex extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'average': average,
             'amount': amount,
@@ -513,10 +561,10 @@ module.exports = class coinex extends Exchange {
             'trades': undefined,
             'fee': {
                 'currency': feeCurrency,
-                'cost': this.safeFloat (order, 'deal_fee'),
+                'cost': this.safeNumber (order, 'deal_fee'),
             },
             'info': order,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -565,7 +613,7 @@ module.exports = class coinex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -762,8 +810,8 @@ module.exports = class coinex extends Exchange {
         const timestamp = this.safeTimestamp (transaction, 'create_time');
         const type = ('coin_withdraw_id' in transaction) ? 'withdraw' : 'deposit';
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const amount = this.safeFloat (transaction, 'amount');
-        let feeCost = this.safeFloat (transaction, 'tx_fee');
+        let amount = this.safeNumber (transaction, 'amount');
+        let feeCost = this.safeNumber (transaction, 'tx_fee');
         if (type === 'deposit') {
             feeCost = 0;
         }
@@ -771,6 +819,10 @@ module.exports = class coinex extends Exchange {
             'cost': feeCost,
             'currency': code,
         };
+        // https://github.com/ccxt/ccxt/issues/8321
+        if (amount !== undefined) {
+            amount = amount - feeCost;
+        }
         return {
             'info': transaction,
             'id': id,
@@ -790,7 +842,7 @@ module.exports = class coinex extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -804,54 +856,51 @@ module.exports = class coinex extends Exchange {
         //
         //     {
         //         "code": 0,
-        //         "data": [
-        //             {
-        //                 "actual_amount": "1.00000000",
-        //                 "amount": "1.00000000",
-        //                 "coin_address": "1KAv3pazbTk2JnQ5xTo6fpKK7p1it2RzD4",
-        //                 "coin_type": "BCH",
-        //                 "coin_withdraw_id": 206,
-        //                 "confirmations": 0,
-        //                 "create_time": 1524228297,
-        //                 "status": "audit",
-        //                 "tx_fee": "0",
-        //                 "tx_id": ""
-        //             },
-        //             {
-        //                 "actual_amount": "0.10000000",
-        //                 "amount": "0.10000000",
-        //                 "coin_address": "15sr1VdyXQ6sVLqeJUJ1uPzLpmQtgUeBSB",
-        //                 "coin_type": "BCH",
-        //                 "coin_withdraw_id": 203,
-        //                 "confirmations": 11,
-        //                 "create_time": 1515806440,
-        //                 "status": "finish",
-        //                 "tx_fee": "0",
-        //                 "tx_id": "896371d0e23d64d1cac65a0b7c9e9093d835affb572fec89dd4547277fbdd2f6"
-        //             },
-        //             {
-        //                 "actual_amount": "0.00100000",
-        //                 "amount": "0.00100000",
-        //                 "coin_address": "1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
-        //                 "coin_type": "BCH",
-        //                 "coin_withdraw_id": 27,
-        //                 "confirmations": 0,
-        //                 "create_time": 1513933541,
-        //                 "status": "cancel",
-        //                 "tx_fee": "0",
-        //                 "tx_id": ""
-        //             }
-        //         ],
-        //         "message": "Ok"
+        //         "data": {
+        //             "has_next": true,
+        //             "curr_page": 1,
+        //             "count": 10,
+        //             "data": [
+        //                 {
+        //                     "coin_withdraw_id": 203,
+        //                     "create_time": 1513933541,
+        //                     "actual_amount": "0.00100000",
+        //                     "actual_amount_display": "***",
+        //                     "amount": "0.00100000",
+        //                     "amount_display": "******",
+        //                     "coin_address": "1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
+        //                     "app_coin_address_display": "**********",
+        //                     "coin_address_display": "****************",
+        //                     "add_explorer": "https://explorer.viawallet.com/btc/address/1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
+        //                     "coin_type": "BTC",
+        //                     "confirmations": 6,
+        //                     "explorer": "https://explorer.viawallet.com/btc/tx/1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
+        //                     "fee": "0",
+        //                     "remark": "",
+        //                     "smart_contract_name": "BTC",
+        //                     "status": "finish",
+        //                     "status_display": "finish",
+        //                     "transfer_method": "onchain",
+        //                     "tx_fee": "0",
+        //                     "tx_id": "896371d0e23d64d1cac65a0b7c9e9093d835affb572fec89dd4547277fbdd2f6"
+        //                 }, /* many more data points */
+        //             ],
+        //             "total": ***,
+        //             "total_page":***
+        //         },
+        //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        let data = this.safeValue (response, 'data');
+        if (!Array.isArray (data)) {
+            data = this.safeValue (data, 'data', []);
+        }
         return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -889,7 +938,10 @@ module.exports = class coinex extends Exchange {
         //         "message": "Ok"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        let data = this.safeValue (response, 'data');
+        if (!Array.isArray (data)) {
+            data = this.safeValue (data, 'data', []);
+        }
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -899,9 +951,9 @@ module.exports = class coinex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         path = this.implodeParams (path, params);
-        let url = this.urls['api'] + '/' + this.version + '/' + path;
+        let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         let query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (api === 'public' || api === 'perpetualPublic') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -913,7 +965,7 @@ module.exports = class coinex extends Exchange {
                 'tonce': nonce.toString (),
             }, query);
             query = this.keysort (query);
-            const urlencoded = this.urlencode (query);
+            const urlencoded = this.rawencode (query);
             const signature = this.hash (this.encode (urlencoded + '&secret_key=' + this.secret));
             headers = {
                 'Authorization': signature.toUpperCase (),
@@ -933,7 +985,7 @@ module.exports = class coinex extends Exchange {
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
         const message = this.safeString (response, 'message');
-        if ((code !== '0') || (data === undefined) || ((message !== 'Ok') && !data)) {
+        if ((code !== '0') || (data === undefined) || ((message !== 'Success') && (message !== 'Ok') && !data)) {
             const responseCodes = {
                 '24': AuthenticationError,
                 '25': AuthenticationError,

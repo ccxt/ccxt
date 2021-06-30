@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -131,11 +132,11 @@ module.exports = class flowbtc extends Exchange {
             const currencyId = balance['name'];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'balance');
-            account['total'] = this.safeFloat (balance, 'hold');
+            account['free'] = this.safeString (balance, 'balance');
+            account['total'] = this.safeString (balance, 'hold');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -145,7 +146,7 @@ module.exports = class flowbtc extends Exchange {
             'productPair': market['id'],
         };
         const response = await this.publicPostGetOrderBook (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'px', 'qty');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'px', 'qty');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -156,16 +157,16 @@ module.exports = class flowbtc extends Exchange {
         };
         const ticker = await this.publicPostGetTicker (this.extend (request, params));
         const timestamp = this.milliseconds ();
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -175,8 +176,8 @@ module.exports = class flowbtc extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume24hr'),
-            'quoteVolume': this.safeFloat (ticker, 'volume24hrProduct2'),
+            'baseVolume': this.safeNumber (ticker, 'volume24hr'),
+            'quoteVolume': this.safeNumber (ticker, 'volume24hrProduct2'),
             'info': ticker,
         };
     }
@@ -185,14 +186,11 @@ module.exports = class flowbtc extends Exchange {
         const timestamp = this.safeTimestamp (trade, 'unixtime');
         const side = (trade['incomingOrderSide'] === 0) ? 'buy' : 'sell';
         const id = this.safeString (trade, 'tid');
-        const price = this.safeFloat (trade, 'px');
-        const amount = this.safeFloat (trade, 'qty');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'px');
+        const amountString = this.safeString (trade, 'qty');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -246,7 +244,7 @@ module.exports = class flowbtc extends Exchange {
             };
             return await this.privatePostCancelOrder (this.extend (request, params));
         }
-        throw new ExchangeError (this.id + ' requires `ins` symbol parameter for cancelling an order');
+        throw new ExchangeError (this.id + ' cancelOrder() requires an `ins` symbol parameter for cancelling an order');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

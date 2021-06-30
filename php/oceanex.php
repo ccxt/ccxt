@@ -16,7 +16,7 @@ class oceanex extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'oceanex',
             'name' => 'OceanEx',
-            'countries' => array( 'US' ),
+            'countries' => array( 'LU', 'CN', 'SG' ),
             'version' => 'v1',
             'rateLimit' => 3000,
             'urls' => array(
@@ -151,10 +151,10 @@ class oceanex extends Exchange {
                 'active' => true,
                 'info' => $market,
                 'precision' => array(
-                    'amount' => $this->safe_value($market, 'amount_precision'),
-                    'price' => $this->safe_value($market, 'price_precision'),
-                    'base' => $this->safe_value($market, 'ask_precision'),
-                    'quote' => $this->safe_value($market, 'bid_precision'),
+                    'amount' => $this->safe_integer($market, 'amount_precision'),
+                    'price' => $this->safe_integer($market, 'price_precision'),
+                    'base' => $this->safe_integer($market, 'ask_precision'),
+                    'quote' => $this->safe_integer($market, 'bid_precision'),
                 ),
                 'limits' => array(
                     'amount' => array(
@@ -166,7 +166,7 @@ class oceanex extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $this->safe_value($market, 'minimum_trading_amount'),
+                        'min' => $this->safe_number($market, 'minimum_trading_amount'),
                         'max' => null,
                     ),
                 ),
@@ -233,7 +233,7 @@ class oceanex extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $data[$i];
             $marketId = $this->safe_string($ticker, 'market');
-            $market = $this->markets_by_id[$marketId];
+            $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
@@ -260,21 +260,21 @@ class oceanex extends Exchange {
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => $this->safe_float($ticker, 'last'),
-            'last' => $this->safe_float($ticker, 'last'),
+            'close' => $this->safe_number($ticker, 'last'),
+            'last' => $this->safe_number($ticker, 'last'),
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
+            'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -311,7 +311,7 @@ class oceanex extends Exchange {
         //
         $orderbook = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
@@ -334,7 +334,7 @@ class oceanex extends Exchange {
         //         "$data" => [
         //             array(
         //                 "$timestamp":1559433057,
-        //                 "$market" => "bagvet",
+        //                 "market" => "bagvet",
         //                 "asks" => [
         //                     ["100.0","20.0"],
         //                     ["4.74","2000.0"],
@@ -355,10 +355,9 @@ class oceanex extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $orderbook = $data[$i];
             $marketId = $this->safe_string($orderbook, 'market');
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_symbol($marketId);
             $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-            $result[$symbol] = $this->parse_order_book($orderbook, $timestamp);
+            $result[$symbol] = $this->parse_order_book($orderbook, $symbol, $timestamp);
         }
         return $result;
     }
@@ -384,21 +383,8 @@ class oceanex extends Exchange {
         } else if ($side === 'ask') {
             $side = 'sell';
         }
-        $symbol = null;
         $marketId = $this->safe_value($trade, 'market');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                $symbol = $marketId;
-            }
-        }
-        if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_timestamp($trade, 'created_on');
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
@@ -413,8 +399,8 @@ class oceanex extends Exchange {
             'type' => 'limit',
             'takerOrMaker' => null,
             'side' => $side,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'volume'),
+            'price' => $this->safe_number($trade, 'price'),
+            'amount' => $this->safe_number($trade, 'volume'),
             'cost' => null,
             'fee' => null,
         );
@@ -437,15 +423,12 @@ class oceanex extends Exchange {
             $maker = $this->safe_value($group, 'ask_fee', array());
             $taker = $this->safe_value($group, 'bid_fee', array());
             $marketId = $this->safe_string($group, 'market');
-            $symbol = $marketId;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $symbol = $this->markets_by_id[$marketId]['symbol'];
-            }
+            $symbol = $this->safe_symbol($marketId);
             $result[$symbol] = array(
                 'info' => $group,
                 'symbol' => $symbol,
-                'maker' => $this->safe_float($maker, 'value'),
-                'taker' => $this->safe_float($taker, 'value'),
+                'maker' => $this->safe_number($maker, 'value'),
+                'taker' => $this->safe_number($taker, 'value'),
             );
         }
         return $result;
@@ -467,11 +450,11 @@ class oceanex extends Exchange {
             $currencyId = $this->safe_value($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'balance');
-            $account['used'] = $this->safe_float($balance, 'locked');
+            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -533,7 +516,7 @@ class oceanex extends Exchange {
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders requires a `$symbol` argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -578,26 +561,13 @@ class oceanex extends Exchange {
         //     }
         //
         $status = $this->parse_order_status($this->safe_value($order, 'state'));
-        $marketId = $this->safe_value_2($order, 'market', 'market_id');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                $symbol = $marketId;
-            }
-        }
-        if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
-        }
+        $marketId = $this->safe_string_2($order, 'market', 'market_id');
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_timestamp($order, 'created_on');
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
@@ -606,17 +576,20 @@ class oceanex extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $this->safe_value($order, 'ord_type'),
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $this->safe_value($order, 'side'),
-            'price' => $this->safe_float($order, 'price'),
-            'average' => $this->safe_float($order, 'avg_price'),
-            'amount' => $this->safe_float($order, 'volume'),
-            'remaining' => $this->safe_float($order, 'remaining_volume'),
-            'filled' => $this->safe_float($order, 'executed_volume'),
+            'price' => $this->safe_number($order, 'price'),
+            'stopPrice' => null,
+            'average' => $this->safe_number($order, 'avg_price'),
+            'amount' => $this->safe_number($order, 'volume'),
+            'remaining' => $this->safe_number($order, 'remaining_volume'),
+            'filled' => $this->safe_number($order, 'executed_volume'),
             'status' => $status,
             'cost' => null,
             'trades' => null,
             'fee' => null,
-        );
+        ));
     }
 
     public function parse_order_status($status) {
@@ -709,7 +682,7 @@ class oceanex extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['codes'], $errorCode, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-            throw new ExchangeError($response);
+            throw new ExchangeError($feedback);
         }
     }
 }

@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, PermissionDenied, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound, DDoSProtection, OnMaintenance, RateLimitExceeded } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -36,6 +37,7 @@ module.exports = class bitz extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': false,
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -58,7 +60,7 @@ module.exports = class bitz extends Exchange {
                     'assets': 'https://{hostname}',
                 },
                 'www': 'https://www.bitz.com',
-                'doc': 'https://apidoc.bitz.com/en/',
+                'doc': 'https://apidocv2.bitz.plus/en/',
                 'fees': 'https://www.bitz.com/fee?type=1',
                 'referral': 'https://u.bitz.com/register?invite_code=1429193',
             },
@@ -75,6 +77,11 @@ module.exports = class bitz extends Exchange {
                         'currencyRate',
                         'currencyCoinRate',
                         'coinRate',
+                        'getContractCoin',
+                        'getContractKline',
+                        'getContractOrderBook',
+                        'getContractTradesHistory',
+                        'getContractTickers',
                     ],
                 },
                 'trade': {
@@ -82,15 +89,34 @@ module.exports = class bitz extends Exchange {
                         'addEntrustSheet',
                         'cancelEntrustSheet',
                         'cancelAllEntrustSheet',
+                        'coinOut', // withdraw
                         'getUserHistoryEntrustSheet', // closed orders
                         'getUserNowEntrustSheet', // open orders
                         'getEntrustSheetInfo', // order
                         'depositOrWithdraw', // transactions
+                        'getCoinAddress',
+                        'getCoinAddressList',
+                        'marketTrade',
+                        'addEntrustSheetBatch',
                     ],
                 },
                 'assets': {
                     'post': [
                         'getUserAssets',
+                    ],
+                },
+                'contract': {
+                    'post': [
+                        'addContractTrade',
+                        'cancelContractTrade',
+                        'getContractActivePositions',
+                        'getContractAccountInfo',
+                        'getContractMyPositions',
+                        'getContractOrderResult',
+                        'getContractTradeResult',
+                        'getContractOrder',
+                        'getContractMyHistoryTrade',
+                        'getContractMyTrades',
                     ],
                 },
             },
@@ -262,10 +288,13 @@ module.exports = class bitz extends Exchange {
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
             const symbol = base + '/' + quote;
+            const pricePrecisionString = this.safeString (market, 'priceFloat');
+            const minPrice = this.parsePrecision (pricePrecisionString);
             const precision = {
                 'amount': this.safeInteger (market, 'numberFloat'),
-                'price': this.safeInteger (market, 'priceFloat'),
+                'price': parseInt (pricePrecisionString),
             };
+            const minAmount = this.safeString (market, 'minTrade');
             result.push ({
                 'info': market,
                 'id': id,
@@ -279,15 +308,15 @@ module.exports = class bitz extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'minTrade'),
-                        'max': this.safeFloat (market, 'maxTrade'),
+                        'min': this.parseNumber (minAmount),
+                        'max': this.safeNumber (market, 'maxTrade'),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': this.parseNumber (minPrice),
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.parseNumber (Precise.stringMul (minPrice, minAmount)),
                         'max': undefined,
                     },
                 },
@@ -323,18 +352,23 @@ module.exports = class bitz extends Exchange {
         //     }
         //
         const balances = this.safeValue (response['data'], 'info');
-        const result = { 'info': response };
+        const timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'name');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeFloat (balance, 'lock');
-            account['total'] = this.safeFloat (balance, 'num');
-            account['free'] = this.safeFloat (balance, 'over');
+            account['used'] = this.safeString (balance, 'lock');
+            account['total'] = this.safeString (balance, 'num');
+            account['free'] = this.safeString (balance, 'over');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -362,16 +396,10 @@ module.exports = class bitz extends Exchange {
         //                    krw: "318655.82"   }
         //
         const timestamp = undefined;
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (ticker, 'symbol');
-            market = this.safeValue (this.markets_by_id, marketId);
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const last = this.safeFloat (ticker, 'now');
-        const open = this.safeFloat (ticker, 'open');
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '_');
+        const last = this.safeNumber (ticker, 'now');
+        const open = this.safeNumber (ticker, 'open');
         let change = undefined;
         let average = undefined;
         if (last !== undefined && open !== undefined) {
@@ -382,22 +410,22 @@ module.exports = class bitz extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bidPrice'),
-            'bidVolume': this.safeFloat (ticker, 'bidQty'),
-            'ask': this.safeFloat (ticker, 'askPrice'),
-            'askVolume': this.safeFloat (ticker, 'askQty'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bidPrice'),
+            'bidVolume': this.safeNumber (ticker, 'bidQty'),
+            'ask': this.safeNumber (ticker, 'askPrice'),
+            'askVolume': this.safeNumber (ticker, 'askQty'),
             'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': this.safeFloat (ticker, 'priceChange24h'),
+            'percentage': this.safeNumber (ticker, 'priceChange24h'),
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
+            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
         };
     }
@@ -567,7 +595,7 @@ module.exports = class bitz extends Exchange {
         //
         const orderbook = this.safeValue (response, 'data');
         const timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {
@@ -587,14 +615,11 @@ module.exports = class bitz extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const price = this.safeFloat (trade, 'p');
-        const amount = this.safeFloat (trade, 'n');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = this.priceToPrecision (symbol, amount * price);
-            }
-        }
+        const priceString = this.safeString (trade, 'p');
+        const amountString = this.safeString (trade, 'n');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const side = this.safeString (trade, 's');
         return {
             'timestamp': timestamp,
@@ -656,11 +681,11 @@ module.exports = class bitz extends Exchange {
         //
         return [
             this.safeInteger (ohlcv, 'time'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -679,7 +704,7 @@ module.exports = class bitz extends Exchange {
             }
         } else {
             if (since !== undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a limit argument if the since argument is specified');
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a limit argument if the since argument is specified');
             }
         }
         const response = await this.marketGetKline (this.extend (request, params));
@@ -758,22 +783,17 @@ module.exports = class bitz extends Exchange {
         if (side !== undefined) {
             side = (side === 'sale') ? 'sell' : 'buy';
         }
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'number');
-        const remaining = this.safeFloat (order, 'numberOver');
-        const filled = this.safeFloat (order, 'numberDeal');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'number');
+        const remaining = this.safeNumber (order, 'numberOver');
+        const filled = this.safeNumber (order, 'numberDeal');
         let timestamp = this.safeInteger (order, 'timestamp');
         if (timestamp === undefined) {
             timestamp = this.safeTimestamp (order, 'created');
         }
-        let cost = this.safeFloat (order, 'orderTotalPrice');
-        if (price !== undefined) {
-            if (filled !== undefined) {
-                cost = filled * price;
-            }
-        }
+        const cost = this.safeNumber (order, 'orderTotalPrice');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -782,8 +802,11 @@ module.exports = class bitz extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -792,7 +815,7 @@ module.exports = class bitz extends Exchange {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -950,7 +973,7 @@ module.exports = class bitz extends Exchange {
 
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1100,6 +1123,16 @@ module.exports = class bitz extends Exchange {
         //         "memo":""
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "id":397574,
+        //         "email":"***@email.com",
+        //         "coin":"usdt",
+        //         "network_fee":"",
+        //         "eid":23112
+        //     }
+        //
         let timestamp = this.safeInteger (transaction, 'updated');
         if (timestamp === 0) {
             timestamp = undefined;
@@ -1108,6 +1141,14 @@ module.exports = class bitz extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const type = this.safeStringLower (transaction, 'type');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        let fee = undefined;
+        const feeCost = this.safeNumber (transaction, 'network_fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'code': code,
+            };
+        }
         return {
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction, 'txid'),
@@ -1116,11 +1157,11 @@ module.exports = class bitz extends Exchange {
             'address': this.safeString (transaction, 'wallet'),
             'tag': this.safeString (transaction, 'memo'),
             'type': type,
-            'amount': this.safeFloat (transaction, 'number'),
+            'amount': this.safeNumber (transaction, 'number'),
             'currency': code,
             'status': status,
             'updated': timestamp,
-            'fee': undefined,
+            'fee': fee,
             'info': transaction,
         };
     }
@@ -1172,6 +1213,40 @@ module.exports = class bitz extends Exchange {
         const response = await this.tradePostDepositOrWithdraw (this.extend (request, params));
         const transactions = this.safeValue (response['data'], 'data', []);
         return this.parseTransactionsByType (type, transactions, code, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+            'number': this.currencyToPrecision (code, amount),
+            'address': address,
+            // 'type': 'erc20', // omni, trc20, optional
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        const response = await this.tradePostCoinOut (this.extend (request, params));
+        //
+        //     {
+        //         "status":200,
+        //         "msg":"",
+        //         "data":{
+        //             "id":397574,
+        //             "email":"***@email.com",
+        //             "coin":"usdt",
+        //             "network_fee":"",
+        //             "eid":23112
+        //         },
+        //         "time":1552641646,
+        //         "microtime":"0.70304500 1552641646",
+        //         "source":"api"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransaction (data, currency);
     }
 
     nonce () {

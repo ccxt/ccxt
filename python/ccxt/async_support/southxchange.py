@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import json
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class southxchange(Exchange):
@@ -74,9 +75,10 @@ class southxchange(Exchange):
                 },
             },
             'commonCurrencies': {
-                'SMT': 'SmartNode',
-                'MTC': 'Marinecoin',
                 'BHD': 'Bithold',
+                'GHOST': 'GHOSTPRISM',
+                'MTC': 'Marinecoin',
+                'SMT': 'SmartNode',
             },
         })
 
@@ -113,13 +115,13 @@ class southxchange(Exchange):
             balance = response[i]
             currencyId = self.safe_string(balance, 'Currency')
             code = self.safe_currency_code(currencyId)
-            deposited = self.safe_float(balance, 'Deposited')
-            unconfirmed = self.safe_float(balance, 'Unconfirmed')
+            deposited = self.safe_string(balance, 'Deposited')
+            unconfirmed = self.safe_string(balance, 'Unconfirmed')
             account = self.account()
-            account['free'] = self.safe_float(balance, 'Available')
-            account['total'] = self.sum(deposited, unconfirmed)
+            account['free'] = self.safe_string(balance, 'Available')
+            account['total'] = Precise.string_add(deposited, unconfirmed)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -127,23 +129,23 @@ class southxchange(Exchange):
             'symbol': self.market_id(symbol),
         }
         response = await self.publicGetBookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
+        return self.parse_order_book(response, symbol, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
         symbol = None
         if market:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'Last')
+        last = self.safe_number(ticker, 'Last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_float(ticker, 'Bid'),
+            'bid': self.safe_number(ticker, 'Bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'Ask'),
+            'ask': self.safe_number(ticker, 'Ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -151,9 +153,9 @@ class southxchange(Exchange):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_float(ticker, 'Variation24Hr'),
+            'percentage': self.safe_number(ticker, 'Variation24Hr'),
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'Volume24Hr'),
+            'baseVolume': self.safe_number(ticker, 'Volume24Hr'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -166,11 +168,8 @@ class southxchange(Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            symbol = id
-            market = None
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
+            market = self.safe_market(id)
+            symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
@@ -186,12 +185,11 @@ class southxchange(Exchange):
 
     def parse_trade(self, trade, market):
         timestamp = self.safe_timestamp(trade, 'At')
-        price = self.safe_float(trade, 'Price')
-        amount = self.safe_float(trade, 'Amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'Price')
+        amountString = self.safe_string(trade, 'Amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string(trade, 'Type')
         symbol = None
         if market is not None:
@@ -229,19 +227,13 @@ class southxchange(Exchange):
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
         timestamp = None
-        price = self.safe_float(order, 'LimitPrice')
-        amount = self.safe_float(order, 'OriginalAmount')
-        remaining = self.safe_float(order, 'Amount')
-        filled = None
-        cost = None
-        if amount is not None:
-            cost = price * amount
-            if remaining is not None:
-                filled = amount - remaining
+        price = self.safe_number(order, 'LimitPrice')
+        amount = self.safe_number(order, 'OriginalAmount')
+        remaining = self.safe_number(order, 'Amount')
         type = 'limit'
         side = self.safe_string_lower(order, 'Type')
         id = self.safe_string(order, 'Code')
-        result = {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -250,18 +242,20 @@ class southxchange(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
-            'cost': cost,
-            'filled': filled,
+            'cost': None,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'average': None,
             'trades': None,
-        }
-        return result
+        })
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -283,9 +277,10 @@ class southxchange(Exchange):
         if type == 'limit':
             request['limitPrice'] = price
         response = await self.privatePostPlaceOrder(self.extend(request, params))
+        id = json.loads(response)
         return {
             'info': response,
-            'id': str(response),
+            'id': id,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -380,8 +375,8 @@ class southxchange(Exchange):
         type = self.safe_string(item, 'Type')
         ledgerEntryType = self.parse_ledger_entry_type(type)
         code = self.safe_currency_code(self.safe_string(item, 'CurrencyCode'), currency)
-        amount = self.safe_float(item, 'Amount')
-        after = self.safe_float(item, 'TotalBalance')
+        amount = self.safe_number(item, 'Amount')
+        after = self.safe_number(item, 'TotalBalance')
         before = None
         if amount is not None:
             if after is not None:
@@ -544,7 +539,7 @@ class southxchange(Exchange):
         #     }
         #
         id = self.safe_string(transaction, 'MovementId')
-        amount = self.safe_float(transaction, 'Amount')
+        amount = self.safe_number(transaction, 'Amount')
         address = self.safe_string(transaction, 'Address')
         addressTo = address
         addressFrom = None
@@ -632,6 +627,9 @@ class southxchange(Exchange):
             'TransactionType': 'withdrawals',
         }
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
+
+    def nonce(self):
+        return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

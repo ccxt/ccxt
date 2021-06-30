@@ -24,7 +24,6 @@ When asking a question:
 
 - **DO NOT POST YOUR `apiKey` AND `secret`!** Keep them safe (remove them before posting)!
 
-
 ## I am calling a method and I get an error, what am I doing wrong?
 
 You're not reporting the issue properly ) Please, help the community to help you ) Read this and follow the steps: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue. Once again, your code to reproduce the issue and your verbose request and response **ARE REQUIRED**. *Just the error traceback, or just the response, or just the request, or just the code – is not enough!*
@@ -48,6 +47,12 @@ We don't give promises or estimates on the open-source work. The reasoning behin
 ## When will you add the support for an exchange requested in the Issues?
 
 Again, we can't promise on the dates for adding this or that exchange, due to reasons outlined above. The answer will always remain the same: _as soon as we can_.
+
+## How long should I wait for a feature to be added? I need to decide whether to implement it myself or to wait for the CCXT Dev Team to implement it for me.
+
+Please, go for implemeting it yourself, do not wait for us. We will add it as soon as we can. Also, your contributions are very welcome:
+
+- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 ## What's your progress on adding the feature `foo` that was requested earlier? How do you do implementing exchange `bar`?
 

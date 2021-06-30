@@ -62,12 +62,20 @@ const enableRateLimit = true
 const coins = [
     'BTC',
     'ETH',
+    'BNB',
     'EUR',
     'LTC',
     'USD',
     'USDC',
     'USDT',
+    'BUSD',
     'XRP',
+    'DOGE',
+    'YFI',
+    'LINK',
+    'XLM',
+    'ADA',
+    'SOL',
 ]
 
 function initializeAllExchanges () {

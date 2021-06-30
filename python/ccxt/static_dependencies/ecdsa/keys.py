@@ -8,7 +8,6 @@ from .ecdsa import RSZeroError
 from .util import string_to_number, number_to_string, randrange
 from .util import sigencode_string, sigdecode_string
 from .util import oid_ecPublicKey, encoded_oid_ecPublicKey
-from six import PY3, b
 from hashlib import sha1
 
 
@@ -61,30 +60,30 @@ class VerifyingKey:
     def from_der(klass, string):
         # [[oid_ecPublicKey,oid_curve], point_str_bitstring]
         s1, empty = der.remove_sequence(string)
-        if empty != b(""):
+        if empty != b'':
             raise der.UnexpectedDER("trailing junk after DER pubkey: %s" %
                                     binascii.hexlify(empty))
         s2, point_str_bitstring = der.remove_sequence(s1)
         # s2 = oid_ecPublicKey,oid_curve
         oid_pk, rest = der.remove_object(s2)
         oid_curve, empty = der.remove_object(rest)
-        if empty != b(""):
+        if empty != b'':
             raise der.UnexpectedDER("trailing junk after DER pubkey objects: %s" %
                                     binascii.hexlify(empty))
         assert oid_pk == oid_ecPublicKey, (oid_pk, oid_ecPublicKey)
         curve = find_curve(oid_curve)
         point_str, empty = der.remove_bitstring(point_str_bitstring)
-        if empty != b(""):
+        if empty != b'':
             raise der.UnexpectedDER("trailing junk after pubkey pointstring: %s" %
                                     binascii.hexlify(empty))
-        assert point_str.startswith(b("\x00\x04"))
+        assert point_str.startswith(b'\x00\x04')
         return klass.from_string(point_str[2:], curve)
 
     @classmethod
     def from_public_key_recovery(klass, signature, data, curve, hashfunc=sha1, sigdecode=sigdecode_string):
         # Given a signature and corresponding message this function
         # returns a list of verifying keys for this signature and message
-        
+
         digest = hashfunc(data).digest()
         return klass.from_public_key_recovery_with_digest(signature, digest, curve, hashfunc=sha1, sigdecode=sigdecode)
 
@@ -92,7 +91,7 @@ class VerifyingKey:
     def from_public_key_recovery_with_digest(klass, signature, digest, curve, hashfunc=sha1, sigdecode=sigdecode_string):
         # Given a signature and corresponding digest this function
         # returns a list of verifying keys for this signature and message
-        
+
         generator = curve.generator
         r, s = sigdecode(signature, generator.order())
         sig = ecdsa.Signature(r, s)
@@ -120,7 +119,7 @@ class VerifyingKey:
         order = self.pubkey.order
         x_str = number_to_string(self.pubkey.point.x(), order)
         y_str = number_to_string(self.pubkey.point.y(), order)
-        point_str = b("\x00\x04") + x_str + y_str
+        point_str = b'\x00\x04' + x_str + y_str
         return der.encode_sequence(der.encode_sequence(encoded_oid_ecPublicKey,
                                                        self.curve.encoded_oid),
                                    der.encode_bitstring(point_str))
@@ -185,9 +184,9 @@ class SigningKey:
     def from_pem(klass, string, hashfunc=sha1):
         # the privkey pem file has two sections: "EC PARAMETERS" and "EC
         # PRIVATE KEY". The first is redundant.
-        if PY3 and isinstance(string, str):
+        if isinstance(string, str):
             string = string.encode()
-        privkey_pem = string[string.index(b("-----BEGIN EC PRIVATE KEY-----")):]
+        privkey_pem = string[string.index(b'-----BEGIN EC PRIVATE KEY-----'):]
         return klass.from_der(der.unpem(privkey_pem), hashfunc)
 
     @classmethod
@@ -195,7 +194,7 @@ class SigningKey:
         # SEQ([int(1), octetstring(privkey),cont[0], oid(secp224r1),
         #      cont[1],bitstring])
         s, empty = der.remove_sequence(string)
-        if empty != b(""):
+        if empty != b'':
             raise der.UnexpectedDER("trailing junk after DER privkey: %s" %
                                     binascii.hexlify(empty))
         one, s = der.remove_integer(s)
@@ -208,7 +207,7 @@ class SigningKey:
             raise der.UnexpectedDER("expected tag 0 in DER privkey,"
                                     " got %d" % tag)
         curve_oid, empty = der.remove_object(curve_oid_str)
-        if empty != b(""):
+        if empty != b'':
             raise der.UnexpectedDER("trailing junk after DER privkey "
                                     "curve_oid: %s" % binascii.hexlify(empty))
         curve = find_curve(curve_oid)
@@ -226,7 +225,7 @@ class SigningKey:
 
         # our from_string method likes fixed-length privkey strings
         if len(privkey_str) < curve.baselen:
-            privkey_str = b("\x00") * (curve.baselen - len(privkey_str)) + privkey_str
+            privkey_str = b'\x00' * (curve.baselen - len(privkey_str)) + privkey_str
         return klass.from_string(privkey_str, curve, hashfunc)
 
     def to_string(self):
@@ -241,7 +240,7 @@ class SigningKey:
     def to_der(self):
         # SEQ([int(1), octetstring(privkey),cont[0], oid(secp224r1),
         #      cont[1],bitstring])
-        encoded_vk = b("\x00\x04") + self.get_verifying_key().to_string()
+        encoded_vk = b'\x00\x04' + self.get_verifying_key().to_string()
         return der.encode_sequence(der.encode_integer(1),
                                    der.encode_octet_string(self.to_string()),
                                    der.encode_constructed(0, self.curve.encoded_oid),

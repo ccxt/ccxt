@@ -6,6 +6,8 @@ function testOrder (exchange, order, symbol, now) {
     assert (order);
     assert ('id' in order);
     assert (typeof order['id'] === 'string');
+    assert ('clientOrderId' in order);
+    assert ((order['clientOrderId'] === undefined) || (typeof order['clientOrderId'] === 'string'));
     assert ('timestamp' in order);
     assert (typeof order['timestamp'] === 'number');
     assert (order['timestamp'] > 1230940800000); // 03 Jan 2009 - first block
@@ -18,12 +20,16 @@ function testOrder (exchange, order, symbol, now) {
     assert ('symbol' in order);
     assert (order['symbol'] === symbol);
     assert ('type' in order);
-    assert (typeof order['type'] === 'string');
+    assert ((order['type'] === undefined) || (typeof order['type'] === 'string'));
+    assert ('timeInForce' in order);
+    assert ((order['timeInForce'] === undefined) || (typeof order['timeInForce'] === 'string'));
     assert ('side' in order);
     assert ((order['side'] === 'buy') || (order['side'] === 'sell'));
     assert ('price' in order);
-    assert (typeof order['price'] === 'number');
-    assert (order['price'] > 0);
+    assert ((order['price'] === undefined) || (typeof order['price'] === 'number'));
+    if (order['price'] !== undefined) {
+        assert (order['price'] > 0);
+    }
     assert ('amount' in order);
     assert (typeof order['amount'] === 'number');
     assert (order['amount'] >= 0);

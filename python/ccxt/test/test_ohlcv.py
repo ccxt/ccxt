@@ -1,0 +1,34 @@
+import numbers  # noqa: E402
+try:
+    basestring  # basestring was removed in Python 3
+except NameError:
+    basestring = str
+
+# ----------------------------------------------------------------------------
+
+
+#  ---------------------------------------------------------------------------
+
+def test_ohlcv(exchange, ohlcv, symbol, now):
+
+    json = exchange.json(ohlcv)
+    assert ohlcv
+    assert isinstance(ohlcv, list), json
+    length = len(ohlcv)
+    assert length >= 6
+    for i in range(0, len(ohlcv)):
+        assert(ohlcv[i] is None) or (isinstance(ohlcv[i], numbers.Real)), json
+
+    assert ohlcv[0] > 1230940800000, json  # 03 Jan 2009 - first block
+    assert ohlcv[0] < 2147483648000, json  # 19 Jan 2038 - int32 overflows
+
+    skippedExchanges = [
+        'bitmex',  # BitMEX API docs: also note the open price is equal to the close price of the previous timeframe bucket.
+        'vcc',  # same as BitMEX, the open price is equal to the close price of the previous timeframe bucket.
+    ]
+
+    if not exchange.in_array(exchange.id, skippedExchanges):
+        assert(ohlcv[1] is None) or (ohlcv[2] is None) or (ohlcv[1] <= ohlcv[2]), 'open > high, ' + exchange.safe_string(ohlcv, 1, 'None') + ' > ' + exchange.safe_string(ohlcv, 2, 'None')  # open <= high
+
+    assert(ohlcv[3] is None) or (ohlcv[2] is None) or (ohlcv[3] <= ohlcv[2]), 'low > high, ' + exchange.safe_string(ohlcv, 2, 'None') + ' > ' + exchange.safe_string(ohlcv, 3, 'None')  # low <= high
+    assert(ohlcv[3] is None) or (ohlcv[4] is None) or (ohlcv[3] <= ohlcv[4]), 'low > close, ' + exchange.safe_string(ohlcv, 3, 'None') + ' > ' + exchange.safe_string(ohlcv, 4, 'None')  # low <= close

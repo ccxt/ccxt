@@ -1,17 +1,17 @@
-`⌂ Home <ccxt.pro>`__
 
 Manual
 ======
 
 The CCXT Pro stack is built upon `CCXT <https://ccxt.trade>`__ and extends the core CCXT classes, using:
 
--  JavaScript prototype-level mixins
--  Python multiple inheritance
--  PHP Traits
+
+ * JavaScript prototype-level mixins
+ * Python multiple inheritance
+ * PHP Traits
 
 The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguge support <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support>`__.
 
-::
+.. code-block::
 
                                     User
 
@@ -54,55 +54,531 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguge support 
 Exchanges
 =========
 
-The CCXT Pro library currently supports the following 22 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 32 cryptocurrency exchange markets and WebSocket trading APIs:
 
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-|        logo                                                                            | id            | name                                                                                   | ver | doc                                                                                             | certified                                                            | pro                             |
-+========================================================================================+===============+========================================================================================+=====+=================================================================================================+======================================================================+=================================+
-| `bequant <https://bequant.io>`__                                                       | bequant       | `Bequant <https://bequant.io>`__                                                       | 2   | `API <https://api.bequant.io/>`__                                                               |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `binance <https://www.binance.com/?ref=10205187>`__                                    | binance       | `Binance <https://www.binance.com/?ref=10205187>`__                                    | \*  | `API <https://binance-docs.github.io/apidocs/spot/en>`__                                        | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `binanceje <https://www.binance.je/?ref=35047921>`__                                   | binanceje     | `Binance Jersey <https://www.binance.je/?ref=35047921>`__                              | \*  | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__ |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `binanceus <https://www.binance.us/?ref=35005074>`__                                   | binanceus     | `Binance US <https://www.binance.us/?ref=35005074>`__                                  | \*  | `API <https://github.com/binance-us/binance-official-api-docs>`__                               |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__                              | bitfinex      | `Bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__                              | 1   | `API <https://docs.bitfinex.com/v1/docs>`__                                                     | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitmex <https://www.bitmex.com/register/upZpOX>`__                                    | bitmex        | `BitMEX <https://www.bitmex.com/register/upZpOX>`__                                    | 1   | `API <https://www.bitmex.com/app/apiOverview>`__                                                |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitstamp <https://www.bitstamp.net>`__                                                | bitstamp      | `Bitstamp <https://www.bitstamp.net>`__                                                | 2   | `API <https://www.bitstamp.net/api>`__                                                          |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__            | bittrex       | `Bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__            | 1.1 | `API <https://bittrex.github.io/api/>`__                                                        | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitvavo <https://bitvavo.com/?a=24F34952F7>`__                                        | bitvavo       | `Bitvavo <https://bitvavo.com/?a=24F34952F7>`__                                        | 2   | `API <https://docs.bitvavo.com/>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinbaseprime <https://prime.coinbase.com>`__                                         | coinbaseprime | `Coinbase Prime <https://prime.coinbase.com>`__                                        | \*  | `API <https://docs.prime.coinbase.com>`__                                                       |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinbasepro <https://pro.coinbase.com/>`__                                            | coinbasepro   | `Coinbase Pro <https://pro.coinbase.com/>`__                                           | \*  | `API <https://docs.pro.coinbase.com>`__                                                         |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `ftx <https://ftx.com/#a=1623029>`__                                                   | ftx           | `FTX <https://ftx.com/#a=1623029>`__                                                   | \*  | `API <https://github.com/ftexchange/ftx>`__                                                     | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `gateio <https://www.gate.io/signup/2436035>`__                                        | gateio        | `Gate.io <https://www.gate.io/signup/2436035>`__                                       | 2   | `API <https://gate.io/api2>`__                                                                  |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `hitbtc <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                                  | hitbtc        | `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                                  | 2   | `API <https://api.hitbtc.com>`__                                                                |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `huobipro <https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3>`__             | huobipro      | `Huobi Pro <https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3>`__            | 1   | `API <https://huobiapi.github.io/docs/spot/v1/cn/>`__                                           |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `huobiru <https://www.huobi.com.ru/invite?invite_code=esc74>`__                        | huobiru       | `Huobi Russia <https://www.huobi.com.ru/invite?invite_code=esc74>`__                   | 1   | `API <https://github.com/cloudapidoc/API_Docs_en>`__                                            |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `kraken <https://www.kraken.com>`__                                                    | kraken        | `Kraken <https://www.kraken.com>`__                                                    | 0   | `API <https://www.kraken.com/features/api>`__                                                   | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `kucoin <https://www.kucoin.com/?rcode=E5wkqe>`__                                      | kucoin        | `KuCoin <https://www.kucoin.com/?rcode=E5wkqe>`__                                      | 2   | `API <https://docs.kucoin.com>`__                                                               |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `okcoin <https://www.okcoin.com/account/register?flag=activity&channelId=600001513>`__ | okcoin        | `OKCoin <https://www.okcoin.com/account/register?flag=activity&channelId=600001513>`__ | 3   | `API <https://www.okcoin.com/docs/en/>`__                                                       |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `okex <https://www.okex.com/join/1888677>`__                                           | okex          | `OKEX <https://www.okex.com/join/1888677>`__                                           | 3   | `API <https://www.okex.com/docs/en/>`__                                                         |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__                                  | poloniex      | `Poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__                                  | \*  | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `upbit <https://upbit.com>`__                                                          | upbit         | `Upbit <https://upbit.com>`__                                                          | 1   | `API <https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C>`__           | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+.. list-table::
+   :header-rows: 1
+
+   * - logo
+     - id
+     - name
+     - ver
+     - certified
+     - pro
+   * - .. image:: https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg
+          :target: https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
+          :alt: aax
+     
+     - aax
+     - `AAX <https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://www.aaxpro.com/apidoc/index.html
+          :alt: API Version 2
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg
+          :target: https://bequant.io
+          :alt: bequant
+     
+     - bequant
+     - `Bequant <https://bequant.io>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://api.bequant.io/
+          :alt: API Version 2
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
+          :target: https://www.binance.com/en/register?ref=BLEJC98C
+          :alt: binance
+     
+     - binance
+     - `Binance <https://www.binance.com/en/register?ref=BLEJC98C>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://binance-docs.github.io/apidocs/spot/en
+          :alt: API Version *
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
+          :target: https://www.binance.com/en/register?ref=BLEJC98C
+          :alt: binancecoinm
+     
+     - binancecoinm
+     - `Binance COIN-M <https://www.binance.com/en/register?ref=BLEJC98C>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://binance-docs.github.io/apidocs/delivery/en/
+          :alt: API Version *
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg
+          :target: https://www.binance.us/?ref=35005074
+          :alt: binanceus
+     
+     - binanceus
+     - `Binance US <https://www.binance.us/?ref=35005074>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://github.com/binance-us/binance-official-api-docs
+          :alt: API Version *
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
+          :target: https://www.binance.com/en/register?ref=BLEJC98C
+          :alt: binanceusdm
+     
+     - binanceusdm
+     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=BLEJC98C>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://binance-docs.github.io/apidocs/futures/en/
+          :alt: API Version *
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg
+          :target: https://exchange.bitcoin.com/referral/da948b21d6c92d69
+          :alt: bitcoincom
+     
+     - bitcoincom
+     - `bitcoin.com <https://exchange.bitcoin.com/referral/da948b21d6c92d69>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://api.exchange.bitcoin.com/api/2/explore
+          :alt: API Version 2
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
+          :target: https://www.bitfinex.com/?refcode=P61eYxFL
+          :alt: bitfinex
+     
+     - bitfinex
+     - `Bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://docs.bitfinex.com/v1/docs
+          :alt: API Version 1
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg
+          :target: https://www.bitmex.com/register/upZpOX
+          :alt: bitmex
+     
+     - bitmex
+     - `BitMEX <https://www.bitmex.com/register/upZpOX>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://www.bitmex.com/app/apiOverview
+          :alt: API Version 1
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
+          :target: https://www.bitstamp.net
+          :alt: bitstamp
+     
+     - bitstamp
+     - `Bitstamp <https://www.bitstamp.net>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://www.bitstamp.net/api
+          :alt: API Version 2
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg
+          :target: https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B
+          :alt: bittrex
+     
+     - bittrex
+     - `Bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://bittrex.github.io/api/v3
+          :alt: API Version 3
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
+          :target: https://bitvavo.com/?a=24F34952F7
+          :alt: bitvavo
+     
+     - bitvavo
+     - `Bitvavo <https://bitvavo.com/?a=24F34952F7>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://docs.bitvavo.com/
+          :alt: API Version 2
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg
+          :target: https://exchange.coinbase.com
+          :alt: coinbaseprime
+     
+     - coinbaseprime
+     - `Coinbase Prime <https://exchange.coinbase.com>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://docs.exchange.coinbase.com
+          :alt: API Version *
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg
+          :target: https://pro.coinbase.com/
+          :alt: coinbasepro
+     
+     - coinbasepro
+     - `Coinbase Pro <https://pro.coinbase.com/>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://docs.pro.coinbase.com
+          :alt: API Version *
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg
+          :target: https://currency.com/trading/signup?c=362jaimv&pid=referral
+          :alt: currencycom
+     
+     - currencycom
+     - `Currency.com <https://currency.com/trading/signup?c=362jaimv&pid=referral>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://currency.com/api
+          :alt: API Version 1
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
+          :target: https://ftx.com/#a=ccxt
+          :alt: ftx
+     
+     - ftx
+     - `FTX <https://ftx.com/#a=ccxt>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://github.com/ftexchange/ftx
+          :alt: API Version *
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
+          :target: https://www.gate.io/signup/2436035
+          :alt: gateio
+     
+     - gateio
+     - `Gate.io <https://www.gate.io/signup/2436035>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://gate.io/api2
+          :alt: API Version 2
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg
+          :target: https://www.gopax.co.kr
+          :alt: gopax
+     
+     - gopax
+     - `GOPAX <https://www.gopax.co.kr>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://gopax.github.io/API/index.en.html
+          :alt: API Version 1
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
+          :target: https://hitbtc.com/?ref_id=5a5d39a65d466
+          :alt: hitbtc
+     
+     - hitbtc
+     - `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://api.hitbtc.com
+          :alt: API Version 2
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg
+          :target: https://www.huobi.co.jp/register/?invite_code=znnq3
+          :alt: huobijp
+     
+     - huobijp
+     - `Huobi Japan <https://www.huobi.co.jp/register/?invite_code=znnq3>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://api-doc.huobi.co.jp
+          :alt: API Version 1
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
+          :target: https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3
+          :alt: huobipro
+     
+     - huobipro
+     - `Huobi Pro <https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://huobiapi.github.io/docs/spot/v1/cn/
+          :alt: API Version 1
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg
+          :target: https://idex.io
+          :alt: idex
+     
+     - idex
+     - `IDEX <https://idex.io>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://docs.idex.io/
+          :alt: API Version 2
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg
+          :target: https://www.kraken.com
+          :alt: kraken
+     
+     - kraken
+     - `Kraken <https://www.kraken.com>`__
+     - .. image:: https://img.shields.io/badge/0-lightgray
+          :target: https://www.kraken.com/features/api
+          :alt: API Version 0
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg
+          :target: https://www.kucoin.com/?rcode=E5wkqe
+          :alt: kucoin
+     
+     - kucoin
+     - `KuCoin <https://www.kucoin.com/?rcode=E5wkqe>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://docs.kucoin.com
+          :alt: API Version 2
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg
+          :target: https://one.ndax.io/bfQiSL
+          :alt: ndax
+     
+     - ndax
+     - `NDAX <https://one.ndax.io/bfQiSL>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://apidoc.ndax.io/
+          :alt: API Version *
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg
+          :target: https://www.okcoin.com/account/register?flag=activity&channelId=600001513
+          :alt: okcoin
+     
+     - okcoin
+     - `OKCoin <https://www.okcoin.com/account/register?flag=activity&channelId=600001513>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://www.okcoin.com/docs/en/
+          :alt: API Version 3
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
+          :target: https://www.okex.com/join/1888677
+          :alt: okex
+     
+     - okex
+     - `OKEX <https://www.okex.com/join/1888677>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://www.okex.com/docs/en/
+          :alt: API Version 3
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg
+          :target: https://phemex.com/register?referralCode=EDNVJ
+          :alt: phemex
+     
+     - phemex
+     - `Phemex <https://phemex.com/register?referralCode=EDNVJ>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://github.com/phemex/phemex-api-docs
+          :alt: API Version 1
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg
+          :target: https://poloniex.com/signup?c=UBFZJRPJ
+          :alt: poloniex
+     
+     - poloniex
+     - `Poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://docs.poloniex.com
+          :alt: API Version *
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/94507548-a83d6a80-0218-11eb-9998-28b9cec54165.jpg
+          :target: https://exchange.ripio.com
+          :alt: ripio
+     
+     - ripio
+     - `Ripio <https://exchange.ripio.com>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://exchange.ripio.com/en/api/
+          :alt: API Version 1
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg
+          :target: https://upbit.com
+          :alt: upbit
+     
+     - upbit
+     - `Upbit <https://upbit.com>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C
+          :alt: API Version 1
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg
+          :target: https://www.zbex.club/en/register?ref=1625gesp
+          :alt: zb
+     
+     - zb
+     - `ZB <https://www.zbex.club/en/register?ref=1625gesp>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://www.zb.com/i/developer
+          :alt: API Version 1
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     -
+
 
 This is the list of exchanges in CCXT Pro with support for WebSockets APIs. This list will be updated with new exchanges on a regular basis.
 
@@ -111,7 +587,7 @@ Full list of exchanges available in CCXT via REST: `Supported Cryptocurrency Exc
 Usage
 =====
 
-.. code:: diff
+.. code-block:: diff
 
    - this part of the doc is under heavy development right now
    - there may be some typos, mistakes and missing info here and there
@@ -122,18 +598,19 @@ Prerequisites
 
 The best way to understand CCXT Pro is to make sure you grasp the entire CCXT Manual and practice standard CCXT first. CCXT Pro borrows from CCXT. The two libraries share a lot of commonalities, including:
 
--  the concepts of public API and private authenticated API
--  markets, symbols, currency codes and ids
--  unified data structures and formats, orderbooks, trades, orders, candles, timeframes, …
--  exceptions and error mappings
--  authentication and API keys (for private feeds and calls)
--  configuration options
 
-The CCXT Pro audience consists mostly of professional algorithmic traders and developers. In order to work efficiently with this library the user is required to be well-familiar with the concepts of streaming. One has to understand the underlying differences between connection-based streaming APIs (`WebSocket <https://en.wikipedia.org/wiki/WebSocket>`__, CCXT Pro) and request-response based APIs (`REST <https://en.wikipedia.org/wiki/Representational_state_transfer>`__, CCXT).
+ * the concepts of public API and private authenticated API
+ * markets, symbols, currency codes and ids
+ * unified data structures and formats, orderbooks, trades, orders, candles, timeframes, ...
+ * exceptions and error mappings
+ * authentication and API keys (for private feeds and calls)
+ * configuration options
+
+The CCXT Pro audience consists mostly of professional algorithmic traders and developers. In order to work efficiently with this library the user is required to be well-familiar with the concepts of streaming. One has to understand the underlying differences between connection-based streaming APIs (\ `WebSocket <https://en.wikipedia.org/wiki/WebSocket>`__\ , CCXT Pro) and request-response based APIs (\ `REST <https://en.wikipedia.org/wiki/Representational_state_transfer>`__\ , CCXT).
 
 The general async-style flow for a CCXT application is as follows:
 
-.. code:: javascript
+.. code-block:: JavaScript
 
 
    // a RESTful orderbook polling request-response loop
@@ -154,33 +631,33 @@ The general async-style flow for a CCXT application is as follows:
        }
    }
 
-In CCXT Pro each public and private unified RESTful method having a ``fetch*`` prefix also has a corresponding stream-based counterpart method prefixed with ``watch*``, as follows:
+In CCXT Pro each public and private unified RESTful method having a ``fetch*`` prefix also has a corresponding stream-based counterpart method prefixed with ``watch*``\ , as follows:
 
--  Public API
 
-   -  ``fetchStatus`` → ``watchStatus``
-   -  ``fetchOrderBook`` → ``watchOrderBook``
-   -  ``fetchTicker`` → \ ``watchTicker``
-   -  ``fetchTickers`` → \ ``watchTickers``
-   -  ``fetchOHLCV`` → ``watchOHLCV``
-   -  ``fetchTrades`` → ``watchTrades``
-   -  ``fetchStatus`` → ``watchStatus``
+ * Public API
 
--  Private API
+  * ``fetchStatus`` → ``watchStatus``
+  * ``fetchOrderBook`` → ``watchOrderBook``
+  * ``fetchTicker`` → \ ``watchTicker``
+  * ``fetchTickers`` → \ ``watchTickers``
+  * ``fetchOHLCV`` → ``watchOHLCV``
+  * ``fetchTrades`` → ``watchTrades``
 
-   -  ``fetchBalance`` → ``watchBalance``
-   -  ``fetchOrders`` → ``watchOrders``
-   -  ``fetchMyTrades`` → ``watchMyTrades``
-   -  ``fetchTransactions`` → ``watchTransactions``
-   -  ``fetchLedger`` → ``watchLedger``
-   -  ``createOrder`` → ``watchCreateOrder`` \ *(notice the ``watch`` prefix)*\ 
-   -  ``cancelOrder`` → ``watchCancelOrder`` \ *(notice the ``watch`` prefix)*\ 
+ * Private API
+
+  * ``fetchBalance`` → ``watchBalance``
+  * ``fetchOrders`` → ``watchOrders``
+  * ``fetchMyTrades`` → ``watchMyTrades``
+  * ``fetchTransactions`` → ``watchTransactions``
+  * ``fetchLedger`` → ``watchLedger``
+  * ``createOrder`` → ``watchCreateOrder`` *(notice the ``watch`` prefix)*
+  * ``cancelOrder`` → ``watchCancelOrder`` *(notice the ``watch`` prefix)*
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
 
 The general async-style flow for a CCXT Pro application (as opposed to a CCXT application above) is shown below:
 
-.. code:: javascript
+.. code-block:: JavaScript
 
 
    // a stream-based (WebSocket) orderbook feed loop
@@ -201,14 +678,15 @@ The general async-style flow for a CCXT Pro application (as opposed to a CCXT ap
        }
    }
 
-That usage pattern is usually wrapped up into a core business-logic method called *“a ``tick()`` function”*, since it reiterates a reaction to the incoming events (aka *ticks*). From the two examples above it is obvious that the generic usage pattern in CCXT Pro and CCXT is identical.
+That usage pattern is usually wrapped up into a core business-logic method called *"a ``tick()`` function"*\ , since it reiterates a reaction to the incoming events (aka *ticks*\ ). From the two examples above it is obvious that the generic usage pattern in CCXT Pro and CCXT is identical.
 
 Many of the CCXT rules and concepts also apply to CCXT Pro:
 
--  CCXT Pro will load markets and will cache markets upon the first call to a unified API method
--  CCXT Pro will call CCXT RESTful methods under the hood if necessary
--  CCXT Pro will throw standard CCXT exceptions where necessary
--  …
+
+ * CCXT Pro will load markets and will cache markets upon the first call to a unified API method
+ * CCXT Pro will call CCXT RESTful methods under the hood if necessary
+ * CCXT Pro will throw standard CCXT exceptions where necessary
+ * ...
 
 Streaming Specifics
 -------------------
@@ -221,86 +699,187 @@ Upon your first call to any ``watch*()`` method the library will establish a con
 
 The library will also watch the status of the uplink and will keep the connection alive. Upon a critical exception, a disconnect or a connection timeout/failure, the next iteration of the tick function will call the ``watch`` method that will trigger a reconnection. This way the library handles disconnections and reconnections for the user transparently. CCXT Pro applies the necessary rate-limiting and exponential backoff reconnection delays. All of that functionality is enabled by default and can be configured via exchange properties, as usual.
 
-Most of the exchanges only have a single base URL for streaming APIs (usually, WebSocket, starting with ``ws://`` or ``wss://``). Some of them may have more than one URL for each stream, depending on the feed in question.
+Most of the exchanges only have a single base URL for streaming APIs (usually, WebSocket, starting with ``ws://`` or ``wss://``\ ). Some of them may have more than one URL for each stream, depending on the feed in question.
 
-Exchanges’ Streaming APIs can be classified into two different categories:
+Exchanges' Streaming APIs can be classified into two different categories:
 
--  *sub* or *subscribe* allows receiving only
--  *pub* or *publish* allows sending and receiving
+
+ * *sub* or *subscribe* allows receiving only
+ * *pub* or *publish* allows sending and receiving
 
 Sub
-~~~
+^^^
 
 A *sub* interface usually allows to subscribe to a stream of data and listen for it. Most of exchanges that do support WebSockets will offer a *sub* type of API only. The *sub* type includes streaming public market data. Sometimes exchanges also allow subcribing to private user data. After the user subscribes to a data feed the channel effectively starts working one-way sending updates from the exchange towards the user continuously.
 
 Commonly appearing types of public data streams:
 
--  order book (most common) - updates on added, edited and deleted orders (aka *change deltas*)
--  ticker updates upon changing of 24 hour stats
--  fills feed (also common) - a live stream of public trades
--  ohlcv candlestick feed
--  heartbeat
--  exchange chat/trollbox
+
+ * order book (most common) - updates on added, edited and deleted orders (aka *change deltas*\ )
+ * ticker updates upon changing of 24 hour stats
+ * fills feed (also common) - a live stream of public trades
+ * ohlcv candlestick feed
+ * heartbeat
+ * exchange chat/trollbox
 
 Less common types of private user data streams:
 
--  the stream of private trades of the user
--  live order updates
--  balance updates
--  custom streams
--  exchange-specific and other streams
+
+ * the stream of private trades of the user
+ * live order updates
+ * balance updates
+ * custom streams
+ * exchange-specific and other streams
 
 Pub
-~~~
+^^^
 
 A *pub* interface usually allows users to send data requests towards the server. This usually includes common user actions, like:
 
--  placing orders
--  canceling orders
--  placing withdrawal requests
--  posting chat/trollbox messages
--  etc
 
-**Some exchanges do not offer a pub WS API, they will offer sub WS API only.** However, there are exchanges that have a complete Streaming API as well. In most cases a user cannot operate effectively having just the Streaming API. Exchanges will stream public market data *sub*, and the REST API is still needed for the *pub* part where missing.
+ * placing orders
+ * canceling orders
+ * placing withdrawal requests
+ * posting chat/trollbox messages
+ * etc
+
+ **Some exchanges do not offer a *pub* WS API, they will offer *sub* WS API only.** However, there are exchanges that have a complete Streaming API as well. In most cases a user cannot operate effectively having just the Streaming API. Exchanges will stream public market data *sub*\ , and the REST API is still needed for the *pub* part where missing.
 
 Incremental Data Structures
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In many cases due to a unidirectional nature of the underlying data feeds, the application listening on the client-side has to keep a local snapshot of the data in memory and merge the updates received from the exchange server into the local snapshot. The updates coming from the exchange are also often called *deltas*, because in most cases those updates will contain just the changes between two states of the data and will not include the data that has not changed making it necessary to store the locally cached current state S of all relevant data objects.
+In many cases due to a unidirectional nature of the underlying data feeds, the application listening on the client-side has to keep a local snapshot of the data in memory and merge the updates received from the exchange server into the local snapshot. The updates coming from the exchange are also often called *deltas*\ , because in most cases those updates will contain just the changes between two states of the data and will not include the data that has not changed making it necessary to store the locally cached current state S of all relevant data objects.
 
 All of that functionality is handled by CCXT Pro for the user. To work with CCXT Pro, the user does not have to track or manage subscriptions and related data. CCXT Pro will keep a cache of structures in memory to handle the underlying hassle.
 
-Each incoming update says which parts of the data have changed and the receiving side “increments” local state S by merging the update on top of current state S and moves to next local state S’. In terms CCXT Pro that is called *“incremental state”* and the structures involved in the process of storing and updating the cached state are called *“incremental structures”*. CCXT Pro introduces several new base classes to handle the incremental state where necessary.
+Each incoming update says which parts of the data have changed and the receiving side "increments" local state S by merging the update on top of current state S and moves to next local state S'. In terms of CCXT Pro that is called *"incremental state"* and the structures involved in the process of storing and updating the cached state are called *"incremental structures"*. CCXT Pro introduces several new base classes to handle the incremental state where necessary.
 
-The incremental structures returned from the unified methods of CCXT Pro is often one of two types:
+The incremental structures returned from the unified methods of CCXT Pro are often one of two types:
 
-1. JSON-decoded object (``object`` in JavaScript, ``dict`` in Python, ``array()`` in PHP). This type may be returned from public and private methods like ``watchTicker``, ``watchBalance``, ``watchOrder``, etc.
-2. An array/list of objects (usually sorted in chronological order). This type may be returned from methods like ``watchOHLCV``, ``watchTrades``, ``watchMyTrades``, ``watchOrders``, etc.
 
-In the latter case the CCXT Pro library has to keep a reasonable limit on the number of objects kept in memory. The allowed maximum can be configured by the user upon instantiation or later.
+#. JSON-decoded object (\ ``object`` in JavaScript, ``dict`` in Python, ``array()`` in PHP). This type may be returned from public and private methods like ``watchOrderBook``\ , ``watchTicker``\ , ``watchBalance``\ , ``watchOrder``\ , etc.
+#. An array/list of objects (usually sorted in chronological order). This type may be returned from methods like ``watchOHLCV``\ , ``watchTrades``\ , ``watchMyTrades``\ , ``watchOrders``\ , etc.
+
+The unified methods returning arrays like ``watchOHLCV``\ , ``watchTrades``\ , ``watchMyTrades``\ , ``watchOrders``\ , are based on the caching layer. The user has to understand the inner workings of the caching layer to work with it efficiently.
+
+The cache is a fixed-size deque aka array/list with two ends. The CCXT Pro library has a reasonable limit on the number of objects stored in memory. By default the caching array structures will store up to 1000 entries of each type (1000 most recent trades, 1000 most recent candles, 1000 most recent orders). The allowed maximum number can be configured by the user upon instantiation or later:
+
+.. code-block:: Python
+
+   ccxtpro.ftx({
+       'enableRateLimit': True,
+       'options': {
+           'tradesLimit': 1000,
+           'OHLCVLimit': 1000,
+           'ordersLimit': 1000,
+       },
+   })
+
+   # or
+
+   exchange.options['tradesLimit'] = 1000
+   exchange.options['OHLCVLimit'] = 1000
+   exchange.options['ordersLimit'] = 1000
+
+The cache limits have to be set prior to calling any watch-methods and cannot change during a program run.
+
+When there is space left in the cache, new elements are simply appended to the end of it. If there's not enough room to fit a new element, the oldest element is deleted from the beginning of the cache to free some space. Thus, for example, the cache grows from 0 to 1000 most recent trades and then stays at 1000 most recent trades max, constantly renewing the stored data with each new update incoming from the exchange. It reminds a sliding frame window or a sliding door, that looks like shown below:
+
+.. code-block::
+
+         past > ------------------ > time > - - - - - - - - > future
+
+
+                              sliding frame
+                              of 1000 most
+                              recent trades
+                           +-----------------+
+                           |                 |
+                           |===========+=====|
+   +----------------+------|           |     | - - - - - + - - - - - - - - + - - -
+   |                |      |           |     |           |                 |
+   0              1000     |         2000    |         3000              4000  ...
+   |                |      |           |     |           |                 |
+   +----------------+------|           |     | - - - - - + - - - - - - - - + - - -
+                           |===========+=====|
+                           |                 |
+                           +---+---------+---+
+                               |         |
+                         since ^         ^ limit
+
+                      date-based pagination arguments
+                            are always applied
+                          within the cached frame
+
+The user can configure the cache limits using the ``exchange.options`` as was shown above. Do not confuse the cache limits with the pagination limit.
+
+ **Note, that the ``since`` and ``limit`` :doc:`date-based pagination <Manual>` params have a different meaning and are always applied within the cached window!** If the user specifies a ``since`` argument to the ``watchTrades()`` call, CCXT Pro will return all cached trades having ``timestamp >= since``. If the user does not specify a ``since`` argument, CCXT pro will return cached trades from the beginning of the sliding window. If the user specifies a ``limit`` argument, the library will return up to ``limit`` candles starting from ``since`` or from the beginning of the cache. For that reason the user cannot paginate beyond the cached frame due to the WebSocket real-time specifics.
+
+.. code-block:: Python
+
+   exchange.options['tradesLimit'] = 5  # set the size of the cache to 5
+
+   # this call will return up to 5 cached trades
+   await exchange.watchTrades (symbol)
+
+   # the following call will return the first 2 of up to 5 cached trades
+   await exchange.watchTrades (symbol, since=None, limit=2)
+
+   # this call will first filter cached trades by trade['timestamp'] >= since
+   # and will return the first 2 of up to 5 cached trades that pass the filter
+   since = exchange.iso8601('2020-01-01T00:00:00Z')
+   limit = 2
+   await exchange.watchTrades (symbol, since, limit)
+
+newUpdates mode
+~~~~~~~~~~~~~~~
+
+If you want to always get just the most recent trade, **you should instantiate the exchange with the newUpdates flag set to true**.
+
+.. code-block:: Python
+
+   exchange = ccxtpro.binance({'newUpdates': True})
+   while True:
+       trades = await exchange.watchTrades (symbol)
+       print(trades)
+
+The newUpdates mode continues to utilize the sliding cache in the background, but the user will only be given the new updates. This is because some exchanges use incremental structures, so we need to keep a cache of objects as the exchange may only provide partial information such as status updates.
+
+The result from the newUpdates mode will be one or more updates that have occurred since the last time ``exchange.watchMethod`` resolved. CCXT Pro can return one or more orders that were updated since the previous call. The result of calling ``exchange.watchOrders`` will look like shown below:
+
+.. code-block:: JavaScript
+
+   [
+       order, // see https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+       order,
+       order,
+       ...
+   ]
+
+ *Deprecation Warning*\ : in the future ``newUpdates: true`` will be the default mode and you will have to set newUpdates to false to get the sliding cache.
 
 Linking
 -------
 
-See instructions on installing here: `CCXT Pro Install <ccxt.pro.install.md>`__.
+See instructions on installing here: :doc:`CCXT Pro Install <ccxt.pro.install>`.
 
 The process of including the CCXT Pro library into your script is pretty much the same as with the standard CCXT, the only difference is the name of the actual JavaScript module, Python package, or PHP namespace.
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    // JavaScript
    const ccxtpro = require ('ccxt.pro')
    console.log ('CCXT Pro version', ccxtpro.version)
    console.log ('Supported exchanges:', ccxtpro.exchanges)
 
-.. code:: python
+.. code-block:: Python
 
    # Python
    import ccxtpro
    print('CCXT Pro version', ccxtpro.__version__)
    print('Supported exchanges:', ccxtpro.exchanges)
 
-.. code:: php
+.. code-block:: PHP
 
    // PHP
    use \ccxtpro; // optional, since you can use fully qualified names
@@ -316,22 +895,22 @@ CCXT Pro is designed for async/await style syntax and relies heavily on async pr
 
 Creating a CCXT Pro exchange instance is pretty much identical to creating a CCXT exchange instance.
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    // JavaScript
    const ccxtpro = require ('ccxt.pro')
-   const exchange = new ccxtpro.binance ({ enableRateLimit: true })
+   const exchange = new ccxtpro.binance ({ enableRateLimit: true, newUpdates: false })
 
-The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.python.org/3/library/asyncio.html>`__ and `Event Loop <https://docs.python.org/3/library/asyncio-eventloop.html>`__ in particular. In Python it is required to supply an asyncio’s event loop instance in the constructor arguments as shown below (identical to ``ccxt.async support``):
+The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.python.org/3/library/asyncio.html>`__ and `Event Loop <https://docs.python.org/3/library/asyncio-eventloop.html>`__ in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to ``ccxt.async support``\ ):
 
-.. code:: python
+.. code-block:: Python
 
    # Python
    import ccxtpro
    import asyncio
 
    async def main(loop):
-       exchange = ccxtpro.kraken({'enableRateLimit': True, 'asyncio_loop': loop})
+       exchange = ccxtpro.kraken({'enableRateLimit': True, 'asyncio_loop': loop, 'newUpdates': False })
        while True:
            orderbook = await exchange.watch_order_book('BTC/USD')
            print(orderbook['asks'][0], orderbook['bids'][0])
@@ -340,9 +919,9 @@ The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.p
    loop = asyncio.new_event_loop()
    loop.run_until_complete(main(loop))
 
-In PHP the async primitives are borrowed from `ReactPHP <https://reactphp.org>`__. The PHP implementation of CCXT Pro relies on `Promise <https://github.com/reactphp/promise>`__ and `EventLoop <https://github.com/reactphp/event-loop>`__ in particular. In PHP the user is required to supply a ReactPHP’s event loop instance in the constructor arguments as shown below:
+In PHP the async primitives are borrowed from `ReactPHP <https://reactphp.org>`__. The PHP implementation of CCXT Pro relies on `Promise <https://github.com/reactphp/promise>`__ and `EventLoop <https://github.com/reactphp/event-loop>`__ in particular. In PHP the user is required to supply a ReactPHP's event loop instance in the constructor arguments as shown below:
 
-.. code:: php
+.. code-block:: PHP
 
    // PHP
    error_reporting(E_ALL | E_STRICT);
@@ -350,14 +929,14 @@ In PHP the async primitives are borrowed from `ReactPHP <https://reactphp.org>`_
    require_once 'vendor/autoload.php';
 
    $loop = \React\EventLoop\Factory::create(); // the event loop goes here ↓
-   $exchange = new \ccxtpro\kucoin(array('enableRateLimit' => true, 'loop' => $loop));
+   $exchange = new \ccxtpro\kucoin(array('enableRateLimit' => true, 'loop' => $loop, 'newUpdates': false ));
 
 Exchange Properties
 -------------------
 
 Every CCXT Pro instance contains all properties of the underlying CCXT instance. Apart from the standard CCXT properties, the CCXT Pro instance includes the following:
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    {
        'has': { // an associative array of extended exchange capabilities
@@ -398,20 +977,20 @@ Every CCXT Pro instance contains all properties of the underlying CCXT instance.
 Unified API
 -----------
 
-The Unified CCXT Pro API encourages direct control flow for better codestyle, more readable and architecturally superior code compared to using EventEmitters and callbacks. The latter is considered an outdated approach nowadays since it requires inversion of control (people aren’t used to inverted thinking).
+The Unified CCXT Pro API encourages direct control flow for better codestyle, more readable and architecturally superior code compared to using EventEmitters and callbacks. The latter is considered an outdated approach nowadays since it requires inversion of control (people aren't used to inverted thinking).
 
-CCXT Pro goes with the modern approach and it is designed for the async syntax. Under the hood, CCXT Pro will still have to use inverted control flow sometimes because of the dependencies and the WebSocket libs that can’t do otherwise.
+CCXT Pro goes with the modern approach and it is designed for the async syntax. Under the hood, CCXT Pro will still have to use inverted control flow sometimes because of the dependencies and the WebSocket libs that can't do otherwise.
 
 The same is true not only for JS/ES6 but also for Python 3 async code as well. In PHP the async primitives are borrowed from `ReactPHP <https://reactphp.org/>`__.
 
 Modern async syntax allows you to combine and split the execution into parallel pathways and then merge them, group them, prioritize them, and what not. With promises one can easily convert from direct async-style control flow to inverted callback-style control flow, back and forth.
 
 Real-Time vs Throttling
-~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^
 
 CCXT Pro supports two modes of tick function loops – the real-time mode and the throttling mode. Both of them are shown below in pseudocode:
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    // real-time mode
    const limit = 5 // optional
@@ -427,7 +1006,7 @@ CCXT Pro supports two modes of tick function loops – the real-time mode and t
        }
    }
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    // throttling mode
    const limit = 5 // optional
@@ -438,44 +1017,46 @@ CCXT Pro supports two modes of tick function loops – the real-time mode and t
        // you arrive here every 100 ms regardless of whether there was an update or not
        // in throttling mode offloading the orderbook with .limit () is required
        console.log (exchange.orderbooks[symbol].limit (limit))
-       await sleep (100) // every 100 ms
+       await exchange.sleep (100) // every 100 ms
    }
 
 In **real-time mode** CCXT Pro will return the result as soon as each new delta arrives from the exchange. The general logic of a unified call in a real-time loop is to await for the next delta and immediately return the unified result structure to the user, over and over again. This is useful when reaction time is critical, or has to be as fast as possible.
 
 However, the real-time mode requires programming experience with async flows when it comes to synchronizing multiple parallel tick loops. Apart from that, the exchanges can stream a very large number of updates during periods of high activity or high volatility. Therefore the user developing a real-time algorithm has to make sure that the userland code is capable of consuming data that fast. Working in real-time mode may be more demanding for resources sometimes.
 
-In **throttling mode** CCXT Pro will receive and manage the data in the background. The user is responsible for calling the results from time to time when necessary. The general logic of the throttling loop is to sleep for most of the time and wake up to check the results occasionally. This is usually done at some fixed frequency, or, *“frame rate”*. The code inside a throttling loop is often easier to synchronize across multiple exchanges. The rationing of time spent in a throttled loop also helps reduce resource usage to a minimum. This is handy when your algorithm is heavy and you want to control the execution precisely to avoid running it too often.
+In **throttling mode** CCXT Pro will receive and manage the data in the background. The user is responsible for calling the results from time to time when necessary. The general logic of the throttling loop is to sleep for most of the time and wake up to check the results occasionally. This is usually done at some fixed frequency, or, *"frame rate"*. The code inside a throttling loop is often easier to synchronize across multiple exchanges. The rationing of time spent in a throttled loop also helps reduce resource usage to a minimum. This is handy when your algorithm is heavy and you want to control the execution precisely to avoid running it too often.
 
 The obvious downside of the throttling mode is being less reactive or responsive to updates. When a trading algorithm has to wait some number milliseconds before being executed – an update or two may arrive sooner than that time expires. In throttling mode the user will only check for those updates upon next wakeup (loop iteration), so the reaction lag may vary within some number of milliseconds over time.
 
 Public Methods
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 Market Data
-^^^^^^^^^^^
+~~~~~~~~~~~
 
 watchOrderBook
-''''''''''''''
+""""""""""""""
 
-The ``watchOrderBook``\ ’s interface is identical to ```fetchOrderBook`` <https://github.com/ccxt/ccxt/wiki/Manual#order-book>`__. It accepts three arguments:
+The ``watchOrderBook``\ 's interface is identical to `fetchOrderBook <https://github.com/ccxt/ccxt/wiki/Manual#order-book>`__. It accepts three arguments:
 
--  ``symbol`` – string, a unified CCXT symbol, required
--  ``limit`` – integer, the max number of bids/asks returned, optional
--  ``params`` – assoc dictionary, optional overrides as described in `Overriding Unified API Params <https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params>`__
+
+ * ``symbol`` – string, a unified CCXT symbol, required
+ * ``limit`` – integer, the max number of bids/asks returned, optional
+ * ``params`` – assoc dictionary, optional overrides as described in `Overriding Unified API Params <https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params>`__
 
 In general, the exchanges can be divided in two categories:
 
-1. the exchanges that support limited orderbooks (streaming just the top part of the stack of orders)
-2. the exchanges that stream full orderbooks only
 
-If the exchange accepts a limiting argument, the ``limit`` argument is sent towards the exchange upon subscribing to the orderbook stream over a WebSocket connection. The exchange will then send only the specified amount of orders which helps reduce the traffic. Some exchanges may only accept certain values of ``limit``, like 10, 25, 50, 100 and so on.
+#. the exchanges that support limited orderbooks (streaming just the top part of the stack of orders)
+#. the exchanges that stream full orderbooks only
+
+If the exchange accepts a limiting argument, the ``limit`` argument is sent towards the exchange upon subscribing to the orderbook stream over a WebSocket connection. The exchange will then send only the specified amount of orders which helps reduce the traffic. Some exchanges may only accept certain values of ``limit``\ , like 10, 25, 50, 100 and so on.
 
 If the underlying exchange does not accept a limiting argument, the limiting is done on the client side.
 
 The ``limit`` argument does not guarantee that the number of bids or asks will always be equal to ``limit``. It designates the upper boundary or the maximum, so at some moment in time there may be less than ``limit`` bids or asks, but never more than ``limit`` bids or asks. This is the case when the exchange does not have enough orders on the orderbook, or when one of the top orders in the orderbook gets matched and removed from the orderbook, leaving less than ``limit`` entries on either bids side or asks side. The free space in the orderbook usually gets quickly filled with new data.
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    // JavaScript
    if (exchange.has['watchOrderBook']) {
@@ -491,7 +1072,7 @@ The ``limit`` argument does not guarantee that the number of bids or asks will a
        }
    }
 
-.. code:: python
+.. code-block:: Python
 
    # Python
    if exchange.has['watchOrderBook']:
@@ -502,30 +1083,28 @@ The ``limit`` argument does not guarantee that the number of bids or asks will a
            except Exception as e:
                print(e)
                # stop the loop on exception or leave it commented to retry
-               # rasie e
+               # raise e
 
-.. code:: php
+.. code-block:: PHP
 
    // PHP
    if ($exchange->has['watchOrderBook']) {
-       $main = function () use (&$exchange, &$main, $symbol, $limit, $params) {
-           $exchange->watch_order_book($symbol, $limit, $params)->then(function($orderbook) use (&$main, $symbol) {
-               echo date('c'), ' ', $symbol, ' ', json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
-               $main();
-           })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e), ' ', $e->getMessage (), "\n";
-               $main();
-               // stop the loop on exception or leave it commented to retry
-               // throw $e;
-           });
-       };
-       $loop->futureTick($main);
+       $exchange::execute_and_run(function() use ($exchange, $symbol, $limit, $params) {
+           while (true) {
+               try {
+                   $orderbook = yield $exchange->watch_order_book($symbol, $limit, $params);
+                   echo date('c'), ' ', $symbol, ' ', json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
+               } catch (Exception $e) {
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
+               }
+           }
+       });
    }
 
 watchTicker
-'''''''''''
+"""""""""""
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    // JavaScript
    if (exchange.has['watchTicker']) {
@@ -541,7 +1120,7 @@ watchTicker
        }
    }
 
-.. code:: python
+.. code-block:: Python
 
    # Python
    if exchange.has['watchTicker']:
@@ -552,30 +1131,28 @@ watchTicker
            except Exception as e:
                print(e)
                # stop the loop on exception or leave it commented to retry
-               # rasie e
+               # raise e
 
-.. code:: php
+.. code-block:: PHP
 
    // PHP
    if ($exchange->has['watchTicker']) {
-       $main = function () use (&$exchange, &$main, $symbol, $params) {
-           $exchange->watch_ticker($symbol, $params)->then(function($ticker) use (&$main) {
-               echo date('c'), ' ', json_encode($ticker), "\n";
-               $main();
-           })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e), ' ', $e->getMessage (), "\n";
-               $main();
-               // stop the loop on exception or leave it commented to retry
-               // throw $e;
-           });
-       };
-       $loop->futureTick($main);
+       $exchange::execute_and_run(function() use ($exchange, $symbol, $params) {
+           while (true) {
+               try {
+                   $ticker = yield $exchange->watch_ticker($symbol, $params);
+                   echo date('c'), ' ', json_encode($ticker), "\n";
+               } catch (Exception $e) {
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
+               }
+           }
+       });
    }
 
 watchTickers
-''''''''''''
+""""""""""""
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    // JavaScript
    if (exchange.has['watchTickers']) {
@@ -591,7 +1168,7 @@ watchTickers
        }
    }
 
-.. code:: python
+.. code-block:: Python
 
    # Python
    if exchange.has['watchTickers']:
@@ -602,30 +1179,28 @@ watchTickers
            except Exception as e:
                print(e)
                # stop the loop on exception or leave it commented to retry
-               # rasie e
+               # raise e
 
-.. code:: php
+.. code-block:: PHP
 
    // PHP
    if ($exchange->has['watchTickers']) {
-       $main = function () use (&$exchange, &$main, $symbols, $params) {
-           $exchange->watch_tickers($symbols, $params)->then(function($tickers) use (&$main) {
-               echo date('c'), ' ', json_encode($tickers), "\n";
-               $main();
-           })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e), ' ', $e->getMessage (), "\n";
-               $main();
-               // stop the loop on exception or leave it commented to retry
-               // throw $e;
-           });
-       };
-       $loop->futureTick($main);
+       $exchange::execute_and_run(function() use ($exchange, $symbols, $params) {
+           while (true) {
+               try {
+                   $tickers = yield $exchange->watch_tickers($symbols, $params);
+                   echo date('c'), ' ', json_encode($tickers), "\n";
+               } catch (Exception $e) {
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
+               }
+           }
+       });
    }
 
 watchOHLCV
-''''''''''
+""""""""""
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    // JavaScript
    if (exchange.has['watchOHLCV']) {
@@ -641,7 +1216,7 @@ watchOHLCV
        }
    }
 
-.. code:: python
+.. code-block:: Python
 
    # Python
    if exchange.has['watchOHLCV']:
@@ -652,32 +1227,28 @@ watchOHLCV
            except Exception as e:
                print(e)
                # stop the loop on exception or leave it commented to retry
-               # rasie e
+               # raise e
 
-.. code:: php
+.. code-block:: PHP
 
    // PHP
    if ($exchange->has['watchOHLCV']) {
-       $main = function () use (&$exchange, &$main, $symbol, $timeframe, $since, $limit, $params) {
-           $exchange->watch_ohlcv($symbol, $timeframe, $since, $limit, $params)->then(
-               function($candles) use (&$main, $symbol, $timeframe) {
+       $exchange::execute_and_run(function() use ($exchange, $symbol, $timeframe, $since, $limit, $params) {
+           while (true) {
+               try {
+                   $candles = yield $exchange->watch_ohlcv($symbol, $timeframe, $since, $limit, $params);
                    echo date('c'), ' ', $symbol, ' ', $timeframe, ' ', json_encode($candles), "\n";
-                   $main();
+               } catch (Exception $e) {
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
                }
-           )->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e), ' ', $e->getMessage (), "\n";
-               $main();
-               // stop the loop on exception or leave it commented to retry
-               // throw $e;
-           });
-       };
-       $loop->futureTick($main);
+           }
+       });
    }
 
 watchTrades
-'''''''''''
+"""""""""""
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    // JavaScript
    if (exchange.has['watchTrades']) {
@@ -693,7 +1264,7 @@ watchTrades
        }
    }
 
-.. code:: python
+.. code-block:: Python
 
    # Python
    if exchange.has['watchTrades']:
@@ -704,45 +1275,43 @@ watchTrades
            except Exception as e:
                print(e)
                # stop the loop on exception or leave it commented to retry
-               # rasie e
+               # raise e
 
-.. code:: php
+.. code-block:: PHP
 
    // PHP
    if ($exchange->has['watchTrades']) {
-       $main = function () use (&$exchange, &$main, $symbol, $since, $limit, $params) {
-           $exchange->watch_trades($symbol, $since, $limit, $params)->then(function($trades) use (&$main) {
-               echo date('c'), ' ', json_encode($trades), "\n";
-               $main();
-           })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e), ' ', $e->getMessage (), "\n";
-               $main();
-               // stop the loop on exception or leave it commented to retry
-               // throw $e;
-           });
-       };
-       $loop->futureTick($main);
+       $exchange::execute_and_run(function() use ($exchange, $symbol, $since, $limit, $params) {
+           while (true) {
+               try {
+                   $trades = yield $exchange->watch_trades($symbol, $since, $limit, $params);
+                   echo date('c'), ' ', json_encode($trades), "\n";
+               } catch (Exception $e) {
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
+               }
+           }
+       });
    }
 
 Private Methods
-~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^
 
-.. code:: diff
+.. code-block:: diff
 
    - work in progress now
 
 Authentication
-^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~
 
 In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See `API Keys Setup <https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup>`__ for more details.
 
 Trading
-^^^^^^^
+~~~~~~~
 
 watchBalance
-''''''''''''
+""""""""""""
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    // JavaScript
    if (exchange.has['watchBalance']) {
@@ -758,7 +1327,7 @@ watchBalance
        }
    }
 
-.. code:: python
+.. code-block:: Python
 
    # Python
    if exchange.has['watchBalance']:
@@ -769,76 +1338,74 @@ watchBalance
            except Exception as e:
                print(e)
                # stop the loop on exception or leave it commented to retry
-               # rasie e
+               # raise e
 
-.. code:: php
+.. code-block:: PHP
 
    // PHP
    if ($exchange->has['watchBalance']) {
-       $main = function () use (&$exchange, &$main, $params) {
-           $exchange->watch_balance($params)->then(function($balance) use (&$main) {
-               echo date('c'), ' ', json_encode($balance), "\n";
-               $main();
-           })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e), ' ', $e->getMessage (), "\n";
-               $main();
-               // stop the loop on exception or leave it commented to retry
-               // throw $e;
-           });
-       };
-       $loop->futureTick($main);
+       $exchange::execute_and_run(function() use ($exchange, $params) {
+           while (true) {
+               try {
+                   $balance = yield $exchange->watch_balance($params);
+                   echo date('c'), ' ', json_encode($balance), "\n";
+               } catch (Exception $e) {
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
+               }
+           }
+       });
    }
 
 watchOrders
-'''''''''''
+"""""""""""
 
-.. code:: diff
+.. code-block:: diff
 
    - this method is a work in progress now (may be unavailable)
 
 watchCreateOrder
-''''''''''''''''
+""""""""""""""""
 
-.. code:: diff
+.. code-block:: diff
 
    - this method is a work in progress now (may be unavailable)
 
 watchCancelOrder
-''''''''''''''''
+""""""""""""""""
 
-.. code:: diff
+.. code-block:: diff
 
    - this method is a work in progress now (may be unavailable)
 
 watchMyTrades
-'''''''''''''
+"""""""""""""
 
-.. code:: diff
+.. code-block:: diff
 
    - this method is a work in progress now (may be unavailable)
 
-.. code:: javascript
+.. code-block:: JavaScript
 
    // JavaScript
    watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
 
-.. code:: python
+.. code-block:: Python
 
    # Python
    watch_my_trades(symbol=None, since=None, limit=None, params={})
 
-.. code:: php
+.. code-block:: PHP
 
    // PHP
    watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 
 Funding
-^^^^^^^
+~~~~~~~
 
 watchTransactions
-'''''''''''''''''
+"""""""""""""""""
 
-.. code:: diff
+.. code-block:: diff
 
    - this method is a work in progress now (may be unavailable)
 
