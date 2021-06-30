@@ -796,7 +796,8 @@ module.exports = class phemex extends Exchange {
     }
 
     toEn (n, scale) {
-        const precise = new Precise (n);
+        const stringN = n.toString ();
+        const precise = new Precise (stringN);
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
         const stringValue = precise.toString ();
