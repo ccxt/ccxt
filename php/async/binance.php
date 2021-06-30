@@ -1094,8 +1094,8 @@ class binance extends Exchange {
             $precision = array(
                 'base' => $this->safe_integer($market, 'baseAssetPrecision'),
                 'quote' => $this->safe_integer($market, 'quotePrecision'),
-                'amount' => $this->safe_integer($market, 'baseAssetPrecision'),
-                'price' => $this->safe_integer($market, 'quotePrecision'),
+                'amount' => $this->safe_integer($market, 'quantityPrecision'),
+                'price' => $this->safe_integer($market, 'pricePrecision'),
             );
             $status = $this->safe_string_2($market, 'status', 'contractStatus');
             $active = ($status === 'TRADING');
@@ -1104,6 +1104,10 @@ class binance extends Exchange {
             if ($future || $delivery) {
                 $contractSize = $this->safe_string($market, 'contractSize', '1');
             }
+            $isSpot = (($type === 'spot') || ($type === 'margin'));
+            $fees = $isSpot ? $this->fees : $this->fees[$type];
+            $maker = $fees['trading']['maker'];
+            $taker = $fees['trading']['taker'];
             $entry = array(
                 'id' => $id,
                 'lowercaseId' => $lowercaseId,
@@ -1125,9 +1129,11 @@ class binance extends Exchange {
                 'active' => $active,
                 'precision' => $precision,
                 'contractSize' => $contractSize,
+                'maker' => $maker,
+                'taker' => $taker,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => null,
                         'max' => null,
                     ),
                     'price' => array(
