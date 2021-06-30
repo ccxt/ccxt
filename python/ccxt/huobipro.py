@@ -103,7 +103,8 @@ class huobipro(Exchange):
             'api': {
                 'v2Public': {
                     'get': [
-                        'reference/currencies',
+                        'reference/currencies',  # 币链参考信息
+                        'market-status',  # 获取当前市场状态
                     ],
                 },
                 'v2Private': {
@@ -112,6 +113,7 @@ class huobipro(Exchange):
                         'account/withdraw/quota',
                         'account/withdraw/address',  # 提币地址查询(限母用户可用)
                         'account/deposit/address',
+                        'account/repayment',  # 还币交易记录查询
                         'reference/transact-fee-rate',
                         'account/asset-valuation',  # 获取账户资产估值
                         'point/account',  # 点卡余额查询
@@ -121,9 +123,24 @@ class huobipro(Exchange):
                         'sub-user/deposit-address',  # 子用户充币地址查询
                         'sub-user/query-deposit',  # 子用户充币记录查询
                         'user/api-key',  # 母子用户API key信息查询
+                        'user/uid',  # 母子用户获取用户UID
+                        'algo-orders/opening',  # 查询未触发OPEN策略委托
+                        'algo-orders/history',  # 查询策略委托历史
+                        'algo-orders/specific',  # 查询特定策略委托
+                        'c2c/offers',  # 查询借入借出订单
+                        'c2c/offer',  # 查询特定借入借出订单及其交易记录
+                        'c2c/transactions',  # 查询借入借出交易记录
+                        'c2c/repayment',  # 查询还币交易记录
+                        'c2c/account',  # 查询账户余额
+                        'etp/reference',  # 基础参考信息
+                        'etp/transactions',  # 获取杠杆ETP申赎记录
+                        'etp/transaction',  # 获取特定杠杆ETP申赎记录
+                        'etp/rebalance',  # 获取杠杆ETP调仓记录
+                        'etp/limit',  # 获取ETP持仓限额
                     ],
                     'post': [
                         'account/transfer',
+                        'account/repayment',  # 归还借币（全仓逐仓通用）
                         'point/transfer',  # 点卡划转
                         'sub-user/management',  # 冻结/解冻子用户
                         'sub-user/creation',  # 子用户创建
@@ -132,6 +149,19 @@ class huobipro(Exchange):
                         'sub-user/api-key-generation',  # 子用户API key创建
                         'sub-user/api-key-modification',  # 修改子用户API key
                         'sub-user/api-key-deletion',  # 删除子用户API key
+                        'sub-user/deduct-mode',  # 设置子用户手续费抵扣模式
+                        'algo-orders',  # 策略委托下单
+                        'algo-orders/cancel-all-after',  # 自动撤销订单
+                        'algo-orders/cancellation',  # 策略委托（触发前）撤单
+                        'c2c/offer',  # 借入借出下单
+                        'c2c/cancellation',  # 借入借出撤单
+                        'c2c/cancel-all',  # 撤销所有借入借出订单
+                        'c2c/repayment',  # 还币
+                        'c2c/transfer',  # 资产划转
+                        'etp/creation',  # 杠杆ETP换入
+                        'etp/redemption',  # 杠杆ETP换出
+                        'etp/{transactId}/cancel',  # 杠杆ETP单个撤单
+                        'etp/batch-cancel',  # 杠杆ETP批量撤单
                     ],
                 },
                 'market': {
@@ -143,6 +173,7 @@ class huobipro(Exchange):
                         'history/trade',  # 批量获取最近的交易记录
                         'detail',  # 获取 Market Detail 24小时成交量数据
                         'tickers',
+                        'etp',  # 获取杠杆ETP实时净值
                     ],
                 },
                 'public': {
