@@ -1099,11 +1099,11 @@ module.exports = class binance extends Exchange {
             const active = (status === 'TRADING');
             const margin = this.safeValue (market, 'isMarginTradingAllowed', false);
             let contractSize = undefined;
+            let fees = this.fees;
             if (future || delivery) {
                 contractSize = this.safeString (market, 'contractSize', '1');
+                fees = this.fees[type];
             }
-            const isSpot = ((type === 'spot') || (type === 'margin'));
-            const fees = isSpot ? this.fees : this.fees[type];
             const maker = fees['trading']['maker'];
             const taker = fees['trading']['taker'];
             const entry = {
