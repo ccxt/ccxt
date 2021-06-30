@@ -181,7 +181,7 @@ class lbank(Exchange):
         if market is None:
             marketId = self.safe_string(ticker, 'symbol')
             if marketId in self.markets_by_id:
-                market = self.marketsById[marketId]
+                market = self.markets_by_id[marketId]
                 symbol = market['symbol']
             else:
                 parts = marketId.split('_')
