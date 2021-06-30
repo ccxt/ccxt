@@ -384,3 +384,14 @@ assert (Precise::string_neg('0') === '0');
 assert (Precise::string_neg('-0') === '0');
 assert (Precise::string_neg('-500.1') === '500.1');
 assert (Precise::string_neg('213') === '-213');
+
+assert (Precise::string_mod('57.123', '10') === '7.123');
+assert (Precise::string_mod('18', '6') === '0');
+assert (Precise::string_mod('10.1', '0.5') === '0.1');
+assert (Precise::string_mod('10000000', '5555') === '1000');
+assert (Precise::string_mod('5550', '120') === '30');
+
+assert (Precise::string_pow('10', '2') === '100');
+assert (Precise::string_pow('4', '4') === '256');
+assert (Precise::string_pow('10000', '3') === '1000000000000');
+assert (Precise::string_pow('5', '0') === '1');
