@@ -9,6 +9,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -210,6 +211,7 @@ class stex(Exchange):
                     'Server Error': ExchangeError,  # {"message": "Server Error"}
                     'This feature is only enabled for users verifies by Cryptonomica': PermissionDenied,  # {"success":false,"message":"This feature is only enabled for users verifies by Cryptonomica"}
                     'Too Many Attempts.': DDoSProtection,  # {"message": "Too Many Attempts."}
+                    'Selected Pair is disabled': BadSymbol,  # {"success":false,"message":"Selected Pair is disabled"}
                 },
                 'broad': {
                     'Not enough': InsufficientFunds,  # {"success":false,"message":"Not enough  ETH"}
