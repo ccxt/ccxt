@@ -1097,6 +1097,9 @@ module.exports = class binance extends Exchange {
             if (future || delivery) {
                 contractSize = this.safeString (market, 'contractSize', '1');
             }
+            const fees = ((type === 'spot') || (type === 'margin')) ? this.fees : this.fees[type];
+            const maker = fees['trading']['maker'];
+            const taker = fees['trading']['taker'];
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1118,6 +1121,8 @@ module.exports = class binance extends Exchange {
                 'active': active,
                 'precision': precision,
                 'contractSize': contractSize,
+                'maker': maker,
+                'taker': taker,
                 'limits': {
                     'amount': {
                         'min': undefined,
