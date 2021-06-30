@@ -196,9 +196,9 @@ class exx(Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            if not (id in self.marketsById):
+            if not (id in self.markets_by_id):
                 continue
-            market = self.marketsById[id]
+            market = self.markets_by_id[id]
             symbol = market['symbol']
             ticker = {
                 'date': timestamp,
