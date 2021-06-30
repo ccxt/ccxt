@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1088,8 +1087,8 @@ class binance(Exchange):
             precision = {
                 'base': self.safe_integer(market, 'baseAssetPrecision'),
                 'quote': self.safe_integer(market, 'quotePrecision'),
-                'amount': self.safe_integer(market, 'baseAssetPrecision'),
-                'price': self.safe_integer(market, 'quotePrecision'),
+                'amount': self.safe_integer(market, 'quantityPrecision'),
+                'price': self.safe_integer(market, 'pricePrecision'),
             }
             status = self.safe_string_2(market, 'status', 'contractStatus')
             active = (status == 'TRADING')
@@ -1097,6 +1096,10 @@ class binance(Exchange):
             contractSize = None
             if future or delivery:
                 contractSize = self.safe_string(market, 'contractSize', '1')
+            isSpot = ((type == 'spot') or (type == 'margin'))
+            fees = self.fees if isSpot else self.fees[type]
+            maker = fees['trading']['maker']
+            taker = fees['trading']['taker']
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1118,9 +1121,11 @@ class binance(Exchange):
                 'active': active,
                 'precision': precision,
                 'contractSize': contractSize,
+                'maker': maker,
+                'taker': taker,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': None,
                         'max': None,
                     },
                     'price': {

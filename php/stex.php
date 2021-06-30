@@ -205,6 +205,7 @@ class stex extends Exchange {
                     'Server Error' => '\\ccxt\\ExchangeError', // array( "message" => "Server Error" )
                     'This feature is only enabled for users verifies by Cryptonomica' => '\\ccxt\\PermissionDenied', // array("success":false,"message":"This feature is only enabled for users verifies by Cryptonomica")
                     'Too Many Attempts.' => '\\ccxt\\DDoSProtection', // array( "message" => "Too Many Attempts." )
+                    'Selected Pair is disabled' => '\\ccxt\\BadSymbol', // array("success":false,"message":"Selected Pair is disabled")
                 ),
                 'broad' => array(
                     'Not enough' => '\\ccxt\\InsufficientFunds', // array("success":false,"message":"Not enough  ETH")

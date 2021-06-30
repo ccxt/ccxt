@@ -1092,8 +1092,8 @@ module.exports = class binance extends Exchange {
             const precision = {
                 'base': this.safeInteger (market, 'baseAssetPrecision'),
                 'quote': this.safeInteger (market, 'quotePrecision'),
-                'amount': this.safeInteger (market, 'baseAssetPrecision'),
-                'price': this.safeInteger (market, 'quotePrecision'),
+                'amount': this.safeInteger (market, 'quantityPrecision'),
+                'price': this.safeInteger (market, 'pricePrecision'),
             };
             const status = this.safeString2 (market, 'status', 'contractStatus');
             const active = (status === 'TRADING');
@@ -1102,6 +1102,10 @@ module.exports = class binance extends Exchange {
             if (future || delivery) {
                 contractSize = this.safeString (market, 'contractSize', '1');
             }
+            const isSpot = ((type === 'spot') || (type === 'margin'));
+            const fees = isSpot ? this.fees : this.fees[type];
+            const maker = fees['trading']['maker'];
+            const taker = fees['trading']['taker'];
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1123,9 +1127,11 @@ module.exports = class binance extends Exchange {
                 'active': active,
                 'precision': precision,
                 'contractSize': contractSize,
+                'maker': maker,
+                'taker': taker,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OrderNotFound, PermissionDenied, BadRequest, DDoSProtection } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OrderNotFound, PermissionDenied, BadRequest, BadSymbol, DDoSProtection } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -202,6 +202,7 @@ module.exports = class stex extends Exchange {
                     'Server Error': ExchangeError, // { "message": "Server Error" }
                     'This feature is only enabled for users verifies by Cryptonomica': PermissionDenied, // {"success":false,"message":"This feature is only enabled for users verifies by Cryptonomica"}
                     'Too Many Attempts.': DDoSProtection, // { "message": "Too Many Attempts." }
+                    'Selected Pair is disabled': BadSymbol, // {"success":false,"message":"Selected Pair is disabled"}
                 },
                 'broad': {
                     'Not enough': InsufficientFunds, // {"success":false,"message":"Not enough  ETH"}
