@@ -113,6 +113,7 @@ class yobit(Exchange):
                 'BOT': 'BOTcoin',
                 'BON': 'BONES',
                 'BPC': 'BitcoinPremium',
+                'BST': 'BitStone',
                 'BTS': 'Bitshares2',
                 'CAT': 'BitClave',
                 'CBC': 'CryptoBossCoin',
