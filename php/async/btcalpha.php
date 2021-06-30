@@ -201,7 +201,7 @@ class btcalpha extends Exchange {
     public function parse_trade($trade, $market = null) {
         $symbol = null;
         if ($market === null) {
-            $market = $this->safe_value($this->marketsById, $trade['pair']);
+            $market = $this->safe_value($this->markets_by_id, $trade['pair']);
         }
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -320,7 +320,7 @@ class btcalpha extends Exchange {
     public function parse_order($order, $market = null) {
         $symbol = null;
         if ($market === null) {
-            $market = $this->safe_value($this->marketsById, $order['pair']);
+            $market = $this->safe_value($this->markets_by_id, $order['pair']);
         }
         if ($market !== null) {
             $symbol = $market['symbol'];

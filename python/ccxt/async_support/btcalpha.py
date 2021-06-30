@@ -193,7 +193,7 @@ class btcalpha(Exchange):
     def parse_trade(self, trade, market=None):
         symbol = None
         if market is None:
-            market = self.safe_value(self.marketsById, trade['pair'])
+            market = self.safe_value(self.markets_by_id, trade['pair'])
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_timestamp(trade, 'timestamp')
@@ -299,7 +299,7 @@ class btcalpha(Exchange):
     def parse_order(self, order, market=None):
         symbol = None
         if market is None:
-            market = self.safe_value(self.marketsById, order['pair'])
+            market = self.safe_value(self.markets_by_id, order['pair'])
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_timestamp(order, 'date')
