@@ -1084,17 +1084,11 @@ module.exports = class binance extends Exchange {
             }
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
-            const basePrecisionString = this.safeString (market, 'baseAssetPrecision');
-            const quotePrecisionString = this.safeString (market, 'quotePrecision');
-            const basePrecision = parseInt (basePrecisionString);
-            const quotePrecision = parseInt (quotePrecisionString);
-            const costPrecisionString = Precise.stringAdd (basePrecisionString, quotePrecisionString);
-            const amountLimit = this.parseNumber (this.parsePrecision (basePrecisionString));
-            const priceLimit = this.parseNumber (this.parsePrecision (quotePrecisionString));
-            const costLimit = this.parseNumber (this.parsePrecision (costPrecisionString));
             const precision = {
-                'amount': basePrecision,
-                'price': quotePrecision,
+                'base': this.safeInteger (market, 'baseAssetPrecision'),
+                'quote': this.safeInteger (market, 'quotePrecision'),
+                'amount': this.safeInteger (market, 'quantityPrecision'),
+                'price': this.safeInteger (market, 'pricePrecision'),
             };
             const status = this.safeString2 (market, 'status', 'contractStatus');
             const active = (status === 'TRADING');
@@ -1126,15 +1120,15 @@ module.exports = class binance extends Exchange {
                 'contractSize': contractSize,
                 'limits': {
                     'amount': {
-                        'min': amountLimit,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': priceLimit,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': costLimit,
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
