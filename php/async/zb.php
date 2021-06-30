@@ -567,10 +567,10 @@ class zb extends Exchange {
         $response = yield $this->publicGetAllTicker ($params);
         $result = array();
         $anotherMarketsById = array();
-        $marketIds = is_array($this->marketsById) ? array_keys($this->marketsById) : array();
+        $marketIds = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $tickerId = str_replace('_', '', $marketIds[$i]);
-            $anotherMarketsById[$tickerId] = $this->marketsById[$marketIds[$i]];
+            $anotherMarketsById[$tickerId] = $this->markets_by_id[$marketIds[$i]];
         }
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {

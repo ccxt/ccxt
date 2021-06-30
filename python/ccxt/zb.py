@@ -562,10 +562,10 @@ class zb(Exchange):
         response = self.publicGetAllTicker(params)
         result = {}
         anotherMarketsById = {}
-        marketIds = list(self.marketsById.keys())
+        marketIds = list(self.markets_by_id.keys())
         for i in range(0, len(marketIds)):
             tickerId = marketIds[i].replace('_', '')
-            anotherMarketsById[tickerId] = self.marketsById[marketIds[i]]
+            anotherMarketsById[tickerId] = self.markets_by_id[marketIds[i]]
         ids = list(response.keys())
         for i in range(0, len(ids)):
             market = anotherMarketsById[ids[i]]
