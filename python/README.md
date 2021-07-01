@@ -17,7 +17,7 @@ Current feature list:
 - fully implemented public and private APIs
 - optional normalized data for cross-exchange analytics and arbitrage
 - an out of the box unified API that is extremely easy to integrate
-- works in Node 7.6+, Python 3, PHP 5.4+, and web browsers
+- works in Node 10.4+, Python 3, PHP 5.4+, and web browsers
 
 ## Sponsored Promotion
 
@@ -217,13 +217,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.52.28/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.52.28/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.52.29/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.52.29/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.52.28/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.52.29/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
