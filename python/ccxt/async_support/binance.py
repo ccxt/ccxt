@@ -1099,10 +1099,10 @@ class binance(Exchange):
             active = (status == 'TRADING')
             margin = self.safe_value(market, 'isMarginTradingAllowed', False)
             contractSize = None
+            fees = self.fees
             if future or delivery:
                 contractSize = self.safe_string(market, 'contractSize', '1')
-            isSpot = ((type == 'spot') or (type == 'margin'))
-            fees = self.fees if isSpot else self.fees[type]
+                fees = self.fees[type]
             maker = fees['trading']['maker']
             taker = fees['trading']['taker']
             entry = {

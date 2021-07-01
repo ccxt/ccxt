@@ -1106,11 +1106,11 @@ class binance extends Exchange {
             $active = ($status === 'TRADING');
             $margin = $this->safe_value($market, 'isMarginTradingAllowed', false);
             $contractSize = null;
+            $fees = $this->fees;
             if ($future || $delivery) {
                 $contractSize = $this->safe_string($market, 'contractSize', '1');
+                $fees = $this->fees[$type];
             }
-            $isSpot = (($type === 'spot') || ($type === 'margin'));
-            $fees = $isSpot ? $this->fees : $this->fees[$type];
             $maker = $fees['trading']['maker'];
             $taker = $fees['trading']['taker'];
             $entry = array(
