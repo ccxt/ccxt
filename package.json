@@ -5,7 +5,7 @@
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
   "engines": {
-    "node": ">=7.6.0"
+    "node": ">=10.4.0"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.com"
