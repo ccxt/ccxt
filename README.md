@@ -17,7 +17,7 @@ Current feature list:
 - fully implemented public and private APIs
 - optional normalized data for cross-exchange analytics and arbitrage
 - an out of the box unified API that is extremely easy to integrate
-- works in Node 7.6+, Python 3, PHP 5.4+, and web browsers
+- works in Node 10.4+, Python 3, PHP 5.4+, and web browsers
 
 ## Sponsored Promotion
 
