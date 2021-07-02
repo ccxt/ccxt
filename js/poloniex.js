@@ -1148,13 +1148,13 @@ module.exports = class poloniex extends Exchange {
         }
         const firstTrade = trades[0];
         const lastTradePos = trades.length - 1;
-        const timestamp = this.safeValue (firstTrade, 'timestamp');
-        const lastTradeTimestamp = this.safeValue (trades[lastTradePos], 'timestamp');
+        const timestamp = this.safeNumber (firstTrade, 'timestamp');
+        const lastTradeTimestamp = this.safeNumber (trades[lastTradePos], 'timestamp');
         let filled = 0;
         let cost = 0;
         for (let i = 0; i < trades.length; i++) {
-            filled += this.safeValue (trades[i], 'amount');
-            cost += this.safeValue (trades[i], 'cost');
+            filled += this.safeNumber (trades[i], 'amount', 0);
+            cost += this.safeNumber (trades[i], 'cost', 0);
         }
         let average = undefined;
         let price = undefined;
@@ -1170,11 +1170,11 @@ module.exports = class poloniex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': 'closed',
-            'symbol': this.safeValue (firstTrade, 'symbol', symbol),
-            'type': this.safeValue (firstTrade, 'type'),
+            'symbol': this.safeString (firstTrade, 'symbol', symbol),
+            'type': this.safeString (firstTrade, 'type'),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': this.safeValue (firstTrade, 'side'),
+            'side': this.safeString (firstTrade, 'side'),
             'price': price,
             'stopPrice': undefined,
             'cost': cost,
