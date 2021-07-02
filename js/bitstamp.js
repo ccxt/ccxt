@@ -93,6 +93,8 @@ module.exports = class bitstamp extends Exchange {
                         'open_orders/{pair}/',
                         'order_status/',
                         'cancel_order/',
+                        'cancel_all_orders/',
+                        'cancel_all_orders/{pair}/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
                         'buy/instant/{pair}/',
@@ -926,6 +928,19 @@ module.exports = class bitstamp extends Exchange {
             'id': id,
         };
         return await this.privatePostCancelOrder (this.extend (request, params));
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        let method = 'privatePostCancelAllOrders';
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+            method = 'privatePostCancelAllOrdersPair';
+        }
+        return await this[method] (this.extend (request, params));
     }
 
     parseOrderStatus (status) {
