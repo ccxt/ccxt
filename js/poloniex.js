@@ -617,6 +617,17 @@ module.exports = class poloniex extends Exchange {
                     'rate': feeRate,
                 };
             }
+        } else {
+            const feeCost = this.safeNumber (trade, 'fee');
+            if (feeCost !== undefined && market !== undefined) {
+                const feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+                const feeBase = (side === 'buy') ? amount : cost;
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrencyCode,
+                    'rate': feeCost / feeBase,
+                };
+            }
         }
         let takerOrMaker = undefined;
         const takerAdjustment = this.safeNumber (trade, 'takerAdjustment');
