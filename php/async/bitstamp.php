@@ -24,6 +24,7 @@ class bitstamp extends Exchange {
             'pro' => true,
             'has' => array(
                 'CORS' => true,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -98,6 +99,8 @@ class bitstamp extends Exchange {
                         'open_orders/{pair}/',
                         'order_status/',
                         'cancel_order/',
+                        'cancel_all_orders/',
+                        'cancel_all_orders/{pair}/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
                         'buy/instant/{pair}/',
@@ -931,6 +934,19 @@ class bitstamp extends Exchange {
             'id' => $id,
         );
         return yield $this->privatePostCancelOrder (array_merge($request, $params));
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        $market = null;
+        $request = array();
+        $method = 'privatePostCancelAllOrders';
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['pair'] = $market['id'];
+            $method = 'privatePostCancelAllOrdersPair';
+        }
+        return yield $this->$method (array_merge($request, $params));
     }
 
     public function parse_order_status($status) {

@@ -39,6 +39,7 @@ class bitstamp(Exchange):
             'pro': True,
             'has': {
                 'CORS': True,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -113,6 +114,8 @@ class bitstamp(Exchange):
                         'open_orders/{pair}/',
                         'order_status/',
                         'cancel_order/',
+                        'cancel_all_orders/',
+                        'cancel_all_orders/{pair}/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
                         'buy/instant/{pair}/',
@@ -881,6 +884,17 @@ class bitstamp(Exchange):
             'id': id,
         }
         return await self.privatePostCancelOrder(self.extend(request, params))
+
+    async def cancel_all_orders(self, symbol=None, params={}):
+        await self.load_markets()
+        market = None
+        request = {}
+        method = 'privatePostCancelAllOrders'
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+            method = 'privatePostCancelAllOrdersPair'
+        return await getattr(self, method)(self.extend(request, params))
 
     def parse_order_status(self, status):
         statuses = {
