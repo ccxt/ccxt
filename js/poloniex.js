@@ -202,6 +202,7 @@ module.exports = class poloniex extends Exchange {
                     'Invalid currency pair.': BadSymbol, // {"error":"Invalid currency pair."}
                     'Invalid currencyPair parameter.': BadSymbol, // {"error":"Invalid currencyPair parameter."}
                     'Trading is disabled in this market.': BadSymbol, // {"error":"Trading is disabled in this market."}
+                    'Invalid orderNumber parameter.': OrderNotFound,
                 },
                 'broad': {
                     'Total must be at least': InvalidOrder, // {"error":"Total must be at least 0.0001."}
