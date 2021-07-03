@@ -150,8 +150,8 @@ class zb extends Exchange {
                 'doc' => 'https://www.zb.com/i/developer',
                 'fees' => 'https://www.zb.com/i/rate',
                 'referral' => array(
-                    'url' => 'https://www.zbex.club/en/register?ref=1625gesp',
-                    'discount' => 0.06,
+                    'url' => 'https://www.zbex.club/en/register?ref=4301lera',
+                    'discount' => 0.16,
                 ),
             ),
             'api' => array(
