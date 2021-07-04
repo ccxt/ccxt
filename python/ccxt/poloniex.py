@@ -40,6 +40,7 @@ class poloniex(Exchange):
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchClosedOrder': 'emulated',
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -217,6 +218,7 @@ class poloniex(Exchange):
                     'Invalid currency pair.': BadSymbol,  # {"error":"Invalid currency pair."}
                     'Invalid currencyPair parameter.': BadSymbol,  # {"error":"Invalid currencyPair parameter."}
                     'Trading is disabled in self market.': BadSymbol,  # {"error":"Trading is disabled in self market."}
+                    'Invalid orderNumber parameter.': OrderNotFound,
                 },
                 'broad': {
                     'Total must be at least': InvalidOrder,  # {"error":"Total must be at least 0.0001."}
@@ -595,6 +597,16 @@ class poloniex(Exchange):
                     'cost': feeCost,
                     'currency': feeCurrencyCode,
                     'rate': feeRate,
+                }
+        else:
+            feeCost = self.safe_number(trade, 'fee')
+            if feeCost is not None and market is not None:
+                feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
+                feeBase = amount if (side == 'buy') else cost
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrencyCode,
+                    'rate': Precise.string_div(feeCost, feeBase),
                 }
         takerOrMaker = None
         takerAdjustment = self.safe_number(trade, 'takerAdjustment')
@@ -1050,6 +1062,59 @@ class poloniex(Exchange):
         if result is None:
             raise OrderNotFound(self.id + ' order id ' + id + ' not found')
         return self.parse_order(result)
+
+    def fetch_closed_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        request = {
+            'orderNumber': id,
+        }
+        response = self.privatePostReturnOrderTrades(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "globalTradeID":570264000,
+        #             "tradeID":8026283,
+        #             "currencyPair":"USDT_LTC",
+        #             "type":"sell",
+        #             "rate":"144.73833409",
+        #             "amount":"0.18334460",
+        #             "total":"26.53699196",
+        #             "fee":"0.00155000",
+        #             "date":"2021-07-04 15:16:20"
+        #         }
+        #     ]
+        #
+        trades = self.parse_trades(response)
+        firstTrade = self.safe_value(trades, 0)
+        if firstTrade is None:
+            raise OrderNotFound(self.id + ' order id ' + id + ' not found')
+        symbol = self.safe_string(firstTrade, 'symbol', symbol)
+        side = self.safe_string(firstTrade, 'side')
+        timestamp = self.safe_number(firstTrade, 'timestamp')
+        id = self.safe_value(firstTrade['info'], 'globalTradeID', id)
+        return self.safe_order({
+            'info': response,
+            'id': id,
+            'clientOrderId': self.safe_value(firstTrade, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'status': 'closed',
+            'symbol': symbol,
+            'type': self.safe_string(firstTrade, 'type'),
+            'timeInForce': None,
+            'postOnly': None,
+            'side': side,
+            'price': None,
+            'stopPrice': None,
+            'cost': None,
+            'average': None,
+            'amount': None,
+            'filled': None,
+            'remaining': None,
+            'trades': trades,
+            'fee': None,
+        })
 
     def fetch_order_status(self, id, symbol=None, params={}):
         self.load_markets()

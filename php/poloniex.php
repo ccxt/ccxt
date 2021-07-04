@@ -27,6 +27,7 @@ class poloniex extends Exchange {
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchClosedOrder' => 'emulated',
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
@@ -204,6 +205,7 @@ class poloniex extends Exchange {
                     'Invalid currency pair.' => '\\ccxt\\BadSymbol', // array("error":"Invalid currency pair.")
                     'Invalid currencyPair parameter.' => '\\ccxt\\BadSymbol', // array("error":"Invalid currencyPair parameter.")
                     'Trading is disabled in this market.' => '\\ccxt\\BadSymbol', // array("error":"Trading is disabled in this market.")
+                    'Invalid orderNumber parameter.' => '\\ccxt\\OrderNotFound',
                 ),
                 'broad' => array(
                     'Total must be at least' => '\\ccxt\\InvalidOrder', // array("error":"Total must be at least 0.0001.")
@@ -615,6 +617,17 @@ class poloniex extends Exchange {
                     'cost' => $feeCost,
                     'currency' => $feeCurrencyCode,
                     'rate' => $feeRate,
+                );
+            }
+        } else {
+            $feeCost = $this->safe_number($trade, 'fee');
+            if ($feeCost !== null && $market !== null) {
+                $feeCurrencyCode = ($side === 'buy') ? $market['base'] : $market['quote'];
+                $feeBase = ($side === 'buy') ? $amount : $cost;
+                $fee = array(
+                    'cost' => $feeCost,
+                    'currency' => $feeCurrencyCode,
+                    'rate' => Precise::string_div($feeCost, $feeBase),
                 );
             }
         }
@@ -1123,6 +1136,61 @@ class poloniex extends Exchange {
             throw new OrderNotFound($this->id . ' order $id ' . $id . ' not found');
         }
         return $this->parse_order($result);
+    }
+
+    public function fetch_closed_order($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'orderNumber' => $id,
+        );
+        $response = $this->privatePostReturnOrderTrades (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "globalTradeID":570264000,
+        //             "tradeID":8026283,
+        //             "currencyPair":"USDT_LTC",
+        //             "type":"sell",
+        //             "rate":"144.73833409",
+        //             "amount":"0.18334460",
+        //             "total":"26.53699196",
+        //             "fee":"0.00155000",
+        //             "date":"2021-07-04 15:16:20"
+        //         }
+        //     )
+        //
+        $trades = $this->parse_trades($response);
+        $firstTrade = $this->safe_value($trades, 0);
+        if ($firstTrade === null) {
+            throw new OrderNotFound($this->id . ' order $id ' . $id . ' not found');
+        }
+        $symbol = $this->safe_string($firstTrade, 'symbol', $symbol);
+        $side = $this->safe_string($firstTrade, 'side');
+        $timestamp = $this->safe_number($firstTrade, 'timestamp');
+        $id = $this->safe_value($firstTrade['info'], 'globalTradeID', $id);
+        return $this->safe_order(array(
+            'info' => $response,
+            'id' => $id,
+            'clientOrderId' => $this->safe_value($firstTrade, 'clientOrderId'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
+            'status' => 'closed',
+            'symbol' => $symbol,
+            'type' => $this->safe_string($firstTrade, 'type'),
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => $side,
+            'price' => null,
+            'stopPrice' => null,
+            'cost' => null,
+            'average' => null,
+            'amount' => null,
+            'filled' => null,
+            'remaining' => null,
+            'trades' => $trades,
+            'fee' => null,
+        ));
     }
 
     public function fetch_order_status($id, $symbol = null, $params = array ()) {
