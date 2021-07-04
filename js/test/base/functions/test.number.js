@@ -63,6 +63,7 @@ assert (numberToString (17.805e-7) === '0.0000017805');
 assert (numberToString (-7.0005e27) === '-7000500000000000000000000000');
 assert (numberToString (7.0005e27) === '7000500000000000000000000000');
 assert (numberToString (-7.9e27) === '-7900000000000000000000000000');
+assert (numberToString (7e27) === '7000000000000000000000000000');
 assert (numberToString (7.9e27) === '7900000000000000000000000000');
 assert (numberToString (-12.345) === '-12.345');
 assert (numberToString (12.345) === '12.345');
