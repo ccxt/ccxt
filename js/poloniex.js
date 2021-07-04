@@ -625,7 +625,7 @@ module.exports = class poloniex extends Exchange {
                 fee = {
                     'cost': feeCost,
                     'currency': feeCurrencyCode,
-                    'rate': feeCost / feeBase,
+                    'rate': Precise.stringDiv (feeCost, feeBase),
                 };
             }
         }
