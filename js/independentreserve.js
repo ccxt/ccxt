@@ -112,7 +112,7 @@ module.exports = class independentreserve extends Exchange {
         for (let i = 0; i < baseCurrencies.length; i++) {
             const baseId = baseCurrencies[i];
             const base = this.safeCurrencyCode (baseId);
-            const limit = this.safeNumber (limits, baseId);
+            const minAmount = this.safeNumber (limits, baseId);
             for (let j = 0; j < quoteCurrencies.length; j++) {
                 const quoteId = quoteCurrencies[j];
                 const quote = this.safeCurrencyCode (quoteId);
@@ -129,7 +129,7 @@ module.exports = class independentreserve extends Exchange {
                     'active': undefined,
                     'precision': this.precision,
                     'limits': {
-                        'amount': { 'min': limit, 'max': undefined },
+                        'amount': { 'min': minAmount, 'max': undefined },
                     },
                 });
             }
