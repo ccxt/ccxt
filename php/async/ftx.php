@@ -1517,9 +1517,6 @@ class ftx extends Exchange {
         if ($marketId !== null) {
             $request['market'] = $marketId;
         }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
         if ($since !== null) {
             $request['start_time'] = intval($since / 1000);
             $request['end_time'] = $this->seconds();

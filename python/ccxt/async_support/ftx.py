@@ -1467,8 +1467,6 @@ class ftx(Exchange):
         request = {}
         if marketId is not None:
             request['market'] = marketId
-        if limit is not None:
-            request['limit'] = limit
         if since is not None:
             request['start_time'] = int(since / 1000)
             request['end_time'] = self.seconds()
