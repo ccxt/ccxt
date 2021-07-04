@@ -1621,7 +1621,7 @@ class bybit(Exchange):
             defaultMethod = 'futuresPrivateGetOrderList'
         query = params
         if ('stop_order_id' in params) or ('stop_order_status' in params):
-            stopOrderStatus = self.safe_value(params, 'stopOrderStatus')
+            stopOrderStatus = self.safe_value(params, 'stop_order_status')
             if stopOrderStatus is not None:
                 if isinstance(stopOrderStatus, list):
                     stopOrderStatus = ','.join(stopOrderStatus)

@@ -1699,7 +1699,7 @@ class bybit extends Exchange {
         }
         $query = $params;
         if ((is_array($params) && array_key_exists('stop_order_id', $params)) || (is_array($params) && array_key_exists('stop_order_status', $params))) {
-            $stopOrderStatus = $this->safe_value($params, 'stopOrderStatus');
+            $stopOrderStatus = $this->safe_value($params, 'stop_order_status');
             if ($stopOrderStatus !== null) {
                 if (gettype($stopOrderStatus) === 'array' && count(array_filter(array_keys($stopOrderStatus), 'is_string')) == 0) {
                     $stopOrderStatus = implode(',', $stopOrderStatus);
