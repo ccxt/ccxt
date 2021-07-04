@@ -25,7 +25,7 @@ module.exports = class poloniex extends Exchange {
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchClosedOrder': true,
+                'fetchClosedOrder': 'emulated',
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -1142,68 +1142,53 @@ module.exports = class poloniex extends Exchange {
             'orderNumber': id,
         };
         const response = await this.privatePostReturnOrderTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "globalTradeID":570264000,
+        //             "tradeID":8026283,
+        //             "currencyPair":"USDT_LTC",
+        //             "type":"sell",
+        //             "rate":"144.73833409",
+        //             "amount":"0.18334460",
+        //             "total":"26.53699196",
+        //             "fee":"0.00155000",
+        //             "date":"2021-07-04 15:16:20"
+        //         }
+        //     ]
+        //
         const trades = this.parseTrades (response);
-        if (trades.length === 0) {
+        const firstTrade = this.safeValue (trades, 0);
+        if (firstTrade === undefined) {
             throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
         }
-        const firstTrade = trades[0];
         symbol = this.safeString (firstTrade, 'symbol', symbol);
-        const market = this.market (symbol);
         const side = this.safeString (firstTrade, 'side');
-        const lastTradePos = trades.length - 1;
         const timestamp = this.safeNumber (firstTrade, 'timestamp');
-        const lastTradeTimestamp = this.safeNumber (trades[lastTradePos], 'timestamp');
-        let filled = 0;
-        let cost = 0;
-        let feeTotal = 0;
-        let feeCurrency = this.safeString (firstTrade['fee'], 'currency');
-        for (let i = 0; i < trades.length; i++) {
-            filled += this.safeNumber (trades[i], 'amount', 0);
-            cost += this.safeNumber (trades[i], 'cost', 0);
-            if (feeCurrency !== this.safeString (trades[i]['fee'], 'currency')) {
-                feeCurrency = undefined;
-            } else {
-                feeTotal += this.safeNumber (trades[i]['fee'], 'cost', 0);
-            }
-        }
-        let average = undefined;
-        let price = undefined;
-        if ((filled !== undefined) && (cost !== undefined) && (filled > 0)) {
-            average = cost / filled;
-            price = average;
-        }
-        let fee = undefined;
-        if (feeCurrency !== undefined && market !== undefined) {
-            const feeBase = (side === 'buy') ? filled : cost;
-            fee = {
-                'cost': feeTotal,
-                'currency': feeCurrency,
-                'rate': feeTotal / feeBase,
-            };
-        }
-        return {
+        id = this.safeValue (firstTrade['info'], 'globalTradeID', id);
+        return this.safeOrder ({
             'info': response,
-            'id': this.safeValue (response[0], 'globalTradeID', id),
+            'id': id,
             'clientOrderId': this.safeValue (firstTrade, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'status': 'closed',
             'symbol': symbol,
             'type': this.safeString (firstTrade, 'type'),
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': price,
+            'price': undefined,
             'stopPrice': undefined,
-            'cost': cost,
-            'average': average,
+            'cost': undefined,
+            'average': undefined,
             'amount': undefined,
-            'filled': filled,
+            'filled': undefined,
             'remaining': undefined,
             'trades': trades,
-            'fee': fee,
-        };
+            'fee': undefined,
+        });
     }
 
     async fetchOrderStatus (id, symbol = undefined, params = {}) {
