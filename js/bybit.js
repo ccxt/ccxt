@@ -1698,7 +1698,7 @@ module.exports = class bybit extends Exchange {
         }
         let query = params;
         if (('stop_order_id' in params) || ('stop_order_status' in params)) {
-            let stopOrderStatus = this.safeValue (params, 'stopOrderStatus');
+            let stopOrderStatus = this.safeValue (params, 'stop_order_status');
             if (stopOrderStatus !== undefined) {
                 if (Array.isArray (stopOrderStatus)) {
                     stopOrderStatus = stopOrderStatus.join (',');
