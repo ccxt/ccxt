@@ -1145,7 +1145,7 @@ class bybit extends Exchange {
         //         "cross_seq":-1,
         //         "created_at":"2020-08-21T09:18:48.000Z",
         //         "updated_at":"2020-08-21T09:18:48.000Z",
-        //         "stop_px":12400,
+        //         "trigger_price":12400,
         //         "stop_order_id":"3f3b54b1-3379-42c7-8510-44f4d9915be0"
         //     }
         //
@@ -1194,7 +1194,7 @@ class bybit extends Exchange {
             $clientOrderId = null;
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
-        $stopPrice = $this->safe_number($order, 'stop_px');
+        $stopPrice = $this->safe_number_2($order, 'trigger_price', 'stop_px');
         $postOnly = ($timeInForce === 'PO');
         return $this->safe_order(array(
             'info' => $order,

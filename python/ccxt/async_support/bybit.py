@@ -1119,7 +1119,7 @@ class bybit(Exchange):
         #         "cross_seq":-1,
         #         "created_at":"2020-08-21T09:18:48.000Z",
         #         "updated_at":"2020-08-21T09:18:48.000Z",
-        #         "stop_px":12400,
+        #         "trigger_price":12400,
         #         "stop_order_id":"3f3b54b1-3379-42c7-8510-44f4d9915be0"
         #     }
         #
@@ -1162,7 +1162,7 @@ class bybit(Exchange):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
-        stopPrice = self.safe_number(order, 'stop_px')
+        stopPrice = self.safe_number_2(order, 'trigger_price', 'stop_px')
         postOnly = (timeInForce == 'PO')
         return self.safe_order({
             'info': order,
