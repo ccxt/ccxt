@@ -97,10 +97,22 @@ module.exports = class independentreserve extends Exchange {
     async fetchMarkets (params = {}) {
         const baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes (params);
         const quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes (params);
+        const limits = await this.publicGetGetOrderMinimumVolumes (params);
+        //
+        //     {
+        //         "Xbt": 0.0001,
+        //         "Bch": 0.001,
+        //         "Bsv": 0.001,
+        //         "Eth": 0.001,
+        //         "Ltc": 0.01,
+        //         "Xrp": 1,
+        //     }
+        //
         const result = [];
         for (let i = 0; i < baseCurrencies.length; i++) {
             const baseId = baseCurrencies[i];
             const base = this.safeCurrencyCode (baseId);
+            const limit = this.safeNumber (limits, baseId);
             for (let j = 0; j < quoteCurrencies.length; j++) {
                 const quoteId = quoteCurrencies[j];
                 const quote = this.safeCurrencyCode (quoteId);
@@ -116,7 +128,9 @@ module.exports = class independentreserve extends Exchange {
                     'info': id,
                     'active': undefined,
                     'precision': this.precision,
-                    'limits': this.limits,
+                    'limits': {
+                        'amount': { 'min': limit, 'max': undefined },
+                    },
                 });
             }
         }
