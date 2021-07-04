@@ -1514,9 +1514,6 @@ module.exports = class ftx extends Exchange {
         if (marketId !== undefined) {
             request['market'] = marketId;
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         if (since !== undefined) {
             request['start_time'] = parseInt (since / 1000);
             request['end_time'] = this.seconds ();
