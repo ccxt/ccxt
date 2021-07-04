@@ -1144,7 +1144,7 @@ module.exports = class bybit extends Exchange {
         //         "cross_seq":-1,
         //         "created_at":"2020-08-21T09:18:48.000Z",
         //         "updated_at":"2020-08-21T09:18:48.000Z",
-        //         "stop_px":12400,
+        //         "trigger_price":12400,
         //         "stop_order_id":"3f3b54b1-3379-42c7-8510-44f4d9915be0"
         //     }
         //
@@ -1193,7 +1193,7 @@ module.exports = class bybit extends Exchange {
             clientOrderId = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
-        const stopPrice = this.safeNumber (order, 'stop_px');
+        const stopPrice = this.safeNumber2 (order, 'trigger_price', 'stop_px');
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'info': order,
