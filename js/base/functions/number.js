@@ -60,10 +60,12 @@ function numberToString (x) { // avoids scientific notation for too large and to
         if (parts[1]) {
             let e = parseInt (parts[1])
             const m = parts[0].split ('.')
+            let part = ''
             if (m[1]) {
                 e -= m[1].length
+                part = m[1]
             }
-            return m[0] + m[1] + (new Array (e + 1)).join ('0')
+            return m[0] + part + (new Array (e + 1)).join ('0')
         }
     }
     return s
