@@ -25,6 +25,7 @@ module.exports = class poloniex extends Exchange {
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrder': 'emulated',
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -202,6 +203,7 @@ module.exports = class poloniex extends Exchange {
                     'Invalid currency pair.': BadSymbol, // {"error":"Invalid currency pair."}
                     'Invalid currencyPair parameter.': BadSymbol, // {"error":"Invalid currencyPair parameter."}
                     'Trading is disabled in this market.': BadSymbol, // {"error":"Trading is disabled in this market."}
+                    'Invalid orderNumber parameter.': OrderNotFound,
                 },
                 'broad': {
                     'Total must be at least': InvalidOrder, // {"error":"Total must be at least 0.0001."}
@@ -613,6 +615,17 @@ module.exports = class poloniex extends Exchange {
                     'cost': feeCost,
                     'currency': feeCurrencyCode,
                     'rate': feeRate,
+                };
+            }
+        } else {
+            const feeCost = this.safeNumber (trade, 'fee');
+            if (feeCost !== undefined && market !== undefined) {
+                const feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+                const feeBase = (side === 'buy') ? amount : cost;
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrencyCode,
+                    'rate': feeCost / feeBase,
                 };
             }
         }
@@ -1121,6 +1134,61 @@ module.exports = class poloniex extends Exchange {
             throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
         }
         return this.parseOrder (result);
+    }
+
+    async fetchClosedOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderNumber': id,
+        };
+        const response = await this.privatePostReturnOrderTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "globalTradeID":570264000,
+        //             "tradeID":8026283,
+        //             "currencyPair":"USDT_LTC",
+        //             "type":"sell",
+        //             "rate":"144.73833409",
+        //             "amount":"0.18334460",
+        //             "total":"26.53699196",
+        //             "fee":"0.00155000",
+        //             "date":"2021-07-04 15:16:20"
+        //         }
+        //     ]
+        //
+        const trades = this.parseTrades (response);
+        const firstTrade = this.safeValue (trades, 0);
+        if (firstTrade === undefined) {
+            throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
+        }
+        symbol = this.safeString (firstTrade, 'symbol', symbol);
+        const side = this.safeString (firstTrade, 'side');
+        const timestamp = this.safeNumber (firstTrade, 'timestamp');
+        id = this.safeValue (firstTrade['info'], 'globalTradeID', id);
+        return this.safeOrder ({
+            'info': response,
+            'id': id,
+            'clientOrderId': this.safeValue (firstTrade, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': 'closed',
+            'symbol': symbol,
+            'type': this.safeString (firstTrade, 'type'),
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': undefined,
+            'stopPrice': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'amount': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'trades': trades,
+            'fee': undefined,
+        });
     }
 
     async fetchOrderStatus (id, symbol = undefined, params = {}) {
