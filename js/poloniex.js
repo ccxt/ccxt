@@ -25,6 +25,7 @@ module.exports = class poloniex extends Exchange {
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrder': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -202,6 +203,7 @@ module.exports = class poloniex extends Exchange {
                     'Invalid currency pair.': BadSymbol, // {"error":"Invalid currency pair."}
                     'Invalid currencyPair parameter.': BadSymbol, // {"error":"Invalid currencyPair parameter."}
                     'Trading is disabled in this market.': BadSymbol, // {"error":"Trading is disabled in this market."}
+                    'Invalid orderNumber parameter.': OrderNotFound,
                 },
                 'broad': {
                     'Total must be at least': InvalidOrder, // {"error":"Total must be at least 0.0001."}
@@ -613,6 +615,17 @@ module.exports = class poloniex extends Exchange {
                     'cost': feeCost,
                     'currency': feeCurrencyCode,
                     'rate': feeRate,
+                };
+            }
+        } else {
+            const feeCost = this.safeNumber (trade, 'fee');
+            if (feeCost !== undefined && market !== undefined) {
+                const feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+                const feeBase = (side === 'buy') ? amount : cost;
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrencyCode,
+                    'rate': feeCost / feeBase,
                 };
             }
         }
@@ -1121,6 +1134,76 @@ module.exports = class poloniex extends Exchange {
             throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
         }
         return this.parseOrder (result);
+    }
+
+    async fetchClosedOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderNumber': id,
+        };
+        const response = await this.privatePostReturnOrderTrades (this.extend (request, params));
+        const trades = this.parseTrades (response);
+        if (trades.length === 0) {
+            throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
+        }
+        const firstTrade = trades[0];
+        symbol = this.safeString (firstTrade, 'symbol', symbol);
+        const market = this.market (symbol);
+        const side = this.safeString (firstTrade, 'side');
+        const lastTradePos = trades.length - 1;
+        const timestamp = this.safeNumber (firstTrade, 'timestamp');
+        const lastTradeTimestamp = this.safeNumber (trades[lastTradePos], 'timestamp');
+        let filled = 0;
+        let cost = 0;
+        let feeTotal = 0;
+        let feeCurrency = this.safeString (firstTrade['fee'], 'currency');
+        for (let i = 0; i < trades.length; i++) {
+            filled += this.safeNumber (trades[i], 'amount', 0);
+            cost += this.safeNumber (trades[i], 'cost', 0);
+            if (feeCurrency !== this.safeString (trades[i]['fee'], 'currency')) {
+                feeCurrency = undefined;
+            } else {
+                feeTotal += this.safeNumber (trades[i]['fee'], 'cost', 0);
+            }
+        }
+        let average = undefined;
+        let price = undefined;
+        if ((filled !== undefined) && (cost !== undefined) && (filled > 0)) {
+            average = cost / filled;
+            price = average;
+        }
+        let fee = undefined;
+        if (feeCurrency !== undefined && market !== undefined) {
+            const feeBase = (side === 'buy') ? filled : cost;
+            fee = {
+                'cost': feeTotal,
+                'currency': feeCurrency,
+                'rate': feeTotal / feeBase,
+            };
+        }
+        return {
+            'info': response,
+            'id': this.safeValue (response[0], 'globalTradeID', id),
+            'clientOrderId': this.safeValue (firstTrade, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': 'closed',
+            'symbol': symbol,
+            'type': this.safeString (firstTrade, 'type'),
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'cost': cost,
+            'average': average,
+            'amount': undefined,
+            'filled': filled,
+            'remaining': undefined,
+            'trades': trades,
+            'fee': fee,
+        };
     }
 
     async fetchOrderStatus (id, symbol = undefined, params = {}) {
