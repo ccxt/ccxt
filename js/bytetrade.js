@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, DDoSProtection, BadResponse } = require ('./base/errors');
 const { TRUNCATE, NO_PADDING, DECIMAL_PLACES } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -115,6 +116,9 @@ module.exports = class bytetrade extends Exchange {
                 'verify error': AuthenticationError, // private key signature is incorrect
                 'transaction already in network': BadRequest, // same transaction submited
                 'invalid argument': BadRequest,
+            },
+            'options': {
+                'orderExpiration': 31536000000, // one year
             },
         });
     }
@@ -628,12 +632,15 @@ module.exports = class bytetrade extends Exchange {
         const baseCurrency = this.currency (market['base']);
         const amountTruncated = this.amountToPrecision (symbol, amount);
         const amountChain = this.toWei (amountTruncated, baseCurrency['precision']);
+        const amountChainString = this.numberToString (amountChain);
         const quoteId = market['quoteId'];
         const quoteCurrency = this.currency (market['quote']);
         const priceRounded = this.priceToPrecision (symbol, price);
         const priceChain = this.toWei (priceRounded, quoteCurrency['precision']);
+        const priceChainString = this.numberToString (priceChain);
         const now = this.milliseconds ();
-        const expiration = this.milliseconds ();
+        const expiryDelta = this.safeInteger (this.options, 'orderExpiration', 31536000000);
+        const expiration = this.milliseconds () + expiryDelta;
         let datetime = this.iso8601 (now);
         datetime = datetime.split ('.')[0];
         let expirationDatetime = this.iso8601 (expiration);
@@ -644,7 +651,7 @@ module.exports = class bytetrade extends Exchange {
         const totalFeeRate = this.safeString (params, 'totalFeeRate', 8);
         const chainFeeRate = this.safeString (params, 'chainFeeRate', 1);
         const fee = this.safeString (params, 'fee', defaultFee);
-        const eightBytes = this.integerPow ('2', '64');
+        const eightBytes = Precise.stringPow ('2', '64');
         const allByteStringArray = [
             this.numberToBE (1, 32),
             this.numberToLE (Math.floor (now / 1000), 4),
@@ -660,10 +667,10 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (typeNum, 1),
             this.numberToLE (normalSymbol.length, 1),
             this.stringToBinary (this.encode (normalSymbol)),
-            this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
-            this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
-            this.numberToLE (this.integerDivide (priceChain, eightBytes), 8),
-            this.numberToLE (this.integerModulo (priceChain, eightBytes), 8),
+            this.numberToLE (Precise.stringDiv (amountChainString, eightBytes, 0), 8),
+            this.numberToLE (Precise.stringMod (amountChainString, eightBytes), 8),
+            this.numberToLE (Precise.stringDiv (priceChainString, eightBytes, 0), 8),
+            this.numberToLE (Precise.stringMod (priceChainString, eightBytes), 8),
             this.numberToLE (0, 2),
             this.numberToLE (Math.floor (now / 1000), 4),
             this.numberToLE (Math.floor (expiration / 1000), 4),
@@ -693,10 +700,10 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (typeNum, 1),
             this.numberToLE (normalSymbol.length, 1),
             this.stringToBinary (this.encode (normalSymbol)),
-            this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
-            this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
-            this.numberToLE (this.integerDivide (priceChain, eightBytes), 8),
-            this.numberToLE (this.integerModulo (priceChain, eightBytes), 8),
+            this.numberToLE (Precise.stringDiv (amountChainString, eightBytes, 0), 8),
+            this.numberToLE (Precise.stringMod (amountChainString, eightBytes), 8),
+            this.numberToLE (Precise.stringDiv (priceChainString, eightBytes, 0), 8),
+            this.numberToLE (Precise.stringMod (priceChainString, eightBytes), 8),
             this.numberToLE (0, 2),
             this.numberToLE (Math.floor (now / 1000), 4),
             this.numberToLE (Math.floor (expiration / 1000), 4),
@@ -764,7 +771,7 @@ module.exports = class bytetrade extends Exchange {
         };
         const response = await this.publicPostTransactionCreateorder (request);
         const timestamp = this.milliseconds ();
-        const statusCode = this.safe_string (response, 'code');
+        const statusCode = this.safeString (response, 'code');
         const status = (statusCode === '0') ? 'open' : 'failed';
         return {
             'info': response,
@@ -951,7 +958,7 @@ module.exports = class bytetrade extends Exchange {
         };
         const response = await this.publicPostTransactionCancelorder (request);
         const timestamp = this.milliseconds ();
-        const statusCode = this.safe_string (response, 'code');
+        const statusCode = this.safeString (response, 'code');
         const status = (statusCode === '0') ? 'canceled' : 'failed';
         return {
             'info': response,
@@ -984,6 +991,7 @@ module.exports = class bytetrade extends Exchange {
         const currency = this.currency (code);
         const amountTruncate = this.decimalToPrecision (amount, TRUNCATE, currency['info']['basePrecision'] - currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
         const amountChain = this.toWei (amountTruncate, currency['precision']);
+        const amountChainString = this.numberToString (amountChain);
         const assetType = parseInt (currency['id']);
         const now = this.milliseconds ();
         const expiration = now;
@@ -995,7 +1003,7 @@ module.exports = class bytetrade extends Exchange {
         const defaultDappId = 'Sagittarius';
         const message = this.safeString (params, 'message', '');
         const dappId = this.safeString (params, 'dappId', defaultDappId);
-        const eightBytes = this.integerPow ('2', '64');
+        const eightBytes = Precise.stringPow ('2', '64');
         const byteStringArray = [
             this.numberToBE (1, 32),
             this.numberToLE (Math.floor (now / 1000), 4),
@@ -1010,8 +1018,8 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (toAccount.length, 1),
             this.stringToBinary (this.encode (toAccount)),
             this.numberToLE (assetType, 4),
-            this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
-            this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
+            this.numberToLE (Precise.stringDiv (amountChainString, eightBytes, 0), 8),
+            this.numberToLE (Precise.stringMod (amountChainString, eightBytes), 8),
             this.numberToLE (1, 1),
             this.numberToLE (message.length, 1),
             this.stringToBinary (this.encode (message)),
@@ -1054,7 +1062,7 @@ module.exports = class bytetrade extends Exchange {
         };
         const response = await this.publicPostTransactionTransfer (request);
         const timestamp = this.milliseconds ();
-        const statusCode = this.safe_string (response, 'code');
+        const statusCode = this.safeString (response, 'code');
         let status = '';
         if (statusCode === '0') {
             status = 'submit success';
@@ -1269,7 +1277,8 @@ module.exports = class bytetrade extends Exchange {
         const coinId = currency['id'];
         const amountTruncate = this.decimalToPrecision (amount, TRUNCATE, currency['info']['basePrecision'] - currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
         const amountChain = this.toWei (amountTruncate, currency['info']['externalPrecision']);
-        const eightBytes = this.integerPow ('2', '64');
+        const amountChainString = this.numberToString (amountChain);
+        const eightBytes = Precise.stringPow ('2', '64');
         let assetFee = 0;
         let byteStringArray = [];
         if (operationId === 26) {
@@ -1288,11 +1297,11 @@ module.exports = class bytetrade extends Exchange {
                 this.numberToLE (address.length, 1),
                 this.stringToBinary (this.encode (address)),
                 this.numberToLE (parseInt (coinId), 4),
-                this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
-                this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
+                this.numberToLE (Precise.stringDiv (amountChainString, eightBytes, 0), 8),
+                this.numberToLE (Precise.stringMod (amountChainString, eightBytes), 8),
                 this.numberToLE (1, 1),
-                this.numberToLE (this.integerDivide (assetFee, eightBytes), 8),
-                this.numberToLE (this.integerModulo (assetFee, eightBytes), 8),
+                this.numberToLE (Precise.stringDiv (assetFee, eightBytes, 0), 8),
+                this.numberToLE (Precise.stringMod (assetFee, eightBytes), 8),
                 this.numberToLE (0, 1),
                 this.numberToLE (1, 1),
                 this.numberToLE (dappId.length, 1),
@@ -1321,8 +1330,8 @@ module.exports = class bytetrade extends Exchange {
                 this.numberToLE (middleAddress.length, 1),
                 this.stringToBinary (this.encode (middleAddress)),
                 this.numberToLE (parseInt (coinId), 4),
-                this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
-                this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
+                this.numberToLE (Precise.stringDiv (amountChainString, eightBytes, 0), 8),
+                this.numberToLE (Precise.stringMod (amountChainString, eightBytes), 8),
                 this.numberToLE (0, 1),
                 this.numberToLE (1, 1),
                 this.numberToLE (dappId.length, 1),
