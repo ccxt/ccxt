@@ -2835,18 +2835,6 @@ class Exchange {
         return array_reduce(array_map('chr', $n->toArray('le', $padding)), 'static::binary_concat');
     }
 
-    public static function integer_divide($a, $b) {
-        return (new BN ($a))->div (new BN ($b));
-    }
-
-    public static function integer_modulo($a, $b) {
-        return (new BN ($a))->mod (new BN ($b));
-    }
-
-    public static function integer_pow($a, $b) {
-        return (new BN ($a))->pow (new BN ($b));
-    }
-
     public static function base58_to_binary($s) {
         if (!self::$base58_decoder) {
             self::$base58_decoder = array();

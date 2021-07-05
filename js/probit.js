@@ -703,7 +703,7 @@ module.exports = class probit extends Exchange {
             timestamp = parseInt (timestamp / 1000);
             const firstSunday = 259200; // 1970-01-04T00:00:00.000Z
             const difference = timestamp - firstSunday;
-            const numWeeks = this.integerDivide (difference, duration);
+            const numWeeks = Math.floor (difference / duration);
             let previousSunday = this.sum (firstSunday, numWeeks * duration);
             if (after) {
                 previousSunday = this.sum (previousSunday, duration);

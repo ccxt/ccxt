@@ -2136,19 +2136,6 @@ class Exchange(object):
     def binary_to_base16(s):
         return Exchange.decode(base64.b16encode(s)).lower()
 
-    # python supports arbitrarily big integers
-    @staticmethod
-    def integer_divide(a, b):
-        return int(a) // int(b)
-
-    @staticmethod
-    def integer_pow(a, b):
-        return int(a) ** int(b)
-
-    @staticmethod
-    def integer_modulo(a, b):
-        return int(a) % int(b)
-
     def sleep(self, milliseconds):
         return time.sleep(milliseconds / 1000)
 
