@@ -617,8 +617,7 @@ module.exports = class Exchange {
             'precision': this.precision,
         }, this.fees['trading'], market))
         this.markets = indexBy (values, 'symbol')
-        this.marketsById = indexBy (markets, 'id')
-        this.markets_by_id = this.marketsById
+        this.markets_by_id = indexBy (markets, 'id')
         this.symbols = Object.keys (this.markets).sort ()
         this.ids = Object.keys (this.markets_by_id).sort ()
         if (currencies) {

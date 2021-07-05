@@ -1079,7 +1079,6 @@ class Exchange {
         $this->token = ''; // reserved for HTTP auth in some cases
 
         $this->twofa = null;
-        $this->marketsById = null;
         $this->markets_by_id = null;
         $this->currencies_by_id = null;
         $this->userAgent = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
@@ -1651,7 +1650,6 @@ class Exchange {
         }
         $this->markets = static::index_by($values, 'symbol');
         $this->markets_by_id = static::index_by($values, 'id');
-        $this->marketsById = $this->markets_by_id;
         $this->symbols = array_keys($this->markets);
         sort($this->symbols);
         $this->ids = array_keys($this->markets_by_id);
