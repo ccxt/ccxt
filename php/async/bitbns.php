@@ -942,7 +942,7 @@ class bitbns extends Exchange {
 
     public function sign($path, $api = 'v1', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $this->check_required_credentials();
-        $baseUrl = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
+        $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $nonce = (string) $this->nonce();

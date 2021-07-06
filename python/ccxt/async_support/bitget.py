@@ -2675,7 +2675,7 @@ class bitget(Exchange):
         else:
             request = '/' + api + '/v1' + request
         query = self.omit(params, self.extract_params(path))
-        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + request
+        url = self.implode_hostname(self.urls['api'][api]) + request
         if (api == 'data') or (api == 'capi'):
             if query:
                 url += '?' + self.urlencode(query)

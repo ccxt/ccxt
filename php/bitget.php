@@ -2796,7 +2796,7 @@ class bitget extends Exchange {
             $request = '/' . $api . '/v1' . $request;
         }
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $request;
+        $url = $this->implode_hostname($this->urls['api'][$api]) . $request;
         if (($api === 'data') || ($api === 'capi')) {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
