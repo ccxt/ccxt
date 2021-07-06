@@ -941,13 +941,8 @@ module.exports = class Exchange {
         return this.market (symbol).symbol || symbol
     }
 
-    url (path, params = {}) {
-        let result = this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path))
-        if (Object.keys (query).length) {
-            result += '?' + this.urlencode (query)
-        }
-        return result
+    implodeHostname (url) {
+        return this.implodeParams (url, { 'hostname': this.hostname })
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
