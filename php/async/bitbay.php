@@ -1166,7 +1166,7 @@ class bitbay extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
+        $url = $this->implode_hostname($this->urls['api'][$api]);
         if ($api === 'public') {
             $query = $this->omit($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params) . '.json';
