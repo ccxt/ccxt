@@ -2793,7 +2793,7 @@ module.exports = class bitget extends Exchange {
             request = '/' + api + '/v1' + request;
         }
         let query = this.omit (params, this.extractParams (path));
-        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + request;
+        let url = this.implodeHostname (this.urls['api'][api]) + request;
         if ((api === 'data') || (api === 'capi')) {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
