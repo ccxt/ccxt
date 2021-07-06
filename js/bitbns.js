@@ -939,7 +939,7 @@ module.exports = class bitbns extends Exchange {
 
     sign (path, api = 'v1', method = 'GET', params = {}, headers = undefined, body = undefined) {
         this.checkRequiredCredentials ();
-        const baseUrl = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
+        const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const nonce = this.nonce ().toString ();
