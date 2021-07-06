@@ -701,6 +701,10 @@ class Exchange {
         return $string;
     }
 
+    public function implode_hostname($string, $params) {
+        return static::implode_params($url, array('hostname' => $this->hostname));
+    }
+
     public static function deep_extend() {
         //
         //     extend associative dictionaries only, replace everything else
