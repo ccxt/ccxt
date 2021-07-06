@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.52.40';
+$version = '1.52.43';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.52.40';
+    const VERSION = '1.52.43';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -355,9 +355,6 @@ class Exchange {
         'signHash' => 'sign_hash',
         'signMessage' => 'sign_message',
         'signMessageString' => 'sign_message_string',
-        'integerDivide' => 'integer_divide',
-        'integerModulo' => 'integer_modulo',
-        'integerPow' => 'integer_pow',
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
         'safeOrder' => 'safe_order',
         'parseNumber' => 'parse_number',
@@ -2833,18 +2830,6 @@ class Exchange {
     public static function number_to_le($n, $padding) {
         $n = new BN ($n);
         return array_reduce(array_map('chr', $n->toArray('le', $padding)), 'static::binary_concat');
-    }
-
-    public static function integer_divide($a, $b) {
-        return (new BN ($a))->div (new BN ($b));
-    }
-
-    public static function integer_modulo($a, $b) {
-        return (new BN ($a))->mod (new BN ($b));
-    }
-
-    public static function integer_pow($a, $b) {
-        return (new BN ($a))->pow (new BN ($b));
     }
 
     public static function base58_to_binary($s) {

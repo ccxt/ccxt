@@ -120,6 +120,9 @@ class bytetrade extends Exchange {
                 'transaction already in network' => '\\ccxt\\BadRequest', // same transaction submited
                 'invalid argument' => '\\ccxt\\BadRequest',
             ),
+            'options' => array(
+                'orderExpiration' => 31536000000, // one year
+            ),
         ));
     }
 
@@ -632,12 +635,15 @@ class bytetrade extends Exchange {
         $baseCurrency = $this->currency($market['base']);
         $amountTruncated = $this->amount_to_precision($symbol, $amount);
         $amountChain = $this->to_wei($amountTruncated, $baseCurrency['precision']);
+        $amountChainString = $this->number_to_string($amountChain);
         $quoteId = $market['quoteId'];
         $quoteCurrency = $this->currency($market['quote']);
         $priceRounded = $this->price_to_precision($symbol, $price);
         $priceChain = $this->to_wei($priceRounded, $quoteCurrency['precision']);
+        $priceChainString = $this->number_to_string($priceChain);
         $now = $this->milliseconds();
-        $expiration = $this->milliseconds();
+        $expiryDelta = $this->safe_integer($this->options, 'orderExpiration', 31536000000);
+        $expiration = $this->milliseconds() . $expiryDelta;
         $datetime = $this->iso8601($now);
         $datetime = explode('.', $datetime)[0];
         $expirationDatetime = $this->iso8601($expiration);
@@ -648,7 +654,7 @@ class bytetrade extends Exchange {
         $totalFeeRate = $this->safe_string($params, 'totalFeeRate', 8);
         $chainFeeRate = $this->safe_string($params, 'chainFeeRate', 1);
         $fee = $this->safe_string($params, 'fee', $defaultFee);
-        $eightBytes = $this->integer_pow('2', '64');
+        $eightBytes = Precise::string_pow('2', '64');
         $allByteStringArray = array(
             $this->number_to_be(1, 32),
             $this->number_to_le((int) floor($now / 1000), 4),
@@ -664,10 +670,10 @@ class bytetrade extends Exchange {
             $this->number_to_le($typeNum, 1),
             $this->number_to_le(strlen($normalSymbol), 1),
             $this->encode($normalSymbol),
-            $this->number_to_le($this->integer_divide($amountChain, $eightBytes), 8),
-            $this->number_to_le($this->integer_modulo($amountChain, $eightBytes), 8),
-            $this->number_to_le($this->integer_divide($priceChain, $eightBytes), 8),
-            $this->number_to_le($this->integer_modulo($priceChain, $eightBytes), 8),
+            $this->number_to_le(Precise::string_div($amountChainString, $eightBytes, 0), 8),
+            $this->number_to_le(Precise::string_mod($amountChainString, $eightBytes), 8),
+            $this->number_to_le(Precise::string_div($priceChainString, $eightBytes, 0), 8),
+            $this->number_to_le(Precise::string_mod($priceChainString, $eightBytes), 8),
             $this->number_to_le(0, 2),
             $this->number_to_le((int) floor($now / 1000), 4),
             $this->number_to_le((int) floor($expiration / 1000), 4),
@@ -697,10 +703,10 @@ class bytetrade extends Exchange {
             $this->number_to_le($typeNum, 1),
             $this->number_to_le(strlen($normalSymbol), 1),
             $this->encode($normalSymbol),
-            $this->number_to_le($this->integer_divide($amountChain, $eightBytes), 8),
-            $this->number_to_le($this->integer_modulo($amountChain, $eightBytes), 8),
-            $this->number_to_le($this->integer_divide($priceChain, $eightBytes), 8),
-            $this->number_to_le($this->integer_modulo($priceChain, $eightBytes), 8),
+            $this->number_to_le(Precise::string_div($amountChainString, $eightBytes, 0), 8),
+            $this->number_to_le(Precise::string_mod($amountChainString, $eightBytes), 8),
+            $this->number_to_le(Precise::string_div($priceChainString, $eightBytes, 0), 8),
+            $this->number_to_le(Precise::string_mod($priceChainString, $eightBytes), 8),
             $this->number_to_le(0, 2),
             $this->number_to_le((int) floor($now / 1000), 4),
             $this->number_to_le((int) floor($expiration / 1000), 4),
@@ -988,6 +994,7 @@ class bytetrade extends Exchange {
         $currency = $this->currency($code);
         $amountTruncate = $this->decimal_to_precision($amount, TRUNCATE, $currency['info']['basePrecision'] - $currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
         $amountChain = $this->to_wei($amountTruncate, $currency['precision']);
+        $amountChainString = $this->number_to_string($amountChain);
         $assetType = intval($currency['id']);
         $now = $this->milliseconds();
         $expiration = $now;
@@ -999,7 +1006,7 @@ class bytetrade extends Exchange {
         $defaultDappId = 'Sagittarius';
         $message = $this->safe_string($params, 'message', '');
         $dappId = $this->safe_string($params, 'dappId', $defaultDappId);
-        $eightBytes = $this->integer_pow('2', '64');
+        $eightBytes = Precise::string_pow('2', '64');
         $byteStringArray = array(
             $this->number_to_be(1, 32),
             $this->number_to_le((int) floor($now / 1000), 4),
@@ -1014,8 +1021,8 @@ class bytetrade extends Exchange {
             $this->number_to_le(strlen($toAccount), 1),
             $this->encode($toAccount),
             $this->number_to_le($assetType, 4),
-            $this->number_to_le($this->integer_divide($amountChain, $eightBytes), 8),
-            $this->number_to_le($this->integer_modulo($amountChain, $eightBytes), 8),
+            $this->number_to_le(Precise::string_div($amountChainString, $eightBytes, 0), 8),
+            $this->number_to_le(Precise::string_mod($amountChainString, $eightBytes), 8),
             $this->number_to_le(1, 1),
             $this->number_to_le(strlen($message), 1),
             $this->encode($message),
@@ -1273,7 +1280,8 @@ class bytetrade extends Exchange {
         $coinId = $currency['id'];
         $amountTruncate = $this->decimal_to_precision($amount, TRUNCATE, $currency['info']['basePrecision'] - $currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
         $amountChain = $this->to_wei($amountTruncate, $currency['info']['externalPrecision']);
-        $eightBytes = $this->integer_pow('2', '64');
+        $amountChainString = $this->number_to_string($amountChain);
+        $eightBytes = Precise::string_pow('2', '64');
         $assetFee = 0;
         $byteStringArray = array();
         if ($operationId === 26) {
@@ -1292,11 +1300,11 @@ class bytetrade extends Exchange {
                 $this->number_to_le(strlen($address), 1),
                 $this->encode($address),
                 $this->number_to_le(intval($coinId), 4),
-                $this->number_to_le($this->integer_divide($amountChain, $eightBytes), 8),
-                $this->number_to_le($this->integer_modulo($amountChain, $eightBytes), 8),
+                $this->number_to_le(Precise::string_div($amountChainString, $eightBytes, 0), 8),
+                $this->number_to_le(Precise::string_mod($amountChainString, $eightBytes), 8),
                 $this->number_to_le(1, 1),
-                $this->number_to_le($this->integer_divide($assetFee, $eightBytes), 8),
-                $this->number_to_le($this->integer_modulo($assetFee, $eightBytes), 8),
+                $this->number_to_le(Precise::string_div($assetFee, $eightBytes, 0), 8),
+                $this->number_to_le(Precise::string_mod($assetFee, $eightBytes), 8),
                 $this->number_to_le(0, 1),
                 $this->number_to_le(1, 1),
                 $this->number_to_le(strlen($dappId), 1),
@@ -1325,8 +1333,8 @@ class bytetrade extends Exchange {
                 $this->number_to_le(strlen($middleAddress), 1),
                 $this->encode($middleAddress),
                 $this->number_to_le(intval($coinId), 4),
-                $this->number_to_le($this->integer_divide($amountChain, $eightBytes), 8),
-                $this->number_to_le($this->integer_modulo($amountChain, $eightBytes), 8),
+                $this->number_to_le(Precise::string_div($amountChainString, $eightBytes, 0), 8),
+                $this->number_to_le(Precise::string_mod($amountChainString, $eightBytes), 8),
                 $this->number_to_le(0, 1),
                 $this->number_to_le(1, 1),
                 $this->number_to_le(strlen($dappId), 1),

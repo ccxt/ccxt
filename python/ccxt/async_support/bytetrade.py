@@ -14,6 +14,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import NO_PADDING
+from ccxt.base.precise import Precise
 
 
 class bytetrade(Exchange):
@@ -124,6 +125,9 @@ class bytetrade(Exchange):
                 'verify error': AuthenticationError,  # private key signature is incorrect
                 'transaction already in network': BadRequest,  # same transaction submited
                 'invalid argument': BadRequest,
+            },
+            'options': {
+                'orderExpiration': 31536000000,  # one year
             },
         })
 
@@ -595,12 +599,15 @@ class bytetrade(Exchange):
         baseCurrency = self.currency(market['base'])
         amountTruncated = self.amount_to_precision(symbol, amount)
         amountChain = self.to_wei(amountTruncated, baseCurrency['precision'])
+        amountChainString = self.number_to_string(amountChain)
         quoteId = market['quoteId']
         quoteCurrency = self.currency(market['quote'])
         priceRounded = self.price_to_precision(symbol, price)
         priceChain = self.to_wei(priceRounded, quoteCurrency['precision'])
+        priceChainString = self.number_to_string(priceChain)
         now = self.milliseconds()
-        expiration = self.milliseconds()
+        expiryDelta = self.safe_integer(self.options, 'orderExpiration', 31536000000)
+        expiration = self.milliseconds() + expiryDelta
         datetime = self.iso8601(now)
         datetime = datetime.split('.')[0]
         expirationDatetime = self.iso8601(expiration)
@@ -611,7 +618,7 @@ class bytetrade(Exchange):
         totalFeeRate = self.safe_string(params, 'totalFeeRate', 8)
         chainFeeRate = self.safe_string(params, 'chainFeeRate', 1)
         fee = self.safe_string(params, 'fee', defaultFee)
-        eightBytes = self.integer_pow('2', '64')
+        eightBytes = Precise.string_pow('2', '64')
         allByteStringArray = [
             self.number_to_be(1, 32),
             self.number_to_le(int(math.floor(now / 1000)), 4),
@@ -627,10 +634,10 @@ class bytetrade(Exchange):
             self.number_to_le(typeNum, 1),
             self.number_to_le(len(normalSymbol), 1),
             self.encode(normalSymbol),
-            self.number_to_le(self.integer_divide(amountChain, eightBytes), 8),
-            self.number_to_le(self.integer_modulo(amountChain, eightBytes), 8),
-            self.number_to_le(self.integer_divide(priceChain, eightBytes), 8),
-            self.number_to_le(self.integer_modulo(priceChain, eightBytes), 8),
+            self.number_to_le(Precise.string_div(amountChainString, eightBytes, 0), 8),
+            self.number_to_le(Precise.string_mod(amountChainString, eightBytes), 8),
+            self.number_to_le(Precise.string_div(priceChainString, eightBytes, 0), 8),
+            self.number_to_le(Precise.string_mod(priceChainString, eightBytes), 8),
             self.number_to_le(0, 2),
             self.number_to_le(int(math.floor(now / 1000)), 4),
             self.number_to_le(int(math.floor(expiration / 1000)), 4),
@@ -660,10 +667,10 @@ class bytetrade(Exchange):
             self.number_to_le(typeNum, 1),
             self.number_to_le(len(normalSymbol), 1),
             self.encode(normalSymbol),
-            self.number_to_le(self.integer_divide(amountChain, eightBytes), 8),
-            self.number_to_le(self.integer_modulo(amountChain, eightBytes), 8),
-            self.number_to_le(self.integer_divide(priceChain, eightBytes), 8),
-            self.number_to_le(self.integer_modulo(priceChain, eightBytes), 8),
+            self.number_to_le(Precise.string_div(amountChainString, eightBytes, 0), 8),
+            self.number_to_le(Precise.string_mod(amountChainString, eightBytes), 8),
+            self.number_to_le(Precise.string_div(priceChainString, eightBytes, 0), 8),
+            self.number_to_le(Precise.string_mod(priceChainString, eightBytes), 8),
             self.number_to_le(0, 2),
             self.number_to_le(int(math.floor(now / 1000)), 4),
             self.number_to_le(int(math.floor(expiration / 1000)), 4),
@@ -928,6 +935,7 @@ class bytetrade(Exchange):
         currency = self.currency(code)
         amountTruncate = self.decimal_to_precision(amount, TRUNCATE, currency['info']['basePrecision'] - currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING)
         amountChain = self.to_wei(amountTruncate, currency['precision'])
+        amountChainString = self.number_to_string(amountChain)
         assetType = int(currency['id'])
         now = self.milliseconds()
         expiration = now
@@ -939,7 +947,7 @@ class bytetrade(Exchange):
         defaultDappId = 'Sagittarius'
         message = self.safe_string(params, 'message', '')
         dappId = self.safe_string(params, 'dappId', defaultDappId)
-        eightBytes = self.integer_pow('2', '64')
+        eightBytes = Precise.string_pow('2', '64')
         byteStringArray = [
             self.number_to_be(1, 32),
             self.number_to_le(int(math.floor(now / 1000)), 4),
@@ -954,8 +962,8 @@ class bytetrade(Exchange):
             self.number_to_le(len(toAccount), 1),
             self.encode(toAccount),
             self.number_to_le(assetType, 4),
-            self.number_to_le(self.integer_divide(amountChain, eightBytes), 8),
-            self.number_to_le(self.integer_modulo(amountChain, eightBytes), 8),
+            self.number_to_le(Precise.string_div(amountChainString, eightBytes, 0), 8),
+            self.number_to_le(Precise.string_mod(amountChainString, eightBytes), 8),
             self.number_to_le(1, 1),
             self.number_to_le(len(message), 1),
             self.encode(message),
@@ -1187,7 +1195,8 @@ class bytetrade(Exchange):
         coinId = currency['id']
         amountTruncate = self.decimal_to_precision(amount, TRUNCATE, currency['info']['basePrecision'] - currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING)
         amountChain = self.to_wei(amountTruncate, currency['info']['externalPrecision'])
-        eightBytes = self.integer_pow('2', '64')
+        amountChainString = self.number_to_string(amountChain)
+        eightBytes = Precise.string_pow('2', '64')
         assetFee = 0
         byteStringArray = []
         if operationId == 26:
@@ -1206,11 +1215,11 @@ class bytetrade(Exchange):
                 self.number_to_le(len(address), 1),
                 self.encode(address),
                 self.number_to_le(int(coinId), 4),
-                self.number_to_le(self.integer_divide(amountChain, eightBytes), 8),
-                self.number_to_le(self.integer_modulo(amountChain, eightBytes), 8),
+                self.number_to_le(Precise.string_div(amountChainString, eightBytes, 0), 8),
+                self.number_to_le(Precise.string_mod(amountChainString, eightBytes), 8),
                 self.number_to_le(1, 1),
-                self.number_to_le(self.integer_divide(assetFee, eightBytes), 8),
-                self.number_to_le(self.integer_modulo(assetFee, eightBytes), 8),
+                self.number_to_le(Precise.string_div(assetFee, eightBytes, 0), 8),
+                self.number_to_le(Precise.string_mod(assetFee, eightBytes), 8),
                 self.number_to_le(0, 1),
                 self.number_to_le(1, 1),
                 self.number_to_le(len(dappId), 1),
@@ -1239,8 +1248,8 @@ class bytetrade(Exchange):
                 self.number_to_le(len(middleAddress), 1),
                 self.encode(middleAddress),
                 self.number_to_le(int(coinId), 4),
-                self.number_to_le(self.integer_divide(amountChain, eightBytes), 8),
-                self.number_to_le(self.integer_modulo(amountChain, eightBytes), 8),
+                self.number_to_le(Precise.string_div(amountChainString, eightBytes, 0), 8),
+                self.number_to_le(Precise.string_mod(amountChainString, eightBytes), 8),
                 self.number_to_le(0, 1),
                 self.number_to_le(1, 1),
                 self.number_to_le(len(dappId), 1),

@@ -687,7 +687,7 @@ class probit(Exchange):
             timestamp = int(timestamp / 1000)
             firstSunday = 259200  # 1970-01-04T00:00:00.000Z
             difference = timestamp - firstSunday
-            numWeeks = self.integer_divide(difference, duration)
+            numWeeks = int(math.floor(difference / duration))
             previousSunday = self.sum(firstSunday, numWeeks * duration)
             if after:
                 previousSunday = self.sum(previousSunday, duration)

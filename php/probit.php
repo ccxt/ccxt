@@ -708,7 +708,7 @@ class probit extends Exchange {
             $timestamp = intval($timestamp / 1000);
             $firstSunday = 259200; // 1970-01-04T00:00:00.000Z
             $difference = $timestamp - $firstSunday;
-            $numWeeks = $this->integer_divide($difference, $duration);
+            $numWeeks = (int) floor($difference / $duration);
             $previousSunday = $this->sum($firstSunday, $numWeeks * $duration);
             if ($after) {
                 $previousSunday = $this->sum($previousSunday, $duration);
