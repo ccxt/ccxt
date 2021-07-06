@@ -899,7 +899,7 @@ class Exchange(object):
         return re.findall(r'{([\w-]+)}', string)
 
     def implode_hostname(self, url):
-        return Exchange.implode_params(url, {'hostname':self.hostname})
+        return Exchange.implode_params(url, {'hostname': self.hostname})
 
     @staticmethod
     def implode_params(string, params):
