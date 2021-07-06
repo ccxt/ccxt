@@ -561,14 +561,14 @@ class zb(Exchange):
         self.load_markets()
         response = self.publicGetAllTicker(params)
         result = {}
-        anotherMarketsById = {}
+        marketsByIdWithoutUnderscore = {}
         marketIds = list(self.markets_by_id.keys())
         for i in range(0, len(marketIds)):
             tickerId = marketIds[i].replace('_', '')
-            anotherMarketsById[tickerId] = self.markets_by_id[marketIds[i]]
+            marketsByIdWithoutUnderscore[tickerId] = self.markets_by_id[marketIds[i]]
         ids = list(response.keys())
         for i in range(0, len(ids)):
-            market = anotherMarketsById[ids[i]]
+            market = marketsByIdWithoutUnderscore[ids[i]]
             result[market['symbol']] = self.parse_ticker(response[ids[i]], market)
         return self.filter_by_array(result, 'symbol', symbols)
 
