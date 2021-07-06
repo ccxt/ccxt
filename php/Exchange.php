@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.52.44';
+$version = '1.52.45';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.52.44';
+    const VERSION = '1.52.45';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1076,7 +1076,6 @@ class Exchange {
         $this->token = ''; // reserved for HTTP auth in some cases
 
         $this->twofa = null;
-        $this->marketsById = null;
         $this->markets_by_id = null;
         $this->currencies_by_id = null;
         $this->userAgent = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
@@ -1648,7 +1647,6 @@ class Exchange {
         }
         $this->markets = static::index_by($values, 'symbol');
         $this->markets_by_id = static::index_by($values, 'id');
-        $this->marketsById = $this->markets_by_id;
         $this->symbols = array_keys($this->markets);
         sort($this->symbols);
         $this->ids = array_keys($this->markets_by_id);

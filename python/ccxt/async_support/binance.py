@@ -371,7 +371,6 @@ class binance(Exchange):
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'allForceOrders',
                         'openInterest',
                     ],
                 },
@@ -443,7 +442,6 @@ class binance(Exchange):
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'allForceOrders',
                         'openInterest',
                         'indexInfo',
                     ],
@@ -459,7 +457,7 @@ class binance(Exchange):
                 },
                 'fapiPrivate': {
                     'get': [
-                        'allForceOrders',
+                        'forceOrders',
                         'allOrders',
                         'openOrder',
                         'openOrders',

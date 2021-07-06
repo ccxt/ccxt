@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.52.44'
+__version__ = '1.52.45'
 
 # -----------------------------------------------------------------------------
 
@@ -169,7 +169,6 @@ class Exchange(object):
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
     token = ''  # reserved for HTTP auth in some cases
     twofa = None
-    marketsById = None
     markets_by_id = None
     currencies_by_id = None
     precision = None
@@ -1318,7 +1317,6 @@ class Exchange(object):
             )
         self.markets = self.index_by(values, 'symbol')
         self.markets_by_id = self.index_by(values, 'id')
-        self.marketsById = self.markets_by_id
         self.symbols = sorted(self.markets.keys())
         self.ids = sorted(self.markets_by_id.keys())
         if currencies:
