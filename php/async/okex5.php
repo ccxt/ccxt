@@ -1002,13 +1002,14 @@ class okex5 extends Exchange {
         $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $side = $this->safe_string($trade, 'side');
         $orderId = $this->safe_string($trade, 'ordId');
-        $feeCost = $this->safe_number($trade, 'fee');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
+            $feeCostSigned = Precise::string_neg($feeCostString);
             $feeCurrencyId = $this->safe_string($trade, 'feeCcy');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCostSigned),
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -1446,13 +1447,14 @@ class okex5 extends Exchange {
         $price = $this->safe_number_2($order, 'px', 'slOrdPx');
         $average = $this->safe_number($order, 'avgPx');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
-        $feeCost = $this->safe_number($order, 'fee');
+        $feeCostString = $this->safe_string($order, 'fee');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
+            $feeCostSigned = Precise::string_neg($feeCostString);
             $feeCurrencyId = $this->safe_string($order, 'feeCcy');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCostSigned),
                 'currency' => $feeCurrencyCode,
             );
         }

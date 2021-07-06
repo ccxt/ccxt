@@ -991,13 +991,14 @@ class okex5(Exchange):
         cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string(trade, 'side')
         orderId = self.safe_string(trade, 'ordId')
-        feeCost = self.safe_number(trade, 'fee')
+        feeCostString = self.safe_string(trade, 'fee')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
+            feeCostSigned = Precise.string_neg(feeCostString)
             feeCurrencyId = self.safe_string(trade, 'feeCcy')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': self.parse_number(feeCostSigned),
                 'currency': feeCurrencyCode,
             }
         takerOrMaker = self.safe_string(trade, 'execType')
@@ -1411,13 +1412,14 @@ class okex5(Exchange):
         price = self.safe_number_2(order, 'px', 'slOrdPx')
         average = self.safe_number(order, 'avgPx')
         status = self.parse_order_status(self.safe_string(order, 'state'))
-        feeCost = self.safe_number(order, 'fee')
+        feeCostString = self.safe_string(order, 'fee')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
+            feeCostSigned = Precise.string_neg(feeCostString)
             feeCurrencyId = self.safe_string(order, 'feeCcy')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': self.parse_number(feeCostSigned),
                 'currency': feeCurrencyCode,
             }
         clientOrderId = self.safe_string(order, 'clOrdId')
