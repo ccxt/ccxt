@@ -994,7 +994,7 @@ module.exports = class aofex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + '/' + path;
+        let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         let keys = Object.keys (params);
         const keysLength = keys.length;
         if (api === 'public') {
