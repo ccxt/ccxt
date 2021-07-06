@@ -1446,11 +1446,11 @@ module.exports = class okex5 extends Exchange {
         const feeCostString = this.safeString (order, 'fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
-            const feeCostSide = Precise.stringNeg (feeCostString);
+            const feeCostSigned = Precise.stringNeg (feeCostString);
             const feeCurrencyId = this.safeString (order, 'feeCcy');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': this.parseNumber (feeCostSide),
+                'cost': this.parseNumber (feeCostSigned),
                 'currency': feeCurrencyCode,
             };
         }
