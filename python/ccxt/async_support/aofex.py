@@ -955,7 +955,7 @@ class aofex(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + '/' + path
+        url = self.implode_hostname(self.urls['api'][api]) + '/' + path
         keys = list(params.keys())
         keysLength = len(keys)
         if api == 'public':

@@ -997,7 +997,7 @@ class aofex extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . '/' . $path;
+        $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         $keys = is_array($params) ? array_keys($params) : array();
         $keysLength = is_array($keys) ? count($keys) : 0;
         if ($api === 'public') {
