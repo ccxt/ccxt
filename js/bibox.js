@@ -1035,7 +1035,7 @@ module.exports = class bibox extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname }) + '/' + this.version + '/' + path;
+        let url = this.implodeHostname (this.urls['api']) + '/' + this.version + '/' + path;
         const cmds = this.json ([ params ]);
         if (api === 'public') {
             if (method !== 'GET') {
@@ -1045,7 +1045,7 @@ module.exports = class bibox extends Exchange {
             }
         } else if (api === 'v2private') {
             this.checkRequiredCredentials ();
-            url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname }) + '/v2/' + path;
+            url = this.implodeHostname (this.urls['api']) + '/v2/' + path;
             const json_params = this.json (params);
             body = {
                 'body': json_params,
