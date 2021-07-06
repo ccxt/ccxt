@@ -501,7 +501,7 @@ class bitflyer extends Exchange {
                 $request .= '?' . $this->urlencode($params);
             }
         }
-        $baseUrl = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname ));
+        $baseUrl = $this->implode_hostname($this->urls['api']);
         $url = $baseUrl . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
