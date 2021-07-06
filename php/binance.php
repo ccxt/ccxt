@@ -1987,15 +1987,15 @@ class binance extends Exchange {
         $cost = $this->safe_number_2($order, 'cummulativeQuoteQty', 'cumQuote');
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
-        if ($type === 'limit_maker') {
-            $type = 'limit';
-        }
         $side = $this->safe_string_lower($order, 'side');
         $fills = $this->safe_value($order, 'fills', array());
         $trades = $this->parse_trades($fills, $market);
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'GTX');
+        if ($type === 'limit_maker') {
+            $type = 'limit';
+        }
         $stopPriceString = $this->safe_string($order, 'stopPrice');
         $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
         return $this->safe_order(array(
