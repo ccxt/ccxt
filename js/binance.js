@@ -1981,15 +1981,15 @@ module.exports = class binance extends Exchange {
         const cost = this.safeNumber2 (order, 'cummulativeQuoteQty', 'cumQuote');
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
-        if (type === 'limit_maker') {
-            type = 'limit';
-        }
         const side = this.safeStringLower (order, 'side');
         const fills = this.safeValue (order, 'fills', []);
         const trades = this.parseTrades (fills, market);
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
+        if (type === 'limit_maker') {
+            type = 'limit';
+        }
         const stopPriceString = this.safeString (order, 'stopPrice');
         const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
         return this.safeOrder ({
