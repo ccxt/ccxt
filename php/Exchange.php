@@ -702,7 +702,7 @@ class Exchange {
         return $string;
     }
 
-    public function implode_hostname($string, $params) {
+    public function implode_hostname($url) {
         return static::implode_params($url, array('hostname' => $this->hostname));
     }
 
