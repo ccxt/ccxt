@@ -361,7 +361,6 @@ class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'allForceOrders',
                         'openInterest',
                     ),
                 ),
@@ -433,7 +432,6 @@ class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'allForceOrders',
                         'openInterest',
                         'indexInfo',
                     ),
@@ -449,7 +447,7 @@ class binance extends Exchange {
                 ),
                 'fapiPrivate' => array(
                     'get' => array(
-                        'allForceOrders',
+                        'forceOrders',
                         'allOrders',
                         'openOrder',
                         'openOrders',
