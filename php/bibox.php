@@ -1039,7 +1039,7 @@ class bibox extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname )) . '/' . $this->version . '/' . $path;
+        $url = $this->implode_hostname($this->urls['api']) . '/' . $this->version . '/' . $path;
         $cmds = $this->json(array( $params ));
         if ($api === 'public') {
             if ($method !== 'GET') {
@@ -1049,7 +1049,7 @@ class bibox extends Exchange {
             }
         } else if ($api === 'v2private') {
             $this->check_required_credentials();
-            $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname )) . '/v2/' . $path;
+            $url = $this->implode_hostname($this->urls['api']) . '/v2/' . $path;
             $json_params = $this->json($params);
             $body = array(
                 'body' => $json_params,

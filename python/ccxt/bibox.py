@@ -984,7 +984,7 @@ class bibox(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_params(self.urls['api'], {'hostname': self.hostname}) + '/' + self.version + '/' + path
+        url = self.implode_hostname(self.urls['api']) + '/' + self.version + '/' + path
         cmds = self.json([params])
         if api == 'public':
             if method != 'GET':
@@ -993,7 +993,7 @@ class bibox(Exchange):
                 url += '?' + self.urlencode(params)
         elif api == 'v2private':
             self.check_required_credentials()
-            url = self.implode_params(self.urls['api'], {'hostname': self.hostname}) + '/v2/' + path
+            url = self.implode_hostname(self.urls['api']) + '/v2/' + path
             json_params = self.json(params)
             body = {
                 'body': json_params,
