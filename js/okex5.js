@@ -998,13 +998,14 @@ module.exports = class okex5 extends Exchange {
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'ordId');
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
+            const feeCostSide = Precise.stringNeg (feeCostString);
             const feeCurrencyId = this.safeString (trade, 'feeCcy');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCostSide),
                 'currency': feeCurrencyCode,
             };
         }
@@ -1442,13 +1443,14 @@ module.exports = class okex5 extends Exchange {
         const price = this.safeNumber2 (order, 'px', 'slOrdPx');
         const average = this.safeNumber (order, 'avgPx');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        const feeCost = this.safeNumber (order, 'fee');
+        const feeCostString = this.safeString (order, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
+            const feeCostSide = Precise.stringNeg (feeCostString);
             const feeCurrencyId = this.safeString (order, 'feeCcy');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCostSide),
                 'currency': feeCurrencyCode,
             };
         }
