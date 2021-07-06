@@ -134,6 +134,7 @@ class binance extends Exchange {
                         'margin/priceIndex',
                         // these endpoints require $this->apiKey . $this->secret
                         'asset/assetDividend',
+                        'asset/dribblet',
                         'asset/transfer',
                         'asset/assetDetail',
                         'asset/tradeFee',
@@ -178,10 +179,12 @@ class binance extends Exchange {
                         'sub-account/futures/accountSummary',
                         'sub-account/futures/positionRisk',
                         'sub-account/futures/internalTransfer',
+                        'sub-account/list',
                         'sub-account/margin/account',
                         'sub-account/margin/accountSummary',
                         'sub-account/spotSummary',
                         'sub-account/status',
+                        'sub-account/sub/transfer/history',
                         'sub-account/transfer/subUserHistory',
                         'sub-account/universalTransfer',
                         // lending endpoints
