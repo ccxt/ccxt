@@ -497,7 +497,7 @@ module.exports = class bitflyer extends Exchange {
                 request += '?' + this.urlencode (params);
             }
         }
-        const baseUrl = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
+        const baseUrl = this.implodeHostname (this.urls['api']);
         const url = baseUrl + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
