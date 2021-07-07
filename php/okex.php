@@ -3590,7 +3590,7 @@ class okex extends Exchange {
         $request = '/api/' . $api . '/' . $this->version . '/';
         $request .= $isArray ? $path : $this->implode_params($path, $params);
         $query = $isArray ? $params : $this->omit($params, $this->extract_params($path));
-        $url = $this->implode_params($this->urls['api']['rest'], array( 'hostname' => $this->hostname )) . $request;
+        $url = $this->implode_hostname($this->urls['api']['rest']) . $request;
         $type = $this->get_path_authentication_type($path);
         if ($type === 'public') {
             if ($query) {

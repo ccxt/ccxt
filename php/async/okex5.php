@@ -2260,7 +2260,7 @@ class okex5 extends Exchange {
         $isArray = gettype($params) === 'array' && count(array_filter(array_keys($params), 'is_string')) == 0;
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->implode_params($this->urls['api']['rest'], array( 'hostname' => $this->hostname )) . $request;
+        $url = $this->implode_hostname($this->urls['api']['rest']) . $request;
         // $type = $this->getPathAuthenticationType ($path);
         if ($api === 'public') {
             if ($query) {

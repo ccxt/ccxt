@@ -2184,7 +2184,7 @@ class okex5(Exchange):
         isArray = isinstance(params, list)
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.implode_params(self.urls['api']['rest'], {'hostname': self.hostname}) + request
+        url = self.implode_hostname(self.urls['api']['rest']) + request
         # type = self.getPathAuthenticationType(path)
         if api == 'public':
             if query:

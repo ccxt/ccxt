@@ -3452,7 +3452,7 @@ class okex(Exchange):
         request = '/api/' + api + '/' + self.version + '/'
         request += path if isArray else self.implode_params(path, params)
         query = params if isArray else self.omit(params, self.extract_params(path))
-        url = self.implode_params(self.urls['api']['rest'], {'hostname': self.hostname}) + request
+        url = self.implode_hostname(self.urls['api']['rest']) + request
         type = self.get_path_authentication_type(path)
         if type == 'public':
             if query:
