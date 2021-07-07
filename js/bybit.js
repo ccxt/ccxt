@@ -2346,7 +2346,7 @@ module.exports = class bybit extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = this.safeString (api, 0);
         const section = this.safeString (api, 1);
-        let url = this.implodeParams (this.urls['api'][type], { 'hostname': this.hostname });
+        let url = this.implodeHostname (this.urls['api'][type]);
         let request = '/' + type + '/' + section + '/' + path;
         // public v2
         if (section === 'public') {
