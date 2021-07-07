@@ -2265,7 +2265,7 @@ module.exports = class bitmart extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseUrl = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
+        const baseUrl = this.implodeHostname (this.urls['api']);
         const access = this.safeString (api, 0);
         const type = this.safeString (api, 1);
         let url = baseUrl + '/' + type;
