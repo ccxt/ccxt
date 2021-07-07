@@ -465,6 +465,7 @@ class binance extends Exchange {
                         'income',
                         'commissionRate',
                         'apiTradingStatus',
+                        'multiAssetsMargin',
                         // broker endpoints
                         'apiReferral/ifNewUser',
                         'apiReferral/customization',
@@ -484,6 +485,7 @@ class binance extends Exchange {
                         'leverage',
                         'listenKey',
                         'countdownCancelAll',
+                        'multiAssetsMargin',
                         // broker endpoints
                         'apiReferral/customization',
                         'apiReferral/userCustomization',

@@ -475,6 +475,7 @@ class binance(Exchange):
                         'income',
                         'commissionRate',
                         'apiTradingStatus',
+                        'multiAssetsMargin',
                         # broker endpoints
                         'apiReferral/ifNewUser',
                         'apiReferral/customization',
@@ -494,6 +495,7 @@ class binance(Exchange):
                         'leverage',
                         'listenKey',
                         'countdownCancelAll',
+                        'multiAssetsMargin',
                         # broker endpoints
                         'apiReferral/customization',
                         'apiReferral/userCustomization',
