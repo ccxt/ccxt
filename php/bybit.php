@@ -2347,7 +2347,7 @@ class bybit extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $type = $this->safe_string($api, 0);
         $section = $this->safe_string($api, 1);
-        $url = $this->implode_params($this->urls['api'][$type], array( 'hostname' => $this->hostname ));
+        $url = $this->implode_hostname($this->urls['api'][$type]);
         $request = '/' . $type . '/' . $section . '/' . $path;
         // public v2
         if ($section === 'public') {
