@@ -2229,7 +2229,7 @@ class bybit(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         type = self.safe_string(api, 0)
         section = self.safe_string(api, 1)
-        url = self.implode_params(self.urls['api'][type], {'hostname': self.hostname})
+        url = self.implode_hostname(self.urls['api'][type])
         request = '/' + type + '/' + section + '/' + path
         # public v2
         if section == 'public':
