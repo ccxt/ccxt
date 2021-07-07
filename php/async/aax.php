@@ -1866,7 +1866,7 @@ class aax extends Exchange {
                 $headers['X-ACCESS-SIGN'] = $signature;
             }
         }
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $url;
+        $url = $this->implode_hostname($this->urls['api'][$api]) . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

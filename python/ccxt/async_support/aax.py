@@ -1788,7 +1788,7 @@ class aax(Exchange):
                     auth += url + body
                 signature = self.hmac(self.encode(auth), self.encode(self.secret))
                 headers['X-ACCESS-SIGN'] = signature
-        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + url
+        url = self.implode_hostname(self.urls['api'][api]) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
