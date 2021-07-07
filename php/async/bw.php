@@ -938,7 +938,7 @@ class bw extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname )) . '/' . $path;
+        $url = $this->implode_hostname($this->urls['api']) . '/' . $path;
         if ($method === 'GET') {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
