@@ -3585,7 +3585,7 @@ module.exports = class okex extends Exchange {
         let request = '/api/' + api + '/' + this.version + '/';
         request += isArray ? path : this.implodeParams (path, params);
         const query = isArray ? params : this.omit (params, this.extractParams (path));
-        let url = this.implodeParams (this.urls['api']['rest'], { 'hostname': this.hostname }) + request;
+        let url = this.implodeHostname (this.urls['api']['rest']) + request;
         const type = this.getPathAuthenticationType (path);
         if (type === 'public') {
             if (Object.keys (query).length) {
