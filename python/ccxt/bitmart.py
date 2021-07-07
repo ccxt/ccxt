@@ -2173,7 +2173,7 @@ class bitmart(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        baseUrl = self.implode_params(self.urls['api'], {'hostname': self.hostname})
+        baseUrl = self.implode_hostname(self.urls['api'])
         access = self.safe_string(api, 0)
         type = self.safe_string(api, 1)
         url = baseUrl + '/' + type

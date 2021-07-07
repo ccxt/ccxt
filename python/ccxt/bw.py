@@ -899,7 +899,7 @@ class bw(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_params(self.urls['api'], {'hostname': self.hostname}) + '/' + path
+        url = self.implode_hostname(self.urls['api']) + '/' + path
         if method == 'GET':
             if params:
                 url += '?' + self.urlencode(params)

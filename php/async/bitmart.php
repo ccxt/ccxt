@@ -2270,7 +2270,7 @@ class bitmart extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $baseUrl = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname ));
+        $baseUrl = $this->implode_hostname($this->urls['api']);
         $access = $this->safe_string($api, 0);
         $type = $this->safe_string($api, 1);
         $url = $baseUrl . '/' . $type;
