@@ -821,7 +821,7 @@ class bithumb(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)
-        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + endpoint
+        url = self.implode_hostname(self.urls['api'][api]) + endpoint
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
