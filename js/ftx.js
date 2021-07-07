@@ -1831,7 +1831,7 @@ module.exports = class ftx extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/api/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const baseUrl = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
+        const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + request;
         if (method !== 'POST') {
             if (Object.keys (query).length) {
