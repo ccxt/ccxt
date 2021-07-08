@@ -523,7 +523,6 @@ declare module 'ccxt' {
     export class probit extends Exchange {}
     export class qtrade extends Exchange {}
     export class ripio extends Exchange {}
-    export class southxchange extends Exchange {}
     export class stex extends Exchange {}
     export class therock extends Exchange {}
     export class tidebit extends Exchange {}
@@ -640,7 +639,6 @@ declare module 'ccxt' {
         | 'probit'
         | 'qtrade'
         | 'ripio'
-        | 'southxchange'
         | 'stex'
         | 'therock'
         | 'tidebit'

@@ -36,7 +36,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.52.66'
+const version = '1.52.67'
 
 Exchange.ccxtVersion = version
 
@@ -142,7 +142,6 @@ const exchanges = {
     'probit':                  require ('./js/probit.js'),
     'qtrade':                  require ('./js/qtrade.js'),
     'ripio':                   require ('./js/ripio.js'),
-    'southxchange':            require ('./js/southxchange.js'),
     'stex':                    require ('./js/stex.js'),
     'therock':                 require ('./js/therock.js'),
     'tidebit':                 require ('./js/tidebit.js'),

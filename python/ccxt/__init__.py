@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.52.66'
+__version__ = '1.52.67'
 
 # ----------------------------------------------------------------------------
 
@@ -168,7 +168,6 @@ from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.probit import probit                              # noqa: F401
 from ccxt.qtrade import qtrade                              # noqa: F401
 from ccxt.ripio import ripio                                # noqa: F401
-from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.stex import stex                                  # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
 from ccxt.tidebit import tidebit                            # noqa: F401
@@ -283,7 +282,6 @@ exchanges = [
     'probit',
     'qtrade',
     'ripio',
-    'southxchange',
     'stex',
     'therock',
     'tidebit',

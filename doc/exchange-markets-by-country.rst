@@ -34,17 +34,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://exchange.ripio.com/en/api/
           :alt: API Version 1
      
-   * - Argentina
-     - .. image:: https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg
-          :target: https://www.southxchange.com
-          :alt: southxchange
-     
-     - southxchange
-     - `SouthXchange <https://www.southxchange.com>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://www.southxchange.com/Home/Api
-          :alt: API Version *
-     
    * - Australia
      - .. image:: https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg
           :target: https://btcmarkets.net
