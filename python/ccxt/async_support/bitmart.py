@@ -626,10 +626,7 @@ class bitmart(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
-        spotMarkets = await self.fetch_spot_markets()
-        contractMarkets = await self.fetch_contract_markets()
-        allMarkets = self.array_concat(spotMarkets, contractMarkets)
-        return allMarkets
+        return await self.fetch_spot_markets()
 
     def parse_ticker(self, ticker, market=None):
         #

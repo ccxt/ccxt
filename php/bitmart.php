@@ -617,10 +617,7 @@ class bitmart extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $spotMarkets = $this->fetch_spot_markets();
-        $contractMarkets = $this->fetch_contract_markets();
-        $allMarkets = $this->array_concat($spotMarkets, $contractMarkets);
-        return $allMarkets;
+        return $this->fetch_spot_markets();
     }
 
     public function parse_ticker($ticker, $market = null) {
