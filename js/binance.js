@@ -678,7 +678,6 @@ module.exports = class binance extends Exchange {
                     'Order would trigger immediately.': OrderImmediatelyFillable,
                     'Stop price would trigger immediately.': OrderImmediatelyFillable, // {"code":-2010,"msg":"Stop price would trigger immediately."}
                     'Order would immediately match and take.': OrderImmediatelyFillable, // {"code":-2010,"msg":"Order would immediately match and take."}
-                    'Filter failure: MAX_POSITION': InvalidOrder, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                     'Account has insufficient balance for requested action.': InsufficientFunds,
                     'Rest API trading is not enabled.': ExchangeNotAvailable,
                     "You don't have permission.": PermissionDenied, // {"msg":"You don't have permission.","success":false}
@@ -734,6 +733,7 @@ module.exports = class binance extends Exchange {
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
+                    'MAX_POSITION': InvalidOrder, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
             },
         });
