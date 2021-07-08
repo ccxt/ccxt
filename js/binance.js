@@ -733,6 +733,7 @@ module.exports = class binance extends Exchange {
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
+                    'MAX_POSITION': InvalidOrder, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
             },
         });
