@@ -126,9 +126,6 @@ module.exports = class kuna extends Exchange {
 
     async fetchMarkets (params = {}) {
         const quotes = [ 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' ];
-        const pricePrecisions = {
-            'UAH': 0,
-        };
         const markets = [];
         const response = await this.publicGetTickers (params);
         const ids = Object.keys (response);
@@ -143,10 +140,6 @@ module.exports = class kuna extends Exchange {
                     const base = this.safeCurrencyCode (baseId);
                     const quote = this.safeCurrencyCode (quoteId);
                     const symbol = base + '/' + quote;
-                    const precision = {
-                        'amount': 6,
-                        'price': this.safeInteger (pricePrecisions, quote, 6),
-                    };
                     markets.push ({
                         'id': id,
                         'symbol': symbol,
@@ -154,15 +147,15 @@ module.exports = class kuna extends Exchange {
                         'quote': quote,
                         'baseId': baseId,
                         'quoteId': quoteId,
-                        'precision': precision,
+                        'precision': undefined,
                         'limits': {
                             'amount': {
-                                'min': Math.pow (10, -precision['amount']),
-                                'max': Math.pow (10, precision['amount']),
+                                'min': undefined,
+                                'max': undefined,
                             },
                             'price': {
-                                'min': Math.pow (10, -precision['price']),
-                                'max': Math.pow (10, precision['price']),
+                                'min': undefined,
+                                'max': undefined,
                             },
                             'cost': {
                                 'min': undefined,
