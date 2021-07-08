@@ -147,7 +147,10 @@ module.exports = class kuna extends Exchange {
                         'quote': quote,
                         'baseId': baseId,
                         'quoteId': quoteId,
-                        'precision': undefined,
+                        'precision': {
+                            'amount': undefined,
+                            'price': undefined,
+                        },
                         'limits': {
                             'amount': {
                                 'min': undefined,
