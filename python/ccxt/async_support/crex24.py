@@ -194,24 +194,44 @@ class crex24(Exchange):
     async def fetch_markets(self, params={}):
         response = await self.publicGetInstruments(params)
         #
-        #     [{             symbol:   "$PAC-BTC",
-        #                baseCurrency:   "$PAC",
-        #               quoteCurrency:   "BTC",
-        #                 feeCurrency:   "BTC",
-        #                    tickSize:    1e-8,
-        #                    minPrice:    1e-8,
-        #                   minVolume:    1,
-        #         supportedOrderTypes: ["limit"],
-        #                       state:   "active"    },
-        #       {             symbol:   "ZZC-USD",
-        #                baseCurrency:   "ZZC",
-        #               quoteCurrency:   "USD",
-        #                 feeCurrency:   "USD",
-        #                    tickSize:    0.0001,
-        #                    minPrice:    0.0001,
-        #                   minVolume:    1,
-        #         supportedOrderTypes: ["limit"],
-        #                       state:   "active"   }        ]
+        #         [{
+        #             "symbol": "$PAC-BTC",
+        #             "baseCurrency": "$PAC",
+        #             "quoteCurrency": "BTC",
+        #             "feeCurrency": "BTC",
+        #             "feeSchedule": "OriginalSchedule",
+        #             "tickSize": 0.00000001,
+        #             "minPrice": 0.00000001,
+        #             "maxPrice": 10000000000.0,
+        #             "volumeIncrement": 0.00000001,
+        #             "minVolume": 1.0,
+        #             "maxVolume": 1000000000.0,
+        #             "minQuoteVolume": 0.000000000000001,
+        #             "maxQuoteVolume": 100000000000.0,
+        #             "supportedOrderTypes": [
+        #               "limit"
+        #             ],
+        #             "state": "delisted"
+        #           },
+        #           {
+        #             "symbol": "1INCH-USDT",
+        #             "baseCurrency": "1INCH",
+        #             "quoteCurrency": "USDT",
+        #             "feeCurrency": "USDT",
+        #             "feeSchedule": "FeeSchedule10",
+        #             "tickSize": 0.0001,
+        #             "minPrice": 0.0001,
+        #             "maxPrice": 10000000000.0,
+        #             "volumeIncrement": 0.00000001,
+        #             "minVolume": 0.01,
+        #             "maxVolume": 1000000000.0,
+        #             "minQuoteVolume": 0.000000000000001,
+        #             "maxQuoteVolume": 100000000000.0,
+        #             "supportedOrderTypes": [
+        #               "limit"
+        #             ],
+        #             "state": "active"
+        #           },]
         #
         result = []
         for i in range(0, len(response)):
@@ -224,7 +244,11 @@ class crex24(Exchange):
             symbol = base + '/' + quote
             tickSize = self.safe_number(market, 'tickSize')
             minPrice = self.safe_number(market, 'minPrice')
+            maxPrice = self.safe_number(market, 'maxPrice')
             minAmount = self.safe_number(market, 'minVolume')
+            maxAmount = self.safe_number(market, 'maxVolume')
+            minCost = self.safe_number(market, 'minQuoteVolume')
+            maxCost = self.safe_number(market, 'maxQuoteVolume')
             precision = {
                 'amount': minAmount,
                 'price': tickSize,
@@ -243,15 +267,15 @@ class crex24(Exchange):
                 'limits': {
                     'amount': {
                         'min': minAmount,
-                        'max': None,
+                        'max': maxAmount,
                     },
                     'price': {
                         'min': minPrice,
-                        'max': None,
+                        'max': maxPrice,
                     },
                     'cost': {
-                        'min': None,
-                        'max': None,
+                        'min': minCost,
+                        'max': maxCost,
                     },
                 },
             })

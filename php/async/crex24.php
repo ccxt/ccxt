@@ -191,24 +191,44 @@ class crex24 extends Exchange {
     public function fetch_markets($params = array ()) {
         $response = yield $this->publicGetInstruments ($params);
         //
-        //     [ array(              $symbol =>   "$PAC-BTC",
-        //                baseCurrency =>   "$PAC",
-        //               quoteCurrency =>   "BTC",
-        //                 feeCurrency =>   "BTC",
-        //                    $tickSize =>    1e-8,
-        //                    $minPrice =>    1e-8,
-        //                   minVolume =>    1,
-        //         supportedOrderTypes => ["limit"],
-        //                       state =>   "$active"    ),
-        //       {              $symbol =>   "ZZC-USD",
-        //                baseCurrency =>   "ZZC",
-        //               quoteCurrency =>   "USD",
-        //                 feeCurrency =>   "USD",
-        //                    $tickSize =>    0.0001,
-        //                    $minPrice =>    0.0001,
-        //                   minVolume =>    1,
-        //         supportedOrderTypes => ["limit"],
-        //                       state =>   "$active"   }        ]
+        //         array( array(
+        //             "$symbol" => "$PAC-BTC",
+        //             "baseCurrency" => "$PAC",
+        //             "quoteCurrency" => "BTC",
+        //             "feeCurrency" => "BTC",
+        //             "feeSchedule" => "OriginalSchedule",
+        //             "$tickSize" => 0.00000001,
+        //             "$minPrice" => 0.00000001,
+        //             "$maxPrice" => 10000000000.0,
+        //             "volumeIncrement" => 0.00000001,
+        //             "minVolume" => 1.0,
+        //             "maxVolume" => 1000000000.0,
+        //             "minQuoteVolume" => 0.000000000000001,
+        //             "maxQuoteVolume" => 100000000000.0,
+        //             "supportedOrderTypes" => array(
+        //               "limit"
+        //             ),
+        //             "state" => "delisted"
+        //           ),
+        //           array(
+        //             "$symbol" => "1INCH-USDT",
+        //             "baseCurrency" => "1INCH",
+        //             "quoteCurrency" => "USDT",
+        //             "feeCurrency" => "USDT",
+        //             "feeSchedule" => "FeeSchedule10",
+        //             "$tickSize" => 0.0001,
+        //             "$minPrice" => 0.0001,
+        //             "$maxPrice" => 10000000000.0,
+        //             "volumeIncrement" => 0.00000001,
+        //             "minVolume" => 0.01,
+        //             "maxVolume" => 1000000000.0,
+        //             "minQuoteVolume" => 0.000000000000001,
+        //             "maxQuoteVolume" => 100000000000.0,
+        //             "supportedOrderTypes" => array(
+        //               "limit"
+        //             ),
+        //             "state" => "$active"
+        //           ), )
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -221,7 +241,11 @@ class crex24 extends Exchange {
             $symbol = $base . '/' . $quote;
             $tickSize = $this->safe_number($market, 'tickSize');
             $minPrice = $this->safe_number($market, 'minPrice');
+            $maxPrice = $this->safe_number($market, 'maxPrice');
             $minAmount = $this->safe_number($market, 'minVolume');
+            $maxAmount = $this->safe_number($market, 'maxVolume');
+            $minCost = $this->safe_number($market, 'minQuoteVolume');
+            $maxCost = $this->safe_number($market, 'maxQuoteVolume');
             $precision = array(
                 'amount' => $minAmount,
                 'price' => $tickSize,
@@ -240,15 +264,15 @@ class crex24 extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => $minAmount,
-                        'max' => null,
+                        'max' => $maxAmount,
                     ),
                     'price' => array(
                         'min' => $minPrice,
-                        'max' => null,
+                        'max' => $maxPrice,
                     ),
                     'cost' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $minCost,
+                        'max' => $maxCost,
                     ),
                 ),
             );
