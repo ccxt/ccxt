@@ -16,7 +16,7 @@ class ascendex extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'ascendex',
             'name' => 'AscendEX',
-            'countries' => array( 'SG', 'CN' ), // Singapore, China
+            'countries' => array( 'SG' ), // Singapore
             'rateLimit' => 500,
             // new metainfo interface
             'has' => array(

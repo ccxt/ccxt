@@ -24,7 +24,7 @@ class ascendex(Exchange):
         return self.deep_extend(super(ascendex, self).describe(), {
             'id': 'ascendex',
             'name': 'AscendEX',
-            'countries': ['SG', 'CN'],  # Singapore, China
+            'countries': ['SG'],  # Singapore
             'rateLimit': 500,
             # new metainfo interface
             'has': {
