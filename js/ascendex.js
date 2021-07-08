@@ -14,7 +14,7 @@ module.exports = class ascendex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'ascendex',
             'name': 'AscendEX',
-            'countries': [ 'SG', 'CN' ], // Singapore, China
+            'countries': [ 'SG' ], // Singapore
             'rateLimit': 500,
             // new metainfo interface
             'has': {
