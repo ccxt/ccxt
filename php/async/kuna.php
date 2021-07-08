@@ -129,9 +129,6 @@ class kuna extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $quotes = array( 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' );
-        $pricePrecisions = array(
-            'UAH' => 0,
-        );
         $markets = array();
         $response = yield $this->publicGetTickers ($params);
         $ids = is_array($response) ? array_keys($response) : array();
@@ -146,10 +143,6 @@ class kuna extends Exchange {
                     $base = $this->safe_currency_code($baseId);
                     $quote = $this->safe_currency_code($quoteId);
                     $symbol = $base . '/' . $quote;
-                    $precision = array(
-                        'amount' => 6,
-                        'price' => $this->safe_integer($pricePrecisions, $quote, 6),
-                    );
                     $markets[] = array(
                         'id' => $id,
                         'symbol' => $symbol,
@@ -157,15 +150,18 @@ class kuna extends Exchange {
                         'quote' => $quote,
                         'baseId' => $baseId,
                         'quoteId' => $quoteId,
-                        'precision' => $precision,
+                        'precision' => array(
+                            'amount' => null,
+                            'price' => null,
+                        ),
                         'limits' => array(
                             'amount' => array(
-                                'min' => pow(10, -$precision['amount']),
-                                'max' => pow(10, $precision['amount']),
+                                'min' => null,
+                                'max' => null,
                             ),
                             'price' => array(
-                                'min' => pow(10, -$precision['price']),
-                                'max' => pow(10, $precision['price']),
+                                'min' => null,
+                                'max' => null,
                             ),
                             'cost' => array(
                                 'min' => null,
