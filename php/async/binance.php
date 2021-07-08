@@ -740,6 +740,7 @@ class binance extends Exchange {
                 ),
                 'broad' => array(
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
+                    'MAX_POSITION' => '\\ccxt\\InvalidOrder', // array("code":-2010,"msg":"Filter failure => MAX_POSITION")
                 ),
             ),
         ));
