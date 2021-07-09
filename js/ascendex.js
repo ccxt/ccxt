@@ -64,7 +64,7 @@ module.exports = class ascendex extends Exchange {
                     'https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation',
                 ],
                 'fees': 'https://ascendex.com/en/feerate/transactionfee-traderate',
-                'referral': 'https://bitmax.io/#/register?inviteCode=EL6BXBQM',
+                'referral': 'https://ascendex.com/en-us/register?inviteCode=EL6BXBQM',
             },
             'api': {
                 'public': {
