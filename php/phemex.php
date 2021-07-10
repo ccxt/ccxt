@@ -804,7 +804,7 @@ class phemex extends Exchange {
         $precise->decimals = $precise->decimals - $scale;
         $precise->reduce ();
         $stringValue = (string) $precise;
-        return intval($stringValue);
+        return intval((int) floor($stringValue));
     }
 
     public function to_ev($amount, $market = null) {
