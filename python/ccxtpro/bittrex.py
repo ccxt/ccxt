@@ -26,7 +26,6 @@ class bittrex(Exchange, ccxt.bittrex):
                 'watchTicker': True,
                 'watchTickers': False,  # for now
                 'watchTrades': True,
-                'watchMyTrades': True,
             },
             'urls': {
                 'api': {
@@ -273,48 +272,6 @@ class bittrex(Exchange, ccxt.bittrex):
         self.balance = self.parse_balance(self.balance, False)
         messageHash = 'balance'
         client.resolve(self.balance, messageHash)
-
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        await self.load_markets()
-        authentication = await self.authenticate()
-        trades = await self.subscribe_to_my_trades(authentication, params)
-        if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
-
-    async def subscribe_to_my_trades(self, authentication, params={}):
-        messageHash = 'execution'
-        return await self.send_authenticated_request_to_subscribe(authentication, messageHash, params)
-
-    def handle_my_trades(self, client, message):
-        #
-        #     {
-        #         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        #         sequence: 42,
-        #         deltas: [
-        #             {
-        #                 id: '5bf67885-a0a8-4c62-b73d-534e480e3332',
-        #                 marketSymbol: 'BTC-USDT',
-        #                 executedAt: '2020-10-05T23:02:17.49Z',
-        #                 quantity: '0.00166790',
-        #                 rate: '10763.97000000',
-        #                 orderId: "string (uuid)",
-        #                 commission: '0.00000000',
-        #                 isTaker: False
-        #             }
-        #         ]
-        #     }
-        #
-        deltas = self.safe_value(message, 'deltas', {})
-        trades = self.parse_trades(deltas)
-        print('handler: ', trades)
-        if self.myTrades is None:
-            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            self.myTrades = ArrayCacheBySymbolById(limit)
-        for trade in trades:
-            self.myTrades.append(trade)
-        messageHash = 'execution'
-        client.resolve(self.myTrades, messageHash)
 
     async def watch_heartbeat(self, params={}):
         await self.load_markets()
@@ -741,7 +698,6 @@ class bittrex(Exchange, ccxt.bittrex):
             'orderBook': self.handle_order_book,
             'heartbeat': self.handle_heartbeat,
             'ticker': self.handle_ticker,
-            'execution': self.handle_my_trades
         }
         M = self.safe_value(message, 'M', [])
         for i in range(0, len(M)):
