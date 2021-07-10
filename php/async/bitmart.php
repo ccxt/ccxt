@@ -2223,7 +2223,7 @@ class bitmart extends Exchange {
             $id = $depositId;
         }
         $amount = $this->safe_number($transaction, 'arrival_amount');
-        $timestamp = $this->safe_integer($transaction, 'tapply_timeime');
+        $timestamp = $this->safe_integer($transaction, 'apply_time');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));

@@ -2130,7 +2130,7 @@ class bitmart(Exchange):
             type = 'deposit'
             id = depositId
         amount = self.safe_number(transaction, 'arrival_amount')
-        timestamp = self.safe_integer(transaction, 'tapply_timeime')
+        timestamp = self.safe_integer(transaction, 'apply_time')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
