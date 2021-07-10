@@ -2218,7 +2218,7 @@ module.exports = class bitmart extends Exchange {
             id = depositId;
         }
         const amount = this.safeNumber (transaction, 'arrival_amount');
-        const timestamp = this.safeInteger (transaction, 'tapply_timeime');
+        const timestamp = this.safeInteger (transaction, 'apply_time');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
