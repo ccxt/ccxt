@@ -779,30 +779,38 @@ class wavesexchange(Exchange):
         market = self.markets[symbol]
         wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
         difference = market['precision']['amount'] - market['precision']['price']
-        return int(float(self.to_wei(price, wavesPrecision - difference)))
+        return int(float(self.to_precision(price, wavesPrecision - difference)))
 
     def amount_to_precision(self, symbol, amount):
-        return int(float(self.to_wei(amount, self.markets[symbol]['precision']['amount'])))
+        return int(float(self.to_precision(amount, self.markets[symbol]['precision']['amount'])))
 
     def currency_to_precision(self, currency, amount):
-        return int(float(self.to_wei(amount, self.currencies[currency]['precision'])))
+        return int(float(self.to_precision(amount, self.currencies[currency]['precision'])))
+
+    def from_precision(self, amount, scale):
+        if amount is None:
+            return None
+        precise = Precise(amount)
+        precise.decimals = precise.decimals + scale
+        precise.reduce()
+        return str(precise)
+
+    def to_precision(self, amount, scale):
+        amountString = str(amount)
+        precise = Precise(amountString)
+        precise.decimals = precise.decimals - scale
+        precise.reduce()
+        return str(precise)
 
     def currency_from_precision(self, currency, amount):
-        return self.from_wei(amount, self.currencies[currency]['precision'])
+        scale = self.currencies[currency]['precision']
+        return self.from_precision(amount, scale)
 
     def price_from_precision(self, symbol, price):
         market = self.markets[symbol]
         wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
-        difference = market['precision']['amount'] - market['precision']['price']
-        return self.from_wei(price, wavesPrecision - difference)
-
-    def get_default_expiry(self):
-        expiry = self.safe_integer(self.options, 'createOrderDefaultExpiry')
-        if expiry:
-            return expiry
-        else:
-            self.options['createOrderDefaultExpiry'] = 60 * 60 * 24 * 28 * 1000
-            return self.options['createOrderDefaultExpiry']
+        scale = wavesPrecision - market['precision']['amount'] + market['precision']['price']
+        return self.from_precision(price, scale)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.check_required_dependencies()
@@ -816,7 +824,8 @@ class wavesexchange(Exchange):
         price = self.price_to_precision(symbol, price)
         orderType = 0 if (side == 'buy') else 1
         timestamp = self.milliseconds()
-        expiration = self.sum(timestamp, self.get_default_expiry())
+        defaultExpiryDelta = self.safe_integer(self.options, 'createOrderDefaultExpiry', 2419200000)
+        expiration = self.sum(timestamp, defaultExpiryDelta)
         settings = await self.matcherGetMatcherSettings()
         # {
         #   "orderVersions": [
@@ -868,7 +877,7 @@ class wavesexchange(Exchange):
         # }
         orderFee = self.safe_value(settings, 'orderFee')
         dynamic = self.safe_value(orderFee, 'dynamic')
-        baseMatcherFee = self.safe_integer(dynamic, 'baseFee')
+        baseMatcherFee = self.safe_string(dynamic, 'baseFee')
         wavesMatcherFee = self.currency_from_precision('WAVES', baseMatcherFee)
         rates = self.safe_value(dynamic, 'rates')
         # choose sponsored assets from the list of priceAssets above
@@ -889,7 +898,7 @@ class wavesexchange(Exchange):
                     assetId = priceAssets[i]
                     code = self.safe_currency_code(assetId)
                     balance = self.safe_value(self.safe_value(balances, code, {}), 'free')
-                    assetFee = rates[assetId] * wavesMatcherFee
+                    assetFee = Precise.string_mul(rates[assetId], wavesMatcherFee)
                     if (balance is not None) and (balance > assetFee):
                         matcherFeeAssetId = assetId
                         break
@@ -897,11 +906,13 @@ class wavesexchange(Exchange):
             raise InsufficientFunds(self.id + ' not enough funds to cover the fee, specify feeAssetId in params or options, or buy some WAVES')
         if matcherFee is None:
             wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
-            rate = self.safe_number(rates, matcherFeeAssetId)
+            rate = self.safe_string(rates, matcherFeeAssetId)
             code = self.safe_currency_code(matcherFeeAssetId)
             currency = self.currency(code)
-            newPrecison = math.pow(10, wavesPrecision - currency['precision'])
-            matcherFee = int(math.ceil(rate * baseMatcherFee / newPrecison))
+            newPrecison = wavesPrecision - currency['precision']
+            matcherFee = self.from_precision(Precise.string_mul(rate, baseMatcherFee), newPrecison)
+            # ceil the fee
+            matcherFee = Precise.string_div(Precise.string_add(matcherFee, '1'), '1', 0)
         byteArray = [
             self.number_to_be(3, 1),
             self.base58_to_binary(self.apiKey),
@@ -931,7 +942,7 @@ class wavesexchange(Exchange):
             'amount': amount,
             'timestamp': timestamp,
             'expiration': expiration,
-            'matcherFee': matcherFee,
+            'matcherFee': int(matcherFee),
             'signature': signature,
             'version': 3,
         }
@@ -1161,9 +1172,9 @@ class wavesexchange(Exchange):
             # fetchOrders
             type = self.safe_string(order, 'orderType', type)
         id = self.safe_string(order, 'id')
-        filled = self.safe_string(order, 'filled')
-        price = self.safe_string(order, 'price')
-        amount = self.safe_string(order, 'amount')
+        filledString = self.safe_string(order, 'filled')
+        priceString = self.safe_string(order, 'price')
+        amountString = self.safe_string(order, 'amount')
         assetPair = self.safe_value(order, 'assetPair')
         symbol = None
         if assetPair is not None:
@@ -1171,31 +1182,25 @@ class wavesexchange(Exchange):
         elif market is not None:
             symbol = market['symbol']
         amountCurrency = self.safe_currency_code(self.safe_string(assetPair, 'amountAsset', 'WAVES'))
-        price = self.price_from_precision(symbol, price)
-        amount = self.currency_from_precision(amountCurrency, amount)
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
-        filled = self.currency_from_precision(amountCurrency, filled)
-        remaining = None
-        if (filled is not None) and (amount is not None):
-            remaining = amount - filled
-        average = self.price_from_precision(symbol, self.safe_string(order, 'avgWeighedPrice'))
+        price = self.parse_number(self.price_from_precision(symbol, priceString))
+        amount = self.parse_number(self.currency_from_precision(amountCurrency, amountString))
+        filled = self.parse_number(self.currency_from_precision(amountCurrency, filledString))
+        average = self.parse_number(self.price_from_precision(symbol, self.safe_string(order, 'avgWeighedPrice')))
         status = self.parse_order_status(self.safe_string(order, 'status'))
         fee = None
         if 'type' in order:
             currency = self.safe_currency_code(self.safe_string(order, 'feeAsset'))
             fee = {
                 'currency': currency,
-                'fee': self.currency_from_precision(currency, self.safe_integer(order, 'filledFee')),
+                'fee': self.parse_number(self.currency_from_precision(currency, self.safe_string(order, 'filledFee'))),
             }
         else:
             currency = self.safe_currency_code(self.safe_string(order, 'matcherFeeAssetId', 'WAVES'))
             fee = {
                 'currency': currency,
-                'fee': self.currency_from_precision(currency, self.safe_integer(order, 'matcherFee')),
+                'fee': self.parse_number(self.currency_from_precision(currency, self.safe_string(order, 'matcherFee'))),
             }
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -1210,14 +1215,14 @@ class wavesexchange(Exchange):
             'price': price,
             'stopPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     async def get_waves_address(self):
         cachedAddreess = self.safe_string(self.options, 'wavesAddress')
@@ -1290,12 +1295,12 @@ class wavesexchange(Exchange):
             issueTransaction = self.safe_value(entry, 'issueTransaction')
             decimals = self.safe_integer(issueTransaction, 'decimals')
             currencyId = self.safe_string(entry, 'assetId')
-            balance = self.safe_number(entry, 'balance')
+            balance = self.safe_string(entry, 'balance')
             code = None
             if currencyId in self.currencies_by_id:
                 code = self.safe_currency_code(currencyId)
                 result[code] = self.account()
-                result[code]['total'] = self.from_wei(balance, decimals)
+                result[code]['total'] = self.from_precision(balance, decimals)
         currentTimestamp = self.milliseconds()
         byteArray = [
             self.base58_to_binary(self.apiKey),
@@ -1317,7 +1322,7 @@ class wavesexchange(Exchange):
             code = self.safe_currency_code(currencyId)
             if not (code in result):
                 result[code] = self.account()
-            amount = self.safe_number(reservedBalance, currencyId)
+            amount = self.safe_string(reservedBalance, currencyId)
             result[code]['used'] = self.currency_from_precision(code, amount)
         wavesRequest = {
             'address': wavesAddress,
@@ -1329,15 +1334,15 @@ class wavesexchange(Exchange):
         #   "balance": 909085978
         # }
         result['WAVES'] = self.safe_value(result, 'WAVES', {})
-        result['WAVES']['total'] = self.currency_from_precision('WAVES', self.safe_number(wavesTotal, 'balance'))
+        result['WAVES']['total'] = self.currency_from_precision('WAVES', self.safe_string(wavesTotal, 'balance'))
         codes = list(result.keys())
         for i in range(0, len(codes)):
             code = codes[i]
             if self.safe_value(result[code], 'used') is None:
-                result[code]['used'] = 0.0
+                result[code]['used'] = '0'
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1438,7 +1443,7 @@ class wavesexchange(Exchange):
         side = self.safe_string(order, 'orderType')
         orderId = self.safe_string(order, 'id')
         fee = {
-            'cost': self.safe_number(data, 'fee'),
+            'cost': self.safe_number(order, 'matcherFee'),
             'currency': self.safe_currency_code(self.safe_string(order, 'matcherFeeAssetId', 'WAVES')),
         }
         return {
