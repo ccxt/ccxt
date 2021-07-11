@@ -2004,26 +2004,6 @@ class Exchange(object):
         if self.requiresEddsa and eddsa is None:
             raise NotSupported('Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
 
-    @staticmethod
-    def from_wei(amount, decimals=18):
-        if amount is None:
-            return None
-        amount_float = float(amount)
-        exponential = '{:.14e}'.format(amount_float)
-        n, exponent = exponential.split('e')
-        new_exponent = int(exponent) - decimals
-        return float(n + 'e' + str(new_exponent))
-
-    @staticmethod
-    def to_wei(amount, decimals=18):
-        if amount is None:
-            return None
-        amount_float = float(amount)
-        exponential = '{:.14e}'.format(amount_float)
-        n, exponent = exponential.split('e')
-        new_exponent = int(exponent) + decimals
-        return number_to_string(n + 'e' + str(new_exponent))
-
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
         public_key_bytes = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()
