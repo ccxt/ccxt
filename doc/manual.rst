@@ -1591,8 +1591,6 @@ An exchange can be instantiated like shown in the examples below:
        , exchange = new exchangeClass ({
            'apiKey': 'YOUR_API_KEY',
            'secret': 'YOUR_SECRET',
-           'timeout': 30000,
-           'enableRateLimit': true,
        })
 
 .. code-block:: Python
@@ -1612,8 +1610,6 @@ An exchange can be instantiated like shown in the examples below:
    exchange = exchange_class({
        'apiKey': 'YOUR_API_KEY',
        'secret': 'YOUR_SECRET',
-       'timeout': 30000,
-       'enableRateLimit': True,
    })
 
 The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are required to set date.timezone in your php.ini or call `date_default_timezone_set() <http://php.net/manual/en/function.date-default-timezone-set.php>`__ function before using the PHP version of the library. The recommended timezone setting is ``"UTC"``.
@@ -1636,8 +1632,6 @@ The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are r
    $exchange = new $exchange_class(array(
        'apiKey' => 'YOUR_API_KEY',
        'secret' => 'YOUR_SECRET',
-       'timeout' => 30000,
-       'enableRateLimit' => true,
    ));
 
 Overriding Exchange Properties Upon Instantiation
@@ -3895,8 +3889,6 @@ To set up an exchange for trading just assign the API credentials to an existing
        , exchange = new exchangeClass ({
            'apiKey': 'YOUR_API_KEY',
            'secret': 'YOUR_SECRET',
-           'timeout': 30000,
-           'enableRateLimit': true,
        })
 
 .. code-block:: Python
@@ -3922,8 +3914,6 @@ To set up an exchange for trading just assign the API credentials to an existing
    exchange = exchange_class({
        'apiKey': 'YOUR_API_KEY',
        'secret': 'YOUR_SECRET',
-       'timeout': 30000,
-       'enableRateLimit': True,
    })
 
 .. code-block:: PHP
@@ -3949,8 +3939,6 @@ To set up an exchange for trading just assign the API credentials to an existing
    $exchange = new $exchange_class (array (
        'apiKey' => 'YOUR_API_KEY',
        'secret' => 'YOUR_SECRET',
-       'timeout' => 30000,
-       'enableRateLimit' => true,
    ));
 
 Note that your private requests will fail with an exception or error if you don't set up your API credentials before you start trading. To avoid character escaping **always write your credentials in single quotes**\ , not double quotes (\ ``'VERY_GOOD'``\ , ``"VERY_BAD"``\ ).
