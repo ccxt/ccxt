@@ -38,6 +38,7 @@ class liquid extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -70,7 +71,7 @@ class liquid extends Exchange {
                         'accounts/{id}',
                         'accounts/{currency}/reserved_balance_details',
                         'crypto_accounts', // add fetchAccounts
-                        'crypto_withdrawals', // add fetchWithdrawals
+                        'crypto_withdrawals',
                         'executions/me',
                         'fiat_accounts', // add fetchAccounts
                         'fund_infos', // add fetchDeposits
@@ -976,7 +977,7 @@ class liquid extends Exchange {
             // 'auth_code' => '', // optional 2fa $code
             'currency' => $currency['id'],
             'address' => $address,
-            'amount' => $this->currency_to_precision($code, $amount),
+            'amount' => $amount,
             // 'payment_id' => $tag, // for XRP only
             // 'memo_type' => 'text', // 'text', 'id' or 'hash', for XLM only
             // 'memo_value' => $tag, // for XLM only
@@ -1008,11 +1009,55 @@ class liquid extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // state => 'processed', // optional => pending, filed, cancelled, processing, processed, reverted to_be_reviewed, declined, broadcasted
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $response = $this->privateGetCryptoWithdrawals (array_merge($request, $params));
+        //
+        //     {
+        //         models => array(
+        //             array(
+        //                 id => '2',
+        //                 address => '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        //                 amount => '0.01',
+        //                 state => 'processed',
+        //                 $currency => 'BTC',
+        //                 withdrawal_fee => '0.0005',
+        //                 created_at => '1614718276',
+        //                 updated_at => '1614720926',
+        //                 payment_id => null,
+        //                 transaction_hash => 'xxxxxxxx...',
+        //                 broadcasted_at => '1614720762',
+        //                 wallet_label => 'btc',
+        //                 chain_name => 'Bitcoin',
+        //                 network => null
+        //             ),
+        //         ),
+        //         current_page => '1',
+        //         total_pages => '1'
+        //     }
+        //
+        $transactions = $this->safe_value($response, 'models', array());
+        return $this->parse_transactions($transactions, $currency, $since, $limit);
+    }
+
     public function parse_transaction_status($status) {
         $statuses = array(
             'pending' => 'pending',
             'cancelled' => 'canceled',
             'approved' => 'ok',
+            'processing' => 'pending',
+            'processed' => 'ok',
+            'reverted' => 'failed',
+            'to_be_reviewed' => 'pending',
+            'declined' => 'failed',
+            'broadcasted' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1021,33 +1066,58 @@ class liquid extends Exchange {
         //
         // withdraw
         //
-        //     {
-        //         "$id" => 1353,
-        //         "$address" => "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
-        //         "$amount" => 1.0,
-        //         "state" => "pending",
-        //         "$currency" => "BTC",
-        //         "withdrawal_fee" => 0.0,
-        //         "created_at" => 1568016450,
-        //         "updated_at" => 1568016450,
-        //         "payment_id" => null
-        //     }
+        //     array(
+        //         $id => '1',
+        //         $address => '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        //         $amount => '0.01',
+        //         state => 'pending',
+        //         $currency => 'BTC',
+        //         withdrawal_fee => '0.0007',
+        //         created_at => '1626000533',
+        //         updated_at => '1626000533',
+        //         payment_id => null,
+        //         transaction_hash => null,
+        //         broadcasted_at => null,
+        //         wallet_label => null,
+        //         chain_name => 'Bitcoin',
+        //         network => null
+        //     ),
         //
-        // fetchDeposits, fetchWithdrawals
+        // fetchWithdrawals
+        //
+        //     array(
+        //         $id => '2',
+        //         $address => '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        //         $amount => '0.01',
+        //         state => 'processed',
+        //         $currency => 'BTC',
+        //         withdrawal_fee => '0.0005',
+        //         created_at => '1614718276',
+        //         updated_at => '1614720926',
+        //         payment_id => '',
+        //         transaction_hash => 'xxxxxxxx...',
+        //         broadcasted_at => '1614720762',
+        //         wallet_label => 'btc',
+        //         chain_name => 'Bitcoin',
+        //         network => null
+        //     ),
+        //
+        // fetchDeposits
         //
         //     ...
         //
         $id = $this->safe_string($transaction, 'id');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string_2($transaction, 'payment_id', 'memo_value');
-        $txid = null;
-        $currencyId = $this->safe_string($transaction, 'asset');
+        $txid = $this->safe_string($transaction, 'transaction_hash');
+        $currencyId = $this->safe_string_2($transaction, 'currency', 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->safe_timestamp($transaction, 'created_at');
         $updated = $this->safe_timestamp($transaction, 'updated_at');
         $type = 'withdrawal';
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $amount = $this->safe_number($transaction, 'amount');
+        $feeCost = $this->safe_number($transaction, 'withdrawal_fee');
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1061,7 +1131,10 @@ class liquid extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
-            'fee' => null,
+            'fee' => array(
+                'currency' => $code,
+                'cost' => $feeCost,
+            ),
         );
     }
 

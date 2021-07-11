@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -797,7 +796,7 @@ class phemex(Exchange):
         precise.decimals = precise.decimals - scale
         precise.reduce()
         stringValue = str(precise)
-        return int(int(math.floor(stringValue)))
+        return int(float(stringValue))
 
     def to_ev(self, amount, market=None):
         if (amount is None) or (market is None):
