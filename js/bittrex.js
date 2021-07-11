@@ -15,6 +15,7 @@ module.exports = class bittrex extends ccxt.bittrex {
                 'ws': true,
                 'watchBalance': true,
                 'watchHeartbeat': true,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
@@ -484,6 +485,55 @@ module.exports = class bittrex extends ccxt.bittrex {
             stored.append (trades[i]);
         }
         this.trades[symbol] = stored;
+        client.resolve (stored, messageHash);
+    }
+
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const authentication = await this.authenticate ();
+        const trades = await this.subscribeToMyTrades (authentication, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    async subscribeToMyTrades (authentication, params = {}) {
+        const messageHash = 'execution';
+        return await this.sendAuthenticatedRequestToSubscribe (authentication, messageHash, params);
+    }
+
+    handleMyTrades (client, message) {
+        //
+        //     {
+        //         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
+        //         sequence: 42,
+        //         deltas: [
+        //             {
+        //                 id: '5bf67885-a0a8-4c62-b73d-534e480e3332',
+        //                 marketSymbol: 'BTC-USDT',
+        //                 executedAt: '2020-10-05T23:02:17.49Z',
+        //                 quantity: '0.00166790',
+        //                 rate: '10763.97000000',
+        //                 orderId: "string (uuid)",
+        //                 commission: '0.00000000',
+        //                 isTaker: False
+        //             }
+        //         ]
+        //     }
+        //
+        const deltas = this.safeValue (message, 'deltas', {});
+        const trades = this.parseTrades (deltas);
+        let stored = this.myTrades;
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCacheBySymbolById (limit);
+            this.myTrades = stored;
+        }
+        for (let i = 0; i < trades.length; i++) {
+            stored.append (trades[i]);
+        }
+        const messageHash = 'execution';
         client.resolve (stored, messageHash);
     }
 
