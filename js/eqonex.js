@@ -1433,7 +1433,7 @@ module.exports = class eqonex extends Exchange {
     }
 
     convertFromScale (number, scale) {
-        if (number === undefined) {
+        if ((number === undefined) || (scale === undefined)) {
             return undefined;
         }
         const precise = new Precise (number);
