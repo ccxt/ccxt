@@ -972,7 +972,7 @@ module.exports = class liquid extends Exchange {
             // 'auth_code': '', // optional 2fa code
             'currency': currency['id'],
             'address': address,
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': amount,
             // 'payment_id': tag, // for XRP only
             // 'memo_type': 'text', // 'text', 'id' or 'hash', for XLM only
             // 'memo_value': tag, // for XLM only
