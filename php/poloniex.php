@@ -595,9 +595,13 @@ class poloniex extends Exchange {
         $amountString = $this->safe_string($trade, 'amount');
         $price = $this->parse_number($priceString);
         $amount = $this->parse_number($amountString);
-        $cost = $this->safe_number($trade, 'total');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $cost = null;
+        $costString = $this->safe_string($trade, 'total');
+        if ($costString === null) {
+            $costString = Precise::string_mul($priceString, $amountString);
+            $cost = $this->parse_number($costString);
+        } else {
+            $cost = $this->parse_number($costString);
         }
         $feeDisplay = $this->safe_string($trade, 'feeDisplay');
         if ($feeDisplay !== null) {
@@ -620,14 +624,15 @@ class poloniex extends Exchange {
                 );
             }
         } else {
-            $feeCost = $this->safe_number($trade, 'fee');
-            if ($feeCost !== null && $market !== null) {
+            $feeCostString = $this->safe_string($trade, 'fee');
+            if ($feeCostString !== null && $market !== null) {
                 $feeCurrencyCode = ($side === 'buy') ? $market['base'] : $market['quote'];
-                $feeBase = ($side === 'buy') ? $amount : $cost;
+                $feeBase = ($side === 'buy') ? $amountString : $costString;
+                $feeRateString = Precise::string_div($feeCostString, $feeBase);
                 $fee = array(
-                    'cost' => $feeCost,
+                    'cost' => $this->parse_number($feeCostString),
                     'currency' => $feeCurrencyCode,
-                    'rate' => Precise::string_div($feeCost, $feeBase),
+                    'rate' => $this->parse_number($feeRateString),
                 );
             }
         }
