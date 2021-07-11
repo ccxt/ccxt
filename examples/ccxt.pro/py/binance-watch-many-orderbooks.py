@@ -10,7 +10,7 @@ def when_orderbook_changed(exchange_spot, symbol, orderbook):
     # as well as the rest of the orderbooks
     # ...................................................................
     print('-------------------------------------------------------------')
-    print(exchange_spot.iso8601(exchange_spot.milliseconds()))
+    print('Last updated:', exchange_spot.iso8601(exchange_spot.milliseconds()))
     # ...................................................................
     # print just one orderbook here
     # print(orderbook['datetime'], symbol, orderbook['asks'][0], orderbook['bids'][0])
