@@ -828,8 +828,10 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     fromPrecision (amount, scale) {
-        const amountString = amount;
-        const precise = new Precise (amountString);
+        if (amount === undefined) {
+            return undefined;
+        }
+        const precise = new Precise (amount);
         precise.decimals = precise.decimals + scale;
         precise.reduce ();
         return precise.toString ();
@@ -844,17 +846,11 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     currencyFromPrecision (currency, amount) {
-        if (amount === undefined) {
-            return undefined;
-        }
         const scale = this.currencies[currency]['precision'];
         return this.fromPrecision (amount, scale);
     }
 
     priceFromPrecision (symbol, price) {
-        if (price === undefined) {
-            return undefined;
-        }
         const market = this.markets[symbol];
         const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
         const scale = wavesPrecision - market['precision']['amount'] + market['precision']['price'];
