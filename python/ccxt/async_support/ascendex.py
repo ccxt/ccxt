@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -304,7 +303,8 @@ class ascendex(Exchange):
             id = ids[i]
             currency = dataById[id]
             code = self.safe_currency_code(id)
-            precision = self.safe_integer_2(currency, 'precisionScale', 'nativeScale')
+            precision = self.safe_string_2(currency, 'precisionScale', 'nativeScale')
+            minAmount = self.parse_precision(precision)
             # why would the exchange API have different names for the same field
             fee = self.safe_number_2(currency, 'withdrawFee', 'withdrawalFee')
             status = self.safe_string_2(currency, 'status', 'statusCode')
@@ -319,10 +319,10 @@ class ascendex(Exchange):
                 'name': self.safe_string(currency, 'assetName'),
                 'active': active,
                 'fee': fee,
-                'precision': precision,
+                'precision': int(precision),
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
+                        'min': self.parse_number(minAmount),
                         'max': None,
                     },
                     'withdraw': {
