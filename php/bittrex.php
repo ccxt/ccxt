@@ -19,6 +19,7 @@ class bittrex extends \ccxt\async\bittrex {
                 'ws' => true,
                 'watchBalance' => true,
                 'watchHeartbeat' => true,
+                'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
@@ -488,6 +489,55 @@ class bittrex extends \ccxt\async\bittrex {
             $stored->append ($trades[$i]);
         }
         $this->trades[$symbol] = $stored;
+        $client->resolve ($stored, $messageHash);
+    }
+
+    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $authentication = yield $this->authenticate();
+        $trades = yield $this->subscribe_to_my_trades($authentication, $params);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+    }
+
+    public function subscribe_to_my_trades($authentication, $params = array ()) {
+        $messageHash = 'execution';
+        return yield $this->send_authenticated_request_to_subscribe($authentication, $messageHash, $params);
+    }
+
+    public function handle_my_trades($client, $message) {
+        //
+        //     {
+        //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
+        //         sequence => 42,
+        //         $deltas => array(
+        //             {
+        //                 id => '5bf67885-a0a8-4c62-b73d-534e480e3332',
+        //                 marketSymbol => 'BTC-USDT',
+        //                 executedAt => '2020-10-05T23:02:17.49Z',
+        //                 quantity => '0.00166790',
+        //                 rate => '10763.97000000',
+        //                 orderId => "string (uuid)",
+        //                 commission => '0.00000000',
+        //                 isTaker => False
+        //             }
+        //         )
+        //     }
+        //
+        $deltas = $this->safe_value($message, 'deltas', array());
+        $trades = $this->parse_trades($deltas);
+        $stored = $this->myTrades;
+        if ($stored === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $stored = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = $stored;
+        }
+        for ($i = 0; $i < count($trades); $i++) {
+            $stored->append ($trades[$i]);
+        }
+        $messageHash = 'execution';
         $client->resolve ($stored, $messageHash);
     }
 
