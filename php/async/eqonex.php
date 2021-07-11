@@ -636,7 +636,9 @@ class eqonex extends Exchange {
             $request['ordType'] = 1;
         } else if ($type === 'limit') {
             $request['ordType'] = 2;
-            $request['price'] = $this->convert_to_scale($this->number_to_string($price), $this->get_scale($price));
+            $priceScale = $this->get_scale($price);
+            $request['price'] = $this->convert_to_scale($this->number_to_string($price), $priceScale);
+            $request['priceScale'] = $priceScale;
         } else {
             $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stopPx');
             $params = $this->omit($params, array( 'stopPrice', 'stopPx' ));
@@ -1434,7 +1436,7 @@ class eqonex extends Exchange {
     }
 
     public function convert_from_scale($number, $scale) {
-        if ($number === null) {
+        if (($number === null) || ($scale === null)) {
             return null;
         }
         $precise = new Precise ($number);
@@ -1452,7 +1454,11 @@ class eqonex extends Exchange {
         if (($number === null) || ($scale === null)) {
             return null;
         }
-        return intval($this->to_wei($number, $scale));
+        $precise = new Precise ($number);
+        $precise->decimals = $precise->decimals - $scale;
+        $precise->reduce ();
+        $preciseString = (string) $precise;
+        return intval($preciseString);
     }
 
     public function nonce() {
