@@ -596,7 +596,7 @@ module.exports = class poloniex extends Exchange {
         let cost = undefined;
         let costString = this.safeString (trade, 'total');
         if (costString === undefined) {
-            costString = Precise.stringMul (priceString, amountString)
+            costString = Precise.stringMul (priceString, amountString);
             cost = this.parseNumber (costString);
         } else {
             cost = this.parseNumber (costString);
