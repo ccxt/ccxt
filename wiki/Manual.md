@@ -2382,8 +2382,6 @@ const exchangeId = 'binance'
     , exchange = new exchangeClass ({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
-        'timeout': 30000,
-        'enableRateLimit': true,
     })
 ```
 
@@ -2409,8 +2407,6 @@ exchange_class = getattr(ccxt, exchange_id)
 exchange = exchange_class({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
-    'timeout': 30000,
-    'enableRateLimit': True,
 })
 ```
 
@@ -2436,8 +2432,6 @@ $exchange_class = "\\ccxt\\$exchange_id";
 $exchange = new $exchange_class (array (
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
-    'timeout' => 30000,
-    'enableRateLimit' => true,
 ));
 ```
 
