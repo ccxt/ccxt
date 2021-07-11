@@ -9,15 +9,15 @@ def when_orderbook_changed(exchange_spot, symbol, orderbook):
     # it has access to both the orderbook that was updated
     # as well as the rest of the orderbooks
     # ...................................................................
-    datetime = exchange_spot.iso8601(exchange_spot.milliseconds())
     print('-------------------------------------------------------------')
+    print(exchange_spot.iso8601(exchange_spot.milliseconds()))
     # ...................................................................
     # print just one orderbook here
-    # print(datetime, symbol, orderbook['asks'][0], orderbook['bids'][0])
+    # print(orderbook['datetime'], symbol, orderbook['asks'][0], orderbook['bids'][0])
     # ...................................................................
     # or print all orderbooks that have been already subscribed-to
     for symbol, orderbook in orderbooks.items():
-        print(datetime, symbol, orderbook['asks'][0], orderbook['bids'][0])
+        print(orderbook['datetime'], symbol, orderbook['asks'][0], orderbook['bids'][0])
 
 
 async def watch_one_orderbook(exchange_spot, symbol):
