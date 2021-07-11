@@ -612,7 +612,9 @@ class eqonex(Exchange):
             request['ordType'] = 1
         elif type == 'limit':
             request['ordType'] = 2
-            request['price'] = self.convert_to_scale(self.number_to_string(price), self.get_scale(price))
+            priceScale = self.get_scale(price)
+            request['price'] = self.convert_to_scale(self.number_to_string(price), priceScale)
+            request['priceScale'] = priceScale
         else:
             stopPrice = self.safe_number_2(params, 'stopPrice', 'stopPx')
             params = self.omit(params, ['stopPrice', 'stopPx'])
@@ -1359,7 +1361,7 @@ class eqonex(Exchange):
         return self.parse8601(date + ' ' + partTwo)
 
     def convert_from_scale(self, number, scale):
-        if number is None:
+        if (number is None) or (scale is None):
             return None
         precise = Precise(number)
         precise.decimals = precise.decimals + scale
@@ -1373,7 +1375,11 @@ class eqonex(Exchange):
     def convert_to_scale(self, number, scale):
         if (number is None) or (scale is None):
             return None
-        return int(self.to_wei(number, scale))
+        precise = Precise(number)
+        precise.decimals = precise.decimals - scale
+        precise.reduce()
+        preciseString = str(precise)
+        return int(preciseString)
 
     def nonce(self):
         return self.milliseconds()

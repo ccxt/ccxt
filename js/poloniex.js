@@ -593,9 +593,13 @@ module.exports = class poloniex extends Exchange {
         const amountString = this.safeString (trade, 'amount');
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
-        let cost = this.safeNumber (trade, 'total');
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        let cost = undefined;
+        let costString = this.safeString (trade, 'total');
+        if (costString === undefined) {
+            costString = Precise.stringMul (priceString, amountString);
+            cost = this.parseNumber (costString);
+        } else {
+            cost = this.parseNumber (costString);
         }
         const feeDisplay = this.safeString (trade, 'feeDisplay');
         if (feeDisplay !== undefined) {
@@ -618,14 +622,15 @@ module.exports = class poloniex extends Exchange {
                 };
             }
         } else {
-            const feeCost = this.safeNumber (trade, 'fee');
-            if (feeCost !== undefined && market !== undefined) {
+            const feeCostString = this.safeString (trade, 'fee');
+            if (feeCostString !== undefined && market !== undefined) {
                 const feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
-                const feeBase = (side === 'buy') ? amount : cost;
+                const feeBase = (side === 'buy') ? amountString : costString;
+                const feeRateString = Precise.stringDiv (feeCostString, feeBase);
                 fee = {
-                    'cost': feeCost,
+                    'cost': this.parseNumber (feeCostString),
                     'currency': feeCurrencyCode,
-                    'rate': Precise.stringDiv (feeCost, feeBase),
+                    'rate': this.parseNumber (feeRateString),
                 };
             }
         }

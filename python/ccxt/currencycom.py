@@ -152,6 +152,7 @@ class currencycom(Exchange):
             },
             'commonCurrencies': {
                 'BNS': 'Bank of Nova Scotia',
+                'EDU': 'New Oriental Education & Technology Group Inc',
                 'ETN': 'Eaton',
                 'IQ': 'iQIYI',
                 'PLAY': "Dave & Buster's Entertainment",

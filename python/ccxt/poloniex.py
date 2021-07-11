@@ -577,9 +577,13 @@ class poloniex(Exchange):
         amountString = self.safe_string(trade, 'amount')
         price = self.parse_number(priceString)
         amount = self.parse_number(amountString)
-        cost = self.safe_number(trade, 'total')
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        cost = None
+        costString = self.safe_string(trade, 'total')
+        if costString is None:
+            costString = Precise.string_mul(priceString, amountString)
+            cost = self.parse_number(costString)
+        else:
+            cost = self.parse_number(costString)
         feeDisplay = self.safe_string(trade, 'feeDisplay')
         if feeDisplay is not None:
             parts = feeDisplay.split(' ')
@@ -599,14 +603,15 @@ class poloniex(Exchange):
                     'rate': feeRate,
                 }
         else:
-            feeCost = self.safe_number(trade, 'fee')
-            if feeCost is not None and market is not None:
+            feeCostString = self.safe_string(trade, 'fee')
+            if feeCostString is not None and market is not None:
                 feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
-                feeBase = amount if (side == 'buy') else cost
+                feeBase = amountString if (side == 'buy') else costString
+                feeRateString = Precise.string_div(feeCostString, feeBase)
                 fee = {
-                    'cost': feeCost,
+                    'cost': self.parse_number(feeCostString),
                     'currency': feeCurrencyCode,
-                    'rate': Precise.string_div(feeCost, feeBase),
+                    'rate': self.parse_number(feeRateString),
                 }
         takerOrMaker = None
         takerAdjustment = self.safe_number(trade, 'takerAdjustment')
