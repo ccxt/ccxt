@@ -1015,30 +1015,30 @@ module.exports = class liquid extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.privateGetCryptoWithdrawals (this.extend (request, params));
-            //
-            //     {
-            //         models: [
-            //             {
-            //                 id: '2',
-            //                 address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
-            //                 amount: '0.01',
-            //                 state: 'processed',
-            //                 currency: 'BTC',
-            //                 withdrawal_fee: '0.0005',
-            //                 created_at: '1614718276',
-            //                 updated_at: '1614720926',
-            //                 payment_id: null,
-            //                 transaction_hash: 'xxxxxxxx...',
-            //                 broadcasted_at: '1614720762',
-            //                 wallet_label: 'btc',
-            //                 chain_name: 'Bitcoin',
-            //                 network: null
-            //             },
-            //         ],
-            //         current_page: '1',
-            //         total_pages: '1'
-            //     }
-            //
+        //
+        //     {
+        //         models: [
+        //             {
+        //                 id: '2',
+        //                 address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        //                 amount: '0.01',
+        //                 state: 'processed',
+        //                 currency: 'BTC',
+        //                 withdrawal_fee: '0.0005',
+        //                 created_at: '1614718276',
+        //                 updated_at: '1614720926',
+        //                 payment_id: null,
+        //                 transaction_hash: 'xxxxxxxx...',
+        //                 broadcasted_at: '1614720762',
+        //                 wallet_label: 'btc',
+        //                 chain_name: 'Bitcoin',
+        //                 network: null
+        //             },
+        //         ],
+        //         current_page: '1',
+        //         total_pages: '1'
+        //     }
+        //
         const transactions = this.safeValue (response, 'models', []);
         return this.parseTransactions (transactions, currency, since, limit);
     }
@@ -1105,7 +1105,7 @@ module.exports = class liquid extends Exchange {
         const id = this.safeString (transaction, 'id');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString2 (transaction, 'payment_id', 'memo_value');
-        const txid = this.safeString (transaction, 'transaction_hash');;
+        const txid = this.safeString (transaction, 'transaction_hash');
         const currencyId = this.safeString2 (transaction, 'currency', 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.safeTimestamp (transaction, 'created_at');
