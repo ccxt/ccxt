@@ -1336,14 +1336,6 @@ class Transpiler {
             "from ccxt.base.precise import Precise                            # noqa F401",
             "",
             "",
-            "def toWei(amount, decimals):",
-            "    return Exchange.to_wei(amount, decimals)",
-            "",
-            "",
-            "def fromWei(amount, decimals):",
-            "    return Exchange.from_wei(amount, decimals)",
-            "",
-            "",
         ].join ("\n")
 
         const phpHeader = [
@@ -1367,12 +1359,6 @@ class Transpiler {
             "}",
             "function number_to_string ($x) {",
             "    return Exchange::number_to_string ($x);",
-            "}",
-            "function toWei ($amount, $decimals) {",
-            "    return Exchange::to_wei ($amount, $decimals);",
-            "}",
-            "function fromWei ($amount, $decimals) {",
-            "    return Exchange::from_wei ($amount, $decimals);",
             "}",
             "",
         ].join ("\n")
