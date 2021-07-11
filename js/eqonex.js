@@ -633,7 +633,9 @@ module.exports = class eqonex extends Exchange {
             request['ordType'] = 1;
         } else if (type === 'limit') {
             request['ordType'] = 2;
-            request['price'] = this.convertToScale (this.numberToString (price), this.getScale (price));
+            const priceScale = this.getScale (price);
+            request['price'] = this.convertToScale (this.numberToString (price), priceScale);
+            request['priceScale'] = priceScale;
         } else {
             const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stopPx');
             params = this.omit (params, [ 'stopPrice', 'stopPx' ]);
@@ -1449,7 +1451,11 @@ module.exports = class eqonex extends Exchange {
         if ((number === undefined) || (scale === undefined)) {
             return undefined;
         }
-        return parseInt (this.toWei (number, scale));
+        const precise = new Precise (number);
+        precise.decimals = precise.decimals - scale;
+        precise.reduce ();
+        const preciseString = precise.toString ();
+        return parseInt (preciseString);
     }
 
     nonce () {

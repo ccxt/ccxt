@@ -801,7 +801,7 @@ module.exports = class phemex extends Exchange {
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
         const stringValue = precise.toString ();
-        return parseInt (Math.floor (stringValue));
+        return parseInt (stringValue);
     }
 
     toEv (amount, market = undefined) {
