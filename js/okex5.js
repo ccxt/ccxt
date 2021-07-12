@@ -471,6 +471,9 @@ module.exports = class okex5 extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ], // spot, futures, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                'fetchBalance': {
+                    'type': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                },
                 'brokerId': 'e847386590ce4dBC',
                 'auth': {
                     'time': 'public',
