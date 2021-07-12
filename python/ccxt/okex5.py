@@ -489,7 +489,10 @@ class okex5(Exchange):
                 },
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': ['spot', 'futures', 'swap', 'option'],  # spot, futures, swap, option
-                'defaultType': 'spot',  # 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'defaultType': 'spot',  # 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                'fetchBalance': {
+                    'type': 'spot',  # 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                },
                 'brokerId': 'e847386590ce4dBC',
                 'auth': {
                     'time': 'public',
@@ -1106,7 +1109,7 @@ class okex5(Exchange):
         type = self.safe_string(params, 'type', type)
         params = self.omit(params, 'type')
         method = None
-        if (type == 'account') or (type == 'trade'):
+        if (type == 'spot') or (type == 'trading'):
             method = 'privateGetAccountBalance'
         elif type == 'funding':
             method = 'privateGetAssetBalances'

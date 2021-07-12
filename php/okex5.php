@@ -473,7 +473,10 @@ class okex5 extends Exchange {
                 ),
                 'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarkets' => array( 'spot', 'futures', 'swap', 'option' ), // spot, futures, swap, option
-                'defaultType' => 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                'fetchBalance' => array(
+                    'type' => 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                ),
                 'brokerId' => 'e847386590ce4dBC',
                 'auth' => array(
                     'time' => 'public',
@@ -1125,7 +1128,7 @@ class okex5 extends Exchange {
         $type = $this->safe_string($params, 'type', $type);
         $params = $this->omit($params, 'type');
         $method = null;
-        if (($type === 'account') || ($type === 'trade')) {
+        if (($type === 'spot') || ($type === 'trading')) {
             $method = 'privateGetAccountBalance';
         } else if ($type === 'funding') {
             $method = 'privateGetAssetBalances';
