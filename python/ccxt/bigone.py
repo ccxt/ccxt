@@ -986,6 +986,8 @@ class bigone(Exchange):
             'WITHHOLD': 'ok',  # deposits
             'UNCONFIRMED': 'pending',
             'CONFIRMED': 'ok',  # withdrawals
+            'COMPLETED': 'ok',
+            'PENDING': 'pending',
         }
         return self.safe_string(statuses, status, status)
 
