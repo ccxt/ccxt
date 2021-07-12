@@ -276,6 +276,15 @@ class hbtc(Exchange):
                 'fetchTickers': {
                     'method': 'quoteGetTicker24hr',
                 },
+                'accountsByType': {
+                    'trade': 1,
+                    'trading': 1,
+                    'spot': 1,
+                    'option': 2,
+                    'options': 2,
+                    'futures': 3,
+                    'contract': 3,
+                },
             },
             'commonCurrencies': {
                 'MIS': 'Themis Protocol',

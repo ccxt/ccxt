@@ -353,8 +353,10 @@ class kucoin extends Exchange {
                 'accountsByType' => array(
                     'trade' => 'trade',
                     'trading' => 'trade',
+                    'spot' => 'trade',
                     'margin' => 'margin',
                     'main' => 'main',
+                    'funding' => 'main',
                     'futures' => 'contract',
                     'contract' => 'contract',
                     'pool' => 'pool',

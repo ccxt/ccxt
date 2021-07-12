@@ -262,6 +262,15 @@ class hbtc extends Exchange {
                 'fetchTickers' => array(
                     'method' => 'quoteGetTicker24hr',
                 ),
+                'accountsByType' => array(
+                    'trade' => 1,
+                    'trading' => 1,
+                    'spot' => 1,
+                    'option' => 2,
+                    'options' => 2,
+                    'futures' => 3,
+                    'contract' => 3,
+                ),
             ),
             'commonCurrencies' => array(
                 'MIS' => 'Themis Protocol',

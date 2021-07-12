@@ -366,8 +366,10 @@ class kucoin(Exchange):
                 'accountsByType': {
                     'trade': 'trade',
                     'trading': 'trade',
+                    'spot': 'trade',
                     'margin': 'margin',
                     'main': 'main',
+                    'funding': 'main',
                     'futures': 'contract',
                     'contract': 'contract',
                     'pool': 'pool',
