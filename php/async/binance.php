@@ -2063,7 +2063,7 @@ class binance extends Exchange {
         );
         if ($clientOrderId === null) {
             $broker = $this->safe_value($this->options, 'broker');
-            if ($broker) {
+            if ($broker !== null) {
                 $brokerId = $this->safe_string($broker, $orderType);
                 if ($brokerId !== null) {
                     $request['newClientOrderId'] = $brokerId . $this->uuid22();

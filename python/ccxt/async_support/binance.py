@@ -2000,7 +2000,7 @@ class binance(Exchange):
         }
         if clientOrderId is None:
             broker = self.safe_value(self.options, 'broker')
-            if broker:
+            if broker is not None:
                 brokerId = self.safe_string(broker, orderType)
                 if brokerId is not None:
                     request['newClientOrderId'] = brokerId + self.uuid22()

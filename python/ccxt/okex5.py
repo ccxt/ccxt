@@ -490,6 +490,7 @@ class okex5(Exchange):
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': ['spot', 'futures', 'swap', 'option'],  # spot, futures, swap, option
                 'defaultType': 'spot',  # 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'brokerId': 'e847386590ce4dBC',
                 'auth': {
                     'time': 'public',
                     'currencies': 'private',
@@ -1099,10 +1100,20 @@ class okex5(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
+        defaultType = self.safe_string_2(self.options, 'defaultType')
+        options = self.safe_string(self.options, 'fetchBalance', {})
+        type = self.safe_string(options, 'type', defaultType)
+        type = self.safe_string(params, 'type', type)
+        params = self.omit(params, 'type')
+        method = None
+        if (type == 'account') or (type == 'trade'):
+            method = 'privateGetAccountBalance'
+        elif type == 'funding':
+            method = 'privateGetAssetBalances'
         request = {
             # 'ccy': 'BTC,ETH',  # comma-separated list of currency ids
         }
-        response = self.privateGetAccountBalance(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "code":"0",
@@ -1190,26 +1201,54 @@ class okex5(Exchange):
         #         "msg":""
         #     }
         #
+        # funding
+        #
+        #     {
+        #         "code":"0",
+        #         "data":[
+        #             {
+        #                 "availBal":"0.00005426",
+        #                 "bal":0.0000542600000000,
+        #                 "ccy":"BTC",
+        #                 "frozenBal":"0"
+        #             }
+        #         ],
+        #         "msg":""
+        #     }
+        #
         result = {'info': response}
         data = self.safe_value(response, 'data', [])
-        first = self.safe_value(data, 0, {})
-        timestamp = self.safe_integer(first, 'uTime')
-        details = self.safe_value(first, 'details', [])
-        for i in range(0, len(details)):
-            balance = details[i]
-            currencyId = self.safe_string(balance, 'ccy')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            # it may be incorrect to use total, free and used for swap accounts
-            eq = self.safe_string(balance, 'eq')
-            availEq = self.safe_string(balance, 'availEq')
-            if (len(eq) < 1) or (len(availEq) < 1):
+        timestamp = None
+        if type == 'funding':
+            for i in range(0, len(data)):
+                balance = data[i]
+                currencyId = self.safe_string(balance, 'ccy')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                # it may be incorrect to use total, free and used for swap accounts
+                account['total'] = self.safe_string(balance, 'bal')
                 account['free'] = self.safe_string(balance, 'availBal')
                 account['used'] = self.safe_string(balance, 'frozenBal')
-            else:
-                account['total'] = eq
-                account['free'] = availEq
-            result[code] = account
+                result[code] = account
+        else:
+            first = self.safe_value(data, 0, {})
+            timestamp = self.safe_integer(first, 'uTime')
+            details = self.safe_value(first, 'details', [])
+            for i in range(0, len(details)):
+                balance = details[i]
+                currencyId = self.safe_string(balance, 'ccy')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                # it may be incorrect to use total, free and used for swap accounts
+                eq = self.safe_string(balance, 'eq')
+                availEq = self.safe_string(balance, 'availEq')
+                if (len(eq) < 1) or (len(availEq) < 1):
+                    account['free'] = self.safe_string(balance, 'availBal')
+                    account['used'] = self.safe_string(balance, 'frozenBal')
+                else:
+                    account['total'] = eq
+                    account['free'] = availEq
+                result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
         return self.parse_balance(result, False)
@@ -1262,7 +1301,11 @@ class okex5(Exchange):
             # 'reduceOnly': False,  # MARGIN orders only
         }
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
-        if clientOrderId is not None:
+        if clientOrderId is None:
+            brokerId = self.safe_string(self.options, 'brokerId')
+            if brokerId is not None:
+                request['clOrdId'] = brokerId + self.uuid16()
+        else:
             request['clOrdId'] = clientOrderId
             params = self.omit(params, ['clOrdId', 'clientOrderId'])
         if type == 'market':
