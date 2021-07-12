@@ -470,7 +470,7 @@ module.exports = class okex5 extends Exchange {
                 },
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ], // spot, futures, swap, option
-                'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'defaultType': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 'brokerId': 'e847386590ce4dBC',
                 'auth': {
                     'time': 'public',
@@ -1122,7 +1122,7 @@ module.exports = class okex5 extends Exchange {
         type = this.safeString (params, 'type', type);
         params = this.omit (params, 'type');
         let method = undefined;
-        if ((type === 'account') || (type === 'trade')) {
+        if ((type === 'spot') || (type === 'trading')) {
             method = 'privateGetAccountBalance';
         } else if (type === 'funding') {
             method = 'privateGetAssetBalances';
