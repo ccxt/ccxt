@@ -1116,10 +1116,21 @@ module.exports = class okex5 extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'defaultType');
+        const options = this.safeString (this.options, 'fetchBalance', {});
+        let type = this.safeString (options, 'type', defaultType);
+        type = this.safeString (params, 'type', type);
+        params = this.omit (params, 'type');
+        let method = undefined;
+        if ((type === 'account') || (type === 'trade')) {
+            method = 'privateGetAccountBalance';
+        } else if (type === 'funding') {
+            method = 'privateGetAssetBalances';
+        }
         const request = {
             // 'ccy': 'BTC,ETH', // comma-separated list of currency ids
         };
-        const response = await this.privateGetAccountBalance (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code":"0",
@@ -1207,27 +1218,57 @@ module.exports = class okex5 extends Exchange {
         //         "msg":""
         //     }
         //
+        // funding
+        //
+        //     {
+        //         "code":"0",
+        //         "data":[
+        //             {
+        //                 "availBal":"0.00005426",
+        //                 "bal":0.0000542600000000,
+        //                 "ccy":"BTC",
+        //                 "frozenBal":"0"
+        //             }
+        //         ],
+        //         "msg":""
+        //     }
+        //
         const result = { 'info': response };
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
-        const timestamp = this.safeInteger (first, 'uTime');
-        const details = this.safeValue (first, 'details', []);
-        for (let i = 0; i < details.length; i++) {
-            const balance = details[i];
-            const currencyId = this.safeString (balance, 'ccy');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            // it may be incorrect to use total, free and used for swap accounts
-            const eq = this.safeString (balance, 'eq');
-            const availEq = this.safeString (balance, 'availEq');
-            if ((eq.length < 1) || (availEq.length < 1)) {
+        let timestamp = undefined;
+        if (type === 'funding') {
+            for (let i = 0; i < data.length; i++) {
+                const balance = data[i];
+                const currencyId = this.safeString (balance, 'ccy');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                // it may be incorrect to use total, free and used for swap accounts
+                account['total'] = this.safeString (balance, 'bal');
                 account['free'] = this.safeString (balance, 'availBal');
                 account['used'] = this.safeString (balance, 'frozenBal');
-            } else {
-                account['total'] = eq;
-                account['free'] = availEq;
+                result[code] = account;
             }
-            result[code] = account;
+        } else {
+            const first = this.safeValue (data, 0, {});
+            timestamp = this.safeInteger (first, 'uTime');
+            const details = this.safeValue (first, 'details', []);
+            for (let i = 0; i < details.length; i++) {
+                const balance = details[i];
+                const currencyId = this.safeString (balance, 'ccy');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                // it may be incorrect to use total, free and used for swap accounts
+                const eq = this.safeString (balance, 'eq');
+                const availEq = this.safeString (balance, 'availEq');
+                if ((eq.length < 1) || (availEq.length < 1)) {
+                    account['free'] = this.safeString (balance, 'availBal');
+                    account['used'] = this.safeString (balance, 'frozenBal');
+                } else {
+                    account['total'] = eq;
+                    account['free'] = availEq;
+                }
+                result[code] = account;
+            }
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
