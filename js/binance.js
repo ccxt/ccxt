@@ -2056,7 +2056,7 @@ module.exports = class binance extends Exchange {
         };
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker');
-            if (broker) {
+            if (broker !== undefined) {
                 const brokerId = this.safeString (broker, orderType);
                 if (brokerId !== undefined) {
                     request['newClientOrderId'] = brokerId + this.uuid22 ();
