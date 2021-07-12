@@ -469,7 +469,7 @@ module.exports = class exmo extends Exchange {
                 'broad': {
                     'range period is too long': BadRequest,
                     'invalid syntax': BadRequest,
-                    'API rate limit exceeded': RateLimitExceeded, // {"result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
+                    'API rate limit exceeded': RateLimitExceeded, // {"result":false,"error":"API rate limit exceeded for x.x.x.x. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
                 },
             },
             'orders': {}, // orders cache / emulation
