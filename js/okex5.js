@@ -471,6 +471,7 @@ module.exports = class okex5 extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ], // spot, futures, swap, option
                 'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'brokerId': 'e847386590ce4dBC',
                 'auth': {
                     'time': 'public',
                     'currencies': 'private',
@@ -1281,7 +1282,12 @@ module.exports = class okex5 extends Exchange {
             // 'reduceOnly': false, // MARGIN orders only
         };
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
-        if (clientOrderId !== undefined) {
+        if (clientOrderId === undefined) {
+            const brokerId = this.safeString (this.options, 'brokerId');
+            if (brokerId !== undefined) {
+                request['clOrdId'] = brokerId + this.uuid16 ();
+            }
+        } else {
             request['clOrdId'] = clientOrderId;
             params = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
         }
