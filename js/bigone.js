@@ -1038,6 +1038,8 @@ module.exports = class bigone extends Exchange {
             'WITHHOLD': 'ok', // deposits
             'UNCONFIRMED': 'pending',
             'CONFIRMED': 'ok', // withdrawals
+            'COMPLETED': 'ok',
+            'PENDING': 'pending',
         };
         return this.safeString (statuses, status, status);
     }

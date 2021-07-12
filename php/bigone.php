@@ -1040,6 +1040,8 @@ class bigone extends Exchange {
             'WITHHOLD' => 'ok', // deposits
             'UNCONFIRMED' => 'pending',
             'CONFIRMED' => 'ok', // withdrawals
+            'COMPLETED' => 'ok',
+            'PENDING' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
     }
