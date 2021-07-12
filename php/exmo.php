@@ -473,7 +473,7 @@ class exmo extends Exchange {
                 'broad' => array(
                     'range period is too long' => '\\ccxt\\BadRequest',
                     'invalid syntax' => '\\ccxt\\BadRequest',
-                    'API rate limit exceeded' => '\\ccxt\\RateLimitExceeded', // array("result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":array(),"begin":1579392000,"end":1579478400)
+                    'API rate limit exceeded' => '\\ccxt\\RateLimitExceeded', // array("result":false,"error":"API rate limit exceeded for x.x.x.x. Retry after 60 sec.","history":array(),"begin":1579392000,"end":1579478400)
                 ),
             ),
             'orders' => array(), // orders cache / emulation

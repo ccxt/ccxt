@@ -1137,7 +1137,7 @@ class bybit extends Exchange {
         //             "trigger_price":12400,
         //             "close_on_trigger":true,
         //             "op_from":"api",
-        //             "remark":"145.53.159.48",
+        //             "remark":"x.x.x.x",
         //             "o_req_num":0
         //         ),
         //         "leaves_qty":10,

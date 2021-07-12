@@ -714,7 +714,7 @@ class ndax extends Exchange {
         //         "PegPriceType":"Unknown",
         //         "PegOffset":0.0000000000000000000000000000,
         //         "PegLimitOffset":0.0000000000000000000000000000,
-        //         "IpAddress":"5.228.233.138",
+        //         "IpAddress":"x.x.x.x",
         //         "ClientOrderIdUuid":null,
         //         "OMSId":1
         //     }
@@ -1512,7 +1512,7 @@ class ndax extends Exchange {
         //             "PegPriceType":"Unknown",
         //             "PegOffset":0.0000000000000000000000000000,
         //             "PegLimitOffset":0.0000000000000000000000000000,
-        //             "IpAddress":"5.228.233.138",
+        //             "IpAddress":"x.x.x.x",
         //             "ClientOrderIdUuid":null,
         //             "OMSId":1
         //         ),
@@ -1581,7 +1581,7 @@ class ndax extends Exchange {
         //         "PegPriceType":"Unknown",
         //         "PegOffset":0.0000000000000000000000000000,
         //         "PegLimitOffset":0.0000000000000000000000000000,
-        //         "IpAddress":"5.228.233.138",
+        //         "IpAddress":"x.x.x.x",
         //         "ClientOrderIdUuid":null,
         //         "OMSId":1
         //     }
@@ -1650,7 +1650,7 @@ class ndax extends Exchange {
         //             "PegPriceType":"Unknown",
         //             "PegOffset":0.0000000000000000000000000000,
         //             "PegLimitOffset":0.0000000000000000000000000000,
-        //             "IpAddress":"5.228.233.138",
+        //             "IpAddress":"x.x.x.x",
         //             "ClientOrderIdUuid":null,
         //             "OMSId":1
         //         ),
