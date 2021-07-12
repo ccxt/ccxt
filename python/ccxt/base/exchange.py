@@ -792,6 +792,10 @@ class Exchange(object):
         return format(random.getrandbits(length * 4), 'x')
 
     @staticmethod
+    def uuid16(length=16):
+        return format(random.getrandbits(length * 4), 'x')
+
+    @staticmethod
     def uuid():
         return str(uuid.uuid4())
 

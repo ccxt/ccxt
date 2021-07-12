@@ -464,6 +464,10 @@ class Exchange {
         return sprintf('%d', floatval($number));
     }
 
+    public static function uuid16($length = 16) {
+        return bin2hex(random_bytes(intval($length / 2)));
+    }
+
     public static function uuid22($length = 22) {
         return bin2hex(random_bytes(intval($length / 2)));
     }
