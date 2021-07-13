@@ -876,27 +876,6 @@ class bitbns(Exchange):
             'info': response,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
-        self.check_address(address)
-        await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'coin': currency['id'],
-            'address': address,
-            'amount': amount,
-            # https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
-            # issue sapiGetCapitalConfigGetall() to get networks for withdrawing USDT ERC20 vs USDT Omni
-            # 'network': 'ETH',  # 'BTC', 'TRX', etc, optional
-        }
-        if tag is not None:
-            request['addressTag'] = tag
-        response = await self.sapiPostCapitalWithdrawApply(self.extend(request, params))
-        #     {id: '9a67628b16ba4988ae20d329333f16bc'}
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'id'),
-        }
-
     def nonce(self):
         return self.milliseconds()
 
