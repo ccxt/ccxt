@@ -32,6 +32,7 @@ module.exports = class Client {
             error: undefined, // stores low-level networking exception, if any
             connectionStarted: undefined, // initiation timestamp in milliseconds
             connectionEstablished: undefined, // success timestamp in milliseconds
+            isConnected: false,
             connectionTimer: undefined, // connection-related setTimeout
             connectionTimeout: 10000, // in milliseconds, false to disable
             pingInterval: undefined, // stores the ping-related interval
@@ -180,6 +181,7 @@ module.exports = class Client {
             this.print (new Date (), 'onOpen')
         }
         this.connectionEstablished = milliseconds ()
+        this.isConnected = true
         this.connected.resolve (this.url)
         // this.connection.terminate () // debugging
         this.clearConnectionTimeout ()

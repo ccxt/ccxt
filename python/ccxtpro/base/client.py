@@ -18,6 +18,7 @@ class Client(object):
     on_connected_callback = None
     connectionStarted = None
     connectionEstablished = None
+    isConnected = False
     connectionTimeout = 10000  # ms, false to disable
     connection = None
     error = None  # low-level networking exception, if any
@@ -121,6 +122,8 @@ class Client(object):
             coroutine = self.create_connection(session)
             self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
             self.connecting = False
+            self.connectionEstablished = Exchange.milliseconds()
+            self.isConnected = True
             if self.verbose:
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
             self.connected.resolve(self.url)

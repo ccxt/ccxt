@@ -159,8 +159,9 @@ class Client {
                 $this->connection->on('close', array($this, 'on_close'));
                 $this->connection->on('error', array($this, 'on_error'));
                 $this->connection->on('pong', array($this, 'on_pong'));
-                $this->connected->resolve($this->url);
                 $this->isConnected = true;
+                $this->connectionEstablished = $this->milliseconds();
+                $this->connected->resolve($this->url);
                 $this->set_ping_interval();
                 $on_connected_callback = $this->on_connected_callback;
                 $on_connected_callback($this);
