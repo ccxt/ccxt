@@ -1335,6 +1335,9 @@ class poloniex(Exchange):
     def parse_transaction_status(self, status):
         statuses = {
             'COMPLETE': 'ok',
+            'AWAITING APPROVAL': 'pending',
+            'PENDING': 'pending',
+            'COMPLETE ERROR': 'failed',
         }
         return self.safe_string(statuses, status, status)
 

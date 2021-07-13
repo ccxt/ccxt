@@ -1433,6 +1433,9 @@ class poloniex extends Exchange {
     public function parse_transaction_status($status) {
         $statuses = array(
             'COMPLETE' => 'ok',
+            'AWAITING APPROVAL' => 'pending',
+            'PENDING' => 'pending',
+            'COMPLETE ERROR' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);
     }
