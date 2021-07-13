@@ -1103,7 +1103,7 @@ module.exports = class probit extends Exchange {
             // 'platform_id': 'ETH', // if omitted it will use the default platform for the currency
             'address': address,
             'destination_tag': tag,
-            'amount': amount,
+            'amount': amount.toString(),
             // which currency to pay the withdrawal fees
             // only applicable for currencies that accepts multiple withdrawal fee options
             // 'fee_currency_id': 'ETH', // if omitted it will use the default fee policy for each currency
