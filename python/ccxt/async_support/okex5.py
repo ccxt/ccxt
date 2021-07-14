@@ -1103,7 +1103,7 @@ class okex5(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'defaultType')
+        defaultType = self.safe_string(self.options, 'defaultType')
         options = self.safe_string(self.options, 'fetchBalance', {})
         type = self.safe_string(options, 'type', defaultType)
         type = self.safe_string(params, 'type', type)
