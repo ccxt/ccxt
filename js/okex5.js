@@ -1119,7 +1119,7 @@ module.exports = class okex5 extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'defaultType');
+        const defaultType = this.safeString (this.options, 'defaultType');
         const options = this.safeString (this.options, 'fetchBalance', {});
         let type = this.safeString (options, 'type', defaultType);
         type = this.safeString (params, 'type', type);
