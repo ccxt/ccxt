@@ -274,6 +274,8 @@ class zb(Exchange):
             'commonCurrencies': {
                 'ANG': 'Anagram',
                 'ENT': 'ENTCash',
+                'BCHABC': 'BCHABC',  # conflict with BCH / BCHA
+                'BCHSV': 'BCHSV',  # conflict with BCH / BSV
             },
         })
 

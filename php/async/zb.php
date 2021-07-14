@@ -265,6 +265,8 @@ class zb extends Exchange {
             'commonCurrencies' => array(
                 'ANG' => 'Anagram',
                 'ENT' => 'ENTCash',
+                'BCHABC' => 'BCHABC', // conflict with BCH / BCHA
+                'BCHSV' => 'BCHSV', // conflict with BCH / BSV
             ),
         ));
     }
