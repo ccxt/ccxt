@@ -1478,7 +1478,7 @@ class okex5(Exchange):
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': self.iso8601(lastTradeTimestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
