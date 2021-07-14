@@ -232,6 +232,7 @@ module.exports = class bitforex extends Exchange {
                 'GOT': 'GoNetwork',
                 'HBC': 'Hybrid Bank Cash',
                 'IQ': 'IQ.Cash',
+                'MIR': 'MIR COIN',
                 'UOS': 'UOS Network',
             },
             'exceptions': {
