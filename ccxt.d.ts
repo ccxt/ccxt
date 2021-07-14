@@ -211,7 +211,7 @@ declare module 'ccxt' {
     export type OHLCV = [number, number, number, number, number, number];
 
     /** Request parameters */
-    type Params = Dictionary<string | number>;
+    type Params = Dictionary<string | number | boolean>;
 
     export class Exchange {
         constructor(config?: {[key in keyof Exchange]?: Exchange[key]});
