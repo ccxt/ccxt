@@ -522,13 +522,30 @@ module.exports = class gateio4 extends Exchange {
             'currency': currency['id'],
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //       "currency": "XRP",
+        //       "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d 391331007",
+        //       "multichain_addresses": [
+        //         {
+        //           "chain": "XRP",
+        //           "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d",
+        //           "payment_id": "391331007",
+        //           "payment_name": "Tag",
+        //           "obtain_failed": 0
+        //         }
+        //       ]
+        //     }
+        //
         const currencyId = this.safeString (response, 'currency');
         code = this.safeCurrencyCode (currencyId);
         const addressField = this.safeString (response, 'address');
         let tag = undefined;
         let address = undefined;
         if (addressField.indexOf (' ') > -1) {
-            [ address, tag ] = addressField.split (' ');
+            const splitted = addressField.split (' ');
+            address = splitted[0];
+            tag = splitted[1];
         } else {
             address = addressField;
         }
