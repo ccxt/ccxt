@@ -1124,7 +1124,7 @@ class okex5 extends Exchange {
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $options = $this->safe_string($this->options, 'fetchBalance', array());
+        $options = $this->safe_value($this->options, 'fetchBalance', array());
         $type = $this->safe_string($options, 'type', $defaultType);
         $type = $this->safe_string($params, 'type', $type);
         $params = $this->omit($params, 'type');
