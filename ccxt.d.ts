@@ -490,6 +490,7 @@ declare module 'ccxt' {
     export class flowbtc extends Exchange {}
     export class ftx extends Exchange {}
     export class gateio extends Exchange {}
+    export class gateio4 extends Exchange {}
     export class gemini extends Exchange {}
     export class gopax extends Exchange {}
     export class hbtc extends Exchange {}
@@ -606,6 +607,7 @@ declare module 'ccxt' {
         | 'flowbtc'
         | 'ftx'
         | 'gateio'
+        | 'gateio4'
         | 'gemini'
         | 'gopax'
         | 'hbtc'
