@@ -1488,12 +1488,18 @@ module.exports = class okex5 extends Exchange {
         }
         const marketId = this.safeString (order, 'instId');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const amount = this.safeNumber (order, 'sz');
         const filled = this.safeNumber (order, 'accFillSz');
         const price = this.safeNumber2 (order, 'px', 'slOrdPx');
         const average = this.safeNumber (order, 'avgPx');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const feeCostString = this.safeString (order, 'fee');
+        let amount = undefined;
+        let cost = undefined;
+        if (side === 'buy' && type === 'market') {
+            cost = this.safeNumber (order, 'sz');
+        } else {
+            amount = this.safeNumber (order, 'sz');
+        }
         let fee = undefined;
         if (feeCostString !== undefined) {
             const feeCostSigned = Precise.stringNeg (feeCostString);
@@ -1524,7 +1530,7 @@ module.exports = class okex5 extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'average': average,
-            'cost': undefined,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
