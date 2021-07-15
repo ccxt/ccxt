@@ -10,7 +10,7 @@ module.exports = class gateio4 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gateio4',
-            'name': 'Gate.io v4',
+            'name': 'Gate.io',
             'country': [ 'KR' ],
             'rateLimit': 1000,
             'version': '4',
