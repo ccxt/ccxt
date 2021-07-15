@@ -1046,7 +1046,7 @@ class probit(Exchange):
             # 'platform_id': 'ETH',  # if omitted it will use the default platform for the currency
             'address': address,
             'destination_tag': tag,
-            'amount': self.currency_to_precision(code, amount),
+            'amount': self.number_to_string(amount),
             # which currency to pay the withdrawal fees
             # only applicable for currencies that accepts multiple withdrawal fee options
             # 'fee_currency_id': 'ETH',  # if omitted it will use the default fee policy for each currency

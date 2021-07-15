@@ -913,29 +913,6 @@ class bitbns extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        $this->check_address($address);
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'coin' => $currency['id'],
-            'address' => $address,
-            'amount' => $amount,
-            // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
-            // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
-            // 'network' => 'ETH', // 'BTC', 'TRX', etc, optional
-        );
-        if ($tag !== null) {
-            $request['addressTag'] = $tag;
-        }
-        $response = yield $this->sapiPostCapitalWithdrawApply (array_merge($request, $params));
-        //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'id'),
-        );
-    }
-
     public function nonce() {
         return $this->milliseconds();
     }

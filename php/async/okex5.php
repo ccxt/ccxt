@@ -1123,7 +1123,7 @@ class okex5 extends Exchange {
 
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'defaultType');
+        $defaultType = $this->safe_string($this->options, 'defaultType');
         $options = $this->safe_string($this->options, 'fetchBalance', array());
         $type = $this->safe_string($options, 'type', $defaultType);
         $type = $this->safe_string($params, 'type', $type);
@@ -1519,7 +1519,7 @@ class okex5 extends Exchange {
             'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $this->iso8601($lastTradeTimestamp),
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,

@@ -141,6 +141,7 @@ class bithumb(Exchange):
                 },
             },
             'commonCurrencies': {
+                'MIR': 'MIR COIN',
                 'SOC': 'Soda Coin',
             },
         })

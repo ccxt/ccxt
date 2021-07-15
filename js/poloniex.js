@@ -1431,6 +1431,9 @@ module.exports = class poloniex extends Exchange {
     parseTransactionStatus (status) {
         const statuses = {
             'COMPLETE': 'ok',
+            'AWAITING APPROVAL': 'pending',
+            'PENDING': 'pending',
+            'COMPLETE ERROR': 'failed',
         };
         return this.safeString (statuses, status, status);
     }
