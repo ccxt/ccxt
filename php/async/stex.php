@@ -1454,7 +1454,7 @@ class stex extends Exchange {
             'hodl' => 'pending',
             'amount too low' => 'failed',
             'not confirmed' => 'pending',
-            'cancelled by User' => 'canceled',
+            'cancelled by user' => 'canceled',
             'approved' => 'pending',
             'finished' => 'ok',
             'withdrawal error' => 'failed',
