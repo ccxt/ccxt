@@ -395,7 +395,7 @@ module.exports = class gateio4 extends Exchange {
             const amountPrecision = this.safeString (entry, 'amount_precision');
             const pricePrecision = this.safeString (entry, 'precision');
             const amountLimit = this.parsePrecision (amountPrecision);
-            const priceLimit = this.parsePrecision (pricePrecision)
+            const priceLimit = this.parsePrecision (pricePrecision);
             const limits = {
                 'amount': {
                     'min': this.parseNumber (amountLimit),
