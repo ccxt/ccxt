@@ -1195,7 +1195,7 @@ module.exports = class gateio4 extends Exchange {
         };
     }
 
-    sign (path, api = [ 'public', 'spot' ], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         const query = this.omit (params, this.extractParams (path));
