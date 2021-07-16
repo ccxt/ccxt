@@ -75,6 +75,7 @@ class ftx extends Exchange {
                 'public' => array(
                     'get' => array(
                         'coins',
+                        // markets
                         'markets',
                         'markets/{market_name}',
                         'markets/{market_name}/orderbook', // ?depth={depth}
@@ -88,59 +89,70 @@ class ftx extends Exchange {
                         'indexes/{index_name}/weights',
                         'expired_futures',
                         'indexes/{market_name}/candles', // ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        // wallet
+                        'wallet/coins',
                         // leverage tokens
                         'lt/tokens',
                         'lt/{token_name}',
+                        // etfs
+                        'etfs/rebalance_info',
                         // options
                         'options/requests',
                         'options/trades',
-                        'stats/24h_options_volume',
                         'options/historical_volumes/BTC',
+                        'stats/24h_options_volume',
                         'options/open_interest/BTC',
                         'options/historical_open_interest/BTC',
                         // spot margin
                         'spot_margin/history',
+                        'spot_margin/borrow_summary',
+                        // nfts
+                        'nfts',
+                        'nft/{nft_id}',
+                        'nft/{nft_id}/trades',
+                        'all_trades',
+                        'nft/{nft_id}/account_info',
+                        'collections',
+                        // ftx pay
+                        'ftxpay/apps/{user_specific_id}/details',
+                        'stats/latency_stats',
+                    ),
+                    'post' => array(
+                        'ftxpay/apps/{user_specific_id}/orders',
                     ),
                 ),
                 'private' => array(
                     'get' => array(
+                        // subaccounts
+                        'subaccounts',
+                        'subaccounts/{nickname}/balances',
+                        // account
                         'account',
                         'positions',
-                        'wallet/coins',
+                        // wallet
                         'wallet/balances',
                         'wallet/all_balances',
                         'wallet/deposit_address/{coin}', // ?method={method}
                         'wallet/deposits',
                         'wallet/withdrawals',
-                        'wallet/withdrawal_fee',
                         'wallet/airdrops',
+                        'wallet/withdrawal_fee',
                         'wallet/saved_addresses',
+                        // orders
                         'orders', // ?market={market}
                         'orders/history', // ?market={market}
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
+                        // conditional orders
                         'conditional_orders', // ?market={market}
                         'conditional_orders/{conditional_order_id}/triggers',
                         'conditional_orders/history', // ?market={market}
-                        'spot_margin/borrow_rates',
-                        'spot_margin/lending_rates',
-                        'spot_margin/borrow_summary',
-                        'spot_margin/market_info', // ?market={market}
-                        'spot_margin/borrow_history',
-                        'spot_margin/lending_history',
-                        'spot_margin/offers',
-                        'spot_margin/lending_info',
                         'fills', // ?market={market}
                         'funding_payments',
                         // leverage tokens
                         'lt/balances',
                         'lt/creations',
                         'lt/redemptions',
-                        // subaccounts
-                        'subaccounts',
-                        'subaccounts/{nickname}/balances',
-                        // otc
-                        'otc/quotes/{quoteId}',
                         // options
                         'options/my_requests',
                         'options/requests/{request_id}/quotes',
@@ -153,28 +165,44 @@ class ftx extends Exchange {
                         'staking/unstake_requests',
                         'staking/balances',
                         'staking/staking_rewards',
+                        // otc
+                        'otc/quotes/{quoteId}',
+                        // spot margin
+                        'spot_margin/borrow_rates',
+                        'spot_margin/lending_rates',
+                        'spot_margin/market_info', // ?market={market}
+                        'spot_margin/borrow_history',
+                        'spot_margin/lending_history',
+                        'spot_margin/offers',
+                        'spot_margin/lending_info',
+                        // nfts
+                        'balances',
+                        'bids',
+                        'deposits',
+                        'withdrawals',
+                        'fills',
+                        'gallery/{gallery_id}',
+                        'gallery_settings',
                     ),
                     'post' => array(
+                        // subaccounts
+                        'subaccounts',
+                        'subaccounts/update_name',
+                        'subaccounts/transfer',
+                        // account
                         'account/leverage',
+                        // wallet
                         'wallet/withdrawals',
                         'wallet/saved_addresses',
+                        // orders
                         'orders',
                         'conditional_orders',
                         'orders/{order_id}/modify',
                         'orders/by_client_id/{client_order_id}/modify',
                         'conditional_orders/{order_id}/modify',
-                        // spot margin
-                        'spot_margin/offers',
                         // leverage tokens
                         'lt/{token_name}/create',
                         'lt/{token_name}/redeem',
-                        // subaccounts
-                        'subaccounts',
-                        'subaccounts/update_name',
-                        'subaccounts/transfer',
-                        // otc
-                        'otc/quotes/{quote_id}/accept',
-                        'otc/quotes',
                         // options
                         'options/requests',
                         'options/requests/{request_id}/quotes',
@@ -182,15 +210,33 @@ class ftx extends Exchange {
                         // staking
                         'staking/unstake_requests',
                         'srm_stakes/stakes',
+                        // otc
+                        'otc/quotes/{quote_id}/accept',
+                        'otc/quotes',
+                        // spot margin
+                        'spot_margin/offers',
+                        // nfts
+                        'offer',
+                        'buy',
+                        'auction',
+                        'edit_auction',
+                        'cancel_auction',
+                        'bids',
+                        'redeem',
+                        'gallery_settings',
+                        // ftx pay
+                        'ftxpay/apps/{user_specific_id}/orders',
                     ),
                     'delete' => array(
+                        // subaccounts
+                        'subaccounts',
+                        // wallet
                         'wallet/saved_addresses/{saved_address_id}',
+                        // orders
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
                         'conditional_orders/{order_id}',
-                        // subaccounts
-                        'subaccounts',
                         // options
                         'options/requests/{request_id}',
                         'options/quotes/{quote_id}',
