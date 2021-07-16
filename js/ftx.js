@@ -974,7 +974,7 @@ module.exports = class ftx extends Exchange {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'free');
+            account['free'] = this.safeString2 (balance, 'availableWithoutBorrow', 'free');
             account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
