@@ -1453,12 +1453,17 @@ class okex5(Exchange):
             type = 'limit'
         marketId = self.safe_string(order, 'instId')
         symbol = self.safe_symbol(marketId, market, '-')
-        amount = self.safe_number(order, 'sz')
         filled = self.safe_number(order, 'accFillSz')
         price = self.safe_number_2(order, 'px', 'slOrdPx')
         average = self.safe_number(order, 'avgPx')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         feeCostString = self.safe_string(order, 'fee')
+        amount = None
+        cost = None
+        if side == 'buy' and type == 'market':
+            cost = self.safe_number(order, 'sz')
+        else:
+            amount = self.safe_number(order, 'sz')
         fee = None
         if feeCostString is not None:
             feeCostSigned = Precise.string_neg(feeCostString)
@@ -1487,7 +1492,7 @@ class okex5(Exchange):
             'price': price,
             'stopPrice': stopPrice,
             'average': average,
-            'cost': None,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': None,

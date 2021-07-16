@@ -1491,12 +1491,18 @@ class okex5 extends Exchange {
         }
         $marketId = $this->safe_string($order, 'instId');
         $symbol = $this->safe_symbol($marketId, $market, '-');
-        $amount = $this->safe_number($order, 'sz');
         $filled = $this->safe_number($order, 'accFillSz');
         $price = $this->safe_number_2($order, 'px', 'slOrdPx');
         $average = $this->safe_number($order, 'avgPx');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');
+        $amount = null;
+        $cost = null;
+        if ($side === 'buy' && $type === 'market') {
+            $cost = $this->safe_number($order, 'sz');
+        } else {
+            $amount = $this->safe_number($order, 'sz');
+        }
         $fee = null;
         if ($feeCostString !== null) {
             $feeCostSigned = Precise::string_neg($feeCostString);
@@ -1527,7 +1533,7 @@ class okex5 extends Exchange {
             'price' => $price,
             'stopPrice' => $stopPrice,
             'average' => $average,
-            'cost' => null,
+            'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => null,
