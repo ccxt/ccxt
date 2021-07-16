@@ -977,7 +977,7 @@ class ftx extends Exchange {
             $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
             $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'free');
+            $account['free'] = $this->safe_string_2($balance, 'availableWithoutBorrow', 'free');
             $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }

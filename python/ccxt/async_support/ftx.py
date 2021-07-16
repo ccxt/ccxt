@@ -966,7 +966,7 @@ class ftx(Exchange):
             balance = balances[i]
             code = self.safe_currency_code(self.safe_string(balance, 'coin'))
             account = self.account()
-            account['free'] = self.safe_string(balance, 'free')
+            account['free'] = self.safe_string_2(balance, 'availableWithoutBorrow', 'free')
             account['total'] = self.safe_string(balance, 'total')
             result[code] = account
         return self.parse_balance(result, False)
