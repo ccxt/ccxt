@@ -487,9 +487,9 @@ The CCXT Pro library currently supports the following 32 cryptocurrency exchange
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
           :target: https://www.okex.com/join/1888677
-          :alt: okex
+          :alt: okex3
      
-     - okex
+     - okex3
      - `OKEX <https://www.okex.com/join/1888677>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://www.okex.com/docs/en/
