@@ -45,6 +45,7 @@ class okex5(Exchange):
                 'fetchCurrencies': False,  # see below
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -493,6 +494,9 @@ class okex5(Exchange):
                 'defaultType': 'spot',  # 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 'fetchBalance': {
                     'type': 'spot',  # 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                },
+                'fetchLedger': {
+                    'method': 'privateGetAccountBills',  # privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 'brokerId': 'e847386590ce4dBC',
                 'auth': {
@@ -1757,6 +1761,227 @@ class okex5(Exchange):
             # 'limit': limit,  # optional, number of results per request, default = maximum = 100
         }
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
+
+    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        options = self.safe_value(self.options, 'fetchLedger', {})
+        method = self.safe_string(options, 'method')
+        method = self.safe_string(params, 'method', method)
+        params = self.omit(params, 'method')
+        request = {
+            # 'instType': None,  # 'SPOT', 'MARGIN', 'SWAP', 'FUTURES", 'OPTION'
+            # 'ccy': None,  # currency['id'],
+            # 'mgnMode': None,  # 'isolated', 'cross'
+            # 'ctType': None,  # 'linear', 'inverse', only applicable to FUTURES/SWAP
+            # 'type': None,
+            #     1 Transfer,
+            #     2 Trade,
+            #     3 Delivery,
+            #     4 Auto token conversion,
+            #     5 Liquidation,
+            #     6 Margin transfer,
+            #     7 Interest deduction,
+            #     8 Funding rate,
+            #     9 ADL,
+            #     10 Clawback,
+            #     11 System token conversion
+            # 'subType': None,
+            #     1 Buy
+            #     2 Sell
+            #     3 Open long
+            #     4 Open short
+            #     5 Close long
+            #     6 Close short
+            #     9 Interest deduction
+            #     11 Transfer in
+            #     12 Transfer out
+            #     160 Manual margin increase
+            #     161 Manual margin decrease
+            #     162 Auto margin increase
+            #     110 Auto buy
+            #     111 Auto sell
+            #     118 System token conversion transfer in
+            #     119 System token conversion transfer out
+            #     100 Partial liquidation close long
+            #     101 Partial liquidation close short
+            #     102 Partial liquidation buy
+            #     103 Partial liquidation sell
+            #     104 Liquidation long
+            #     105 Liquidation short
+            #     106 Liquidation buy
+            #     107 Liquidation sell
+            #     110 Liquidation transfer in
+            #     111 Liquidation transfer out
+            #     125 ADL close long
+            #     126 ADL close short
+            #     127 ADL buy
+            #     128 ADL sell
+            #     170 Exercised
+            #     171 Counterparty exercised
+            #     172 Expired OTM
+            #     112 Delivery long
+            #     113 Delivery short
+            #     117 Delivery/Exercise clawback
+            #     173 Funding fee expense
+            #     174 Funding fee income
+            #
+            # 'after': 'id',  # return records earlier than the requested bill id
+            # 'before': 'id',  # return records newer than the requested bill id
+            # 'limit': 100,  # default 100, max 100
+        }
+        if limit is not None:
+            request['limit'] = limit
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['ccy'] = currency['id']
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # privateGetAccountBills, privateGetAccountBillsArchive
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "",
+        #         "data": [
+        #             {
+        #                 "bal": "0.0000819307998198",
+        #                 "balChg": "-664.2679586599999802",
+        #                 "billId": "310394313544966151",
+        #                 "ccy": "USDT",
+        #                 "fee": "0",
+        #                 "from": "",
+        #                 "instId": "LTC-USDT",
+        #                 "instType": "SPOT",
+        #                 "mgnMode": "cross",
+        #                 "notes": "",
+        #                 "ordId": "310394313519800320",
+        #                 "pnl": "0",
+        #                 "posBal": "0",
+        #                 "posBalChg": "0",
+        #                 "subType": "2",
+        #                 "sz": "664.26795866",
+        #                 "to": "",
+        #                 "ts": "1620275771196",
+        #                 "type": "2"
+        #             }
+        #         ]
+        #     }
+        #
+        # privateGetAssetBills
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "",
+        #         "data": [
+        #             {
+        #                 "billId": "12344",
+        #                 "ccy": "BTC",
+        #                 "balChg": "2",
+        #                 "bal": "12",
+        #                 "type": "1",
+        #                 "ts": "1597026383085"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ledger(data, currency, since, limit)
+
+    def parse_ledger_entry_type(self, type):
+        types = {
+            '1': 'transfer',  # transfer
+            '2': 'trade',  # trade
+            '3': 'trade',  # delivery
+            '4': 'rebate',  # auto token conversion
+            '5': 'trade',  # liquidation
+            '6': 'transfer',  # margin transfer
+            '7': 'trade',  # interest deduction
+            '8': 'fee',  # funding rate
+            '9': 'trade',  # adl
+            '10': 'trade',  # clawback
+            '11': 'trade',  # system token conversion
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        # privateGetAccountBills, privateGetAccountBillsArchive
+        #
+        #     {
+        #         "bal": "0.0000819307998198",
+        #         "balChg": "-664.2679586599999802",
+        #         "billId": "310394313544966151",
+        #         "ccy": "USDT",
+        #         "fee": "0",
+        #         "from": "",
+        #         "instId": "LTC-USDT",
+        #         "instType": "SPOT",
+        #         "mgnMode": "cross",
+        #         "notes": "",
+        #         "ordId": "310394313519800320",
+        #         "pnl": "0",
+        #         "posBal": "0",
+        #         "posBalChg": "0",
+        #         "subType": "2",
+        #         "sz": "664.26795866",
+        #         "to": "",
+        #         "ts": "1620275771196",
+        #         "type": "2"
+        #     }
+        #
+        # privateGetAssetBills
+        #
+        #     {
+        #         "billId": "12344",
+        #         "ccy": "BTC",
+        #         "balChg": "2",
+        #         "bal": "12",
+        #         "type": "1",
+        #         "ts": "1597026383085"
+        #     }
+        #
+        id = self.safe_string(item, 'billId')
+        account = None
+        referenceId = self.safe_string(item, 'ordId')
+        referenceAccount = None
+        type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
+        code = self.safe_currency_code(self.safe_string(item, 'ccy'), currency)
+        amountString = self.safe_string(item, 'balChg')
+        amount = self.parse_number(amountString)
+        timestamp = self.safe_integer(item, 'ts')
+        feeCostString = self.safe_string(item, 'fee')
+        fee = None
+        if feeCostString is not None:
+            fee = {
+                'cost': self.parse_number(Precise.string_neg(feeCostString)),
+                'currency': code,
+            }
+        before = None
+        afterString = self.safe_string(item, 'bal')
+        after = self.parse_number(afterString)
+        status = 'ok'
+        marketId = self.safe_string(item, 'instId')
+        symbol = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        return {
+            'id': id,
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': type,
+            'currency': code,
+            'symbol': symbol,
+            'amount': amount,
+            'before': before,  # balance before
+            'after': after,  # balance after
+            'status': status,
+            'fee': fee,
+        }
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #

@@ -29,6 +29,7 @@ class okex5 extends Exchange {
                 'fetchCurrencies' => false, // see below
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -477,6 +478,9 @@ class okex5 extends Exchange {
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 'fetchBalance' => array(
                     'type' => 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                ),
+                'fetchLedger' => array(
+                    'method' => 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
                 ),
                 'brokerId' => 'e847386590ce4dBC',
                 'auth' => array(
@@ -1812,6 +1816,234 @@ class okex5 extends Exchange {
             // 'limit' => $limit, // optional, number of results per $request, default = maximum = 100
         );
         return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $options = $this->safe_value($this->options, 'fetchLedger', array());
+        $method = $this->safe_string($options, 'method');
+        $method = $this->safe_string($params, 'method', $method);
+        $params = $this->omit($params, 'method');
+        $request = array(
+            // 'instType' => null, // 'SPOT', 'MARGIN', 'SWAP', 'FUTURES", 'OPTION'
+            // 'ccy' => null, // $currency['id'],
+            // 'mgnMode' => null, // 'isolated', 'cross'
+            // 'ctType' => null, // 'linear', 'inverse', only applicable to FUTURES/SWAP
+            // 'type' => null,
+            //     1 Transfer,
+            //     2 Trade,
+            //     3 Delivery,
+            //     4 Auto token conversion,
+            //     5 Liquidation,
+            //     6 Margin transfer,
+            //     7 Interest deduction,
+            //     8 Funding rate,
+            //     9 ADL,
+            //     10 Clawback,
+            //     11 System token conversion
+            // 'subType' => null,
+            //     1 Buy
+            //     2 Sell
+            //     3 Open long
+            //     4 Open short
+            //     5 Close long
+            //     6 Close short
+            //     9 Interest deduction
+            //     11 Transfer in
+            //     12 Transfer out
+            //     160 Manual margin increase
+            //     161 Manual margin decrease
+            //     162 Auto margin increase
+            //     110 Auto buy
+            //     111 Auto sell
+            //     118 System token conversion transfer in
+            //     119 System token conversion transfer out
+            //     100 Partial liquidation close long
+            //     101 Partial liquidation close short
+            //     102 Partial liquidation buy
+            //     103 Partial liquidation sell
+            //     104 Liquidation long
+            //     105 Liquidation short
+            //     106 Liquidation buy
+            //     107 Liquidation sell
+            //     110 Liquidation transfer in
+            //     111 Liquidation transfer out
+            //     125 ADL close long
+            //     126 ADL close short
+            //     127 ADL buy
+            //     128 ADL sell
+            //     170 Exercised
+            //     171 Counterparty exercised
+            //     172 Expired OTM
+            //     112 Delivery long
+            //     113 Delivery short
+            //     117 Delivery/Exercise clawback
+            //     173 Funding fee expense
+            //     174 Funding fee income
+            //
+            // 'after' => 'id', // return records earlier than the requested bill id
+            // 'before' => 'id', // return records newer than the requested bill id
+            // 'limit' => 100, // default 100, max 100
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['ccy'] = $currency['id'];
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // privateGetAccountBills, privateGetAccountBillsArchive
+        //
+        //     {
+        //         "$code" => "0",
+        //         "msg" => "",
+        //         "$data" => array(
+        //             {
+        //                 "bal" => "0.0000819307998198",
+        //                 "balChg" => "-664.2679586599999802",
+        //                 "billId" => "310394313544966151",
+        //                 "ccy" => "USDT",
+        //                 "fee" => "0",
+        //                 "from" => "",
+        //                 "instId" => "LTC-USDT",
+        //                 "instType" => "SPOT",
+        //                 "mgnMode" => "cross",
+        //                 "notes" => "",
+        //                 "ordId" => "310394313519800320",
+        //                 "pnl" => "0",
+        //                 "posBal" => "0",
+        //                 "posBalChg" => "0",
+        //                 "subType" => "2",
+        //                 "sz" => "664.26795866",
+        //                 "to" => "",
+        //                 "ts" => "1620275771196",
+        //                 "type" => "2"
+        //             }
+        //         )
+        //     }
+        //
+        // privateGetAssetBills
+        //
+        //     {
+        //         "$code" => "0",
+        //         "msg" => "",
+        //         "$data" => array(
+        //             {
+        //                 "billId" => "12344",
+        //                 "ccy" => "BTC",
+        //                 "balChg" => "2",
+        //                 "bal" => "12",
+        //                 "type" => "1",
+        //                 "ts" => "1597026383085"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ledger($data, $currency, $since, $limit);
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $types = array(
+            '1' => 'transfer', // transfer
+            '2' => 'trade', // trade
+            '3' => 'trade', // delivery
+            '4' => 'rebate', // auto token conversion
+            '5' => 'trade', // liquidation
+            '6' => 'transfer', // margin transfer
+            '7' => 'trade', // interest deduction
+            '8' => 'fee', // funding rate
+            '9' => 'trade', // adl
+            '10' => 'trade', // clawback
+            '11' => 'trade', // system token conversion
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        //
+        // privateGetAccountBills, privateGetAccountBillsArchive
+        //
+        //     {
+        //         "bal" => "0.0000819307998198",
+        //         "balChg" => "-664.2679586599999802",
+        //         "billId" => "310394313544966151",
+        //         "ccy" => "USDT",
+        //         "$fee" => "0",
+        //         "from" => "",
+        //         "instId" => "LTC-USDT",
+        //         "instType" => "SPOT",
+        //         "mgnMode" => "cross",
+        //         "notes" => "",
+        //         "ordId" => "310394313519800320",
+        //         "pnl" => "0",
+        //         "posBal" => "0",
+        //         "posBalChg" => "0",
+        //         "subType" => "2",
+        //         "sz" => "664.26795866",
+        //         "to" => "",
+        //         "ts" => "1620275771196",
+        //         "$type" => "2"
+        //     }
+        //
+        // privateGetAssetBills
+        //
+        //     {
+        //         "billId" => "12344",
+        //         "ccy" => "BTC",
+        //         "balChg" => "2",
+        //         "bal" => "12",
+        //         "$type" => "1",
+        //         "ts" => "1597026383085"
+        //     }
+        //
+        $id = $this->safe_string($item, 'billId');
+        $account = null;
+        $referenceId = $this->safe_string($item, 'ordId');
+        $referenceAccount = null;
+        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
+        $code = $this->safe_currency_code($this->safe_string($item, 'ccy'), $currency);
+        $amountString = $this->safe_string($item, 'balChg');
+        $amount = $this->parse_number($amountString);
+        $timestamp = $this->safe_integer($item, 'ts');
+        $feeCostString = $this->safe_string($item, 'fee');
+        $fee = null;
+        if ($feeCostString !== null) {
+            $fee = array(
+                'cost' => $this->parse_number(Precise::string_neg($feeCostString)),
+                'currency' => $code,
+            );
+        }
+        $before = null;
+        $afterString = $this->safe_string($item, 'bal');
+        $after = $this->parse_number($afterString);
+        $status = 'ok';
+        $marketId = $this->safe_string($item, 'instId');
+        $symbol = null;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
+        }
+        return array(
+            'id' => $id,
+            'info' => $item,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'account' => $account,
+            'referenceId' => $referenceId,
+            'referenceAccount' => $referenceAccount,
+            'type' => $type,
+            'currency' => $code,
+            'symbol' => $symbol,
+            'amount' => $amount,
+            'before' => $before, // balance $before
+            'after' => $after, // balance $after
+            'status' => $status,
+            'fee' => $fee,
+        );
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
