@@ -9,10 +9,10 @@ const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class okex5 extends Exchange {
+module.exports = class okex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'okex5',
+            'id': 'okex',
             'name': 'OKEX',
             'countries': [ 'CN', 'US' ],
             'version': 'v5',
