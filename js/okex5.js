@@ -26,6 +26,7 @@ module.exports = class okex5 extends Exchange {
                 'fetchCurrencies': false, // see below
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
