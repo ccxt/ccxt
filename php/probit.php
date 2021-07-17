@@ -157,6 +157,7 @@ class probit extends Exchange {
                 'ORC' => 'Oracle System',
                 'SOC' => 'Soda Coin',
                 'UNI' => 'UNICORN Token',
+                'UNISWAP' => 'UNI',
             ),
         ));
     }

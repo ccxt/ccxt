@@ -166,6 +166,7 @@ class probit(Exchange):
                 'ORC': 'Oracle System',
                 'SOC': 'Soda Coin',
                 'UNI': 'UNICORN Token',
+                'UNISWAP': 'UNI',
             },
         })
 
