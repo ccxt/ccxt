@@ -15,7 +15,7 @@ module.exports = class okex extends ccxt.okex {
                 'ws': true,
                 'watchTicker': true,
                 // 'watchTickers': false, // for now
-                // 'watchOrderBook': true,
+                'watchOrderBook': true,
                 'watchTrades': true,
                 // 'watchBalance': true,
                 // 'watchOHLCV': true,
@@ -36,9 +36,11 @@ module.exports = class okex extends ccxt.okex {
             },
             'options': {
                 'watchOrderBook': {
-                    'limit': 400, // max
-                    'type': 'spot', // margin
-                    'depth': 'depth_l2_tbt', // depth5, depth
+                    // books, 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms when there is change in order book.
+                    // books5, 5 depth levels will be pushed every time. Data will be pushed every 100 ms when there is change in order book.
+                    // books50-l2-tbt, 50 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
+                    // books-l2-tbt, 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
+                    'depth': 'books-l2-tbt',
                 },
                 'watchBalance': 'spot', // margin, futures, swap
                 'ws': {
@@ -217,7 +219,11 @@ module.exports = class okex extends ccxt.okex {
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const depth = this.safeString (options, 'depth', 'depth_l2_tbt');
+        // books, 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms when there is change in order book.
+        // books5, 5 depth levels will be pushed every time. Data will be pushed every 100 ms when there is change in order book.
+        // books50-l2-tbt, 50 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
+        // books-l2-tbt, 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
+        const depth = this.safeString (options, 'depth', 'books-l2-tbt');
         const orderbook = await this.subscribe ('public', depth, symbol, params);
         return orderbook.limit (limit);
     }
@@ -264,82 +270,81 @@ module.exports = class okex extends ccxt.okex {
 
     handleOrderBook (client, message) {
         //
-        // first message (snapshot)
+        // snapshot
         //
         //     {
-        //         table: "spot/depth",
-        //         action: "partial",
+        //         arg: { channel: 'books-l2-tbt', instId: 'BTC-USDT' },
+        //         action: 'snapshot',
         //         data: [
         //             {
-        //                 instrument_id: "BTC-USDT",
         //                 asks: [
-        //                     ["4568.5", "0.49723138", "2"],
-        //                     ["4568.7", "0.5013", "1"],
-        //                     ["4569.1", "0.4398", "1"],
+        //                     [ '31685', '0.78069158', '0', '17' ],
+        //                     [ '31685.1', '0.0001', '0', '1' ],
+        //                     [ '31685.6', '0.04543165', '0', '1' ],
         //                 ],
         //                 bids: [
-        //                     ["4568.4", "0.84187666", "5"],
-        //                     ["4568.3", "0.75661506", "6"],
-        //                     ["4567.8", "2.01", "2"],
+        //                     [ '31684.9', '0.01', '0', '1' ],
+        //                     [ '31682.9', '0.0001', '0', '1' ],
+        //                     [ '31680.7', '0.01', '0', '1' ],
         //                 ],
-        //                 timestamp: "2020-03-16T11:11:43.388Z",
-        //                 checksum: 473370408
+        //                 ts: '1626532416403',
+        //                 checksum: -1023440116
         //             }
         //         ]
         //     }
         //
-        // subsequent updates
+        // update
         //
         //     {
-        //         table: "spot/depth",
-        //         action: "update",
+        //         arg: { channel: 'books-l2-tbt', instId: 'BTC-USDT' },
+        //         action: 'update',
         //         data: [
         //             {
-        //                 instrument_id:   "BTC-USDT",
         //                 asks: [
-        //                     ["4598.8", "0", "0"],
-        //                     ["4599.1", "0", "0"],
-        //                     ["4600.3", "0", "0"],
+        //                     [ '31657.7', '0', '0', '0' ],
+        //                     [ '31659.7', '0.01', '0', '1' ],
+        //                     [ '31987.3', '0.01', '0', '1' ]
         //                 ],
         //                 bids: [
-        //                     ["4598.5", "0.08", "1"],
-        //                     ["4598.2", "0.0337323", "1"],
-        //                     ["4598.1", "0.12681801", "3"],
+        //                     [ '31642.9', '0.50296385', '0', '4' ],
+        //                     [ '31639.9', '0', '0', '0' ],
+        //                     [ '31638.7', '0.01', '0', '1' ],
         //                 ],
-        //                 timestamp: "2020-03-16T11:20:35.139Z",
-        //                 checksum: 740786981
+        //                 ts: '1626535709008',
+        //                 checksum: 830931827
         //             }
         //         ]
         //     }
         //
+        const arg = this.safeValue (message, 'arg', {});
+        const channel = this.safeString (arg, 'channel');
         const action = this.safeString (message, 'action');
         const data = this.safeValue (message, 'data', []);
-        const table = this.safeString (message, 'table');
-        if (action === 'partial') {
+        const marketId = this.safeString (arg, 'instId');
+        const symbol = this.safeSymbol (marketId);
+        const depths = {
+            'books': 400,
+            'books5': 5,
+            'books-l2-tbt': 400,
+            'books50-l2-tbt': 50,
+        };
+        const limit = this.safeInteger (depths, channel);
+        if (action === 'snapshot') {
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
-                const marketId = this.safeString (update, 'instrument_id');
-                const market = this.safeMarket (marketId);
-                const symbol = market['symbol'];
-                const options = this.safeValue (this.options, 'watchOrderBook', {});
-                // default limit is 400 bidasks
-                const limit = this.safeInteger (options, 'limit', 400);
                 const orderbook = this.orderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
                 this.handleOrderBookMessage (client, update, orderbook);
-                const messageHash = table + ':' + marketId;
+                const messageHash = channel + ':' + marketId;
                 client.resolve (orderbook, messageHash);
             }
         } else {
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
-                const marketId = this.safeString (update, 'instrument_id');
-                const market = this.safeMarket (marketId);
-                const symbol = market['symbol'];
                 if (symbol in this.orderbooks) {
                     const orderbook = this.orderbooks[symbol];
                     this.handleOrderBookMessage (client, update, orderbook);
-                    const messageHash = table + ':' + marketId;
+                    const messageHash = channel + ':' + marketId;
                     client.resolve (orderbook, messageHash);
                 }
             }
@@ -609,9 +614,10 @@ module.exports = class okex extends ccxt.okex {
             const arg = this.safeValue (message, 'arg', {});
             const channel = this.safeString (arg, 'channel');
             const methods = {
-                // 'depth': this.handleOrderBook,
-                // 'depth5': this.handleOrderBook,
-                // 'depth_l2_tbt': this.handleOrderBook,
+                // 'books': this.handleOrderBook, // 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms when there is change in order book.
+                // 'books5': this.handleOrderBook, // 5 depth levels will be pushed every time. Data will be pushed every 100 ms when there is change in order book.
+                // 'books50-l2-tbt': this.handleOrderBook, // 50 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
+                'books-l2-tbt': this.handleOrderBook, // 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
                 'tickers': this.handleTicker,
                 'trades': this.handleTrades,
                 // 'account': this.handleBalance,
