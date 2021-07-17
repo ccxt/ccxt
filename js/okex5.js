@@ -2003,7 +2003,8 @@ module.exports = class okex5 extends Exchange {
         const referenceAccount = undefined;
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const code = this.safeCurrencyCode (this.safeString (item, 'ccy'), currency);
-        const amount = this.safeNumber (item, 'balChg');
+        const amountString = this.safeString (item, 'balChg');
+        const amount = this.parseNumber (amountString);
         const timestamp = this.safeInteger (item, 'ts');
         const feeCostString = this.safeString (item, 'fee');
         let fee = undefined;
@@ -2014,7 +2015,8 @@ module.exports = class okex5 extends Exchange {
             };
         }
         const before = undefined;
-        const after = this.safeNumber (item, 'bal');
+        const afterString = this.safeString (item, 'bal');
+        const after = this.parseNumber (afterString);
         const status = 'ok';
         const marketId = this.safeString (item, 'instId');
         let symbol = undefined;
@@ -2023,8 +2025,10 @@ module.exports = class okex5 extends Exchange {
             symbol = market['symbol'];
         }
         return {
-            'info': item,
             'id': id,
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'account': account,
             'referenceId': referenceId,
             'referenceAccount': referenceAccount,
@@ -2035,8 +2039,6 @@ module.exports = class okex5 extends Exchange {
             'before': before, // balance before
             'after': after, // balance after
             'status': status,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
             'fee': fee,
         };
     }
