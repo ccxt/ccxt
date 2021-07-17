@@ -1845,11 +1845,9 @@ class okex5(Exchange):
             request['pwd'] = params['password']
         elif 'pwd' in params:
             request['pwd'] = params['pwd']
-        elif self.password:
-            request['pwd'] = self.password
         query = self.omit(params, ['fee', 'password', 'pwd'])
         if not ('pwd' in request):
-            raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a password / pwd parameter')
+            raise ExchangeError(self.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase')
         response = self.privatePostAssetWithdrawal(self.extend(request, query))
         #
         #     {
@@ -2271,6 +2269,7 @@ class okex5(Exchange):
             return  # fallback to default error handler
         #
         #     {"code":"1","data":[{"clOrdId":"","ordId":"","sCode":"51119","sMsg":"Order placement failed due to insufficient balance. ","tag":""}],"msg":""}
+        #     {"code":"58001","data":[],"msg":"Incorrect trade password"}
         #
         code = self.safe_string(response, 'code')
         if code != '0':

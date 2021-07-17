@@ -1907,12 +1907,10 @@ class okex5 extends Exchange {
             $request['pwd'] = $params['password'];
         } else if (is_array($params) && array_key_exists('pwd', $params)) {
             $request['pwd'] = $params['pwd'];
-        } else if ($this->password) {
-            $request['pwd'] = $this->password;
         }
         $query = $this->omit($params, array( 'fee', 'password', 'pwd' ));
         if (!(is_array($request) && array_key_exists('pwd', $request))) {
-            throw new ExchangeError($this->id . ' withdraw() requires $this->password set on the exchange instance or a password / pwd parameter');
+            throw new ExchangeError($this->id . ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase');
         }
         $response = yield $this->privatePostAssetWithdrawal (array_merge($request, $query));
         //
@@ -2359,6 +2357,7 @@ class okex5 extends Exchange {
         }
         //
         //     array("$code":"1","$data":[array("clOrdId":"","ordId":"","sCode":"51119","sMsg":"Order placement failed due to insufficient balance. ","tag":"")],"msg":"")
+        //     array("$code":"58001","$data":array(),"msg":"Incorrect trade password")
         //
         $code = $this->safe_string($response, 'code');
         if ($code !== '0') {
