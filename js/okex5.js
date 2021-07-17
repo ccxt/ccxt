@@ -1903,12 +1903,10 @@ module.exports = class okex5 extends Exchange {
             request['pwd'] = params['password'];
         } else if ('pwd' in params) {
             request['pwd'] = params['pwd'];
-        } else if (this.password) {
-            request['pwd'] = this.password;
         }
         const query = this.omit (params, [ 'fee', 'password', 'pwd' ]);
         if (!('pwd' in request)) {
-            throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a password / pwd parameter');
+            throw new ExchangeError (this.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase');
         }
         const response = await this.privatePostAssetWithdrawal (this.extend (request, query));
         //
@@ -2355,6 +2353,7 @@ module.exports = class okex5 extends Exchange {
         }
         //
         //     {"code":"1","data":[{"clOrdId":"","ordId":"","sCode":"51119","sMsg":"Order placement failed due to insufficient balance. ","tag":""}],"msg":""}
+        //     {"code":"58001","data":[],"msg":"Incorrect trade password"}
         //
         const code = this.safeString (response, 'code');
         if (code !== '0') {
