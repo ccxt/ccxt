@@ -8,7 +8,7 @@ const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class okex extends ccxt.okex {
+module.exports = class okex3 extends ccxt.okex3 {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
