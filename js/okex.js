@@ -14,11 +14,11 @@ module.exports = class okex extends ccxt.okex {
             'has': {
                 'ws': true,
                 'watchTicker': true,
-                'watchTickers': false, // for now
-                'watchOrderBook': true,
+                // 'watchTickers': false, // for now
+                // 'watchOrderBook': true,
                 'watchTrades': true,
-                'watchBalance': true,
-                'watchOHLCV': true,
+                // 'watchBalance': true,
+                // 'watchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -72,41 +72,38 @@ module.exports = class okex extends ccxt.okex {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const trades = await this.subscribe ('public', 'trade', symbol, params);
+        const trades = await this.subscribe ('public', 'trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchTicker (symbol, params = {}) {
-        return await this.subscribe ('public', 'tickers', symbol, params);
-    }
-
-    handleTrade (client, message) {
+    handleTrades (client, message) {
         //
         //     {
-        //         table: 'spot/trade',
+        //         arg: { channel: 'trades', instId: 'BTC-USDT' },
         //         data: [
         //             {
+        //                 instId: 'BTC-USDT',
+        //                 tradeId: '216970876',
+        //                 px: '31684.5',
+        //                 sz: '0.00001186',
         //                 side: 'buy',
-        //                 trade_id: '30770973',
-        //                 price: '4665.4',
-        //                 size: '0.019',
-        //                 instrument_id: 'BTC-USDT',
-        //                 timestamp: '2020-03-16T13:41:46.526Z'
+        //                 ts: '1626531038288'
         //             }
         //         ]
         //     }
         //
-        const table = this.safeString (message, 'table');
+        const arg = this.safeValue (message, 'arg', {});
+        const channel = this.safeString (arg, 'channel');
         const data = this.safeValue (message, 'data', []);
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade (data[i]);
             const symbol = trade['symbol'];
-            const marketId = this.safeString (trade['info'], 'instrument_id');
-            const messageHash = table + ':' + marketId;
+            const marketId = this.safeString (trade['info'], 'instId');
+            const messageHash = channel + ':' + marketId;
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
                 stored = new ArrayCache (tradesLimit);
@@ -116,6 +113,10 @@ module.exports = class okex extends ccxt.okex {
             client.resolve (stored, messageHash);
         }
         return message;
+    }
+
+    async watchTicker (symbol, params = {}) {
+        return await this.subscribe ('public', 'tickers', symbol, params);
     }
 
     handleTicker (client, message) {
@@ -612,7 +613,7 @@ module.exports = class okex extends ccxt.okex {
                 // 'depth5': this.handleOrderBook,
                 // 'depth_l2_tbt': this.handleOrderBook,
                 'tickers': this.handleTicker,
-                // 'trade': this.handleTrade,
+                'trades': this.handleTrades,
                 // 'account': this.handleBalance,
                 // 'margin_account': this.handleBalance,
             };
