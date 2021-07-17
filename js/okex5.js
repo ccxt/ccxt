@@ -32,6 +32,7 @@ module.exports = class okex5 extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchStatus': true,
