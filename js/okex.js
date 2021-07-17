@@ -40,7 +40,7 @@ module.exports = class okex extends ccxt.okex {
                     // books5, 5 depth levels will be pushed every time. Data will be pushed every 100 ms when there is change in order book.
                     // books50-l2-tbt, 50 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
                     // books-l2-tbt, 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
-                    'depth': 'books-l2-tbt',
+                    'depth': 'books5',
                 },
                 'watchBalance': 'spot', // margin, futures, swap
                 'ws': {
@@ -229,6 +229,14 @@ module.exports = class okex extends ccxt.okex {
     }
 
     handleDelta (bookside, delta) {
+        //
+        //     [
+        //         '31685', // price
+        //         '0.78069158', // amount
+        //         '0', // liquidated orders
+        //         '17' // orders
+        //     ]
+        //
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         bookside.store (price, amount);
@@ -243,26 +251,25 @@ module.exports = class okex extends ccxt.okex {
     handleOrderBookMessage (client, message, orderbook) {
         //
         //     {
-        //         instrument_id: "BTC-USDT",
         //         asks: [
-        //             ["4568.5", "0.49723138", "2"],
-        //             ["4568.7", "0.5013", "1"],
-        //             ["4569.1", "0.4398", "1"],
+        //             [ '31738.3', '0.05973179', '0', '3' ],
+        //             [ '31738.5', '0.11035404', '0', '2' ],
+        //             [ '31739.6', '0.01', '0', '1' ],
         //         ],
         //         bids: [
-        //             ["4568.4", "0.84187666", "5"],
-        //             ["4568.3", "0.75661506", "6"],
-        //             ["4567.8", "2.01", "2"],
+        //             [ '31738.2', '0.67557666', '0', '9' ],
+        //             [ '31738', '0.02466947', '0', '2' ],
+        //             [ '31736.3', '0.01705046', '0', '2' ],
         //         ],
-        //         timestamp: "2020-03-16T11:11:43.388Z",
-        //         checksum: 473370408
+        //         instId: 'BTC-USDT',
+        //         ts: '1626537446491'
         //     }
         //
         const asks = this.safeValue (message, 'asks', []);
         const bids = this.safeValue (message, 'bids', []);
         this.handleDeltas (orderbook['asks'], asks);
         this.handleDeltas (orderbook['bids'], bids);
-        const timestamp = this.parse8601 (this.safeString (message, 'timestamp'));
+        const timestamp = this.safeInteger (message, 'ts');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         return orderbook;
@@ -316,12 +323,36 @@ module.exports = class okex extends ccxt.okex {
         //         ]
         //     }
         //
+        // books5
+        //
+        //     {
+        //         arg: { channel: 'books5', instId: 'BTC-USDT' },
+        //         data: [
+        //             {
+        //                 asks: [
+        //                     [ '31738.3', '0.05973179', '0', '3' ],
+        //                     [ '31738.5', '0.11035404', '0', '2' ],
+        //                     [ '31739.6', '0.01', '0', '1' ],
+        //                 ],
+        //                 bids: [
+        //                     [ '31738.2', '0.67557666', '0', '9' ],
+        //                     [ '31738', '0.02466947', '0', '2' ],
+        //                     [ '31736.3', '0.01705046', '0', '2' ],
+        //                 ],
+        //                 instId: 'BTC-USDT',
+        //                 ts: '1626537446491'
+        //             }
+        //         ]
+        //     }
+        //
+        console.dir (message, { depth: null });
         const arg = this.safeValue (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const action = this.safeString (message, 'action');
         const data = this.safeValue (message, 'data', []);
         const marketId = this.safeString (arg, 'instId');
-        const symbol = this.safeSymbol (marketId);
+        const market = this.safeMarket (marketId);
+        const symbol = market['id'];
         const depths = {
             'books': 400,
             'books5': 5,
@@ -338,15 +369,29 @@ module.exports = class okex extends ccxt.okex {
                 const messageHash = channel + ':' + marketId;
                 client.resolve (orderbook, messageHash);
             }
-        } else {
-            for (let i = 0; i < data.length; i++) {
-                const update = data[i];
-                if (symbol in this.orderbooks) {
-                    const orderbook = this.orderbooks[symbol];
+        } else if (action === 'update') {
+            if (symbol in this.orderbooks) {
+                const orderbook = this.orderbooks[symbol];
+                for (let i = 0; i < data.length; i++) {
+                    const update = data[i];
                     this.handleOrderBookMessage (client, update, orderbook);
                     const messageHash = channel + ':' + marketId;
                     client.resolve (orderbook, messageHash);
                 }
+            }
+        } else if (channel === 'books5') {
+            let orderbook = this.safeValue (this.orderbooks, symbol);
+            if (orderbook === undefined) {
+                orderbook = this.orderBook ({}, limit);
+            }
+            this.orderbooks[symbol] = orderbook;
+            for (let i = 0; i < data.length; i++) {
+                const update = data[i];
+                const timestamp = this.safeInteger (update, 'ts');
+                const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks', 0, 1, market);
+                orderbook.reset (snapshot);
+                const messageHash = channel + ':' + marketId;
+                client.resolve (orderbook, messageHash);
             }
         }
         return message;
@@ -614,9 +659,9 @@ module.exports = class okex extends ccxt.okex {
             const arg = this.safeValue (message, 'arg', {});
             const channel = this.safeString (arg, 'channel');
             const methods = {
-                // 'books': this.handleOrderBook, // 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms when there is change in order book.
-                // 'books5': this.handleOrderBook, // 5 depth levels will be pushed every time. Data will be pushed every 100 ms when there is change in order book.
-                // 'books50-l2-tbt': this.handleOrderBook, // 50 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
+                'books': this.handleOrderBook, // 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms when there is change in order book.
+                'books5': this.handleOrderBook, // 5 depth levels will be pushed every time. Data will be pushed every 100 ms when there is change in order book.
+                'books50-l2-tbt': this.handleOrderBook, // 50 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
                 'books-l2-tbt': this.handleOrderBook, // 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
                 'tickers': this.handleTicker,
                 'trades': this.handleTrades,
