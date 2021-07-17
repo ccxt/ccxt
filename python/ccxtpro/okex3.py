@@ -11,10 +11,10 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 
 
-class okex(Exchange, ccxt.okex):
+class okex3(Exchange, ccxt.okex3):
 
     def describe(self):
-        return self.deep_extend(super(okex, self).describe(), {
+        return self.deep_extend(super(okex3, self).describe(), {
             'has': {
                 'ws': True,
                 'watchTicker': True,

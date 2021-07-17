@@ -57,8 +57,8 @@ declare module 'ccxt.pro' {
     export class kraken extends Exchange {}
     export class kucoin extends Exchange {}
     export class ndax extends Exchange {}
-    export class okcoin extends okex {}
-    export class okex extends Exchange {}
+    export class okcoin extends okex3 {}
+    export class okex3 extends Exchange3 {}
     export class phemex extends Exchange {}
     export class poloniex extends Exchange {}
     export class ripio extends Exchange {}

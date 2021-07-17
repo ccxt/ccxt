@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class okcoin extends okex {
+class okcoin extends okex3 {
 
     public function describe() {
         return $this->deep_extend(parent::describe (), array(

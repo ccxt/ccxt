@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 
-class okex extends \ccxt\async\okex {
+class okex3 extends \ccxt\async\okex3 {
 
     use ClientTrait;
 
