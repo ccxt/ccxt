@@ -51,6 +51,7 @@ class okex5(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchStatus': True,
