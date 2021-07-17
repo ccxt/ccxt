@@ -57,7 +57,6 @@ module.exports = class binance extends Exchange {
                 'withdraw': true,
                 'transfer': true,
                 'fetchTransfers': true,
-                'fetchSavings': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1202,6 +1201,8 @@ module.exports = class binance extends Exchange {
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
         } else if (type === 'margin') {
             method = 'sapiGetMarginAccount';
+        } else if (type === 'savings') {
+            method = 'sapiGetLendingUnionAccount';
         }
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
@@ -1349,6 +1350,31 @@ module.exports = class binance extends Exchange {
         //         }
         //     ]
         //
+        // savings
+        //
+        //     {
+        //       "totalAmountInBTC": "0.3172",
+        //       "totalAmountInUSDT": "10000",
+        //       "totalFixedAmountInBTC": "0.3172",
+        //       "totalFixedAmountInUSDT": "10000",
+        //       "totalFlexibleInBTC": "0",
+        //       "totalFlexibleInUSDT": "0",
+        //       "positionAmountVos": [
+        //         {
+        //           "asset": "USDT",
+        //           "amount": "10000",
+        //           "amountInBTC": "0.3172",
+        //           "amountInUSDT": "10000"
+        //         },
+        //         {
+        //           "asset": "BUSD",
+        //           "amount": "0",
+        //           "amountInBTC": "0",
+        //           "amountInUSDT": "0"
+        //         }
+        //       ]
+        //     }
+        //
         const result = {
             'info': response,
         };
@@ -1363,6 +1389,18 @@ module.exports = class binance extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'free');
                 account['used'] = this.safeString (balance, 'locked');
+                result[code] = account;
+            }
+        } else if (type === 'savings') {
+            const positionAmountVos = this.safeValue (response, 'positionAmountVos');
+            for (let i = 0; i < positionAmountVos.length; i++) {
+                const entry = positionAmountVos[i];
+                const currencyId = this.safeString (entry, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                const usedAndTotal = this.safeString (entry, 'amount');
+                account['total'] = usedAndTotal;
+                account['used'] = usedAndTotal;
                 result[code] = account;
             }
         } else {
@@ -4026,44 +4064,6 @@ module.exports = class binance extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    async fetchSavings (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.sapiGetLendingUnionAccount (params);
-        //
-        //     {
-        //       "totalAmountInBTC": "0.3172",
-        //       "totalAmountInUSDT": "10000",
-        //       "totalFixedAmountInBTC": "0.3172",
-        //       "totalFixedAmountInUSDT": "10000",
-        //       "totalFlexibleInBTC": "0",
-        //       "totalFlexibleInUSDT": "0",
-        //       "positionAmountVos": [
-        //         {
-        //           "asset": "USDT",
-        //           "amount": "10000",
-        //           "amountInBTC": "0.3172",
-        //           "amountInUSDT": "10000"
-        //         },
-        //         {
-        //           "asset": "BUSD",
-        //           "amount": "0",
-        //           "amountInBTC": "0",
-        //           "amountInUSDT": "0"
-        //         }
-        //       ]
-        //     }
-        //
-        const result = {};
-        const positionAmountVos = this.safeValue (response, 'positionAmountVos');
-        for (let i = 0; i < positionAmountVos.length; i++) {
-            const entry = positionAmountVos[i];
-            const currencyId = this.safeString (entry, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            result[code] = this.safeNumber (entry, 'amount');
-        }
-        return result;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
