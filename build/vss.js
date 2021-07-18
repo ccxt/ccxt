@@ -23,8 +23,8 @@ function vssEverything () {
     log.bright ('New version: '.cyan, version)
 
     vss ('./ccxt.pro.js',                     "const version = '{version}'", version)
-    vss ('./php/base/Exchange.php',           "$version = '{version}'",      version)
-    vss ('./php/base/Exchange.php',           "VERSION = '{version}'",       version)
+    vss ('./php/Exchange.php',                "$version = '{version}'",      version)
+    vss ('./php/Exchange.php',                "VERSION = '{version}'",       version)
     vss ('./python/ccxtpro/__init__.py',      "__version__ = '{version}'",   version)
     vss ('./python/ccxtpro/base/exchange.py', "__version__ = '{version}'",   version)
 
