@@ -1190,13 +1190,14 @@ class gateio4(Exchange):
             bodyPayload = '' if (body is None) else body
             bodySignature = self.hash(self.encode(bodyPayload), 'sha512')
             timestamp = self.seconds()
+            timestampString = str(timestamp)
             signaturePath = '/api/v4' + entirePath
-            payloadArray = [method.upper(), signaturePath, queryString, bodySignature, timestamp]
+            payloadArray = [method.upper(), signaturePath, queryString, bodySignature, timestampString]
             payload = '\n'.join(payloadArray)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
             headers = {
                 'KEY': self.apiKey,
-                'Timestamp': timestamp,
+                'Timestamp': timestampString,
                 'SIGN': signature,
                 'Content-Type': 'application/json',
             }

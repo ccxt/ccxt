@@ -1243,13 +1243,14 @@ module.exports = class gateio4 extends Exchange {
             const bodyPayload = (body === undefined) ? '' : body;
             const bodySignature = this.hash (this.encode (bodyPayload), 'sha512');
             const timestamp = this.seconds ();
+            const timestampString = timestamp.toString ();
             const signaturePath = '/api/v4' + entirePath;
-            const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestamp ];
+            const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestampString ];
             const payload = payloadArray.join ('\n');
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
             headers = {
                 'KEY': this.apiKey,
-                'Timestamp': timestamp,
+                'Timestamp': timestampString,
                 'SIGN': signature,
                 'Content-Type': 'application/json',
             };

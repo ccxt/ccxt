@@ -1525,11 +1525,11 @@ class okex3(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_number(balance, 'balance')
-            account['used'] = self.safe_number(balance, 'hold')
-            account['free'] = self.safe_number(balance, 'available')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'hold')
+            account['free'] = self.safe_string(balance, 'available')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_margin_balance(self, response):
         #
@@ -1598,13 +1598,13 @@ class okex3(Exchange):
                     currencyId = parts[1]
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
-                    account['total'] = self.safe_number(marketBalance, 'balance')
-                    account['used'] = self.safe_number(marketBalance, 'hold')
-                    account['free'] = self.safe_number(marketBalance, 'available')
+                    account['total'] = self.safe_string(marketBalance, 'balance')
+                    account['used'] = self.safe_string(marketBalance, 'hold')
+                    account['free'] = self.safe_string(marketBalance, 'available')
                     accounts[code] = account
                 else:
                     raise NotSupported(self.id + ' margin balance response format has changed!')
-            result[symbol] = self.parse_balance(accounts)
+            result[symbol] = self.parse_balance(accounts, False)
         return result
 
     def parse_futures_balance(self, response):
@@ -1653,29 +1653,30 @@ class okex3(Exchange):
             code = self.safe_currency_code(id)
             balance = self.safe_value(info, id, {})
             account = self.account()
-            totalAvailBalance = self.safe_number(balance, 'total_avail_balance')
+            totalAvailBalance = self.safe_string(balance, 'total_avail_balance')
             if self.safe_string(balance, 'margin_mode') == 'fixed':
                 contracts = self.safe_value(balance, 'contracts', [])
                 free = totalAvailBalance
                 for i in range(0, len(contracts)):
                     contract = contracts[i]
-                    fixedBalance = self.safe_number(contract, 'fixed_balance')
-                    realizedPnl = self.safe_number(contract, 'realized_pnl')
-                    marginFrozen = self.safe_number(contract, 'margin_frozen')
-                    marginForUnfilled = self.safe_number(contract, 'margin_for_unfilled')
-                    margin = self.sum(fixedBalance, realizedPnl) - marginFrozen - marginForUnfilled
-                    free = self.sum(free, margin)
+                    fixedBalance = self.safe_string(contract, 'fixed_balance')
+                    realizedPnl = self.safe_string(contract, 'realized_pnl')
+                    marginFrozen = self.safe_string(contract, 'margin_frozen')
+                    marginForUnfilled = self.safe_string(contract, 'margin_for_unfilled')
+                    margin = Precise.string_sub(Precise.string_sub(Precise.string_add(fixedBalance, realizedPnl), marginFrozen), marginForUnfilled)
+                    free = Precise.string_add(free, margin)
                 account['free'] = free
             else:
-                realizedPnl = self.safe_number(balance, 'realized_pnl')
-                unrealizedPnl = self.safe_number(balance, 'unrealized_pnl')
-                marginFrozen = self.safe_number(balance, 'margin_frozen')
-                marginForUnfilled = self.safe_number(balance, 'margin_for_unfilled')
-                account['free'] = self.sum(totalAvailBalance, realizedPnl, unrealizedPnl) - marginFrozen - marginForUnfilled
+                realizedPnl = self.safe_string(balance, 'realized_pnl')
+                unrealizedPnl = self.safe_string(balance, 'unrealized_pnl')
+                marginFrozen = self.safe_string(balance, 'margin_frozen')
+                marginForUnfilled = self.safe_string(balance, 'margin_for_unfilled')
+                positive = Precise.string_add(Precise.string_add(totalAvailBalance, realizedPnl), unrealizedPnl)
+                account['free'] = Precise.string_sub(Precise.string_sub(positive, marginFrozen), marginForUnfilled)
             # it may be incorrect to use total, free and used for swap accounts
-            account['total'] = self.safe_number(balance, 'equity')
+            account['total'] = self.safe_string(balance, 'equity')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_swap_balance(self, response):
         #
@@ -1711,12 +1712,12 @@ class okex3(Exchange):
             timestamp = balanceTimestamp if (timestamp is None) else max(timestamp, balanceTimestamp)
             account = self.account()
             # it may be incorrect to use total, free and used for swap accounts
-            account['total'] = self.safe_number(balance, 'equity')
-            account['free'] = self.safe_number(balance, 'total_avail_balance')
+            account['total'] = self.safe_string(balance, 'equity')
+            account['free'] = self.safe_string(balance, 'total_avail_balance')
             result[symbol] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_balance(self, params={}):
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType')
