@@ -1085,9 +1085,13 @@ class gateio4(Exchange):
         })
 
     def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
+        market = self.market(symbol)
         request = {
             'order_id': id,
+            'currency_pair': market['id'],
         }
         response = self.privateSpotGetOrdersOrderId(self.extend(request, params))
         return self.parse_order(response)
