@@ -1543,12 +1543,12 @@ module.exports = class okex3 extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'balance');
-            account['used'] = this.safeNumber (balance, 'hold');
-            account['free'] = this.safeNumber (balance, 'available');
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'hold');
+            account['free'] = this.safeString (balance, 'available');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseMarginBalance (response) {
@@ -1619,15 +1619,15 @@ module.exports = class okex3 extends Exchange {
                     const currencyId = parts[1];
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
-                    account['total'] = this.safeNumber (marketBalance, 'balance');
-                    account['used'] = this.safeNumber (marketBalance, 'hold');
-                    account['free'] = this.safeNumber (marketBalance, 'available');
+                    account['total'] = this.safeString (marketBalance, 'balance');
+                    account['used'] = this.safeString (marketBalance, 'hold');
+                    account['free'] = this.safeString (marketBalance, 'available');
                     accounts[code] = account;
                 } else {
                     throw new NotSupported (this.id + ' margin balance response format has changed!');
                 }
             }
-            result[symbol] = this.parseBalance (accounts);
+            result[symbol] = this.parseBalance (accounts, false);
         }
         return result;
     }
@@ -1678,32 +1678,33 @@ module.exports = class okex3 extends Exchange {
             const code = this.safeCurrencyCode (id);
             const balance = this.safeValue (info, id, {});
             const account = this.account ();
-            const totalAvailBalance = this.safeNumber (balance, 'total_avail_balance');
+            const totalAvailBalance = this.safeString (balance, 'total_avail_balance');
             if (this.safeString (balance, 'margin_mode') === 'fixed') {
                 const contracts = this.safeValue (balance, 'contracts', []);
                 let free = totalAvailBalance;
                 for (let i = 0; i < contracts.length; i++) {
                     const contract = contracts[i];
-                    const fixedBalance = this.safeNumber (contract, 'fixed_balance');
-                    const realizedPnl = this.safeNumber (contract, 'realized_pnl');
-                    const marginFrozen = this.safeNumber (contract, 'margin_frozen');
-                    const marginForUnfilled = this.safeNumber (contract, 'margin_for_unfilled');
-                    const margin = this.sum (fixedBalance, realizedPnl) - marginFrozen - marginForUnfilled;
-                    free = this.sum (free, margin);
+                    const fixedBalance = this.safeString (contract, 'fixed_balance');
+                    const realizedPnl = this.safeString (contract, 'realized_pnl');
+                    const marginFrozen = this.safeString (contract, 'margin_frozen');
+                    const marginForUnfilled = this.safeString (contract, 'margin_for_unfilled');
+                    const margin = Precise.stringSub (Precise.stringSub (Precise.stringAdd (fixedBalance, realizedPnl), marginFrozen), marginForUnfilled);
+                    free = Precise.stringAdd (free, margin);
                 }
                 account['free'] = free;
             } else {
-                const realizedPnl = this.safeNumber (balance, 'realized_pnl');
-                const unrealizedPnl = this.safeNumber (balance, 'unrealized_pnl');
-                const marginFrozen = this.safeNumber (balance, 'margin_frozen');
-                const marginForUnfilled = this.safeNumber (balance, 'margin_for_unfilled');
-                account['free'] = this.sum (totalAvailBalance, realizedPnl, unrealizedPnl) - marginFrozen - marginForUnfilled;
+                const realizedPnl = this.safeString (balance, 'realized_pnl');
+                const unrealizedPnl = this.safeString (balance, 'unrealized_pnl');
+                const marginFrozen = this.safeString (balance, 'margin_frozen');
+                const marginForUnfilled = this.safeString (balance, 'margin_for_unfilled');
+                const positive = Precise.stringAdd (Precise.stringAdd (totalAvailBalance, realizedPnl), unrealizedPnl);
+                account['free'] = Precise.stringSub (Precise.stringSub (positive, marginFrozen), marginForUnfilled);
             }
             // it may be incorrect to use total, free and used for swap accounts
-            account['total'] = this.safeNumber (balance, 'equity');
+            account['total'] = this.safeString (balance, 'equity');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseSwapBalance (response) {
@@ -1741,13 +1742,13 @@ module.exports = class okex3 extends Exchange {
             timestamp = (timestamp === undefined) ? balanceTimestamp : Math.max (timestamp, balanceTimestamp);
             const account = this.account ();
             // it may be incorrect to use total, free and used for swap accounts
-            account['total'] = this.safeNumber (balance, 'equity');
-            account['free'] = this.safeNumber (balance, 'total_avail_balance');
+            account['total'] = this.safeString (balance, 'equity');
+            account['free'] = this.safeString (balance, 'total_avail_balance');
             result[symbol] = account;
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchBalance (params = {}) {
