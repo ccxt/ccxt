@@ -1132,7 +1132,7 @@ class gateio4 extends Exchange {
             'currency_pair' => $market['id'],
         );
         $response = $this->privateSpotGetOrdersOrderId (array_merge($request, $params));
-        return $this->parse_order($response);
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

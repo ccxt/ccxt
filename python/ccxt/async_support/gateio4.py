@@ -1094,7 +1094,7 @@ class gateio4(Exchange):
             'currency_pair': market['id'],
         }
         response = await self.privateSpotGetOrdersOrderId(self.extend(request, params))
-        return self.parse_order(response)
+        return self.parse_order(response, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         return await self.fetch_orders_helper('open', symbol, since, limit, params)
