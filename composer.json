@@ -19,7 +19,7 @@
         "psr-4": {
             "ccxtpro\\" : "php/"
         },
-        "files": [ "ccxtpro.php", "php/functions.php" ]
+        "files": [ "ccxtpro.php", "php/base/functions.php" ]
     },
     "require": {
         "php": ">=7.0",
