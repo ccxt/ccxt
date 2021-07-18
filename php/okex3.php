@@ -1548,12 +1548,12 @@ class okex3 extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'balance');
-            $account['used'] = $this->safe_number($balance, 'hold');
-            $account['free'] = $this->safe_number($balance, 'available');
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'hold');
+            $account['free'] = $this->safe_string($balance, 'available');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_margin_balance($response) {
@@ -1624,15 +1624,15 @@ class okex3 extends Exchange {
                     $currencyId = $parts[1];
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
-                    $account['total'] = $this->safe_number($marketBalance, 'balance');
-                    $account['used'] = $this->safe_number($marketBalance, 'hold');
-                    $account['free'] = $this->safe_number($marketBalance, 'available');
+                    $account['total'] = $this->safe_string($marketBalance, 'balance');
+                    $account['used'] = $this->safe_string($marketBalance, 'hold');
+                    $account['free'] = $this->safe_string($marketBalance, 'available');
                     $accounts[$code] = $account;
                 } else {
                     throw new NotSupported($this->id . ' margin $balance $response format has changed!');
                 }
             }
-            $result[$symbol] = $this->parse_balance($accounts);
+            $result[$symbol] = $this->parse_balance($accounts, false);
         }
         return $result;
     }
@@ -1683,32 +1683,33 @@ class okex3 extends Exchange {
             $code = $this->safe_currency_code($id);
             $balance = $this->safe_value($info, $id, array());
             $account = $this->account();
-            $totalAvailBalance = $this->safe_number($balance, 'total_avail_balance');
+            $totalAvailBalance = $this->safe_string($balance, 'total_avail_balance');
             if ($this->safe_string($balance, 'margin_mode') === 'fixed') {
                 $contracts = $this->safe_value($balance, 'contracts', array());
                 $free = $totalAvailBalance;
                 for ($i = 0; $i < count($contracts); $i++) {
                     $contract = $contracts[$i];
-                    $fixedBalance = $this->safe_number($contract, 'fixed_balance');
-                    $realizedPnl = $this->safe_number($contract, 'realized_pnl');
-                    $marginFrozen = $this->safe_number($contract, 'margin_frozen');
-                    $marginForUnfilled = $this->safe_number($contract, 'margin_for_unfilled');
-                    $margin = $this->sum($fixedBalance, $realizedPnl) - $marginFrozen - $marginForUnfilled;
-                    $free = $this->sum($free, $margin);
+                    $fixedBalance = $this->safe_string($contract, 'fixed_balance');
+                    $realizedPnl = $this->safe_string($contract, 'realized_pnl');
+                    $marginFrozen = $this->safe_string($contract, 'margin_frozen');
+                    $marginForUnfilled = $this->safe_string($contract, 'margin_for_unfilled');
+                    $margin = Precise::string_sub(Precise::string_sub(Precise::string_add($fixedBalance, $realizedPnl), $marginFrozen), $marginForUnfilled);
+                    $free = Precise::string_add($free, $margin);
                 }
                 $account['free'] = $free;
             } else {
-                $realizedPnl = $this->safe_number($balance, 'realized_pnl');
-                $unrealizedPnl = $this->safe_number($balance, 'unrealized_pnl');
-                $marginFrozen = $this->safe_number($balance, 'margin_frozen');
-                $marginForUnfilled = $this->safe_number($balance, 'margin_for_unfilled');
-                $account['free'] = $this->sum($totalAvailBalance, $realizedPnl, $unrealizedPnl) - $marginFrozen - $marginForUnfilled;
+                $realizedPnl = $this->safe_string($balance, 'realized_pnl');
+                $unrealizedPnl = $this->safe_string($balance, 'unrealized_pnl');
+                $marginFrozen = $this->safe_string($balance, 'margin_frozen');
+                $marginForUnfilled = $this->safe_string($balance, 'margin_for_unfilled');
+                $positive = Precise::string_add(Precise::string_add($totalAvailBalance, $realizedPnl), $unrealizedPnl);
+                $account['free'] = Precise::string_sub(Precise::string_sub($positive, $marginFrozen), $marginForUnfilled);
             }
             // it may be incorrect to use total, $free and used for swap accounts
-            $account['total'] = $this->safe_number($balance, 'equity');
+            $account['total'] = $this->safe_string($balance, 'equity');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_swap_balance($response) {
@@ -1746,13 +1747,13 @@ class okex3 extends Exchange {
             $timestamp = ($timestamp === null) ? $balanceTimestamp : max ($timestamp, $balanceTimestamp);
             $account = $this->account();
             // it may be incorrect to use total, free and used for swap accounts
-            $account['total'] = $this->safe_number($balance, 'equity');
-            $account['free'] = $this->safe_number($balance, 'total_avail_balance');
+            $account['total'] = $this->safe_string($balance, 'equity');
+            $account['free'] = $this->safe_string($balance, 'total_avail_balance');
             $result[$symbol] = $account;
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_balance($params = array ()) {
