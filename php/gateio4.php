@@ -1242,13 +1242,14 @@ class gateio4 extends Exchange {
             $bodyPayload = ($body === null) ? '' : $body;
             $bodySignature = $this->hash($this->encode($bodyPayload), 'sha512');
             $timestamp = $this->seconds();
+            $timestampString = (string) $timestamp;
             $signaturePath = '/api/v4' . $entirePath;
-            $payloadArray = array( strtoupper($method), $signaturePath, $queryString, $bodySignature, $timestamp );
+            $payloadArray = array( strtoupper($method), $signaturePath, $queryString, $bodySignature, $timestampString );
             $payload = implode('\n', $payloadArray);
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512');
             $headers = array(
                 'KEY' => $this->apiKey,
-                'Timestamp' => $timestamp,
+                'Timestamp' => $timestampString,
                 'SIGN' => $signature,
                 'Content-Type' => 'application/json',
             );
