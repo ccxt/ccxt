@@ -1128,7 +1128,7 @@ module.exports = class gateio4 extends Exchange {
             'currency_pair': market['id'],
         };
         const response = await this.privateSpotGetOrdersOrderId (this.extend (request, params));
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
