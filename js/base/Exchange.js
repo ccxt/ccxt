@@ -974,7 +974,7 @@ module.exports = class Exchange {
         }
     }
 
-    parseBalance (balance, legacy = true) {
+    parseBalance (balance, legacy = false) {
 
         const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));
 

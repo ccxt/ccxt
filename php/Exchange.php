@@ -1786,7 +1786,7 @@ class Exchange {
         );
     }
 
-    public function parse_balance($balance, $legacy = true) {
+    public function parse_balance($balance, $legacy = false) {
         $currencies = $this->omit($balance, array('info', 'timestamp', 'datetime', 'free', 'used', 'total'));
 
         $balance['free'] = array();
