@@ -54,7 +54,7 @@ function exportEverything () {
         //     replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         // },
         {
-            file: './php/base/Exchange.php',
+            file: './php/Exchange.php',
             regex: /Exchange::\$exchanges \= array\s*\([^\)]+\)/,
             replacement: "Exchange::$exchanges = array(\n    '" + ids.join ("',\n    '") + "',\n)",
         },
