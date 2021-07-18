@@ -1123,9 +1123,14 @@ class gateio4 extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+        }
         yield $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
             'order_id' => $id,
+            'currency_pair' => $market['id'],
         );
         $response = yield $this->privateSpotGetOrdersOrderId (array_merge($request, $params));
         return $this->parse_order($response);
