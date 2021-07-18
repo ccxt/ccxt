@@ -1118,9 +1118,14 @@ module.exports = class gateio4 extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'order_id': id,
+            'currency_pair': market['id'],
         };
         const response = await this.privateSpotGetOrdersOrderId (this.extend (request, params));
         return this.parseOrder (response);
