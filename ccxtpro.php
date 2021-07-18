@@ -31,19 +31,18 @@ SOFTWARE.
 namespace ccxtpro;
 
 define('PATH_TO_CCXTPRO', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
-define('PATH_TO_CCXTPRO_BASE', PATH_TO_CCXTPRO . 'base' . DIRECTORY_SEPARATOR);
 
 // require_once PATH_TO_CCXTPRO_BASE . 'errors.php';
-require_once PATH_TO_CCXTPRO_BASE . 'Future.php';
-require_once PATH_TO_CCXTPRO_BASE . 'Client.php';
-require_once PATH_TO_CCXTPRO_BASE . 'ClientTrait.php';
-require_once PATH_TO_CCXTPRO_BASE . 'OrderBook.php';
-require_once PATH_TO_CCXTPRO_BASE . 'OrderBookSide.php';
-require_once PATH_TO_CCXTPRO_BASE . 'BaseCache.php';
-require_once PATH_TO_CCXTPRO_BASE . 'ArrayCache.php';
-require_once PATH_TO_CCXTPRO_BASE . 'ArrayCacheByTimestamp.php';
-require_once PATH_TO_CCXTPRO_BASE . 'ArrayCacheBySymbolById.php';
-require_once PATH_TO_CCXTPRO_BASE . 'Exchange.php';
+require_once PATH_TO_CCXTPRO . 'Future.php';
+require_once PATH_TO_CCXTPRO . 'Client.php';
+require_once PATH_TO_CCXTPRO . 'ClientTrait.php';
+require_once PATH_TO_CCXTPRO . 'OrderBook.php';
+require_once PATH_TO_CCXTPRO . 'OrderBookSide.php';
+require_once PATH_TO_CCXTPRO . 'BaseCache.php';
+require_once PATH_TO_CCXTPRO . 'ArrayCache.php';
+require_once PATH_TO_CCXTPRO . 'ArrayCacheByTimestamp.php';
+require_once PATH_TO_CCXTPRO . 'ArrayCacheBySymbolById.php';
+require_once PATH_TO_CCXTPRO . 'Exchange.php';
 
 spl_autoload_register (function ($class_name) {
     $class_name = str_replace ("ccxtpro\\", "", $class_name);
