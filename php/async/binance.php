@@ -246,6 +246,7 @@ class binance extends Exchange {
                         'broker/universalTransfer',
                         // v2 not supported yet
                         // GET /sapi/v2/broker/subAccount/futuresSummary
+                        'account/apiRestrictions',
                     ),
                     'post' => array(
                         'asset/dust',
