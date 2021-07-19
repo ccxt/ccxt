@@ -152,6 +152,7 @@ class okex(Exchange):
                         'trade/orders-history',
                         'trade/orders-history-archive',
                         'trade/fills',
+                        'trade/fills-history',
                         'trade/orders-algo-pending',
                         'trade/orders-algo-history',
                         'account/subaccount/balances',
