@@ -758,7 +758,7 @@ module.exports = class hbtc extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {

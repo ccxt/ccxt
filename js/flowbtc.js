@@ -136,7 +136,7 @@ module.exports = class flowbtc extends Exchange {
             account['total'] = this.safeString (balance, 'hold');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

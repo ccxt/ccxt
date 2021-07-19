@@ -260,7 +260,7 @@ module.exports = class lykke extends Exchange {
             account['used'] = this.safeString (balance, 'Reserved');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

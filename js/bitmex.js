@@ -330,7 +330,7 @@ module.exports = class bitmex extends Exchange {
             account['total'] = total;
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchBalance (params = {}) {

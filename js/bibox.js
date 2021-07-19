@@ -607,7 +607,7 @@ module.exports = class bibox extends Exchange {
             }
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {

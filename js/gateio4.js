@@ -733,7 +733,7 @@ module.exports = class gateio4 extends Exchange {
             account['free'] = this.safeString (entry, 'available');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
