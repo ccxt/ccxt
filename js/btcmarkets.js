@@ -371,7 +371,7 @@ module.exports = class btcmarkets extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

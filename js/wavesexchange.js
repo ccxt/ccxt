@@ -1416,7 +1416,7 @@ module.exports = class wavesexchange extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

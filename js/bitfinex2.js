@@ -588,7 +588,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

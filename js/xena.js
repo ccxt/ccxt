@@ -617,7 +617,7 @@ module.exports = class xena extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseTrade (trade, market = undefined) {

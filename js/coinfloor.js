@@ -115,7 +115,7 @@ module.exports = class coinfloor extends Exchange {
             'used': this.safeString (response, quoteIdLower + '_reserved'),
             'total': this.safeString (response, quoteIdLower + '_balance'),
         };
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
