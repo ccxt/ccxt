@@ -692,7 +692,7 @@ class gopax extends Exchange {
             $account['used'] = Precise::string_add($hold, $pendingWithdrawal);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_balance($params = array ()) {

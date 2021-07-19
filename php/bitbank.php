@@ -409,7 +409,7 @@ class bitbank extends Exchange {
             $account['total'] = $this->safe_string($balance, 'onhand_amount');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {

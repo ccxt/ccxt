@@ -937,7 +937,7 @@ module.exports = class huobipro extends Exchange {
             }
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {

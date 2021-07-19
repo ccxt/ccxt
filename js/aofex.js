@@ -340,7 +340,7 @@ module.exports = class aofex extends Exchange {
             account['used'] = this.safeString (balance, 'frozen');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchTradingFee (symbol, params = {}) {

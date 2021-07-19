@@ -344,7 +344,7 @@ class aofex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'frozen');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {

@@ -423,7 +423,7 @@ module.exports = class lbank extends Exchange {
             account['total'] = this.safeString (asset, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {

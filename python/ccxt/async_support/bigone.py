@@ -654,7 +654,7 @@ class bigone(Exchange):
             account['total'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'locked_balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
         #

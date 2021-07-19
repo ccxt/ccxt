@@ -328,7 +328,7 @@ module.exports = class coinegg extends Exchange {
             const type = (accountType === 'lock') ? 'used' : 'free';
             result[code][type] = this.safeString (balances, key);
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrder (order, market = undefined) {

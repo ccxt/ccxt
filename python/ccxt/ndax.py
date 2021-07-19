@@ -865,7 +865,7 @@ class ndax(Exchange):
             account['total'] = self.safe_string(balance, 'Amount')
             account['used'] = self.safe_string(balance, 'Hold')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_ledger_entry_type(self, type):
         types = {

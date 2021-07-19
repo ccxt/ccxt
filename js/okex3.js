@@ -1548,7 +1548,7 @@ module.exports = class okex3 extends Exchange {
             account['free'] = this.safeString (balance, 'available');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseMarginBalance (response) {
@@ -1627,7 +1627,7 @@ module.exports = class okex3 extends Exchange {
                     throw new NotSupported (this.id + ' margin balance response format has changed!');
                 }
             }
-            result[symbol] = this.parseBalance (accounts, false);
+            result[symbol] = this.parseBalance (accounts);
         }
         return result;
     }
@@ -1704,7 +1704,7 @@ module.exports = class okex3 extends Exchange {
             account['total'] = this.safeString (balance, 'equity');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseSwapBalance (response) {
@@ -1748,7 +1748,7 @@ module.exports = class okex3 extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchBalance (params = {}) {

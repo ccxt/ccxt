@@ -118,7 +118,7 @@ class coinfloor extends Exchange {
             'used' => $this->safe_string($response, $quoteIdLower . '_reserved'),
             'total' => $this->safe_string($response, $quoteIdLower . '_balance'),
         );
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

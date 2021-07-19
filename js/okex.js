@@ -1280,7 +1280,7 @@ module.exports = class okex extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -1370,7 +1370,7 @@ class binance(Exchange):
                 result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

@@ -387,7 +387,7 @@ module.exports = class bitbns extends Exchange {
                 }
             }
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {

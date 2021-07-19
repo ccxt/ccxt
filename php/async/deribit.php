@@ -541,7 +541,7 @@ class deribit extends Exchange {
         $account['used'] = $this->safe_string($balance, 'maintenanceMargin');
         $account['total'] = $this->safe_string($balance, 'equity');
         $result[$currencyCode] = $account;
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function create_deposit_address($code, $params = array ()) {

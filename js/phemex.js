@@ -1300,7 +1300,7 @@ module.exports = class phemex extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseSwapBalance (response) {
@@ -1391,7 +1391,7 @@ module.exports = class phemex extends Exchange {
         account['total'] = this.fromEn (accountBalanceEv, valueScale);
         account['used'] = this.fromEn (totalUsedBalanceEv, valueScale);
         result[code] = account;
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchBalance (params = {}) {

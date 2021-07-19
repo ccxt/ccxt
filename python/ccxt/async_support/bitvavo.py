@@ -735,7 +735,7 @@ class bitvavo(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'inOrder')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()

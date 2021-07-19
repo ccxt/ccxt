@@ -332,7 +332,7 @@ class bitmex(Exchange):
             account['free'] = free
             account['total'] = total
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

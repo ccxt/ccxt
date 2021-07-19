@@ -372,7 +372,7 @@ class gateio(Exchange):
             account['free'] = self.safe_string(available, currencyId)
             account['used'] = self.safe_string(locked, currencyId)
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

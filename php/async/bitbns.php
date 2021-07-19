@@ -390,7 +390,7 @@ class bitbns extends Exchange {
                 }
             }
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {

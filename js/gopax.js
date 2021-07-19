@@ -689,7 +689,7 @@ module.exports = class gopax extends Exchange {
             account['used'] = Precise.stringAdd (hold, pendingWithdrawal);
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchBalance (params = {}) {

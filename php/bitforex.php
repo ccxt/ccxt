@@ -358,7 +358,7 @@ class bitforex extends Exchange {
             $account['total'] = $this->safe_string($balance, 'fix');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

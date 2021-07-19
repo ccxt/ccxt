@@ -761,7 +761,7 @@ class hbtc extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = 50, $params = array ()) {

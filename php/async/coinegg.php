@@ -330,7 +330,7 @@ class coinegg extends Exchange {
             $type = ($accountType === 'lock') ? 'used' : 'free';
             $result[$code][$type] = $this->safe_string($balances, $key);
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order($order, $market = null) {

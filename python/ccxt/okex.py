@@ -1259,7 +1259,7 @@ class okex(Exchange):
                 result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

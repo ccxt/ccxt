@@ -407,7 +407,7 @@ module.exports = class bitbank extends Exchange {
             account['total'] = this.safeString (balance, 'onhand_amount');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {

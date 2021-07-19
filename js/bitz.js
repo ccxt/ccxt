@@ -368,7 +368,7 @@ module.exports = class bitz extends Exchange {
             account['free'] = this.safeString (balance, 'over');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseTicker (ticker, market = undefined) {

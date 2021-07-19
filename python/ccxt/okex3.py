@@ -1529,7 +1529,7 @@ class okex3(Exchange):
             account['used'] = self.safe_string(balance, 'hold')
             account['free'] = self.safe_string(balance, 'available')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_margin_balance(self, response):
         #
@@ -1604,7 +1604,7 @@ class okex3(Exchange):
                     accounts[code] = account
                 else:
                     raise NotSupported(self.id + ' margin balance response format has changed!')
-            result[symbol] = self.parse_balance(accounts, False)
+            result[symbol] = self.parse_balance(accounts)
         return result
 
     def parse_futures_balance(self, response):
@@ -1676,7 +1676,7 @@ class okex3(Exchange):
             # it may be incorrect to use total, free and used for swap accounts
             account['total'] = self.safe_string(balance, 'equity')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_swap_balance(self, response):
         #
@@ -1717,7 +1717,7 @@ class okex3(Exchange):
             result[symbol] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_balance(self, params={}):
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType')
