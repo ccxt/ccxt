@@ -474,15 +474,14 @@ module.exports = class okex extends ccxt.okex {
         //         ]
         //     }
         //
-        const table = this.safeString (message, 'table');
-        const parts = table.split ('/');
-        let type = this.safeString (parts, 0);
-        if (type === 'spot') {
-            const part1 = this.safeString (parts, 1);
-            if (part1 === 'margin_account') {
-                type = 'margin';
-            }
-        }
+        const arg = this.safeValue (message, 'arg', {});
+        const channel = this.safeString (arg, 'channel');
+        const action = this.safeString (message, 'action');
+        const data = this.safeValue (message, 'data', []);
+        const marketId = this.safeString (arg, 'instId');
+        const market = this.safeMarket (marketId);
+        const symbol = market['id'];
+
         const data = this.safeValue (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = this.parseBalanceByType (type, data);
