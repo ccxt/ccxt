@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
+const { AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -17,8 +17,8 @@ module.exports = class okex extends ccxt.okex {
                 // 'watchTickers': false, // for now
                 'watchOrderBook': true,
                 'watchTrades': true,
-                // 'watchBalance': true,
-                // 'watchOHLCV': true,
+                'watchBalance': true,
+                'watchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -58,16 +58,20 @@ module.exports = class okex extends ccxt.okex {
 
     async subscribe (access, channel, symbol, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const url = this.urls['api']['ws'][access];
-        const messageHash = channel + ':' + market['id'];
+        let messageHash = channel;
+        const firstArgument = {
+            'channel': channel,
+        };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            messageHash += ':' + market['id'];
+            firstArgument['instId'] = market['id'];
+        }
         const request = {
             'op': 'subscribe',
             'args': [
-                {
-                    'channel': channel,
-                    'instId': market['id'],
-                },
+                firstArgument,
             ],
         };
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
@@ -163,7 +167,7 @@ module.exports = class okex extends ccxt.okex {
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const interval = this.timeframes[timeframe];
-        const name = 'candle' + interval + 's';
+        const name = 'candle' + interval;
         const ohlcv = await this.subscribe ('public', name, symbol, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
@@ -174,36 +178,31 @@ module.exports = class okex extends ccxt.okex {
     handleOHLCV (client, message) {
         //
         //     {
-        //         table: "spot/candle60s",
+        //         arg: { channel: 'candle1m', instId: 'BTC-USDT' },
         //         data: [
-        //             {
-        //                 candle: [
-        //                     "2020-03-16T14:29:00.000Z",
-        //                     "4948.3",
-        //                     "4966.7",
-        //                     "4939.1",
-        //                     "4945.3",
-        //                     "238.36021657"
-        //                 ],
-        //                 instrument_id: "BTC-USDT"
-        //             }
+        //             [
+        //                 '1626690720000',
+        //                 '31334',
+        //                 '31334',
+        //                 '31334',
+        //                 '31334',
+        //                 '0.0077',
+        //                 '241.2718'
+        //             ]
         //         ]
         //     }
         //
-        const table = this.safeString (message, 'table');
+        const arg = this.safeValue (message, 'arg', {});
+        const channel = this.safeString (arg, 'channel');
         const data = this.safeValue (message, 'data', []);
-        const parts = table.split ('/');
-        const part1 = this.safeString (parts, 1);
-        let interval = part1.replace ('candle', '');
-        interval = interval.replace ('s', '');
+        const marketId = this.safeString (arg, 'instId');
+        const market = this.safeMarket (marketId);
+        const symbol = market['id'];
+        const interval = channel.replace ('candle', '');
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
         for (let i = 0; i < data.length; i++) {
-            const marketId = this.safeString (data[i], 'instrument_id');
-            const candle = this.safeValue (data[i], 'candle');
-            const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
-            const parsed = this.parseOHLCV (candle, market);
+            const parsed = this.parseOHLCV (data[i], market);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
@@ -212,7 +211,7 @@ module.exports = class okex extends ccxt.okex {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
-            const messageHash = table + ':' + marketId;
+            const messageHash = channel + ':' + marketId;
             client.resolve (stored, messageHash);
         }
     }
@@ -345,7 +344,6 @@ module.exports = class okex extends ccxt.okex {
         //         ]
         //     }
         //
-        console.dir (message, { depth: null });
         const arg = this.safeValue (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const action = this.safeString (message, 'action');
@@ -399,7 +397,7 @@ module.exports = class okex extends ccxt.okex {
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['private'];
         const messageHash = 'login';
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
@@ -413,10 +411,12 @@ module.exports = class okex extends ccxt.okex {
             const request = {
                 'op': messageHash,
                 'args': [
-                    this.apiKey,
-                    this.password,
-                    timestamp,
-                    signature,
+                    {
+                        'apiKey': this.apiKey,
+                        'passphrase': this.password,
+                        'timestamp': timestamp,
+                        'sign': signature,
+                    },
                 ],
             };
             this.spawn (this.watch, url, messageHash, request, messageHash, future);
@@ -425,102 +425,51 @@ module.exports = class okex extends ccxt.okex {
     }
 
     async watchBalance (params = {}) {
-        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')");
-        }
-        // const query = this.omit (params, 'type');
-        const negotiation = await this.authenticate ();
-        return await this.subscribeToUserAccount (negotiation, params);
-    }
-
-    async subscribeToUserAccount (negotiation, params = {}) {
-        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')");
-        }
         await this.loadMarkets ();
-        const currencyId = this.safeString (params, 'currency');
-        const code = this.safeString (params, 'code', this.safeCurrencyCode (currencyId));
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
-        const marketId = this.safeString (params, 'instrument_id');
-        const symbol = this.safeString (params, 'symbol');
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        } else if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        const marketUndefined = (market === undefined);
-        const currencyUndefined = (currency === undefined);
-        if (type === 'spot') {
-            if (currencyUndefined) {
-                throw new ArgumentsRequired (this.id + " watchBalance requires a 'currency' (id) or a unified 'code' parameter for " + type + ' accounts');
-            }
-        } else if ((type === 'margin') || (type === 'swap') || (type === 'option')) {
-            if (marketUndefined) {
-                throw new ArgumentsRequired (this.id + " watchBalance requires a 'instrument_id' (id) or a unified 'symbol' parameter for " + type + ' accounts');
-            }
-        } else if (type === 'futures') {
-            if (currencyUndefined && marketUndefined) {
-                throw new ArgumentsRequired (this.id + " watchBalance requires a 'currency' (id), or unified 'code', or 'instrument_id' (id), or unified 'symbol' parameter for " + type + ' accounts');
-            }
-        }
-        let suffix = undefined;
-        if (!currencyUndefined) {
-            suffix = currency['id'];
-        } else if (!marketUndefined) {
-            suffix = market['id'];
-        }
-        const accountType = (type === 'margin') ? 'spot' : type;
-        const account = (type === 'margin') ? 'margin_account' : 'account';
-        const messageHash = accountType + '/' + account;
-        const subscriptionHash = messageHash + ':' + suffix;
-        const url = this.urls['api']['ws'];
-        const request = {
-            'op': 'subscribe',
-            'args': [ subscriptionHash ],
-        };
-        const query = this.omit (params, [ 'currency', 'code', 'instrument_id', 'symbol', 'type' ]);
-        return await this.watch (url, messageHash, this.deepExtend (request, query), subscriptionHash);
+        await this.authenticate ();
+        return await this.subscribe ('private', 'account', undefined, params);
     }
 
     handleBalance (client, message) {
         //
-        // spot
-        //
         //     {
-        //         table: 'spot/account',
+        //         arg: { channel: 'account' },
         //         data: [
         //             {
-        //                 available: '11.044827320825',
-        //                 currency: 'USDT',
-        //                 id: '',
-        //                 balance: '11.044827320825',
-        //                 hold: '0'
-        //             }
-        //         ]
-        //     }
-        //
-        // margin
-        //
-        //     {
-        //         table: "spot/margin_account",
-        //         data: [
-        //             {
-        //                 maint_margin_ratio: "0.08",
-        //                 liquidation_price: "0",
-        //                 'currency:USDT': { available: "0", balance: "0", borrowed: "0", hold: "0", lending_fee: "0" },
-        //                 tiers: "1",
-        //                 instrument_id:   "ETH-USDT",
-        //                 'currency:ETH': { available: "0", balance: "0", borrowed: "0", hold: "0", lending_fee: "0" }
+        //                 adjEq: '',
+        //                 details: [
+        //                     {
+        //                         availBal: '',
+        //                         availEq: '8.21009913',
+        //                         cashBal: '8.21009913',
+        //                         ccy: 'USDT',
+        //                         coinUsdPrice: '0.99994',
+        //                         crossLiab: '',
+        //                         disEq: '8.2096065240522',
+        //                         eq: '8.21009913',
+        //                         eqUsd: '8.2096065240522',
+        //                         frozenBal: '0',
+        //                         interest: '',
+        //                         isoEq: '0',
+        //                         isoLiab: '',
+        //                         liab: '',
+        //                         maxLoan: '',
+        //                         mgnRatio: '',
+        //                         notionalLever: '0',
+        //                         ordFrozen: '0',
+        //                         twap: '0',
+        //                         uTime: '1621927314996',
+        //                         upl: '0'
+        //                     },
+        //                 ],
+        //                 imr: '',
+        //                 isoEq: '0',
+        //                 mgnRatio: '',
+        //                 mmr: '',
+        //                 notionalUsd: '',
+        //                 ordFroz: '',
+        //                 totalEq: '22.1930992296832',
+        //                 uTime: '1626692120916'
         //             }
         //         ]
         //     }
@@ -606,6 +555,7 @@ module.exports = class okex extends ccxt.okex {
         }
         //
         //     { event: 'subscribe', arg: { channel: 'tickers', instId: 'BTC-USDT' } }
+        //     { event: 'login', msg: '', code: '0' }
         //
         //     {
         //         arg: { channel: 'tickers', instId: 'BTC-USDT' },
@@ -633,6 +583,12 @@ module.exports = class okex extends ccxt.okex {
         //
         //     { event: 'error', msg: 'Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}', code: '60012' }
         //     { event: 'error', msg: "channel:ticker,instId:BTC-USDT doesn't exist", code: '60018' }
+        //     { event: 'error', msg: 'Invalid OK_ACCESS_KEY', code: '60005' }
+        //     {
+        //         event: 'error',
+        //         msg: 'Illegal request: {"op":"login","args":["de89b035-b233-44b2-9a13-0ccdd00bda0e","7KUcc8YzQhnxBE3K","1626691289","H57N99mBt5NvW8U19FITrPdOxycAERFMaapQWRqLaSE="]}',
+        //         code: '60012'
+        //     }
         //
         //
         //
@@ -665,12 +621,16 @@ module.exports = class okex extends ccxt.okex {
                 'books-l2-tbt': this.handleOrderBook, // 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
                 'tickers': this.handleTicker,
                 'trades': this.handleTrades,
-                // 'account': this.handleBalance,
+                'account': this.handleBalance,
                 // 'margin_account': this.handleBalance,
             };
             const method = this.safeValue (methods, channel);
             if (method === undefined) {
-                return message;
+                if (channel.indexOf ('candle') === 0) {
+                    this.handleOHLCV (client, message);
+                } else {
+                    return message;
+                }
             } else {
                 return method.call (this, client, message);
             }
