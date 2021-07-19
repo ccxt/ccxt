@@ -648,7 +648,7 @@ class bitfinex(Exchange):
                     account['free'] = self.safe_string(balance, 'available')
                     account['total'] = self.safe_string(balance, 'amount')
                     result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         # transferring between derivatives wallet and regular wallet is not documented in their API

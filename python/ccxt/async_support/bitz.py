@@ -375,7 +375,7 @@ class bitz(Exchange):
             account['total'] = self.safe_string(balance, 'num')
             account['free'] = self.safe_string(balance, 'over')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_ticker(self, ticker, market=None):
         #

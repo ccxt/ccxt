@@ -344,7 +344,7 @@ class aofex(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'frozen')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_trading_fee(self, symbol, params={}):
         self.load_markets()

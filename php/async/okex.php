@@ -1284,7 +1284,7 @@ class okex extends Exchange {
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

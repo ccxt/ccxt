@@ -752,7 +752,7 @@ class hbtc(Exchange):
                 account['free'] = self.safe_string(balance, 'availableMargin')
                 account['total'] = self.safe_string(balance, 'total')
                 result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_trades(self, symbol, since=None, limit=50, params={}):
         self.load_markets()

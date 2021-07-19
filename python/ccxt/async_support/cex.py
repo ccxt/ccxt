@@ -389,7 +389,7 @@ class cex(Exchange):
             account['used'] = self.safe_string(balance, 'orders', '0')
             code = self.safe_currency_code(currencyId)
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

@@ -304,7 +304,7 @@ class btcalpha extends Exchange {
             $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {

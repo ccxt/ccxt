@@ -670,7 +670,7 @@ class gopax(Exchange):
             account['free'] = self.safe_string(balance, 'avail')
             account['used'] = Precise.string_add(hold, pendingWithdrawal)
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

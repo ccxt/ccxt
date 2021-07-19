@@ -116,7 +116,7 @@ class coinfloor(Exchange):
             'used': self.safe_string(response, quoteIdLower + '_reserved'),
             'total': self.safe_string(response, quoteIdLower + '_balance'),
         }
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

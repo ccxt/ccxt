@@ -728,7 +728,7 @@ class gateio4(Exchange):
             account['used'] = self.safe_string(entry, 'locked')
             account['free'] = self.safe_string(entry, 'available')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()

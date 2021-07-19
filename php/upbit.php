@@ -445,7 +445,7 @@ class upbit extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {

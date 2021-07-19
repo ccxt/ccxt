@@ -424,7 +424,7 @@ class lbank extends Exchange {
             $account['total'] = $this->safe_string($asset, $currencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {
