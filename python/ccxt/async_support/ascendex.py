@@ -25,6 +25,7 @@ class ascendex(Exchange):
             'name': 'AscendEX',
             'countries': ['SG'],  # Singapore
             'rateLimit': 500,
+            'certified': True,
             # new metainfo interface
             'has': {
                 'CORS': False,
@@ -73,7 +74,10 @@ class ascendex(Exchange):
                     'https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation',
                 ],
                 'fees': 'https://ascendex.com/en/feerate/transactionfee-traderate',
-                'referral': 'https://ascendex.com/en-us/register?inviteCode=EL6BXBQM',
+                'referral': {
+                    'url': 'https://ascendex.com/en-us/register?inviteCode=EL6BXBQM',
+                    'discount': 0.25,
+                },
             },
             'api': {
                 'public': {

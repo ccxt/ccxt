@@ -53,7 +53,10 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :target: https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation
           :alt: API Version 1
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg
           :target: https://bequant.io
