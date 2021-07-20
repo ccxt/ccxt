@@ -923,8 +923,13 @@ class bitbay extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer_2($trade, 'time', 't');
-        $userAction = $this->safe_string($trade, 'userAction');
-        $side = ($userAction === 'Buy') ? 'buy' : 'sell';
+        $sideRaw = $this->safe_string($trade, 'userAction') ?? $this->safe_string($trade, 'ty');
+        $side = null;
+        if ($sideRaw === 'Buy') {
+            $side = 'buy';
+        } else if ($sideRaw === 'Sell') {
+            $side = 'sell';
+        }
         $wasTaker = $this->safe_value($trade, 'wasTaker');
         $takerOrMaker = null;
         if ($wasTaker !== null) {

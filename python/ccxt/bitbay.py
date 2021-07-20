@@ -909,8 +909,8 @@ class bitbay(Exchange):
         #     }
         #
         timestamp = self.safe_integer_2(trade, 'time', 't')
-        userAction = self.safe_string(trade, 'userAction')
-        side = 'buy' if (userAction == 'Buy') else 'sell'
+        sideRaw = self.safe_string(trade, 'userAction') or self.safe_string(trade, 'ty')
+        side = 'buy' if (sideRaw == 'Buy') else 'sell' if (sideRaw == 'Sell') else None
         wasTaker = self.safe_value(trade, 'wasTaker')
         takerOrMaker = None
         if wasTaker is not None:
