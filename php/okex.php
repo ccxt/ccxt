@@ -481,19 +481,12 @@ class okex extends Exchange {
                 'fetchMarkets' => array( 'spot', 'futures', 'swap', 'option' ), // spot, futures, swap, option
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 'fetchBalance' => array(
-                    'type' => 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                    'type' => 'spot', // 'funding', 'trading', 'spot'
                 ),
                 'fetchLedger' => array(
                     'method' => 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
                 ),
                 'brokerId' => 'e847386590ce4dBC',
-                'auth' => array(
-                    'time' => 'public',
-                    'currencies' => 'private',
-                    'instruments' => 'public',
-                    'rate' => 'public',
-                    '{instrument_id}/constituents' => 'public',
-                ),
             ),
             'commonCurrencies' => array(
                 // OKEX refers to ERC20 version of Aeternity (AEToken)
