@@ -1030,6 +1030,7 @@ class Exchange {
         $this->myTrades = null;
         $this->trades = array();
         $this->transactions = array();
+        $this->positions = array();
         $this->ohlcvs = array();
         $this->exceptions = array();
         $this->accounts = array();
