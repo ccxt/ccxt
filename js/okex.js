@@ -1105,7 +1105,7 @@ module.exports = class okex extends Exchange {
         params = this.omit (params, 'type');
         const method = 'publicGetMarket' + type;
         if (since !== undefined) {
-            request['before'] = since;
+            request['before'] = since - 1;
         }
         const response = await this[method] (this.extend (request, params));
         //
