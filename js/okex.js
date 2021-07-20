@@ -476,20 +476,12 @@ module.exports = class okex extends ccxt.okex {
         //
         const arg = this.safeValue (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
-        const action = this.safeString (message, 'action');
-        const data = this.safeValue (message, 'data', []);
-        const marketId = this.safeString (arg, 'instId');
-        const market = this.safeMarket (marketId);
-        const symbol = market['id'];
-
-        const data = this.safeValue (message, 'data', []);
-        for (let i = 0; i < data.length; i++) {
-            const balance = this.parseBalanceByType (type, data);
-            const oldBalance = this.safeValue (this.balance, type, {});
-            const newBalance = this.deepExtend (oldBalance, balance);
-            this.balance[type] = this.parseBalance (newBalance);
-            client.resolve (this.balance[type], table);
-        }
+        const type = 'spot';
+        const balance = this.parseTradingBalance (type, message);
+        const oldBalance = this.safeValue (this.balance, type, {});
+        const newBalance = this.deepExtend (oldBalance, balance);
+        this.balance[type] = this.parseBalance (newBalance);
+        client.resolve (this.balance[type], channel);
     }
 
     handleSubscriptionStatus (client, message) {
