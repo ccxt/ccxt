@@ -470,6 +470,9 @@ class okex extends Exchange {
                 'broad' => array(
                 ),
             ),
+            'httpExceptions' => array(
+                '429' => '\\ccxt\\ExchangeNotAvailable', // https://github.com/ccxt/ccxt/issues/9612
+            ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
                 'fetchOHLCV' => array(

@@ -485,6 +485,9 @@ class okex(Exchange):
                 'broad': {
                 },
             },
+            'httpExceptions': {
+                '429': ExchangeNotAvailable,  # https://github.com/ccxt/ccxt/issues/9612
+            },
             'precisionMode': TICK_SIZE,
             'options': {
                 'fetchOHLCV': {
