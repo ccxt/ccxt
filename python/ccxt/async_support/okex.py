@@ -1094,7 +1094,7 @@ class okex(Exchange):
         params = self.omit(params, 'type')
         method = 'publicGetMarket' + type
         if since is not None:
-            request['before'] = since
+            request['before'] = since - 1
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {

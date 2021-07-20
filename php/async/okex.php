@@ -1112,7 +1112,7 @@ class okex extends Exchange {
         $params = $this->omit($params, 'type');
         $method = 'publicGetMarket' . $type;
         if ($since !== null) {
-            $request['before'] = $since;
+            $request['before'] = $since - 1;
         }
         $response = yield $this->$method (array_merge($request, $params));
         //
