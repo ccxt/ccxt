@@ -48,6 +48,7 @@ Exchange::$exchanges = array(
     'kucoin',
     'ndax',
     'okcoin',
+    'okex',
     'okex3',
     'phemex',
     'poloniex',
