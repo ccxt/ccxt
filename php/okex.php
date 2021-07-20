@@ -1129,6 +1129,59 @@ class okex extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
+    public function parse_balance_by_type($type, $response) {
+        if ($type === 'funding') {
+            return $this->parse_funding_balance($response);
+        } else {
+            return $this->parse_trading_balance($response);
+        }
+    }
+
+    public function parse_trading_balance($response) {
+        $result = array( 'info' => $response );
+        $data = $this->safe_value($response, 'data', array());
+        $first = $this->safe_value($data, 0, array());
+        $timestamp = $this->safe_integer($first, 'uTime');
+        $details = $this->safe_value($first, 'details', array());
+        for ($i = 0; $i < count($details); $i++) {
+            $balance = $details[$i];
+            $currencyId = $this->safe_string($balance, 'ccy');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            // it may be incorrect to use total, free and used for swap accounts
+            $eq = $this->safe_string($balance, 'eq');
+            $availEq = $this->safe_string($balance, 'availEq');
+            if ((strlen($eq) < 1) || (strlen($availEq) < 1)) {
+                $account['free'] = $this->safe_string($balance, 'availBal');
+                $account['used'] = $this->safe_string($balance, 'frozenBal');
+            } else {
+                $account['total'] = $eq;
+                $account['free'] = $availEq;
+            }
+            $result[$code] = $account;
+        }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
+        return $this->parse_balance($result);
+    }
+
+    public function parse_funding_balance($response) {
+        $result = array( 'info' => $response );
+        $data = $this->safe_value($response, 'data', array());
+        for ($i = 0; $i < count($data); $i++) {
+            $balance = $data[$i];
+            $currencyId = $this->safe_string($balance, 'ccy');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            // it may be incorrect to use total, free and used for swap accounts
+            $account['total'] = $this->safe_string($balance, 'bal');
+            $account['free'] = $this->safe_string($balance, 'availBal');
+            $account['used'] = $this->safe_string($balance, 'frozenBal');
+            $result[$code] = $account;
+        }
+        return $this->parse_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $defaultType = $this->safe_string($this->options, 'defaultType');
@@ -1148,19 +1201,19 @@ class okex extends Exchange {
         $response = $this->$method (array_merge($request, $params));
         //
         //     {
-        //         "$code":"0",
-        //         "$data":array(
+        //         "code":"0",
+        //         "data":array(
         //             {
         //                 "adjEq":"",
-        //                 "$details":array(
+        //                 "details":array(
         //                     {
         //                         "availBal":"",
-        //                         "$availEq":"28.21006347",
+        //                         "availEq":"28.21006347",
         //                         "cashBal":"28.21006347",
         //                         "ccy":"USDT",
         //                         "crossLiab":"",
         //                         "disEq":"28.2687404020176",
-        //                         "$eq":"28.21006347",
+        //                         "eq":"28.21006347",
         //                         "eqUsd":"28.2687404020176",
         //                         "frozenBal":"0",
         //                         "interest":"",
@@ -1191,19 +1244,19 @@ class okex extends Exchange {
         //     }
         //
         //     {
-        //         "$code":"0",
-        //         "$data":array(
+        //         "code":"0",
+        //         "data":array(
         //             {
         //                 "adjEq":"",
-        //                 "$details":array(
+        //                 "details":array(
         //                     {
         //                         "availBal":"0.049",
-        //                         "$availEq":"",
+        //                         "availEq":"",
         //                         "cashBal":"0.049",
         //                         "ccy":"BTC",
         //                         "crossLiab":"",
         //                         "disEq":"1918.55678",
-        //                         "$eq":"0.049",
+        //                         "eq":"0.049",
         //                         "eqUsd":"1918.55678",
         //                         "frozenBal":"0",
         //                         "interest":"",
@@ -1236,8 +1289,8 @@ class okex extends Exchange {
         // funding
         //
         //     {
-        //         "$code":"0",
-        //         "$data":array(
+        //         "code":"0",
+        //         "data":array(
         //             {
         //                 "availBal":"0.00005426",
         //                 "bal":0.0000542600000000,
@@ -1248,46 +1301,7 @@ class okex extends Exchange {
         //         "msg":""
         //     }
         //
-        $result = array( 'info' => $response );
-        $data = $this->safe_value($response, 'data', array());
-        $timestamp = null;
-        if ($type === 'funding') {
-            for ($i = 0; $i < count($data); $i++) {
-                $balance = $data[$i];
-                $currencyId = $this->safe_string($balance, 'ccy');
-                $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                // it may be incorrect to use total, free and used for swap accounts
-                $account['total'] = $this->safe_string($balance, 'bal');
-                $account['free'] = $this->safe_string($balance, 'availBal');
-                $account['used'] = $this->safe_string($balance, 'frozenBal');
-                $result[$code] = $account;
-            }
-        } else {
-            $first = $this->safe_value($data, 0, array());
-            $timestamp = $this->safe_integer($first, 'uTime');
-            $details = $this->safe_value($first, 'details', array());
-            for ($i = 0; $i < count($details); $i++) {
-                $balance = $details[$i];
-                $currencyId = $this->safe_string($balance, 'ccy');
-                $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                // it may be incorrect to use total, free and used for swap accounts
-                $eq = $this->safe_string($balance, 'eq');
-                $availEq = $this->safe_string($balance, 'availEq');
-                if ((strlen($eq) < 1) || (strlen($availEq) < 1)) {
-                    $account['free'] = $this->safe_string($balance, 'availBal');
-                    $account['used'] = $this->safe_string($balance, 'frozenBal');
-                } else {
-                    $account['total'] = $eq;
-                    $account['free'] = $availEq;
-                }
-                $result[$code] = $account;
-            }
-        }
-        $result['timestamp'] = $timestamp;
-        $result['datetime'] = $this->iso8601($timestamp);
-        return $this->parse_balance($result);
+        return $this->parse_balance_by_type($type, $response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
