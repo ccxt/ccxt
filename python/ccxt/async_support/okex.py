@@ -1110,6 +1110,52 @@ class okex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
+    def parse_balance_by_type(self, type, response):
+        if type == 'funding':
+            return self.parse_funding_balance(response)
+        else:
+            return self.parse_trading_balance(response)
+
+    def parse_trading_balance(self, response):
+        result = {'info': response}
+        data = self.safe_value(response, 'data', [])
+        first = self.safe_value(data, 0, {})
+        timestamp = self.safe_integer(first, 'uTime')
+        details = self.safe_value(first, 'details', [])
+        for i in range(0, len(details)):
+            balance = details[i]
+            currencyId = self.safe_string(balance, 'ccy')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            # it may be incorrect to use total, free and used for swap accounts
+            eq = self.safe_string(balance, 'eq')
+            availEq = self.safe_string(balance, 'availEq')
+            if (len(eq) < 1) or (len(availEq) < 1):
+                account['free'] = self.safe_string(balance, 'availBal')
+                account['used'] = self.safe_string(balance, 'frozenBal')
+            else:
+                account['total'] = eq
+                account['free'] = availEq
+            result[code] = account
+        result['timestamp'] = timestamp
+        result['datetime'] = self.iso8601(timestamp)
+        return self.parse_balance(result)
+
+    def parse_funding_balance(self, response):
+        result = {'info': response}
+        data = self.safe_value(response, 'data', [])
+        for i in range(0, len(data)):
+            balance = data[i]
+            currencyId = self.safe_string(balance, 'ccy')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            # it may be incorrect to use total, free and used for swap accounts
+            account['total'] = self.safe_string(balance, 'bal')
+            account['free'] = self.safe_string(balance, 'availBal')
+            account['used'] = self.safe_string(balance, 'frozenBal')
+            result[code] = account
+        return self.parse_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         defaultType = self.safe_string(self.options, 'defaultType')
@@ -1228,42 +1274,7 @@ class okex(Exchange):
         #         "msg":""
         #     }
         #
-        result = {'info': response}
-        data = self.safe_value(response, 'data', [])
-        timestamp = None
-        if type == 'funding':
-            for i in range(0, len(data)):
-                balance = data[i]
-                currencyId = self.safe_string(balance, 'ccy')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                # it may be incorrect to use total, free and used for swap accounts
-                account['total'] = self.safe_string(balance, 'bal')
-                account['free'] = self.safe_string(balance, 'availBal')
-                account['used'] = self.safe_string(balance, 'frozenBal')
-                result[code] = account
-        else:
-            first = self.safe_value(data, 0, {})
-            timestamp = self.safe_integer(first, 'uTime')
-            details = self.safe_value(first, 'details', [])
-            for i in range(0, len(details)):
-                balance = details[i]
-                currencyId = self.safe_string(balance, 'ccy')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                # it may be incorrect to use total, free and used for swap accounts
-                eq = self.safe_string(balance, 'eq')
-                availEq = self.safe_string(balance, 'availEq')
-                if (len(eq) < 1) or (len(availEq) < 1):
-                    account['free'] = self.safe_string(balance, 'availBal')
-                    account['used'] = self.safe_string(balance, 'frozenBal')
-                else:
-                    account['total'] = eq
-                    account['free'] = availEq
-                result[code] = account
-        result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result)
+        return self.parse_balance_by_type(type, response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
