@@ -909,7 +909,7 @@ class bitbay extends Exchange {
         //         offerId => "11c82038-a267-11e9-b698-0242ac110007",
         //         rate => "277",
         //         time => "1562689917517",
-        //         $userAction => "Buy",
+        //         userAction => "Buy",
         //         $wasTaker => true,
         //     }
         //
@@ -924,8 +924,7 @@ class bitbay extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer_2($trade, 'time', 't');
-        $userAction = $this->safe_string($trade, 'userAction');
-        $side = ($userAction === 'Buy') ? 'buy' : 'sell';
+        $side = $this->safe_string_lower_2($trade, 'userAction', 'ty');
         $wasTaker = $this->safe_value($trade, 'wasTaker');
         $takerOrMaker = null;
         if ($wasTaker !== null) {
