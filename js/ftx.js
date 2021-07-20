@@ -1632,6 +1632,40 @@ module.exports = class ftx extends Exchange {
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
+        const request = {
+            // 'showAvgPrice': false,
+        };
+        const response = await this.privateGetPositions (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": [
+        //             {
+        //                 "cost": -31.7906,
+        //                 "entryPrice": 138.22,
+        //                 "estimatedLiquidationPrice": 152.1,
+        //                 "future": "ETH-PERP",
+        //                 "initialMarginRequirement": 0.1,
+        //                 "longOrderSize": 1744.55,
+        //                 "maintenanceMarginRequirement": 0.04,
+        //                 "netSize": -0.23,
+        //                 "openSize": 1744.32,
+        //                 "realizedPnl": 3.39441714,
+        //                 "shortOrderSize": 1732.09,
+        //                 "side": "sell",
+        //                 "size": 0.23,
+        //                 "unrealizedPnl": 0,
+        //                 "collateralUsed": 3.17906
+        //             }
+        //         ]
+        //     }
+        //
+        // todo unify parsePosition/parsePositions
+        return this.safeValue (response, 'result', []);
+    }
+
+    async fetchAccountPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.privateGetAccount (params);
         //
         //     {
