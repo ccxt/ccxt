@@ -1433,6 +1433,7 @@ module.exports = class poloniex extends Exchange {
             'COMPLETE': 'ok',
             'AWAITING APPROVAL': 'pending',
             'PENDING': 'pending',
+            'PROCESSING': 'pending',
             'COMPLETE ERROR': 'failed',
         };
         return this.safeString (statuses, status, status);
