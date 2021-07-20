@@ -1580,6 +1580,39 @@ class ftx(Exchange):
 
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
+        request = {
+            # 'showAvgPrice': False,
+        }
+        response = self.privateGetPositions(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "result": [
+        #             {
+        #                 "cost": -31.7906,
+        #                 "entryPrice": 138.22,
+        #                 "estimatedLiquidationPrice": 152.1,
+        #                 "future": "ETH-PERP",
+        #                 "initialMarginRequirement": 0.1,
+        #                 "longOrderSize": 1744.55,
+        #                 "maintenanceMarginRequirement": 0.04,
+        #                 "netSize": -0.23,
+        #                 "openSize": 1744.32,
+        #                 "realizedPnl": 3.39441714,
+        #                 "shortOrderSize": 1732.09,
+        #                 "side": "sell",
+        #                 "size": 0.23,
+        #                 "unrealizedPnl": 0,
+        #                 "collateralUsed": 3.17906
+        #             }
+        #         ]
+        #     }
+        #
+        # todo unify parsePosition/parsePositions
+        return self.safe_value(response, 'result', [])
+
+    def fetch_account_positions(self, symbols=None, params={}):
+        self.load_markets()
         response = self.privateGetAccount(params)
         #
         #     {
