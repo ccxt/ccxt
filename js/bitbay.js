@@ -922,13 +922,7 @@ module.exports = class bitbay extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger2 (trade, 'time', 't');
-        const sideRaw = this.safeString (trade, 'userAction') || this.safeString (trade, 'ty');
-        let side = undefined;
-        if (sideRaw === 'Buy') {
-            side = 'buy';
-        } else if (sideRaw === 'Sell') {
-            side = 'sell';
-        }
+        const side = this.safeString2 (trade, 'userAction', 'ty');
         const wasTaker = this.safeValue (trade, 'wasTaker');
         let takerOrMaker = undefined;
         if (wasTaker !== undefined) {
