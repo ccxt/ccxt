@@ -28,6 +28,7 @@
     "fcoinjp":       { "skip": true },
     "flowbtc":       { "skip": true },
     "gemini":        { "skip": true },
+    "globe":         { "skip": true },
     "kuna":          { "skip": true },
     "lbank":         { "skip": true },
     "luno":          { "skip": true },
