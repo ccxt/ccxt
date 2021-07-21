@@ -140,7 +140,7 @@ class poloniex(Exchange):
             'limits': {
                 'amount': {
                     'min': 0.000001,
-                    'max': 1000000000,
+                    'max': None,
                 },
                 'price': {
                     'min': 0.00000001,

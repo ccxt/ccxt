@@ -244,6 +244,7 @@ module.exports = class binance extends Exchange {
                     'post': [
                         'asset/dust',
                         'asset/transfer',
+                        'get-funding-asset',
                         'account/disableFastWithdrawSwitch',
                         'account/enableFastWithdrawSwitch',
                         'capital/withdraw/apply',
