@@ -1773,7 +1773,7 @@ class okex extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
-            // 'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly' => currency['id'],
             // 'instId' => $market['id'],
             // 'ordId' => orderId,
@@ -1790,7 +1790,7 @@ class okex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        $response = $this->privateGetTradeFills (array_merge($request, $params));
+        $response = $this->privateGetTradeFillsHistory (array_merge($request, $params));
         //
         //     {
         //         "code":"0",
