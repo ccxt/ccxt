@@ -148,6 +148,7 @@ class okex(Exchange):
                         'asset/withdrawal-history',
                         'asset/currencies',
                         'asset/bills',
+                        'asset/piggy-balance',
                         'trade/order',
                         'trade/orders-pending',
                         'trade/orders-history',
