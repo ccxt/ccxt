@@ -1158,7 +1158,8 @@ class Exchange {
 
         $this->precisionMode = DECIMAL_PLACES;
         $this->paddingMode = NO_PADDING;
-        $this->number = 'floatval';
+        //$this->number = 'floatval';
+        $this->number = 'strval';
 
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp = 0;
