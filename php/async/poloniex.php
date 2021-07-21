@@ -128,7 +128,7 @@ class poloniex extends Exchange {
             'limits' => array(
                 'amount' => array(
                     'min' => 0.000001,
-                    'max' => 1000000000,
+                    'max' => null,
                 ),
                 'price' => array(
                     'min' => 0.00000001,
