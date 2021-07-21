@@ -28,6 +28,8 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 
+import {coinflex} from "ccxt";
+
 const Exchange  = require ('./js/base/Exchange')
     , functions = require ('./js/base/functions')
     , errors    = require ('./js/base/errors')
@@ -95,6 +97,7 @@ const exchanges = {
     'coinegg':                 require ('./js/coinegg.js'),
     'coinex':                  require ('./js/coinex.js'),
     'coinfalcon':              require ('./js/coinfalcon.js'),
+    'coinflex':              require ('./js/coinflex.js'),
     'coinfloor':               require ('./js/coinfloor.js'),
     'coingi':                  require ('./js/coingi.js'),
     'coinmarketcap':           require ('./js/coinmarketcap.js'),
