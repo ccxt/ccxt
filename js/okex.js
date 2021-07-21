@@ -1770,7 +1770,7 @@ module.exports = class okex extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly': currency['id'],
             // 'instId': market['id'],
             // 'ordId': orderId,
@@ -1787,7 +1787,7 @@ module.exports = class okex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const response = await this.privateGetTradeFills (this.extend (request, params));
+        const response = await this.privateGetTradeFillsHistory (this.extend (request, params));
         //
         //     {
         //         "code":"0",
