@@ -127,7 +127,7 @@ class poloniex extends Exchange {
             'limits' => array(
                 'amount' => array(
                     'min' => 0.000001,
-                    'max' => 1000000000,
+                    'max' => null,
                 ),
                 'price' => array(
                     'min' => 0.00000001,
@@ -348,7 +348,7 @@ class poloniex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'onOrders');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -1435,6 +1435,7 @@ class poloniex extends Exchange {
             'COMPLETE' => 'ok',
             'AWAITING APPROVAL' => 'pending',
             'PENDING' => 'pending',
+            'PROCESSING' => 'pending',
             'COMPLETE ERROR' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);

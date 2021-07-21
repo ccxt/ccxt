@@ -1474,7 +1474,7 @@ module.exports = class bitmart extends Exchange {
             account['used'] = this.safeString2 (balance, 'frozen', 'freeze_vol');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrder (order, market = undefined) {

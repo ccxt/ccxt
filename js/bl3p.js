@@ -86,7 +86,7 @@ module.exports = class bl3p extends Exchange {
             account['total'] = this.safeString (balance, 'value');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {

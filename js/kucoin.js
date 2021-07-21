@@ -1781,7 +1781,7 @@ module.exports = class kucoin extends Exchange {
             account['free'] = this.safeString (data, 'availableBalance');
             account['total'] = this.safeString (data, 'accountEquity');
             result[code] = account;
-            return this.parseBalance (result, false);
+            return this.parseBalance (result);
         } else {
             const request = {
                 'type': type,
@@ -1816,7 +1816,7 @@ module.exports = class kucoin extends Exchange {
                     result[code] = account;
                 }
             }
-            return this.parseBalance (result, false);
+            return this.parseBalance (result);
         }
     }
 

@@ -577,7 +577,7 @@ class eqonex(Exchange):
                 account['free'] = self.convert_from_scale(availableQuantityString, scale)
                 account['total'] = self.convert_from_scale(quantityString, scale)
                 result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

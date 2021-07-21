@@ -245,10 +245,12 @@ class binance extends Exchange {
                         'broker/universalTransfer',
                         // v2 not supported yet
                         // GET /sapi/v2/broker/subAccount/futuresSummary
+                        'account/apiRestrictions',
                     ),
                     'post' => array(
                         'asset/dust',
                         'asset/transfer',
+                        'get-funding-asset',
                         'account/disableFastWithdrawSwitch',
                         'account/enableFastWithdrawSwitch',
                         'capital/withdraw/apply',
@@ -1388,7 +1390,7 @@ class binance extends Exchange {
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

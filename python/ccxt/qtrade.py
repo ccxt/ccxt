@@ -701,7 +701,7 @@ class qtrade(Exchange):
             account = result[code] if (code in result) else self.account()
             account['used'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':

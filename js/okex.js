@@ -17,6 +17,7 @@ module.exports = class okex extends Exchange {
             'countries': [ 'CN', 'US' ],
             'version': 'v5',
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'pro': true,
             'has': {
                 'CORS': false,
                 'cancelOrder': true,
@@ -128,11 +129,13 @@ module.exports = class okex extends Exchange {
                         'asset/withdrawal-history',
                         'asset/currencies',
                         'asset/bills',
+                        'asset/piggy-balance',
                         'trade/order',
                         'trade/orders-pending',
                         'trade/orders-history',
                         'trade/orders-history-archive',
                         'trade/fills',
+                        'trade/fills-history',
                         'trade/orders-algo-pending',
                         'trade/orders-algo-history',
                         'account/subaccount/balances',
@@ -465,6 +468,9 @@ module.exports = class okex extends Exchange {
                 'broad': {
                 },
             },
+            'httpExceptions': {
+                '429': ExchangeNotAvailable, // https://github.com/ccxt/ccxt/issues/9612
+            },
             'precisionMode': TICK_SIZE,
             'options': {
                 'fetchOHLCV': {
@@ -474,19 +480,12 @@ module.exports = class okex extends Exchange {
                 'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ], // spot, futures, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 'fetchBalance': {
-                    'type': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                    'type': 'spot', // 'funding', 'trading', 'spot'
                 },
                 'fetchLedger': {
                     'method': 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 'brokerId': 'e847386590ce4dBC',
-                'auth': {
-                    'time': 'public',
-                    'currencies': 'private',
-                    'instruments': 'public',
-                    'rate': 'public',
-                    '{instrument_id}/constituents': 'public',
-                },
             },
             'commonCurrencies': {
                 // OKEX refers to ERC20 version of Aeternity (AEToken)
@@ -1104,7 +1103,7 @@ module.exports = class okex extends Exchange {
         params = this.omit (params, 'type');
         const method = 'publicGetMarket' + type;
         if (since !== undefined) {
-            request['before'] = since;
+            request['before'] = since - 1;
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1120,6 +1119,59 @@ module.exports = class okex extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseBalanceByType (type, response) {
+        if (type === 'funding') {
+            return this.parseFundingBalance (response);
+        } else {
+            return this.parseTradingBalance (response);
+        }
+    }
+
+    parseTradingBalance (response) {
+        const result = { 'info': response };
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0, {});
+        const timestamp = this.safeInteger (first, 'uTime');
+        const details = this.safeValue (first, 'details', []);
+        for (let i = 0; i < details.length; i++) {
+            const balance = details[i];
+            const currencyId = this.safeString (balance, 'ccy');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            // it may be incorrect to use total, free and used for swap accounts
+            const eq = this.safeString (balance, 'eq');
+            const availEq = this.safeString (balance, 'availEq');
+            if ((eq.length < 1) || (availEq.length < 1)) {
+                account['free'] = this.safeString (balance, 'availBal');
+                account['used'] = this.safeString (balance, 'frozenBal');
+            } else {
+                account['total'] = eq;
+                account['free'] = availEq;
+            }
+            result[code] = account;
+        }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        return this.parseBalance (result);
+    }
+
+    parseFundingBalance (response) {
+        const result = { 'info': response };
+        const data = this.safeValue (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'ccy');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            // it may be incorrect to use total, free and used for swap accounts
+            account['total'] = this.safeString (balance, 'bal');
+            account['free'] = this.safeString (balance, 'availBal');
+            account['used'] = this.safeString (balance, 'frozenBal');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -1241,46 +1293,7 @@ module.exports = class okex extends Exchange {
         //         "msg":""
         //     }
         //
-        const result = { 'info': response };
-        const data = this.safeValue (response, 'data', []);
-        let timestamp = undefined;
-        if (type === 'funding') {
-            for (let i = 0; i < data.length; i++) {
-                const balance = data[i];
-                const currencyId = this.safeString (balance, 'ccy');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                // it may be incorrect to use total, free and used for swap accounts
-                account['total'] = this.safeString (balance, 'bal');
-                account['free'] = this.safeString (balance, 'availBal');
-                account['used'] = this.safeString (balance, 'frozenBal');
-                result[code] = account;
-            }
-        } else {
-            const first = this.safeValue (data, 0, {});
-            timestamp = this.safeInteger (first, 'uTime');
-            const details = this.safeValue (first, 'details', []);
-            for (let i = 0; i < details.length; i++) {
-                const balance = details[i];
-                const currencyId = this.safeString (balance, 'ccy');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                // it may be incorrect to use total, free and used for swap accounts
-                const eq = this.safeString (balance, 'eq');
-                const availEq = this.safeString (balance, 'availEq');
-                if ((eq.length < 1) || (availEq.length < 1)) {
-                    account['free'] = this.safeString (balance, 'availBal');
-                    account['used'] = this.safeString (balance, 'frozenBal');
-                } else {
-                    account['total'] = eq;
-                    account['free'] = availEq;
-                }
-                result[code] = account;
-            }
-        }
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result, false);
+        return this.parseBalanceByType (type, response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

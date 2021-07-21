@@ -737,7 +737,7 @@ class gateio4 extends Exchange {
             $account['free'] = $this->safe_string($entry, 'available');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

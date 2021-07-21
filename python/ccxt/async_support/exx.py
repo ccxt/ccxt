@@ -269,7 +269,7 @@ class exx(Exchange):
             account['used'] = self.safe_string(balance, 'freeze')
             account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
         #

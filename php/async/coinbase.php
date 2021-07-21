@@ -735,7 +735,7 @@ class coinbase extends Exchange {
                 }
             }
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {

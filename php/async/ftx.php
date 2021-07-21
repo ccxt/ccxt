@@ -981,7 +981,7 @@ class ftx extends Exchange {
             $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {
@@ -1634,6 +1634,40 @@ class ftx extends Exchange {
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            // 'showAvgPrice' => false,
+        );
+        $response = yield $this->privateGetPositions (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "result" => array(
+        //             {
+        //                 "cost" => -31.7906,
+        //                 "entryPrice" => 138.22,
+        //                 "estimatedLiquidationPrice" => 152.1,
+        //                 "future" => "ETH-PERP",
+        //                 "initialMarginRequirement" => 0.1,
+        //                 "longOrderSize" => 1744.55,
+        //                 "maintenanceMarginRequirement" => 0.04,
+        //                 "netSize" => -0.23,
+        //                 "openSize" => 1744.32,
+        //                 "realizedPnl" => 3.39441714,
+        //                 "shortOrderSize" => 1732.09,
+        //                 "side" => "sell",
+        //                 "size" => 0.23,
+        //                 "unrealizedPnl" => 0,
+        //                 "collateralUsed" => 3.17906
+        //             }
+        //         )
+        //     }
+        //
+        // todo unify parsePosition/parsePositions
+        return $this->safe_value($response, 'result', array());
+    }
+
+    public function fetch_account_positions($symbols = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetAccount ($params);
         //

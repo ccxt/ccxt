@@ -53,7 +53,10 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :target: https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation
           :alt: API Version 1
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg
           :target: https://bequant.io
@@ -1236,7 +1239,10 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :alt: API Version 5
      
      - 
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
           :target: https://www.okex.com/join/1888677
           :alt: okex3
@@ -1263,7 +1269,10 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :alt: API Version 5
      
      - 
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg
           :target: https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj
           :alt: paymium

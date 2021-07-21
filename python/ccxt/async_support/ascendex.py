@@ -25,6 +25,7 @@ class ascendex(Exchange):
             'name': 'AscendEX',
             'countries': ['SG'],  # Singapore
             'rateLimit': 500,
+            'certified': True,
             # new metainfo interface
             'has': {
                 'CORS': False,
@@ -73,7 +74,10 @@ class ascendex(Exchange):
                     'https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation',
                 ],
                 'fees': 'https://ascendex.com/en/feerate/transactionfee-traderate',
-                'referral': 'https://ascendex.com/en-us/register?inviteCode=EL6BXBQM',
+                'referral': {
+                    'url': 'https://ascendex.com/en-us/register?inviteCode=EL6BXBQM',
+                    'discount': 0.25,
+                },
             },
             'api': {
                 'public': {
@@ -579,7 +583,7 @@ class ascendex(Exchange):
             account['free'] = self.safe_string(balance, 'availableBalance')
             account['total'] = self.safe_string(balance, 'totalBalance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

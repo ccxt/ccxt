@@ -886,7 +886,7 @@ module.exports = class ndax extends Exchange {
             account['used'] = this.safeString (balance, 'Hold');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseLedgerEntryType (type) {

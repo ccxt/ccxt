@@ -428,7 +428,7 @@ class zb extends Exchange {
             $account['used'] = $this->safe_string($balance, 'freez');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {

@@ -125,7 +125,7 @@ module.exports = class poloniex extends Exchange {
             'limits': {
                 'amount': {
                     'min': 0.000001,
-                    'max': 1000000000,
+                    'max': undefined,
                 },
                 'price': {
                     'min': 0.00000001,
@@ -346,7 +346,7 @@ module.exports = class poloniex extends Exchange {
             account['used'] = this.safeString (balance, 'onOrders');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchTradingFees (params = {}) {
@@ -1433,6 +1433,7 @@ module.exports = class poloniex extends Exchange {
             'COMPLETE': 'ok',
             'AWAITING APPROVAL': 'pending',
             'PENDING': 'pending',
+            'PROCESSING': 'pending',
             'COMPLETE ERROR': 'failed',
         };
         return this.safeString (statuses, status, status);

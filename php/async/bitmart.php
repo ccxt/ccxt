@@ -1479,7 +1479,7 @@ class bitmart extends Exchange {
             $account['used'] = $this->safe_string_2($balance, 'frozen', 'freeze_vol');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order($order, $market = null) {

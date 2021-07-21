@@ -1304,7 +1304,7 @@ class phemex extends Exchange {
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_swap_balance($response) {
@@ -1395,7 +1395,7 @@ class phemex extends Exchange {
         $account['total'] = $this->from_en($accountBalanceEv, $valueScale);
         $account['used'] = $this->from_en($totalUsedBalanceEv, $valueScale);
         $result[$code] = $account;
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_balance($params = array ()) {

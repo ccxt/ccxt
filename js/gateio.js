@@ -373,7 +373,7 @@ module.exports = class gateio extends Exchange {
             account['used'] = this.safeString (locked, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

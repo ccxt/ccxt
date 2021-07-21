@@ -969,7 +969,7 @@ class ftx(Exchange):
             account['free'] = self.safe_string_2(balance, 'availableWithoutBorrow', 'free')
             account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -1579,6 +1579,39 @@ class ftx(Exchange):
         return self.parse_transaction(result, currency)
 
     async def fetch_positions(self, symbols=None, params={}):
+        await self.load_markets()
+        request = {
+            # 'showAvgPrice': False,
+        }
+        response = await self.privateGetPositions(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "result": [
+        #             {
+        #                 "cost": -31.7906,
+        #                 "entryPrice": 138.22,
+        #                 "estimatedLiquidationPrice": 152.1,
+        #                 "future": "ETH-PERP",
+        #                 "initialMarginRequirement": 0.1,
+        #                 "longOrderSize": 1744.55,
+        #                 "maintenanceMarginRequirement": 0.04,
+        #                 "netSize": -0.23,
+        #                 "openSize": 1744.32,
+        #                 "realizedPnl": 3.39441714,
+        #                 "shortOrderSize": 1732.09,
+        #                 "side": "sell",
+        #                 "size": 0.23,
+        #                 "unrealizedPnl": 0,
+        #                 "collateralUsed": 3.17906
+        #             }
+        #         ]
+        #     }
+        #
+        # todo unify parsePosition/parsePositions
+        return self.safe_value(response, 'result', [])
+
+    async def fetch_account_positions(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.privateGetAccount(params)
         #

@@ -482,7 +482,7 @@ class coinex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'frozen');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {

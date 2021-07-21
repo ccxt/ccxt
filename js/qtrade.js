@@ -714,7 +714,7 @@ module.exports = class qtrade extends Exchange {
             account['used'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

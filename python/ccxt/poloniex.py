@@ -140,7 +140,7 @@ class poloniex(Exchange):
             'limits': {
                 'amount': {
                     'min': 0.000001,
-                    'max': 1000000000,
+                    'max': None,
                 },
                 'price': {
                     'min': 0.00000001,
@@ -350,7 +350,7 @@ class poloniex(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'onOrders')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_trading_fees(self, params={}):
         self.load_markets()
@@ -1337,6 +1337,7 @@ class poloniex(Exchange):
             'COMPLETE': 'ok',
             'AWAITING APPROVAL': 'pending',
             'PENDING': 'pending',
+            'PROCESSING': 'pending',
             'COMPLETE ERROR': 'failed',
         }
         return self.safe_string(statuses, status, status)

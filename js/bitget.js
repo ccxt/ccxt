@@ -1619,7 +1619,7 @@ module.exports = class bitget extends Exchange {
                 result[code]['used'] = Precise.stringAdd (used, this.safeString (balance, 'balance'));
             }
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseSwapBalance (response) {
@@ -1647,7 +1647,7 @@ module.exports = class bitget extends Exchange {
             account['free'] = this.safeString (balance, 'total_avail_balance');
             result[symbol] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchAccounts (params = {}) {

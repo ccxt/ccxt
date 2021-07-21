@@ -612,7 +612,7 @@ class bw(Exchange):
             account['free'] = self.safe_string(balance, 'amount')
             account['used'] = self.safe_string(balance, 'freeze')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if price is None:

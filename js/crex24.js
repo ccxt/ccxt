@@ -365,7 +365,7 @@ module.exports = class crex24 extends Exchange {
             account['used'] = this.safeString (balance, 'reserved');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

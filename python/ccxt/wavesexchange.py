@@ -1342,7 +1342,7 @@ class wavesexchange(Exchange):
                 result[code]['used'] = '0'
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

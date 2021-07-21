@@ -36,6 +36,7 @@ class okex(Exchange):
             'countries': ['CN', 'US'],
             'version': 'v5',
             'rateLimit': 1000,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'pro': True,
             'has': {
                 'CORS': False,
                 'cancelOrder': True,
@@ -147,11 +148,13 @@ class okex(Exchange):
                         'asset/withdrawal-history',
                         'asset/currencies',
                         'asset/bills',
+                        'asset/piggy-balance',
                         'trade/order',
                         'trade/orders-pending',
                         'trade/orders-history',
                         'trade/orders-history-archive',
                         'trade/fills',
+                        'trade/fills-history',
                         'trade/orders-algo-pending',
                         'trade/orders-algo-history',
                         'account/subaccount/balances',
@@ -484,6 +487,9 @@ class okex(Exchange):
                 'broad': {
                 },
             },
+            'httpExceptions': {
+                '429': ExchangeNotAvailable,  # https://github.com/ccxt/ccxt/issues/9612
+            },
             'precisionMode': TICK_SIZE,
             'options': {
                 'fetchOHLCV': {
@@ -493,19 +499,12 @@ class okex(Exchange):
                 'fetchMarkets': ['spot', 'futures', 'swap', 'option'],  # spot, futures, swap, option
                 'defaultType': 'spot',  # 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 'fetchBalance': {
-                    'type': 'spot',  # 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                    'type': 'spot',  # 'funding', 'trading', 'spot'
                 },
                 'fetchLedger': {
                     'method': 'privateGetAccountBills',  # privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 'brokerId': 'e847386590ce4dBC',
-                'auth': {
-                    'time': 'public',
-                    'currencies': 'private',
-                    'instruments': 'public',
-                    'rate': 'public',
-                    '{instrument_id}/constituents': 'public',
-                },
             },
             'commonCurrencies': {
                 # OKEX refers to ERC20 version of Aeternity(AEToken)
@@ -1090,7 +1089,7 @@ class okex(Exchange):
         params = self.omit(params, 'type')
         method = 'publicGetMarket' + type
         if since is not None:
-            request['before'] = since
+            request['before'] = since - 1
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1105,6 +1104,52 @@ class okex(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    def parse_balance_by_type(self, type, response):
+        if type == 'funding':
+            return self.parse_funding_balance(response)
+        else:
+            return self.parse_trading_balance(response)
+
+    def parse_trading_balance(self, response):
+        result = {'info': response}
+        data = self.safe_value(response, 'data', [])
+        first = self.safe_value(data, 0, {})
+        timestamp = self.safe_integer(first, 'uTime')
+        details = self.safe_value(first, 'details', [])
+        for i in range(0, len(details)):
+            balance = details[i]
+            currencyId = self.safe_string(balance, 'ccy')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            # it may be incorrect to use total, free and used for swap accounts
+            eq = self.safe_string(balance, 'eq')
+            availEq = self.safe_string(balance, 'availEq')
+            if (len(eq) < 1) or (len(availEq) < 1):
+                account['free'] = self.safe_string(balance, 'availBal')
+                account['used'] = self.safe_string(balance, 'frozenBal')
+            else:
+                account['total'] = eq
+                account['free'] = availEq
+            result[code] = account
+        result['timestamp'] = timestamp
+        result['datetime'] = self.iso8601(timestamp)
+        return self.parse_balance(result)
+
+    def parse_funding_balance(self, response):
+        result = {'info': response}
+        data = self.safe_value(response, 'data', [])
+        for i in range(0, len(data)):
+            balance = data[i]
+            currencyId = self.safe_string(balance, 'ccy')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            # it may be incorrect to use total, free and used for swap accounts
+            account['total'] = self.safe_string(balance, 'bal')
+            account['free'] = self.safe_string(balance, 'availBal')
+            account['used'] = self.safe_string(balance, 'frozenBal')
+            result[code] = account
+        return self.parse_balance(result)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -1224,42 +1269,7 @@ class okex(Exchange):
         #         "msg":""
         #     }
         #
-        result = {'info': response}
-        data = self.safe_value(response, 'data', [])
-        timestamp = None
-        if type == 'funding':
-            for i in range(0, len(data)):
-                balance = data[i]
-                currencyId = self.safe_string(balance, 'ccy')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                # it may be incorrect to use total, free and used for swap accounts
-                account['total'] = self.safe_string(balance, 'bal')
-                account['free'] = self.safe_string(balance, 'availBal')
-                account['used'] = self.safe_string(balance, 'frozenBal')
-                result[code] = account
-        else:
-            first = self.safe_value(data, 0, {})
-            timestamp = self.safe_integer(first, 'uTime')
-            details = self.safe_value(first, 'details', [])
-            for i in range(0, len(details)):
-                balance = details[i]
-                currencyId = self.safe_string(balance, 'ccy')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                # it may be incorrect to use total, free and used for swap accounts
-                eq = self.safe_string(balance, 'eq')
-                availEq = self.safe_string(balance, 'availEq')
-                if (len(eq) < 1) or (len(availEq) < 1):
-                    account['free'] = self.safe_string(balance, 'availBal')
-                    account['used'] = self.safe_string(balance, 'frozenBal')
-                else:
-                    account['total'] = eq
-                    account['free'] = availEq
-                result[code] = account
-        result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result, False)
+        return self.parse_balance_by_type(type, response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

@@ -648,7 +648,7 @@ class bitfinex extends Exchange {
                 }
             }
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {

@@ -256,7 +256,7 @@ module.exports = class indodax extends Exchange {
             account['used'] = this.safeString (used, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

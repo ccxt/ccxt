@@ -216,7 +216,7 @@ module.exports = class bithumb extends Exchange {
             account['free'] = this.safeString (balances, 'available_' + lowerCurrencyId);
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

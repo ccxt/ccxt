@@ -612,7 +612,7 @@ class bibox extends Exchange {
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {

@@ -218,7 +218,7 @@ class bithumb extends Exchange {
             $account['free'] = $this->safe_string($balances, 'available_' . $lowerCurrencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

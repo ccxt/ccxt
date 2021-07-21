@@ -371,7 +371,7 @@ class bitz extends Exchange {
             $account['free'] = $this->safe_string($balance, 'over');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_ticker($ticker, $market = null) {
