@@ -107,6 +107,7 @@ class Precise {
     }
 
     equals (other) {
+        this.reduce ()
         return (this.decimals === other.decimals) && (this.integer === other.integer)
     }
 
