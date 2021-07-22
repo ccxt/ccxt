@@ -168,4 +168,4 @@ class Precise:
     def string_equals(string1, string2):
         if string1 is None or string2 is None:
             return None
-        return str(Precise(string1).equals(Precise(string2)))
+        return Precise(string1).equals(Precise(string2))
