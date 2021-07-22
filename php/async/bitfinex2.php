@@ -148,6 +148,9 @@ class bitfinex2 extends bitfinex {
                         'liquidations/hist',
                         'rankings/{key}:{timeframe}:{symbol}/{section}',
                         'rankings/{key}:{timeframe}:{symbol}/hist',
+                        'pulse/hist',
+                        'pulse/profile/{nickname}',
+                        'funding/stats/{symbol}/hist',
                     ),
                     'post' => array(
                         'calc/trade/avg',

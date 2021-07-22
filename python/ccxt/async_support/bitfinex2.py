@@ -156,6 +156,9 @@ class bitfinex2(bitfinex):
                         'liquidations/hist',
                         'rankings/{key}:{timeframe}:{symbol}/{section}',
                         'rankings/{key}:{timeframe}:{symbol}/hist',
+                        'pulse/hist',
+                        'pulse/profile/{nickname}',
+                        'funding/stats/{symbol}/hist',
                     ],
                     'post': [
                         'calc/trade/avg',
