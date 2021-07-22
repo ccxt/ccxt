@@ -87,20 +87,25 @@ class Precise {
     }
 
     public function reduce() {
-        $zero = new BigInteger(0);
-        if ($this->integer->equals($zero)) {
-            $this->decimals = 0;
+        $string = $this->integer->toString();
+        $start = strlen($string) - 1;
+        if ($start === 0) {
+            if ($string === '0') {
+                $this->decimals = 0;
+            }
             return $this;
         }
-        $div = $this->integer->div($this->base);
-        $mod = $this->integer->mod($this->base);
-        while ($mod->equals($zero)) {
-            $this->integer = $div;
-            $this->decimals--;
-            $div = $this->integer->div($this->base);
-            $mod = $this->integer->mod($this->base);
+        for ($i = $start; $i >= 0; $i--) {
+            if ($string[$i] !== '0') {
+                break;
+            }
         }
-        return $this;
+        $difference = $start - $i;
+        if ($difference === 0) {
+            return $this;
+        }
+        $this->decimals -= $difference;
+        $this->integer = new BigInteger(mb_substr($string, 0, $i + 1));
     }
 
     public function equals ($other) {
