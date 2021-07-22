@@ -315,8 +315,3 @@ assert (Precise.stringMod ('18', '6') === '0');
 assert (Precise.stringMod ('10.1', '0.5') === '0.1');
 assert (Precise.stringMod ('10000000', '5555') === '1000');
 assert (Precise.stringMod ('5550', '120') === '30');
-
-assert (Precise.stringPow ('10', '2') === '100');
-assert (Precise.stringPow ('4', '4') === '256');
-assert (Precise.stringPow ('10000', '3') === '1000000000000');
-assert (Precise.stringPow ('5', '0') === '1');
