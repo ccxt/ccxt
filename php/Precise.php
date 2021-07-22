@@ -110,6 +110,7 @@ class Precise {
 
     public function equals ($other) {
         $this->reduce();
+        $other->reduce();
         return ($this->decimals === $other->decimals) && $this->integer->equals($other->integer);
     }
 

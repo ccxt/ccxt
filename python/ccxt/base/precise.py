@@ -100,6 +100,7 @@ class Precise:
 
     def equals(self, other):
         self.reduce()
+        other.reduce()
         return self.decimals == other.decimals and self.integer == other.integer
 
     def __str__(self):
