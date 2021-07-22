@@ -86,11 +86,6 @@ class Precise {
         return new Precise($result, $denominatorRationizer + $other->decimals);
     }
 
-    public function pow($other) {
-        $result = $this->integer->pow($other->integer);
-        return new Precise($result, $this->decimals * $other->integer->toBase(10));
-    }
-
     public function reduce() {
         $zero = new BigInteger(0);
         if ($this->integer->equals($zero)) {
@@ -184,10 +179,10 @@ class Precise {
         return strval((new Precise($string1))->mod(new Precise($string2)));
     }
 
-    public static function string_pow($string1, $string2) {
+    public static function string_equals($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
             return null;
         }
-        return strval((new Precise($string1))->pow(new Precise($string2)));
+        return strval((new Precise($string1))->equals(new Precise($string2)));
     }
 }
