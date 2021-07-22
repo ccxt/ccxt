@@ -304,7 +304,7 @@ module.exports = class bibox extends Exchange {
             symbol = market['symbol'];
         }
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCostString = this.safeString (trade, 'fee');
         let feeCurrency = this.safeString (trade, 'fee_symbol');
         if (feeCurrency !== undefined) {
             if (feeCurrency in this.currencies_by_id) {
@@ -319,9 +319,9 @@ module.exports = class bibox extends Exchange {
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': -feeCost,
+                'cost': this.parseNumber (Precise.stringNeg (feeCostString)),
                 'currency': feeCurrency,
                 'rate': feeRate,
             };
