@@ -12,27 +12,24 @@
 
 
 class Precise:
-    def __init__(self, number, decimals=0):
-        is_string = isinstance(number, str)
-        is_int = isinstance(number, int)
-        if not (is_string or is_int):
-            raise RuntimeError('Precise class initiated with something other than a string or int')
-        if is_int:
-            self.integer = number
-            self.decimals = decimals
-        else:
-            if decimals:
-                raise RuntimeError('Cannot set decimals when initializing with a string')
+    def __init__(self, number, decimals=None):
+        if decimals is None:
             modifier = 0
             number = number.lower()
             if 'e' in number:
                 number, modifier = number.split('e')
                 modifier = int(modifier)
             decimal_index = number.find('.')
-            self.decimals = len(number) - decimal_index - 1 if decimal_index > -1 else 0
-            integer_string = number.replace('.', '')
-            self.integer = int(integer_string)
+            if decimal_index > -1:
+                self.decimals = len(number) - decimal_index - 1
+                self.integer = int(number.replace('.', ''))
+            else:
+                self.decimals = 0
+                self.integer = int(number)
             self.decimals = self.decimals - modifier
+        else:
+            self.integer = number
+            self.decimals = decimals
         self.base = 10
         self.reduce()
 
@@ -99,6 +96,9 @@ class Precise:
             self.decimals -= 1
             div, mod = divmod(self.integer, self.base)
         return self
+
+    def equals(self, other):
+        return self.decimals == other.decimals and self.integer == other.integer
 
     def __str__(self):
         sign = '-' if self.integer < 0 else ''

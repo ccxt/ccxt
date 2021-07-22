@@ -2,21 +2,11 @@
 
 const zero = BigInt (0)
 const minusOne = BigInt (-1)
+const base = BigInt (10)
 
 class Precise {
-    constructor (number, decimals = 0) {
-        const isBigInt = typeof number === 'bigint'
-        const isString = typeof number === 'string'
-        if (!(isBigInt || isString)) {
-            throw new Error ('Precise initiated with something other than a string or BN')
-        }
-        if (isBigInt) {
-            this.integer = number
-            this.decimals = decimals
-        } else {
-            if (decimals) {
-                throw new Error ('Cannot set decimals when initializing with a string')
-            }
+    constructor (number, decimals = undefined) {
+        if (decimals === undefined) {
             let modifier = 0
             number = number.toLowerCase ()
             if (number.indexOf ('e') > -1) {
@@ -28,8 +18,10 @@ class Precise {
             const integerString = number.replace ('.', '')
             this.integer = BigInt (integerString)
             this.decimals = this.decimals - modifier
+        } else {
+            this.integer = number
+            this.decimals = decimals
         }
-        this.base = 10
         this.reduce ()
     }
 
@@ -45,10 +37,10 @@ class Precise {
         if (distance === 0) {
             numerator = this.integer
         } else if (distance < 0) {
-            const exponent = BigInt (this.base) ** BigInt (-distance)
+            const exponent = base ** BigInt (-distance)
             numerator = this.integer / exponent
         } else {
-            const exponent = BigInt (this.base) ** BigInt (distance)
+            const exponent = base ** BigInt (distance)
             numerator = this.integer * exponent
         }
         const result = numerator / other.integer
@@ -63,14 +55,13 @@ class Precise {
             const [ smaller, bigger ] =
                 (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
             const exponent = bigger.decimals - smaller.decimals
-            const normalised = smaller.integer * (BigInt (this.base) ** BigInt (exponent))
+            const normalised = smaller.integer * (base ** BigInt (exponent))
             const result = normalised + bigger.integer
             return new Precise (result, bigger.decimals)
         }
     }
 
     mod (other) {
-        const base = BigInt (this.base)
         const rationizerNumerator = Math.max (-this.decimals + other.decimals, 0)
         const numerator = this.integer * (base ** BigInt (rationizerNumerator))
         const rationizerDenominator = Math.max (-other.decimals + this.decimals, 0)
@@ -102,7 +93,6 @@ class Precise {
             this.decimals = 0
             return this
         }
-        const base = BigInt (this.base)
         let mod = this.integer % base
         while (mod === zero) {
             this.integer = this.integer / base
@@ -110,6 +100,10 @@ class Precise {
             this.decimals--
         }
         return this
+    }
+
+    equals (other) {
+        return (this.decimals === other.decimals) && (this.integer === other.integer)
     }
 
     toString () {
