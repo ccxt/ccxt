@@ -200,7 +200,7 @@ module.exports = class bigone extends Exchange {
                 'amount': parseInt (amountPrecisionString),
                 'price': parseInt (pricePrecisionString),
             };
-            const minCost = this.safeInteger (market, 'min_quote_value');
+            const minCost = this.safeNumber (market, 'min_quote_value');
             const entry = {
                 'id': id,
                 'uuid': uuid,
