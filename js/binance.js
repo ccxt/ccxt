@@ -1651,6 +1651,9 @@ module.exports = class binance extends Exchange {
         if ('isDustTrade' in trade) {
             return this.parseDustTrade (trade, market);
         }
+        if ('isDistributionTrade' in trade) {
+            return this.parseDistributionTrade (trade, market);
+        }
         //
         // aggregate trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -2566,6 +2569,88 @@ module.exports = class binance extends Exchange {
             'price': price,
             'cost': cost,
             'fee': fee,
+            'info': trade,
+        };
+    }
+
+    async fetchMyDistributionTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // Binance provides distributions (also called air drops).
+        // The corresponding trades history is called the `Distribution History` and can be requested via the following end-point:
+        // https://binance-docs.github.io/apidocs/spot/en/#asset-dividend-record-user_data
+        //
+        await this.loadMarkets ();
+        const request = {};
+        if (symbol !== undefined) {
+            request['asset'] = symbol;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            // max 3 months range
+            request['endTime'] = this.sum (since, 7776000000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.sapiGetAssetAssetDividend (this.extend (request, params));
+        // {'total': '1',
+        //   'rows': [{      'id': '154479426',
+        //               'tranId': '13177395305',
+        //                'asset': 'TWT',
+        //               'amount': '100',
+        //              'divTime': '1608547657000',
+        //               'enInfo': 'TWT distribution'} ] }
+        const rows = this.safeValue (response, 'rows', []);
+        const data = [];
+        for (let i = 0; i < rows.length; i++) {
+            const divs = rows[i];
+            divs['isDistributionTrade'] = true;
+            data.push (divs);
+        }
+        const trades = this.parseTrades (data, undefined, since, limit);
+        return this.filterBySinceLimit (trades, since, limit);
+    }
+
+    parseDistributionTrade (trade, market = undefined) {
+        // {                'id': '154479426',
+        //              'tranId': '13177395305',
+        //               'asset': 'TWT',
+        //              'amount': '100',
+        //             'divTime': '1608547657000',
+        //              'enInfo': 'TWT distribution',
+        // 'isDistributionTrade': True}
+        const orderId = this.safeString (trade, 'tranId');
+        const timestamp = this.safeInteger (trade, 'divTime');
+        const earnedCurrency = this.safeCurrencyCode (this.safeString (trade, 'asset'));
+        const fee = {
+            'currency': undefined,
+            'cost': undefined,
+        };
+        let symbol = undefined;
+        const amount = undefined;
+        let cost = undefined;
+        let side = undefined;
+        const price = undefined;
+        side = 'buy';
+        symbol = '/' + earnedCurrency;
+        cost = this.safeNumber (trade, 'amount');
+        const id = orderId;
+        const type = undefined;
+        const takerOrMaker = undefined;
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': orderId,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'amount': amount,
+            'price': price,
+            'cost': cost,
+            'fee': fee,
+            'note': this.safeString (trade, 'enInfo'),
             'info': trade,
         };
     }
