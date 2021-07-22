@@ -21,7 +21,6 @@ class Precise {
         } else {
             this.integer = number
             this.decimals = decimals
-            this.reduce ()
         }
     }
 
@@ -113,6 +112,7 @@ class Precise {
     }
 
     toString () {
+        this.reduce ()
         let sign
         let abs
         if (this.integer < 0) {

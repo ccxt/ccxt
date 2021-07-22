@@ -25,7 +25,6 @@ class Precise {
         } else {
             $this->integer = $number;
             $this->decimals = $decimals;
-            $this->reduce();
         }
         $this->base = new BigInteger (10);
     }
@@ -115,6 +114,7 @@ class Precise {
     }
 
     public function __toString() {
+        $this->reduce();
         $sign = $this->integer->sign() === -1 ? '-' : '';
         $integerArray = str_split(str_pad($this->integer->abs()->toString(), $this->decimals, '0', STR_PAD_LEFT));
         $index = count($integerArray) - $this->decimals;

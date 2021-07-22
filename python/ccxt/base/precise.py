@@ -30,7 +30,6 @@ class Precise:
         else:
             self.integer = number
             self.decimals = decimals
-            self.reduce()
         self.base = 10
 
     def mul(self, other):
@@ -104,6 +103,7 @@ class Precise:
         return self.decimals == other.decimals and self.integer == other.integer
 
     def __str__(self):
+        self.reduce()
         sign = '-' if self.integer < 0 else ''
         integer_array = list(str(abs(self.integer)).rjust(self.decimals, '0'))
         index = len(integer_array) - self.decimals
