@@ -33,7 +33,6 @@ async def watch_one_orderbook(exchange_spot, symbol):
 
 
 async def watch_some_orderbooks(exchange_spot, symbol_list):
-    task_list = []
     loops = [watch_one_orderbook(exchange_spot, symbol) for symbol in symbol_list]
     # let them run, don't for all tasks cause they execute asynchronously
     # don't print here
