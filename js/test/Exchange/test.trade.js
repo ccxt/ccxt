@@ -54,10 +54,23 @@ function testTrade (exchange, trade, symbol, now) {
     assert (trade['type'] === undefined || typeof trade['type'] === 'string');
     assert (trade['side'] === undefined || trade['side'] === 'buy' || trade['side'] === 'sell', 'unexpected trade side ' + trade['side']);
     assert (trade['order'] === undefined || typeof trade['order'] === 'string');
-    assert (typeof trade['price'] === 'number', 'trade.price is not a number');
-    assert (trade['price'] > 0);
-    assert (typeof trade['amount'] === 'number', 'trade.amount is not a number');
-    assert (trade['amount'] >= 0);
+    if (typeof exchange.number('0') === 'number') {
+        assert (typeof trade['price'] === 'number', 'trade.price is not a number');
+        assert (trade['price'] > 0);
+        assert (typeof trade['amount'] === 'number', 'trade.amount is not a number');
+        assert (trade['amount'] >= 0);
+        assert (trade['cost'] === undefined || typeof trade['cost'] === 'number', 'trade.cost is not a number');
+        assert (trade['cost'] === undefined || trade['cost'] >= 0);
+    } else if (typeof exchange.number('0') === 'string') {
+        assert (typeof trade['price'] === 'string', 'trade.price is not a string');
+        assert (Precise.string_gt (trade['price'], '0'));
+        assert (typeof trade['amount'] === 'string', 'trade.amount is not a string');
+        assert (Precise.string_ge (trade['amount'], '0'));
+        assert (trade['cost'] === undefined || typeof trade['cost'] === 'string', 'trade.cost is not a string');
+        assert (trade['cost'] === undefined || Precise.string_ge (trade['cost'], '0'));
+    } else {
+        assert (false, 'typeof exchange.number(0) is unknown');
+    }
     const takerOrMaker = trade['takerOrMaker'];
     assert (takerOrMaker === undefined || takerOrMaker === 'taker' || takerOrMaker === 'maker');
 }
