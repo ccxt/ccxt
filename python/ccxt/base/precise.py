@@ -98,7 +98,6 @@ class Precise:
         self.decimals -= difference
         self.integer = int(string[:i + 1])
 
-
     def equals(self, other):
         return self.decimals == other.decimals and self.integer == other.integer
 
