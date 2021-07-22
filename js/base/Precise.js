@@ -195,7 +195,7 @@ class Precise {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined
         }
-        return (new Precise (string1)).equals (new Precise (string2)).toString ()
+        return (new Precise (string1)).equals (new Precise (string2))
     }
 }
 
