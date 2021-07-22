@@ -100,6 +100,78 @@ class Precise {
         return new Precise($result, $this->decimals * $other->integer->bi->toBase($this->base));
     }
 
+    public function max($other) {
+        if ($this->decimals === $other->decimals) {
+            if ($this->integer > $other->integer) {
+                return $this;
+            } else {
+                return $other;
+            }
+        } else {
+            list($smaller, $bigger) =
+            ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
+            $exponent = new BN($bigger->decimals - $smaller->decimals);
+            $normalised = $smaller->integer->mul((new BN($this->base))->pow($exponent));
+            if ($normalised > $bigger->integer) {
+                return $smaller;
+            } else {
+                return $bigger;
+            }
+        }
+    }
+    
+    public function gt($other) {
+        if ($this->decimals === $other->decimals) {
+            return $this->integer > $other->integer;
+        } else {
+            list($smaller, $bigger) =
+            ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
+            $exponent = new BN($bigger->decimals - $smaller->decimals);
+            $normalised = $smaller->integer->mul((new BN($this->base))->pow($exponent));
+            if ($this->decimals > $other->decimals) {
+                return $bigger->integer > $normalised;
+            } else {
+                return $normalised > $bigger->integer;
+            }
+        }
+    }
+    
+    public function ge($other) {
+        if ($this->decimals === $other->decimals) {
+            return $this->integer >= $other->integer;
+        } else {
+            list($smaller, $bigger) =
+            ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
+            $exponent = new BN($bigger->decimals - $smaller->decimals);
+            $normalised = $smaller->integer->mul((new BN($this->base))->pow($exponent));
+            if ($this->decimals > $other->decimals) {
+                return $bigger->integer >= $normalised;
+            } else {
+                return $normalised >= $bigger->integer;
+            }
+        }
+    }
+    
+    public function eq($other) {
+        if ($this->decimals === $other->decimals) {
+            return $this->integer === $other->integer;
+        } else {
+            list($smaller, $bigger) =
+            ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
+            $exponent = new BN($bigger->decimals - $smaller->decimals);
+            $normalised = $smaller->integer->mul((new BN($this->base))->pow($exponent));
+            return $normalised === $bigger->integer;
+        }
+    }
+    
+    public function lt($other) {
+        return $other->gt($this);
+    }
+    
+    public function le($other) {
+        return $other->ge($this);
+    }
+    
     public function reduce() {
         $zero = new BN(0);
         if ($this->integer->eq($zero)) {
@@ -195,5 +267,47 @@ class Precise {
             return null;
         }
         return strval((new Precise($string1))->pow(new Precise($string2)));
+    }
+    
+    public static function string_max($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return strval((new Precise($string1))->max(new Precise($string2)));
+    }
+    
+    public static function string_gt($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->gt(new Precise($string2));
+    }
+    
+    public static function string_ge($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->ge(new Precise($string2));
+    }
+    
+    public static function string_lt($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->lt(new Precise($string2));
+    }
+    
+    public static function string_le($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->le(new Precise($string2));
+    }
+    
+    public static function string_eq($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->eq(new Precise($string2));
     }
 }
