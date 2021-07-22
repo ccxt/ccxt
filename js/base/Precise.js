@@ -92,8 +92,8 @@ class Precise {
         } else {
             const [ smaller, bigger ] =
                 (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
-            const exponent = new BN (bigger.decimals - smaller.decimals)
-            const normalised = smaller.integer.mul (new BN (this.base).pow (exponent))
+            const exponent = bigger.decimals - smaller.decimals
+            const normalised = smaller.integer * (base ** BigInt(exponent))
             if (normalised < bigger.integer) {
                 return smaller
             } else {
@@ -112,8 +112,8 @@ class Precise {
         } else {
             const [ smaller, bigger ] =
                 (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
-            const exponent = new BN (bigger.decimals - smaller.decimals)
-            const normalised = smaller.integer.mul (new BN (this.base).pow (exponent))
+            const exponent = bigger.decimals - smaller.decimals
+            const normalised = smaller.integer * (base ** BigInt(exponent))
             if (normalised > bigger.integer) {
                 return smaller
             } else {
@@ -128,8 +128,8 @@ class Precise {
         } else {
             const [ smaller, bigger ] =
                 (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
-            const exponent = new BN (bigger.decimals - smaller.decimals)
-            const normalised = smaller.integer.mul (new BN (this.base).pow (exponent))
+            const exponent = bigger.decimals - smaller.decimals
+            const normalised = smaller.integer * (base ** BigInt(exponent))
             if (this.decimals > other.decimals) {
                 return bigger.integer > normalised
             } else {
@@ -144,8 +144,8 @@ class Precise {
         } else {
             const [ smaller, bigger ] =
                 (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
-            const exponent = new BN (bigger.decimals - smaller.decimals)
-            const normalised = smaller.integer.mul (new BN (this.base).pow (exponent))
+            const exponent = bigger.decimals - smaller.decimals
+            const normalised = smaller.integer * (base ** BigInt(exponent))
             if (this.decimals > other.decimals) {
                 return bigger.integer >= normalised
             } else {
