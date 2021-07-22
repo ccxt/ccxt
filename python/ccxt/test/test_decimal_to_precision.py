@@ -336,7 +336,6 @@ assert Precise.string_mod('10.1', '0.5') == '0.1'
 assert Precise.string_mod('10000000', '5555') == '1000'
 assert Precise.string_mod('5550', '120') == '30'
 
-assert Precise.string_pow('10', '2') == '100'
-assert Precise.string_pow('4', '4') == '256'
-assert Precise.string_pow('10000', '3') == '1000000000000'
-assert Precise.string_pow('5', '0') == '1'
+assert Precise.string_equals('1.0000', '1')
+assert Precise.string_equals('-0.0', '0')
+assert Precise.string_equals('5.534000', '5.5340')
