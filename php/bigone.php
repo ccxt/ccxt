@@ -128,6 +128,7 @@ class bigone extends Exchange {
                     '10001' => '\\ccxt\\BadRequest', // syntax error
                     '10005' => '\\ccxt\\ExchangeError', // internal error
                     "Amount's scale must greater than AssetPair's base scale" => '\\ccxt\\InvalidOrder',
+                    "Price mulit with amount should larger than AssetPair's min_quote_value" => '\\ccxt\\InvalidOrder',
                     '10007' => '\\ccxt\\BadRequest', // parameter error, array("code":10007,"message":"Amount's scale must greater than AssetPair's base scale")
                     '10011' => '\\ccxt\\ExchangeError', // system error
                     '10013' => '\\ccxt\\OrderNotFound', // array("code":10013,"message":"Resource not found")
@@ -142,6 +143,7 @@ class bigone extends Exchange {
                     '40601' => '\\ccxt\\ExchangeError', // resource is locked
                     '40602' => '\\ccxt\\ExchangeError', // resource is depleted
                     '40603' => '\\ccxt\\InsufficientFunds', // insufficient resource
+                    '40605' => '\\ccxt\\InvalidOrder', // array("code":40605,"message":"Price less than the minimum order price")
                     '40120' => '\\ccxt\\InvalidOrder', // Order is in trading
                     '40121' => '\\ccxt\\InvalidOrder', // Order is already cancelled or filled
                 ),
@@ -202,7 +204,7 @@ class bigone extends Exchange {
                 'amount' => intval($amountPrecisionString),
                 'price' => intval($pricePrecisionString),
             );
-            $minCost = $this->safe_integer($market, 'min_quote_value');
+            $minCost = $this->safe_number($market, 'min_quote_value');
             $entry = array(
                 'id' => $id,
                 'uuid' => $uuid,
