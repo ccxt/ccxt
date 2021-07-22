@@ -2899,12 +2899,12 @@ class Exchange {
         // Filled
         //
         // first we try to calculate the $order fields from the $trades
-        $amount = $this->safe_value($order, 'amount');
-        $remaining = $this->safe_value($order, 'remaining');
-        $filled = $this->safe_value($order, 'filled');
-        $cost = $this->safe_value($order, 'cost');
-        $average = $this->safe_value($order, 'average');
-        $price = $this->safe_value($order, 'price');
+        $amount = $this->safe_string($order, 'amount');
+        $remaining = $this->safe_string($order, 'remaining');
+        $filled = $this->safe_string($order, 'filled');
+        $cost = $this->safe_string($order, 'cost');
+        $average = $this->safe_string($order, 'average');
+        $price = $this->safe_string($order, 'price');
         $lastTradeTimeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
         $parseFilled = ($filled === null);
         $parseCost = ($cost === null);
@@ -2913,24 +2913,25 @@ class Exchange {
         $parseFees = $this->safe_value($order, 'fees') === null;
         $shouldParseFees = $parseFee || $parseFees;
         $fees = $this->safe_value($order, 'fees', array());
+        $symbol = $this->safe_value($order, 'symbol');
         if ($parseFilled || $parseCost || $shouldParseFees) {
             $trades = $this->safe_value($order, 'trades');
             if (is_array($trades)) {
                 if ($parseFilled) {
-                    $filled = 0;
+                    $filled = '0';
                 }
                 if ($parseCost) {
-                    $cost = 0;
+                    $cost = '0';
                 }
                 for ($i = 0; $i < count($trades); $i++) {
                     $trade = $trades[$i];
-                    $tradeAmount = $this->safe_value($trade, 'amount');
+                    $tradeAmount = $this->safe_string($trade, 'amount');
                     if ($parseFilled && ($tradeAmount !== null)) {
-                        $filled = $this->sum($filled, $tradeAmount);
+                        $filled = Precise::string_add ($filled, $tradeAmount);
                     }
-                    $tradeCost = $this->safe_value($trade, 'cost');
+                    $tradeCost = $this->safe_string($trade, 'cost');
                     if ($parseCost && ($tradeCost !== null)) {
-                        $cost = $this->sum($cost, $tradeCost);
+                        $cost = Precise::string_add ($cost, $tradeCost);
                     }
                     $tradeTimestamp = $this->safe_value($trade, 'timestamp');
                     if ($parseLastTradeTimeTimestamp && ($tradeTimestamp !== null)) {
@@ -2973,46 +2974,46 @@ class Exchange {
         if ($amount === null) {
             // ensure $amount = $filled . $remaining
             if ($filled !== null && $remaining !== null) {
-                $amount = $this->sum($filled, $remaining);
+                $amount = Precise::string_add ($filled, $remaining);
             } else if ($this->safe_string($order, 'status') === 'closed') {
                 $amount = $filled;
             }
         }
         if ($filled === null) {
             if ($amount !== null && $remaining !== null) {
-                $filled = max ($this->sum($amount, -$remaining), 0);
+                $filled = Precise::string_max (Precise::string_sub ($amount, $remaining), '0');
             }
         }
         if ($remaining === null) {
             if ($amount !== null && $filled !== null) {
-                $remaining = max ($this->sum($amount, -$filled), 0);
+                $remaining = Precise::string_max (Precise::string_sub ($amount, $filled), '0');
             }
         }
         // ensure that the $average field is calculated correctly
         if ($average === null) {
-            if (($filled !== null) && ($cost !== null) && ($filled > 0)) {
-                $average = $cost / $filled;
+            if (($filled !== null) && ($cost !== null) && Precise::string_gt($filled, '0')) {
+                $average = $this->price_to_precision($symbol, Precise::string_div ($cost, $filled));
             }
         }
         // also ensure the $cost field is calculated correctly
         $costPriceExists = ($average !== null) || ($price !== null);
         if ($parseCost && ($filled !== null) && $costPriceExists) {
-            $cost = ($average === null) ? ($price * $filled) : ($average * $filled);
+            $cost = $this->cost_to_precision($symbol, ($average === null) ? Precise::string_mul ($price, $filled) : Precise::string_mul ($average, $filled));
         }
         // support for market orders
         $orderType = $this->safe_value($order, 'type');
-        $emptyPrice = ($price === null) || ($price === 0.0);
+        $emptyPrice = ($price === null) || Precise.string_eq ($price, '0');
         if ($emptyPrice && ($orderType === 'market')) {
             $price = $average;
         }
         return array_merge($order, array(
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
-            'average' => $average,
-            'filled' => $filled,
-            'remaining' => $remaining,
+            'price' => $this->parse_number ($price),
+            'amount' => $this->parse_number ($amount),
+            'cost' => $this->parse_number ($cost),
+            'average' => $this->parse_number ($average),
+            'filled' => $this->parse_number ($filled),
+            'remaining' => $this->parse_number ($remaining),
         ));
     }
 
