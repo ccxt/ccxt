@@ -1510,12 +1510,12 @@ module.exports = class Exchange {
         // Filled
         //
         // first we try to calculate the order fields from the trades
-        let amount = this.safeValue (order, 'amount');
-        let remaining = this.safeValue (order, 'remaining');
-        let filled = this.safeValue (order, 'filled');
-        let cost = this.safeValue (order, 'cost');
-        let average = this.safeValue (order, 'average');
-        let price = this.safeValue (order, 'price');
+        let amount = this.safeString (order, 'amount');
+        let remaining = this.safeString (order, 'remaining');
+        let filled = this.safeString (order, 'filled');
+        let cost = this.safeString (order, 'cost');
+        let average = this.safeString (order, 'average');
+        let price = this.safeString (order, 'price');
         let lastTradeTimeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
         const parseFilled = (filled === undefined);
         const parseCost = (cost === undefined);
@@ -1524,24 +1524,25 @@ module.exports = class Exchange {
         const parseFees = this.safeValue (order, 'fees') === undefined;
         const shouldParseFees = parseFee || parseFees;
         const fees = this.safeValue (order, 'fees', []);
+        const symbol = this.safeValue (order, 'symbol');
         if (parseFilled || parseCost || shouldParseFees) {
             const trades = this.safeValue (order, 'trades');
             if (Array.isArray (trades)) {
                 if (parseFilled) {
-                    filled = 0;
+                    filled = '0';
                 }
                 if (parseCost) {
-                    cost = 0;
+                    cost = '0';
                 }
                 for (let i = 0; i < trades.length; i++) {
                     const trade = trades[i];
-                    const tradeAmount = this.safeValue (trade, 'amount');
+                    const tradeAmount = this.safeString (trade, 'amount');
                     if (parseFilled && (tradeAmount !== undefined)) {
-                        filled = this.sum (filled, tradeAmount);
+                        filled = Precise.stringAdd (filled, tradeAmount);
                     }
-                    const tradeCost = this.safeValue (trade, 'cost');
+                    const tradeCost = this.safeString (trade, 'cost');
                     if (parseCost && (tradeCost !== undefined)) {
-                        cost = this.sum (cost, tradeCost);
+                        cost = Precise.stringAdd (cost, tradeCost);
                     }
                     const tradeTimestamp = this.safeValue (trade, 'timestamp');
                     if (parseLastTradeTimeTimestamp && (tradeTimestamp !== undefined)) {
@@ -1591,39 +1592,39 @@ module.exports = class Exchange {
         }
         if (filled === undefined) {
             if (amount !== undefined && remaining !== undefined) {
-                filled = Math.max (this.sum (amount, -remaining), 0);
+                filled = Precise.stringMax (Precise.stringSub (amount, remaining), '0');
             }
         }
         if (remaining === undefined) {
             if (amount !== undefined && filled !== undefined) {
-                remaining = Math.max (this.sum (amount, -filled), 0);
+                remaining = Precise.stringMax (Precise.stringSub (amount, filled), '0');
             }
         }
         // ensure that the average field is calculated correctly
         if (average === undefined) {
-            if ((filled !== undefined) && (cost !== undefined) && (filled > 0)) {
-                average = cost / filled;
+            if ((filled !== undefined) && (cost !== undefined) && Precise.stringGt (filled, '0')) {
+                average = self.priceToPrecision (symbol, Precise.stringDiv (cost, filled));
             }
         }
         // also ensure the cost field is calculated correctly
         const costPriceExists = (average !== undefined) || (price !== undefined);
         if (parseCost && (filled !== undefined) && costPriceExists) {
-            cost = (average === undefined) ? (price * filled) : (average * filled);
+            cost = this.costToPrecision (symbol, (average === undefined) ? Precise.stringMul (price, filled) : Precise.stringMul (average, filled));
         }
         // support for market orders
         const orderType = this.safeValue (order, 'type');
-        const emptyPrice = (price === undefined) || (price === 0.0);
+        const emptyPrice = (price === undefined) || Precise.stringEq (price, '0');
         if (emptyPrice && (orderType === 'market')) {
             price = average;
         }
         return this.extend (order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
-            'remaining': remaining,
+            'price': this.parseNumber (price),
+            'amount': this.parseNumber (amount),
+            'cost': this.parseNumber (cost),
+            'average': this.parseNumber (average),
+            'filled': this.parseNumber (filled),
+            'remaining': this.parseNumber (remaining),
         });
     }
 
