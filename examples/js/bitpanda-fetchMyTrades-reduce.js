@@ -1,8 +1,20 @@
 const ccxt = require ('../../ccxt')
 
 const bitpanda = new ccxt.bitpanda ({
-    "apiKey": "eyJvcmciOiJiaXRwYW5kYS1nZSIsImFsZyI6IlJTMjU2Iiwia2lkIjoiZXhjaGFuZ2UtbGl2ZSJ9.eyJhdWQiOlsiaHR0cHM6XC9cL2FwaS5leGNoYW5nZS5iaXRwYW5kYS5jb20iLCJ3c3M6XC9cL3N0cmVhbXMuZXhjaGFuZ2UuYml0cGFuZGEuY29tIl0sInN1YiI6ImFjYzpjYjk2Y2RjNS1hZjY3LTQyNzMtOGUwNi05NjYwMTU3NjcxZmYiLCJzY3AiOlsiV0lUSERSQVciLCJSRUFEX09OTFkiLCJUUkFERSJdLCJuYmYiOjE2MjY5NTcyODEsImlzcyI6Imh0dHBzOlwvXC9hcGkuZXhjaGFuZ2UuYml0cGFuZGEuY29tXC9vYXV0aDIiLCJpcHMiOltdLCJpYXQiOjE2MjY5NTcyODEsImp0aSI6IjVkOWYwOThmLWZlNmEtNDg3YS1hMmM1LWNiMTE4MmZjN2FkYiJ9.AdhVvyBidRIOHsi0FUuKhybCSDdhZe3e420IctPsLPKVDS-BbnaTQtNZv18AXwvNkVm1F4bD_Y7V_wyGIRkTKf2zqlJwFH_N7kB0nJwWn_p12UJ4QygjERHFV0QiOFFbujjoUmO7afvSTqPnWjynjjCao7tDvEGXcjYglGrLma9IcLmzKh3TjwqXIjdXiofjsx8kJ7nHWmXsk91tx1e-HZ2c6sM0XQ8UG3-dugUluO-Y7bppL2ZwQqNkq9mN-uancer7lmMpBzKIGcVtktSIXeS3txwpVuh5NxglSX9lwf0judZxZLggqg69oYJIX_vBL8P8zenTtxv68G9D9M-gdohqKU8gEZN8NYHIh_PJa2MFPkyrLiiryj7XZNTbXAbw3jYhw-sY1nN8tlMhPRMrMAOqpFVgJvihnYBz26YlRXNq5sFMIKSl0tQB0LMbRiwRlPo4kVKY2sPADetKJk3ZlbX4MsUDBgR7MAYaM2bSx7V-WNeCaykIGMrUdMf1uzGXHAtRg1h9Vlb_BmlmnoghCcgiEdMOxmKIdgJ1uUUOrM8q8UQ6uqZvLJb_lAqZzljMcx2QMccESarOb7aRuBJGjZZzAC7QfP-ggHRJy8O06zANGuoSCHz3PNZNg883j-9_85AC1Vbw4KFHTMtwZd0jnMEzPGFVtdw08gGVk1HJph8"
+    "apiKey": "INSERTYOURAPIKEY"
 })
+
+
+// output
+`
+fetching USDT/EUR trades on bitpanda
+---------------------------------------------
+maker volume 6621.81 USDT maker fee 5.62 USDT
+taker volume 2544.82 USDT taker fee 3.27 USDT
+
+sold 9166.63 USDT for 7802.38 EUR
+bought 0.00 USDT for 0.00 EUR
+`
 
 ;(async () => {
     const market = {
