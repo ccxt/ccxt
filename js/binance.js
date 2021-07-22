@@ -1739,7 +1739,14 @@ module.exports = class binance extends Exchange {
         const amountString = this.safeString2 (trade, 'q', 'qty');
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const marketId = this.safeString (trade, 'symbol');
+        if (market === undefined) {
+            market = this.safeMarket (marketId, market);
+        }
+        const symbol = this.safeSymbol (marketId, market);
+        const costStringRaw = Precise.stringMul (priceString, amountString);
+        const costString = this.costToPrecision (symbol, costStringRaw);
+        const cost = this.parseNumber (costString);
         let id = this.safeString2 (trade, 't', 'a');
         id = this.safeString (trade, 'id', id);
         let side = undefined;
@@ -1769,8 +1776,6 @@ module.exports = class binance extends Exchange {
         if ('maker' in trade) {
             takerOrMaker = trade['maker'] ? 'maker' : 'taker';
         }
-        const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
         return {
             'info': trade,
             'timestamp': timestamp,
