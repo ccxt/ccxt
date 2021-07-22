@@ -2,26 +2,15 @@
 
 namespace ccxt;
 
-use BN\BN;
+use BI\BigInteger;
 
 class Precise {
     public $integer;
     public $decimals;
     public $base;
 
-    public function __construct($number, $decimals = 0) {
-        $isBN = $number instanceof BN;
-        $isString = is_string($number);
-        if (!($isBN || $isString)) {
-            throw new \Error('Precise initiated with something other than a string or BN');
-        }
-        if ($isBN) {
-            $this->integer = $number;
-            $this->decimals = $decimals;
-        } else {
-            if ($decimals) {
-                throw new \Error('Cannot set decimals when initializing with a string');
-            }
+    public function __construct($number, $decimals = null) {
+        if ($decimals === null) {
             $modifier = 0;
             $number = strtolower($number);
             if (strpos($number, 'e') > -1) {
@@ -31,11 +20,13 @@ class Precise {
             $decimalIndex = strpos($number, '.');
             $this->decimals = ($decimalIndex > -1) ? strlen($number) - $decimalIndex - 1 : 0;
             $integerString = str_replace('.', '', $number);
-            $this->integer = new BN($integerString);
+            $this->integer = new BigInteger($integerString);
             $this->decimals = $this->decimals - $modifier;
+        } else {
+            $this->integer = $number;
+            $this->decimals = $decimals;
         }
-        $this->base = 10;
-        $this->reduce();
+        $this->base = new BigInteger (10);
     }
 
     public function mul($other) {
@@ -48,10 +39,10 @@ class Precise {
         if ($distance === 0) {
             $numerator = $this->integer;
         } elseif ($distance < 0) {
-            $exponent = (new BN($this->base))->pow(new BN(-$distance));
+            $exponent = $this->base->pow(new BigInteger(-$distance));
             $numerator = $this->integer->div($exponent);
         } else {
-            $exponent = (new BN($this->base))->pow(new BN($distance));
+            $exponent = $this->base->pow(new BigInteger($distance));
             $numerator = $this->integer->mul($exponent);
         }
         $result = $numerator->div($other->integer);
@@ -65,8 +56,8 @@ class Precise {
         } else {
             list($smaller, $bigger) =
                 ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
-            $exponent = new BN($bigger->decimals - $smaller->decimals);
-            $normalised = $smaller->integer->mul((new BN($this->base))->pow($exponent));
+            $exponent = new BigInteger($bigger->decimals - $smaller->decimals);
+            $normalised = $smaller->integer->mul($this->base->pow($exponent));
             $result = $normalised->add($bigger->integer);
             return new Precise($result, $bigger->decimals);
         }
@@ -86,41 +77,46 @@ class Precise {
     }
 
     public function mod($other) {
-        $base = new BN($this->base);
         $rationizerNumerator = max(-$this->decimals + $other->decimals, 0);
-        $numerator = $this->integer->mul($base->pow(new BN($rationizerNumerator)));
+        $numerator = $this->integer->mul($this->base->pow(new BigInteger($rationizerNumerator)));
         $denominatorRationizer = max(-$other->decimals + $this->decimals, 0);
-        $denominator = $other->integer->mul($base->pow(new BN($denominatorRationizer)));
+        $denominator = $other->integer->mul($this->base->pow(new BigInteger($denominatorRationizer)));
         $result = $numerator->mod($denominator);
         return new Precise($result, $denominatorRationizer + $other->decimals);
     }
 
-    public function pow($other) {
-        $result = $this->integer->pow($other->integer);
-        return new Precise($result, $this->decimals * $other->integer->bi->toBase($this->base));
-    }
-
     public function reduce() {
-        $zero = new BN(0);
-        if ($this->integer->eq($zero)) {
-            $this->decimals = 0;
+        $string = $this->integer->toString();
+        $start = strlen($string) - 1;
+        if ($start === 0) {
+            if ($string === '0') {
+                $this->decimals = 0;
+            }
             return $this;
         }
-        $base = new BN($this->base);
-        $div = $this->integer->div($base);
-        $mod = $this->integer->mod($base);
-        while ($mod->eq($zero)) {
-            $this->integer = $div;
-            $this->decimals--;
-            $div = $this->integer->div($base);
-            $mod = $this->integer->mod($base);
+        for ($i = $start; $i >= 0; $i--) {
+            if ($string[$i] !== '0') {
+                break;
+            }
         }
-        return $this;
+        $difference = $start - $i;
+        if ($difference === 0) {
+            return $this;
+        }
+        $this->decimals -= $difference;
+        $this->integer = new BigInteger(mb_substr($string, 0, $i + 1));
+    }
+
+    public function equals ($other) {
+        $this->reduce();
+        $other->reduce();
+        return ($this->decimals === $other->decimals) && $this->integer->equals($other->integer);
     }
 
     public function __toString() {
-        $sign = $this->integer->negative() ? '-' : '';
-        $integerArray = str_split(str_pad($this->integer->abs()->toString($this->base), $this->decimals, '0', STR_PAD_LEFT));
+        $this->reduce();
+        $sign = $this->integer->sign() === -1 ? '-' : '';
+        $integerArray = str_split(str_pad($this->integer->abs()->toString(), $this->decimals, '0', STR_PAD_LEFT));
         $index = count($integerArray) - $this->decimals;
         if ($index === 0) {
             // if we are adding to the front
@@ -190,10 +186,10 @@ class Precise {
         return strval((new Precise($string1))->mod(new Precise($string2)));
     }
 
-    public static function string_pow($string1, $string2) {
+    public static function string_equals($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
             return null;
         }
-        return strval((new Precise($string1))->pow(new Precise($string2)));
+        return (new Precise($string1))->equals(new Precise($string2));
     }
 }
