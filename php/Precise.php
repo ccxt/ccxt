@@ -95,8 +95,8 @@ class Precise {
         } else {
             list($smaller, $bigger) =
             ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
-            $exponent = new BN($bigger->decimals - $smaller->decimals);
-            $normalised = $smaller->integer->mul((new BN($this->base))->pow($exponent));
+            $exponent = new BigInteger($bigger->decimals - $smaller->decimals);
+            $normalised = $smaller->integer->mul($this->base->pow($exponent));
             if ($normalised < $bigger->integer) {
                 return $smaller;
             } else {
@@ -115,8 +115,8 @@ class Precise {
         } else {
             list($smaller, $bigger) =
             ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
-            $exponent = new BN($bigger->decimals - $smaller->decimals);
-            $normalised = $smaller->integer->mul((new BN($this->base))->pow($exponent));
+            $exponent = new BigInteger($bigger->decimals - $smaller->decimals);
+            $normalised = $smaller->integer->mul($this->base->pow($exponent));
             if ($normalised > $bigger->integer) {
                 return $smaller;
             } else {
@@ -131,8 +131,8 @@ class Precise {
         } else {
             list($smaller, $bigger) =
             ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
-            $exponent = new BN($bigger->decimals - $smaller->decimals);
-            $normalised = $smaller->integer->mul((new BN($this->base))->pow($exponent));
+            $exponent = new BigInteger($bigger->decimals - $smaller->decimals);
+            $normalised = $smaller->integer->mul($this->base->pow($exponent));
             if ($this->decimals > $other->decimals) {
                 return $bigger->integer > $normalised;
             } else {
@@ -147,8 +147,8 @@ class Precise {
         } else {
             list($smaller, $bigger) =
             ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
-            $exponent = new BN($bigger->decimals - $smaller->decimals);
-            $normalised = $smaller->integer->mul((new BN($this->base))->pow($exponent));
+            $exponent = new BigInteger($bigger->decimals - $smaller->decimals);
+            $normalised = $smaller->integer->mul($this->base->pow($exponent));
             if ($this->decimals > $other->decimals) {
                 return $bigger->integer >= $normalised;
             } else {
