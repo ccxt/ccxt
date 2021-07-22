@@ -298,7 +298,8 @@ class Exchange(object):
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     quoteJsonNumbers = True
-    number = float  # or str (a pointer to a class)
+    # number = float  # or str (a pointer to a class)
+    number = str
     # whether fees should be summed by currency code
     reduceFees = True
     lastRestRequestTimestamp = 0
@@ -2185,12 +2186,12 @@ class Exchange(object):
         # Filled
         #
         # first we try to calculate the order fields from the trades
-        amount = self.safe_value(order, 'amount')
-        remaining = self.safe_value(order, 'remaining')
-        filled = self.safe_value(order, 'filled')
-        cost = self.safe_value(order, 'cost')
-        average = self.safe_value(order, 'average')
-        price = self.safe_value(order, 'price')
+        amount = self.safe_string(order, 'amount')
+        remaining = self.safe_string(order, 'remaining')
+        filled = self.safe_string(order, 'filled')
+        cost = self.safe_string(order, 'cost')
+        average = self.safe_string(order, 'average')
+        price = self.safe_string(order, 'price')
         lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
         parseFilled = (filled is None)
         parseCost = (cost is None)
@@ -2199,21 +2200,22 @@ class Exchange(object):
         parseFees = self.safe_value(order, 'fees') is None
         shouldParseFees = parseFee or parseFees
         fees = self.safe_value(order, 'fees', [])
+        symbol = self.safe_value(order, 'symbol')
         if parseFilled or parseCost or shouldParseFees:
             trades = self.safe_value(order, 'trades')
             if isinstance(trades, list):
                 if parseFilled:
-                    filled = 0
+                    filled = '0'
                 if parseCost:
-                    cost = 0
+                    cost = '0'
                 for i in range(0, len(trades)):
                     trade = trades[i]
-                    tradeAmount = self.safe_value(trade, 'amount')
+                    tradeAmount = self.safe_string(trade, 'amount')
                     if parseFilled and (tradeAmount is not None):
-                        filled = self.sum(filled, tradeAmount)
-                    tradeCost = self.safe_value(trade, 'cost')
+                        filled = Precise.string_add(filled, tradeAmount)
+                    tradeCost = self.safe_string(trade, 'cost')
                     if parseCost and (tradeCost is not None):
-                        cost = self.sum(cost, tradeCost)
+                        cost = Precise.string_add(cost, tradeCost)
                     tradeTimestamp = self.safe_value(trade, 'timestamp')
                     if parseLastTradeTimeTimestamp and (tradeTimestamp is not None):
                         if lastTradeTimeTimestamp is None:
@@ -2242,36 +2244,36 @@ class Exchange(object):
         if amount is None:
             # ensure amount = filled + remaining
             if filled is not None and remaining is not None:
-                amount = self.sum(filled, remaining)
+                amount = Precise.string_add(filled, remaining)
             elif self.safe_string(order, 'status') == 'closed':
                 amount = filled
         if filled is None:
             if amount is not None and remaining is not None:
-                filled = max(self.sum(amount, -remaining), 0)
+                filled = Precise.string_max(Precise.string_sub(amount, remaining), '0')
         if remaining is None:
             if amount is not None and filled is not None:
-                remaining = max(self.sum(amount, -filled), 0)
+                remaining = Precise.string_max(Precise.string_sub(amount, filled), '0')
         # ensure that the average field is calculated correctly
         if average is None:
-            if (filled is not None) and (cost is not None) and (filled > 0):
-                average = cost / filled
+            if (filled is not None) and (cost is not None) and Precise.string_gt(filled, '0'):
+                average = self.price_to_precision(symbol, Precise.string_div(cost, filled))
         # also ensure the cost field is calculated correctly
         costPriceExists = (average is not None) or (price is not None)
         if parseCost and (filled is not None) and costPriceExists:
-            cost = (price * filled) if (average is None) else (average * filled)
+            cost = self.cost_to_precision(symbol, Precise.string_mul(price, filled) if (average is None) else Precise.string_mul(average, filled))
         # support for market orders
         orderType = self.safe_value(order, 'type')
-        emptyPrice = price is None or price == 0.0
+        emptyPrice = price is None or Precise.string_eq(price, '0')
         if emptyPrice and (orderType == 'market'):
             price = average
         return self.extend(order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
-            'remaining': remaining,
+            'price': self.parse_number(price),
+            'amount': self.parse_number(amount),
+            'cost': self.parse_number(cost),
+            'average': self.parse_number(average),
+            'filled': self.parse_number(filled),
+            'remaining': self.parse_number(remaining),
         })
 
     def parse_number(self, value, default=None):

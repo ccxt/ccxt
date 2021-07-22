@@ -89,6 +89,60 @@ class Precise:
         result = self.integer ** other.integer
         return Precise(result, self.decimals * other.integer)
 
+    def max(self, other):
+        if self.decimals == other.decimals:
+            if self.integer > other.integer:
+                return self
+            else:
+                return other
+        else:
+            smaller, bigger = [other, self] if self.decimals > other.decimals else [self, other]
+            exponent = bigger.decimals - smaller.decimals
+            normalised = smaller.integer * (self.base ** exponent)
+            if normalised > bigger.integer:
+                return smaller
+            else:
+                return bigger
+
+    def gt(self, other):
+        if self.decimals == other.decimals:
+            return self.integer > other.integer
+        else:
+            smaller, bigger = [other, self] if self.decimals > other.decimals else [self, other]
+            exponent = bigger.decimals - smaller.decimals
+            normalised = smaller.integer * (self.base ** exponent)
+            if self.decimals > other.decimals:
+                return bigger.integer > normalised
+            else:
+                return normalised > bigger.integer
+
+    def ge(self, other):
+        if self.decimals == other.decimals:
+            return self.integer >= other.integer
+        else:
+            smaller, bigger = [other, self] if self.decimals > other.decimals else [self, other]
+            exponent = bigger.decimals - smaller.decimals
+            normalised = smaller.integer * (self.base ** exponent)
+            if self.decimals > other.decimals:
+                return bigger.integer >= normalised
+            else:
+                return normalised >= bigger.integer
+
+    def eq(self, other):
+        if self.decimals == other.decimals:
+            return self.integer == other.integer
+        else:
+            smaller, bigger = [other, self] if self.decimals > other.decimals else [self, other]
+            exponent = bigger.decimals - smaller.decimals
+            normalised = smaller.integer * (self.base ** exponent)
+            return normalised == bigger.integer
+
+    def lt(self, other):
+        return other.gt(self)
+
+    def le(self, other):
+        return other.ge(self)
+
     def reduce(self):
         if self.integer == 0:
             self.decimals = 0
@@ -166,3 +220,39 @@ class Precise:
         if string1 is None or string2 is None:
             return None
         return str(Precise(string1).pow(Precise(string2)))
+
+    @staticmethod
+    def string_max(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return str(Precise(string1).max(Precise(string2)))
+
+    @staticmethod
+    def string_gt(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return Precise(string1).gt(Precise(string2))
+
+    @staticmethod
+    def string_ge(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return Precise(string1).ge(Precise(string2))
+
+    @staticmethod
+    def string_lt(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return Precise(string1).lt(Precise(string2))
+
+    @staticmethod
+    def string_le(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return Precise(string1).le(Precise(string2))
+
+    @staticmethod
+    def string_eq(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return Precise(string1).eq(Precise(string2))
