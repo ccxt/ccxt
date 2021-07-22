@@ -58,7 +58,7 @@ class Precise {
             list($smaller, $bigger) =
                 ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
             $exponent = new BigInteger($bigger->decimals - $smaller->decimals);
-            $normalised = $smaller->integer->mul(($this->base)->pow($exponent));
+            $normalised = $smaller->integer->mul($this->base->pow($exponent));
             $result = $normalised->add($bigger->integer);
             return new Precise($result, $bigger->decimals);
         }
@@ -78,11 +78,10 @@ class Precise {
     }
 
     public function mod($other) {
-        $base = $this->base;
         $rationizerNumerator = max(-$this->decimals + $other->decimals, 0);
-        $numerator = $this->integer->mul($base->pow(new BigInteger($rationizerNumerator)));
+        $numerator = $this->integer->mul($this->base->pow(new BigInteger($rationizerNumerator)));
         $denominatorRationizer = max(-$other->decimals + $this->decimals, 0);
-        $denominator = $other->integer->mul($base->pow(new BigInteger($denominatorRationizer)));
+        $denominator = $other->integer->mul($this->base->pow(new BigInteger($denominatorRationizer)));
         $result = $numerator->mod($denominator);
         return new Precise($result, $denominatorRationizer + $other->decimals);
     }
@@ -98,20 +97,19 @@ class Precise {
             $this->decimals = 0;
             return $this;
         }
-        $base = $this->base;
-        $div = $this->integer->div($base);
-        $mod = $this->integer->mod($base);
+        $div = $this->integer->div($this->base);
+        $mod = $this->integer->mod($this->base);
         while ($mod->equals($zero)) {
             $this->integer = $div;
             $this->decimals--;
-            $div = $this->integer->div($base);
-            $mod = $this->integer->mod($base);
+            $div = $this->integer->div($this->base);
+            $mod = $this->integer->mod($this->base);
         }
         return $this;
     }
 
     public function equals ($other) {
-        return $this->decimals === $other->decimals && $this->integer->equals($other->integer);
+        return ($this->decimals === $other->decimals) && $this->integer->equals($other->integer);
     }
 
     public function __toString() {
