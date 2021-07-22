@@ -2464,7 +2464,12 @@ module.exports = class binance extends Exchange {
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
         //
         await this.loadMarkets ();
-        const response = await this.wapiGetUserAssetDribbletLog (params);
+        const request = {};
+        if (since !== undefined) {
+            request['startTime'] = since;
+            request['endTime'] = since + this.parse_timeframe ('3M');
+        }
+        const response = await this.wapiGetUserAssetDribbletLog (this.extend (request, params));
         // { success:    true,
         //   results: { total:    1,
         //               rows: [ {     transfered_total: "1.06468458",
