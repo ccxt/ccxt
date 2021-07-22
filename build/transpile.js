@@ -482,10 +482,18 @@ class Transpiler {
     //-------------------------------------------------------------------------
     // the following common headers are used for transpiled tests
 
-    getPythonPreamble () {
-        return [
+    getPythonPreamble (pythonBody) {
+        const libraries = [
             "import os",
             "import sys",
+        ]
+        
+        if (pythonBody.match (/[\s(]Precise/)) {
+            libraries.push ('from ccxt.base.precise import Precise')
+        }
+
+        return [
+            libraries.join('\n'),
             "",
             "root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))",
             "sys.path.append(root)",
@@ -561,6 +569,7 @@ class Transpiler {
 
         const baseClasses = {
             'Exchange': 'base.exchange',
+            'Precise': 'base.Precise',
         }
 
         async = (async ? '.async_support' : '')
@@ -1302,7 +1311,7 @@ class Transpiler {
             "",
         ].join ("\n")
 
-        const python = this.getPythonPreamble () + pythonHeader + python2Body
+        const python = this.getPythonPreamble (python2Body) + pythonHeader + python2Body
         const php = this.getPHPPreamble () + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -1375,7 +1384,7 @@ class Transpiler {
             "",
         ].join ("\n")
 
-        const python = this.getPythonPreamble () + pythonHeader + python2Body
+        const python = this.getPythonPreamble (python2Body) + pythonHeader + python2Body
         const php = this.getPHPPreamble () + phpHeader + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -1442,7 +1451,7 @@ class Transpiler {
             "}",
         ].join ("\n")
 
-        const python = this.getPythonPreamble () + pythonHeader + python2Body
+        const python = this.getPythonPreamble (python2Body) + pythonHeader + python2Body
         const php = this.getPHPPreamble () + phpHeader + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -1505,7 +1514,7 @@ class Transpiler {
         ].join('\n')
 
         let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
-        const python = pythonHeader + python3Body;
+        const python = this.getPythonPreamble (python3Body) + pythonHeader + python3Body;
         const php = this.getPHPPreamble (false) + phpBody;
 
         log.magenta ('→', test.pyFile.yellow)
