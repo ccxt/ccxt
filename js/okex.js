@@ -104,6 +104,7 @@ module.exports = class okex extends Exchange {
                         'public/liquidation-orders',
                         'public/mark-price',
                         'public/tier',
+                        'public/position-tiers',
                         'system/status',
                     ],
                 },
