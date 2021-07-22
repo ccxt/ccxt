@@ -2516,32 +2516,36 @@ module.exports = class binance extends Exchange {
         // BNB `amount` (or `cost` depending on the trade `side`). The second of the above options
         // is much more illustrative and therefore preferable.
         //
+        const feeCostString = this.safeString (trade, 'serviceChargeAmount');
         const fee = {
             'currency': earnedCurrency,
-            'cost': this.safeNumber (trade, 'serviceChargeAmount'),
+            'cost': this.parseNumber (feeCostString),
         };
         let symbol = undefined;
-        let amount = undefined;
-        let cost = undefined;
+        let amountString = undefined;
+        let costString = undefined;
         let side = undefined;
         if (tradedCurrencyIsQuote) {
             symbol = applicantSymbol;
-            amount = this.sum (this.safeNumber (trade, 'transferedAmount'), fee['cost']);
-            cost = this.safeNumber (trade, 'amount');
+            amountString = Precise.stringAdd (this.safeString (trade, 'transferedAmount'), feeCostString);
+            costString = this.safeString (trade, 'amount');
             side = 'buy';
         } else {
             symbol = tradedCurrency + '/' + earnedCurrency;
-            amount = this.safeNumber (trade, 'amount');
-            cost = this.sum (this.safeNumber (trade, 'transferedAmount'), fee['cost']);
+            amountString = this.safeString (trade, 'amount');
+            costString = Precise.stringAdd (this.safeString (trade, 'transferedAmount'), feeCostString);
             side = 'sell';
         }
-        let price = undefined;
-        if (cost !== undefined) {
-            if (amount) {
-                price = cost / amount;
+        let priceString = undefined;
+        if (costString !== undefined) {
+            if (amountString) {
+                priceString = this.priceToPrecision (symbol, Precise.stringDiv (costString, amountString));
             }
         }
-        const id = undefined;
+        const amount = this.parseNumber (amountString);
+        const price = this.parseNumber (priceString);
+        const cost = this.parseNumber (costString);
+        const id = orderId;
         const type = undefined;
         const takerOrMaker = undefined;
         return {
