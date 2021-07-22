@@ -84,17 +84,26 @@ class Precise {
     }
 
     reduce () {
-        if (this.integer === zero) {
-            this.decimals = 0
+        const string = this.integer.toString ()
+        const start = string.length - 1
+        if (start === 0) {
+            if (string === '0') {
+                this.decimals = 0
+            }
             return this
         }
-        let mod = this.integer % base
-        while (mod === zero) {
-            this.integer = this.integer / base
-            mod = this.integer % base
-            this.decimals--
+        let i
+        for (i = start; i >= 0; i--) {
+            if (string.charAt (i) !== '0') {
+                break
+            }
         }
-        return this
+        const difference = start - i
+        if (difference === 0) {
+            return this
+        }
+        this.decimals -= difference
+        this.integer = BigInt (string.slice (0, i + 1))
     }
 
     equals (other) {
