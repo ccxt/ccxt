@@ -190,6 +190,6 @@ class Precise {
         if (($string1 === null) || ($string2 === null)) {
             return null;
         }
-        return strval((new Precise($string1))->equals(new Precise($string2)));
+        return (new Precise($string1))->equals(new Precise($string2));
     }
 }
