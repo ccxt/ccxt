@@ -21,8 +21,8 @@ class Precise {
         } else {
             this.integer = number
             this.decimals = decimals
+            this.reduce ()
         }
-        this.reduce ()
     }
 
     mul (other) {

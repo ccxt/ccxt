@@ -30,8 +30,8 @@ class Precise:
         else:
             self.integer = number
             self.decimals = decimals
+            self.reduce()
         self.base = 10
-        self.reduce()
 
     def mul(self, other):
         integer_result = self.integer * other.integer

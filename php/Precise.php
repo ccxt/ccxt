@@ -25,9 +25,9 @@ class Precise {
         } else {
             $this->integer = $number;
             $this->decimals = $decimals;
+            $this->reduce();
         }
         $this->base = new BigInteger (10);
-        $this->reduce();
     }
 
     public function mul($other) {
