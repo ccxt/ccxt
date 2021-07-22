@@ -83,15 +83,21 @@ class Precise:
         return Precise(result, rationizerDenominator + other.decimals)
 
     def reduce(self):
-        if self.integer == 0:
-            self.decimals = 0
+        string = str(self.integer)
+        start = len(string) - 1
+        if start == 0:
+            if string == "0":
+                self.decimals = 0
             return self
-        div, mod = divmod(self.integer, self.base)
-        while mod == 0:
-            self.integer = div
-            self.decimals -= 1
-            div, mod = divmod(self.integer, self.base)
-        return self
+        for i in range(start, -1, -1):
+            if string[i] != '0':
+                break
+        difference = start - i
+        if difference == 0:
+            return self
+        self.decimals -= difference
+        self.integer = int(string[:i + 1])
+
 
     def equals(self, other):
         return self.decimals == other.decimals and self.integer == other.integer
