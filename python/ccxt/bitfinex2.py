@@ -903,7 +903,8 @@ class bitfinex2(bitfinex):
         if limit is None:
             limit = 100  # default 100, max 5000
         if since is None:
-            since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
+            duration = self.parse_timeframe(timeframe)
+            since = self.milliseconds() - duration * limit * 1000
         request = {
             'symbol': market['id'],
             'timeframe': self.timeframes[timeframe],
