@@ -693,7 +693,7 @@ class bitz extends Exchange {
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $duration = $this->parse_timeframe($timeframe) * 1000;
+        $duration = $this->parse_timeframe($timeframe);
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
