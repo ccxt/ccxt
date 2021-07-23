@@ -312,7 +312,7 @@ class bibox(Exchange):
         if market is not None:
             symbol = market['symbol']
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
+        feeCostString = self.safe_string(trade, 'fee')
         feeCurrency = self.safe_string(trade, 'fee_symbol')
         if feeCurrency is not None:
             if feeCurrency in self.currencies_by_id:
@@ -325,9 +325,9 @@ class bibox(Exchange):
         price = self.parse_number(priceString)
         amount = self.parse_number(amountString)
         cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        if feeCost is not None:
+        if feeCostString is not None:
             fee = {
-                'cost': -feeCost,
+                'cost': self.parse_number(Precise.string_neg(feeCostString)),
                 'currency': feeCurrency,
                 'rate': feeRate,
             }
