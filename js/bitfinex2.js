@@ -933,7 +933,8 @@ module.exports = class bitfinex2 extends bitfinex {
             limit = 100; // default 100, max 5000
         }
         if (since === undefined) {
-            since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
+            const duration = this.parseTimeframe (timeframe);
+            since = this.milliseconds () - duration * limit * 1000;
         }
         const request = {
             'symbol': market['id'],
