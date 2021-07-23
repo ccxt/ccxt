@@ -691,7 +691,7 @@ module.exports = class bitz extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const duration = this.parseTimeframe (timeframe) * 1000;
+        const duration = this.parseTimeframe (timeframe);
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
