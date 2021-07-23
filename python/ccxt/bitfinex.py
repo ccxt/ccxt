@@ -786,9 +786,7 @@ class bitfinex(Exchange):
 
     def parse_trade(self, trade, market):
         id = self.safe_string(trade, 'tid')
-        timestamp = self.safe_number(trade, 'timestamp')
-        if timestamp is not None:
-            timestamp = int(timestamp) * 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         type = None
         side = self.safe_string_lower(trade, 'type')
         orderId = self.safe_string(trade, 'order_id')
@@ -1146,12 +1144,8 @@ class bitfinex(Exchange):
         #         "timestamp_created": "1561716066.0"
         #     }
         #
-        timestamp = self.safe_number(transaction, 'timestamp_created')
-        if timestamp is not None:
-            timestamp = int(timestamp * 1000)
-        updated = self.safe_number(transaction, 'timestamp')
-        if updated is not None:
-            updated = int(updated * 1000)
+        timestamp = self.safe_timestamp(transaction, 'timestamp_created')
+        updated = self.safe_timestamp(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         type = self.safe_string_lower(transaction, 'type')  # DEPOSIT or WITHDRAWAL
