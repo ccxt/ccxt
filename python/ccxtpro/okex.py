@@ -43,7 +43,7 @@ class okex(Exchange, ccxt.okex):
                     # books5, 5 depth levels will be pushed every time. Data will be pushed every 100 ms when there is change in order book.
                     # books50-l2-tbt, 50 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
                     # books-l2-tbt, 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
-                    'depth': 'books5',
+                    'depth': 'books-l2-tbt',
                 },
                 'watchBalance': 'spot',  # margin, futures, swap
                 'ws': {
