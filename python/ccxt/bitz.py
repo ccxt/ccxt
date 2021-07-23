@@ -679,7 +679,7 @@ class bitz(Exchange):
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
-        duration = self.parse_timeframe(timeframe) * 1000
+        duration = self.parse_timeframe(timeframe)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
