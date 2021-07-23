@@ -54,6 +54,10 @@ module.exports = class currencycom extends Exchange {
                     'public': 'https://api-adapter.backend.currency.com/api',
                     'private': 'https://api-adapter.backend.currency.com/api',
                 },
+                'test': {
+                    'public': 'https://demo-api-adapter.backend.currency.com/api',
+                    'private': 'https://demo-api-adapter.backend.currency.com/api',
+                },
                 'www': 'https://www.currency.com',
                 'referral': 'https://currency.com/trading/signup?c=362jaimv&pid=referral',
                 'doc': [
