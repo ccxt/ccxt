@@ -620,7 +620,8 @@ class bigone extends Exchange {
         );
         if ($since !== null) {
             // $start = intval($since / 1000);
-            $end = $this->sum($since, $limit * $this->parse_timeframe($timeframe) * 1000);
+            $duration = $this->parse_timeframe($timeframe);
+            $end = $this->sum($since, $limit * $duration * 1000);
             $request['time'] = $this->iso8601($end);
         }
         $response = $this->publicGetAssetPairsAssetPairNameCandles (array_merge($request, $params));
