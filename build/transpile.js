@@ -5,6 +5,7 @@
 "use strict";
 
 const fs = require ('fs')
+    , path = require ('path')
     , log = require ('ololog').unlimited
     , _ = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
@@ -1443,30 +1444,23 @@ class Transpiler {
     // ============================================================================
 
     transpileExchangeTests () {
-        const tests = [
-            {
-                'jsFile': './js/test/Exchange/test.trade.js',
-                'pyFile': './python/ccxt/test/test_trade.py',
-                'phpFile': './php/test/test_trade.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.order.js',
-                'pyFile': './python/ccxt/test/test_order.py',
-                'phpFile': './php/test/test_order.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.transaction.js',
-                'pyFile': './python/ccxt/test/test_transaction.py',
-                'phpFile': './php/test/test_transaction.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.ohlcv.js',
-                'pyFile': './python/ccxt/test/test_ohlcv.py',
-                'phpFile': './php/test/test_ohlcv.php',
-            },
+        const jsTestFiles = fs.readdirSync('./js/test/Exchange/');
+        const exclusions = [
+            'test.datetime.js',
+            'test.number.js',
+            'test.crypto.js',
         ]
-        for (const test of tests) {
-            this.transpileTest (test)
+	    const regex = new RegExp ('^test\.([^.]+)\.js$', 'g');
+        for (const jsTestFilePath of jsTestFiles) {
+            const jsTestFile = path.parse(jsTestFilePath).base;
+            if (!exclusions.includes(jsTestFile)) {
+                const test = {
+                    'jsFile': jsTestFile.replace (regex, './js/test/Exchange/test.$1.js'),
+                    'pyFile': jsTestFile.replace (regex, './python/ccxt/test/test_$1.py'),
+                    'phpFile': jsTestFile.replace (regex, './php/test/test_$1.php'),
+                };
+                this.transpileTest (test)
+            }
         }
     }
 
