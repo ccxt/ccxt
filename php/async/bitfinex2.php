@@ -940,7 +940,8 @@ class bitfinex2 extends bitfinex {
             $limit = 100; // default 100, max 5000
         }
         if ($since === null) {
-            $since = $this->milliseconds() - $this->parse_timeframe($timeframe) * $limit * 1000;
+            $duration = $this->parse_timeframe($timeframe);
+            $since = $this->milliseconds() - $duration * $limit * 1000;
         }
         $request = array(
             'symbol' => $market['id'],
