@@ -618,7 +618,8 @@ module.exports = class bigone extends Exchange {
         };
         if (since !== undefined) {
             // const start = parseInt (since / 1000);
-            const end = this.sum (since, limit * this.parseTimeframe (timeframe) * 1000);
+            const duration = this.parseTimeframe (timeframe);
+            const end = this.sum (since, limit * duration * 1000);
             request['time'] = this.iso8601 (end);
         }
         const response = await this.publicGetAssetPairsAssetPairNameCandles (this.extend (request, params));
