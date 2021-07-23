@@ -597,7 +597,8 @@ class bigone(Exchange):
         }
         if since is not None:
             # start = int(since / 1000)
-            end = self.sum(since, limit * self.parse_timeframe(timeframe) * 1000)
+            duration = self.parse_timeframe(timeframe)
+            end = self.sum(since, limit * duration * 1000)
             request['time'] = self.iso8601(end)
         response = await self.publicGetAssetPairsAssetPairNameCandles(self.extend(request, params))
         #
