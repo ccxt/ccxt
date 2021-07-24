@@ -3,12 +3,11 @@
 // ----------------------------------------------------------------------------
 
 const log    = require ('ololog')
-    , chai   = require ('chai')
-    , assert = chai.assert
+const assert = require ('assert')
 
 // ----------------------------------------------------------------------------
 
-module.exports = (exchange, balance, method) => {
+function testBalance (exchange, balance, method) {
 
     const currencies = [
         'USD',
@@ -39,27 +38,33 @@ module.exports = (exchange, balance, method) => {
         const free = balance['free'][code]
         const used = balance['used'][code]
         if ((total !== undefined) && (free !== undefined) && (used !== undefined)) {
-            assert (total === free + used, 'free and used do not sum to total ' + exchange.id)
+            if (typeof exchange.number('0') === 'number') {
+                assert (total === free + used, 'free and used do not sum to total ' + exchange.id);
+            } else if (typeof exchange.number('0') === 'string') {
+                assert (Precise.stringEquals (total, Precise.stringAdd (free, used)), 'free and used do not sum to total ' + exchange.id);
+            } else {
+                assert (false, 'typeof exchange.number(0) is unknown');
+            }
         }
     }
 
-    let result = currencies
-        .filter ((currency) => (currency in balance) &&
-            (balance[currency]['total'] !== undefined))
+    let result = []
+    for (let i = 0; i < currencies.length; i++) {
+        if ((currencies[i] in balance) && (balance[currencies[i]]['total'] !== undefined)) {
+            result.push (currencies[i] + ': ' + balance[currencies[i]]['total']);
+        }
+    }
 
     if (result.length > 0) {
-        result = result.map ((currency) => currency + ': ' + balance[currency]['total'])
         if (exchange.currencies.length > result.length) {
-            result = result.join (', ') + ' + more...'
+            result = result.join (', ') + ' + more...';
         } else {
-            result = result.join (', ')
+            result = result.join (', ');
         }
-
     } else {
-
-        result = 'zero balance'
+        result = 'zero balance';
     }
-
-    log (result)
-
+    log (result);
 }
+
+module.exports = testBalance;
