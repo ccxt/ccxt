@@ -1445,22 +1445,15 @@ class Transpiler {
 
     transpileExchangeTests () {
         const jsTestFiles = fs.readdirSync('./js/test/Exchange/');
-        const exclusions = [
-            'test.datetime.js',
-            'test.number.js',
-            'test.crypto.js',
-        ]
 	    const regex = new RegExp ('^test\.([^.]+)\.js$', 'g');
         for (const jsTestFilePath of jsTestFiles) {
             const jsTestFile = path.parse(jsTestFilePath).base;
-            if (!exclusions.includes(jsTestFile)) {
-                const test = {
-                    'jsFile': jsTestFile.replace (regex, './js/test/Exchange/test.$1.js'),
-                    'pyFile': jsTestFile.replace (regex, './python/ccxt/test/test_$1.py'),
-                    'phpFile': jsTestFile.replace (regex, './php/test/test_$1.php'),
-                };
-                this.transpileTest (test)
-            }
+            const test = {
+                'jsFile': jsTestFile.replace (regex, './js/test/Exchange/test.$1.js'),
+                'pyFile': jsTestFile.replace (regex, './python/ccxt/test/test_$1.py'),
+                'phpFile': jsTestFile.replace (regex, './php/test/test_$1.php'),
+            };
+            this.transpileTest (test)
         }
     }
 
