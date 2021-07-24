@@ -187,6 +187,11 @@ class Transpiler {
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "isinstance($1, numbers.Real)" ],
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "(not isinstance($1, numbers.Real))" ],
 
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'object\'/g, "isinstance($1[$2], dict)" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'object\'/g, "(not isinstance($1[$2], dict))" ],
+            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'object\'/g, "isinstance($1, dict)" ],
+            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'object\'/g, "(not isinstance($1, dict))" ],
+
             [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+undefined/g, '$1[$2] is None' ],
             [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '$1[$2] is not None' ],
             [ /([^\s]+)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
@@ -341,6 +346,11 @@ class Transpiler {
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "!(is_float($1[$2]) || is_int($1[$2]))" ],
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "(is_float($1) || is_int($1))" ],
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "!(is_float($1) || is_int($1))" ],
+
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'object\'/g, "is_array($1[$2])" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'object\'/g, "!is_array($1[$2])" ],
+            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'object\'/g, "is_array($1)" ],
+            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'object\'/g, "!is_array($1)" ],
 
             [ /undefined/g, 'null' ],
             [ /this\.extend\s/g, 'array_merge' ],
