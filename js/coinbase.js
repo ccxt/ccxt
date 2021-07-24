@@ -1138,22 +1138,29 @@ module.exports = class coinbase extends Exchange {
         const url = this.urls['api'] + fullPath;
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            let payload = '';
-            if (method !== 'GET') {
-                if (Object.keys (query).length) {
-                    body = this.json (query);
-                    payload = body;
+            if (this.token) {
+                headers = {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json',
+                };
+            } else {
+                const nonce = this.nonce ().toString ();
+                let payload = '';
+                if (method !== 'GET') {
+                    if (Object.keys (query).length) {
+                        body = this.json (query);
+                        payload = body;
+                    }
                 }
+                const auth = nonce + method + fullPath + payload;
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                headers = {
+                    'CB-ACCESS-KEY': this.apiKey,
+                    'CB-ACCESS-SIGN': signature,
+                    'CB-ACCESS-TIMESTAMP': nonce,
+                    'Content-Type': 'application/json',
+                };
             }
-            const auth = nonce + method + fullPath + payload;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            headers = {
-                'CB-ACCESS-KEY': this.apiKey,
-                'CB-ACCESS-SIGN': signature,
-                'CB-ACCESS-TIMESTAMP': nonce,
-                'Content-Type': 'application/json',
-            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -1205,4 +1212,3 @@ module.exports = class coinbase extends Exchange {
         }
     }
 };
-
