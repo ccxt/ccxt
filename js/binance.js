@@ -91,14 +91,18 @@ module.exports = class binance extends Exchange {
                 'api': {
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
-                    'dapiPublic': 'https://dapi.binance.com/dapi/v1',
-                    'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
-                    'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
-                    'dapiData': 'https://dapi.binance.com/futures/data',
-                    'fapiPublic': 'https://fapi.binance.com/fapi/v1',
-                    'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
-                    'fapiData': 'https://fapi.binance.com/futures/data',
-                    'fapiPrivateV2': 'https://fapi.binance.com/fapi/v2',
+                    'dapi': {
+                        'public': 'https://dapi.binance.com/dapi/v1',
+                        'private': 'https://dapi.binance.com/dapi/v1',
+                        'privateV2': 'https://dapi.binance.com/dapi/v2',
+                        'data': 'https://dapi.binance.com/futures/data',
+                    },
+                    'fapi': {
+                        'public': 'https://fapi.binance.com/fapi/v1',
+                        'private': 'https://fapi.binance.com/fapi/v1',
+                        'data': 'https://fapi.binance.com/futures/data',
+                        'privateV2': 'https://fapi.binance.com/fapi/v2',
+                    },
                     'public': 'https://api.binance.com/api/v3',
                     'private': 'https://api.binance.com/api/v3',
                     'v3': 'https://api.binance.com/api/v3',
@@ -341,166 +345,170 @@ module.exports = class binance extends Exchange {
                         'sub-account/assets',
                     ],
                 },
-                'dapiPublic': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'exchangeInfo',
-                        'depth',
-                        'trades',
-                        'historicalTrades',
-                        'aggTrades',
-                        'premiumIndex',
-                        'fundingRate',
-                        'klines',
-                        'continuousKlines',
-                        'indexPriceKlines',
-                        'markPriceKlines',
-                        'ticker/24hr',
-                        'ticker/price',
-                        'ticker/bookTicker',
-                        'openInterest',
-                    ],
+                'dapi': {
+                    'public': {
+                        'get': [
+                            'ping',
+                            'time',
+                            'exchangeInfo',
+                            'depth',
+                            'trades',
+                            'historicalTrades',
+                            'aggTrades',
+                            'premiumIndex',
+                            'fundingRate',
+                            'klines',
+                            'continuousKlines',
+                            'indexPriceKlines',
+                            'markPriceKlines',
+                            'ticker/24hr',
+                            'ticker/price',
+                            'ticker/bookTicker',
+                            'openInterest',
+                        ],
+                    },
+                    'data': {
+                        'get': [
+                            'openInterestHist',
+                            'topLongShortAccountRatio',
+                            'topLongShortPositionRatio',
+                            'globalLongShortAccountRatio',
+                            'takerBuySellVol',
+                            'basis',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'positionSide/dual',
+                            'order',
+                            'openOrder',
+                            'openOrders',
+                            'allOrders',
+                            'balance',
+                            'account',
+                            'positionMargin/history',
+                            'positionRisk',
+                            'userTrades',
+                            'income',
+                            'leverageBracket',
+                            'forceOrders',
+                            'adlQuantile',
+                        ],
+                        'post': [
+                            'positionSide/dual',
+                            'order',
+                            'batchOrders',
+                            'countdownCancelAll',
+                            'leverage',
+                            'marginType',
+                            'positionMargin',
+                            'listenKey',
+                        ],
+                        'put': [
+                            'listenKey',
+                        ],
+                        'delete': [
+                            'order',
+                            'allOpenOrders',
+                            'batchOrders',
+                            'listenKey',
+                        ],
+                    },
+                    'privateV2': {
+                        'get': [
+                            'leverageBracket',
+                        ],
+                    },
                 },
-                'dapiData': {
-                    'get': [
-                        'openInterestHist',
-                        'topLongShortAccountRatio',
-                        'topLongShortPositionRatio',
-                        'globalLongShortAccountRatio',
-                        'takerBuySellVol',
-                        'basis',
-                    ],
-                },
-                'dapiPrivate': {
-                    'get': [
-                        'positionSide/dual',
-                        'order',
-                        'openOrder',
-                        'openOrders',
-                        'allOrders',
-                        'balance',
-                        'account',
-                        'positionMargin/history',
-                        'positionRisk',
-                        'userTrades',
-                        'income',
-                        'leverageBracket',
-                        'forceOrders',
-                        'adlQuantile',
-                    ],
-                    'post': [
-                        'positionSide/dual',
-                        'order',
-                        'batchOrders',
-                        'countdownCancelAll',
-                        'leverage',
-                        'marginType',
-                        'positionMargin',
-                        'listenKey',
-                    ],
-                    'put': [
-                        'listenKey',
-                    ],
-                    'delete': [
-                        'order',
-                        'allOpenOrders',
-                        'batchOrders',
-                        'listenKey',
-                    ],
-                },
-                'dapiPrivateV2': {
-                    'get': [
-                        'leverageBracket',
-                    ],
-                },
-                'fapiPublic': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'exchangeInfo',
-                        'depth',
-                        'trades',
-                        'historicalTrades',
-                        'aggTrades',
-                        'klines',
-                        'continuousKlines',
-                        'fundingRate',
-                        'premiumIndex',
-                        'ticker/24hr',
-                        'ticker/price',
-                        'ticker/bookTicker',
-                        'openInterest',
-                        'indexInfo',
-                    ],
-                },
-                'fapiData': {
-                    'get': [
-                        'openInterestHist',
-                        'topLongShortAccountRatio',
-                        'topLongShortPositionRatio',
-                        'globalLongShortAccountRatio',
-                        'takerlongshortRatio',
-                    ],
-                },
-                'fapiPrivate': {
-                    'get': [
-                        'forceOrders',
-                        'allOrders',
-                        'openOrder',
-                        'openOrders',
-                        'order',
-                        'account',
-                        'balance',
-                        'leverageBracket',
-                        'positionMargin/history',
-                        'positionRisk',
-                        'positionSide/dual',
-                        'userTrades',
-                        'income',
-                        'commissionRate',
-                        'apiTradingStatus',
-                        'multiAssetsMargin',
-                        // broker endpoints
-                        'apiReferral/ifNewUser',
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
-                        'apiReferral/traderNum',
-                        'apiReferral/overview',
-                        'apiReferral/tradeVol',
-                        'apiReferral/rebateVol',
-                        'apiReferral/traderSummary',
-                    ],
-                    'post': [
-                        'batchOrders',
-                        'positionSide/dual',
-                        'positionMargin',
-                        'marginType',
-                        'order',
-                        'leverage',
-                        'listenKey',
-                        'countdownCancelAll',
-                        'multiAssetsMargin',
-                        // broker endpoints
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
-                    ],
-                    'put': [
-                        'listenKey',
-                    ],
-                    'delete': [
-                        'batchOrders',
-                        'order',
-                        'allOpenOrders',
-                        'listenKey',
-                    ],
-                },
-                'fapiPrivateV2': {
-                    'get': [
-                        'account',
-                        'balance',
-                        'positionRisk',
-                    ],
+                'fapi': {
+                    'public': {
+                        'get': [
+                            'ping',
+                            'time',
+                            'exchangeInfo',
+                            'depth',
+                            'trades',
+                            'historicalTrades',
+                            'aggTrades',
+                            'klines',
+                            'continuousKlines',
+                            'fundingRate',
+                            'premiumIndex',
+                            'ticker/24hr',
+                            'ticker/price',
+                            'ticker/bookTicker',
+                            'openInterest',
+                            'indexInfo',
+                        ],
+                    },
+                    'data': {
+                        'get': [
+                            'openInterestHist',
+                            'topLongShortAccountRatio',
+                            'topLongShortPositionRatio',
+                            'globalLongShortAccountRatio',
+                            'takerlongshortRatio',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'forceOrders',
+                            'allOrders',
+                            'openOrder',
+                            'openOrders',
+                            'order',
+                            'account',
+                            'balance',
+                            'leverageBracket',
+                            'positionMargin/history',
+                            'positionRisk',
+                            'positionSide/dual',
+                            'userTrades',
+                            'income',
+                            'commissionRate',
+                            'apiTradingStatus',
+                            'multiAssetsMargin',
+                            // broker endpoints
+                            'apiReferral/ifNewUser',
+                            'apiReferral/customization',
+                            'apiReferral/userCustomization',
+                            'apiReferral/traderNum',
+                            'apiReferral/overview',
+                            'apiReferral/tradeVol',
+                            'apiReferral/rebateVol',
+                            'apiReferral/traderSummary',
+                        ],
+                        'post': [
+                            'batchOrders',
+                            'positionSide/dual',
+                            'positionMargin',
+                            'marginType',
+                            'order',
+                            'leverage',
+                            'listenKey',
+                            'countdownCancelAll',
+                            'multiAssetsMargin',
+                            // broker endpoints
+                            'apiReferral/customization',
+                            'apiReferral/userCustomization',
+                        ],
+                        'put': [
+                            'listenKey',
+                        ],
+                        'delete': [
+                            'batchOrders',
+                            'order',
+                            'allOpenOrders',
+                            'listenKey',
+                        ],
+                    },
+                    'privateV2': {
+                        'get': [
+                            'account',
+                            'balance',
+                            'positionRisk',
+                        ],
+                    },
                 },
                 'v3': {
                     'get': [
@@ -3958,11 +3966,14 @@ module.exports = class binance extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!(api in this.urls['api'])) {
-            throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = undefined;
+        if (Array.isArray (api)) {
+            url = this.urls['api'][api[0]][api[1]];
+            api = api[1];
+        } else {
+            url = this.urls['api'][api];
         }
-        let url = this.urls['api'][api];
         url += '/' + path;
         if (api === 'wapi') {
             url += '.html';
@@ -3990,7 +4001,7 @@ module.exports = class binance extends Exchange {
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
-        } else if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        } else if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'privateV2')) {
             this.checkRequiredCredentials ();
             let query = undefined;
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
