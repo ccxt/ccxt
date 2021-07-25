@@ -832,7 +832,7 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         const id = this.safeString (trade, 'id');
-        const timestampString = this.safeString (trade, 'create_time_ms');
+        const timestampString = this.safeString2 (trade, 'create_time_ms', 'time');
         let timestamp = undefined;
         if (timestampString.indexOf ('.') > 0) {
             const milliseconds = timestampString.split ('.');
