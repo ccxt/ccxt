@@ -8,7 +8,7 @@ const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class gateio extends ccxt.gateio {
+module.exports = class gateio4 extends ccxt.gateio4 {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -23,7 +23,7 @@ module.exports = class gateio extends ccxt.gateio {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws.gate.io/v3',
+                    'ws': 'wss://ws.gate.io/v4',
                 },
             },
             'options': {
@@ -40,7 +40,7 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const uppercaseId = market['uppercaseId'];
+        const uppercaseId = marketId.toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
         const options = this.safeValue (this.options, 'watchOrderBook', {});
@@ -112,7 +112,7 @@ module.exports = class gateio extends ccxt.gateio {
         const params = this.safeValue (message, 'params', []);
         const clean = this.safeValue (params, 0);
         const book = this.safeValue (params, 1);
-        const marketId = this.safeStringLower (params, 2);
+        const marketId = this.safeString (params, 2);
         const symbol = this.safeSymbol (marketId);
         const method = this.safeString (message, 'method');
         const messageHash = method + ':' + marketId;
@@ -137,7 +137,7 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const uppercaseId = market['uppercaseId'];
+        const uppercaseId = marketId.toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
         const options = this.safeValue (this.options, 'watchTicker', {});
@@ -179,7 +179,7 @@ module.exports = class gateio extends ccxt.gateio {
         //     }
         //
         const params = this.safeValue (message, 'params', []);
-        const marketId = this.safeStringLower (params, 0);
+        const marketId = this.safeString (params, 0);
         const market = this.safeMarket (marketId, undefined, '_');
         const symbol = market['symbol'];
         const ticker = this.safeValue (params, 1, {});
@@ -194,7 +194,7 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const uppercaseId = market['uppercaseId'];
+        const uppercaseId = marketId.toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
         const options = this.safeValue (this.options, 'watchTrades', {});
@@ -241,7 +241,7 @@ module.exports = class gateio extends ccxt.gateio {
         //     ]
         //
         const params = this.safeValue (message, 'params', []);
-        const marketId = this.safeStringLower (params, 0);
+        const marketId = this.safeString (params, 0);
         const market = this.safeMarket (marketId, undefined, '_');
         const symbol = market['symbol'];
         let stored = this.safeValue (this.trades, symbol);
@@ -264,7 +264,7 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const uppercaseId = market['uppercaseId'];
+        const uppercaseId = marketId.toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
         const interval = this.timeframes[timeframe];
@@ -309,7 +309,7 @@ module.exports = class gateio extends ccxt.gateio {
         //
         const params = this.safeValue (message, 'params', []);
         const ohlcv = this.safeValue (params, 0, []);
-        const marketId = this.safeStringLower (ohlcv, 7);
+        const marketId = this.safeString (ohlcv, 7);
         const parsed = [
             this.safeTimestamp (ohlcv, 0), // t
             this.safeNumber (ohlcv, 1), // o
@@ -351,7 +351,7 @@ module.exports = class gateio extends ccxt.gateio {
         if (authenticate === undefined) {
             const requestId = this.milliseconds ();
             const requestIdString = requestId.toString ();
-            const signature = this.hmac (this.encode (requestIdString), this.encode (this.secret), 'sha512', 'base64');
+            const signature = this.hmac (this.encode (requestIdString), this.encode (this.secret), 'sha512', 'hex');
             const authenticateMessage = {
                 'id': requestId,
                 'method': method,
@@ -426,11 +426,11 @@ module.exports = class gateio extends ccxt.gateio {
             const key = keys[i];
             const code = this.safeCurrencyCode (key);
             const balance = result[key];
-            account['free'] = this.safeNumber (balance, 'available');
-            account['used'] = this.safeNumber (balance, 'freeze');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'freeze');
             this.balance[code] = account;
         }
-        this.balance = this.parseBalance (this.balance, false);
+        this.balance = this.parseBalance (this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -467,7 +467,7 @@ module.exports = class gateio extends ccxt.gateio {
         const params = this.safeValue (message, 'params');
         const event = this.safeInteger (params, 0);
         const order = this.safeValue (params, 1);
-        const marketId = this.safeStringLower (order, 'market');
+        const marketId = this.safeString (order, 'market');
         const market = this.safeMarket (marketId, undefined, '_');
         const parsed = this.parseOrder (order, market);
         if (event === 1) {
