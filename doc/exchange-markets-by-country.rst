@@ -299,17 +299,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - China
-     - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
-          :target: https://www.gate.io/signup/2436035
-          :alt: gateio
-     
-     - gateio
-     - `Gate.io <https://www.gate.io/signup/2436035>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://gate.io/api2
-          :alt: API Version 2
-     
-   * - China
      - .. image:: https://user-images.githubusercontent.com/51840849/80134449-70663300-85a7-11ea-8942-e204cdeaab5d.jpg
           :target: https://www.hbtc.com/register/O2S8NS
           :alt: hbtc
