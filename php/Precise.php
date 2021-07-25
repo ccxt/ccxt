@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-use BI\BigInteger;
-
 class Precise {
     public $integer;
     public $decimals;
@@ -20,17 +18,17 @@ class Precise {
             $decimalIndex = strpos($number, '.');
             $this->decimals = ($decimalIndex > -1) ? strlen($number) - $decimalIndex - 1 : 0;
             $integerString = str_replace('.', '', $number);
-            $this->integer = new BigInteger($integerString);
+            $this->integer = gmp_init($integerString);
             $this->decimals = $this->decimals - $modifier;
         } else {
             $this->integer = $number;
             $this->decimals = $decimals;
         }
-        $this->base = new BigInteger (10);
+        $this->base = gmp_init(10);
     }
 
     public function mul($other) {
-        $integerResult = $this->integer->mul($other->integer);
+        $integerResult = gmp_mul($this->integer, $other->integer);
         return new Precise($integerResult, $this->decimals + $other->decimals);
     }
 
@@ -39,54 +37,54 @@ class Precise {
         if ($distance === 0) {
             $numerator = $this->integer;
         } elseif ($distance < 0) {
-            $exponent = $this->base->pow(new BigInteger(-$distance));
-            $numerator = $this->integer->div($exponent);
+            $exponent = gmp_pow($this->base, -$distance);
+            $numerator = gmp_div($this->integer, $exponent);
         } else {
-            $exponent = $this->base->pow(new BigInteger($distance));
-            $numerator = $this->integer->mul($exponent);
+            $exponent = gmp_pow($this->base, $distance);
+            $numerator = gmp_mul($this->integer, $exponent);
         }
-        $result = $numerator->div($other->integer);
+        $result = gmp_div($numerator, $other->integer);
         return new Precise($result, $precision);
     }
 
     public function add($other) {
         if ($this->decimals === $other->decimals) {
-            $integerResult = $this->integer->add($other->integer);
+            $integerResult = gmp_add($this->integer, $other->integer);
             return new Precise($integerResult, $this->decimals);
         } else {
             list($smaller, $bigger) =
                 ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
-            $exponent = new BigInteger($bigger->decimals - $smaller->decimals);
-            $normalised = $smaller->integer->mul($this->base->pow($exponent));
-            $result = $normalised->add($bigger->integer);
+            $exponent = $bigger->decimals - $smaller->decimals;
+            $normalised = gmp_mul($smaller->integer, gmp_pow($this->base, $exponent));
+            $result = gmp_add($normalised, $bigger->integer);
             return new Precise($result, $bigger->decimals);
         }
     }
 
     public function sub($other) {
-        $negative = new Precise($other->integer->neg(), $other->decimals);
+        $negative = new Precise(gmp_neg($other->integer), $other->decimals);
         return $this->add($negative);
     }
 
     public function abs() {
-        return new Precise($this->integer->abs(), $this->decimals);
+        return new Precise(gmp_abs($this->integer), $this->decimals);
     }
 
     public function neg() {
-        return new Precise($this->integer->neg(), $this->decimals);
+        return new Precise(gmp_neg($this->integer), $this->decimals);
     }
 
     public function mod($other) {
         $rationizerNumerator = max(-$this->decimals + $other->decimals, 0);
-        $numerator = $this->integer->mul($this->base->pow(new BigInteger($rationizerNumerator)));
+        $numerator = gmp_mul($this->integer, gmp_pow($this->base, $rationizerNumerator));
         $denominatorRationizer = max(-$other->decimals + $this->decimals, 0);
-        $denominator = $other->integer->mul($this->base->pow(new BigInteger($denominatorRationizer)));
-        $result = $numerator->mod($denominator);
+        $denominator = gmp_mul($other->integer, gmp_pow($this->base, $denominatorRationizer));
+        $result = gmp_mod($numerator, $denominator);
         return new Precise($result, $denominatorRationizer + $other->decimals);
     }
 
     public function reduce() {
-        $string = $this->integer->toString();
+        $string = strval($this->integer);
         $start = strlen($string) - 1;
         if ($start === 0) {
             if ($string === '0') {
@@ -104,19 +102,19 @@ class Precise {
             return $this;
         }
         $this->decimals -= $difference;
-        $this->integer = new BigInteger(mb_substr($string, 0, $i + 1));
+        $this->integer = gmp_init(mb_substr($string, 0, $i + 1));
     }
 
     public function equals ($other) {
         $this->reduce();
         $other->reduce();
-        return ($this->decimals === $other->decimals) && $this->integer->equals($other->integer);
+        return ($this->decimals === $other->decimals) && !gmp_cmp($this->integer, $other->integer);
     }
 
     public function __toString() {
         $this->reduce();
-        $sign = $this->integer->sign() === -1 ? '-' : '';
-        $integerArray = str_split(str_pad($this->integer->abs()->toString(), $this->decimals, '0', STR_PAD_LEFT));
+        $sign = gmp_sign($this->integer) === -1 ? '-' : '';
+        $integerArray = str_split(str_pad(gmp_abs($this->integer), $this->decimals, '0', STR_PAD_LEFT));
         $index = count($integerArray) - $this->decimals;
         if ($index === 0) {
             // if we are adding to the front
