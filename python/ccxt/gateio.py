@@ -820,7 +820,7 @@ class gateio(Exchange):
         #     }
         #
         id = self.safe_string(trade, 'id')
-        timestampString = self.safe_string(trade, 'create_time_ms')
+        timestampString = self.safe_string_2(trade, 'create_time_ms', 'time')
         timestamp = None
         if timestampString.find('.') > 0:
             milliseconds = timestampString.split('.')

@@ -836,7 +836,7 @@ class gateio extends Exchange {
         //     }
         //
         $id = $this->safe_string($trade, 'id');
-        $timestampString = $this->safe_string($trade, 'create_time_ms');
+        $timestampString = $this->safe_string_2($trade, 'create_time_ms', 'time');
         $timestamp = null;
         if (mb_strpos($timestampString, '.') > 0) {
             $milliseconds = explode('.', $timestampString);
