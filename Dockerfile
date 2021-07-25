@@ -16,6 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends php php-curl ph
 # Node
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get update && apt-get install -y nodejs
+# Python 2
+RUN apt-get update && apt-get install -y --no-install-recommends python
 # Python 3
 RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip
 RUN pip3 install 'idna==2.9' --force-reinstall
