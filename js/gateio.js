@@ -9,7 +9,7 @@ const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, Permi
 module.exports = class gateio extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'gateio4',
+            'id': 'gateio',
             'name': 'Gate.io',
             'country': [ 'KR' ],
             'rateLimit': 1000,
