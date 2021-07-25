@@ -1210,6 +1210,8 @@ class binance extends Exchange {
             $method = $this->safe_string($fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
         } else if ($type === 'margin') {
             $method = 'sapiGetMarginAccount';
+        } else if ($type === 'savings') {
+            $method = 'sapiGetLendingUnionAccount';
         }
         $query = $this->omit($params, 'type');
         $response = yield $this->$method ($query);
@@ -1357,6 +1359,31 @@ class binance extends Exchange {
         //         }
         //     )
         //
+        // savings
+        //
+        //     {
+        //       "totalAmountInBTC" => "0.3172",
+        //       "totalAmountInUSDT" => "10000",
+        //       "totalFixedAmountInBTC" => "0.3172",
+        //       "totalFixedAmountInUSDT" => "10000",
+        //       "totalFlexibleInBTC" => "0",
+        //       "totalFlexibleInUSDT" => "0",
+        //       "$positionAmountVos" => array(
+        //         array(
+        //           "asset" => "USDT",
+        //           "amount" => "10000",
+        //           "amountInBTC" => "0.3172",
+        //           "amountInUSDT" => "10000"
+        //         ),
+        //         {
+        //           "asset" => "BUSD",
+        //           "amount" => "0",
+        //           "amountInBTC" => "0",
+        //           "amountInUSDT" => "0"
+        //         }
+        //       )
+        //     }
+        //
         $result = array(
             'info' => $response,
         );
@@ -1371,6 +1398,18 @@ class binance extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'free');
                 $account['used'] = $this->safe_string($balance, 'locked');
+                $result[$code] = $account;
+            }
+        } else if ($type === 'savings') {
+            $positionAmountVos = $this->safe_value($response, 'positionAmountVos');
+            for ($i = 0; $i < count($positionAmountVos); $i++) {
+                $entry = $positionAmountVos[$i];
+                $currencyId = $this->safe_string($entry, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $usedAndTotal = $this->safe_string($entry, 'amount');
+                $account['total'] = $usedAndTotal;
+                $account['used'] = $usedAndTotal;
                 $result[$code] = $account;
             }
         } else {

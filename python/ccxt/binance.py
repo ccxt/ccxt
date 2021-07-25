@@ -1196,6 +1196,8 @@ class binance(Exchange):
             method = self.safe_string(fetchBalanceOptions, 'method', 'dapiPrivateGetAccount')
         elif type == 'margin':
             method = 'sapiGetMarginAccount'
+        elif type == 'savings':
+            method = 'sapiGetLendingUnionAccount'
         query = self.omit(params, 'type')
         response = getattr(self, method)(query)
         #
@@ -1342,6 +1344,31 @@ class binance(Exchange):
         #         }
         #     ]
         #
+        # savings
+        #
+        #     {
+        #       "totalAmountInBTC": "0.3172",
+        #       "totalAmountInUSDT": "10000",
+        #       "totalFixedAmountInBTC": "0.3172",
+        #       "totalFixedAmountInUSDT": "10000",
+        #       "totalFlexibleInBTC": "0",
+        #       "totalFlexibleInUSDT": "0",
+        #       "positionAmountVos": [
+        #         {
+        #           "asset": "USDT",
+        #           "amount": "10000",
+        #           "amountInBTC": "0.3172",
+        #           "amountInUSDT": "10000"
+        #         },
+        #         {
+        #           "asset": "BUSD",
+        #           "amount": "0",
+        #           "amountInBTC": "0",
+        #           "amountInUSDT": "0"
+        #         }
+        #       ]
+        #     }
+        #
         result = {
             'info': response,
         }
@@ -1356,6 +1383,17 @@ class binance(Exchange):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
+                result[code] = account
+        elif type == 'savings':
+            positionAmountVos = self.safe_value(response, 'positionAmountVos')
+            for i in range(0, len(positionAmountVos)):
+                entry = positionAmountVos[i]
+                currencyId = self.safe_string(entry, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                usedAndTotal = self.safe_string(entry, 'amount')
+                account['total'] = usedAndTotal
+                account['used'] = usedAndTotal
                 result[code] = account
         else:
             balances = response
