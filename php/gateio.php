@@ -27,7 +27,7 @@ class gateio extends \ccxt\async\gateio {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://ws.gate.io/v3',
+                    'ws' => 'wss://ws.gate.io/v4',
                 ),
             ),
             'options' => array(
@@ -44,7 +44,7 @@ class gateio extends \ccxt\async\gateio {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
-        $uppercaseId = $market['uppercaseId'];
+        $uppercaseId = strtoupper($marketId);
         $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
         $options = $this->safe_value($this->options, 'watchOrderBook', array());
@@ -116,7 +116,7 @@ class gateio extends \ccxt\async\gateio {
         $params = $this->safe_value($message, 'params', array());
         $clean = $this->safe_value($params, 0);
         $book = $this->safe_value($params, 1);
-        $marketId = $this->safe_string_lower($params, 2);
+        $marketId = $this->safe_string($params, 2);
         $symbol = $this->safe_symbol($marketId);
         $method = $this->safe_string($message, 'method');
         $messageHash = $method . ':' . $marketId;
@@ -141,7 +141,7 @@ class gateio extends \ccxt\async\gateio {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
-        $uppercaseId = $market['uppercaseId'];
+        $uppercaseId = strtoupper($marketId);
         $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
         $options = $this->safe_value($this->options, 'watchTicker', array());
@@ -183,7 +183,7 @@ class gateio extends \ccxt\async\gateio {
         //     }
         //
         $params = $this->safe_value($message, 'params', array());
-        $marketId = $this->safe_string_lower($params, 0);
+        $marketId = $this->safe_string($params, 0);
         $market = $this->safe_market($marketId, null, '_');
         $symbol = $market['symbol'];
         $ticker = $this->safe_value($params, 1, array());
@@ -198,7 +198,7 @@ class gateio extends \ccxt\async\gateio {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
-        $uppercaseId = $market['uppercaseId'];
+        $uppercaseId = strtoupper($marketId);
         $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
         $options = $this->safe_value($this->options, 'watchTrades', array());
@@ -245,7 +245,7 @@ class gateio extends \ccxt\async\gateio {
         //     )
         //
         $params = $this->safe_value($message, 'params', array());
-        $marketId = $this->safe_string_lower($params, 0);
+        $marketId = $this->safe_string($params, 0);
         $market = $this->safe_market($marketId, null, '_');
         $symbol = $market['symbol'];
         $stored = $this->safe_value($this->trades, $symbol);
@@ -268,7 +268,7 @@ class gateio extends \ccxt\async\gateio {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
-        $uppercaseId = $market['uppercaseId'];
+        $uppercaseId = strtoupper($marketId);
         $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
         $interval = $this->timeframes[$timeframe];
@@ -313,7 +313,7 @@ class gateio extends \ccxt\async\gateio {
         //
         $params = $this->safe_value($message, 'params', array());
         $ohlcv = $this->safe_value($params, 0, array());
-        $marketId = $this->safe_string_lower($ohlcv, 7);
+        $marketId = $this->safe_string($ohlcv, 7);
         $parsed = array(
             $this->safe_timestamp($ohlcv, 0), // t
             $this->safe_number($ohlcv, 1), // o
@@ -355,7 +355,7 @@ class gateio extends \ccxt\async\gateio {
         if ($authenticate === null) {
             $requestId = $this->milliseconds();
             $requestIdString = (string) $requestId;
-            $signature = $this->hmac($this->encode($requestIdString), $this->encode($this->secret), 'sha512', 'base64');
+            $signature = $this->hmac($this->encode($requestIdString), $this->encode($this->secret), 'sha512', 'hex');
             $authenticateMessage = array(
                 'id' => $requestId,
                 'method' => $method,
@@ -430,11 +430,11 @@ class gateio extends \ccxt\async\gateio {
             $key = $keys[$i];
             $code = $this->safe_currency_code($key);
             $balance = $result[$key];
-            $account['free'] = $this->safe_number($balance, 'available');
-            $account['used'] = $this->safe_number($balance, 'freeze');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'freeze');
             $this->balance[$code] = $account;
         }
-        $this->balance = $this->parse_balance($this->balance, false);
+        $this->balance = $this->parse_balance($this->balance);
         $client->resolve ($this->balance, $messageHash);
     }
 
@@ -471,7 +471,7 @@ class gateio extends \ccxt\async\gateio {
         $params = $this->safe_value($message, 'params');
         $event = $this->safe_integer($params, 0);
         $order = $this->safe_value($params, 1);
-        $marketId = $this->safe_string_lower($order, 'market');
+        $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_market($marketId, null, '_');
         $parsed = $this->parse_order($order, $market);
         if ($event === 1) {
