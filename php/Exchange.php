@@ -798,11 +798,25 @@ class Exchange {
     }
 
     public static function milliseconds() {
+        if (PHP_INT_SIZE == 4) {
+            return static::milliseconds32();
+        } else {
+            return static::milliseconds64();
+        }
+    }
+
+    public static function milliseconds32() {
         list($msec, $sec) = explode(' ', microtime());
         // raspbian 32-bit integer workaround
         // https://github.com/ccxt/ccxt/issues/5978
         // return (int) ($sec . substr($msec, 2, 3));
         return $sec . substr($msec, 2, 3);
+    }
+
+    public static function milliseconds64() {
+        list($msec, $sec) = explode(' ', microtime());
+        // this method will not work on 32-bit raspbian
+        return (int) ($sec . substr($msec, 2, 3));
     }
 
     public static function microseconds() {
