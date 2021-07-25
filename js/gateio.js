@@ -8,7 +8,7 @@ const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class gateio4 extends ccxt.gateio4 {
+module.exports = class gateio extends ccxt.gateio {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
