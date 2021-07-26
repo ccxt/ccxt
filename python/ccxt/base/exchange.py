@@ -1288,15 +1288,6 @@ class Exchange(object):
             return currency
         return self.safe_string(self.commonCurrencies, currency, currency)
 
-    def currency_id(self, commonCode):
-
-        if self.currencies:
-            if commonCode in self.currencies:
-                return self.currencies[commonCode]['id']
-
-        currencyIds = {v: k for k, v in self.commonCurrencies.items()}
-        return self.safe_string(currencyIds, commonCode, commonCode)
-
     def precision_from_string(self, string):
         parts = re.sub(r'0+$', '', string).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
@@ -1919,9 +1910,6 @@ class Exchange(object):
         if isinstance(symbol, basestring) and (symbol in self.markets):
             return self.markets[symbol]
         raise BadSymbol('{} does not have market symbol {}'.format(self.id, symbol))
-
-    def currency_ids(self, codes):
-        return [self.currency_id(code) for code in codes]
 
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]

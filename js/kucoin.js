@@ -566,9 +566,9 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchFundingFee (code, params = {}) {
-        const currencyId = this.currencyId (code);
+        const currency = this.currency (code);
         const request = {
-            'currency': currencyId,
+            'currency': currency['id'],
         };
         const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
         const data = response['data'];
@@ -782,8 +782,8 @@ module.exports = class kucoin extends Exchange {
 
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const currencyId = this.currencyId (code);
-        const request = { 'currency': currencyId };
+        const currency = this.currency (code);
+        const request = { 'currency': currency['id'] };
         const response = await this.privatePostDepositAddresses (this.extend (request, params));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
@@ -808,8 +808,8 @@ module.exports = class kucoin extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const currencyId = this.currencyId (code);
-        const request = { 'currency': currencyId };
+        const currency = this.currency (code);
+        const request = { 'currency': currency['id'] };
         const response = await this.privateGetDepositAddresses (this.extend (request, params));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
@@ -1465,9 +1465,9 @@ module.exports = class kucoin extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         this.checkAddress (address);
-        const currency = this.currencyId (code);
+        const currency = this.currency (code);
         const request = {
-            'currency': currency,
+            'currency': currency['id'],
             'address': address,
             'amount': amount,
         };

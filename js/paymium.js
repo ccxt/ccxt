@@ -92,7 +92,8 @@ module.exports = class paymium extends Exchange {
         const currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             const code = currencies[i];
-            const currencyId = this.currencyId (code);
+            const currency = this.currency (code);
+            const currencyId = currency['id'];
             const free = 'balance_' + currencyId;
             if (free in response) {
                 const account = this.account ();

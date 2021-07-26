@@ -771,7 +771,8 @@ module.exports = class exmo extends Exchange {
         const codes = Object.keys (free);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            const currencyId = this.currencyId (code);
+            const currency = this.currency (code);
+            const currencyId = currency['id'];
             const account = this.account ();
             if (currencyId in free) {
                 account['free'] = this.safeString (free, currencyId);
