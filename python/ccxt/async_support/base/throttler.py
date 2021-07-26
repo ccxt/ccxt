@@ -13,7 +13,7 @@ class Throttler:
             'refillRate': 1.0,
             'delay': 0.001,
             'defaultCost': 1.0,
-            'capacity': 1.0,
+            'capacity': 0,
             'maxCapacity': 1000.0,
         }
         self.config.update(config)
