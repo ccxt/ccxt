@@ -264,6 +264,8 @@ class zb extends Exchange {
             'commonCurrencies' => array(
                 'ANG' => 'Anagram',
                 'ENT' => 'ENTCash',
+                'BCHABC' => 'BCHABC', // conflict with BCH / BCHA
+                'BCHSV' => 'BCHSV', // conflict with BCH / BSV
             ),
         ));
     }
@@ -426,7 +428,7 @@ class zb extends Exchange {
             $account['used'] = $this->safe_string($balance, 'freez');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
@@ -565,15 +567,15 @@ class zb extends Exchange {
         $this->load_markets();
         $response = $this->publicGetAllTicker ($params);
         $result = array();
-        $anotherMarketsById = array();
+        $marketsByIdWithoutUnderscore = array();
         $marketIds = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $tickerId = str_replace('_', '', $marketIds[$i]);
-            $anotherMarketsById[$tickerId] = $this->markets_by_id[$marketIds[$i]];
+            $marketsByIdWithoutUnderscore[$tickerId] = $this->markets_by_id[$marketIds[$i]];
         }
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
-            $market = $anotherMarketsById[$ids[$i]];
+            $market = $marketsByIdWithoutUnderscore[$ids[$i]];
             $result[$market['symbol']] = $this->parse_ticker($response[$ids[$i]], $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);

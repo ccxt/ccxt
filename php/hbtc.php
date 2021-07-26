@@ -261,6 +261,15 @@ class hbtc extends Exchange {
                 'fetchTickers' => array(
                     'method' => 'quoteGetTicker24hr',
                 ),
+                'accountsByType' => array(
+                    'trade' => 1,
+                    'trading' => 1,
+                    'spot' => 1,
+                    'option' => 2,
+                    'options' => 2,
+                    'futures' => 3,
+                    'contract' => 3,
+                ),
             ),
             'commonCurrencies' => array(
                 'MIS' => 'Themis Protocol',
@@ -752,7 +761,7 @@ class hbtc extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = 50, $params = array ()) {

@@ -133,6 +133,7 @@ class bithumb extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'MIR' => 'MIR COIN',
                 'SOC' => 'Soda Coin',
             ),
         ));
@@ -218,7 +219,7 @@ class bithumb extends Exchange {
             $account['free'] = $this->safe_string($balances, 'available_' . $lowerCurrencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -870,7 +871,7 @@ class bithumb extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $endpoint;
+        $url = $this->implode_hostname($this->urls['api'][$api]) . $endpoint;
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {

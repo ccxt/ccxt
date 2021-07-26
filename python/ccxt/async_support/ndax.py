@@ -701,7 +701,7 @@ class ndax(Exchange):
         #         "PegPriceType":"Unknown",
         #         "PegOffset":0.0000000000000000000000000000,
         #         "PegLimitOffset":0.0000000000000000000000000000,
-        #         "IpAddress":"5.228.233.138",
+        #         "IpAddress":"x.x.x.x",
         #         "ClientOrderIdUuid":null,
         #         "OMSId":1
         #     }
@@ -865,7 +865,7 @@ class ndax(Exchange):
             account['total'] = self.safe_string(balance, 'Amount')
             account['used'] = self.safe_string(balance, 'Hold')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_ledger_entry_type(self, type):
         types = {
@@ -1460,7 +1460,7 @@ class ndax(Exchange):
         #             "PegPriceType":"Unknown",
         #             "PegOffset":0.0000000000000000000000000000,
         #             "PegLimitOffset":0.0000000000000000000000000000,
-        #             "IpAddress":"5.228.233.138",
+        #             "IpAddress":"x.x.x.x",
         #             "ClientOrderIdUuid":null,
         #             "OMSId":1
         #         },
@@ -1527,7 +1527,7 @@ class ndax(Exchange):
         #         "PegPriceType":"Unknown",
         #         "PegOffset":0.0000000000000000000000000000,
         #         "PegLimitOffset":0.0000000000000000000000000000,
-        #         "IpAddress":"5.228.233.138",
+        #         "IpAddress":"x.x.x.x",
         #         "ClientOrderIdUuid":null,
         #         "OMSId":1
         #     }
@@ -1594,7 +1594,7 @@ class ndax(Exchange):
         #             "PegPriceType":"Unknown",
         #             "PegOffset":0.0000000000000000000000000000,
         #             "PegLimitOffset":0.0000000000000000000000000000,
-        #             "IpAddress":"5.228.233.138",
+        #             "IpAddress":"x.x.x.x",
         #             "ClientOrderIdUuid":null,
         #             "OMSId":1
         #         },

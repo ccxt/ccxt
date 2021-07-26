@@ -135,6 +135,7 @@ class binance extends Exchange {
                         'margin/priceIndex',
                         // these endpoints require $this->apiKey . $this->secret
                         'asset/assetDividend',
+                        'asset/dribblet',
                         'asset/transfer',
                         'asset/assetDetail',
                         'asset/tradeFee',
@@ -179,10 +180,12 @@ class binance extends Exchange {
                         'sub-account/futures/accountSummary',
                         'sub-account/futures/positionRisk',
                         'sub-account/futures/internalTransfer',
+                        'sub-account/list',
                         'sub-account/margin/account',
                         'sub-account/margin/accountSummary',
                         'sub-account/spotSummary',
                         'sub-account/status',
+                        'sub-account/sub/transfer/history',
                         'sub-account/transfer/subUserHistory',
                         'sub-account/universalTransfer',
                         // lending endpoints
@@ -243,10 +246,12 @@ class binance extends Exchange {
                         'broker/universalTransfer',
                         // v2 not supported yet
                         // GET /sapi/v2/broker/subAccount/futuresSummary
+                        'account/apiRestrictions',
                     ),
                     'post' => array(
                         'asset/dust',
                         'asset/transfer',
+                        'get-funding-asset',
                         'account/disableFastWithdrawSwitch',
                         'account/enableFastWithdrawSwitch',
                         'capital/withdraw/apply',
@@ -361,7 +366,6 @@ class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'allForceOrders',
                         'openInterest',
                     ),
                 ),
@@ -433,7 +437,6 @@ class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'allForceOrders',
                         'openInterest',
                         'indexInfo',
                     ),
@@ -449,7 +452,7 @@ class binance extends Exchange {
                 ),
                 'fapiPrivate' => array(
                     'get' => array(
-                        'allForceOrders',
+                        'forceOrders',
                         'allOrders',
                         'openOrder',
                         'openOrders',
@@ -464,6 +467,7 @@ class binance extends Exchange {
                         'income',
                         'commissionRate',
                         'apiTradingStatus',
+                        'multiAssetsMargin',
                         // broker endpoints
                         'apiReferral/ifNewUser',
                         'apiReferral/customization',
@@ -483,6 +487,7 @@ class binance extends Exchange {
                         'leverage',
                         'listenKey',
                         'countdownCancelAll',
+                        'multiAssetsMargin',
                         // broker endpoints
                         'apiReferral/customization',
                         'apiReferral/userCustomization',
@@ -737,6 +742,7 @@ class binance extends Exchange {
                 ),
                 'broad' => array(
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
+                    'MAX_POSITION' => '\\ccxt\\InvalidOrder', // array("code":-2010,"msg":"Filter failure => MAX_POSITION")
                 ),
             ),
         ));
@@ -1204,6 +1210,8 @@ class binance extends Exchange {
             $method = $this->safe_string($fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
         } else if ($type === 'margin') {
             $method = 'sapiGetMarginAccount';
+        } else if ($type === 'savings') {
+            $method = 'sapiGetLendingUnionAccount';
         }
         $query = $this->omit($params, 'type');
         $response = yield $this->$method ($query);
@@ -1351,6 +1359,31 @@ class binance extends Exchange {
         //         }
         //     )
         //
+        // savings
+        //
+        //     {
+        //       "totalAmountInBTC" => "0.3172",
+        //       "totalAmountInUSDT" => "10000",
+        //       "totalFixedAmountInBTC" => "0.3172",
+        //       "totalFixedAmountInUSDT" => "10000",
+        //       "totalFlexibleInBTC" => "0",
+        //       "totalFlexibleInUSDT" => "0",
+        //       "$positionAmountVos" => array(
+        //         array(
+        //           "asset" => "USDT",
+        //           "amount" => "10000",
+        //           "amountInBTC" => "0.3172",
+        //           "amountInUSDT" => "10000"
+        //         ),
+        //         {
+        //           "asset" => "BUSD",
+        //           "amount" => "0",
+        //           "amountInBTC" => "0",
+        //           "amountInUSDT" => "0"
+        //         }
+        //       )
+        //     }
+        //
         $result = array(
             'info' => $response,
         );
@@ -1365,6 +1398,18 @@ class binance extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'free');
                 $account['used'] = $this->safe_string($balance, 'locked');
+                $result[$code] = $account;
+            }
+        } else if ($type === 'savings') {
+            $positionAmountVos = $this->safe_value($response, 'positionAmountVos');
+            for ($i = 0; $i < count($positionAmountVos); $i++) {
+                $entry = $positionAmountVos[$i];
+                $currencyId = $this->safe_string($entry, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $usedAndTotal = $this->safe_string($entry, 'amount');
+                $account['total'] = $usedAndTotal;
+                $account['used'] = $usedAndTotal;
                 $result[$code] = $account;
             }
         } else {
@@ -1385,7 +1430,7 @@ class binance extends Exchange {
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -1988,15 +2033,15 @@ class binance extends Exchange {
         $cost = $this->safe_number_2($order, 'cummulativeQuoteQty', 'cumQuote');
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
-        if ($type === 'limit_maker') {
-            $type = 'limit';
-        }
         $side = $this->safe_string_lower($order, 'side');
         $fills = $this->safe_value($order, 'fills', array());
         $trades = $this->parse_trades($fills, $market);
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'GTX');
+        if ($type === 'limit_maker') {
+            $type = 'limit';
+        }
         $stopPriceString = $this->safe_string($order, 'stopPrice');
         $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
         return $this->safe_order(array(
@@ -2059,7 +2104,7 @@ class binance extends Exchange {
         );
         if ($clientOrderId === null) {
             $broker = $this->safe_value($this->options, 'broker');
-            if ($broker) {
+            if ($broker !== null) {
                 $brokerId = $this->safe_string($broker, $orderType);
                 if ($brokerId !== null) {
                     $request['newClientOrderId'] = $brokerId . $this->uuid22();

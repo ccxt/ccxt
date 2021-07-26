@@ -258,6 +258,15 @@ module.exports = class hbtc extends Exchange {
                 'fetchTickers': {
                     'method': 'quoteGetTicker24hr',
                 },
+                'accountsByType': {
+                    'trade': 1,
+                    'trading': 1,
+                    'spot': 1,
+                    'option': 2,
+                    'options': 2,
+                    'futures': 3,
+                    'contract': 3,
+                },
             },
             'commonCurrencies': {
                 'MIS': 'Themis Protocol',
@@ -749,7 +758,7 @@ module.exports = class hbtc extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {

@@ -272,7 +272,7 @@ class yobit(Exchange):
             account['free'] = self.safe_string(free, currencyId)
             account['total'] = self.safe_string(total, currencyId)
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_markets(self, params={}):
         response = self.publicGetInfo(params)

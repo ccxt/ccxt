@@ -157,6 +157,7 @@ class probit extends Exchange {
                 'ORC' => 'Oracle System',
                 'SOC' => 'Soda Coin',
                 'UNI' => 'UNICORN Token',
+                'UNISWAP' => 'UNI',
             ),
         ));
     }
@@ -387,7 +388,7 @@ class probit extends Exchange {
             $account['free'] = $this->safe_string($balance, 'available');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -1108,7 +1109,7 @@ class probit extends Exchange {
             // 'platform_id' => 'ETH', // if omitted it will use the default platform for the $currency
             'address' => $address,
             'destination_tag' => $tag,
-            'amount' => $this->currency_to_precision($code, $amount),
+            'amount' => $this->number_to_string($amount),
             // which $currency to pay the withdrawal fees
             // only applicable for currencies that accepts multiple withdrawal fee options
             // 'fee_currency_id' => 'ETH', // if omitted it will use the default fee policy for each $currency

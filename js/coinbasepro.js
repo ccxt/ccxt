@@ -392,7 +392,7 @@ module.exports = class coinbasepro extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1154,7 +1154,7 @@ module.exports = class coinbasepro extends Exchange {
                 request += '?' + this.urlencode (query);
             }
         }
-        const url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + request;
+        const url = this.implodeHostname (this.urls['api'][api]) + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

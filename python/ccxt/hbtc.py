@@ -276,6 +276,15 @@ class hbtc(Exchange):
                 'fetchTickers': {
                     'method': 'quoteGetTicker24hr',
                 },
+                'accountsByType': {
+                    'trade': 1,
+                    'trading': 1,
+                    'spot': 1,
+                    'option': 2,
+                    'options': 2,
+                    'futures': 3,
+                    'contract': 3,
+                },
             },
             'commonCurrencies': {
                 'MIS': 'Themis Protocol',
@@ -743,7 +752,7 @@ class hbtc(Exchange):
                 account['free'] = self.safe_string(balance, 'availableMargin')
                 account['total'] = self.safe_string(balance, 'total')
                 result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_trades(self, symbol, since=None, limit=50, params={}):
         self.load_markets()

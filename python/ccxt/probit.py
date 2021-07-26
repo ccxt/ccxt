@@ -166,6 +166,7 @@ class probit(Exchange):
                 'ORC': 'Oracle System',
                 'SOC': 'Soda Coin',
                 'UNI': 'UNICORN Token',
+                'UNISWAP': 'UNI',
             },
         })
 
@@ -388,7 +389,7 @@ class probit(Exchange):
             account['total'] = self.safe_string(balance, 'total')
             account['free'] = self.safe_string(balance, 'available')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -1046,7 +1047,7 @@ class probit(Exchange):
             # 'platform_id': 'ETH',  # if omitted it will use the default platform for the currency
             'address': address,
             'destination_tag': tag,
-            'amount': self.currency_to_precision(code, amount),
+            'amount': self.number_to_string(amount),
             # which currency to pay the withdrawal fees
             # only applicable for currencies that accepts multiple withdrawal fee options
             # 'fee_currency_id': 'ETH',  # if omitted it will use the default fee policy for each currency

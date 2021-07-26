@@ -259,6 +259,8 @@ module.exports = class zb extends Exchange {
             'commonCurrencies': {
                 'ANG': 'Anagram',
                 'ENT': 'ENTCash',
+                'BCHABC': 'BCHABC', // conflict with BCH / BCHA
+                'BCHSV': 'BCHSV', // conflict with BCH / BSV
             },
         });
     }
@@ -421,7 +423,7 @@ module.exports = class zb extends Exchange {
             account['used'] = this.safeString (balance, 'freez');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
@@ -560,15 +562,15 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetAllTicker (params);
         const result = {};
-        const anotherMarketsById = {};
+        const marketsByIdWithoutUnderscore = {};
         const marketIds = Object.keys (this.markets_by_id);
         for (let i = 0; i < marketIds.length; i++) {
             const tickerId = marketIds[i].replace ('_', '');
-            anotherMarketsById[tickerId] = this.markets_by_id[marketIds[i]];
+            marketsByIdWithoutUnderscore[tickerId] = this.markets_by_id[marketIds[i]];
         }
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
-            const market = anotherMarketsById[ids[i]];
+            const market = marketsByIdWithoutUnderscore[ids[i]];
             result[market['symbol']] = this.parseTicker (response[ids[i]], market);
         }
         return this.filterByArray (result, 'symbol', symbols);

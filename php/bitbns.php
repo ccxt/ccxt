@@ -389,7 +389,7 @@ class bitbns extends Exchange {
                 }
             }
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {
@@ -912,36 +912,13 @@ class bitbns extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        $this->check_address($address);
-        $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'coin' => $currency['id'],
-            'address' => $address,
-            'amount' => $amount,
-            // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
-            // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
-            // 'network' => 'ETH', // 'BTC', 'TRX', etc, optional
-        );
-        if ($tag !== null) {
-            $request['addressTag'] = $tag;
-        }
-        $response = $this->sapiPostCapitalWithdrawApply (array_merge($request, $params));
-        //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'id'),
-        );
-    }
-
     public function nonce() {
         return $this->milliseconds();
     }
 
     public function sign($path, $api = 'v1', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $this->check_required_credentials();
-        $baseUrl = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
+        $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $nonce = (string) $this->nonce();

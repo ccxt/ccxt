@@ -176,6 +176,8 @@ class bitstamp(Exchange):
                         'grt_address/',
                         'usdt_withdrawal/',
                         'usdt_address/',
+                        'eurt_withdrawal/',
+                        'eurt_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -791,7 +793,7 @@ class bitstamp(Exchange):
             account['used'] = self.safe_string(balance, currencyId + '_reserved')
             account['total'] = self.safe_string(balance, currencyId + '_balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_trading_fee(self, symbol, params={}):
         self.load_markets()

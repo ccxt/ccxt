@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.52.43';
+$version = '1.53.67';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.52.43';
+    const VERSION = '1.53.67';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -102,7 +102,6 @@ class Exchange {
         'buda',
         'bw',
         'bybit',
-        'bytetrade',
         'cdax',
         'cex',
         'coinbase',
@@ -155,6 +154,7 @@ class Exchange {
         'oceanex',
         'okcoin',
         'okex',
+        'okex3',
         'okex5',
         'paymium',
         'phemex',
@@ -162,7 +162,6 @@ class Exchange {
         'probit',
         'qtrade',
         'ripio',
-        'southxchange',
         'stex',
         'therock',
         'tidebit',
@@ -216,8 +215,6 @@ class Exchange {
         'safeString2' => 'safe_string2',
         'safeStringLower2' => 'safe_string_lower2',
         'safeStringUpper2' => 'safe_string_upper2',
-        'toWei' => 'to_wei',
-        'fromWei' => 'from_wei',
         'numberToString' => 'number_to_string',
         'precisionFromString' => 'precision_from_string',
         'decimalToPrecision' => 'decimal_to_precision',
@@ -299,6 +296,7 @@ class Exchange {
         'marketId' => 'market_id',
         'marketIds' => 'market_ids',
         'currencyIds' => 'currency_ids',
+        'implodeHostname' => 'implode_hostname',
         'parseBidAsk' => 'parse_bid_ask',
         'parseBidsAsks' => 'parse_bids_asks',
         'fetchL2OrderBook' => 'fetch_l2_order_book',
@@ -465,6 +463,10 @@ class Exchange {
             return $integer . $decimal;
         }
         return sprintf('%d', floatval($number));
+    }
+
+    public static function uuid16($length = 16) {
+        return bin2hex(random_bytes(intval($length / 2)));
     }
 
     public static function uuid22($length = 22) {
@@ -701,6 +703,10 @@ class Exchange {
         return $string;
     }
 
+    public function implode_hostname($url) {
+        return static::implode_params($url, array('hostname' => $this->hostname));
+    }
+
     public static function deep_extend() {
         //
         //     extend associative dictionaries only, replace everything else
@@ -791,11 +797,25 @@ class Exchange {
     }
 
     public static function milliseconds() {
+        if (PHP_INT_SIZE == 4) {
+            return static::milliseconds32();
+        } else {
+            return static::milliseconds64();
+        }
+    }
+
+    public static function milliseconds32() {
         list($msec, $sec) = explode(' ', microtime());
         // raspbian 32-bit integer workaround
         // https://github.com/ccxt/ccxt/issues/5978
         // return (int) ($sec . substr($msec, 2, 3));
         return $sec . substr($msec, 2, 3);
+    }
+
+    public static function milliseconds64() {
+        list($msec, $sec) = explode(' ', microtime());
+        // this method will not work on 32-bit raspbian
+        return (int) ($sec . substr($msec, 2, 3));
     }
 
     public static function microseconds() {
@@ -1023,6 +1043,7 @@ class Exchange {
         $this->myTrades = null;
         $this->trades = array();
         $this->transactions = array();
+        $this->positions = array();
         $this->ohlcvs = array();
         $this->exceptions = array();
         $this->accounts = array();
@@ -1076,7 +1097,6 @@ class Exchange {
         $this->token = ''; // reserved for HTTP auth in some cases
 
         $this->twofa = null;
-        $this->marketsById = null;
         $this->markets_by_id = null;
         $this->currencies_by_id = null;
         $this->userAgent = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
@@ -1648,7 +1668,6 @@ class Exchange {
         }
         $this->markets = static::index_by($values, 'symbol');
         $this->markets_by_id = static::index_by($values, 'id');
-        $this->marketsById = $this->markets_by_id;
         $this->symbols = array_keys($this->markets);
         sort($this->symbols);
         $this->ids = array_keys($this->markets_by_id);
@@ -1781,7 +1800,7 @@ class Exchange {
         );
     }
 
-    public function parse_balance($balance, $legacy = true) {
+    public function parse_balance($balance, $legacy = false) {
         $currencies = $this->omit($balance, array('info', 'timestamp', 'datetime', 'free', 'used', 'total'));
 
         $balance['free'] = array();
@@ -2741,22 +2760,6 @@ class Exchange {
         if (!static::has_web3()) {
             throw new ExchangeError($this->id . ' requires web3 dependencies');
         }
-    }
-
-    public static function from_wei($amount, $decimals = 18) {
-        $format_decimals = $decimals + floor(log($amount, 10));
-        $exponential = sprintf('%.' . $format_decimals . 'e', $amount);
-        list($n, $exponent) = explode('e', $exponential);
-        $new_exponent = intval($exponent) - $decimals;
-        return floatval($n . 'e' . strval($new_exponent));
-    }
-
-    public static function to_wei($amount, $decimals = 18) {
-        $format_decimals = $decimals + floor(log($amount, 10));
-        $exponential = sprintf('%.' . $format_decimals . 'e', $amount);
-        list($n, $exponent) = explode('e', $exponential);
-        $new_exponent = intval($exponent) + $decimals;
-        return static::number_to_string(floatval($n . 'e' . strval($new_exponent)));
     }
 
     public static function hashMessage($message) {

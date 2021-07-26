@@ -434,7 +434,7 @@ class buda(Exchange):
             account['free'] = self.safe_string(balance['available_amount'], 0)
             account['total'] = self.safe_string(balance['amount'], 0)
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()

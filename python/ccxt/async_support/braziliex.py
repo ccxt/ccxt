@@ -404,7 +404,7 @@ class braziliex(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
         #

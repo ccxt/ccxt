@@ -54,6 +54,10 @@ module.exports = class currencycom extends Exchange {
                     'public': 'https://api-adapter.backend.currency.com/api',
                     'private': 'https://api-adapter.backend.currency.com/api',
                 },
+                'test': {
+                    'public': 'https://demo-api-adapter.backend.currency.com/api',
+                    'private': 'https://demo-api-adapter.backend.currency.com/api',
+                },
                 'www': 'https://www.currency.com',
                 'referral': 'https://currency.com/trading/signup?c=362jaimv&pid=referral',
                 'doc': [
@@ -141,6 +145,7 @@ module.exports = class currencycom extends Exchange {
             },
             'commonCurrencies': {
                 'BNS': 'Bank of Nova Scotia',
+                'EDU': 'New Oriental Education & Technology Group Inc',
                 'ETN': 'Eaton',
                 'IQ': 'iQIYI',
                 'PLAY': "Dave & Buster's Entertainment",
@@ -427,7 +432,7 @@ module.exports = class currencycom extends Exchange {
             account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchBalance (params = {}) {

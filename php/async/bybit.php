@@ -1025,7 +1025,7 @@ class bybit extends Exchange {
             $account['total'] = $this->safe_string($balance, 'equity');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {
@@ -1137,7 +1137,7 @@ class bybit extends Exchange {
         //             "trigger_price":12400,
         //             "close_on_trigger":true,
         //             "op_from":"api",
-        //             "remark":"145.53.159.48",
+        //             "remark":"x.x.x.x",
         //             "o_req_num":0
         //         ),
         //         "leaves_qty":10,
@@ -2348,7 +2348,7 @@ class bybit extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $type = $this->safe_string($api, 0);
         $section = $this->safe_string($api, 1);
-        $url = $this->implode_params($this->urls['api'][$type], array( 'hostname' => $this->hostname ));
+        $url = $this->implode_hostname($this->urls['api'][$type]);
         $request = '/' . $type . '/' . $section . '/' . $path;
         // public v2
         if ($section === 'public') {

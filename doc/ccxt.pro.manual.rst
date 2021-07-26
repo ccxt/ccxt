@@ -54,7 +54,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguge support 
 Exchanges
 =========
 
-The CCXT Pro library currently supports the following 32 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 33 cryptocurrency exchange markets and WebSocket trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -326,21 +326,6 @@ The CCXT Pro library currently supports the following 32 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
-          :target: https://www.gate.io/signup/2436035
-          :alt: gateio
-     
-     - gateio
-     - `Gate.io <https://www.gate.io/signup/2436035>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://gate.io/api2
-          :alt: API Version 2
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
    * - .. image:: https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg
           :target: https://www.gopax.co.kr
           :alt: gopax
@@ -491,9 +476,39 @@ The CCXT Pro library currently supports the following 32 cryptocurrency exchange
      
      - okex
      - `OKEX <https://www.okex.com/join/1888677>`__
+     - .. image:: https://img.shields.io/badge/5-lightgray
+          :target: https://www.okex.com/docs/en/
+          :alt: API Version 5
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
+          :target: https://www.okex.com/join/1888677
+          :alt: okex3
+     
+     - okex3
+     - `OKEX <https://www.okex.com/join/1888677>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://www.okex.com/docs/en/
           :alt: API Version 3
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
+          :target: https://www.okex.com/join/1888677
+          :alt: okex5
+     
+     - okex5
+     - `OKEX <https://www.okex.com/join/1888677>`__
+     - .. image:: https://img.shields.io/badge/5-lightgray
+          :target: https://www.okex.com/docs/en/
+          :alt: API Version 5
      
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black

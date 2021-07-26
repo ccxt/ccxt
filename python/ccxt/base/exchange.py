@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.52.43'
+__version__ = '1.53.67'
 
 # -----------------------------------------------------------------------------
 
@@ -169,7 +169,6 @@ class Exchange(object):
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
     token = ''  # reserved for HTTP auth in some cases
     twofa = None
-    marketsById = None
     markets_by_id = None
     currencies_by_id = None
     precision = None
@@ -227,6 +226,7 @@ class Exchange(object):
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
+    positions = None
 
     status = {
         'status': 'ok',
@@ -340,6 +340,7 @@ class Exchange(object):
         self.tickers = dict() if self.tickers is None else self.tickers
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
+        self.positions = dict() if self.positions is None else self.positions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = dict() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
@@ -793,6 +794,10 @@ class Exchange(object):
         return format(random.getrandbits(length * 4), 'x')
 
     @staticmethod
+    def uuid16(length=16):
+        return format(random.getrandbits(length * 4), 'x')
+
+    @staticmethod
     def uuid():
         return str(uuid.uuid4())
 
@@ -898,6 +903,9 @@ class Exchange(object):
     @staticmethod
     def extract_params(string):
         return re.findall(r'{([\w-]+)}', string)
+
+    def implode_hostname(self, url):
+        return Exchange.implode_params(url, {'hostname': self.hostname})
 
     @staticmethod
     def implode_params(string, params):
@@ -1318,7 +1326,6 @@ class Exchange(object):
             )
         self.markets = self.index_by(values, 'symbol')
         self.markets_by_id = self.index_by(values, 'id')
-        self.marketsById = self.markets_by_id
         self.symbols = sorted(self.markets.keys())
         self.ids = sorted(self.markets_by_id.keys())
         if currencies:
@@ -1537,7 +1544,7 @@ class Exchange(object):
             'nonce': None,
         }
 
-    def parse_balance(self, balance, legacy=True):
+    def parse_balance(self, balance, legacy=False):
         currencies = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']).keys()
         balance['free'] = {}
         balance['used'] = {}
@@ -2002,26 +2009,6 @@ class Exchange(object):
     def check_required_dependencies(self):
         if self.requiresEddsa and eddsa is None:
             raise NotSupported('Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
-
-    @staticmethod
-    def from_wei(amount, decimals=18):
-        if amount is None:
-            return None
-        amount_float = float(amount)
-        exponential = '{:.14e}'.format(amount_float)
-        n, exponent = exponential.split('e')
-        new_exponent = int(exponent) - decimals
-        return float(n + 'e' + str(new_exponent))
-
-    @staticmethod
-    def to_wei(amount, decimals=18):
-        if amount is None:
-            return None
-        amount_float = float(amount)
-        exponential = '{:.14e}'.format(amount_float)
-        n, exponent = exponential.split('e')
-        new_exponent = int(exponent) + decimals
-        return number_to_string(n + 'e' + str(new_exponent))
 
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)

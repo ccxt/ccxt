@@ -823,7 +823,7 @@ module.exports = class stex extends Exchange {
             account['used'] = this.safeString (balance, 'frozen_balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
@@ -1450,7 +1450,7 @@ module.exports = class stex extends Exchange {
             'hodl': 'pending',
             'amount too low': 'failed',
             'not confirmed': 'pending',
-            'cancelled by User': 'canceled',
+            'cancelled by user': 'canceled',
             'approved': 'pending',
             'finished': 'ok',
             'withdrawal error': 'failed',

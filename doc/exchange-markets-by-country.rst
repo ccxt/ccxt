@@ -34,17 +34,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://exchange.ripio.com/en/api/
           :alt: API Version 1
      
-   * - Argentina
-     - .. image:: https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg
-          :target: https://www.southxchange.com
-          :alt: southxchange
-     
-     - southxchange
-     - `SouthXchange <https://www.southxchange.com>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://www.southxchange.com/Home/Api
-          :alt: API Version *
-     
    * - Australia
      - .. image:: https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg
           :target: https://btcmarkets.net
@@ -222,17 +211,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - China
-     - .. image:: https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg
-          :target: https://bitmax.io/#/register?inviteCode=EL6BXBQM
-          :alt: ascendex
-     
-     - ascendex
-     - `AscendEX <https://bitmax.io/#/register?inviteCode=EL6BXBQM>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation
-          :alt: API Version 1
-     
-   * - China
      - .. image:: https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg
           :target: https://w2.bibox365.com/login/register?invite_code=05Kj3I
           :alt: bibox
@@ -321,17 +299,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - China
-     - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
-          :target: https://www.gate.io/signup/2436035
-          :alt: gateio
-     
-     - gateio
-     - `Gate.io <https://www.gate.io/signup/2436035>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://gate.io/api2
-          :alt: API Version 2
-     
-   * - China
      - .. image:: https://user-images.githubusercontent.com/51840849/80134449-70663300-85a7-11ea-8942-e204cdeaab5d.jpg
           :target: https://www.hbtc.com/register/O2S8NS
           :alt: hbtc
@@ -403,6 +370,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: okex
      
      - okex
+     - `OKEX <https://www.okex.com/join/1888677>`__
+     - .. image:: https://img.shields.io/badge/5-lightgray
+          :target: https://www.okex.com/docs/en/
+          :alt: API Version 5
+     
+   * - China
+     - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
+          :target: https://www.okex.com/join/1888677
+          :alt: okex3
+     
+     - okex3
      - `OKEX <https://www.okex.com/join/1888677>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://www.okex.com/docs/en/
@@ -594,17 +572,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://apidocv2.bitz.plus/en/
           :alt: API Version 2
-     
-   * - Hong Kong
-     - .. image:: https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg
-          :target: https://www.byte-trade.com
-          :alt: bytetrade
-     
-     - bytetrade
-     - `ByteTrade <https://www.byte-trade.com>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://docs.byte-trade.com/#description
-          :alt: API Version *
      
    * - Hong Kong
      - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
@@ -1048,11 +1015,11 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
    * - Singapore
      - .. image:: https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg
-          :target: https://bitmax.io/#/register?inviteCode=EL6BXBQM
+          :target: https://ascendex.com/en-us/register?inviteCode=EL6BXBQM
           :alt: ascendex
      
      - ascendex
-     - `AscendEX <https://bitmax.io/#/register?inviteCode=EL6BXBQM>`__
+     - `AscendEX <https://ascendex.com/en-us/register?inviteCode=EL6BXBQM>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation
           :alt: API Version 1
@@ -1617,6 +1584,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://www.okcoin.com/docs/en/
           :alt: API Version 3
+     
+   * - US
+     - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
+          :target: https://www.okex.com/join/1888677
+          :alt: okex
+     
+     - okex
+     - `OKEX <https://www.okex.com/join/1888677>`__
+     - .. image:: https://img.shields.io/badge/5-lightgray
+          :target: https://www.okex.com/docs/en/
+          :alt: API Version 5
      
    * - US
      - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg

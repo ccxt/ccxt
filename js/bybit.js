@@ -1023,7 +1023,7 @@ module.exports = class bybit extends Exchange {
             account['total'] = this.safeString (balance, 'equity');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
@@ -1135,7 +1135,7 @@ module.exports = class bybit extends Exchange {
         //             "trigger_price":12400,
         //             "close_on_trigger":true,
         //             "op_from":"api",
-        //             "remark":"145.53.159.48",
+        //             "remark":"x.x.x.x",
         //             "o_req_num":0
         //         },
         //         "leaves_qty":10,
@@ -2346,7 +2346,7 @@ module.exports = class bybit extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = this.safeString (api, 0);
         const section = this.safeString (api, 1);
-        let url = this.implodeParams (this.urls['api'][type], { 'hostname': this.hostname });
+        let url = this.implodeHostname (this.urls['api'][type]);
         let request = '/' + type + '/' + section + '/' + path;
         // public v2
         if (section === 'public') {

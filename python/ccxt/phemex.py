@@ -69,7 +69,10 @@ class phemex(Exchange):
                 'www': 'https://phemex.com',
                 'doc': 'https://github.com/phemex/phemex-api-docs',
                 'fees': 'https://phemex.com/fees-conditions',
-                'referral': 'https://phemex.com/register?referralCode=EDNVJ',
+                'referral': {
+                    'url': 'https://phemex.com/register?referralCode=EDNVJ',
+                    'discount': 0.1,
+                },
             },
             'timeframes': {
                 '1m': '60',
@@ -796,7 +799,7 @@ class phemex(Exchange):
         precise.decimals = precise.decimals - scale
         precise.reduce()
         stringValue = str(precise)
-        return int(stringValue)
+        return int(float(stringValue))
 
     def to_ev(self, amount, market=None):
         if (amount is None) or (market is None):
@@ -1259,7 +1262,7 @@ class phemex(Exchange):
             result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_swap_balance(self, response):
         #
@@ -1349,7 +1352,7 @@ class phemex(Exchange):
         account['total'] = self.from_en(accountBalanceEv, valueScale)
         account['used'] = self.from_en(totalUsedBalanceEv, valueScale)
         result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -2372,7 +2375,7 @@ class phemex(Exchange):
                 headers['Content-Type'] = 'application/json'
             auth = requestPath + queryString + expiryString + payload
             headers['x-phemex-request-signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
-        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + url
+        url = self.implode_hostname(self.urls['api'][api]) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

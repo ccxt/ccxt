@@ -152,6 +152,7 @@ module.exports = class probit extends Exchange {
                 'ORC': 'Oracle System',
                 'SOC': 'Soda Coin',
                 'UNI': 'UNICORN Token',
+                'UNISWAP': 'UNI',
             },
         });
     }
@@ -382,7 +383,7 @@ module.exports = class probit extends Exchange {
             account['free'] = this.safeString (balance, 'available');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1103,7 +1104,7 @@ module.exports = class probit extends Exchange {
             // 'platform_id': 'ETH', // if omitted it will use the default platform for the currency
             'address': address,
             'destination_tag': tag,
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.numberToString (amount),
             // which currency to pay the withdrawal fees
             // only applicable for currencies that accepts multiple withdrawal fee options
             // 'fee_currency_id': 'ETH', // if omitted it will use the default fee policy for each currency

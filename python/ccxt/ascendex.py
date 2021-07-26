@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -24,8 +23,9 @@ class ascendex(Exchange):
         return self.deep_extend(super(ascendex, self).describe(), {
             'id': 'ascendex',
             'name': 'AscendEX',
-            'countries': ['SG', 'CN'],  # Singapore, China
+            'countries': ['SG'],  # Singapore
             'rateLimit': 500,
+            'certified': True,
             # new metainfo interface
             'has': {
                 'CORS': False,
@@ -74,7 +74,10 @@ class ascendex(Exchange):
                     'https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation',
                 ],
                 'fees': 'https://ascendex.com/en/feerate/transactionfee-traderate',
-                'referral': 'https://bitmax.io/#/register?inviteCode=EL6BXBQM',
+                'referral': {
+                    'url': 'https://ascendex.com/en-us/register?inviteCode=EL6BXBQM',
+                    'discount': 0.25,
+                },
             },
             'api': {
                 'public': {
@@ -304,7 +307,8 @@ class ascendex(Exchange):
             id = ids[i]
             currency = dataById[id]
             code = self.safe_currency_code(id)
-            precision = self.safe_integer_2(currency, 'precisionScale', 'nativeScale')
+            precision = self.safe_string_2(currency, 'precisionScale', 'nativeScale')
+            minAmount = self.parse_precision(precision)
             # why would the exchange API have different names for the same field
             fee = self.safe_number_2(currency, 'withdrawFee', 'withdrawalFee')
             status = self.safe_string_2(currency, 'status', 'statusCode')
@@ -319,10 +323,10 @@ class ascendex(Exchange):
                 'name': self.safe_string(currency, 'assetName'),
                 'active': active,
                 'fee': fee,
-                'precision': precision,
+                'precision': int(precision),
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
+                        'min': self.parse_number(minAmount),
                         'max': None,
                     },
                     'withdraw': {
@@ -579,7 +583,7 @@ class ascendex(Exchange):
             account['free'] = self.safe_string(balance, 'availableBalance')
             account['total'] = self.safe_string(balance, 'totalBalance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

@@ -257,6 +257,7 @@ module.exports = class Exchange {
         this.transactions = {}
         this.ohlcvs       = {}
         this.myTrades     = undefined
+        this.positions    = {}
 
         this.requiresWeb3 = false
         this.requiresEddsa = false
@@ -617,8 +618,7 @@ module.exports = class Exchange {
             'precision': this.precision,
         }, this.fees['trading'], market))
         this.markets = indexBy (values, 'symbol')
-        this.marketsById = indexBy (markets, 'id')
-        this.markets_by_id = this.marketsById
+        this.markets_by_id = indexBy (markets, 'id')
         this.symbols = Object.keys (this.markets).sort ()
         this.ids = Object.keys (this.markets_by_id).sort ()
         if (currencies) {
@@ -942,13 +942,8 @@ module.exports = class Exchange {
         return this.market (symbol).symbol || symbol
     }
 
-    url (path, params = {}) {
-        let result = this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path))
-        if (Object.keys (query).length) {
-            result += '?' + this.urlencode (query)
-        }
-        return result
+    implodeHostname (url) {
+        return this.implodeParams (url, { 'hostname': this.hostname })
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
@@ -980,7 +975,7 @@ module.exports = class Exchange {
         }
     }
 
-    parseBalance (balance, legacy = true) {
+    parseBalance (balance, legacy = false) {
 
         const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));
 

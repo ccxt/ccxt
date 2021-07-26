@@ -354,8 +354,10 @@ class kucoin extends Exchange {
                 'accountsByType' => array(
                     'trade' => 'trade',
                     'trading' => 'trade',
+                    'spot' => 'trade',
                     'margin' => 'margin',
                     'main' => 'main',
+                    'funding' => 'main',
                     'futures' => 'contract',
                     'contract' => 'contract',
                     'pool' => 'pool',
@@ -1783,7 +1785,7 @@ class kucoin extends Exchange {
             $account['free'] = $this->safe_string($data, 'availableBalance');
             $account['total'] = $this->safe_string($data, 'accountEquity');
             $result[$code] = $account;
-            return $this->parse_balance($result, false);
+            return $this->parse_balance($result);
         } else {
             $request = array(
                 'type' => $type,
@@ -1818,7 +1820,7 @@ class kucoin extends Exchange {
                     $result[$code] = $account;
                 }
             }
-            return $this->parse_balance($result, false);
+            return $this->parse_balance($result);
         }
     }
 

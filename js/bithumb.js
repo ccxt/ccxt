@@ -130,6 +130,7 @@ module.exports = class bithumb extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'MIR': 'MIR COIN',
                 'SOC': 'Soda Coin',
             },
         });
@@ -215,7 +216,7 @@ module.exports = class bithumb extends Exchange {
             account['free'] = this.safeString (balances, 'available_' + lowerCurrencyId);
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -867,7 +868,7 @@ module.exports = class bithumb extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = '/' + this.implodeParams (path, params);
-        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + endpoint;
+        let url = this.implodeHostname (this.urls['api'][api]) + endpoint;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {

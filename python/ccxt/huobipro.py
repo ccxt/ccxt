@@ -904,7 +904,7 @@ class huobipro(Exchange):
             if balance['type'] == 'frozen':
                 account['used'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

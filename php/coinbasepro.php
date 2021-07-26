@@ -395,7 +395,7 @@ class coinbasepro extends Exchange {
             $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -1157,7 +1157,7 @@ class coinbasepro extends Exchange {
                 $request .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $request;
+        $url = $this->implode_hostname($this->urls['api'][$api]) . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();

@@ -410,7 +410,7 @@ class bitbank extends Exchange {
             $account['total'] = $this->safe_string($balance, 'onhand_amount');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {
@@ -595,7 +595,7 @@ class bitbank extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . '/';
+        $url = $this->implode_hostname($this->urls['api'][$api]) . '/';
         if (($api === 'public') || ($api === 'markets')) {
             $url .= $this->implode_params($path, $params);
             if ($query) {

@@ -247,6 +247,7 @@ class bitforex(Exchange):
                 'GOT': 'GoNetwork',
                 'HBC': 'Hybrid Bank Cash',
                 'IQ': 'IQ.Cash',
+                'MIR': 'MIR COIN',
                 'UOS': 'UOS Network',
             },
             'exceptions': {
@@ -256,6 +257,7 @@ class bitforex(Exchange):
                 '1017': PermissionDenied,  # {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
                 '1019': BadSymbol,  # {"code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid"}
                 '3002': InsufficientFunds,
+                '4002': InvalidOrder,  # {"success":false,"code":"4002","message":"Price unreasonable"}
                 '4003': InvalidOrder,  # {"success":false,"code":"4003","message":"amount too small"}
                 '10204': DDoSProtection,
             },
@@ -362,7 +364,7 @@ class bitforex(Exchange):
             account['free'] = self.safe_string(balance, 'active')
             account['total'] = self.safe_string(balance, 'fix')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

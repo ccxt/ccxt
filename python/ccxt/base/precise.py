@@ -12,29 +12,25 @@
 
 
 class Precise:
-    def __init__(self, number, decimals=0):
-        is_string = isinstance(number, str)
-        is_int = isinstance(number, int)
-        if not (is_string or is_int):
-            raise RuntimeError('Precise class initiated with something other than a string or int')
-        if is_int:
-            self.integer = number
-            self.decimals = decimals
-        else:
-            if decimals:
-                raise RuntimeError('Cannot set decimals when initializing with a string')
+    def __init__(self, number, decimals=None):
+        if decimals is None:
             modifier = 0
             number = number.lower()
             if 'e' in number:
                 number, modifier = number.split('e')
                 modifier = int(modifier)
             decimal_index = number.find('.')
-            self.decimals = len(number) - decimal_index - 1 if decimal_index > -1 else 0
-            integer_string = number.replace('.', '')
-            self.integer = int(integer_string)
+            if decimal_index > -1:
+                self.decimals = len(number) - decimal_index - 1
+                self.integer = int(number.replace('.', ''))
+            else:
+                self.decimals = 0
+                self.integer = int(number)
             self.decimals = self.decimals - modifier
+        else:
+            self.integer = number
+            self.decimals = decimals
         self.base = 10
-        self.reduce()
 
     def mul(self, other):
         integer_result = self.integer * other.integer
@@ -85,22 +81,29 @@ class Precise:
         result = numerator % denominator
         return Precise(result, rationizerDenominator + other.decimals)
 
-    def pow(self, other):
-        result = self.integer ** other.integer
-        return Precise(result, self.decimals * other.integer)
-
     def reduce(self):
-        if self.integer == 0:
-            self.decimals = 0
+        string = str(self.integer)
+        start = len(string) - 1
+        if start == 0:
+            if string == "0":
+                self.decimals = 0
             return self
-        div, mod = divmod(self.integer, self.base)
-        while mod == 0:
-            self.integer = div
-            self.decimals -= 1
-            div, mod = divmod(self.integer, self.base)
-        return self
+        for i in range(start, -1, -1):
+            if string[i] != '0':
+                break
+        difference = start - i
+        if difference == 0:
+            return self
+        self.decimals -= difference
+        self.integer = int(string[:i + 1])
+
+    def equals(self, other):
+        self.reduce()
+        other.reduce()
+        return self.decimals == other.decimals and self.integer == other.integer
 
     def __str__(self):
+        self.reduce()
         sign = '-' if self.integer < 0 else ''
         integer_array = list(str(abs(self.integer)).rjust(self.decimals, '0'))
         index = len(integer_array) - self.decimals
@@ -162,7 +165,7 @@ class Precise:
         return str(Precise(string1).mod(Precise(string2)))
 
     @staticmethod
-    def string_pow(string1, string2):
+    def string_equals(string1, string2):
         if string1 is None or string2 is None:
             return None
-        return str(Precise(string1).pow(Precise(string2)))
+        return Precise(string1).equals(Precise(string2))

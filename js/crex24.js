@@ -183,24 +183,44 @@ module.exports = class crex24 extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetInstruments (params);
         //
-        //     [ {              symbol:   "$PAC-BTC",
-        //                baseCurrency:   "$PAC",
-        //               quoteCurrency:   "BTC",
-        //                 feeCurrency:   "BTC",
-        //                    tickSize:    1e-8,
-        //                    minPrice:    1e-8,
-        //                   minVolume:    1,
-        //         supportedOrderTypes: ["limit"],
-        //                       state:   "active"    },
-        //       {              symbol:   "ZZC-USD",
-        //                baseCurrency:   "ZZC",
-        //               quoteCurrency:   "USD",
-        //                 feeCurrency:   "USD",
-        //                    tickSize:    0.0001,
-        //                    minPrice:    0.0001,
-        //                   minVolume:    1,
-        //         supportedOrderTypes: ["limit"],
-        //                       state:   "active"   }        ]
+        //         [ {
+        //             "symbol": "$PAC-BTC",
+        //             "baseCurrency": "$PAC",
+        //             "quoteCurrency": "BTC",
+        //             "feeCurrency": "BTC",
+        //             "feeSchedule": "OriginalSchedule",
+        //             "tickSize": 0.00000001,
+        //             "minPrice": 0.00000001,
+        //             "maxPrice": 10000000000.0,
+        //             "volumeIncrement": 0.00000001,
+        //             "minVolume": 1.0,
+        //             "maxVolume": 1000000000.0,
+        //             "minQuoteVolume": 0.000000000000001,
+        //             "maxQuoteVolume": 100000000000.0,
+        //             "supportedOrderTypes": [
+        //               "limit"
+        //             ],
+        //             "state": "delisted"
+        //           },
+        //           {
+        //             "symbol": "1INCH-USDT",
+        //             "baseCurrency": "1INCH",
+        //             "quoteCurrency": "USDT",
+        //             "feeCurrency": "USDT",
+        //             "feeSchedule": "FeeSchedule10",
+        //             "tickSize": 0.0001,
+        //             "minPrice": 0.0001,
+        //             "maxPrice": 10000000000.0,
+        //             "volumeIncrement": 0.00000001,
+        //             "minVolume": 0.01,
+        //             "maxVolume": 1000000000.0,
+        //             "minQuoteVolume": 0.000000000000001,
+        //             "maxQuoteVolume": 100000000000.0,
+        //             "supportedOrderTypes": [
+        //               "limit"
+        //             ],
+        //             "state": "active"
+        //           }, ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -213,7 +233,11 @@ module.exports = class crex24 extends Exchange {
             const symbol = base + '/' + quote;
             const tickSize = this.safeNumber (market, 'tickSize');
             const minPrice = this.safeNumber (market, 'minPrice');
+            const maxPrice = this.safeNumber (market, 'maxPrice');
             const minAmount = this.safeNumber (market, 'minVolume');
+            const maxAmount = this.safeNumber (market, 'maxVolume');
+            const minCost = this.safeNumber (market, 'minQuoteVolume');
+            const maxCost = this.safeNumber (market, 'maxQuoteVolume');
             const precision = {
                 'amount': minAmount,
                 'price': tickSize,
@@ -232,15 +256,15 @@ module.exports = class crex24 extends Exchange {
                 'limits': {
                     'amount': {
                         'min': minAmount,
-                        'max': undefined,
+                        'max': maxAmount,
                     },
                     'price': {
                         'min': minPrice,
-                        'max': undefined,
+                        'max': maxPrice,
                     },
                     'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': minCost,
+                        'max': maxCost,
                     },
                 },
             });
@@ -341,7 +365,7 @@ module.exports = class crex24 extends Exchange {
             account['used'] = this.safeString (balance, 'reserved');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

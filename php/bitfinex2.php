@@ -147,6 +147,9 @@ class bitfinex2 extends bitfinex {
                         'liquidations/hist',
                         'rankings/{key}:{timeframe}:{symbol}/{section}',
                         'rankings/{key}:{timeframe}:{symbol}/hist',
+                        'pulse/hist',
+                        'pulse/profile/{nickname}',
+                        'funding/stats/{symbol}/hist',
                     ),
                     'post' => array(
                         'calc/trade/avg',
@@ -594,7 +597,7 @@ class bitfinex2 extends bitfinex {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
@@ -936,7 +939,8 @@ class bitfinex2 extends bitfinex {
             $limit = 100; // default 100, max 5000
         }
         if ($since === null) {
-            $since = $this->milliseconds() - $this->parse_timeframe($timeframe) * $limit * 1000;
+            $duration = $this->parse_timeframe($timeframe);
+            $since = $this->milliseconds() - $duration * $limit * 1000;
         }
         $request = array(
             'symbol' => $market['id'],

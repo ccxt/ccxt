@@ -715,7 +715,7 @@ class ndax extends Exchange {
         //         "PegPriceType":"Unknown",
         //         "PegOffset":0.0000000000000000000000000000,
         //         "PegLimitOffset":0.0000000000000000000000000000,
-        //         "IpAddress":"5.228.233.138",
+        //         "IpAddress":"x.x.x.x",
         //         "ClientOrderIdUuid":null,
         //         "OMSId":1
         //     }
@@ -888,7 +888,7 @@ class ndax extends Exchange {
             $account['used'] = $this->safe_string($balance, 'Hold');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_ledger_entry_type($type) {
@@ -1513,7 +1513,7 @@ class ndax extends Exchange {
         //             "PegPriceType":"Unknown",
         //             "PegOffset":0.0000000000000000000000000000,
         //             "PegLimitOffset":0.0000000000000000000000000000,
-        //             "IpAddress":"5.228.233.138",
+        //             "IpAddress":"x.x.x.x",
         //             "ClientOrderIdUuid":null,
         //             "OMSId":1
         //         ),
@@ -1582,7 +1582,7 @@ class ndax extends Exchange {
         //         "PegPriceType":"Unknown",
         //         "PegOffset":0.0000000000000000000000000000,
         //         "PegLimitOffset":0.0000000000000000000000000000,
-        //         "IpAddress":"5.228.233.138",
+        //         "IpAddress":"x.x.x.x",
         //         "ClientOrderIdUuid":null,
         //         "OMSId":1
         //     }
@@ -1651,7 +1651,7 @@ class ndax extends Exchange {
         //             "PegPriceType":"Unknown",
         //             "PegOffset":0.0000000000000000000000000000,
         //             "PegLimitOffset":0.0000000000000000000000000000,
-        //             "IpAddress":"5.228.233.138",
+        //             "IpAddress":"x.x.x.x",
         //             "ClientOrderIdUuid":null,
         //             "OMSId":1
         //         ),

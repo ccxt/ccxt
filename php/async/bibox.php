@@ -151,36 +151,23 @@ class bibox extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $request = array(
-            'cmd' => 'marketAll',
+            'cmd' => 'pairList',
         );
         $response = yield $this->publicGetMdata (array_merge($request, $params));
         //
         //     {
         //         "$result" => array(
         //             {
-        //                 "is_hide":0,
-        //                 "high_cny":"1.9478",
-        //                 "amount":"272.41",
-        //                 "coin_symbol":"BIX",
-        //                 "last":"0.00002487",
-        //                 "currency_symbol":"BTC",
-        //                 "change":"+0.00000073",
-        //                 "low_cny":"1.7408",
-        //                 "base_last_cny":"1.84538041",
-        //                 "area_id":7,
-        //                 "percent":"+3.02%",
-        //                 "last_cny":"1.8454",
-        //                 "high":"0.00002625",
-        //                 "low":"0.00002346",
-        //                 "pair_type":0,
-        //                 "last_usd":"0.2686",
-        //                 "vol24H":"10940613",
         //                 "$id":1,
-        //                 "high_usd":"0.2835",
-        //                 "low_usd":"0.2534"
+        //                 "pair":"BIX_BTC",
+        //                 "pair_type":0,
+        //                 "area_id":7,
+        //                 "is_hide":0,
+        //                 "decimal":8,
+        //                 "amount_scale":4
         //             }
         //         ),
-        //         "cmd":"marketAll",
+        //         "cmd":"pairList",
         //         "ver":"1.1"
         //     }
         //
@@ -189,15 +176,20 @@ class bibox extends Exchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $numericId = $this->safe_integer($market, 'id');
-            $baseId = $this->safe_string($market, 'coin_symbol');
-            $quoteId = $this->safe_string($market, 'currency_symbol');
+            $id = $this->safe_string($market, 'pair');
+            $baseId = null;
+            $quoteId = null;
+            if ($id !== null) {
+                $parts = explode('_', $id);
+                $baseId = $this->safe_string($parts, 0);
+                $quoteId = $this->safe_string($parts, 1);
+            }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $id = $baseId . '_' . $quoteId;
             $precision = array(
-                'amount' => 4,
-                'price' => 8,
+                'amount' => $this->safe_number($market, 'amount_scale'),
+                'price' => $this->safe_number($market, 'decimal'),
             );
             $result[] = array(
                 'id' => $id,
@@ -317,7 +309,7 @@ class bibox extends Exchange {
             $symbol = $market['symbol'];
         }
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $feeCurrency = $this->safe_string($trade, 'fee_symbol');
         if ($feeCurrency !== null) {
             if (is_array($this->currencies_by_id) && array_key_exists($feeCurrency, $this->currencies_by_id)) {
@@ -332,9 +324,9 @@ class bibox extends Exchange {
         $price = $this->parse_number($priceString);
         $amount = $this->parse_number($amountString);
         $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => -$feeCost,
+                'cost' => $this->parse_number(Precise::string_neg($feeCostString)),
                 'currency' => $feeCurrency,
                 'rate' => $feeRate,
             );
@@ -620,7 +612,7 @@ class bibox extends Exchange {
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1040,7 +1032,7 @@ class bibox extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname )) . '/' . $this->version . '/' . $path;
+        $url = $this->implode_hostname($this->urls['api']) . '/' . $this->version . '/' . $path;
         $cmds = $this->json(array( $params ));
         if ($api === 'public') {
             if ($method !== 'GET') {
@@ -1050,7 +1042,7 @@ class bibox extends Exchange {
             }
         } else if ($api === 'v2private') {
             $this->check_required_credentials();
-            $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname )) . '/v2/' . $path;
+            $url = $this->implode_hostname($this->urls['api']) . '/v2/' . $path;
             $json_params = $this->json($params);
             $body = array(
                 'body' => $json_params,

@@ -125,7 +125,7 @@ module.exports = class poloniex extends Exchange {
             'limits': {
                 'amount': {
                     'min': 0.000001,
-                    'max': 1000000000,
+                    'max': undefined,
                 },
                 'price': {
                     'min': 0.00000001,
@@ -346,7 +346,7 @@ module.exports = class poloniex extends Exchange {
             account['used'] = this.safeString (balance, 'onOrders');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchTradingFees (params = {}) {
@@ -593,9 +593,13 @@ module.exports = class poloniex extends Exchange {
         const amountString = this.safeString (trade, 'amount');
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
-        let cost = this.safeNumber (trade, 'total');
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        let cost = undefined;
+        let costString = this.safeString (trade, 'total');
+        if (costString === undefined) {
+            costString = Precise.stringMul (priceString, amountString);
+            cost = this.parseNumber (costString);
+        } else {
+            cost = this.parseNumber (costString);
         }
         const feeDisplay = this.safeString (trade, 'feeDisplay');
         if (feeDisplay !== undefined) {
@@ -618,14 +622,15 @@ module.exports = class poloniex extends Exchange {
                 };
             }
         } else {
-            const feeCost = this.safeNumber (trade, 'fee');
-            if (feeCost !== undefined && market !== undefined) {
+            const feeCostString = this.safeString (trade, 'fee');
+            if (feeCostString !== undefined && market !== undefined) {
                 const feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
-                const feeBase = (side === 'buy') ? amount : cost;
+                const feeBase = (side === 'buy') ? amountString : costString;
+                const feeRateString = Precise.stringDiv (feeCostString, feeBase);
                 fee = {
-                    'cost': feeCost,
+                    'cost': this.parseNumber (feeCostString),
                     'currency': feeCurrencyCode,
-                    'rate': Precise.stringDiv (feeCost, feeBase),
+                    'rate': this.parseNumber (feeRateString),
                 };
             }
         }
@@ -1344,7 +1349,7 @@ module.exports = class poloniex extends Exchange {
         //                 "fee":"0.00000000",
         //                 "timestamp":1591573420,
         //                 "status":"COMPLETE: dadf427224b3d44b38a2c13caa4395e4666152556ca0b2f67dbd86a95655150f",
-        //                 "ipAddress":"74.116.3.247",
+        //                 "ipAddress":"x.x.x.x",
         //                 "canCancel":0,
         //                 "canResendEmail":0,
         //                 "paymentID":null,
@@ -1358,7 +1363,7 @@ module.exports = class poloniex extends Exchange {
         //                 fee: "0.01000000",
         //                 timestamp: 1510819838,
         //                 status: "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
-        //                 ipAddress: "5.220.220.200"
+        //                 ipAddress: "x.x.x.x"
         //             },
         //             {
         //                 withdrawalNumber: 9290444,
@@ -1368,7 +1373,7 @@ module.exports = class poloniex extends Exchange {
         //                 fee: "0.00500000",
         //                 timestamp: 1514099289,
         //                 status: "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        //                 ipAddress: "5.228.227.214"
+        //                 ipAddress: "x.x.x.x"
         //             },
         //             {
         //                 withdrawalNumber: 11518260,
@@ -1378,7 +1383,7 @@ module.exports = class poloniex extends Exchange {
         //                 fee: "0.00050000",
         //                 timestamp: 1527918155,
         //                 status: "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
-        //                 ipAddress: "211.8.195.26"
+        //                 ipAddress: "x.x.x.x"
         //             }
         //         ]
         //     }
@@ -1426,6 +1431,10 @@ module.exports = class poloniex extends Exchange {
     parseTransactionStatus (status) {
         const statuses = {
             'COMPLETE': 'ok',
+            'AWAITING APPROVAL': 'pending',
+            'PENDING': 'pending',
+            'PROCESSING': 'pending',
+            'COMPLETE ERROR': 'failed',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1456,7 +1465,7 @@ module.exports = class poloniex extends Exchange {
         //         "address": "1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3",
         //         "currency": "BTC",
         //         "canCancel": 0,
-        //         "ipAddress": "185.230.101.31",
+        //         "ipAddress": "x.x.x.x",
         //         "paymentID": null,
         //         "timestamp": 1523834337,
         //         "canResendEmail": 0,

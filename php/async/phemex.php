@@ -59,7 +59,10 @@ class phemex extends Exchange {
                 'www' => 'https://phemex.com',
                 'doc' => 'https://github.com/phemex/phemex-api-docs',
                 'fees' => 'https://phemex.com/fees-conditions',
-                'referral' => 'https://phemex.com/register?referralCode=EDNVJ',
+                'referral' => array(
+                    'url' => 'https://phemex.com/register?referralCode=EDNVJ',
+                    'discount' => 0.1,
+                ),
             ),
             'timeframes' => array(
                 '1m' => '60',
@@ -805,7 +808,7 @@ class phemex extends Exchange {
         $precise->decimals = $precise->decimals - $scale;
         $precise->reduce ();
         $stringValue = (string) $precise;
-        return intval($stringValue);
+        return intval(floatval($stringValue));
     }
 
     public function to_ev($amount, $market = null) {
@@ -1301,7 +1304,7 @@ class phemex extends Exchange {
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_swap_balance($response) {
@@ -1392,7 +1395,7 @@ class phemex extends Exchange {
         $account['total'] = $this->from_en($accountBalanceEv, $valueScale);
         $account['used'] = $this->from_en($totalUsedBalanceEv, $valueScale);
         $result[$code] = $account;
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_balance($params = array ()) {
@@ -2483,7 +2486,7 @@ class phemex extends Exchange {
             $auth = $requestPath . $queryString . $expiryString . $payload;
             $headers['x-phemex-request-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
         }
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $url;
+        $url = $this->implode_hostname($this->urls['api'][$api]) . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

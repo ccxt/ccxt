@@ -145,6 +145,7 @@ class binance(Exchange):
                         'margin/priceIndex',
                         # these endpoints require self.apiKey + self.secret
                         'asset/assetDividend',
+                        'asset/dribblet',
                         'asset/transfer',
                         'asset/assetDetail',
                         'asset/tradeFee',
@@ -189,10 +190,12 @@ class binance(Exchange):
                         'sub-account/futures/accountSummary',
                         'sub-account/futures/positionRisk',
                         'sub-account/futures/internalTransfer',
+                        'sub-account/list',
                         'sub-account/margin/account',
                         'sub-account/margin/accountSummary',
                         'sub-account/spotSummary',
                         'sub-account/status',
+                        'sub-account/sub/transfer/history',
                         'sub-account/transfer/subUserHistory',
                         'sub-account/universalTransfer',
                         # lending endpoints
@@ -253,10 +256,12 @@ class binance(Exchange):
                         'broker/universalTransfer',
                         # v2 not supported yet
                         # GET /sapi/v2/broker/subAccount/futuresSummary
+                        'account/apiRestrictions',
                     ],
                     'post': [
                         'asset/dust',
                         'asset/transfer',
+                        'get-funding-asset',
                         'account/disableFastWithdrawSwitch',
                         'account/enableFastWithdrawSwitch',
                         'capital/withdraw/apply',
@@ -371,7 +376,6 @@ class binance(Exchange):
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'allForceOrders',
                         'openInterest',
                     ],
                 },
@@ -443,7 +447,6 @@ class binance(Exchange):
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'allForceOrders',
                         'openInterest',
                         'indexInfo',
                     ],
@@ -459,7 +462,7 @@ class binance(Exchange):
                 },
                 'fapiPrivate': {
                     'get': [
-                        'allForceOrders',
+                        'forceOrders',
                         'allOrders',
                         'openOrder',
                         'openOrders',
@@ -474,6 +477,7 @@ class binance(Exchange):
                         'income',
                         'commissionRate',
                         'apiTradingStatus',
+                        'multiAssetsMargin',
                         # broker endpoints
                         'apiReferral/ifNewUser',
                         'apiReferral/customization',
@@ -493,6 +497,7 @@ class binance(Exchange):
                         'leverage',
                         'listenKey',
                         'countdownCancelAll',
+                        'multiAssetsMargin',
                         # broker endpoints
                         'apiReferral/customization',
                         'apiReferral/userCustomization',
@@ -747,6 +752,7 @@ class binance(Exchange):
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
+                    'MAX_POSITION': InvalidOrder,  # {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
             },
         })
@@ -1190,6 +1196,8 @@ class binance(Exchange):
             method = self.safe_string(fetchBalanceOptions, 'method', 'dapiPrivateGetAccount')
         elif type == 'margin':
             method = 'sapiGetMarginAccount'
+        elif type == 'savings':
+            method = 'sapiGetLendingUnionAccount'
         query = self.omit(params, 'type')
         response = await getattr(self, method)(query)
         #
@@ -1336,6 +1344,31 @@ class binance(Exchange):
         #         }
         #     ]
         #
+        # savings
+        #
+        #     {
+        #       "totalAmountInBTC": "0.3172",
+        #       "totalAmountInUSDT": "10000",
+        #       "totalFixedAmountInBTC": "0.3172",
+        #       "totalFixedAmountInUSDT": "10000",
+        #       "totalFlexibleInBTC": "0",
+        #       "totalFlexibleInUSDT": "0",
+        #       "positionAmountVos": [
+        #         {
+        #           "asset": "USDT",
+        #           "amount": "10000",
+        #           "amountInBTC": "0.3172",
+        #           "amountInUSDT": "10000"
+        #         },
+        #         {
+        #           "asset": "BUSD",
+        #           "amount": "0",
+        #           "amountInBTC": "0",
+        #           "amountInUSDT": "0"
+        #         }
+        #       ]
+        #     }
+        #
         result = {
             'info': response,
         }
@@ -1350,6 +1383,17 @@ class binance(Exchange):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
+                result[code] = account
+        elif type == 'savings':
+            positionAmountVos = self.safe_value(response, 'positionAmountVos')
+            for i in range(0, len(positionAmountVos)):
+                entry = positionAmountVos[i]
+                currencyId = self.safe_string(entry, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                usedAndTotal = self.safe_string(entry, 'amount')
+                account['total'] = usedAndTotal
+                account['used'] = usedAndTotal
                 result[code] = account
         else:
             balances = response
@@ -1366,7 +1410,7 @@ class binance(Exchange):
                 result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -1931,14 +1975,14 @@ class binance(Exchange):
         cost = self.safe_number_2(order, 'cummulativeQuoteQty', 'cumQuote')
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
-        if type == 'limit_maker':
-            type = 'limit'
         side = self.safe_string_lower(order, 'side')
         fills = self.safe_value(order, 'fills', [])
         trades = self.parse_trades(fills, market)
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX')
+        if type == 'limit_maker':
+            type = 'limit'
         stopPriceString = self.safe_string(order, 'stopPrice')
         stopPrice = self.parse_number(self.omit_zero(stopPriceString))
         return self.safe_order({
@@ -1996,7 +2040,7 @@ class binance(Exchange):
         }
         if clientOrderId is None:
             broker = self.safe_value(self.options, 'broker')
-            if broker:
+            if broker is not None:
                 brokerId = self.safe_string(broker, orderType)
                 if brokerId is not None:
                     request['newClientOrderId'] = brokerId + self.uuid22()

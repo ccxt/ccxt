@@ -312,6 +312,7 @@ module.exports = class bitfinex extends Exchange {
                 'RBT': 'RBTC',
                 'SNG': 'SNGLS',
                 'STJ': 'STORJ',
+                'TERRAUST': 'UST',
                 'TSD': 'TUSD',
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
@@ -645,7 +646,7 @@ module.exports = class bitfinex extends Exchange {
                 }
             }
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -801,10 +802,7 @@ module.exports = class bitfinex extends Exchange {
 
     parseTrade (trade, market) {
         const id = this.safeString (trade, 'tid');
-        let timestamp = this.safeNumber (trade, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp) * 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
         const type = undefined;
         const side = this.safeStringLower (trade, 'type');
         const orderId = this.safeString (trade, 'order_id');
@@ -1204,14 +1202,8 @@ module.exports = class bitfinex extends Exchange {
         //         "timestamp_created": "1561716066.0"
         //     }
         //
-        let timestamp = this.safeNumber (transaction, 'timestamp_created');
-        if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp * 1000);
-        }
-        let updated = this.safeNumber (transaction, 'timestamp');
-        if (updated !== undefined) {
-            updated = parseInt (updated * 1000);
-        }
+        const timestamp = this.safeTimestamp (transaction, 'timestamp_created');
+        const updated = this.safeTimestamp (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const type = this.safeStringLower (transaction, 'type'); // DEPOSIT or WITHDRAWAL

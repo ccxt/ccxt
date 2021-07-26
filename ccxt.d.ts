@@ -211,7 +211,7 @@ declare module 'ccxt' {
     export type OHLCV = [number, number, number, number, number, number];
 
     /** Request parameters */
-    type Params = Dictionary<string | number>;
+    type Params = Dictionary<string | number | boolean>;
 
     export class Exchange {
         constructor(config?: {[key in keyof Exchange]?: Exchange[key]});
@@ -464,7 +464,6 @@ declare module 'ccxt' {
     export class buda extends Exchange {}
     export class bw extends Exchange {}
     export class bybit extends Exchange {}
-    export class bytetrade extends Exchange {}
     export class cdax extends huobipro {}
     export class cex extends Exchange {}
     export class coinbase extends Exchange {}
@@ -515,16 +514,16 @@ declare module 'ccxt' {
     export class ndax extends Exchange {}
     export class novadax extends Exchange {}
     export class oceanex extends Exchange {}
-    export class okcoin extends okex {}
+    export class okcoin extends okex3 {}
     export class okex extends Exchange {}
-    export class okex5 extends Exchange {}
+    export class okex3 extends Exchange {}
+    export class okex5 extends okex {}
     export class paymium extends Exchange {}
     export class phemex extends Exchange {}
     export class poloniex extends Exchange {}
     export class probit extends Exchange {}
     export class qtrade extends Exchange {}
     export class ripio extends Exchange {}
-    export class southxchange extends Exchange {}
     export class stex extends Exchange {}
     export class therock extends Exchange {}
     export class tidebit extends Exchange {}
@@ -582,7 +581,6 @@ declare module 'ccxt' {
         | 'buda'
         | 'bw'
         | 'bybit'
-        | 'bytetrade'
         | 'cdax'
         | 'cex'
         | 'coinbase'
@@ -635,6 +633,7 @@ declare module 'ccxt' {
         | 'oceanex'
         | 'okcoin'
         | 'okex'
+        | 'okex3'
         | 'okex5'
         | 'paymium'
         | 'phemex'
@@ -642,7 +641,6 @@ declare module 'ccxt' {
         | 'probit'
         | 'qtrade'
         | 'ripio'
-        | 'southxchange'
         | 'stex'
         | 'therock'
         | 'tidebit'

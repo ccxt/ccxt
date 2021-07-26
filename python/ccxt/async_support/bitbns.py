@@ -382,7 +382,7 @@ class bitbns(Exchange):
                     account['free'] = self.safe_string(data, key)
                     account['used'] = self.safe_string(data, 'inorder' + currencyId)
                     result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -876,33 +876,12 @@ class bitbns(Exchange):
             'info': response,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
-        self.check_address(address)
-        await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'coin': currency['id'],
-            'address': address,
-            'amount': amount,
-            # https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
-            # issue sapiGetCapitalConfigGetall() to get networks for withdrawing USDT ERC20 vs USDT Omni
-            # 'network': 'ETH',  # 'BTC', 'TRX', etc, optional
-        }
-        if tag is not None:
-            request['addressTag'] = tag
-        response = await self.sapiPostCapitalWithdrawApply(self.extend(request, params))
-        #     {id: '9a67628b16ba4988ae20d329333f16bc'}
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'id'),
-        }
-
     def nonce(self):
         return self.milliseconds()
 
     def sign(self, path, api='v1', method='GET', params={}, headers=None, body=None):
         self.check_required_credentials()
-        baseUrl = self.implode_params(self.urls['api'][api], {'hostname': self.hostname})
+        baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         nonce = str(self.nonce())

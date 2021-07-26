@@ -128,6 +128,7 @@ module.exports = class binance extends Exchange {
                         'margin/priceIndex',
                         // these endpoints require this.apiKey + this.secret
                         'asset/assetDividend',
+                        'asset/dribblet',
                         'asset/transfer',
                         'asset/assetDetail',
                         'asset/tradeFee',
@@ -172,10 +173,12 @@ module.exports = class binance extends Exchange {
                         'sub-account/futures/accountSummary',
                         'sub-account/futures/positionRisk',
                         'sub-account/futures/internalTransfer',
+                        'sub-account/list',
                         'sub-account/margin/account',
                         'sub-account/margin/accountSummary',
                         'sub-account/spotSummary',
                         'sub-account/status',
+                        'sub-account/sub/transfer/history',
                         'sub-account/transfer/subUserHistory',
                         'sub-account/universalTransfer',
                         // lending endpoints
@@ -236,10 +239,12 @@ module.exports = class binance extends Exchange {
                         'broker/universalTransfer',
                         // v2 not supported yet
                         // GET /sapi/v2/broker/subAccount/futuresSummary
+                        'account/apiRestrictions',
                     ],
                     'post': [
                         'asset/dust',
                         'asset/transfer',
+                        'get-funding-asset',
                         'account/disableFastWithdrawSwitch',
                         'account/enableFastWithdrawSwitch',
                         'capital/withdraw/apply',
@@ -354,7 +359,6 @@ module.exports = class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'allForceOrders',
                         'openInterest',
                     ],
                 },
@@ -426,7 +430,6 @@ module.exports = class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'allForceOrders',
                         'openInterest',
                         'indexInfo',
                     ],
@@ -442,7 +445,7 @@ module.exports = class binance extends Exchange {
                 },
                 'fapiPrivate': {
                     'get': [
-                        'allForceOrders',
+                        'forceOrders',
                         'allOrders',
                         'openOrder',
                         'openOrders',
@@ -457,6 +460,7 @@ module.exports = class binance extends Exchange {
                         'income',
                         'commissionRate',
                         'apiTradingStatus',
+                        'multiAssetsMargin',
                         // broker endpoints
                         'apiReferral/ifNewUser',
                         'apiReferral/customization',
@@ -476,6 +480,7 @@ module.exports = class binance extends Exchange {
                         'leverage',
                         'listenKey',
                         'countdownCancelAll',
+                        'multiAssetsMargin',
                         // broker endpoints
                         'apiReferral/customization',
                         'apiReferral/userCustomization',
@@ -730,6 +735,7 @@ module.exports = class binance extends Exchange {
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
+                    'MAX_POSITION': InvalidOrder, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
             },
         });
@@ -1197,6 +1203,8 @@ module.exports = class binance extends Exchange {
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
         } else if (type === 'margin') {
             method = 'sapiGetMarginAccount';
+        } else if (type === 'savings') {
+            method = 'sapiGetLendingUnionAccount';
         }
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
@@ -1344,6 +1352,31 @@ module.exports = class binance extends Exchange {
         //         }
         //     ]
         //
+        // savings
+        //
+        //     {
+        //       "totalAmountInBTC": "0.3172",
+        //       "totalAmountInUSDT": "10000",
+        //       "totalFixedAmountInBTC": "0.3172",
+        //       "totalFixedAmountInUSDT": "10000",
+        //       "totalFlexibleInBTC": "0",
+        //       "totalFlexibleInUSDT": "0",
+        //       "positionAmountVos": [
+        //         {
+        //           "asset": "USDT",
+        //           "amount": "10000",
+        //           "amountInBTC": "0.3172",
+        //           "amountInUSDT": "10000"
+        //         },
+        //         {
+        //           "asset": "BUSD",
+        //           "amount": "0",
+        //           "amountInBTC": "0",
+        //           "amountInUSDT": "0"
+        //         }
+        //       ]
+        //     }
+        //
         const result = {
             'info': response,
         };
@@ -1358,6 +1391,18 @@ module.exports = class binance extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'free');
                 account['used'] = this.safeString (balance, 'locked');
+                result[code] = account;
+            }
+        } else if (type === 'savings') {
+            const positionAmountVos = this.safeValue (response, 'positionAmountVos');
+            for (let i = 0; i < positionAmountVos.length; i++) {
+                const entry = positionAmountVos[i];
+                const currencyId = this.safeString (entry, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                const usedAndTotal = this.safeString (entry, 'amount');
+                account['total'] = usedAndTotal;
+                account['used'] = usedAndTotal;
                 result[code] = account;
             }
         } else {
@@ -1378,7 +1423,7 @@ module.exports = class binance extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1981,15 +2026,15 @@ module.exports = class binance extends Exchange {
         const cost = this.safeNumber2 (order, 'cummulativeQuoteQty', 'cumQuote');
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
-        if (type === 'limit_maker') {
-            type = 'limit';
-        }
         const side = this.safeStringLower (order, 'side');
         const fills = this.safeValue (order, 'fills', []);
         const trades = this.parseTrades (fills, market);
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
+        if (type === 'limit_maker') {
+            type = 'limit';
+        }
         const stopPriceString = this.safeString (order, 'stopPrice');
         const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
         return this.safeOrder ({
@@ -2052,7 +2097,7 @@ module.exports = class binance extends Exchange {
         };
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker');
-            if (broker) {
+            if (broker !== undefined) {
                 const brokerId = this.safeString (broker, orderType);
                 if (brokerId !== undefined) {
                     request['newClientOrderId'] = brokerId + this.uuid22 ();

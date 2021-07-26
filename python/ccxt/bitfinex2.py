@@ -156,6 +156,9 @@ class bitfinex2(bitfinex):
                         'liquidations/hist',
                         'rankings/{key}:{timeframe}:{symbol}/{section}',
                         'rankings/{key}:{timeframe}:{symbol}/hist',
+                        'pulse/hist',
+                        'pulse/profile/{nickname}',
+                        'funding/stats/{symbol}/hist',
                     ],
                     'post': [
                         'calc/trade/avg',
@@ -590,7 +593,7 @@ class bitfinex2(bitfinex):
                 account['total'] = self.safe_string(balance, 2)
                 account['free'] = self.safe_string(balance, 4)
                 result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         # transferring between derivatives wallet and regular wallet is not documented in their API
@@ -900,7 +903,8 @@ class bitfinex2(bitfinex):
         if limit is None:
             limit = 100  # default 100, max 5000
         if since is None:
-            since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
+            duration = self.parse_timeframe(timeframe)
+            since = self.milliseconds() - duration * limit * 1000
         request = {
             'symbol': market['id'],
             'timeframe': self.timeframes[timeframe],

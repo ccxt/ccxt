@@ -873,7 +873,7 @@ class bitpanda(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         code = None

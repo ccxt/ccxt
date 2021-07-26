@@ -28,61 +28,6 @@ function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = 
 function number_to_string ($x) {
     return Exchange::number_to_string ($x);
 }
-function toWei ($amount, $decimals) {
-    return Exchange::to_wei ($amount, $decimals);
-}
-function fromWei ($amount, $decimals) {
-    return Exchange::from_wei ($amount, $decimals);
-}
-
-// ----------------------------------------------------------------------------
-// toWei / fromWei
-
-assert (toWei (1, 18) === '1000000000000000000');
-assert (toWei (1, 17) === '100000000000000000');
-assert (toWei (1, 16) === '10000000000000000');
-assert (toWei ('1', 18) === '1000000000000000000');
-assert (toWei ('1', 17) === '100000000000000000');
-assert (toWei ('1', 16) === '10000000000000000');
-assert (toWei (0, 18) === '0');
-assert (toWei (1, 0) === '1');
-assert (toWei (1, 1) === '10');
-assert (toWei (1.3, 18) === '1300000000000000000');
-assert (toWei ('1.3', 18) === '1300000000000000000');
-assert (toWei (1.999, 17) === '199900000000000000');
-assert (toWei ('1.999', 17) === '199900000000000000');
-assert (toWei ('0.1', 18) === '100000000000000000');
-assert (toWei ('0.01', 18) === '10000000000000000');
-assert (toWei ('0.001', 18) === '1000000000000000');
-assert (toWei (0.1, 18) === '100000000000000000');
-assert (toWei (0.01, 18) === '10000000000000000');
-assert (toWei (0.001, 18) === '1000000000000000');
-assert (toWei ('0.3323340739', 18) === '332334073900000000');
-assert (toWei (0.3323340739, 18) === '332334073900000000');
-assert (toWei ('0.009428', 18) === '9428000000000000');
-assert (toWei (0.009428, 18) === '9428000000000000');
-
-// $us test that we get the inverse for all these test
-assert (fromWei ('1000000000000000000', 18) === 1.0);
-assert (fromWei ('100000000000000000', 17) === 1.0);
-assert (fromWei ('10000000000000000', 16) === 1.0);
-assert (fromWei (1000000000000000000, 18) === 1.0);
-assert (fromWei (100000000000000000, 17) === 1.0);
-assert (fromWei (10000000000000000, 16) === 1.0);
-assert (fromWei ('1300000000000000000', 18) === 1.3);
-assert (fromWei (1300000000000000000, 18) === 1.3);
-assert (fromWei ('199900000000000000', 17) === 1.999);
-assert (fromWei (199900000000000000, 17) === 1.999);
-assert (fromWei ('100000000000000000', 18) === 0.1);
-assert (fromWei ('10000000000000000', 18) === 0.01);
-assert (fromWei ('1000000000000000', 18) === 0.001);
-assert (fromWei (100000000000000000, 18) === 0.1);
-assert (fromWei (10000000000000000, 18) === 0.01);
-assert (fromWei (1000000000000000, 18) === 0.001);
-assert (fromWei ('332334073900000000', 18) === 0.3323340739);
-assert (fromWei (332334073900000000, 18) === 0.3323340739);
-assert (fromWei ('9428000000000000', 18) === 0.009428);
-assert (fromWei (9428000000000000, 18) === 0.009428);
 
 // ----------------------------------------------------------------------------
 // number_to_string
@@ -233,6 +178,10 @@ assert (decimal_to_precision ('165', ROUND, 110, TICK_SIZE) === '220');
 assert (decimal_to_precision ('0.000123456789', ROUND, 0.00000012, TICK_SIZE) === '0.00012348');
 assert (decimal_to_precision ('0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE) === '0.00012336');
 assert (decimal_to_precision ('0.000273398', ROUND, 1e-7, TICK_SIZE) === '0.0002734');
+
+assert (decimal_to_precision ('0.00005714', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
+// this line causes problems in JS, fix with Precise
+// assert (decimal_to_precision ('0.0000571495257361', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
 
 assert (decimal_to_precision ('0.01', ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
 assert (decimal_to_precision ('0.01', TRUNCATE, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
@@ -392,7 +341,6 @@ assert (Precise::string_mod('10.1', '0.5') === '0.1');
 assert (Precise::string_mod('10000000', '5555') === '1000');
 assert (Precise::string_mod('5550', '120') === '30');
 
-assert (Precise::string_pow('10', '2') === '100');
-assert (Precise::string_pow('4', '4') === '256');
-assert (Precise::string_pow('10000', '3') === '1000000000000');
-assert (Precise::string_pow('5', '0') === '1');
+assert (Precise::string_equals('1.0000', '1'));
+assert (Precise::string_equals('-0.0', '0'));
+assert (Precise::string_equals('5.534000', '5.5340'));

@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.52.43",
+  "version": "1.53.67",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -25,7 +25,7 @@
     "fast-test": "node run-tests --js",
     "test-base": "npm run test-js-base && npm run test-python-base && npm run test-php-base",
     "test-js-base": "mocha js/test/base/test.base.js --reporter ololog/reporter",
-    "test-python-base": "python python/ccxt/test/test_decimal_to_precision.py && python python/ccxt/test/test_crypto.py",
+    "test-python-base": "python3 python/ccxt/test/test_decimal_to_precision.py && python3 python/ccxt/test/test_crypto.py",
     "test-php-base": "php -f php/test/decimal_to_precision.php && php -f php/test/test_crypto.php",
     "export-exchanges": "node build/export-exchanges",
     "export-docs": "python3 build/export-docs.py",

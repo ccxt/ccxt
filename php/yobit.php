@@ -258,7 +258,7 @@ class yobit extends Exchange {
             $account['total'] = $this->safe_string($total, $currencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_markets($params = array ()) {

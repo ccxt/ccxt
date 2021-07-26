@@ -1001,7 +1001,7 @@ class bybit(Exchange):
             account['used'] = self.safe_string(balance, 'used_margin')
             account['total'] = self.safe_string(balance, 'equity')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -1110,7 +1110,7 @@ class bybit(Exchange):
         #             "trigger_price":12400,
         #             "close_on_trigger":true,
         #             "op_from":"api",
-        #             "remark":"145.53.159.48",
+        #             "remark":"x.x.x.x",
         #             "o_req_num":0
         #         },
         #         "leaves_qty":10,
@@ -2229,7 +2229,7 @@ class bybit(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         type = self.safe_string(api, 0)
         section = self.safe_string(api, 1)
-        url = self.implode_params(self.urls['api'][type], {'hostname': self.hostname})
+        url = self.implode_hostname(self.urls['api'][type])
         request = '/' + type + '/' + section + '/' + path
         # public v2
         if section == 'public':

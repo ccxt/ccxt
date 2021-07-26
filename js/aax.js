@@ -854,7 +854,7 @@ module.exports = class aax extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1863,7 +1863,7 @@ module.exports = class aax extends Exchange {
                 headers['X-ACCESS-SIGN'] = signature;
             }
         }
-        url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + url;
+        url = this.implodeHostname (this.urls['api'][api]) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

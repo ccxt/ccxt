@@ -368,7 +368,7 @@ module.exports = class bitz extends Exchange {
             account['free'] = this.safeString (balance, 'over');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -691,7 +691,7 @@ module.exports = class bitz extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const duration = this.parseTimeframe (timeframe) * 1000;
+        const duration = this.parseTimeframe (timeframe);
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -1260,7 +1260,7 @@ module.exports = class bitz extends Exchange {
     }
 
     sign (path, api = 'market', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseUrl = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
+        const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.capitalize (api) + '/' + path;
         let query = undefined;
         if (api === 'market') {

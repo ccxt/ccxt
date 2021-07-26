@@ -827,7 +827,7 @@ class stex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'frozen_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {
@@ -1454,7 +1454,7 @@ class stex extends Exchange {
             'hodl' => 'pending',
             'amount too low' => 'failed',
             'not confirmed' => 'pending',
-            'cancelled by User' => 'canceled',
+            'cancelled by user' => 'canceled',
             'approved' => 'pending',
             'finished' => 'ok',
             'withdrawal error' => 'failed',

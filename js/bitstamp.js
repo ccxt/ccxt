@@ -156,6 +156,8 @@ module.exports = class bitstamp extends Exchange {
                         'grt_address/',
                         'usdt_withdrawal/',
                         'usdt_address/',
+                        'eurt_withdrawal/',
+                        'eurt_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -823,7 +825,7 @@ module.exports = class bitstamp extends Exchange {
             account['total'] = this.safeString (balance, currencyId + '_balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchTradingFee (symbol, params = {}) {

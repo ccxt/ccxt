@@ -54,7 +54,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -96,16 +96,19 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg
-          :target: https://bitmax.io/#/register?inviteCode=EL6BXBQM
+          :target: https://ascendex.com/en-us/register?inviteCode=EL6BXBQM
           :alt: ascendex
      
      - ascendex
-     - `AscendEX <https://bitmax.io/#/register?inviteCode=EL6BXBQM>`__
+     - `AscendEX <https://ascendex.com/en-us/register?inviteCode=EL6BXBQM>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation
           :alt: API Version 1
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg
           :target: https://bequant.io
@@ -596,21 +599,6 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg
-          :target: https://www.byte-trade.com
-          :alt: bytetrade
-     
-     - bytetrade
-     - `ByteTrade <https://www.byte-trade.com>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://docs.byte-trade.com/#description
-          :alt: API Version *
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
-     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg
           :target: https://cdax.io/invite?invite_code=esc74
           :alt: cdax
@@ -930,20 +918,17 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
-          :target: https://www.gate.io/signup/2436035
+          :target: https://gate.io/
           :alt: gateio
      
      - gateio
-     - `Gate.io <https://www.gate.io/signup/2436035>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://gate.io/api2
-          :alt: API Version 2
+     - `Gate.io <https://gate.io/>`__
+     - .. image:: https://img.shields.io/badge/4-lightgray
+          :target: https://www.gate.io/docs/apiv4/en/index.html
+          :alt: API Version 4
      
      - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg
           :target: https://gemini.com/
           :alt: gemini
@@ -1286,6 +1271,21 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
      
      - okex
      - `OKEX <https://www.okex.com/join/1888677>`__
+     - .. image:: https://img.shields.io/badge/5-lightgray
+          :target: https://www.okex.com/docs/en/
+          :alt: API Version 5
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
+          :target: https://www.okex.com/join/1888677
+          :alt: okex3
+     
+     - okex3
+     - `OKEX <https://www.okex.com/join/1888677>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://www.okex.com/docs/en/
           :alt: API Version 3
@@ -1306,7 +1306,10 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :alt: API Version 5
      
      - 
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg
           :target: https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj
           :alt: paymium
@@ -1388,18 +1391,6 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg
-          :target: https://www.southxchange.com
-          :alt: southxchange
-     
-     - southxchange
-     - `SouthXchange <https://www.southxchange.com>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://www.southxchange.com/Home/Api
-          :alt: API Version *
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/69680782-03fd0b80-10bd-11ea-909e-7f603500e9cc.jpg
           :target: https://app.stex.com?ref=36416021
           :alt: stex
@@ -1618,8 +1609,6 @@ An exchange can be instantiated like shown in the examples below:
        , exchange = new exchangeClass ({
            'apiKey': 'YOUR_API_KEY',
            'secret': 'YOUR_SECRET',
-           'timeout': 30000,
-           'enableRateLimit': true,
        })
 
 .. code-block:: Python
@@ -1639,8 +1628,6 @@ An exchange can be instantiated like shown in the examples below:
    exchange = exchange_class({
        'apiKey': 'YOUR_API_KEY',
        'secret': 'YOUR_SECRET',
-       'timeout': 30000,
-       'enableRateLimit': True,
    })
 
 The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are required to set date.timezone in your php.ini or call `date_default_timezone_set() <http://php.net/manual/en/function.date-default-timezone-set.php>`__ function before using the PHP version of the library. The recommended timezone setting is ``"UTC"``.
@@ -1663,8 +1650,6 @@ The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are r
    $exchange = new $exchange_class(array(
        'apiKey' => 'YOUR_API_KEY',
        'secret' => 'YOUR_SECRET',
-       'timeout' => 30000,
-       'enableRateLimit' => true,
    ));
 
 Overriding Exchange Properties Upon Instantiation
@@ -1752,22 +1737,22 @@ Exchange Structure
 
 Every exchange has a set of properties and methods, most of which you can override by passing an associative array of params to an exchange constructor. You can also make a subclass and override everything.
 
-Here's an overview of base exchange properties with values added for example:
+Here's an overview of generic exchange properties with values added for example:
 
 .. code-block:: JavaScript
 
    {
-       'id':   'exchange'                  // lowercase string exchange id
-       'name': 'Exchange'                  // human-readable string
-       'countries': [ 'US', 'CN', 'EU' ],  // array of ISO country codes
+       'id':   'exchange'                   // lowercase string exchange id
+       'name': 'Exchange'                   // human-readable string
+       'countries': [ 'US', 'CN', 'EU' ],   // array of ISO country codes
        'urls': {
            'api': 'https://api.example.com/data',  // string or dictionary of base API URLs
            'www': 'https://www.example.com'        // string website URL
            'doc': 'https://docs.example.com/api',  // string URL or array of URLs
        },
-       'version':         'v1',            // string ending with digits
-       'api':             { ... },         // dictionary of api endpoints
-       'has': {                            // exchange capabilities
+       'version':         'v1',             // string ending with digits
+       'api':             { ... },          // dictionary of api endpoints
+       'has': {                             // exchange capabilities
            'CORS': false,
            'publicAPI': true,
            'privateAPI': true,
@@ -1793,26 +1778,28 @@ Here's an overview of base exchange properties with values added for example:
            'fetchTrades': true,
            'withdraw': false,
        },
-       'timeframes': {                     // empty if the exchange.has['fetchOHLCV'] !== true
+       'timeframes': {                      // empty if the exchange.has['fetchOHLCV'] !== true
            '1m': '1minute',
            '1h': '1hour',
            '1d': '1day',
            '1M': '1month',
            '1y': '1year',
        },
-       'timeout':          10000,          // number in milliseconds
-       'rateLimit':        2000,           // number in milliseconds
-       'userAgent':       'ccxt/1.1.1 ...' // string, HTTP User-Agent header
-       'verbose':          false,          // boolean, output error details
-       'markets':         { ... }          // dictionary of markets/pairs by symbol
-       'symbols':         [ ... ]          // sorted list of string symbols (traded pairs)
-       'currencies':      { ... }          // dictionary of currencies by currency code
-       'markets_by_id':   { ... },         // dictionary of dictionaries (markets) by id
-       'proxy': 'https://crossorigin.me/', // string URL
-       'apiKey':   '92560ffae9b8a0421...', // string public apiKey (ASCII, hex, Base64, ...)
-       'secret':   '9aHjPmW+EtRRKN/Oi...'  // string private secret key
-       'password': '6kszf4aci8r',          // string password
-       'uid':      '123456',               // string user id
+       'timeout':           10000,          // number in milliseconds
+       'rateLimit':         2000,           // number in milliseconds
+       'userAgent':        'ccxt/1.1.1 ...' // string, HTTP User-Agent header
+       'verbose':           false,          // boolean, output error details
+       'markets':          { ... }          // dictionary of markets/pairs by symbol
+       'symbols':          [ ... ]          // sorted list of string symbols (traded pairs)
+       'currencies':       { ... }          // dictionary of currencies by currency code
+       'markets_by_id':    { ... },         // dictionary of dictionaries (markets) by id
+       'currencies_by_id': { ... },         // dictionary of dictionaries (markets) by id
+       'apiKey':   '92560ffae9b8a0421...',  // string public apiKey (ASCII, hex, Base64, ...)
+       'secret':   '9aHjPmW+EtRRKN/Oi...'   // string private secret key
+       'password': '6kszf4aci8r',           // string password
+       'uid':      '123456',                // string user id
+       'options':          { ... },         // exchange-specific options
+       // ... other properties here ...
    }
 
 Exchange Properties
@@ -3920,8 +3907,6 @@ To set up an exchange for trading just assign the API credentials to an existing
        , exchange = new exchangeClass ({
            'apiKey': 'YOUR_API_KEY',
            'secret': 'YOUR_SECRET',
-           'timeout': 30000,
-           'enableRateLimit': true,
        })
 
 .. code-block:: Python
@@ -3947,8 +3932,6 @@ To set up an exchange for trading just assign the API credentials to an existing
    exchange = exchange_class({
        'apiKey': 'YOUR_API_KEY',
        'secret': 'YOUR_SECRET',
-       'timeout': 30000,
-       'enableRateLimit': True,
    })
 
 .. code-block:: PHP
@@ -3974,8 +3957,6 @@ To set up an exchange for trading just assign the API credentials to an existing
    $exchange = new $exchange_class (array (
        'apiKey' => 'YOUR_API_KEY',
        'secret' => 'YOUR_SECRET',
-       'timeout' => 30000,
-       'enableRateLimit' => true,
    ));
 
 Note that your private requests will fail with an exception or error if you don't set up your API credentials before you start trading. To avoid character escaping **always write your credentials in single quotes**\ , not double quotes (\ ``'VERY_GOOD'``\ , ``"VERY_BAD"``\ ).

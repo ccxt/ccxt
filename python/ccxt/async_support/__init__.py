@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.52.43'
+__version__ = '1.53.67'
 
 # -----------------------------------------------------------------------------
 
@@ -91,7 +91,6 @@ from ccxt.async_support.btcturk import btcturk                            # noqa
 from ccxt.async_support.buda import buda                                  # noqa: F401
 from ccxt.async_support.bw import bw                                      # noqa: F401
 from ccxt.async_support.bybit import bybit                                # noqa: F401
-from ccxt.async_support.bytetrade import bytetrade                        # noqa: F401
 from ccxt.async_support.cdax import cdax                                  # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.coinbase import coinbase                          # noqa: F401
@@ -144,6 +143,7 @@ from ccxt.async_support.novadax import novadax                            # noqa
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401
 from ccxt.async_support.okcoin import okcoin                              # noqa: F401
 from ccxt.async_support.okex import okex                                  # noqa: F401
+from ccxt.async_support.okex3 import okex3                                # noqa: F401
 from ccxt.async_support.okex5 import okex5                                # noqa: F401
 from ccxt.async_support.paymium import paymium                            # noqa: F401
 from ccxt.async_support.phemex import phemex                              # noqa: F401
@@ -151,7 +151,6 @@ from ccxt.async_support.poloniex import poloniex                          # noqa
 from ccxt.async_support.probit import probit                              # noqa: F401
 from ccxt.async_support.qtrade import qtrade                              # noqa: F401
 from ccxt.async_support.ripio import ripio                                # noqa: F401
-from ccxt.async_support.southxchange import southxchange                  # noqa: F401
 from ccxt.async_support.stex import stex                                  # noqa: F401
 from ccxt.async_support.therock import therock                            # noqa: F401
 from ccxt.async_support.tidebit import tidebit                            # noqa: F401
@@ -207,7 +206,6 @@ exchanges = [
     'buda',
     'bw',
     'bybit',
-    'bytetrade',
     'cdax',
     'cex',
     'coinbase',
@@ -260,6 +258,7 @@ exchanges = [
     'oceanex',
     'okcoin',
     'okex',
+    'okex3',
     'okex5',
     'paymium',
     'phemex',
@@ -267,7 +266,6 @@ exchanges = [
     'probit',
     'qtrade',
     'ripio',
-    'southxchange',
     'stex',
     'therock',
     'tidebit',

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.52.43'
+__version__ = '1.53.67'
 
 # ----------------------------------------------------------------------------
 
@@ -109,7 +109,6 @@ from ccxt.btcturk import btcturk                            # noqa: F401
 from ccxt.buda import buda                                  # noqa: F401
 from ccxt.bw import bw                                      # noqa: F401
 from ccxt.bybit import bybit                                # noqa: F401
-from ccxt.bytetrade import bytetrade                        # noqa: F401
 from ccxt.cdax import cdax                                  # noqa: F401
 from ccxt.cex import cex                                    # noqa: F401
 from ccxt.coinbase import coinbase                          # noqa: F401
@@ -162,6 +161,7 @@ from ccxt.novadax import novadax                            # noqa: F401
 from ccxt.oceanex import oceanex                            # noqa: F401
 from ccxt.okcoin import okcoin                              # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
+from ccxt.okex3 import okex3                                # noqa: F401
 from ccxt.okex5 import okex5                                # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.phemex import phemex                              # noqa: F401
@@ -169,7 +169,6 @@ from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.probit import probit                              # noqa: F401
 from ccxt.qtrade import qtrade                              # noqa: F401
 from ccxt.ripio import ripio                                # noqa: F401
-from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.stex import stex                                  # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
 from ccxt.tidebit import tidebit                            # noqa: F401
@@ -225,7 +224,6 @@ exchanges = [
     'buda',
     'bw',
     'bybit',
-    'bytetrade',
     'cdax',
     'cex',
     'coinbase',
@@ -278,6 +276,7 @@ exchanges = [
     'oceanex',
     'okcoin',
     'okex',
+    'okex3',
     'okex5',
     'paymium',
     'phemex',
@@ -285,7 +284,6 @@ exchanges = [
     'probit',
     'qtrade',
     'ripio',
-    'southxchange',
     'stex',
     'therock',
     'tidebit',

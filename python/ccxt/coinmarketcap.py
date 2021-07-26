@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 
 
@@ -279,7 +278,6 @@ class coinmarketcap(Exchange):
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            precision = 8  # default precision, todo: fix "magic constants"
             code = self.currency_code(id, name)
             result[code] = {
                 'id': id,
@@ -287,16 +285,16 @@ class coinmarketcap(Exchange):
                 'info': currency,
                 'name': name,
                 'active': True,
-                'fee': None,  # todo: redesign
-                'precision': precision,
+                'fee': None,
+                'precision': None,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': None,
+                        'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': None,
+                        'max': None,
                     },
                     'cost': {
                         'min': None,

@@ -55,7 +55,10 @@ module.exports = class phemex extends Exchange {
                 'www': 'https://phemex.com',
                 'doc': 'https://github.com/phemex/phemex-api-docs',
                 'fees': 'https://phemex.com/fees-conditions',
-                'referral': 'https://phemex.com/register?referralCode=EDNVJ',
+                'referral': {
+                    'url': 'https://phemex.com/register?referralCode=EDNVJ',
+                    'discount': 0.1,
+                },
             },
             'timeframes': {
                 '1m': '60',
@@ -801,7 +804,7 @@ module.exports = class phemex extends Exchange {
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
         const stringValue = precise.toString ();
-        return parseInt (stringValue);
+        return parseInt (parseFloat (stringValue));
     }
 
     toEv (amount, market = undefined) {
@@ -1297,7 +1300,7 @@ module.exports = class phemex extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseSwapBalance (response) {
@@ -1388,7 +1391,7 @@ module.exports = class phemex extends Exchange {
         account['total'] = this.fromEn (accountBalanceEv, valueScale);
         account['used'] = this.fromEn (totalUsedBalanceEv, valueScale);
         result[code] = account;
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -2479,7 +2482,7 @@ module.exports = class phemex extends Exchange {
             const auth = requestPath + queryString + expiryString + payload;
             headers['x-phemex-request-signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
         }
-        url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + url;
+        url = this.implodeHostname (this.urls['api'][api]) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

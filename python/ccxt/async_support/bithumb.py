@@ -141,6 +141,7 @@ class bithumb(Exchange):
                 },
             },
             'commonCurrencies': {
+                'MIR': 'MIR COIN',
                 'SOC': 'Soda Coin',
             },
         })
@@ -217,7 +218,7 @@ class bithumb(Exchange):
             account['used'] = self.safe_string(balances, 'in_use_' + lowerCurrencyId)
             account['free'] = self.safe_string(balances, 'available_' + lowerCurrencyId)
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -821,7 +822,7 @@ class bithumb(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)
-        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + endpoint
+        url = self.implode_hostname(self.urls['api'][api]) + endpoint
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:

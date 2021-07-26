@@ -234,6 +234,7 @@ class bitforex extends Exchange {
                 'GOT' => 'GoNetwork',
                 'HBC' => 'Hybrid Bank Cash',
                 'IQ' => 'IQ.Cash',
+                'MIR' => 'MIR COIN',
                 'UOS' => 'UOS Network',
             ),
             'exceptions' => array(
@@ -243,6 +244,7 @@ class bitforex extends Exchange {
                 '1017' => '\\ccxt\\PermissionDenied', // array("code":"1017","success":false,"time":1602670594367,"message":"IP not allow")
                 '1019' => '\\ccxt\\BadSymbol', // array("code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid")
                 '3002' => '\\ccxt\\InsufficientFunds',
+                '4002' => '\\ccxt\\InvalidOrder', // array("success":false,"code":"4002","message":"Price unreasonable")
                 '4003' => '\\ccxt\\InvalidOrder', // array("success":false,"code":"4003","message":"amount too small")
                 '10204' => '\\ccxt\\DDoSProtection',
             ),
@@ -357,7 +359,7 @@ class bitforex extends Exchange {
             $account['total'] = $this->safe_string($balance, 'fix');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
