@@ -157,8 +157,8 @@ module.exports = class bit2c extends Exchange {
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const account = this.account ();
-            const currencyId = this.currencyId (code);
-            const uppercase = currencyId.toUpperCase ();
+            const currency = this.currency (code);
+            const uppercase = currency['id'].toUpperCase ();
             if (uppercase in balance) {
                 account['free'] = this.safeString (balance, 'AVAILABLE_' + uppercase);
                 account['total'] = this.safeString (balance, uppercase);

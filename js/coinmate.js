@@ -314,6 +314,7 @@ module.exports = class coinmate extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const currency = this.currency (code);
         const request = {
             'limit': 1000,
         };
@@ -324,11 +325,11 @@ module.exports = class coinmate extends Exchange {
             request['timestampFrom'] = since;
         }
         if (code !== undefined) {
-            request['currency'] = this.currencyId (code);
+            request['currency'] = currency['id'];
         }
         const response = await this.privatePostTransferHistory (this.extend (request, params));
         const items = response['data'];
-        return this.parseTransactions (items, undefined, since, limit);
+        return this.parseTransactions (items, currency, since, limit);
     }
 
     parseTransactionStatus (status) {

@@ -664,9 +664,9 @@ module.exports = class bitfinex extends Exchange {
             const keys = Object.keys (accountsByType);
             throw new ExchangeError (this.id + ' transfer toAccount must be one of ' + keys.join (', '));
         }
-        const currencyId = this.currencyId (code);
-        const fromCurrencyId = this.convertDerivativesId (currencyId, fromAccount);
-        const toCurrencyId = this.convertDerivativesId (currencyId, toAccount);
+        const currency = this.currency (code);
+        const fromCurrencyId = this.convertDerivativesId (currency['id'], fromAccount);
+        const toCurrencyId = this.convertDerivativesId (currency['id'], toAccount);
         const requestedAmount = this.currencyToPrecision (code, amount);
         const request = {
             'amount': requestedAmount,
