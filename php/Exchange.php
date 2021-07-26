@@ -2460,8 +2460,12 @@ class Exchange {
         if (!isset($this->markets)) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
-        if ((gettype($symbol) === 'string') && isset($this->markets[$symbol])) {
-            return $this->markets[$symbol];
+        if (gettype($symbol) === 'string') {
+            if (isset($this->markets[$symbol])) {
+                return $this->markets[$symbol];
+            } elseif (isset($this->markets_by_id)) {
+                return $this->markets_by_id[$symbol];
+            }
         }
 
         throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
