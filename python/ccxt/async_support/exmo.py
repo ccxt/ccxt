@@ -764,7 +764,8 @@ class exmo(Exchange):
         codes = list(free.keys())
         for i in range(0, len(codes)):
             code = codes[i]
-            currencyId = self.currency_id(code)
+            currency = self.currency(code)
+            currencyId = currency['id']
             account = self.account()
             if currencyId in free:
                 account['free'] = self.safe_string(free, currencyId)

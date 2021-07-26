@@ -320,7 +320,8 @@ class coinmate(Exchange):
         if since is not None:
             request['timestampFrom'] = since
         if code is not None:
-            request['currency'] = self.currency_id(code)
+            currency = self.currency(code)
+            request['currency'] = currency['id']
         response = self.privatePostTransferHistory(self.extend(request, params))
         items = response['data']
         return self.parse_transactions(items, None, since, limit)

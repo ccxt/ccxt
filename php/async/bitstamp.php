@@ -1380,13 +1380,14 @@ class bitstamp extends Exchange {
                 'fee' => $parsedTrade['fee'],
             );
         } else {
-            $parsedTransaction = $this->parse_transaction($item);
+            $parsedTransaction = $this->parse_transaction($item, $currency);
             $direction = null;
             if (is_array($item) && array_key_exists('amount', $item)) {
                 $amount = $this->safe_number($item, 'amount');
                 $direction = $amount > 0 ? 'in' : 'out';
             } else if ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
-                $currencyId = $this->currency_id($parsedTransaction['currency']);
+                $code = $parsedTransaction['currency'];
+                $currencyId = $this->safe_string($this->currencies_by_id, $code, $code);
                 $amount = $this->safe_number($item, $currencyId);
                 $direction = $amount > 0 ? 'in' : 'out';
             }

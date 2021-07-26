@@ -570,9 +570,9 @@ class kucoin extends Exchange {
     }
 
     public function fetch_funding_fee($code, $params = array ()) {
-        $currencyId = $this->currency_id($code);
+        $currency = $this->currency($code);
         $request = array(
-            'currency' => $currencyId,
+            'currency' => $currency['id'],
         );
         $response = yield $this->privateGetWithdrawalsQuotas (array_merge($request, $params));
         $data = $response['data'];
@@ -786,8 +786,8 @@ class kucoin extends Exchange {
 
     public function create_deposit_address($code, $params = array ()) {
         yield $this->load_markets();
-        $currencyId = $this->currency_id($code);
-        $request = array( 'currency' => $currencyId );
+        $currency = $this->currency($code);
+        $request = array( 'currency' => $currency['id'] );
         $response = yield $this->privatePostDepositAddresses (array_merge($request, $params));
         // BCH array("$code":"200000","$data":array("$address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
         // BTC array("$code":"200000","$data":array("$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
@@ -812,8 +812,8 @@ class kucoin extends Exchange {
 
     public function fetch_deposit_address($code, $params = array ()) {
         yield $this->load_markets();
-        $currencyId = $this->currency_id($code);
-        $request = array( 'currency' => $currencyId );
+        $currency = $this->currency($code);
+        $request = array( 'currency' => $currency['id'] );
         $response = yield $this->privateGetDepositAddresses (array_merge($request, $params));
         // BCH array("$code":"200000","$data":array("$address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
         // BTC array("$code":"200000","$data":array("$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
@@ -1469,9 +1469,9 @@ class kucoin extends Exchange {
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         yield $this->load_markets();
         $this->check_address($address);
-        $currency = $this->currency_id($code);
+        $currency = $this->currency($code);
         $request = array(
-            'currency' => $currency,
+            'currency' => $currency['id'],
             'address' => $address,
             'amount' => $amount,
         );

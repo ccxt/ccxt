@@ -327,7 +327,8 @@ class coinmate extends Exchange {
             $request['timestampFrom'] = $since;
         }
         if ($code !== null) {
-            $request['currency'] = $this->currency_id($code);
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
         }
         $response = yield $this->privatePostTransferHistory (array_merge($request, $params));
         $items = $response['data'];

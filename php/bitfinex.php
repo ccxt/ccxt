@@ -666,9 +666,9 @@ class bitfinex extends Exchange {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
             throw new ExchangeError($this->id . ' transfer $toAccount must be one of ' . implode(', ', $keys));
         }
-        $currencyId = $this->currency_id($code);
-        $fromCurrencyId = $this->convert_derivatives_id($currencyId, $fromAccount);
-        $toCurrencyId = $this->convert_derivatives_id($currencyId, $toAccount);
+        $currency = $this->currency($code);
+        $fromCurrencyId = $this->convert_derivatives_id($currency['id'], $fromAccount);
+        $toCurrencyId = $this->convert_derivatives_id($currency['id'], $toAccount);
         $requestedAmount = $this->currency_to_precision($code, $amount);
         $request = array(
             'amount' => $requestedAmount,

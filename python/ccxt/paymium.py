@@ -92,7 +92,8 @@ class paymium(Exchange):
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
             code = currencies[i]
-            currencyId = self.currency_id(code)
+            currency = self.currency(code)
+            currencyId = currency['id']
             free = 'balance_' + currencyId
             if free in response:
                 account = self.account()

@@ -169,8 +169,8 @@ class bit2c(Exchange):
         for i in range(0, len(codes)):
             code = codes[i]
             account = self.account()
-            currencyId = self.currency_id(code)
-            uppercase = currencyId.upper()
+            currency = self.currency(code)
+            uppercase = currency['id'].upper()
             if uppercase in balance:
                 account['free'] = self.safe_string(balance, 'AVAILABLE_' + uppercase)
                 account['total'] = self.safe_string(balance, uppercase)

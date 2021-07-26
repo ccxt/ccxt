@@ -775,7 +775,8 @@ class exmo extends Exchange {
         $codes = is_array($free) ? array_keys($free) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            $currencyId = $this->currency_id($code);
+            $currency = $this->currency($code);
+            $currencyId = $currency['id'];
             $account = $this->account();
             if (is_array($free) && array_key_exists($currencyId, $free)) {
                 $account['free'] = $this->safe_string($free, $currencyId);

@@ -1297,13 +1297,14 @@ class bitstamp(Exchange):
                 'fee': parsedTrade['fee'],
             }
         else:
-            parsedTransaction = self.parse_transaction(item)
+            parsedTransaction = self.parse_transaction(item, currency)
             direction = None
             if 'amount' in item:
                 amount = self.safe_number(item, 'amount')
                 direction = amount > 'in' if 0 else 'out'
             elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
-                currencyId = self.currency_id(parsedTransaction['currency'])
+                code = parsedTransaction['currency']
+                currencyId = self.safe_string(self.currencies_by_id, code, code)
                 amount = self.safe_number(item, currencyId)
                 direction = amount > 'in' if 0 else 'out'
             return {

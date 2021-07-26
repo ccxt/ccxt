@@ -663,9 +663,9 @@ class bitfinex(Exchange):
         if toId is None:
             keys = list(accountsByType.keys())
             raise ExchangeError(self.id + ' transfer toAccount must be one of ' + ', '.join(keys))
-        currencyId = self.currency_id(code)
-        fromCurrencyId = self.convert_derivatives_id(currencyId, fromAccount)
-        toCurrencyId = self.convert_derivatives_id(currencyId, toAccount)
+        currency = self.currency(code)
+        fromCurrencyId = self.convert_derivatives_id(currency['id'], fromAccount)
+        toCurrencyId = self.convert_derivatives_id(currency['id'], toAccount)
         requestedAmount = self.currency_to_precision(code, amount)
         request = {
             'amount': requestedAmount,
