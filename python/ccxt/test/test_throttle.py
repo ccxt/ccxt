@@ -80,7 +80,7 @@ for i, case in enumerate(test_cases, 1):
     # so the first capacity / cost runs are deducted
     instantly_complete = case['capacity'] / case['cost']
     # after that each run will take cost and the total time will be runs * cost / refillRate
-    remaining = case['runs'] - instantly_complete
+    remaining = case['runs'] - instantly_complete - 1
     case['expected'] = remaining * case['cost'] / case['refillRate']
 
 

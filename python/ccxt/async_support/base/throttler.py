@@ -25,7 +25,7 @@ class Throttler:
         while self.running:
             future, cost = self.queue[0]
             cost = self.config['defaultCost'] if cost is None else cost
-            if self.config['capacity'] > cost:
+            if self.config['capacity'] > 0:
                 self.config['capacity'] -= cost
                 future.set_result(None)
                 self.queue.popleft()
