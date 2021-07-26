@@ -292,10 +292,8 @@ class Exchange {
         'fetchMarkets' => 'fetch_markets',
         'fetchOrderStatus' => 'fetch_order_status',
         'commonCurrencyCode' => 'common_currency_code',
-        'currencyId' => 'currency_id',
         'marketId' => 'market_id',
         'marketIds' => 'market_ids',
-        'currencyIds' => 'currency_ids',
         'implodeHostname' => 'implode_hostname',
         'parseBidAsk' => 'parse_bid_ask',
         'parseBidsAsks' => 'parse_bids_asks',
@@ -2462,8 +2460,12 @@ class Exchange {
         if (!isset($this->markets)) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
-        if ((gettype($symbol) === 'string') && isset($this->markets[$symbol])) {
-            return $this->markets[$symbol];
+        if (gettype($symbol) === 'string') {
+            if (isset($this->markets[$symbol])) {
+                return $this->markets[$symbol];
+            } elseif (isset($this->markets_by_id)) {
+                return $this->markets_by_id[$symbol];
+            }
         }
 
         throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);

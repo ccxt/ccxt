@@ -898,8 +898,12 @@ module.exports = class Exchange {
             throw new ExchangeError (this.id + ' markets not loaded')
         }
 
-        if ((typeof symbol === 'string') && (symbol in this.markets)) {
-            return this.markets[symbol]
+        if (typeof symbol === 'string') {
+            if (symbol in this.markets) {
+                return this.markets[symbol]
+            } else if (symbol in this.markets_by_id) {
+                return this.markets_by_id[symbol]
+            }
         }
 
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol)
