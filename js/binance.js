@@ -3488,11 +3488,7 @@ module.exports = class binance extends Exchange {
                 'crossMargin': balances[code]['crossMargin'],
                 'crossWalletBalance': balances[code]['crossWalletBalance'],
             }), market);
-            // filter out empty markets
-            const empty = Precise.stringEquals (parsed['info']['positionAmt'], '0');
-            if (!empty) {
-                result.push (parsed);
-            }
+            result.push (parsed);
         }
         return result;
     }
