@@ -3488,7 +3488,11 @@ module.exports = class binance extends Exchange {
                 'crossMargin': balances[code]['crossMargin'],
                 'crossWalletBalance': balances[code]['crossWalletBalance'],
             }), market);
-            result.push (parsed);
+            // filter out empty markets
+            const empty = Precise.stringEquals (parsed['info']['positionAmt'], '0');
+            if (!empty) {
+                result.push (parsed);
+            }
         }
         return result;
     }
@@ -3672,6 +3676,7 @@ module.exports = class binance extends Exchange {
             'leverage': leverage,
             'unrealizedPnl': unrealizedPnl,
             'contracts': contracts,
+            'contractSize': this.parseNumber (market['contractSize']),
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': undefined,

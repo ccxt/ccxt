@@ -481,7 +481,7 @@ module.exports = class okex extends Exchange {
                     'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ], // spot, futures, swap, option
+                'fetchMarkets': [ 'spot', 'futures', 'swap' ], // spot, futures, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 'fetchBalance': {
                     'type': 'spot', // 'funding', 'trading', 'spot'
@@ -613,12 +613,15 @@ module.exports = class okex extends Exchange {
         const option = (type === 'option');
         let baseId = this.safeString (market, 'baseCcy');
         let quoteId = this.safeString (market, 'quoteCcy');
+        const settleCurrency = this.safeString (market, 'settleCcy');
         const underlying = this.safeString (market, 'uly');
         if ((underlying !== undefined) && !spot) {
             const parts = underlying.split ('-');
             baseId = this.safeString (parts, 0);
             quoteId = this.safeString (parts, 1);
         }
+        const inverse = baseId === settleCurrency;
+        const linear = quoteId === settleCurrency;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = spot ? (base + '/' + quote) : id;
@@ -635,6 +638,7 @@ module.exports = class okex extends Exchange {
         }
         const active = true;
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
+        const contractSize = this.safeString (market, 'ctVal');
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -648,7 +652,10 @@ module.exports = class okex extends Exchange {
             'futures': futures,
             'swap': swap,
             'option': option,
+            'linear': linear,
+            'inverse': inverse,
             'active': active,
+            'contractSize': contractSize,
             'precision': precision,
             'limits': {
                 'amount': {
@@ -2488,7 +2495,7 @@ module.exports = class okex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.safeValue (data, 0);
+        return this.parsePosition (this.safeValue (data, 0));
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -2506,7 +2513,7 @@ module.exports = class okex extends Exchange {
             request['instType'] = type.toUpperCase ();
         }
         params = this.omit (params, 'type');
-        const response = await this.privateGetAccountPositions (params);
+        const response = await this.privateGetAccountPositions (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -2553,7 +2560,119 @@ module.exports = class okex extends Exchange {
         //         ]
         //     }
         //
-        return this.safeValue (response, 'data', []);
+        const positions = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            const entry = positions[i];
+            const instrument = this.safeString (entry, 'instType');
+            if ((instrument === 'FUTURES') || instrument === ('SWAP')) {
+                result.push (this.parsePosition (positions[i]));
+            }
+        }
+        return result;
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //       "adl": "3",
+        //       "availPos": "1",
+        //       "avgPx": "34131.1",
+        //       "cTime": "1627227626502",
+        //       "ccy": "USDT",
+        //       "deltaBS": "",
+        //       "deltaPA": "",
+        //       "gammaBS": "",
+        //       "gammaPA": "",
+        //       "imr": "170.66093041794787",
+        //       "instId": "BTC-USDT-SWAP",
+        //       "instType": "SWAP",
+        //       "interest": "0",
+        //       "last": "34134.4",
+        //       "lever": "2",
+        //       "liab": "",
+        //       "liabCcy": "",
+        //       "liqPx": "12608.959083877446",
+        //       "margin": "",
+        //       "mgnMode": "cross",
+        //       "mgnRatio": "140.49930117599155",
+        //       "mmr": "1.3652874433435829",
+        //       "notionalUsd": "341.5130010779638",
+        //       "optVal": "",
+        //       "pos": "1",
+        //       "posCcy": "",
+        //       "posId": "339552508062380036",
+        //       "posSide": "long",
+        //       "thetaBS": "",
+        //       "thetaPA": "",
+        //       "tradeId": "98617799",
+        //       "uTime": "1627227626502",
+        //       "upl": "0.0108608358957281",
+        //       "uplRatio": "0.0000636418743944",
+        //       "vegaBS": "",
+        //       "vegaPA": ""
+        //     }
+        //
+        const marketId = this.safeString (position, 'instId');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const contractsString = this.safeString (position, 'availPos');
+        const contracts = parseInt (contractsString);
+        const notionalString = this.safeString (position, 'notionalUsd');
+        const notional = this.parseNumber (notionalString);
+        const marginType = this.safeString (position, 'mgnMode');
+        let initialMarginString = undefined;
+        const entryPriceString = this.safeString (position, 'avgPx');
+        const unrealizedPnlString = this.safeString (position, 'upl');
+        if (marginType === 'cross') {
+            initialMarginString = this.safeString (position, 'imr');
+        } else {
+            initialMarginString = this.safeString (position, 'margin');
+        }
+        const maintenanceMarginString = this.safeString (position, 'mmr');
+        const maintenanceMargin = this.parseNumber (maintenanceMarginString);
+        let initialMarginPercentage = undefined;
+        let maintenanceMarginPercentage = undefined;
+        if (market['inverse']) {
+            const notionalValue = Precise.stringDiv (Precise.stringMul (contractsString, market['contractSize']), entryPriceString);
+            maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notionalValue);
+            initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalValue, 4));
+        } else {
+            maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notionalString);
+            initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalString, 4));
+        }
+        const rounder = '0.00005'; // round to closest 0.01%
+        maintenanceMarginPercentage = this.parseNumber (Precise.stringDiv (Precise.stringAdd (maintenanceMarginPercentage, rounder), '1', 4));
+        const collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
+        const liquidationPrice = this.safeNumber (position, 'liqPx');
+        const percentageString = this.safeString (position, 'uplRatio');
+        const percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
+        const side = this.safeString (position, 'posSide');
+        const timestamp = this.safeInteger (position, 'uTime');
+        const leverage = this.safeInteger (position, 'lever');
+        const marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
+        return {
+            'info': position,
+            'symbol': symbol,
+            'notional': notional,
+            'marginType': marginType,
+            'liquidationPrice': liquidationPrice,
+            'entryPrice': this.parseNumber (entryPriceString),
+            'unrealizedPnl': this.parseNumber (unrealizedPnlString),
+            'percentage': percentage,
+            'contracts': contracts,
+            'contractSize': this.parseNumber (market['contractSize']),
+            'side': side,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'maintenanceMargin': maintenanceMargin,
+            'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'collateral': this.parseNumber (collateralString),
+            'initialMargin': this.parseNumber (initialMarginString),
+            'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
+            'leverage': leverage,
+            'marginRatio': marginRatio,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
