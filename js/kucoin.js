@@ -782,8 +782,8 @@ module.exports = class kucoin extends Exchange {
 
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const currencyId = this.currencyId (code);
-        const request = { 'currency': currencyId };
+        const currency = this.currency (code);
+        const request = { 'currency': currency['id'] };
         const response = await this.privatePostDepositAddresses (this.extend (request, params));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}

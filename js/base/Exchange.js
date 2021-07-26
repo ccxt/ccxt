@@ -879,26 +879,6 @@ module.exports = class Exchange {
         return this.safeString (this.commonCurrencies, currency, currency)
     }
 
-    currencyId (commonCode) {
-
-        if (this.currencies === undefined) {
-            throw new ExchangeError (this.id + ' currencies not loaded')
-        }
-
-        if (commonCode in this.currencies) {
-            return this.currencies[commonCode]['id'];
-        }
-
-        const currencyIds = {}
-        const distinct = Object.keys (this.commonCurrencies)
-        for (let i = 0; i < distinct.length; i++) {
-            const k = distinct[i]
-            currencyIds[this.commonCurrencies[k]] = k
-        }
-
-        return this.safeString (currencyIds, commonCode, commonCode)
-    }
-
     currency (code) {
 
         if (this.currencies === undefined) {
@@ -932,10 +912,6 @@ module.exports = class Exchange {
 
     marketIds (symbols) {
         return symbols.map ((symbol) => this.marketId (symbol))
-    }
-
-    currencyIds (codes) {
-        return codes.map ((code) => this.currencyId (code))
     }
 
     symbol (symbol) {
