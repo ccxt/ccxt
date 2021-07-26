@@ -3679,6 +3679,7 @@ class binance extends Exchange {
             'leverage' => $leverage,
             'unrealizedPnl' => $unrealizedPnl,
             'contracts' => $contracts,
+            'contractSize' => $this->parse_number($market['contractSize']),
             'marginRatio' => $marginRatio,
             'liquidationPrice' => $liquidationPrice,
             'markPrice' => null,

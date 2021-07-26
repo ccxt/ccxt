@@ -500,7 +500,7 @@ class okex(Exchange):
                     'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
                 'createMarketBuyOrderRequiresPrice': True,
-                'fetchMarkets': ['spot', 'futures', 'swap', 'option'],  # spot, futures, swap, option
+                'fetchMarkets': ['spot', 'futures', 'swap'],  # spot, futures, swap, option
                 'defaultType': 'spot',  # 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 'fetchBalance': {
                     'type': 'spot',  # 'funding', 'trading', 'spot'
@@ -623,11 +623,14 @@ class okex(Exchange):
         option = (type == 'option')
         baseId = self.safe_string(market, 'baseCcy')
         quoteId = self.safe_string(market, 'quoteCcy')
+        settleCurrency = self.safe_string(market, 'settleCcy')
         underlying = self.safe_string(market, 'uly')
         if (underlying is not None) and not spot:
             parts = underlying.split('-')
             baseId = self.safe_string(parts, 0)
             quoteId = self.safe_string(parts, 1)
+        inverse = baseId == settleCurrency
+        linear = quoteId == settleCurrency
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = (base + '/' + quote) if spot else id
@@ -643,6 +646,7 @@ class okex(Exchange):
             minCost = self.parse_number(Precise.string_mul(tickSize, minAmountString))
         active = True
         fees = self.safe_value_2(self.fees, type, 'trading', {})
+        contractSize = self.safe_string(market, 'ctVal')
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -656,7 +660,10 @@ class okex(Exchange):
             'futures': futures,
             'swap': swap,
             'option': option,
+            'linear': linear,
+            'inverse': inverse,
             'active': active,
+            'contractSize': contractSize,
             'precision': precision,
             'limits': {
                 'amount': {
@@ -2404,7 +2411,7 @@ class okex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.safe_value(data, 0)
+        return self.parse_position(self.safe_value(data, 0))
 
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
@@ -2420,7 +2427,7 @@ class okex(Exchange):
         if type is not None:
             request['instType'] = type.upper()
         params = self.omit(params, 'type')
-        response = self.privateGetAccountPositions(params)
+        response = self.privateGetAccountPositions(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -2467,7 +2474,114 @@ class okex(Exchange):
         #         ]
         #     }
         #
-        return self.safe_value(response, 'data', [])
+        positions = self.safe_value(response, 'data', [])
+        result = []
+        for i in range(0, len(positions)):
+            entry = positions[i]
+            instrument = self.safe_string(entry, 'instType')
+            if (instrument == 'FUTURES') or instrument == ('SWAP'):
+                result.append(self.parse_position(positions[i]))
+        return result
+
+    def parse_position(self, position, market=None):
+        #
+        #     {
+        #       "adl": "3",
+        #       "availPos": "1",
+        #       "avgPx": "34131.1",
+        #       "cTime": "1627227626502",
+        #       "ccy": "USDT",
+        #       "deltaBS": "",
+        #       "deltaPA": "",
+        #       "gammaBS": "",
+        #       "gammaPA": "",
+        #       "imr": "170.66093041794787",
+        #       "instId": "BTC-USDT-SWAP",
+        #       "instType": "SWAP",
+        #       "interest": "0",
+        #       "last": "34134.4",
+        #       "lever": "2",
+        #       "liab": "",
+        #       "liabCcy": "",
+        #       "liqPx": "12608.959083877446",
+        #       "margin": "",
+        #       "mgnMode": "cross",
+        #       "mgnRatio": "140.49930117599155",
+        #       "mmr": "1.3652874433435829",
+        #       "notionalUsd": "341.5130010779638",
+        #       "optVal": "",
+        #       "pos": "1",
+        #       "posCcy": "",
+        #       "posId": "339552508062380036",
+        #       "posSide": "long",
+        #       "thetaBS": "",
+        #       "thetaPA": "",
+        #       "tradeId": "98617799",
+        #       "uTime": "1627227626502",
+        #       "upl": "0.0108608358957281",
+        #       "uplRatio": "0.0000636418743944",
+        #       "vegaBS": "",
+        #       "vegaPA": ""
+        #     }
+        #
+        marketId = self.safe_string(position, 'instId')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        contractsString = self.safe_string(position, 'availPos')
+        contracts = int(contractsString)
+        notionalString = self.safe_string(position, 'notionalUsd')
+        notional = self.parse_number(notionalString)
+        marginType = self.safe_string(position, 'mgnMode')
+        initialMarginString = None
+        entryPriceString = self.safe_string(position, 'avgPx')
+        unrealizedPnlString = self.safe_string(position, 'upl')
+        if marginType == 'cross':
+            initialMarginString = self.safe_string(position, 'imr')
+        else:
+            initialMarginString = self.safe_string(position, 'margin')
+        maintenanceMarginString = self.safe_string(position, 'mmr')
+        maintenanceMargin = self.parse_number(maintenanceMarginString)
+        initialMarginPercentage = None
+        maintenanceMarginPercentage = None
+        if market['inverse']:
+            notionalValue = Precise.string_div(Precise.string_mul(contractsString, market['contractSize']), entryPriceString)
+            maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notionalValue)
+            initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalValue, 4))
+        else:
+            maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notionalString)
+            initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalString, 4))
+        rounder = '0.00005'  # round to closest 0.01%
+        maintenanceMarginPercentage = self.parse_number(Precise.string_div(Precise.string_add(maintenanceMarginPercentage, rounder), '1', 4))
+        collateralString = Precise.string_add(initialMarginString, unrealizedPnlString)
+        liquidationPrice = self.safe_number(position, 'liqPx')
+        percentageString = self.safe_string(position, 'uplRatio')
+        percentage = self.parse_number(Precise.string_mul(percentageString, '100'))
+        side = self.safe_string(position, 'posSide')
+        timestamp = self.safe_integer(position, 'uTime')
+        leverage = self.safe_integer(position, 'lever')
+        marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
+        return {
+            'info': position,
+            'symbol': symbol,
+            'notional': notional,
+            'marginType': marginType,
+            'liquidationPrice': liquidationPrice,
+            'entryPrice': self.parse_number(entryPriceString),
+            'unrealizedPnl': self.parse_number(unrealizedPnlString),
+            'percentage': percentage,
+            'contracts': contracts,
+            'contractSize': self.parse_number(market['contractSize']),
+            'side': side,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'maintenanceMargin': maintenanceMargin,
+            'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'collateral': self.parse_number(collateralString),
+            'initialMargin': self.parse_number(initialMarginString),
+            'initialMarginPercentage': self.parse_number(initialMarginPercentage),
+            'leverage': leverage,
+            'marginRatio': marginRatio,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         isArray = isinstance(params, list)

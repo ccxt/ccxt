@@ -3496,6 +3496,7 @@ class binance(Exchange):
             'leverage': leverage,
             'unrealizedPnl': unrealizedPnl,
             'contracts': contracts,
+            'contractSize': self.parse_number(market['contractSize']),
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': None,

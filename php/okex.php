@@ -484,7 +484,7 @@ class okex extends Exchange {
                     'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 ),
                 'createMarketBuyOrderRequiresPrice' => true,
-                'fetchMarkets' => array( 'spot', 'futures', 'swap', 'option' ), // spot, futures, swap, option
+                'fetchMarkets' => array( 'spot', 'futures', 'swap' ), // spot, futures, swap, option
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 'fetchBalance' => array(
                     'type' => 'spot', // 'funding', 'trading', 'spot'
@@ -589,7 +589,7 @@ class okex extends Exchange {
         //         "baseCcy":"BTC",
         //         "category":"1",
         //         "ctMult":"",
-        //         "ctType":"", // inverse, linear
+        //         "ctType":"", // $inverse, $linear
         //         "ctVal":"",
         //         "ctValCcy":"",
         //         "expTime":"",
@@ -616,12 +616,15 @@ class okex extends Exchange {
         $option = ($type === 'option');
         $baseId = $this->safe_string($market, 'baseCcy');
         $quoteId = $this->safe_string($market, 'quoteCcy');
+        $settleCurrency = $this->safe_string($market, 'settleCcy');
         $underlying = $this->safe_string($market, 'uly');
         if (($underlying !== null) && !$spot) {
             $parts = explode('-', $underlying);
             $baseId = $this->safe_string($parts, 0);
             $quoteId = $this->safe_string($parts, 1);
         }
+        $inverse = $baseId === $settleCurrency;
+        $linear = $quoteId === $settleCurrency;
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $spot ? ($base . '/' . $quote) : $id;
@@ -638,6 +641,7 @@ class okex extends Exchange {
         }
         $active = true;
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
+        $contractSize = $this->safe_string($market, 'ctVal');
         return array_merge($fees, array(
             'id' => $id,
             'symbol' => $symbol,
@@ -651,7 +655,10 @@ class okex extends Exchange {
             'futures' => $futures,
             'swap' => $swap,
             'option' => $option,
+            'linear' => $linear,
+            'inverse' => $inverse,
             'active' => $active,
+            'contractSize' => $contractSize,
             'precision' => $precision,
             'limits' => array(
                 'amount' => array(
@@ -2491,7 +2498,7 @@ class okex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->safe_value($data, 0);
+        return $this->parse_position($this->safe_value($data, 0));
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
@@ -2509,7 +2516,7 @@ class okex extends Exchange {
             $request['instType'] = strtoupper($type);
         }
         $params = $this->omit($params, 'type');
-        $response = $this->privateGetAccountPositions ($params);
+        $response = $this->privateGetAccountPositions (array_merge($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -2556,7 +2563,119 @@ class okex extends Exchange {
         //         )
         //     }
         //
-        return $this->safe_value($response, 'data', array());
+        $positions = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $entry = $positions[$i];
+            $instrument = $this->safe_string($entry, 'instType');
+            if (($instrument === 'FUTURES') || $instrument === ('SWAP')) {
+                $result[] = $this->parse_position($positions[$i]);
+            }
+        }
+        return $result;
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //       "adl" => "3",
+        //       "availPos" => "1",
+        //       "avgPx" => "34131.1",
+        //       "cTime" => "1627227626502",
+        //       "ccy" => "USDT",
+        //       "deltaBS" => "",
+        //       "deltaPA" => "",
+        //       "gammaBS" => "",
+        //       "gammaPA" => "",
+        //       "imr" => "170.66093041794787",
+        //       "instId" => "BTC-USDT-SWAP",
+        //       "instType" => "SWAP",
+        //       "interest" => "0",
+        //       "last" => "34134.4",
+        //       "lever" => "2",
+        //       "liab" => "",
+        //       "liabCcy" => "",
+        //       "liqPx" => "12608.959083877446",
+        //       "margin" => "",
+        //       "mgnMode" => "cross",
+        //       "mgnRatio" => "140.49930117599155",
+        //       "mmr" => "1.3652874433435829",
+        //       "notionalUsd" => "341.5130010779638",
+        //       "optVal" => "",
+        //       "pos" => "1",
+        //       "posCcy" => "",
+        //       "posId" => "339552508062380036",
+        //       "posSide" => "long",
+        //       "thetaBS" => "",
+        //       "thetaPA" => "",
+        //       "tradeId" => "98617799",
+        //       "uTime" => "1627227626502",
+        //       "upl" => "0.0108608358957281",
+        //       "uplRatio" => "0.0000636418743944",
+        //       "vegaBS" => "",
+        //       "vegaPA" => ""
+        //     }
+        //
+        $marketId = $this->safe_string($position, 'instId');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $contractsString = $this->safe_string($position, 'availPos');
+        $contracts = intval($contractsString);
+        $notionalString = $this->safe_string($position, 'notionalUsd');
+        $notional = $this->parse_number($notionalString);
+        $marginType = $this->safe_string($position, 'mgnMode');
+        $initialMarginString = null;
+        $entryPriceString = $this->safe_string($position, 'avgPx');
+        $unrealizedPnlString = $this->safe_string($position, 'upl');
+        if ($marginType === 'cross') {
+            $initialMarginString = $this->safe_string($position, 'imr');
+        } else {
+            $initialMarginString = $this->safe_string($position, 'margin');
+        }
+        $maintenanceMarginString = $this->safe_string($position, 'mmr');
+        $maintenanceMargin = $this->parse_number($maintenanceMarginString);
+        $initialMarginPercentage = null;
+        $maintenanceMarginPercentage = null;
+        if ($market['inverse']) {
+            $notionalValue = Precise::string_div(Precise::string_mul($contractsString, $market['contractSize']), $entryPriceString);
+            $maintenanceMarginPercentage = Precise::string_div($maintenanceMarginString, $notionalValue);
+            $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalValue, 4));
+        } else {
+            $maintenanceMarginPercentage = Precise::string_div($maintenanceMarginString, $notionalString);
+            $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalString, 4));
+        }
+        $rounder = '0.00005'; // round to closest 0.01%
+        $maintenanceMarginPercentage = $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentage, $rounder), '1', 4));
+        $collateralString = Precise::string_add($initialMarginString, $unrealizedPnlString);
+        $liquidationPrice = $this->safe_number($position, 'liqPx');
+        $percentageString = $this->safe_string($position, 'uplRatio');
+        $percentage = $this->parse_number(Precise::string_mul($percentageString, '100'));
+        $side = $this->safe_string($position, 'posSide');
+        $timestamp = $this->safe_integer($position, 'uTime');
+        $leverage = $this->safe_integer($position, 'lever');
+        $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateralString, 4));
+        return array(
+            'info' => $position,
+            'symbol' => $symbol,
+            'notional' => $notional,
+            'marginType' => $marginType,
+            'liquidationPrice' => $liquidationPrice,
+            'entryPrice' => $this->parse_number($entryPriceString),
+            'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
+            'percentage' => $percentage,
+            'contracts' => $contracts,
+            'contractSize' => $this->parse_number($market['contractSize']),
+            'side' => $side,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'maintenanceMargin' => $maintenanceMargin,
+            'maintenanceMarginPercentage' => $maintenanceMarginPercentage,
+            'collateral' => $this->parse_number($collateralString),
+            'initialMargin' => $this->parse_number($initialMarginString),
+            'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
+            'leverage' => $leverage,
+            'marginRatio' => $marginRatio,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
