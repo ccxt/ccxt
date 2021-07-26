@@ -46,6 +46,7 @@ const exchanges = {
     'aax':                     require ('./js/aax.js'),
     'aofex':                   require ('./js/aofex.js'),
     'ascendex':                require ('./js/ascendex.js'),
+    'b2c2':                    require ('./js/b2c2.js'),
     'bequant':                 require ('./js/bequant.js'),
     'bibox':                   require ('./js/bibox.js'),
     'bigone':                  require ('./js/bigone.js'),

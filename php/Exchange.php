@@ -65,6 +65,7 @@ class Exchange {
         'aax',
         'aofex',
         'ascendex',
+        'b2c2',
         'bequant',
         'bibox',
         'bigone',
