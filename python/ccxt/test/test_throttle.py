@@ -6,10 +6,10 @@ sys.path.append(root)
 
 # ----------------------------------------------------------------------------
 
-import asyncio
-import time
-from ccxt.async_support.base.throttler import Throttler as Throttle
-#from ccxt.async_support.base.throttle import throttle as Throttle
+import asyncio  # noqa: E402
+import time  # noqa: E402
+from ccxt.async_support.base.throttler import Throttler as Throttle  # noqa: E402
+# from ccxt.async_support.base.throttle import throttle as Throttle
 
 
 delta = 50
