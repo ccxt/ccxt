@@ -1218,9 +1218,9 @@ class kraken(Exchange):
         await self.load_markets()
         options = self.safe_value(self.options, 'fetchOrderTrades', {})
         batchSize = self.safe_integer(options, 'batchSize', 20)
-        numBatches = int(tradeIds / batchSize)
-        numBatches = self.sum(numBatches, 1)
         numTradeIds = len(tradeIds)
+        numBatches = int(numTradeIds / batchSize)
+        numBatches = self.sum(numBatches, 1)
         result = []
         for j in range(0, numBatches):
             requestIds = []
