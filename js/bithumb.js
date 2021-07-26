@@ -129,6 +129,10 @@ module.exports = class bithumb extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'MIR': 'MIR COIN',
+                'SOC': 'Soda Coin',
+            },
         });
     }
 
@@ -212,7 +216,7 @@ module.exports = class bithumb extends Exchange {
             account['free'] = this.safeString (balances, 'available_' + lowerCurrencyId);
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -809,10 +813,10 @@ module.exports = class bithumb extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         const side_in_params = ('side' in params);
         if (!side_in_params) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument and a `side` parameter (sell or buy)');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `side` parameter (sell or buy)');
         }
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument and a `side` parameter (sell or buy)');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
         }
         const market = this.market (symbol);
         const side = (params['side'] === 'buy') ? 'bid' : 'ask';
@@ -864,7 +868,7 @@ module.exports = class bithumb extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = '/' + this.implodeParams (path, params);
-        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + endpoint;
+        let url = this.implodeHostname (this.urls['api'][api]) + endpoint;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
@@ -918,7 +922,7 @@ module.exports = class bithumb extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
         if ('status' in response) {
-            if (response['status'] === '0000') {
+            if (response['status'] === '0000' || response['message'] === '거래 진행중인 내역이 존재하지 않습니다') {
                 return response;
             }
             throw new ExchangeError (this.id + ' ' + this.json (response));

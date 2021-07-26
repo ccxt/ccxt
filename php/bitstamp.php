@@ -24,6 +24,7 @@ class bitstamp extends Exchange {
             'pro' => true,
             'has' => array(
                 'CORS' => true,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -98,12 +99,18 @@ class bitstamp extends Exchange {
                         'open_orders/{pair}/',
                         'order_status/',
                         'cancel_order/',
+                        'cancel_all_orders/',
+                        'cancel_all_orders/{pair}/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
                         'buy/instant/{pair}/',
                         'sell/{pair}/',
                         'sell/market/{pair}/',
                         'sell/instant/{pair}/',
+                        'btc_withdrawal/',
+                        'btc_address/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -142,6 +149,20 @@ class bitstamp extends Exchange {
                         'uni_address/',
                         'yfi_withdrawal/',
                         'yfi_address',
+                        'audio_withdrawal/',
+                        'audio_address/',
+                        'crv_withdrawal/',
+                        'crv_address/',
+                        'algo_withdrawal/',
+                        'algo_address/',
+                        'comp_withdrawal/',
+                        'comp_address/',
+                        'grt_withdrawal',
+                        'grt_address/',
+                        'usdt_withdrawal/',
+                        'usdt_address/',
+                        'eurt_withdrawal/',
+                        'eurt_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -154,11 +175,7 @@ class bitstamp extends Exchange {
                 ),
                 'v1' => array(
                     'post' => array(
-                        'bitcoin_deposit_address/',
                         'unconfirmed_btc/',
-                        'bitcoin_withdrawal/',
-                        'ripple_withdrawal/',
-                        'ripple_address/',
                     ),
                 ),
             ),
@@ -813,7 +830,7 @@ class bitstamp extends Exchange {
             $account['total'] = $this->safe_string($balance, $currencyId . '_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
@@ -919,6 +936,19 @@ class bitstamp extends Exchange {
             'id' => $id,
         );
         return $this->privatePostCancelOrder (array_merge($request, $params));
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        $request = array();
+        $method = 'privatePostCancelAllOrders';
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['pair'] = $market['id'];
+            $method = 'privatePostCancelAllOrdersPair';
+        }
+        return $this->$method (array_merge($request, $params));
     }
 
     public function parse_order_status($status) {
@@ -1350,13 +1380,14 @@ class bitstamp extends Exchange {
                 'fee' => $parsedTrade['fee'],
             );
         } else {
-            $parsedTransaction = $this->parse_transaction($item);
+            $parsedTransaction = $this->parse_transaction($item, $currency);
             $direction = null;
             if (is_array($item) && array_key_exists('amount', $item)) {
                 $amount = $this->safe_number($item, 'amount');
                 $direction = $amount > 0 ? 'in' : 'out';
             } else if ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
-                $currencyId = $this->currency_id($parsedTransaction['currency']);
+                $code = $parsedTransaction['currency'];
+                $currencyId = $this->safe_string($this->currencies_by_id, $code, $code);
                 $amount = $this->safe_number($item, $currencyId);
                 $direction = $amount > 0 ? 'in' : 'out';
             }
@@ -1419,9 +1450,6 @@ class bitstamp extends Exchange {
     }
 
     public function get_currency_name($code) {
-        if ($code === 'BTC') {
-            return 'bitcoin';
-        }
         return strtolower($code);
     }
 
@@ -1434,17 +1462,10 @@ class bitstamp extends Exchange {
             throw new NotSupported($this->id . ' fiat fetchDepositAddress() for ' . $code . ' is not supported!');
         }
         $name = $this->get_currency_name($code);
-        $v1 = ($code === 'BTC');
-        $method = $v1 ? 'v1' : 'private'; // $v1 or v2
-        $method .= 'Post' . $this->capitalize($name);
-        $method .= $v1 ? 'Deposit' : '';
-        $method .= 'Address';
+        $method = 'privatePost' . $this->capitalize($name) . 'Address';
         $response = $this->$method ($params);
-        if ($v1) {
-            $response = json_decode($response, $as_associative_array = true);
-        }
-        $address = $v1 ? $response : $this->safe_string($response, 'address');
-        $tag = $v1 ? null : $this->safe_string_2($response, 'memo_id', 'destination_tag');
+        $address = $this->safe_string($response, 'address');
+        $tag = $this->safe_string_2($response, 'memo_id', 'destination_tag');
         $this->check_address($address);
         return array(
             'currency' => $code,
@@ -1465,9 +1486,7 @@ class bitstamp extends Exchange {
         $method = null;
         if (!$this->is_fiat($code)) {
             $name = $this->get_currency_name($code);
-            $v1 = ($code === 'BTC');
-            $method = $v1 ? 'v1' : 'private'; // $v1 or v2
-            $method .= 'Post' . $this->capitalize($name) . 'Withdrawal';
+            $method = 'privatePost' . $this->capitalize($name) . 'Withdrawal';
             if ($code === 'XRP') {
                 if ($tag !== null) {
                     $request['destination_tag'] = $tag;

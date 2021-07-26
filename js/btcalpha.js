@@ -196,7 +196,7 @@ module.exports = class btcalpha extends Exchange {
     parseTrade (trade, market = undefined) {
         let symbol = undefined;
         if (market === undefined) {
-            market = this.safeValue (this.marketsById, trade['pair']);
+            market = this.safeValue (this.markets_by_id, trade['pair']);
         }
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -300,7 +300,7 @@ module.exports = class btcalpha extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
@@ -315,7 +315,7 @@ module.exports = class btcalpha extends Exchange {
     parseOrder (order, market = undefined) {
         let symbol = undefined;
         if (market === undefined) {
-            market = this.safeValue (this.marketsById, order['pair']);
+            market = this.safeValue (this.markets_by_id, order['pair']);
         }
         if (market !== undefined) {
             symbol = market['symbol'];

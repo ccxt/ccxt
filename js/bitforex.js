@@ -69,7 +69,9 @@ module.exports = class bitforex extends Exchange {
                         'api/v1/trade/placeOrder',
                         'api/v1/trade/placeMultiOrder',
                         'api/v1/trade/cancelOrder',
+                        'api/v1/trade/cancelMultiOrder',
                         'api/v1/trade/orderInfo',
+                        'api/v1/trade/multiOrderInfo',
                         'api/v1/trade/orderInfos',
                     ],
                 },
@@ -224,11 +226,13 @@ module.exports = class bitforex extends Exchange {
             },
             'commonCurrencies': {
                 'ACE': 'ACE Entertainment',
+                'CAPP': 'Crypto Application Token',
                 'CREDIT': 'TerraCredit',
                 'CTC': 'Culture Ticket Chain',
                 'GOT': 'GoNetwork',
                 'HBC': 'Hybrid Bank Cash',
                 'IQ': 'IQ.Cash',
+                'MIR': 'MIR COIN',
                 'UOS': 'UOS Network',
             },
             'exceptions': {
@@ -238,6 +242,7 @@ module.exports = class bitforex extends Exchange {
                 '1017': PermissionDenied, // {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
                 '1019': BadSymbol, // {"code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid"}
                 '3002': InsufficientFunds,
+                '4002': InvalidOrder, // {"success":false,"code":"4002","message":"Price unreasonable"}
                 '4003': InvalidOrder, // {"success":false,"code":"4003","message":"amount too small"}
                 '10204': DDoSProtection,
             },
@@ -352,7 +357,7 @@ module.exports = class bitforex extends Exchange {
             account['total'] = this.safeString (balance, 'fix');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchTicker (symbol, params = {}) {

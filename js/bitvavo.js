@@ -701,7 +701,13 @@ module.exports = class bitvavo extends Exchange {
             // 'end': this.milliseconds (),
         };
         if (since !== undefined) {
+            // https://github.com/ccxt/ccxt/issues/9227
+            const duration = this.parseTimeframe (timeframe);
             request['start'] = since;
+            if (limit === undefined) {
+                limit = 1440;
+            }
+            request['end'] = this.sum (since, limit * duration * 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 1440, max 1440
@@ -743,7 +749,7 @@ module.exports = class bitvavo extends Exchange {
             account['used'] = this.safeString (balance, 'inOrder');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchDepositAddress (code, params = {}) {

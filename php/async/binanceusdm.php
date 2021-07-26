@@ -15,88 +15,27 @@ class binanceusdm extends binance {
             'name' => 'Binance USDⓈ-M',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg',
+                'doc' => array(
+                    'https://binance-docs.github.io/apidocs/futures/en/',
+                    'https://binance-docs.github.io/apidocs/spot/en',
+                ),
+            ),
+            'has' => array(
+                'fetchPositions' => true,
+                'fetchIsolatedPositions' => true,
+                'fetchFundingRate' => true,
+                'fetchFundingHistory' => true,
+                'setLeverage' => true,
+                'setMarginMode' => true,
             ),
             'options' => array(
                 'defaultType' => 'future',
-            ),
-            // https://www.binance.com/en/fee/futureFee
-            'fees' => array(
-                'trading' => array(
-                    'tierBased' => true,
-                    'percentage' => true,
-                    'taker' => $this->parse_number('0.000400'),
-                    'maker' => $this->parse_number('0.000200'),
-                    'tiers' => array(
-                        'taker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.000400') ),
-                            array( $this->parse_number('250'), $this->parse_number('0.000400') ),
-                            array( $this->parse_number('2500'), $this->parse_number('0.000350') ),
-                            array( $this->parse_number('7500'), $this->parse_number('0.000320') ),
-                            array( $this->parse_number('22500'), $this->parse_number('0.000300') ),
-                            array( $this->parse_number('50000'), $this->parse_number('0.000270') ),
-                            array( $this->parse_number('100000'), $this->parse_number('0.000250') ),
-                            array( $this->parse_number('200000'), $this->parse_number('0.000220') ),
-                            array( $this->parse_number('400000'), $this->parse_number('0.000200') ),
-                            array( $this->parse_number('750000'), $this->parse_number('0.000170') ),
-                        ),
-                        'maker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.000200') ),
-                            array( $this->parse_number('250'), $this->parse_number('0.000160') ),
-                            array( $this->parse_number('2500'), $this->parse_number('0.000140') ),
-                            array( $this->parse_number('7500'), $this->parse_number('0.000120') ),
-                            array( $this->parse_number('22500'), $this->parse_number('0.000100') ),
-                            array( $this->parse_number('50000'), $this->parse_number('0.000080') ),
-                            array( $this->parse_number('100000'), $this->parse_number('0.000060') ),
-                            array( $this->parse_number('200000'), $this->parse_number('0.000040') ),
-                            array( $this->parse_number('400000'), $this->parse_number('0.000020') ),
-                            array( $this->parse_number('750000'), $this->parse_number('0') ),
-                        ),
-                    ),
-                ),
+                // https://www.binance.com/en/support/faq/360033162192
+                // tier amount, maintenance margin, initial margin
+                'leverageBrackets' => null,
+                'marginTypes' => array(),
             ),
         ));
-    }
-
-    public function fetch_trading_fees($params = array ()) {
-        yield $this->load_markets();
-        $marketSymbols = is_array($this->markets) ? array_keys($this->markets) : array();
-        $fees = array();
-        $accountInfo = yield $this->fapiPrivateGetAccount ($params);
-        // {
-        //     "$feeTier" => 0,       // account commisssion tier
-        //     "canTrade" => true,   // if can trade
-        //     "canDeposit" => true,     // if can transfer in asset
-        //     "canWithdraw" => true,    // if can transfer out asset
-        //     "updateTime" => 0,
-        //     "totalInitialMargin" => "0.00000000",    // total initial margin required with current mark price (useless with isolated positions), only for USDT asset
-        //     "totalMaintMargin" => "0.00000000",     // total maintenance margin required, only for USDT asset
-        //     "totalWalletBalance" => "23.72469206",     // total wallet balance, only for USDT asset
-        //     "totalUnrealizedProfit" => "0.00000000",   // total unrealized profit, only for USDT asset
-        //     "totalMarginBalance" => "23.72469206",     // total margin balance, only for USDT asset
-        //     "totalPositionInitialMargin" => "0.00000000",    // initial margin required for positions with current mark price, only for USDT asset
-        //     "totalOpenOrderInitialMargin" => "0.00000000",   // initial margin required for open orders with current mark price, only for USDT asset
-        //     "totalCrossWalletBalance" => "23.72469206",      // crossed wallet balance, only for USDT asset
-        //     "totalCrossUnPnl" => "0.00000000",      // unrealized profit of crossed positions, only for USDT asset
-        //     "availableBalance" => "23.72469206",       // available balance, only for USDT asset
-        //     "maxWithdrawAmount" => "23.72469206"     // maximum amount for transfer out, only for USDT asset
-        //     ...
-        // }
-        $feeTier = $this->safe_integer($accountInfo, 'feeTier');
-        $feeTiers = $this->fees['trading']['tiers'];
-        $maker = $feeTiers['maker'][$feeTier][1];
-        $taker = $feeTiers['taker'][$feeTier][1];
-        for ($i = 0; $i < count($marketSymbols); $i++) {
-            $symbol = $marketSymbols[$i];
-            $fees[$symbol] = array(
-                'info' => array(
-                    'feeTier' => $feeTier,
-                ),
-                'symbol' => $symbol,
-                'maker' => $maker,
-                'taker' => $taker,
-            );
-        }
-        return $fees;
     }
 
     public function transfer_in($code, $amount, $params = array ()) {

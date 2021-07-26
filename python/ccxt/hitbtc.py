@@ -210,6 +210,7 @@ class hitbtc(Exchange):
                 'PLA': 'PlayChip',
                 'PNT': 'Penta',
                 'SBTC': 'Super Bitcoin',
+                'STX': 'Stox',
                 'TV': 'Tokenville',
                 'USD': 'USDT',
                 'XPNT': 'PNT',
@@ -454,7 +455,7 @@ class hitbtc(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'reserved')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

@@ -403,7 +403,7 @@ class coinbasepro(Exchange):
             account['used'] = self.safe_string(balance, 'hold')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -568,7 +568,9 @@ class coinbasepro(Exchange):
         side = 'sell' if (trade['side'] == 'buy') else 'buy'
         orderId = self.safe_string(trade, 'order_id')
         # Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
-        if orderId is not None:
+        makerOrderId = self.safe_string(trade, 'maker_order_id')
+        takerOrderId = self.safe_string(trade, 'taker_order_id')
+        if (orderId is not None) or ((makerOrderId is not None) and (takerOrderId is not None)):
             side = 'buy' if (trade['side'] == 'buy') else 'sell'
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
@@ -650,6 +652,8 @@ class coinbasepro(Exchange):
             if limit is None:
                 # https://docs.pro.coinbase.com/#get-historic-rates
                 limit = 300  # max = 300
+            else:
+                limit = min(300, limit)
             request['end'] = self.iso8601(self.sum((limit - 1) * granularity * 1000, since))
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         #
@@ -1085,7 +1089,7 @@ class coinbasepro(Exchange):
         if method == 'GET':
             if query:
                 request += '?' + self.urlencode(query)
-        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + request
+        url = self.implode_hostname(self.urls['api'][api]) + request
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())

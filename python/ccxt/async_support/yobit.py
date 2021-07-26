@@ -109,9 +109,11 @@ class yobit(Exchange):
                 'BCS': 'BitcoinStake',
                 'BITS': 'Bitstar',
                 'BLN': 'Bulleon',
+                'BNS': 'Benefit Bonus Coin',
                 'BOT': 'BOTcoin',
                 'BON': 'BONES',
                 'BPC': 'BitcoinPremium',
+                'BST': 'BitStone',
                 'BTS': 'Bitshares2',
                 'CAT': 'BitClave',
                 'CBC': 'CryptoBossCoin',
@@ -141,6 +143,7 @@ class yobit(Exchange):
                 'GENE': 'Genesiscoin',
                 'GOLD': 'GoldMint',
                 'GOT': 'Giotto Coin',
+                'GSX': 'GlowShares',
                 'HTML5': 'HTML',
                 'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
@@ -172,6 +175,7 @@ class yobit(Exchange):
                 'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
                 'PLC': 'Platin Coin',
+                'RAI': 'RaiderCoin',
                 'RCN': 'RCoin',
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
@@ -268,7 +272,7 @@ class yobit(Exchange):
             account['free'] = self.safe_string(free, currencyId)
             account['total'] = self.safe_string(total, currencyId)
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetInfo(params)

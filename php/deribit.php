@@ -102,6 +102,8 @@ class deribit extends Exchange {
                         'get_funding_rate_value',
                         'get_historical_volatility',
                         'get_index',
+                        'get_index_price',
+                        'get_index_price_names',
                         'get_instruments',
                         'get_last_settlements_by_currency',
                         'get_last_settlements_by_instrument',
@@ -538,7 +540,7 @@ class deribit extends Exchange {
         $account['used'] = $this->safe_string($balance, 'maintenanceMargin');
         $account['total'] = $this->safe_string($balance, 'equity');
         $result[$currencyCode] = $account;
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function create_deposit_address($code, $params = array ()) {

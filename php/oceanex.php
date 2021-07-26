@@ -16,7 +16,7 @@ class oceanex extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'oceanex',
             'name' => 'OceanEx',
-            'countries' => array( 'US' ),
+            'countries' => array( 'LU', 'CN', 'SG' ),
             'version' => 'v1',
             'rateLimit' => 3000,
             'urls' => array(
@@ -454,7 +454,7 @@ class oceanex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -671,7 +671,7 @@ class oceanex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         //
-        //     array("$code":1011,"$message":"This IP '5.228.233.138' is not allowed","data":array())
+        //     array("$code":1011,"$message":"This IP 'x.x.x.x' is not allowed","data":array())
         //
         if ($response === null) {
             return;

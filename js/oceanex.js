@@ -12,7 +12,7 @@ module.exports = class oceanex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'oceanex',
             'name': 'OceanEx',
-            'countries': [ 'US' ],
+            'countries': [ 'LU', 'CN', 'SG' ],
             'version': 'v1',
             'rateLimit': 3000,
             'urls': {
@@ -450,7 +450,7 @@ module.exports = class oceanex extends Exchange {
             account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -667,7 +667,7 @@ module.exports = class oceanex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
-        //     {"code":1011,"message":"This IP '5.228.233.138' is not allowed","data":{}}
+        //     {"code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":{}}
         //
         if (response === undefined) {
             return;

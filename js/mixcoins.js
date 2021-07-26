@@ -77,7 +77,7 @@ module.exports = class mixcoins extends Exchange {
             account['used'] = this.safeString (balance, 'lock');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

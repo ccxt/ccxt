@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.49.98'
+__version__ = '1.53.69'
 
 # -----------------------------------------------------------------------------
 
@@ -169,7 +169,6 @@ class Exchange(object):
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
     token = ''  # reserved for HTTP auth in some cases
     twofa = None
-    marketsById = None
     markets_by_id = None
     currencies_by_id = None
     precision = None
@@ -227,6 +226,7 @@ class Exchange(object):
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
+    positions = None
 
     status = {
         'status': 'ok',
@@ -340,6 +340,7 @@ class Exchange(object):
         self.tickers = dict() if self.tickers is None else self.tickers
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
+        self.positions = dict() if self.positions is None else self.positions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = dict() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
@@ -793,6 +794,10 @@ class Exchange(object):
         return format(random.getrandbits(length * 4), 'x')
 
     @staticmethod
+    def uuid16(length=16):
+        return format(random.getrandbits(length * 4), 'x')
+
+    @staticmethod
     def uuid():
         return str(uuid.uuid4())
 
@@ -898,6 +903,9 @@ class Exchange(object):
     @staticmethod
     def extract_params(string):
         return re.findall(r'{([\w-]+)}', string)
+
+    def implode_hostname(self, url):
+        return Exchange.implode_params(url, {'hostname': self.hostname})
 
     @staticmethod
     def implode_params(string, params):
@@ -1280,15 +1288,6 @@ class Exchange(object):
             return currency
         return self.safe_string(self.commonCurrencies, currency, currency)
 
-    def currency_id(self, commonCode):
-
-        if self.currencies:
-            if commonCode in self.currencies:
-                return self.currencies[commonCode]['id']
-
-        currencyIds = {v: k for k, v in self.commonCurrencies.items()}
-        return self.safe_string(currencyIds, commonCode, commonCode)
-
     def precision_from_string(self, string):
         parts = re.sub(r'0+$', '', string).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
@@ -1318,7 +1317,6 @@ class Exchange(object):
             )
         self.markets = self.index_by(values, 'symbol')
         self.markets_by_id = self.index_by(values, 'id')
-        self.marketsById = self.markets_by_id
         self.symbols = sorted(self.markets.keys())
         self.ids = sorted(self.markets_by_id.keys())
         if currencies:
@@ -1422,7 +1420,15 @@ class Exchange(object):
         raise NotSupported('API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
     def fetch_ticker(self, symbol, params={}):
-        raise NotSupported('fetch_ticker() not supported yet')
+        if self.has['fetchTickers']:
+            tickers = self.fetch_tickers([symbol], params)
+            ticker = self.safe_value(tickers, symbol)
+            if ticker is None:
+                raise BadSymbol(self.id + ' fetchTickers could not find a ticker for ' + symbol)
+            else:
+                return ticker
+        else:
+            raise NotSupported(self.id + ' fetchTicker not supported yet')
 
     def fetch_tickers(self, symbols=None, params={}):
         raise NotSupported('API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
@@ -1529,7 +1535,7 @@ class Exchange(object):
             'nonce': None,
         }
 
-    def parse_balance(self, balance, legacy=True):
+    def parse_balance(self, balance, legacy=False):
         currencies = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']).keys()
         balance['free'] = {}
         balance['used'] = {}
@@ -1905,9 +1911,6 @@ class Exchange(object):
             return self.markets[symbol]
         raise BadSymbol('{} does not have market symbol {}'.format(self.id, symbol))
 
-    def currency_ids(self, codes):
-        return [self.currency_id(code) for code in codes]
-
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]
 
@@ -1994,26 +1997,6 @@ class Exchange(object):
     def check_required_dependencies(self):
         if self.requiresEddsa and eddsa is None:
             raise NotSupported('Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
-
-    @staticmethod
-    def from_wei(amount, decimals=18):
-        if amount is None:
-            return None
-        amount_float = float(amount)
-        exponential = '{:.14e}'.format(amount_float)
-        n, exponent = exponential.split('e')
-        new_exponent = int(exponent) - decimals
-        return float(n + 'e' + str(new_exponent))
-
-    @staticmethod
-    def to_wei(amount, decimals=18):
-        if amount is None:
-            return None
-        amount_float = float(amount)
-        exponential = '{:.14e}'.format(amount_float)
-        n, exponent = exponential.split('e')
-        new_exponent = int(exponent) + decimals
-        return number_to_string(n + 'e' + str(new_exponent))
 
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
@@ -2127,19 +2110,6 @@ class Exchange(object):
     @staticmethod
     def binary_to_base16(s):
         return Exchange.decode(base64.b16encode(s)).lower()
-
-    # python supports arbitrarily big integers
-    @staticmethod
-    def integer_divide(a, b):
-        return int(a) // int(b)
-
-    @staticmethod
-    def integer_pow(a, b):
-        return int(a) ** int(b)
-
-    @staticmethod
-    def integer_modulo(a, b):
-        return int(a) % int(b)
 
     def sleep(self, milliseconds):
         return time.sleep(milliseconds / 1000)
@@ -2313,3 +2283,10 @@ class Exchange(object):
         if precision is None:
             return None
         return '1e' + Precise.string_neg(precision)
+
+    def omit_zero(self, string_number):
+        if string_number is None:
+            return None
+        if float(string_number) == 0:
+            return None
+        return string_number

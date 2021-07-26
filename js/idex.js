@@ -599,7 +599,7 @@ module.exports = class idex extends Exchange {
             account['used'] = this.safeString (entry, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

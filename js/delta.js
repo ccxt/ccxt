@@ -823,7 +823,7 @@ module.exports = class delta extends Exchange {
             account['free'] = this.safeString (balance, 'available_balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchPosition (symbol, params = undefined) {

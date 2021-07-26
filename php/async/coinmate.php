@@ -267,7 +267,7 @@ class coinmate extends Exchange {
             $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -327,7 +327,8 @@ class coinmate extends Exchange {
             $request['timestampFrom'] = $since;
         }
         if ($code !== null) {
-            $request['currency'] = $this->currency_id($code);
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
         }
         $response = yield $this->privatePostTransferHistory (array_merge($request, $params));
         $items = $response['data'];

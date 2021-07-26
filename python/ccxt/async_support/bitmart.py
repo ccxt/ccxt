@@ -626,10 +626,7 @@ class bitmart(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
-        spotMarkets = await self.fetch_spot_markets()
-        contractMarkets = await self.fetch_contract_markets()
-        allMarkets = self.array_concat(spotMarkets, contractMarkets)
-        return allMarkets
+        return await self.fetch_spot_markets()
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -1448,7 +1445,7 @@ class bitmart(Exchange):
             account['free'] = self.safe_string_2(balance, 'available', 'available_vol')
             account['used'] = self.safe_string_2(balance, 'frozen', 'freeze_vol')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
         #
@@ -2133,7 +2130,7 @@ class bitmart(Exchange):
             type = 'deposit'
             id = depositId
         amount = self.safe_number(transaction, 'arrival_amount')
-        timestamp = self.safe_integer(transaction, 'tapply_timeime')
+        timestamp = self.safe_integer(transaction, 'apply_time')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
@@ -2173,7 +2170,7 @@ class bitmart(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        baseUrl = self.implode_params(self.urls['api'], {'hostname': self.hostname})
+        baseUrl = self.implode_hostname(self.urls['api'])
         access = self.safe_string(api, 0)
         type = self.safe_string(api, 1)
         url = baseUrl + '/' + type

@@ -1,57 +1,8 @@
 'use strict'
 
-const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS, toWei, fromWei } = require ('../../../../ccxt');
+const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } = require ('../../../../ccxt');
 const Precise = require ('../../../base/Precise')
 const assert = require ('assert');
-
-// ----------------------------------------------------------------------------
-// toWei / fromWei
-
-assert (toWei (1, 18) === '1000000000000000000');
-assert (toWei (1, 17) === '100000000000000000');
-assert (toWei (1, 16) === '10000000000000000');
-assert (toWei ('1', 18) === '1000000000000000000');
-assert (toWei ('1', 17) === '100000000000000000');
-assert (toWei ('1', 16) === '10000000000000000');
-assert (toWei (0, 18) === '0');
-assert (toWei (1, 0) === '1');
-assert (toWei (1, 1) === '10');
-assert (toWei (1.3, 18) === '1300000000000000000');
-assert (toWei ('1.3', 18) === '1300000000000000000');
-assert (toWei (1.999, 17) === '199900000000000000');
-assert (toWei ('1.999', 17) === '199900000000000000');
-assert (toWei ('0.1', 18) === '100000000000000000');
-assert (toWei ('0.01', 18) === '10000000000000000');
-assert (toWei ('0.001', 18) === '1000000000000000');
-assert (toWei (0.1, 18) === '100000000000000000');
-assert (toWei (0.01, 18) === '10000000000000000');
-assert (toWei (0.001, 18) === '1000000000000000');
-assert (toWei ('0.3323340739', 18) === '332334073900000000');
-assert (toWei (0.3323340739, 18) === '332334073900000000');
-assert (toWei ('0.009428', 18) === '9428000000000000');
-assert (toWei (0.009428, 18) === '9428000000000000');
-
-// let us test that we get the inverse for all these test
-assert (fromWei ('1000000000000000000', 18) === 1.0);
-assert (fromWei ('100000000000000000', 17) === 1.0);
-assert (fromWei ('10000000000000000', 16) === 1.0);
-assert (fromWei (1000000000000000000, 18) === 1.0);
-assert (fromWei (100000000000000000, 17) === 1.0);
-assert (fromWei (10000000000000000, 16) === 1.0);
-assert (fromWei ('1300000000000000000', 18) === 1.3);
-assert (fromWei (1300000000000000000, 18) === 1.3);
-assert (fromWei ('199900000000000000', 17) === 1.999);
-assert (fromWei (199900000000000000, 17) === 1.999);
-assert (fromWei ('100000000000000000', 18) === 0.1);
-assert (fromWei ('10000000000000000', 18) === 0.01);
-assert (fromWei ('1000000000000000', 18) === 0.001);
-assert (fromWei (100000000000000000, 18) === 0.1);
-assert (fromWei (10000000000000000, 18) === 0.01);
-assert (fromWei (1000000000000000, 18) === 0.001);
-assert (fromWei ('332334073900000000', 18) === 0.3323340739);
-assert (fromWei (332334073900000000, 18) === 0.3323340739);
-assert (fromWei ('9428000000000000', 18) === 0.009428);
-assert (fromWei (9428000000000000, 18) === 0.009428);
 
 // ----------------------------------------------------------------------------
 // numberToString
@@ -63,6 +14,7 @@ assert (numberToString (17.805e-7) === '0.0000017805');
 assert (numberToString (-7.0005e27) === '-7000500000000000000000000000');
 assert (numberToString (7.0005e27) === '7000500000000000000000000000');
 assert (numberToString (-7.9e27) === '-7900000000000000000000000000');
+assert (numberToString (7e27) === '7000000000000000000000000000');
 assert (numberToString (7.9e27) === '7900000000000000000000000000');
 assert (numberToString (-12.345) === '-12.345');
 assert (numberToString (12.345) === '12.345');
@@ -201,6 +153,10 @@ assert (decimalToPrecision ('165', ROUND, 110, TICK_SIZE) === '220');
 assert (decimalToPrecision ('0.000123456789', ROUND, 0.00000012, TICK_SIZE) === '0.00012348');
 assert (decimalToPrecision ('0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE) === '0.00012336');
 assert (decimalToPrecision ('0.000273398', ROUND, 1e-7, TICK_SIZE) === '0.0002734');
+
+assert (decimalToPrecision ('0.00005714', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
+// this line causes problems in JS, fix with Precise
+// assert (decimalToPrecision ('0.0000571495257361', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
 
 assert (decimalToPrecision ('0.01', ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
 assert (decimalToPrecision ('0.01', TRUNCATE, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
@@ -353,3 +309,13 @@ assert (Precise.stringNeg ('0') === '0');
 assert (Precise.stringNeg ('-0') === '0');
 assert (Precise.stringNeg ('-500.1') === '500.1');
 assert (Precise.stringNeg ('213') === '-213');
+
+assert (Precise.stringMod ('57.123', '10') === '7.123');
+assert (Precise.stringMod ('18', '6') === '0');
+assert (Precise.stringMod ('10.1', '0.5') === '0.1');
+assert (Precise.stringMod ('10000000', '5555') === '1000');
+assert (Precise.stringMod ('5550', '120') === '30');
+
+assert (Precise.stringEquals ('1.0000', '1'));
+assert (Precise.stringEquals ('-0.0', '0'));
+assert (Precise.stringEquals ('5.534000', '5.5340'));

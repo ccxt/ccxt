@@ -441,7 +441,7 @@ class upbit(Exchange):
             account['free'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
         await self.load_markets()
@@ -849,6 +849,10 @@ class upbit(Exchange):
             elif side == 'sell':
                 request['ord_type'] = type
                 request['volume'] = self.amount_to_precision(symbol, amount)
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'identifier')
+        if clientOrderId is not None:
+            request['identifier'] = clientOrderId
+        params = self.omit(params, ['clientOrderId', 'identifier'])
         response = await self.privatePostOrders(self.extend(request, params))
         #
         #     {

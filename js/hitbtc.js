@@ -198,6 +198,7 @@ module.exports = class hitbtc extends Exchange {
                 'PLA': 'PlayChip',
                 'PNT': 'Penta',
                 'SBTC': 'Super Bitcoin',
+                'STX': 'Stox',
                 'TV': 'Tokenville',
                 'USD': 'USDT',
                 'XPNT': 'PNT',
@@ -460,7 +461,7 @@ module.exports = class hitbtc extends Exchange {
             account['used'] = this.safeString (balance, 'reserved');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

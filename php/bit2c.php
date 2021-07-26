@@ -159,15 +159,15 @@ class bit2c extends Exchange {
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $account = $this->account();
-            $currencyId = $this->currency_id($code);
-            $uppercase = strtoupper($currencyId);
+            $currency = $this->currency($code);
+            $uppercase = strtoupper($currency['id']);
             if (is_array($balance) && array_key_exists($uppercase, $balance)) {
                 $account['free'] = $this->safe_string($balance, 'AVAILABLE_' . $uppercase);
                 $account['total'] = $this->safe_string($balance, $uppercase);
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

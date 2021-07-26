@@ -410,7 +410,7 @@ class bitbank extends Exchange {
             $account['total'] = $this->safe_string($balance, 'onhand_amount');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {
@@ -428,8 +428,8 @@ class bitbank extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         $marketId = $this->safe_string($order, 'pair');
         $symbol = null;
-        if ($marketId && !$market && (is_array($this->marketsById) && array_key_exists($marketId, $this->marketsById))) {
-            $market = $this->marketsById[$marketId];
+        if ($marketId && !$market && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+            $market = $this->markets_by_id[$marketId];
         }
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -595,7 +595,7 @@ class bitbank extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . '/';
+        $url = $this->implode_hostname($this->urls['api'][$api]) . '/';
         if (($api === 'public') || ($api === 'markets')) {
             $url .= $this->implode_params($path, $params);
             if ($query) {

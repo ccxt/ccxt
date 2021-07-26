@@ -55,6 +55,7 @@ class huobipro(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchOrderTrades': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -90,13 +91,20 @@ class huobipro(Exchange):
                 },
                 'www': 'https://www.huobi.com',
                 'referral': 'https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3',
-                'doc': 'https://huobiapi.github.io/docs/spot/v1/cn/',
+                'doc': [
+                    'https://huobiapi.github.io/docs/spot/v1/cn/',
+                    'https://huobiapi.github.io/docs/dm/v1/cn/',
+                    'https://huobiapi.github.io/docs/coin_margined_swap/v1/cn/',
+                    'https://huobiapi.github.io/docs/usdt_swap/v1/cn/',
+                    'https://huobiapi.github.io/docs/option/v1/cn/',
+                ],
                 'fees': 'https://www.huobi.com/about/fee/',
             },
             'api': {
                 'v2Public': {
                     'get': [
-                        'reference/currencies',
+                        'reference/currencies',  # 币链参考信息
+                        'market-status',  # 获取当前市场状态
                     ],
                 },
                 'v2Private': {
@@ -105,6 +113,7 @@ class huobipro(Exchange):
                         'account/withdraw/quota',
                         'account/withdraw/address',  # 提币地址查询(限母用户可用)
                         'account/deposit/address',
+                        'account/repayment',  # 还币交易记录查询
                         'reference/transact-fee-rate',
                         'account/asset-valuation',  # 获取账户资产估值
                         'point/account',  # 点卡余额查询
@@ -114,9 +123,24 @@ class huobipro(Exchange):
                         'sub-user/deposit-address',  # 子用户充币地址查询
                         'sub-user/query-deposit',  # 子用户充币记录查询
                         'user/api-key',  # 母子用户API key信息查询
+                        'user/uid',  # 母子用户获取用户UID
+                        'algo-orders/opening',  # 查询未触发OPEN策略委托
+                        'algo-orders/history',  # 查询策略委托历史
+                        'algo-orders/specific',  # 查询特定策略委托
+                        'c2c/offers',  # 查询借入借出订单
+                        'c2c/offer',  # 查询特定借入借出订单及其交易记录
+                        'c2c/transactions',  # 查询借入借出交易记录
+                        'c2c/repayment',  # 查询还币交易记录
+                        'c2c/account',  # 查询账户余额
+                        'etp/reference',  # 基础参考信息
+                        'etp/transactions',  # 获取杠杆ETP申赎记录
+                        'etp/transaction',  # 获取特定杠杆ETP申赎记录
+                        'etp/rebalance',  # 获取杠杆ETP调仓记录
+                        'etp/limit',  # 获取ETP持仓限额
                     ],
                     'post': [
                         'account/transfer',
+                        'account/repayment',  # 归还借币（全仓逐仓通用）
                         'point/transfer',  # 点卡划转
                         'sub-user/management',  # 冻结/解冻子用户
                         'sub-user/creation',  # 子用户创建
@@ -125,6 +149,19 @@ class huobipro(Exchange):
                         'sub-user/api-key-generation',  # 子用户API key创建
                         'sub-user/api-key-modification',  # 修改子用户API key
                         'sub-user/api-key-deletion',  # 删除子用户API key
+                        'sub-user/deduct-mode',  # 设置子用户手续费抵扣模式
+                        'algo-orders',  # 策略委托下单
+                        'algo-orders/cancel-all-after',  # 自动撤销订单
+                        'algo-orders/cancellation',  # 策略委托（触发前）撤单
+                        'c2c/offer',  # 借入借出下单
+                        'c2c/cancellation',  # 借入借出撤单
+                        'c2c/cancel-all',  # 撤销所有借入借出订单
+                        'c2c/repayment',  # 还币
+                        'c2c/transfer',  # 资产划转
+                        'etp/creation',  # 杠杆ETP换入
+                        'etp/redemption',  # 杠杆ETP换出
+                        'etp/{transactId}/cancel',  # 杠杆ETP单个撤单
+                        'etp/batch-cancel',  # 杠杆ETP批量撤单
                     ],
                 },
                 'market': {
@@ -136,6 +173,7 @@ class huobipro(Exchange):
                         'history/trade',  # 批量获取最近的交易记录
                         'detail',  # 获取 Market Detail 24小时成交量数据
                         'tickers',
+                        'etp',  # 获取杠杆ETP实时净值
                     ],
                 },
                 'public': {
@@ -235,6 +273,7 @@ class huobipro(Exchange):
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
                     'order-holding-limit-failed': InvalidOrder,  # {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of self currency","data":null}
                     'order-orderprice-precision-error': InvalidOrder,  # {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
+                    'order-etp-nav-price-max-error': InvalidOrder,  # {"status":"error","err-code":"order-etp-nav-price-max-error","err-msg":"Order price cannot be higher than 5% of NAV","data":null}
                     'order-orderstate-error': OrderNotFound,  # canceling an already canceled order
                     'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
                     'order-update-error': ExchangeNotAvailable,  # undocumented error
@@ -264,6 +303,8 @@ class huobipro(Exchange):
                 # https://github.com/ccxt/ccxt/issues/3365
                 # https://github.com/ccxt/ccxt/issues/2873
                 'GET': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
+                'GTC': 'Game.com',  # conflict with Gitcoin and Gastrocoin
+                'HIT': 'HitChain',
                 'HOT': 'Hydro Protocol',  # conflict with HOT(Holo) https://github.com/ccxt/ccxt/issues/4929
                 # https://github.com/ccxt/ccxt/issues/7399
                 # https://coinmarketcap.com/currencies/pnetwork/
@@ -657,6 +698,14 @@ class huobipro(Exchange):
             'fee': fee,
         }
 
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            'id': id,
+        }
+        response = await self.privateGetOrderOrdersIdMatchresults(self.extend(request, params))
+        return self.parse_trades(response['data'], None, since, limit)
+
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
@@ -670,8 +719,7 @@ class huobipro(Exchange):
             request['start-date'] = self.ymd(since)  # a date within 61 days from today
             request['end-date'] = self.ymd(self.sum(since, 86400000))
         response = await self.privateGetOrderMatchresults(self.extend(request, params))
-        trades = self.parse_trades(response['data'], market, since, limit)
-        return trades
+        return self.parse_trades(response['data'], market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=1000, params={}):
         await self.load_markets()
@@ -856,7 +904,7 @@ class huobipro(Exchange):
             if balance['type'] == 'frozen':
                 account['used'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1062,6 +1110,10 @@ class huobipro(Exchange):
             'symbol': market['id'],
             'type': side + '-' + type,
         }
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
+        if clientOrderId is not None:
+            request['client-order-id'] = clientOrderId
+        params = self.omit(params, ['clientOrderId', 'client-order-id'])
         if (type == 'market') and (side == 'buy'):
             if self.options['createMarketBuyOrderRequiresPrice']:
                 if price is None:

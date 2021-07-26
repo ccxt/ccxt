@@ -375,7 +375,7 @@ class bitz(Exchange):
             account['total'] = self.safe_string(balance, 'num')
             account['free'] = self.safe_string(balance, 'over')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -679,7 +679,7 @@ class bitz(Exchange):
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
-        duration = self.parse_timeframe(timeframe) * 1000
+        duration = self.parse_timeframe(timeframe)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1206,7 +1206,7 @@ class bitz(Exchange):
         return self.options['lastNonce']
 
     def sign(self, path, api='market', method='GET', params={}, headers=None, body=None):
-        baseUrl = self.implode_params(self.urls['api'][api], {'hostname': self.hostname})
+        baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.capitalize(api) + '/' + path
         query = None
         if api == 'market':

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.49.98';
+$version = '1.53.69';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.49.98';
+    const VERSION = '1.53.69';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -83,7 +83,6 @@ class Exchange {
         'bitforex',
         'bitget',
         'bithumb',
-        'bitkk',
         'bitmart',
         'bitmex',
         'bitpanda',
@@ -103,7 +102,6 @@ class Exchange {
         'buda',
         'bw',
         'bybit',
-        'bytetrade',
         'cdax',
         'cex',
         'coinbase',
@@ -114,7 +112,6 @@ class Exchange {
         'coinex',
         'coinfalcon',
         'coinfloor',
-        'coingi',
         'coinmarketcap',
         'coinmate',
         'coinone',
@@ -124,8 +121,8 @@ class Exchange {
         'delta',
         'deribit',
         'digifinex',
+        'eqonex',
         'equos',
-        'eterbase',
         'exmo',
         'exx',
         'flowbtc',
@@ -145,7 +142,6 @@ class Exchange {
         'kraken',
         'kucoin',
         'kuna',
-        'lakebtc',
         'latoken',
         'lbank',
         'liquid',
@@ -158,14 +154,14 @@ class Exchange {
         'oceanex',
         'okcoin',
         'okex',
+        'okex3',
+        'okex5',
         'paymium',
         'phemex',
         'poloniex',
         'probit',
         'qtrade',
-        'rightbtc',
         'ripio',
-        'southxchange',
         'stex',
         'therock',
         'tidebit',
@@ -175,7 +171,6 @@ class Exchange {
         'vcc',
         'wavesexchange',
         'whitebit',
-        'xbtce',
         'xena',
         'yobit',
         'zaif',
@@ -220,11 +215,10 @@ class Exchange {
         'safeString2' => 'safe_string2',
         'safeStringLower2' => 'safe_string_lower2',
         'safeStringUpper2' => 'safe_string_upper2',
-        'toWei' => 'to_wei',
-        'fromWei' => 'from_wei',
         'numberToString' => 'number_to_string',
         'precisionFromString' => 'precision_from_string',
         'decimalToPrecision' => 'decimal_to_precision',
+        'omitZero' => 'omit_zero',
         'isJsonEncodedObject' => 'is_json_encoded_object',
         'stringToBinary' => 'string_to_binary',
         'stringToBase64' => 'string_to_base64',
@@ -298,10 +292,9 @@ class Exchange {
         'fetchMarkets' => 'fetch_markets',
         'fetchOrderStatus' => 'fetch_order_status',
         'commonCurrencyCode' => 'common_currency_code',
-        'currencyId' => 'currency_id',
         'marketId' => 'market_id',
         'marketIds' => 'market_ids',
-        'currencyIds' => 'currency_ids',
+        'implodeHostname' => 'implode_hostname',
         'parseBidAsk' => 'parse_bid_ask',
         'parseBidsAsks' => 'parse_bids_asks',
         'fetchL2OrderBook' => 'fetch_l2_order_book',
@@ -358,9 +351,6 @@ class Exchange {
         'signHash' => 'sign_hash',
         'signMessage' => 'sign_message',
         'signMessageString' => 'sign_message_string',
-        'integerDivide' => 'integer_divide',
-        'integerModulo' => 'integer_modulo',
-        'integerPow' => 'integer_pow',
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
         'safeOrder' => 'safe_order',
         'parseNumber' => 'parse_number',
@@ -471,6 +461,10 @@ class Exchange {
             return $integer . $decimal;
         }
         return sprintf('%d', floatval($number));
+    }
+
+    public static function uuid16($length = 16) {
+        return bin2hex(random_bytes(intval($length / 2)));
     }
 
     public static function uuid22($length = 22) {
@@ -707,6 +701,10 @@ class Exchange {
         return $string;
     }
 
+    public function implode_hostname($url) {
+        return static::implode_params($url, array('hostname' => $this->hostname));
+    }
+
     public static function deep_extend() {
         //
         //     extend associative dictionaries only, replace everything else
@@ -797,11 +795,25 @@ class Exchange {
     }
 
     public static function milliseconds() {
+        if (PHP_INT_SIZE == 4) {
+            return static::milliseconds32();
+        } else {
+            return static::milliseconds64();
+        }
+    }
+
+    public static function milliseconds32() {
         list($msec, $sec) = explode(' ', microtime());
         // raspbian 32-bit integer workaround
         // https://github.com/ccxt/ccxt/issues/5978
         // return (int) ($sec . substr($msec, 2, 3));
         return $sec . substr($msec, 2, 3);
+    }
+
+    public static function milliseconds64() {
+        list($msec, $sec) = explode(' ', microtime());
+        // this method will not work on 32-bit raspbian
+        return (int) ($sec . substr($msec, 2, 3));
     }
 
     public static function microseconds() {
@@ -1029,6 +1041,7 @@ class Exchange {
         $this->myTrades = null;
         $this->trades = array();
         $this->transactions = array();
+        $this->positions = array();
         $this->ohlcvs = array();
         $this->exceptions = array();
         $this->accounts = array();
@@ -1082,7 +1095,6 @@ class Exchange {
         $this->token = ''; // reserved for HTTP auth in some cases
 
         $this->twofa = null;
-        $this->marketsById = null;
         $this->markets_by_id = null;
         $this->currencies_by_id = null;
         $this->userAgent = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
@@ -1654,7 +1666,6 @@ class Exchange {
         }
         $this->markets = static::index_by($values, 'symbol');
         $this->markets_by_id = static::index_by($values, 'id');
-        $this->marketsById = $this->markets_by_id;
         $this->symbols = array_keys($this->markets);
         sort($this->symbols);
         $this->ids = array_keys($this->markets_by_id);
@@ -1787,7 +1798,7 @@ class Exchange {
         );
     }
 
-    public function parse_balance($balance, $legacy = true) {
+    public function parse_balance($balance, $legacy = false) {
         $currencies = $this->omit($balance, array('info', 'timestamp', 'datetime', 'free', 'used', 'total'));
 
         $balance['free'] = array();
@@ -2138,8 +2149,18 @@ class Exchange {
         throw new NotSupported($this->id . ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks () for now');
     }
 
-    public function fetch_ticker($symbol, $params = array()) { // stub
-        throw new NotSupported($this->id . ' fetchTicker not supported yet');
+    public function fetch_ticker($symbol, $params = array ()) {
+        if ($this->has['fetchTickers']) {
+            $tickers = $this->fetch_tickers(array( $symbol ), $params);
+            $ticker = $this->safe_value($tickers, $symbol);
+            if ($ticker === null) {
+                throw new BadSymbol($this->id . ' fetchTickers could not find a $ticker for ' . $symbol);
+            } else {
+                return $ticker;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchTicker not supported yet');
+        }
     }
 
     public function fetch_tickers($symbols, $params = array()) { // stub
@@ -2403,25 +2424,6 @@ class Exchange {
         return $this->safe_string($this->commonCurrencies, $currency, $currency);
     }
 
-    public function currency_id($commonCode) {
-        if (!$this->currencies) {
-            throw new ExchangeError($this->id . ' currencies not loaded');
-        }
-
-        if (array_key_exists($commonCode, $this->currencies)) {
-            return $this->currencies[$commonCode]['id'];
-        }
-
-        $currencyIds = array();
-        $distinct = is_array($this->commonCurrencies) ? array_keys($this->commonCurrencies) : array();
-        for ($i = 0; $i < count($distinct); $i++) {
-            $k = $distinct[$i];
-            $currencyIds[$this->commonCurrencies[$k]] = $k;
-        }
-
-        return $this->safe_string($currencyIds, $commonCode, $commonCode);
-    }
-
     public function precision_from_string($string) {
         $parts = explode('.', preg_replace('/0+$/', '', $string));
         return (count($parts) > 1) ? strlen($parts[1]) : 0;
@@ -2463,10 +2465,6 @@ class Exchange {
         }
 
         throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
-    }
-
-    public function currency_ids($codes) {
-        return array_map(array($this, 'currency_id'), $codes);
     }
 
     public function market_ids($symbols) {
@@ -2739,22 +2737,6 @@ class Exchange {
         }
     }
 
-    public static function from_wei($amount, $decimals = 18) {
-        $format_decimals = $decimals + floor(log($amount, 10));
-        $exponential = sprintf('%.' . $format_decimals . 'e', $amount);
-        list($n, $exponent) = explode('e', $exponential);
-        $new_exponent = intval($exponent) - $decimals;
-        return floatval($n . 'e' . strval($new_exponent));
-    }
-
-    public static function to_wei($amount, $decimals = 18) {
-        $format_decimals = $decimals + floor(log($amount, 10));
-        $exponential = sprintf('%.' . $format_decimals . 'e', $amount);
-        list($n, $exponent) = explode('e', $exponential);
-        $new_exponent = intval($exponent) + $decimals;
-        return static::number_to_string(floatval($n . 'e' . strval($new_exponent)));
-    }
-
     public static function hashMessage($message) {
         $trimmed = ltrim($message, '0x');
         $buffer = unpack('C*', hex2bin($trimmed));
@@ -2826,18 +2808,6 @@ class Exchange {
     public static function number_to_le($n, $padding) {
         $n = new BN ($n);
         return array_reduce(array_map('chr', $n->toArray('le', $padding)), 'static::binary_concat');
-    }
-
-    public static function integer_divide($a, $b) {
-        return (new BN ($a))->div (new BN ($b));
-    }
-
-    public static function integer_modulo($a, $b) {
-        return (new BN ($a))->mod (new BN ($b));
-    }
-
-    public static function integer_pow($a, $b) {
-        return (new BN ($a))->pow (new BN ($b));
     }
 
     public static function base58_to_binary($s) {
@@ -3061,5 +3031,15 @@ class Exchange {
             return null;
         }
         return '1e' . Precise::string_neg($precision);
+    }
+
+    public function omit_zero($string_number) {
+        if ($string_number === null) {
+            return null;
+        }
+        if (floatval($string_number) === 0.0) {
+            return null;
+        }
+        return $string_number;
     }
 }

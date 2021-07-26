@@ -102,6 +102,9 @@ class coinone(Exchange):
                 '108': BadSymbol,  # {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
                 '107': BadRequest,  # {"errorCode":"107","errorMsg":"Parameter error","result":"error"}
             },
+            'commonCurrencies': {
+                'SOC': 'Soda Coin',
+            },
         })
 
     def fetch_markets(self, params={}):
@@ -150,7 +153,7 @@ class coinone(Exchange):
             account['free'] = self.safe_string(balance, 'avail')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -489,7 +492,7 @@ class coinone(Exchange):
             'average': None,
             'amount': amount,
             'filled': None,
-            'remaining': amount,
+            'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': None,

@@ -95,6 +95,9 @@ module.exports = class coinone extends Exchange {
                 '108': BadSymbol, // {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
                 '107': BadRequest, // {"errorCode":"107","errorMsg":"Parameter error","result":"error"}
             },
+            'commonCurrencies': {
+                'SOC': 'Soda Coin',
+            },
         });
     }
 
@@ -148,7 +151,7 @@ module.exports = class coinone extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -517,7 +520,7 @@ module.exports = class coinone extends Exchange {
             'average': undefined,
             'amount': amount,
             'filled': undefined,
-            'remaining': amount,
+            'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': undefined,

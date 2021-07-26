@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -40,6 +39,7 @@ class bitstamp(Exchange):
             'pro': True,
             'has': {
                 'CORS': True,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -114,12 +114,18 @@ class bitstamp(Exchange):
                         'open_orders/{pair}/',
                         'order_status/',
                         'cancel_order/',
+                        'cancel_all_orders/',
+                        'cancel_all_orders/{pair}/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
                         'buy/instant/{pair}/',
                         'sell/{pair}/',
                         'sell/market/{pair}/',
                         'sell/instant/{pair}/',
+                        'btc_withdrawal/',
+                        'btc_address/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -158,6 +164,20 @@ class bitstamp(Exchange):
                         'uni_address/',
                         'yfi_withdrawal/',
                         'yfi_address',
+                        'audio_withdrawal/',
+                        'audio_address/',
+                        'crv_withdrawal/',
+                        'crv_address/',
+                        'algo_withdrawal/',
+                        'algo_address/',
+                        'comp_withdrawal/',
+                        'comp_address/',
+                        'grt_withdrawal',
+                        'grt_address/',
+                        'usdt_withdrawal/',
+                        'usdt_address/',
+                        'eurt_withdrawal/',
+                        'eurt_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -170,11 +190,7 @@ class bitstamp(Exchange):
                 },
                 'v1': {
                     'post': [
-                        'bitcoin_deposit_address/',
                         'unconfirmed_btc/',
-                        'bitcoin_withdrawal/',
-                        'ripple_withdrawal/',
-                        'ripple_address/',
                     ],
                 },
             },
@@ -777,7 +793,7 @@ class bitstamp(Exchange):
             account['used'] = self.safe_string(balance, currencyId + '_reserved')
             account['total'] = self.safe_string(balance, currencyId + '_balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_trading_fee(self, symbol, params={}):
         await self.load_markets()
@@ -870,6 +886,17 @@ class bitstamp(Exchange):
             'id': id,
         }
         return await self.privatePostCancelOrder(self.extend(request, params))
+
+    async def cancel_all_orders(self, symbol=None, params={}):
+        await self.load_markets()
+        market = None
+        request = {}
+        method = 'privatePostCancelAllOrders'
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+            method = 'privatePostCancelAllOrdersPair'
+        return await getattr(self, method)(self.extend(request, params))
 
     def parse_order_status(self, status):
         statuses = {
@@ -1270,13 +1297,14 @@ class bitstamp(Exchange):
                 'fee': parsedTrade['fee'],
             }
         else:
-            parsedTransaction = self.parse_transaction(item)
+            parsedTransaction = self.parse_transaction(item, currency)
             direction = None
             if 'amount' in item:
                 amount = self.safe_number(item, 'amount')
                 direction = amount > 'in' if 0 else 'out'
             elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
-                currencyId = self.currency_id(parsedTransaction['currency'])
+                code = parsedTransaction['currency']
+                currencyId = self.safe_string(self.currencies_by_id, code, code)
                 amount = self.safe_number(item, currencyId)
                 direction = amount > 'in' if 0 else 'out'
             return {
@@ -1331,8 +1359,6 @@ class bitstamp(Exchange):
         })
 
     def get_currency_name(self, code):
-        if code == 'BTC':
-            return 'bitcoin'
         return code.lower()
 
     def is_fiat(self, code):
@@ -1342,16 +1368,10 @@ class bitstamp(Exchange):
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!')
         name = self.get_currency_name(code)
-        v1 = (code == 'BTC')
-        method = 'v1' if v1 else 'private'  # v1 or v2
-        method += 'Post' + self.capitalize(name)
-        method += 'Deposit' if v1 else ''
-        method += 'Address'
+        method = 'privatePost' + self.capitalize(name) + 'Address'
         response = await getattr(self, method)(params)
-        if v1:
-            response = json.loads(response)
-        address = response if v1 else self.safe_string(response, 'address')
-        tag = None if v1 else self.safe_string_2(response, 'memo_id', 'destination_tag')
+        address = self.safe_string(response, 'address')
+        tag = self.safe_string_2(response, 'memo_id', 'destination_tag')
         self.check_address(address)
         return {
             'currency': code,
@@ -1371,9 +1391,7 @@ class bitstamp(Exchange):
         method = None
         if not self.is_fiat(code):
             name = self.get_currency_name(code)
-            v1 = (code == 'BTC')
-            method = 'v1' if v1 else 'private'  # v1 or v2
-            method += 'Post' + self.capitalize(name) + 'Withdrawal'
+            method = 'privatePost' + self.capitalize(name) + 'Withdrawal'
             if code == 'XRP':
                 if tag is not None:
                     request['destination_tag'] = tag

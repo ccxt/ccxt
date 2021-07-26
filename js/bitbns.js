@@ -307,14 +307,6 @@ module.exports = class bitbns extends Exchange {
         };
     }
 
-    async fetchTicker (symbol, params = {}) {
-        const tickers = await this.fetchTickers (undefined, params);
-        if (symbol in tickers) {
-            return tickers[symbol];
-        }
-        throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' ticker not found');
-    }
-
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.ccxtGetFetchTickers (params);
@@ -395,7 +387,7 @@ module.exports = class bitbns extends Exchange {
                 }
             }
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
@@ -918,36 +910,13 @@ module.exports = class bitbns extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'coin': currency['id'],
-            'address': address,
-            'amount': amount,
-            // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
-            // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
-            // 'network': 'ETH', // 'BTC', 'TRX', etc, optional
-        };
-        if (tag !== undefined) {
-            request['addressTag'] = tag;
-        }
-        const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
-        //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
-        };
-    }
-
     nonce () {
         return this.milliseconds ();
     }
 
     sign (path, api = 'v1', method = 'GET', params = {}, headers = undefined, body = undefined) {
         this.checkRequiredCredentials ();
-        const baseUrl = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
+        const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const nonce = this.nonce ().toString ();

@@ -20,6 +20,7 @@ module.exports = class aax extends Exchange {
             'version': 'v2',
             'hostname': 'aaxpro.com', // aax.com
             'certified': true,
+            'pro': true,
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -28,6 +29,7 @@ module.exports = class aax extends Exchange {
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -88,6 +90,7 @@ module.exports = class aax extends Exchange {
                     //     'tickers/{market}', // Get ticker of specific market
                     // ],
                     'get': [
+                        'currencies',
                         'announcement/maintenance', // System Maintenance Notice
                         'instruments', // Retrieve all trading pairs information
                         'market/orderbook', // Order Book
@@ -424,6 +427,74 @@ module.exports = class aax extends Exchange {
         return result;
     }
 
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCurrencies (params);
+        //
+        //     {
+        //         "code":1,
+        //         "data":[
+        //             {
+        //                 "chain":"BTC",
+        //                 "displayName":"Bitcoin",
+        //                 "withdrawFee":"0.0004",
+        //                 "withdrawMin":"0.001",
+        //                 "otcFee":"0",
+        //                 "enableOTC":true,
+        //                 "visible":true,
+        //                 "enableTransfer":true,
+        //                 "transferMin":"0.00001",
+        //                 "depositMin":"0.0005",
+        //                 "enableWithdraw":true,
+        //                 "enableDeposit":true,
+        //                 "addrWithMemo":false,
+        //                 "withdrawPrecision":"0.00000001",
+        //                 "currency":"BTC",
+        //                 "network":"BTC", // ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
+        //                 "minConfirm":"2"
+        //             },
+        //         ],
+        //         "message":"success",
+        //         "ts":1624330530697
+        //     }
+        //
+        const result = {};
+        const data = this.safeValue (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString (currency, 'chain');
+            const name = this.safeString (currency, 'displayName');
+            const code = this.safeCurrencyCode (id);
+            const precision = this.safeNumber (currency, 'withdrawPrecision');
+            const enableWithdraw = this.safeValue (currency, 'enableWithdraw');
+            const enableDeposit = this.safeValue (currency, 'enableDeposit');
+            const fee = this.safeNumber (currency, 'withdrawFee');
+            const visible = this.safeValue (currency, 'visible');
+            const active = (enableWithdraw && enableDeposit && visible);
+            const network = this.safeString (currency, 'network');
+            result[code] = {
+                'id': id,
+                'name': name,
+                'code': code,
+                'precision': precision,
+                'info': currency,
+                'active': active,
+                'fee': fee,
+                'network': network,
+                'limits': {
+                    'deposit': {
+                        'min': this.safeNumber (currency, 'depositMin'),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber (currency, 'withdrawMin'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
     parseTicker (ticker, market = undefined) {
         //
         //     {
@@ -476,14 +547,6 @@ module.exports = class aax extends Exchange {
             'quoteVolume': quoteVolume,
             'info': ticker,
         };
-    }
-
-    async fetchTicker (symbol, params = {}) {
-        const tickers = await this.fetchTickers (undefined, params);
-        if (symbol in tickers) {
-            return tickers[symbol];
-        }
-        throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' ticker not found');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -791,7 +854,7 @@ module.exports = class aax extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1800,7 +1863,7 @@ module.exports = class aax extends Exchange {
                 headers['X-ACCESS-SIGN'] = signature;
             }
         }
-        url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + url;
+        url = this.implodeHostname (this.urls['api'][api]) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

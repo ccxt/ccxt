@@ -19,6 +19,7 @@ module.exports = class bitstamp extends Exchange {
             'pro': true,
             'has': {
                 'CORS': true,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -93,12 +94,18 @@ module.exports = class bitstamp extends Exchange {
                         'open_orders/{pair}/',
                         'order_status/',
                         'cancel_order/',
+                        'cancel_all_orders/',
+                        'cancel_all_orders/{pair}/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
                         'buy/instant/{pair}/',
                         'sell/{pair}/',
                         'sell/market/{pair}/',
                         'sell/instant/{pair}/',
+                        'btc_withdrawal/',
+                        'btc_address/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -137,6 +144,20 @@ module.exports = class bitstamp extends Exchange {
                         'uni_address/',
                         'yfi_withdrawal/',
                         'yfi_address',
+                        'audio_withdrawal/',
+                        'audio_address/',
+                        'crv_withdrawal/',
+                        'crv_address/',
+                        'algo_withdrawal/',
+                        'algo_address/',
+                        'comp_withdrawal/',
+                        'comp_address/',
+                        'grt_withdrawal',
+                        'grt_address/',
+                        'usdt_withdrawal/',
+                        'usdt_address/',
+                        'eurt_withdrawal/',
+                        'eurt_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -149,11 +170,7 @@ module.exports = class bitstamp extends Exchange {
                 },
                 'v1': {
                     'post': [
-                        'bitcoin_deposit_address/',
                         'unconfirmed_btc/',
-                        'bitcoin_withdrawal/',
-                        'ripple_withdrawal/',
-                        'ripple_address/',
                     ],
                 },
             },
@@ -808,7 +825,7 @@ module.exports = class bitstamp extends Exchange {
             account['total'] = this.safeString (balance, currencyId + '_balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchTradingFee (symbol, params = {}) {
@@ -914,6 +931,19 @@ module.exports = class bitstamp extends Exchange {
             'id': id,
         };
         return await this.privatePostCancelOrder (this.extend (request, params));
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        let method = 'privatePostCancelAllOrders';
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+            method = 'privatePostCancelAllOrdersPair';
+        }
+        return await this[method] (this.extend (request, params));
     }
 
     parseOrderStatus (status) {
@@ -1345,13 +1375,14 @@ module.exports = class bitstamp extends Exchange {
                 'fee': parsedTrade['fee'],
             };
         } else {
-            const parsedTransaction = this.parseTransaction (item);
+            const parsedTransaction = this.parseTransaction (item, currency);
             let direction = undefined;
             if ('amount' in item) {
                 const amount = this.safeNumber (item, 'amount');
                 direction = amount > 0 ? 'in' : 'out';
             } else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
-                const currencyId = this.currencyId (parsedTransaction['currency']);
+                const code = parsedTransaction['currency'];
+                const currencyId = this.safeString (this.currencies_by_id, code, code);
                 const amount = this.safeNumber (item, currencyId);
                 direction = amount > 0 ? 'in' : 'out';
             }
@@ -1414,9 +1445,6 @@ module.exports = class bitstamp extends Exchange {
     }
 
     getCurrencyName (code) {
-        if (code === 'BTC') {
-            return 'bitcoin';
-        }
         return code.toLowerCase ();
     }
 
@@ -1429,17 +1457,10 @@ module.exports = class bitstamp extends Exchange {
             throw new NotSupported (this.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!');
         }
         const name = this.getCurrencyName (code);
-        const v1 = (code === 'BTC');
-        let method = v1 ? 'v1' : 'private'; // v1 or v2
-        method += 'Post' + this.capitalize (name);
-        method += v1 ? 'Deposit' : '';
-        method += 'Address';
-        let response = await this[method] (params);
-        if (v1) {
-            response = JSON.parse (response);
-        }
-        const address = v1 ? response : this.safeString (response, 'address');
-        const tag = v1 ? undefined : this.safeString2 (response, 'memo_id', 'destination_tag');
+        const method = 'privatePost' + this.capitalize (name) + 'Address';
+        const response = await this[method] (params);
+        const address = this.safeString (response, 'address');
+        const tag = this.safeString2 (response, 'memo_id', 'destination_tag');
         this.checkAddress (address);
         return {
             'currency': code,
@@ -1460,9 +1481,7 @@ module.exports = class bitstamp extends Exchange {
         let method = undefined;
         if (!this.isFiat (code)) {
             const name = this.getCurrencyName (code);
-            const v1 = (code === 'BTC');
-            method = v1 ? 'v1' : 'private'; // v1 or v2
-            method += 'Post' + this.capitalize (name) + 'Withdrawal';
+            method = 'privatePost' + this.capitalize (name) + 'Withdrawal';
             if (code === 'XRP') {
                 if (tag !== undefined) {
                     request['destination_tag'] = tag;

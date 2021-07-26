@@ -335,7 +335,7 @@ class bitmex extends Exchange {
             $account['total'] = $total;
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_balance($params = array ()) {

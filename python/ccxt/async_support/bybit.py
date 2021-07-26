@@ -72,9 +72,19 @@ class bybit(Exchange):
                 '1y': 'Y',
             },
             'urls': {
-                'test': 'https://api-testnet.{hostname}',
+                'test': {
+                    'futures': 'https://api-testnet.{hostname}',
+                    'v2': 'https://api-testnet.{hostname}',
+                    'public': 'https://api-testnet.{hostname}',
+                    'private': 'https://api-testnet.{hostname}',
+                },
                 'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'futures': 'https://api.{hostname}',
+                    'v2': 'https://api.{hostname}',
+                    'public': 'https://api.{hostname}',
+                    'private': 'https://api.{hostname}',
+                },
                 'www': 'https://www.bybit.com',
                 'doc': [
                     'https://bybit-exchange.github.io/docs/inverse/',
@@ -232,6 +242,7 @@ class bybit(Exchange):
                     '10007': AuthenticationError,  # api_key not found in your request parameters
                     '10010': PermissionDenied,  # request ip mismatch
                     '10017': BadRequest,  # request path not found or request method is invalid
+                    '10018': RateLimitExceeded,  # exceed ip rate limit
                     '20001': OrderNotFound,  # Order not exists
                     '20003': InvalidOrder,  # missing parameter side
                     '20004': InvalidOrder,  # invalid parameter side
@@ -295,9 +306,9 @@ class bybit(Exchange):
                     '30037': InvalidOrder,  # order already cancelled
                     '30041': ExchangeError,  # no position found
                     '30042': InsufficientFunds,  # insufficient wallet balance
-                    '30043': PermissionDenied,  # operation not allowed as position is undergoing liquidation
-                    '30044': PermissionDenied,  # operation not allowed as position is undergoing AD
-                    '30045': PermissionDenied,  # operation not allowed as position is not normal status
+                    '30043': InvalidOrder,  # operation not allowed as position is undergoing liquidation
+                    '30044': InvalidOrder,  # operation not allowed as position is undergoing AD
+                    '30045': InvalidOrder,  # operation not allowed as position is not normal status
                     '30049': InsufficientFunds,  # insufficient available balance
                     '30050': ExchangeError,  # any adjustments made will trigger immediate liquidation
                     '30051': ExchangeError,  # due to risk limit, cannot adjust leverage
@@ -307,6 +318,9 @@ class bybit(Exchange):
                     '30063': ExchangeError,  # reduce-only rule not satisfied
                     '30067': InsufficientFunds,  # insufficient available balance
                     '30068': ExchangeError,  # exit value must be positive
+                    '30074': InvalidOrder,  # can't create the stop order, because you expect the order will be triggered when the LastPrice(or IndexPrice、 MarkPrice, determined by trigger_by) is raising to stop_px, but the LastPrice(or IndexPrice、 MarkPrice) is already equal to or greater than stop_px, please adjust base_price or stop_px
+                    '30075': InvalidOrder,  # can't create the stop order, because you expect the order will be triggered when the LastPrice(or IndexPrice、 MarkPrice, determined by trigger_by) is falling to stop_px, but the LastPrice(or IndexPrice、 MarkPrice) is already equal to or less than stop_px, please adjust base_price or stop_px
+                    '33004': AuthenticationError,  # apikey already expired
                     '34026': ExchangeError,  # the limit is no change
                 },
                 'broad': {
@@ -326,8 +340,16 @@ class bybit(Exchange):
                     'ADA/USDT': 'linear',
                     'DOT/USDT': 'linear',
                     'UNI/USDT': 'linear',
+                    'AAVE/USDT': 'linear',
+                    'SUSHI/USDT': 'linear',
+                    'XRP/USDT': 'linear',
+                    'XEM/USDT': 'linear',
+                    'BTC/USD': 'inverse',
+                    'ETH/USD': 'inverse',
+                    'EOS/USD': 'inverse',
+                    'XRP/USD': 'inverse',
                 },
-                'defaultType': 'linear',  # may also be inverse
+                'defaultType': 'linear',  # linear, inverse, futures
                 'code': 'BTC',
                 'cancelAllOrders': {
                     # 'method': 'v2PrivatePostOrderCancelAll',  # v2PrivatePostStopOrderCancelAll
@@ -434,7 +456,7 @@ class bybit(Exchange):
             type = 'swap'
             if baseQuote != id:
                 symbol = id
-                type = 'future'
+                type = 'futures'
             lotSizeFilter = self.safe_value(market, 'lot_size_filter', {})
             priceFilter = self.safe_value(market, 'price_filter', {})
             precision = {
@@ -447,7 +469,7 @@ class bybit(Exchange):
                 active = (status == 'Trading')
             spot = (type == 'spot')
             swap = (type == 'swap')
-            future = (type == 'future')
+            futures = (type == 'futures')
             option = (type == 'option')
             result.append({
                 'id': id,
@@ -461,7 +483,7 @@ class bybit(Exchange):
                 'type': type,
                 'spot': spot,
                 'swap': swap,
-                'future': future,
+                'futures': futures,
                 'option': option,
                 'linear': linear,
                 'inverse': inverse,
@@ -707,9 +729,7 @@ class bybit(Exchange):
             request['from'] = int(since / 1000)
         if limit is not None:
             request['limit'] = limit  # max 200, default 200
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol)
-        method = 'publicLinearGetKline' if (marketType == 'linear') else 'v2PublicGetKlineList'
+        method = 'publicLinearGetKline' if market['linear'] else 'v2PublicGetKlineList'
         response = await getattr(self, method)(self.extend(request, params))
         #
         # inverse perpetual BTC/USD
@@ -854,9 +874,7 @@ class bybit(Exchange):
         }
         if limit is not None:
             request['count'] = limit  # default 500, max 1000
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol)
-        method = 'publicLinearGetRecentTradingRecords' if (marketType == 'linear') else 'v2PublicGetTradingRecords'
+        method = 'publicLinearGetRecentTradingRecords' if market['linear'] else 'v2PublicGetTradingRecords'
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -983,7 +1001,7 @@ class bybit(Exchange):
             account['used'] = self.safe_string(balance, 'used_margin')
             account['total'] = self.safe_string(balance, 'equity')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -1092,7 +1110,7 @@ class bybit(Exchange):
         #             "trigger_price":12400,
         #             "close_on_trigger":true,
         #             "op_from":"api",
-        #             "remark":"145.53.159.48",
+        #             "remark":"x.x.x.x",
         #             "o_req_num":0
         #         },
         #         "leaves_qty":10,
@@ -1101,7 +1119,7 @@ class bybit(Exchange):
         #         "cross_seq":-1,
         #         "created_at":"2020-08-21T09:18:48.000Z",
         #         "updated_at":"2020-08-21T09:18:48.000Z",
-        #         "stop_px":12400,
+        #         "trigger_price":12400,
         #         "stop_order_id":"3f3b54b1-3379-42c7-8510-44f4d9915be0"
         #     }
         #
@@ -1144,7 +1162,7 @@ class bybit(Exchange):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
-        stopPrice = self.safe_number(order, 'stop_px')
+        stopPrice = self.safe_number_2(order, 'trigger_price', 'stop_px')
         postOnly = (timeInForce == 'PO')
         return self.safe_order({
             'info': order,
@@ -1183,16 +1201,27 @@ class bybit(Exchange):
             # conditional orders ---------------------------------------------
             # 'stop_order_id': id,  # one of stop_order_id or order_link_id is required for conditional orders
         }
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol)
-        method = 'privateLinearGetOrderSearch' if (marketType == 'linear') else 'v2PrivateGetOrder'
+        method = None
+        if market['swap']:
+            if market['linear']:
+                method = 'privateLinearGetOrderSearch'
+            elif market['inverse']:
+                method = 'v2PrivateGetOrder'
+        elif market['futures']:
+            method = 'futuresPrivateGetOrder'
         stopOrderId = self.safe_string(params, 'stop_order_id')
         if stopOrderId is None:
             orderLinkId = self.safe_string(params, 'order_link_id')
             if orderLinkId is None:
                 request['order_id'] = id
         else:
-            method = 'privateLinearGetStopOrderSearch' if (marketType == 'linear') else 'v2PrivateGetStopOrder'
+            if market['swap']:
+                if market['linear']:
+                    method = 'privateLinearGetStopOrderSearch'
+                elif market['inverse']:
+                    method = 'v2PrivateGetStopOrder'
+            elif market['futures']:
+                method = 'futuresPrivateGetStopOrder'
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1308,18 +1337,27 @@ class bybit(Exchange):
             params = self.omit(params, ['order_link_id', 'clientOrderId'])
         stopPx = self.safe_value_2(params, 'stop_px', 'stopPrice')
         basePrice = self.safe_value(params, 'base_price')
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol)
-        method = 'privateLinearPostOrderCreate' if (marketType == 'linear') else 'v2PrivatePostOrderCreate'
-        if marketType == 'linear':
-            method = 'privateLinearPostOrderCreate'
-            request['reduce_only'] = False
-            request['close_on_trigger'] = False
+        method = None
+        if market['swap']:
+            if market['linear']:
+                method = 'privateLinearPostOrderCreate'
+                request['reduce_only'] = False
+                request['close_on_trigger'] = False
+            elif market['inverse']:
+                method = 'v2PrivatePostOrderCreate'
+        elif market['futures']:
+            method = 'futuresPrivatePostOrderCreate'
         if stopPx is not None:
             if basePrice is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order')
             else:
-                method = 'privateLinearPostStopOrderCreate' if (marketType == 'linear') else 'v2PrivatePostStopOrderCreate'
+                if market['swap']:
+                    if market['linear']:
+                        method = 'privateLinearPostStopOrderCreate'
+                    elif market['inverse']:
+                        method = 'v2PrivatePostStopOrderCreate'
+                elif market['futures']:
+                    method = 'futuresPrivatePostStopOrderCreate'
                 request['stop_px'] = float(self.price_to_precision(symbol, stopPx))
                 request['base_price'] = float(self.price_to_precision(symbol, basePrice))
                 params = self.omit(params, ['stop_px', 'stopPrice', 'base_price'])
@@ -1409,8 +1447,6 @@ class bybit(Exchange):
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an symbol argument')
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1423,10 +1459,23 @@ class bybit(Exchange):
             # 'stop_order_id': id,  # only for conditional orders
             # 'p_r_trigger_price': 123.45,  # new trigger price also known as stop_px
         }
-        method = 'privateLinearPostOrderReplace' if (marketType == 'linear') else 'v2PrivatePostOrderReplace'
+        method = None
+        if market['swap']:
+            if market['linear']:
+                method = 'privateLinearPostOrderReplace'
+            elif market['inverse']:
+                method = 'v2PrivatePostOrderReplace'
+        elif market['futures']:
+            method = 'futuresPrivatePostOrderReplace'
         stopOrderId = self.safe_string(params, 'stop_order_id')
         if stopOrderId is not None:
-            method = 'privateLinearPostStopOrderReplace' if (marketType == 'linear') else 'v2PrivatePostStopOrderReplace'
+            if market['swap']:
+                if market['linear']:
+                    method = 'privateLinearPostStopOrderReplace'
+                elif market['inverse']:
+                    method = 'v2PrivatePostStopOrderReplace'
+            elif market['futures']:
+                method = 'futuresPrivatePostStopOrderReplace'
             request['stop_order_id'] = stopOrderId
             params = self.omit(params, ['stop_order_id'])
         else:
@@ -1488,16 +1537,27 @@ class bybit(Exchange):
             # conditional orders ---------------------------------------------
             # 'stop_order_id': id,  # one of stop_order_id or order_link_id is required for conditional orders
         }
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_value(marketTypes, symbol)
-        method = 'privateLinearPostOrderCancel' if (marketType == 'linear') else 'v2PrivatePostOrderCancel'
+        method = None
+        if market['swap']:
+            if market['linear']:
+                method = 'privateLinearPostOrderCancel'
+            elif market['inverse']:
+                method = 'v2PrivatePostOrderCancel'
+        elif market['futures']:
+            method = 'futuresPrivatePostOrderCancel'
         stopOrderId = self.safe_string(params, 'stop_order_id')
         if stopOrderId is None:
             orderLinkId = self.safe_string(params, 'order_link_id')
             if orderLinkId is None:
                 request['order_id'] = id
         else:
-            method = 'privateLinearPostStopOrderCancel' if (marketType == 'linear') else 'v2PrivatePostStopOrderCancel'
+            if market['swap']:
+                if market['linear']:
+                    method = 'privateLinearPostStopOrderCancel'
+                elif market['inverse']:
+                    method = 'v2PrivatePostStopOrderCancel'
+            elif market['futures']:
+                method = 'futuresPrivatePostStopOrderCancel'
         response = await getattr(self, method)(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
@@ -1511,9 +1571,14 @@ class bybit(Exchange):
             'symbol': market['id'],
         }
         options = self.safe_value(self.options, 'cancelAllOrders', {})
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol)
-        defaultMethod = 'privateLinearPostOrderCancelAll' if (marketType == 'linear') else 'v2PrivatePostOrderCancelAll'
+        defaultMethod = None
+        if market['swap']:
+            if market['linear']:
+                defaultMethod = 'privateLinearPostOrderCancelAll'
+            elif market['inverse']:
+                defaultMethod = 'v2PrivatePostOrderCancelAll'
+        elif market['futures']:
+            defaultMethod = 'futuresPrivatePostOrderCancelAll'
         method = self.safe_string(options, 'method', defaultMethod)
         response = await getattr(self, method)(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
@@ -1540,18 +1605,34 @@ class bybit(Exchange):
         if limit is not None:
             request['limit'] = limit
         options = self.safe_value(self.options, 'fetchOrders', {})
+        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol)
-        defaultMethod = 'privateLinearGetOrderList' if (marketType == 'linear') else 'v2PrivateGetOrderList'
+        marketType = self.safe_string(marketTypes, symbol, defaultType)
+        defaultMethod = None
+        marketDefined = (market is not None)
+        linear = (marketDefined and market['linear']) or (marketType == 'linear')
+        inverse = (marketDefined and market['swap'] and market['inverse']) or (marketType == 'inverse')
+        futures = (marketDefined and market['futures']) or (marketType == 'futures')
+        if linear:
+            defaultMethod = 'privateLinearGetOrderList'
+        elif inverse:
+            defaultMethod = 'v2PrivateGetOrderList'
+        elif futures:
+            defaultMethod = 'futuresPrivateGetOrderList'
         query = params
         if ('stop_order_id' in params) or ('stop_order_status' in params):
-            stopOrderStatus = self.safe_value(params, 'stopOrderStatus')
+            stopOrderStatus = self.safe_value(params, 'stop_order_status')
             if stopOrderStatus is not None:
                 if isinstance(stopOrderStatus, list):
                     stopOrderStatus = ','.join(stopOrderStatus)
                 request['stop_order_status'] = stopOrderStatus
                 query = self.omit(params, 'stop_order_status')
-            defaultMethod = 'privateLinearGetStopOrderList' if (marketType == 'linear') else 'v2PrivateGetStopOrderList'
+            if linear:
+                defaultMethod = 'privateLinearGetStopOrderList'
+            elif inverse:
+                defaultMethod = 'v2PrivateGetStopOrderList'
+            elif futures:
+                defaultMethod = 'futuresPrivateGetStopOrderList'
         method = self.safe_string(options, 'method', defaultMethod)
         response = await getattr(self, method)(self.extend(request, query))
         #
@@ -1719,9 +1800,20 @@ class bybit(Exchange):
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit  # default 20, max 50
+        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol)
-        method = 'privateLinearGetTradeExecutionList' if (marketType == 'linear') else 'v2PrivateGetExecutionList'
+        marketType = self.safe_string(marketTypes, symbol, defaultType)
+        marketDefined = (market is not None)
+        linear = (marketDefined and market['linear']) or (marketType == 'linear')
+        inverse = (marketDefined and market['swap'] and market['inverse']) or (marketType == 'inverse')
+        futures = (marketDefined and market['futures']) or (marketType == 'futures')
+        method = None
+        if linear:
+            method = 'privateLinearGetTradeExecutionList'
+        elif inverse:
+            method = 'v2PrivateGetExecutionList'
+        elif futures:
+            method = 'futuresPrivateGetExecutionList'
         response = await getattr(self, method)(self.extend(request, params))
         #
         # inverse
@@ -2135,9 +2227,9 @@ class bybit(Exchange):
         return self.safe_value(response, 'result')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_params(self.urls['api'], {'hostname': self.hostname})
         type = self.safe_string(api, 0)
         section = self.safe_string(api, 1)
+        url = self.implode_hostname(self.urls['api'][type])
         request = '/' + type + '/' + section + '/' + path
         # public v2
         if section == 'public':

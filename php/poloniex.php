@@ -27,6 +27,7 @@ class poloniex extends Exchange {
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchClosedOrder' => 'emulated',
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
@@ -126,7 +127,7 @@ class poloniex extends Exchange {
             'limits' => array(
                 'amount' => array(
                     'min' => 0.000001,
-                    'max' => 1000000000,
+                    'max' => null,
                 ),
                 'price' => array(
                     'min' => 0.00000001,
@@ -176,8 +177,15 @@ class poloniex extends Exchange {
                         'min' => array(
                             'BTC' => 0.0001,
                             'ETH' => 0.0001,
-                            'XMR' => 0.0001,
                             'USDT' => 1.0,
+                            'TRX' => 100,
+                            'BNB' => 0.06,
+                            'USDC' => 1.0,
+                            'USDJ' => 1.0,
+                            'TUSD' => 0.0001,
+                            'DAI' => 1.0,
+                            'PAX' => 1.0,
+                            'BUSD' => 1.0,
                         ),
                     ),
                 ),
@@ -196,6 +204,8 @@ class poloniex extends Exchange {
                     'Rate must be greater than zero.' => '\\ccxt\\InvalidOrder', // array("error":"Rate must be greater than zero.")
                     'Invalid currency pair.' => '\\ccxt\\BadSymbol', // array("error":"Invalid currency pair.")
                     'Invalid currencyPair parameter.' => '\\ccxt\\BadSymbol', // array("error":"Invalid currencyPair parameter.")
+                    'Trading is disabled in this market.' => '\\ccxt\\BadSymbol', // array("error":"Trading is disabled in this market.")
+                    'Invalid orderNumber parameter.' => '\\ccxt\\OrderNotFound',
                 ),
                 'broad' => array(
                     'Total must be at least' => '\\ccxt\\InvalidOrder', // array("error":"Total must be at least 0.0001.")
@@ -338,7 +348,7 @@ class poloniex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'onOrders');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -585,9 +595,13 @@ class poloniex extends Exchange {
         $amountString = $this->safe_string($trade, 'amount');
         $price = $this->parse_number($priceString);
         $amount = $this->parse_number($amountString);
-        $cost = $this->safe_number($trade, 'total');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $cost = null;
+        $costString = $this->safe_string($trade, 'total');
+        if ($costString === null) {
+            $costString = Precise::string_mul($priceString, $amountString);
+            $cost = $this->parse_number($costString);
+        } else {
+            $cost = $this->parse_number($costString);
         }
         $feeDisplay = $this->safe_string($trade, 'feeDisplay');
         if ($feeDisplay !== null) {
@@ -607,6 +621,18 @@ class poloniex extends Exchange {
                     'cost' => $feeCost,
                     'currency' => $feeCurrencyCode,
                     'rate' => $feeRate,
+                );
+            }
+        } else {
+            $feeCostString = $this->safe_string($trade, 'fee');
+            if ($feeCostString !== null && $market !== null) {
+                $feeCurrencyCode = ($side === 'buy') ? $market['base'] : $market['quote'];
+                $feeBase = ($side === 'buy') ? $amountString : $costString;
+                $feeRateString = Precise::string_div($feeCostString, $feeBase);
+                $fee = array(
+                    'cost' => $this->parse_number($feeCostString),
+                    'currency' => $feeCurrencyCode,
+                    'rate' => $this->parse_number($feeRateString),
                 );
             }
         }
@@ -1117,6 +1143,61 @@ class poloniex extends Exchange {
         return $this->parse_order($result);
     }
 
+    public function fetch_closed_order($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'orderNumber' => $id,
+        );
+        $response = $this->privatePostReturnOrderTrades (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "globalTradeID":570264000,
+        //             "tradeID":8026283,
+        //             "currencyPair":"USDT_LTC",
+        //             "type":"sell",
+        //             "rate":"144.73833409",
+        //             "amount":"0.18334460",
+        //             "total":"26.53699196",
+        //             "fee":"0.00155000",
+        //             "date":"2021-07-04 15:16:20"
+        //         }
+        //     )
+        //
+        $trades = $this->parse_trades($response);
+        $firstTrade = $this->safe_value($trades, 0);
+        if ($firstTrade === null) {
+            throw new OrderNotFound($this->id . ' order $id ' . $id . ' not found');
+        }
+        $symbol = $this->safe_string($firstTrade, 'symbol', $symbol);
+        $side = $this->safe_string($firstTrade, 'side');
+        $timestamp = $this->safe_number($firstTrade, 'timestamp');
+        $id = $this->safe_value($firstTrade['info'], 'globalTradeID', $id);
+        return $this->safe_order(array(
+            'info' => $response,
+            'id' => $id,
+            'clientOrderId' => $this->safe_value($firstTrade, 'clientOrderId'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
+            'status' => 'closed',
+            'symbol' => $symbol,
+            'type' => $this->safe_string($firstTrade, 'type'),
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => $side,
+            'price' => null,
+            'stopPrice' => null,
+            'cost' => null,
+            'average' => null,
+            'amount' => null,
+            'filled' => null,
+            'remaining' => null,
+            'trades' => $trades,
+            'fee' => null,
+        ));
+    }
+
     public function fetch_order_status($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $orders = $this->fetch_open_orders($symbol, null, null, $params);
@@ -1270,7 +1351,7 @@ class poloniex extends Exchange {
         //                 "fee":"0.00000000",
         //                 "timestamp":1591573420,
         //                 "status":"COMPLETE => dadf427224b3d44b38a2c13caa4395e4666152556ca0b2f67dbd86a95655150f",
-        //                 "ipAddress":"74.116.3.247",
+        //                 "ipAddress":"x.x.x.x",
         //                 "canCancel":0,
         //                 "canResendEmail":0,
         //                 "paymentID":null,
@@ -1284,7 +1365,7 @@ class poloniex extends Exchange {
         //                 fee => "0.01000000",
         //                 timestamp => 1510819838,
         //                 status => "COMPLETE => d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
-        //                 ipAddress => "5.220.220.200"
+        //                 ipAddress => "x.x.x.x"
         //             ),
         //             array(
         //                 withdrawalNumber => 9290444,
@@ -1294,7 +1375,7 @@ class poloniex extends Exchange {
         //                 fee => "0.00500000",
         //                 timestamp => 1514099289,
         //                 status => "COMPLETE => 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        //                 ipAddress => "5.228.227.214"
+        //                 ipAddress => "x.x.x.x"
         //             ),
         //             {
         //                 withdrawalNumber => 11518260,
@@ -1304,7 +1385,7 @@ class poloniex extends Exchange {
         //                 fee => "0.00050000",
         //                 timestamp => 1527918155,
         //                 status => "COMPLETE => 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
-        //                 ipAddress => "211.8.195.26"
+        //                 ipAddress => "x.x.x.x"
         //             }
         //         )
         //     }
@@ -1352,6 +1433,10 @@ class poloniex extends Exchange {
     public function parse_transaction_status($status) {
         $statuses = array(
             'COMPLETE' => 'ok',
+            'AWAITING APPROVAL' => 'pending',
+            'PENDING' => 'pending',
+            'PROCESSING' => 'pending',
+            'COMPLETE ERROR' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1382,7 +1467,7 @@ class poloniex extends Exchange {
         //         "$address" => "1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3",
         //         "$currency" => "BTC",
         //         "canCancel" => 0,
-        //         "ipAddress" => "185.230.101.31",
+        //         "ipAddress" => "x.x.x.x",
         //         "paymentID" => null,
         //         "$timestamp" => 1523834337,
         //         "canResendEmail" => 0,

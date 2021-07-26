@@ -196,10 +196,10 @@ module.exports = class exx extends Exchange {
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            if (!(id in this.marketsById)) {
+            if (!(id in this.markets_by_id)) {
                 continue;
             }
-            const market = this.marketsById[id];
+            const market = this.markets_by_id[id];
             const symbol = market['symbol'];
             const ticker = {
                 'date': timestamp,
@@ -277,7 +277,7 @@ module.exports = class exx extends Exchange {
             account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrder (order, market = undefined) {

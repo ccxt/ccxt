@@ -199,10 +199,10 @@ class exx extends Exchange {
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            if (!(is_array($this->marketsById) && array_key_exists($id, $this->marketsById))) {
+            if (!(is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id))) {
                 continue;
             }
-            $market = $this->marketsById[$id];
+            $market = $this->markets_by_id[$id];
             $symbol = $market['symbol'];
             $ticker = array(
                 'date' => $timestamp,
@@ -280,7 +280,7 @@ class exx extends Exchange {
             $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order($order, $market = null) {

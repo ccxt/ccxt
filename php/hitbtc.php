@@ -201,6 +201,7 @@ class hitbtc extends Exchange {
                 'PLA' => 'PlayChip',
                 'PNT' => 'Penta',
                 'SBTC' => 'Super Bitcoin',
+                'STX' => 'Stox',
                 'TV' => 'Tokenville',
                 'USD' => 'USDT',
                 'XPNT' => 'PNT',
@@ -463,7 +464,7 @@ class hitbtc extends Exchange {
             $account['used'] = $this->safe_string($balance, 'reserved');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

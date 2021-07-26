@@ -181,7 +181,7 @@ class lbank(Exchange):
         if market is None:
             marketId = self.safe_string(ticker, 'symbol')
             if marketId in self.markets_by_id:
-                market = self.marketsById[marketId]
+                market = self.markets_by_id[marketId]
                 symbol = market['symbol']
             else:
                 parts = marketId.split('_')
@@ -402,7 +402,7 @@ class lbank(Exchange):
             account['used'] = self.safe_string(freeze, currencyId)
             account['total'] = self.safe_string(asset, currencyId)
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order_status(self, status):
         statuses = {

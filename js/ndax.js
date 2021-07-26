@@ -39,6 +39,7 @@ module.exports = class ndax extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': '60',
@@ -199,6 +200,7 @@ module.exports = class ndax extends Exchange {
                 },
                 'broad': {
                     'Invalid InstrumentId': BadSymbol, // {"result":false,"errormsg":"Invalid InstrumentId: 10000","errorcode":100,"detail":null}
+                    'This endpoint requires 2FACode along with the payload': AuthenticationError,
                 },
             },
             'options': {
@@ -585,15 +587,15 @@ module.exports = class ndax extends Exchange {
         const now = this.milliseconds ();
         if (since === undefined) {
             if (limit !== undefined) {
-                request['FromDate'] = this.ymd (now - duration * limit * 1000);
-                request['ToDate'] = this.ymd (now);
+                request['FromDate'] = this.ymdhms (now - duration * limit * 1000);
+                request['ToDate'] = this.ymdhms (now);
             }
         } else {
-            request['FromDate'] = this.ymd (since);
+            request['FromDate'] = this.ymdhms (since);
             if (limit === undefined) {
-                request['ToDate'] = this.ymd (now);
+                request['ToDate'] = this.ymdhms (now);
             } else {
-                request['ToDate'] = this.ymd (this.sum (since, duration * limit * 1000));
+                request['ToDate'] = this.ymdhms (this.sum (since, duration * limit * 1000));
             }
         }
         const response = await this.publicGetGetTickerHistory (this.extend (request, params));
@@ -711,7 +713,7 @@ module.exports = class ndax extends Exchange {
         //         "PegPriceType":"Unknown",
         //         "PegOffset":0.0000000000000000000000000000,
         //         "PegLimitOffset":0.0000000000000000000000000000,
-        //         "IpAddress":"5.228.233.138",
+        //         "IpAddress":"x.x.x.x",
         //         "ClientOrderIdUuid":null,
         //         "OMSId":1
         //     }
@@ -732,7 +734,7 @@ module.exports = class ndax extends Exchange {
             amountString = this.safeString (trade, 2);
             timestamp = this.safeInteger (trade, 6);
             id = this.safeString (trade, 0);
-            marketId = this.safeInteger (trade, 1);
+            marketId = this.safeString (trade, 1);
             const takerSide = this.safeValue (trade, 8);
             side = takerSide ? 'sell' : 'buy';
             orderId = this.safeString (trade, 4);
@@ -884,7 +886,7 @@ module.exports = class ndax extends Exchange {
             account['used'] = this.safeString (balance, 'Hold');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseLedgerEntryType (type) {
@@ -1509,7 +1511,7 @@ module.exports = class ndax extends Exchange {
         //             "PegPriceType":"Unknown",
         //             "PegOffset":0.0000000000000000000000000000,
         //             "PegLimitOffset":0.0000000000000000000000000000,
-        //             "IpAddress":"5.228.233.138",
+        //             "IpAddress":"x.x.x.x",
         //             "ClientOrderIdUuid":null,
         //             "OMSId":1
         //         },
@@ -1578,7 +1580,7 @@ module.exports = class ndax extends Exchange {
         //         "PegPriceType":"Unknown",
         //         "PegOffset":0.0000000000000000000000000000,
         //         "PegLimitOffset":0.0000000000000000000000000000,
-        //         "IpAddress":"5.228.233.138",
+        //         "IpAddress":"x.x.x.x",
         //         "ClientOrderIdUuid":null,
         //         "OMSId":1
         //     }
@@ -1600,7 +1602,7 @@ module.exports = class ndax extends Exchange {
         const request = {
             'OMSId': parseInt (omsId),
             // 'AccountId': accountId,
-            'OrderId': id,
+            'OrderId': parseInt (id),
         };
         const response = await this.privatePostGetOrderHistoryByOrderId (this.extend (request, params));
         //
@@ -1647,7 +1649,7 @@ module.exports = class ndax extends Exchange {
         //             "PegPriceType":"Unknown",
         //             "PegOffset":0.0000000000000000000000000000,
         //             "PegLimitOffset":0.0000000000000000000000000000,
-        //             "IpAddress":"5.228.233.138",
+        //             "IpAddress":"x.x.x.x",
         //             "ClientOrderIdUuid":null,
         //             "OMSId":1
         //         },
@@ -1954,6 +1956,88 @@ module.exports = class ndax extends Exchange {
             'status': status,
             'updated': updated,
             'fee': fee,
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        if (this.twofa === undefined) {
+            throw new ExchangeError (this.id + ' withdraw() requires exchange.twofa credential for OATH codes');
+        }
+        this.checkAddress (address);
+        const omsId = this.safeInteger (this.options, 'omsId', 1);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+        params = this.omit (params, [ 'accountId', 'AccountId' ]);
+        const currency = this.currency (code);
+        const withdrawTemplateTypesRequest = {
+            'omsId': omsId,
+            'AccountId': accountId,
+            'ProductId': currency['id'],
+        };
+        const withdrawTemplateTypesResponse = await this.privateGetGetWithdrawTemplateTypes (withdrawTemplateTypesRequest);
+        //
+        //     {
+        //         result: true,
+        //         errormsg: null,
+        //         statuscode: "0",
+        //         TemplateTypes: [
+        //             { AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC" },
+        //             { AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC" },
+        //             { AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1" }
+        //         ]
+        //     }
+        //
+        const templateTypes = this.safeValue (withdrawTemplateTypesResponse, 'TemplateTypes', []);
+        const firstTemplateType = this.safeValue (templateTypes, 0);
+        if (firstTemplateType === undefined) {
+            throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template type for ' + currency['code']);
+        }
+        const templateName = this.safeString (firstTemplateType, 'TemplateName');
+        const withdrawTemplateRequest = {
+            'omsId': omsId,
+            'AccountId': accountId,
+            'ProductId': currency['id'],
+            'TemplateType': templateName,
+            'AccountProviderId': firstTemplateType['AccountProviderId'],
+        };
+        const withdrawTemplateResponse = await this.privateGetGetWithdrawTemplate (withdrawTemplateRequest);
+        //
+        //     {
+        //         result: true,
+        //         errormsg: null,
+        //         statuscode: "0",
+        //         Template: "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
+        //     }
+        //
+        const template = this.safeString (withdrawTemplateResponse, 'Template');
+        if (template === undefined) {
+            throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template for ' + currency['code']);
+        }
+        const withdrawTemplate = JSON.parse (template);
+        withdrawTemplate['ExternalAddress'] = address;
+        if (tag !== undefined) {
+            if ('Memo' in withdrawTemplate) {
+                withdrawTemplate['Memo'] = tag;
+            }
+        }
+        const withdrawPayload = {
+            'omsId': omsId,
+            'AccountId': accountId,
+            'ProductId': currency['id'],
+            'TemplateForm': this.json (withdrawTemplate),
+            'TemplateType': templateName,
+        };
+        const withdrawRequest = {
+            'TfaType': 'Google',
+            'TFaCode': this.oath (),
+            'Payload': this.json (withdrawPayload),
+        };
+        const response = await this.privatePostCreateWithdrawTicket (this.deepExtend (withdrawRequest, params));
+        return {
+            'info': response,
+            'id': this.safeString (response, 'Id'),
         };
     }
 

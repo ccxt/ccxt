@@ -179,7 +179,7 @@ module.exports = class lbank extends Exchange {
         if (market === undefined) {
             const marketId = this.safeString (ticker, 'symbol');
             if (marketId in this.markets_by_id) {
-                const market = this.marketsById[marketId];
+                const market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
             } else {
                 const parts = marketId.split ('_');
@@ -423,7 +423,7 @@ module.exports = class lbank extends Exchange {
             account['total'] = this.safeString (asset, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {

@@ -89,6 +89,7 @@ module.exports = class cex extends Exchange {
                         'open_position/{pair}/',
                         'open_positions/{pair}/',
                         'place_order/{pair}/',
+                        'raw_tx_history',
                     ],
                 },
             },
@@ -379,7 +380,7 @@ module.exports = class cex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

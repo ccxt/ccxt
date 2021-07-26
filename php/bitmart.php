@@ -617,10 +617,7 @@ class bitmart extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $spotMarkets = $this->fetch_spot_markets();
-        $contractMarkets = $this->fetch_contract_markets();
-        $allMarkets = $this->array_concat($spotMarkets, $contractMarkets);
-        return $allMarkets;
+        return $this->fetch_spot_markets();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -1482,7 +1479,7 @@ class bitmart extends Exchange {
             $account['used'] = $this->safe_string_2($balance, 'frozen', 'freeze_vol');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order($order, $market = null) {
@@ -2226,7 +2223,7 @@ class bitmart extends Exchange {
             $id = $depositId;
         }
         $amount = $this->safe_number($transaction, 'arrival_amount');
-        $timestamp = $this->safe_integer($transaction, 'tapply_timeime');
+        $timestamp = $this->safe_integer($transaction, 'apply_time');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
@@ -2270,7 +2267,7 @@ class bitmart extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $baseUrl = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname ));
+        $baseUrl = $this->implode_hostname($this->urls['api']);
         $access = $this->safe_string($api, 0);
         $type = $this->safe_string($api, 1);
         $url = $baseUrl . '/' . $type;

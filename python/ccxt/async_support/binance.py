@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -49,6 +48,10 @@ class binance(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': True,
+                'fetchFundingHistory': True,
+                'fetchFundingRate': True,
+                'fetchFundingRates': True,
+                'fetchIsolatedPositions': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -56,6 +59,7 @@ class binance(Exchange):
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOrderBook': True,
+                'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -65,6 +69,8 @@ class binance(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactions': False,
                 'fetchWithdrawals': True,
+                'setLeverage': True,
+                'setMarginMode': True,
                 'withdraw': True,
                 'transfer': True,
                 'fetchTransfers': True,
@@ -104,6 +110,7 @@ class binance(Exchange):
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
+                    'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
@@ -115,7 +122,10 @@ class binance(Exchange):
                     'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
-                'referral': 'https://www.binance.com/?ref=10205187',
+                'referral': {
+                    'url': 'https://www.binance.com/en/register?ref=BLEJC98C',
+                    'discount': 0.2,
+                },
                 'doc': [
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],
@@ -135,6 +145,7 @@ class binance(Exchange):
                         'margin/priceIndex',
                         # these endpoints require self.apiKey + self.secret
                         'asset/assetDividend',
+                        'asset/dribblet',
                         'asset/transfer',
                         'asset/assetDetail',
                         'asset/tradeFee',
@@ -154,6 +165,7 @@ class binance(Exchange):
                         'margin/isolated/account',
                         'margin/isolated/pair',
                         'margin/isolated/allPairs',
+                        'margin/interestRateHistory',
                         'fiatpayment/query/deposit/history',
                         'fiatpayment/query/withdraw/history',
                         'futures/transfer',
@@ -173,14 +185,17 @@ class binance(Exchange):
                         'capital/deposit/subHisrec',
                         'capital/withdraw/history',
                         'bnbBurn',
+                        'sub-account/assets',
                         'sub-account/futures/account',
                         'sub-account/futures/accountSummary',
                         'sub-account/futures/positionRisk',
                         'sub-account/futures/internalTransfer',
+                        'sub-account/list',
                         'sub-account/margin/account',
                         'sub-account/margin/accountSummary',
                         'sub-account/spotSummary',
                         'sub-account/status',
+                        'sub-account/sub/transfer/history',
                         'sub-account/transfer/subUserHistory',
                         'sub-account/universalTransfer',
                         # lending endpoints
@@ -241,10 +256,12 @@ class binance(Exchange):
                         'broker/universalTransfer',
                         # v2 not supported yet
                         # GET /sapi/v2/broker/subAccount/futuresSummary
+                        'account/apiRestrictions',
                     ],
                     'post': [
                         'asset/dust',
                         'asset/transfer',
+                        'get-funding-asset',
                         'account/disableFastWithdrawSwitch',
                         'account/enableFastWithdrawSwitch',
                         'capital/withdraw/apply',
@@ -359,7 +376,6 @@ class binance(Exchange):
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'allForceOrders',
                         'openInterest',
                     ],
                 },
@@ -410,6 +426,11 @@ class binance(Exchange):
                         'listenKey',
                     ],
                 },
+                'dapiPrivateV2': {
+                    'get': [
+                        'leverageBracket',
+                    ],
+                },
                 'fapiPublic': {
                     'get': [
                         'ping',
@@ -426,7 +447,6 @@ class binance(Exchange):
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
-                        'allForceOrders',
                         'openInterest',
                         'indexInfo',
                     ],
@@ -442,7 +462,7 @@ class binance(Exchange):
                 },
                 'fapiPrivate': {
                     'get': [
-                        'allForceOrders',
+                        'forceOrders',
                         'allOrders',
                         'openOrder',
                         'openOrders',
@@ -457,6 +477,7 @@ class binance(Exchange):
                         'income',
                         'commissionRate',
                         'apiTradingStatus',
+                        'multiAssetsMargin',
                         # broker endpoints
                         'apiReferral/ifNewUser',
                         'apiReferral/customization',
@@ -476,6 +497,7 @@ class binance(Exchange):
                         'leverage',
                         'listenKey',
                         'countdownCancelAll',
+                        'multiAssetsMargin',
                         # broker endpoints
                         'apiReferral/customization',
                         'apiReferral/userCustomization',
@@ -552,6 +574,76 @@ class binance(Exchange):
                     'taker': 0.001,
                     'maker': 0.001,
                 },
+                'future': {
+                    'trading': {
+                        'feeSide': 'quote',
+                        'tierBased': True,
+                        'percentage': True,
+                        'taker': self.parse_number('0.000400'),
+                        'maker': self.parse_number('0.000200'),
+                        'tiers': {
+                            'taker': [
+                                [self.parse_number('0'), self.parse_number('0.000400')],
+                                [self.parse_number('250'), self.parse_number('0.000400')],
+                                [self.parse_number('2500'), self.parse_number('0.000350')],
+                                [self.parse_number('7500'), self.parse_number('0.000320')],
+                                [self.parse_number('22500'), self.parse_number('0.000300')],
+                                [self.parse_number('50000'), self.parse_number('0.000270')],
+                                [self.parse_number('100000'), self.parse_number('0.000250')],
+                                [self.parse_number('200000'), self.parse_number('0.000220')],
+                                [self.parse_number('400000'), self.parse_number('0.000200')],
+                                [self.parse_number('750000'), self.parse_number('0.000170')],
+                            ],
+                            'maker': [
+                                [self.parse_number('0'), self.parse_number('0.000200')],
+                                [self.parse_number('250'), self.parse_number('0.000160')],
+                                [self.parse_number('2500'), self.parse_number('0.000140')],
+                                [self.parse_number('7500'), self.parse_number('0.000120')],
+                                [self.parse_number('22500'), self.parse_number('0.000100')],
+                                [self.parse_number('50000'), self.parse_number('0.000080')],
+                                [self.parse_number('100000'), self.parse_number('0.000060')],
+                                [self.parse_number('200000'), self.parse_number('0.000040')],
+                                [self.parse_number('400000'), self.parse_number('0.000020')],
+                                [self.parse_number('750000'), self.parse_number('0')],
+                            ],
+                        },
+                    },
+                },
+                'delivery': {
+                    'trading': {
+                        'feeSide': 'base',
+                        'tierBased': True,
+                        'percentage': True,
+                        'taker': self.parse_number('0.000500'),
+                        'maker': self.parse_number('0.000100'),
+                        'tiers': {
+                            'taker': [
+                                [self.parse_number('0'), self.parse_number('0.000500')],
+                                [self.parse_number('250'), self.parse_number('0.000450')],
+                                [self.parse_number('2500'), self.parse_number('0.000400')],
+                                [self.parse_number('7500'), self.parse_number('0.000300')],
+                                [self.parse_number('22500'), self.parse_number('0.000250')],
+                                [self.parse_number('50000'), self.parse_number('0.000240')],
+                                [self.parse_number('100000'), self.parse_number('0.000240')],
+                                [self.parse_number('200000'), self.parse_number('0.000240')],
+                                [self.parse_number('400000'), self.parse_number('0.000240')],
+                                [self.parse_number('750000'), self.parse_number('0.000240')],
+                            ],
+                            'maker': [
+                                [self.parse_number('0'), self.parse_number('0.000100')],
+                                [self.parse_number('250'), self.parse_number('0.000080')],
+                                [self.parse_number('2500'), self.parse_number('0.000050')],
+                                [self.parse_number('7500'), self.parse_number('0.0000030')],
+                                [self.parse_number('22500'), self.parse_number('0')],
+                                [self.parse_number('50000'), self.parse_number('-0.000050')],
+                                [self.parse_number('100000'), self.parse_number('-0.000060')],
+                                [self.parse_number('200000'), self.parse_number('-0.000070')],
+                                [self.parse_number('400000'), self.parse_number('-0.000080')],
+                                [self.parse_number('750000'), self.parse_number('-0.000090')],
+                            ],
+                        },
+                    },
+                },
             },
             'commonCurrencies': {
                 'BCC': 'BCC',  # kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
@@ -580,10 +672,6 @@ class binance(Exchange):
                     'future': 'x-xcKtGhcu',
                     'delivery': 'x-xcKtGhcu',
                 },
-                'fetchPositions': {
-                    'future': 'fapiPrivateV2GetAccount',  # 'fapiPrivateGetPositionRisk'
-                    'delivery': 'dapiPrivateGetAccount',  # 'dapiPrivateGetPositionRisk'
-                },
                 'accountsByType': {
                     'main': 'MAIN',
                     'spot': 'MAIN',
@@ -602,63 +690,70 @@ class binance(Exchange):
             },
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
-                'System abnormality': ExchangeError,  # {"code":-1000,"msg":"System abnormality"}
-                'You are not authorized to execute self request.': PermissionDenied,  # {"msg":"You are not authorized to execute self request."}
-                'API key does not exist': AuthenticationError,
-                'Order would trigger immediately.': OrderImmediatelyFillable,
-                'Stop price would trigger immediately.': OrderImmediatelyFillable,  # {"code":-2010,"msg":"Stop price would trigger immediately."}
-                'Order would immediately match and take.': OrderImmediatelyFillable,  # {"code":-2010,"msg":"Order would immediately match and take."}
-                'Account has insufficient balance for requested action.': InsufficientFunds,
-                'Rest API trading is not enabled.': ExchangeNotAvailable,
-                "You don't have permission.": PermissionDenied,  # {"msg":"You don't have permission.","success":false}
-                'Market is closed.': ExchangeNotAvailable,  # {"code":-1013,"msg":"Market is closed."}
-                'Too many requests.': DDoSProtection,  # {"msg":"Too many requests. Please try again later.","success":false}
-                '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
-                '-1001': ExchangeNotAvailable,  # 'Internal error; unable to process your request. Please try again.'
-                '-1002': AuthenticationError,  # 'You are not authorized to execute self request.'
-                '-1003': RateLimitExceeded,  # {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
-                '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                '-1015': RateLimitExceeded,  # 'Too many new orders; current limit is %s orders per %s.'
-                '-1016': ExchangeNotAvailable,  # 'This service is no longer available.',
-                '-1020': BadRequest,  # 'This operation is not supported.'
-                '-1021': InvalidNonce,  # 'your time is ahead of server'
-                '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
-                '-1100': BadRequest,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                '-1101': BadRequest,  # Too many parameters; expected %s and received %s.
-                '-1102': BadRequest,  # Param %s or %s must be sent, but both were empty
-                '-1103': BadRequest,  # An unknown parameter was sent.
-                '-1104': BadRequest,  # Not all sent parameters were read, read 8 parameters but was sent 9
-                '-1105': BadRequest,  # Parameter %s was empty.
-                '-1106': BadRequest,  # Parameter %s sent when not required.
-                '-1111': BadRequest,  # Precision is over the maximum defined for self asset.
-                '-1112': InvalidOrder,  # No orders on book for symbol.
-                '-1114': BadRequest,  # TimeInForce parameter sent when not required.
-                '-1115': BadRequest,  # Invalid timeInForce.
-                '-1116': BadRequest,  # Invalid orderType.
-                '-1117': BadRequest,  # Invalid side.
-                '-1118': BadRequest,  # New client order ID was empty.
-                '-1119': BadRequest,  # Original client order ID was empty.
-                '-1120': BadRequest,  # Invalid interval.
-                '-1121': BadSymbol,  # Invalid symbol.
-                '-1125': AuthenticationError,  # This listenKey does not exist.
-                '-1127': BadRequest,  # More than %s hours between startTime and endTime.
-                '-1128': BadRequest,  # {"code":-1128,"msg":"Combination of optional parameters invalid."}
-                '-1130': BadRequest,  # Data sent for paramter %s is not valid.
-                '-1131': BadRequest,  # recvWindow must be less than 60000
-                '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
-                '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
-                '-2014': AuthenticationError,  # {"code":-2014, "msg": "API-key format invalid."}
-                '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
-                '-2019': InsufficientFunds,  # {"code":-2019,"msg":"Margin is insufficient."}
-                '-3005': InsufficientFunds,  # {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
-                '-3008': InsufficientFunds,  # {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
-                '-3010': ExchangeError,  # {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
-                '-3022': AccountSuspended,  # You account's trading is banned.
-                '-4028': BadRequest,  # {"code":-4028,"msg":"Leverage 100 is not valid"}
-                '-3020': InsufficientFunds,  # {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
-                '-3041': InsufficientFunds,  # {"code":-3041,"msg":"Balance is not enough"}
-                '-5013': InsufficientFunds,  # Asset transfer failed: insufficient balance"
+                'exact': {
+                    'System abnormality': ExchangeError,  # {"code":-1000,"msg":"System abnormality"}
+                    'You are not authorized to execute self request.': PermissionDenied,  # {"msg":"You are not authorized to execute self request."}
+                    'API key does not exist': AuthenticationError,
+                    'Order would trigger immediately.': OrderImmediatelyFillable,
+                    'Stop price would trigger immediately.': OrderImmediatelyFillable,  # {"code":-2010,"msg":"Stop price would trigger immediately."}
+                    'Order would immediately match and take.': OrderImmediatelyFillable,  # {"code":-2010,"msg":"Order would immediately match and take."}
+                    'Account has insufficient balance for requested action.': InsufficientFunds,
+                    'Rest API trading is not enabled.': ExchangeNotAvailable,
+                    "You don't have permission.": PermissionDenied,  # {"msg":"You don't have permission.","success":false}
+                    'Market is closed.': ExchangeNotAvailable,  # {"code":-1013,"msg":"Market is closed."}
+                    'Too many requests.': DDoSProtection,  # {"msg":"Too many requests. Please try again later.","success":false}
+                    '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                    '-1001': ExchangeNotAvailable,  # 'Internal error; unable to process your request. Please try again.'
+                    '-1002': AuthenticationError,  # 'You are not authorized to execute self request.'
+                    '-1003': RateLimitExceeded,  # {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
+                    '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
+                    '-1015': RateLimitExceeded,  # 'Too many new orders; current limit is %s orders per %s.'
+                    '-1016': ExchangeNotAvailable,  # 'This service is no longer available.',
+                    '-1020': BadRequest,  # 'This operation is not supported.'
+                    '-1021': InvalidNonce,  # 'your time is ahead of server'
+                    '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
+                    '-1100': BadRequest,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                    '-1101': BadRequest,  # Too many parameters; expected %s and received %s.
+                    '-1102': BadRequest,  # Param %s or %s must be sent, but both were empty
+                    '-1103': BadRequest,  # An unknown parameter was sent.
+                    '-1104': BadRequest,  # Not all sent parameters were read, read 8 parameters but was sent 9
+                    '-1105': BadRequest,  # Parameter %s was empty.
+                    '-1106': BadRequest,  # Parameter %s sent when not required.
+                    '-1111': BadRequest,  # Precision is over the maximum defined for self asset.
+                    '-1112': InvalidOrder,  # No orders on book for symbol.
+                    '-1114': BadRequest,  # TimeInForce parameter sent when not required.
+                    '-1115': BadRequest,  # Invalid timeInForce.
+                    '-1116': BadRequest,  # Invalid orderType.
+                    '-1117': BadRequest,  # Invalid side.
+                    '-1118': BadRequest,  # New client order ID was empty.
+                    '-1119': BadRequest,  # Original client order ID was empty.
+                    '-1120': BadRequest,  # Invalid interval.
+                    '-1121': BadSymbol,  # Invalid symbol.
+                    '-1125': AuthenticationError,  # This listenKey does not exist.
+                    '-1127': BadRequest,  # More than %s hours between startTime and endTime.
+                    '-1128': BadRequest,  # {"code":-1128,"msg":"Combination of optional parameters invalid."}
+                    '-1130': BadRequest,  # Data sent for paramter %s is not valid.
+                    '-1131': BadRequest,  # recvWindow must be less than 60000
+                    '-2008': AuthenticationError,  # {"code":-2008,"msg":"Invalid Api-Key ID."}
+                    '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
+                    '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
+                    '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
+                    '-2014': AuthenticationError,  # {"code":-2014, "msg": "API-key format invalid."}
+                    '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
+                    '-2019': InsufficientFunds,  # {"code":-2019,"msg":"Margin is insufficient."}
+                    '-3005': InsufficientFunds,  # {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
+                    '-3008': InsufficientFunds,  # {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
+                    '-3010': ExchangeError,  # {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                    '-3022': AccountSuspended,  # You account's trading is banned.
+                    '-4028': BadRequest,  # {"code":-4028,"msg":"Leverage 100 is not valid"}
+                    '-3020': InsufficientFunds,  # {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
+                    '-3041': InsufficientFunds,  # {"code":-3041,"msg":"Balance is not enough"}
+                    '-5013': InsufficientFunds,  # Asset transfer failed: insufficient balance"
+                },
+                'broad': {
+                    'has no operation privilege': PermissionDenied,
+                    'MAX_POSITION': InvalidOrder,  # {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
+                },
             },
         })
 
@@ -992,18 +1087,31 @@ class binance(Exchange):
             quote = self.safe_currency_code(quoteId)
             contractType = self.safe_string(market, 'contractType')
             idSymbol = (future or delivery) and (contractType != 'PERPETUAL')
-            symbol = id if idSymbol else (base + '/' + quote)
+            symbol = None
+            expiry = None
+            if idSymbol:
+                symbol = id
+                expiry = self.safe_integer(market, 'deliveryDate')
+            else:
+                symbol = base + '/' + quote
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
             precision = {
                 'base': self.safe_integer(market, 'baseAssetPrecision'),
                 'quote': self.safe_integer(market, 'quotePrecision'),
-                'amount': self.safe_integer(market, 'baseAssetPrecision'),
-                'price': self.safe_integer(market, 'quotePrecision'),
+                'amount': self.safe_integer(market, 'quantityPrecision'),
+                'price': self.safe_integer(market, 'pricePrecision'),
             }
             status = self.safe_string_2(market, 'status', 'contractStatus')
             active = (status == 'TRADING')
-            margin = self.safe_value(market, 'isMarginTradingAllowed', future or delivery)
+            margin = self.safe_value(market, 'isMarginTradingAllowed', False)
+            contractSize = None
+            fees = self.fees
+            if future or delivery:
+                contractSize = self.safe_string(market, 'contractSize', '1')
+                fees = self.fees[type]
+            maker = fees['trading']['maker']
+            taker = fees['trading']['taker']
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1013,16 +1121,23 @@ class binance(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'type': type,
                 'spot': spot,
+                'type': type,
                 'margin': margin,
                 'future': future,
                 'delivery': delivery,
+                'linear': future,
+                'inverse': delivery,
+                'expiry': expiry,
+                'expiryDatetime': self.iso8601(expiry),
                 'active': active,
                 'precision': precision,
+                'contractSize': contractSize,
+                'maker': maker,
+                'taker': taker,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': None,
                         'max': None,
                     },
                     'price': {
@@ -1081,6 +1196,8 @@ class binance(Exchange):
             method = self.safe_string(fetchBalanceOptions, 'method', 'dapiPrivateGetAccount')
         elif type == 'margin':
             method = 'sapiGetMarginAccount'
+        elif type == 'savings':
+            method = 'sapiGetLendingUnionAccount'
         query = self.omit(params, 'type')
         response = await getattr(self, method)(query)
         #
@@ -1227,6 +1344,31 @@ class binance(Exchange):
         #         }
         #     ]
         #
+        # savings
+        #
+        #     {
+        #       "totalAmountInBTC": "0.3172",
+        #       "totalAmountInUSDT": "10000",
+        #       "totalFixedAmountInBTC": "0.3172",
+        #       "totalFixedAmountInUSDT": "10000",
+        #       "totalFlexibleInBTC": "0",
+        #       "totalFlexibleInUSDT": "0",
+        #       "positionAmountVos": [
+        #         {
+        #           "asset": "USDT",
+        #           "amount": "10000",
+        #           "amountInBTC": "0.3172",
+        #           "amountInUSDT": "10000"
+        #         },
+        #         {
+        #           "asset": "BUSD",
+        #           "amount": "0",
+        #           "amountInBTC": "0",
+        #           "amountInUSDT": "0"
+        #         }
+        #       ]
+        #     }
+        #
         result = {
             'info': response,
         }
@@ -1241,6 +1383,17 @@ class binance(Exchange):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
+                result[code] = account
+        elif type == 'savings':
+            positionAmountVos = self.safe_value(response, 'positionAmountVos')
+            for i in range(0, len(positionAmountVos)):
+                entry = positionAmountVos[i]
+                currencyId = self.safe_string(entry, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                usedAndTotal = self.safe_string(entry, 'amount')
+                account['total'] = usedAndTotal
+                account['used'] = usedAndTotal
                 result[code] = account
         else:
             balances = response
@@ -1257,7 +1410,7 @@ class binance(Exchange):
                 result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -1268,9 +1421,9 @@ class binance(Exchange):
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         method = 'publicGetDepth'
-        if market['future']:
+        if market['linear']:
             method = 'fapiPublicGetDepth'
-        elif market['delivery']:
+        elif market['inverse']:
             method = 'dapiPublicGetDepth'
         response = await getattr(self, method)(self.extend(request, params))
         #
@@ -1323,10 +1476,40 @@ class binance(Exchange):
         #         count: 87544
         #     }
         #
+        # coinm
+        #     {
+        #         baseVolume: '214549.95171161',
+        #         closeTime: '1621965286847',
+        #         count: '1283779',
+        #         firstId: '152560106',
+        #         highPrice: '39938.3',
+        #         lastId: '153843955',
+        #         lastPrice: '37993.4',
+        #         lastQty: '1',
+        #         lowPrice: '36457.2',
+        #         openPrice: '37783.4',
+        #         openTime: '1621878840000',
+        #         pair: 'BTCUSD',
+        #         priceChange: '210.0',
+        #         priceChangePercent: '0.556',
+        #         symbol: 'BTCUSD_PERP',
+        #         volume: '81990451',
+        #         weightedAvgPrice: '38215.08713747'
+        #     }
+        #
         timestamp = self.safe_integer(ticker, 'closeTime')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_number(ticker, 'lastPrice')
+        isCoinm = ('baseVolume' in ticker)
+        baseVolume = None
+        quoteVolume = None
+        if isCoinm:
+            baseVolume = self.safe_number(ticker, 'baseVolume')
+            quoteVolume = self.safe_number(ticker, 'volume')
+        else:
+            baseVolume = self.safe_number(ticker, 'volume')
+            quoteVolume = self.safe_number(ticker, 'quoteVolume')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1345,8 +1528,8 @@ class binance(Exchange):
             'change': self.safe_number(ticker, 'priceChange'),
             'percentage': self.safe_number(ticker, 'priceChangePercent'),
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
-            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
@@ -1368,9 +1551,9 @@ class binance(Exchange):
             'symbol': market['id'],
         }
         method = 'publicGetTicker24hr'
-        if market['future']:
+        if market['linear']:
             method = 'fapiPublicGetTicker24hr'
-        elif market['delivery']:
+        elif market['inverse']:
             method = 'dapiPublicGetTicker24hr'
         response = await getattr(self, method)(self.extend(request, params))
         if isinstance(response, list):
@@ -1456,9 +1639,9 @@ class binance(Exchange):
                 now = self.milliseconds()
                 request['endTime'] = min(now, endTime)
         method = 'publicGetKlines'
-        if market['future']:
+        if market['linear']:
             method = 'fapiPublicGetKlines'
-        elif market['delivery']:
+        elif market['inverse']:
             method = 'dapiPublicGetKlines'
         response = await getattr(self, method)(self.extend(request, params))
         #
@@ -1562,7 +1745,8 @@ class binance(Exchange):
         price = self.parse_number(priceString)
         amount = self.parse_number(amountString)
         cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        id = self.safe_string_2(trade, 'a', 'id')
+        id = self.safe_string_2(trade, 't', 'a')
+        id = self.safe_string(trade, 'id', id)
         side = None
         orderId = self.safe_string(trade, 'orderId')
         if 'm' in trade:
@@ -1765,36 +1949,49 @@ class binance(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
+        filledString = self.safe_string(order, 'executedQty', '0')
+        filled = self.parse_number(filledString)
+        filledFloat = float(filledString)
         timestamp = None
+        lastTradeTimestamp = None
         if 'time' in order:
             timestamp = self.safe_integer(order, 'time')
         elif 'transactTime' in order:
             timestamp = self.safe_integer(order, 'transactTime')
-        price = self.safe_number(order, 'price')
+        elif 'updateTime' in order:
+            if status == 'open':
+                if filledFloat > 0:
+                    lastTradeTimestamp = self.safe_integer(order, 'updateTime')
+                else:
+                    timestamp = self.safe_integer(order, 'updateTime')
+        averageString = self.safe_string(order, 'avgPrice')
+        average = self.parse_number(self.omit_zero(averageString))
+        priceString = self.safe_string(order, 'price')
+        price = self.parse_number(self.omit_zero(priceString))
         amount = self.safe_number(order, 'origQty')
-        filled = self.safe_number(order, 'executedQty')
         # - Spot/Margin market: cummulativeQuoteQty
         # - Futures market: cumQuote.
         #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
         cost = self.safe_number_2(order, 'cummulativeQuoteQty', 'cumQuote')
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
-        if type == 'limit_maker':
-            type = 'limit'
         side = self.safe_string_lower(order, 'side')
         fills = self.safe_value(order, 'fills', [])
         trades = self.parse_trades(fills, market)
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX')
-        stopPrice = self.safe_number(order, 'stopPrice')
+        if type == 'limit_maker':
+            type = 'limit'
+        stopPriceString = self.safe_string(order, 'stopPrice')
+        stopPrice = self.parse_number(self.omit_zero(stopPriceString))
         return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -1804,7 +2001,7 @@ class binance(Exchange):
             'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
-            'average': None,
+            'average': average,
             'filled': filled,
             'remaining': None,
             'status': status,
@@ -1815,7 +2012,7 @@ class binance(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', market['type'])
+        defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', 'spot')
         orderType = self.safe_string(params, 'type', defaultType)
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
         params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId'])
@@ -1835,7 +2032,7 @@ class binance(Exchange):
         uppercaseType = type.upper()
         validOrderTypes = self.safe_value(market['info'], 'orderTypes')
         if not self.in_array(uppercaseType, validOrderTypes):
-            raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type in ' + market['type'] + ' market ' + symbol)
+            raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type in market ' + symbol)
         request = {
             'symbol': market['id'],
             'type': uppercaseType,
@@ -1843,7 +2040,7 @@ class binance(Exchange):
         }
         if clientOrderId is None:
             broker = self.safe_value(self.options, 'broker')
-            if broker:
+            if broker is not None:
                 brokerId = self.safe_string(broker, orderType)
                 if brokerId is not None:
                     request['newClientOrderId'] = brokerId + self.uuid22()
@@ -1900,7 +2097,7 @@ class binance(Exchange):
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
             stopPriceIsRequired = True
             quantityIsRequired = True
-            if market['future'] or market['delivery']:
+            if market['linear'] or market['inverse']:
                 priceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
             quantityIsRequired = True
@@ -1947,7 +2144,7 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
+        defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         method = 'privateGetOrder'
         if type == 'future':
@@ -1973,7 +2170,7 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchOrders', 'defaultType', market['type'])
+        defaultType = self.safe_string_2(self.options, 'fetchOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         method = 'privateGetAllOrders'
         if type == 'future':
@@ -2046,7 +2243,7 @@ class binance(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-            defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', market['type'])
+            defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
             type = self.safe_string(params, 'type', defaultType)
             query = self.omit(params, 'type')
         elif self.options['warnOnFetchOpenOrdersWithoutSymbol']:
@@ -2077,7 +2274,7 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', market['type'])
+        defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         # https://github.com/ccxt/ccxt/issues/6507
         origClientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
@@ -2125,102 +2322,12 @@ class binance(Exchange):
         else:
             return response
 
-    async def fetch_positions(self, symbols=None, params={}):
-        await self.load_markets()
-        defaultType = self.safe_string(self.options, 'defaultType', 'future')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
-        options = self.safe_value(self.options, 'fetchPositions', {})
-        defaultMethod = 'dapiPrivateGetAccount' if (type == 'delivery') else 'fapiPrivateV2GetAccount'
-        method = self.safe_string(options, type, defaultMethod)
-        response = await getattr(self, method)(params)
-        #
-        # futures, delivery
-        #
-        #     {
-        #         "feeTier":0,
-        #         "canTrade":true,
-        #         "canDeposit":true,
-        #         "canWithdraw":true,
-        #         "updateTime":0,
-        #         "assets":[
-        #             {
-        #                 "asset":"ETH",
-        #                 "walletBalance":"0.09886711",
-        #                 "unrealizedProfit":"0.00000000",
-        #                 "marginBalance":"0.09886711",
-        #                 "maintMargin":"0.00000000",
-        #                 "initialMargin":"0.00000000",
-        #                 "positionInitialMargin":"0.00000000",
-        #                 "openOrderInitialMargin":"0.00000000",
-        #                 "maxWithdrawAmount":"0.09886711",
-        #                 "crossWalletBalance":"0.09886711",
-        #                 "crossUnPnl":"0.00000000",
-        #                 "availableBalance":"0.09886711"
-        #             }
-        #         ],
-        #         "positions":[
-        #             {
-        #                 "symbol":"BTCUSD_201225",
-        #                 "initialMargin":"0",
-        #                 "maintMargin":"0",
-        #                 "unrealizedProfit":"0.00000000",
-        #                 "positionInitialMargin":"0",
-        #                 "openOrderInitialMargin":"0",
-        #                 "leverage":"20",
-        #                 "isolated":false,
-        #                 "positionSide":"BOTH",
-        #                 "entryPrice":"0.00000000",
-        #                 "maxQty":"250",  # "maxNotional" on futures
-        #             },
-        #         ]
-        #     }
-        #
-        # fapiPrivateGetPositionRisk, dapiPrivateGetPositionRisk
-        #
-        # [
-        #   {
-        #     symbol: 'XRPUSD_210625',
-        #     positionAmt: '0',
-        #     entryPrice: '0.00000000',
-        #     markPrice: '0.00000000',
-        #     unRealizedProfit: '0.00000000',
-        #     liquidationPrice: '0',
-        #     leverage: '20',
-        #     maxQty: '500000',
-        #     marginType: 'cross',
-        #     isolatedMargin: '0.00000000',
-        #     isAutoAddMargin: 'false',
-        #     positionSide: 'BOTH',
-        #     notionalValue: '0',
-        #     isolatedWallet: '0'
-        #   },
-        #   {
-        #     symbol: 'BTCUSD_210326',
-        #     positionAmt: '1',
-        #     entryPrice: '60665.79999885',
-        #     markPrice: '60696.76856843',
-        #     unRealizedProfit: '0.00000084',
-        #     liquidationPrice: '58034.68208092',
-        #     leverage: '20',
-        #     maxQty: '50',
-        #     marginType: 'isolated',
-        #     isolatedMargin: '0.00008345',
-        #     isAutoAddMargin: 'false',
-        #     positionSide: 'BOTH',
-        #     notionalValue: '0.00164753',
-        #     isolatedWallet: '0.00008261'
-        #   },
-        # ]
-        #
-        return self.safe_value(response, 'positions', response)
-
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchMyTrades', 'defaultType', market['type'])
+        defaultType = self.safe_string_2(self.options, 'fetchMyTrades', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
         method = None
@@ -2634,6 +2741,44 @@ class binance(Exchange):
             'status': status,
         }
 
+    def parse_income(self, income, market=None):
+        #
+        #     {
+        #       "symbol": "ETHUSDT",
+        #       "incomeType": "FUNDING_FEE",
+        #       "income": "0.00134317",
+        #       "asset": "USDT",
+        #       "time": "1621584000000",
+        #       "info": "FUNDING_FEE",
+        #       "tranId": "4480321991774044580",
+        #       "tradeId": ""
+        #     }
+        #
+        marketId = self.safe_string(income, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        amount = self.safe_number(income, 'income')
+        currencyId = self.safe_string(income, 'asset')
+        code = self.safe_currency_code(currencyId)
+        id = self.safe_string(income, 'tranId')
+        timestamp = self.safe_integer(income, 'time')
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': id,
+            'amount': amount,
+        }
+
+    def parse_incomes(self, incomes, market=None, since=None, limit=None):
+        result = []
+        for i in range(0, len(incomes)):
+            entry = incomes[i]
+            parsed = self.parse_income(entry, market)
+            result.append(parsed)
+        return self.filter_by_since_limit(result, since, limit, 'timestamp')
+
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         await self.load_markets()
         currency = self.currency(code)
@@ -2747,35 +2892,101 @@ class binance(Exchange):
         }
 
     async def fetch_funding_fees(self, codes=None, params={}):
-        response = await self.sapiGetAssetAssetDetail(params)
+        response = await self.sapiGetCapitalConfigGetall(params)
         #
+        #  [
         #     {
-        #       "VRAB": {
-        #         "withdrawFee": "100",
-        #         "minWithdrawAmount": "200",
-        #         "withdrawStatus": True,
-        #         "depositStatus": True
-        #       },
-        #       "NZD": {
-        #         "withdrawFee": "0",
-        #         "minWithdrawAmount": "0",
-        #         "withdrawStatus": False,
-        #         "depositStatus": False
-        #       },
-        #       "AKRO": {
-        #         "withdrawFee": "313",
-        #         "minWithdrawAmount": "626",
-        #         "withdrawStatus": True,
-        #         "depositStatus": True
-        #       },
+        #       coin: 'BAT',
+        #       depositAllEnable: True,
+        #       withdrawAllEnable: True,
+        #       name: 'Basic Attention Token',
+        #       free: '0',
+        #       locked: '0',
+        #       freeze: '0',
+        #       withdrawing: '0',
+        #       ipoing: '0',
+        #       ipoable: '0',
+        #       storage: '0',
+        #       isLegalMoney: False,
+        #       trading: True,
+        #       networkList: [
+        #         {
+        #           network: 'BNB',
+        #           coin: 'BAT',
+        #           withdrawIntegerMultiple: '0.00000001',
+        #           isDefault: False,
+        #           depositEnable: True,
+        #           withdrawEnable: True,
+        #           depositDesc: '',
+        #           withdrawDesc: '',
+        #           specialTips: 'The name of self asset is Basic Attention Token(BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        #           name: 'BEP2',
+        #           resetAddressStatus: False,
+        #           addressRegex: '^(bnb1)[0-9a-z]{38}$',
+        #           memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
+        #           withdrawFee: '0.27',
+        #           withdrawMin: '0.54',
+        #           withdrawMax: '10000000000',
+        #           minConfirm: '1',
+        #           unLockConfirm: '0'
+        #         },
+        #         {
+        #           network: 'BSC',
+        #           coin: 'BAT',
+        #           withdrawIntegerMultiple: '0.00000001',
+        #           isDefault: False,
+        #           depositEnable: True,
+        #           withdrawEnable: True,
+        #           depositDesc: '',
+        #           withdrawDesc: '',
+        #           specialTips: 'The name of self asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token(BAT) tokens under the contract address ending in 9766e.',
+        #           name: 'BEP20(BSC)',
+        #           resetAddressStatus: False,
+        #           addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
+        #           memoRegex: '',
+        #           withdrawFee: '0.27',
+        #           withdrawMin: '0.54',
+        #           withdrawMax: '10000000000',
+        #           minConfirm: '15',
+        #           unLockConfirm: '0'
+        #         },
+        #         {
+        #           network: 'ETH',
+        #           coin: 'BAT',
+        #           withdrawIntegerMultiple: '0.00000001',
+        #           isDefault: True,
+        #           depositEnable: True,
+        #           withdrawEnable: True,
+        #           depositDesc: '',
+        #           withdrawDesc: '',
+        #           specialTips: 'The name of self asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token(BAT) tokens under the contract address ending in 887ef.',
+        #           name: 'ERC20',
+        #           resetAddressStatus: False,
+        #           addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
+        #           memoRegex: '',
+        #           withdrawFee: '27',
+        #           withdrawMin: '54',
+        #           withdrawMax: '10000000000',
+        #           minConfirm: '12',
+        #           unLockConfirm: '0'
+        #         }
+        #       ]
         #     }
+        #  ]
         #
-        ids = list(response.keys())
         withdrawFees = {}
-        for i in range(0, len(ids)):
-            id = ids[i]
-            code = self.safe_currency_code(id)
-            withdrawFees[code] = self.safe_number(response[id], 'withdrawFee')
+        for i in range(0, len(response)):
+            entry = response[i]
+            currencyId = self.safe_string(entry, 'coin')
+            code = self.safe_currency_code(currencyId)
+            networkList = self.safe_value(entry, 'networkList')
+            withdrawFees[code] = {}
+            for j in range(0, len(networkList)):
+                networkEntry = networkList[j]
+                networkId = self.safe_string(networkEntry, 'network')
+                networkCode = self.safe_currency_code(networkId)
+                fee = self.safe_number(networkEntry, 'withdrawFee')
+                withdrawFees[code][networkCode] = fee
         return {
             'withdraw': withdrawFees,
             'deposit': {},
@@ -2836,13 +3047,24 @@ class binance(Exchange):
         #       }
         #     ]
         #
-        tradeFee = self.safe_value(response, 'tradeFee', [])
-        first = self.safe_value(tradeFee, 0, {})
+        first = self.safe_value(response, 0, {})
         return self.parse_trading_fee(first)
 
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()
-        response = await self.sapiGetAssetTradeFee(params)
+        method = None
+        defaultType = self.safe_string_2(self.options, 'fetchFundingRates', 'defaultType', 'future')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        if (type == 'spot') or (type == 'margin'):
+            method = 'sapiGetAssetTradeFee'
+        elif type == 'future':
+            method = 'fapiPrivateGetAccount'
+        elif type == 'delivery':
+            method = 'dapiPrivateGetAccount'
+        response = await getattr(self, method)(query)
+        #
+        # sapi / spot
         #
         #    [
         #       {
@@ -2857,12 +3079,714 @@ class binance(Exchange):
         #       },
         #    ]
         #
-        result = {}
+        # fapi / future / linear
+        #
+        #     {
+        #         "feeTier": 0,       # account commisssion tier
+        #         "canTrade": True,   # if can trade
+        #         "canDeposit": True,     # if can transfer in asset
+        #         "canWithdraw": True,    # if can transfer out asset
+        #         "updateTime": 0,
+        #         "totalInitialMargin": "0.00000000",    # total initial margin required with current mark price(useless with isolated positions), only for USDT asset
+        #         "totalMaintMargin": "0.00000000",     # total maintenance margin required, only for USDT asset
+        #         "totalWalletBalance": "23.72469206",     # total wallet balance, only for USDT asset
+        #         "totalUnrealizedProfit": "0.00000000",   # total unrealized profit, only for USDT asset
+        #         "totalMarginBalance": "23.72469206",     # total margin balance, only for USDT asset
+        #         "totalPositionInitialMargin": "0.00000000",    # initial margin required for positions with current mark price, only for USDT asset
+        #         "totalOpenOrderInitialMargin": "0.00000000",   # initial margin required for open orders with current mark price, only for USDT asset
+        #         "totalCrossWalletBalance": "23.72469206",      # crossed wallet balance, only for USDT asset
+        #         "totalCrossUnPnl": "0.00000000",      # unrealized profit of crossed positions, only for USDT asset
+        #         "availableBalance": "23.72469206",       # available balance, only for USDT asset
+        #         "maxWithdrawAmount": "23.72469206"     # maximum amount for transfer out, only for USDT asset
+        #         ...
+        #     }
+        #
+        # dapi / delivery / inverse
+        #
+        #     {
+        #         "canDeposit": True,
+        #         "canTrade": True,
+        #         "canWithdraw": True,
+        #         "feeTier": 2,
+        #         "updateTime": 0
+        #     }
+        #
+        if (type == 'spot') or (type == 'margin'):
+            #
+            #    [
+            #       {
+            #         "symbol": "ZRXBNB",
+            #         "makerCommission": "0.001",
+            #         "takerCommission": "0.001"
+            #       },
+            #       {
+            #         "symbol": "ZRXBTC",
+            #         "makerCommission": "0.001",
+            #         "takerCommission": "0.001"
+            #       },
+            #    ]
+            #
+            result = {}
+            for i in range(0, len(response)):
+                fee = self.parse_trading_fee(response[i])
+                symbol = fee['symbol']
+                result[symbol] = fee
+            return result
+        elif type == 'future':
+            #
+            #     {
+            #         "feeTier": 0,       # account commisssion tier
+            #         "canTrade": True,   # if can trade
+            #         "canDeposit": True,     # if can transfer in asset
+            #         "canWithdraw": True,    # if can transfer out asset
+            #         "updateTime": 0,
+            #         "totalInitialMargin": "0.00000000",    # total initial margin required with current mark price(useless with isolated positions), only for USDT asset
+            #         "totalMaintMargin": "0.00000000",     # total maintenance margin required, only for USDT asset
+            #         "totalWalletBalance": "23.72469206",     # total wallet balance, only for USDT asset
+            #         "totalUnrealizedProfit": "0.00000000",   # total unrealized profit, only for USDT asset
+            #         "totalMarginBalance": "23.72469206",     # total margin balance, only for USDT asset
+            #         "totalPositionInitialMargin": "0.00000000",    # initial margin required for positions with current mark price, only for USDT asset
+            #         "totalOpenOrderInitialMargin": "0.00000000",   # initial margin required for open orders with current mark price, only for USDT asset
+            #         "totalCrossWalletBalance": "23.72469206",      # crossed wallet balance, only for USDT asset
+            #         "totalCrossUnPnl": "0.00000000",      # unrealized profit of crossed positions, only for USDT asset
+            #         "availableBalance": "23.72469206",       # available balance, only for USDT asset
+            #         "maxWithdrawAmount": "23.72469206"     # maximum amount for transfer out, only for USDT asset
+            #         ...
+            #     }
+            #
+            symbols = list(self.markets.keys())
+            result = {}
+            feeTier = self.safe_integer(response, 'feeTier')
+            feeTiers = self.fees[type]['trading']['tiers']
+            maker = feeTiers['maker'][feeTier][1]
+            taker = feeTiers['taker'][feeTier][1]
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                result[symbol] = {
+                    'info': {
+                        'feeTier': feeTier,
+                    },
+                    'symbol': symbol,
+                    'maker': maker,
+                    'taker': taker,
+                }
+            return result
+        elif type == 'delivery':
+            #
+            #     {
+            #         "canDeposit": True,
+            #         "canTrade": True,
+            #         "canWithdraw": True,
+            #         "feeTier": 2,
+            #         "updateTime": 0
+            #     }
+            #
+            symbols = list(self.markets.keys())
+            result = {}
+            feeTier = self.safe_integer(response, 'feeTier')
+            feeTiers = self.fees[type]['trading']['tiers']
+            maker = feeTiers['maker'][feeTier][1]
+            taker = feeTiers['taker'][feeTier][1]
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                result[symbol] = {
+                    'info': {
+                        'feeTier': feeTier,
+                    },
+                    'symbol': symbol,
+                    'maker': maker,
+                    'taker': taker,
+                }
+            return result
+
+    async def futures_transfer(self, code, amount, type, params={}):
+        if (type < 1) or (type > 4):
+            raise ArgumentsRequired(self.id + ' type must be between 1 and 4')
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+            'amount': amount,
+            'type': type,
+        }
+        response = await self.sapiPostFuturesTransfer(self.extend(request, params))
+        #
+        #   {
+        #       "tranId": 100000001
+        #   }
+        #
+        return self.parse_transfer(response, currency)
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        method = None
+        if market['linear']:
+            method = 'fapiPublicGetPremiumIndex'
+        elif market['inverse']:
+            method = 'dapiPublicGetPremiumIndex'
+        else:
+            raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "markPrice": "45802.81129892",
+        #         "indexPrice": "45745.47701915",
+        #         "estimatedSettlePrice": "45133.91753671",
+        #         "lastFundingRate": "0.00063521",
+        #         "interestRate": "0.00010000",
+        #         "nextFundingTime": "1621267200000",
+        #         "time": "1621252344001"
+        #     }
+        #
+        return self.parse_funding_rate(response)
+
+    async def fetch_funding_rates(self, symbols=None, params={}):
+        await self.load_markets()
+        method = None
+        defaultType = self.safe_string_2(self.options, 'fetchFundingRates', 'defaultType', 'future')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        if type == 'future':
+            method = 'fapiPublicGetPremiumIndex'
+        elif type == 'delivery':
+            method = 'dapiPublicGetPremiumIndex'
+        else:
+            raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
+        response = await getattr(self, method)(query)
+        result = []
         for i in range(0, len(response)):
-            fee = self.parse_trading_fee(response[i])
-            symbol = fee['symbol']
-            result[symbol] = fee
+            entry = response[i]
+            parsed = self.parse_funding_rate(entry)
+            result.append(parsed)
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def parse_funding_rate(self, premiumIndex, market=None):
+        # ensure it matches with https://www.binance.com/en/futures/funding-history/0
+        #
+        #   {
+        #     "symbol": "BTCUSDT",
+        #     "markPrice": "45802.81129892",
+        #     "indexPrice": "45745.47701915",
+        #     "estimatedSettlePrice": "45133.91753671",
+        #     "lastFundingRate": "0.00063521",
+        #     "interestRate": "0.00010000",
+        #     "nextFundingTime": "1621267200000",
+        #     "time": "1621252344001"
+        #  }
+        #
+        timestamp = self.safe_integer(premiumIndex, 'time')
+        marketId = self.safe_string(premiumIndex, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        markPrice = self.safe_number(premiumIndex, 'markPrice')
+        indexPrice = self.safe_number(premiumIndex, 'indexPrice')
+        interestRate = self.safe_number(premiumIndex, 'interestRate')
+        # current funding rate
+        fundingRate = self.safe_number(premiumIndex, 'lastFundingRate')
+        nextFundingTime = self.safe_integer(premiumIndex, 'nextFundingTime')
+        return {
+            'info': premiumIndex,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'interestRate': interestRate,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': fundingRate,
+            'nextFundingTimestamp': nextFundingTime,
+            'nextFundingDatetime': self.iso8601(nextFundingTime),
+        }
+
+    def parse_account_positions(self, account):
+        positions = self.safe_value(account, 'positions')
+        assets = self.safe_value(account, 'assets')
+        balances = {}
+        for i in range(0, len(assets)):
+            entry = assets[i]
+            currencyId = self.safe_string(entry, 'asset')
+            code = self.safe_currency_code(currencyId)
+            crossWalletBalance = self.safe_string(entry, 'crossWalletBalance')
+            crossUnPnl = self.safe_string(entry, 'crossUnPnl')
+            balances[code] = {
+                'crossMargin': Precise.string_add(crossWalletBalance, crossUnPnl),
+                'crossWalletBalance': crossWalletBalance,
+            }
+        result = []
+        for i in range(0, len(positions)):
+            position = positions[i]
+            marketId = self.safe_string(position, 'symbol')
+            market = self.safe_market(marketId)
+            code = market['quote'] if (self.options['defaultType'] == 'future') else market['base']
+            parsed = self.parse_position(self.extend(position, {
+                'crossMargin': balances[code]['crossMargin'],
+                'crossWalletBalance': balances[code]['crossWalletBalance'],
+            }), market)
+            result.append(parsed)
         return result
+
+    def parse_position(self, position, market=None):
+        #
+        # usdm
+        #    {
+        #       "symbol": "BTCBUSD",
+        #       "initialMargin": "0",
+        #       "maintMargin": "0",
+        #       "unrealizedProfit": "0.00000000",
+        #       "positionInitialMargin": "0",
+        #       "openOrderInitialMargin": "0",
+        #       "leverage": "20",
+        #       "isolated": False,
+        #       "entryPrice": "0.0000",
+        #       "maxNotional": "100000",
+        #       "positionSide": "BOTH",
+        #       "positionAmt": "0.000",
+        #       "notional": "0",
+        #       "isolatedWallet": "0",
+        #       "updateTime": "0",
+        #       "crossMargin": "100.93634809",
+        #     }
+        #
+        # coinm
+        #     {
+        #       "symbol": "BTCUSD_210625",
+        #       "initialMargin": "0.00024393",
+        #       "maintMargin": "0.00002439",
+        #       "unrealizedProfit": "-0.00000163",
+        #       "positionInitialMargin": "0.00024393",
+        #       "openOrderInitialMargin": "0",
+        #       "leverage": "10",
+        #       "isolated": False,
+        #       "positionSide": "BOTH",
+        #       "entryPrice": "41021.20000069",
+        #       "maxQty": "100",
+        #       "notionalValue": "0.00243939",
+        #       "isolatedWallet": "0",
+        #       "crossMargin": "0.314"
+        #       "crossWalletBalance": "34",
+        #     }
+        #
+        marketId = self.safe_string(position, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        leverageString = self.safe_string(position, 'leverage')
+        leverage = int(leverageString)
+        initialMarginString = self.safe_string(position, 'initialMargin')
+        initialMargin = self.parse_number(initialMarginString)
+        initialMarginPercentageString = Precise.string_div('1', leverageString, 8)
+        rational = (1000 % leverage) == 0
+        if not rational:
+            initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
+        usdm = ('notional' in position)
+        maintenanceMarginString = self.safe_string(position, 'maintMargin')
+        maintenanceMargin = self.parse_number(maintenanceMarginString)
+        entryPriceString = self.safe_string(position, 'entryPrice')
+        entryPrice = self.parse_number(entryPriceString)
+        notionalString = self.safe_string_2(position, 'notional', 'notionalValue')
+        notionalStringAbs = Precise.string_abs(notionalString)
+        notionalFloat = float(notionalString)
+        notionalFloatAbs = float(notionalStringAbs)
+        notional = self.parse_number(Precise.string_abs(notionalString))
+        contractsString = self.safe_string(position, 'positionAmt')
+        contractsStringAbs = Precise.string_abs(contractsString)
+        if contractsString is None:
+            entryNotional = Precise.string_mul(Precise.string_mul(leverageString, initialMarginString), entryPriceString)
+            contractsString = Precise.string_div(entryNotional, market['contractSize'])
+            contractsStringAbs = Precise.string_div(Precise.string_add(contractsString, '0.5'), '1', 0)
+        contracts = self.parse_number(contractsStringAbs)
+        leverageBrackets = self.safe_value(self.options, 'leverageBrackets', {})
+        leverageBracket = self.safe_value(leverageBrackets, symbol, [])
+        maintenanceMarginPercentageString = None
+        for i in range(0, len(leverageBracket)):
+            bracket = leverageBracket[i]
+            if notionalFloatAbs < bracket[0]:
+                break
+            maintenanceMarginPercentageString = bracket[1]
+        maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
+        unrealizedPnlString = self.safe_string(position, 'unrealizedProfit')
+        unrealizedPnl = self.parse_number(unrealizedPnlString)
+        timestamp = self.safe_integer(position, 'updateTime')
+        if timestamp == 0:
+            timestamp = None
+        isolated = self.safe_value(position, 'isolated')
+        marginType = None
+        collateralString = None
+        walletBalance = None
+        if isolated:
+            marginType = 'isolated'
+            walletBalance = self.safe_string(position, 'isolatedWallet')
+            collateralString = Precise.string_add(walletBalance, unrealizedPnlString)
+        else:
+            marginType = 'cross'
+            walletBalance = self.safe_string(position, 'crossWalletBalance')
+            collateralString = self.safe_string(position, 'crossMargin')
+        collateral = self.parse_number(collateralString)
+        marginRatio = None
+        side = None
+        percentage = None
+        liquidationPriceStringRaw = None
+        liquidationPrice = None
+        if notionalFloat == 0.0:
+            entryPrice = None
+        else:
+            side = 'short' if (notionalFloat < 0) else 'long'
+            marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
+            percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
+            if usdm:
+                # calculate liquidation price
+                #
+                # liquidationPrice = (walletBalance / (contracts * (±1 + mmp)))(±entryPrice / (±1 + mmp))
+                #
+                # mmp = maintenanceMarginPercentage
+                # where ± is negative for long and positive for short
+                # TODO: calculate liquidation price for coinm contracts
+                onePlusMaintenanceMarginPercentageString = None
+                entryPriceSignString = entryPriceString
+                if side == 'short':
+                    onePlusMaintenanceMarginPercentageString = Precise.string_add('1', maintenanceMarginPercentageString)
+                else:
+                    onePlusMaintenanceMarginPercentageString = Precise.string_add('-1', maintenanceMarginPercentageString)
+                    entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
+                leftSide = Precise.string_div(walletBalance, Precise.string_mul(contractsStringAbs, onePlusMaintenanceMarginPercentageString))
+                rightSide = Precise.string_div(entryPriceSignString, onePlusMaintenanceMarginPercentageString)
+                liquidationPriceStringRaw = Precise.string_add(leftSide, rightSide)
+            else:
+                # calculate liquidation price
+                #
+                # liquidationPrice = (contracts * contractSize(±1 - mmp)) / (±1/entryPrice * contracts * contractSize - walletBalance)
+                #
+                onePlusMaintenanceMarginPercentageString = None
+                entryPriceSignString = entryPriceString
+                if side == 'short':
+                    onePlusMaintenanceMarginPercentageString = Precise.string_sub('1', maintenanceMarginPercentageString)
+                else:
+                    onePlusMaintenanceMarginPercentageString = Precise.string_sub('-1', maintenanceMarginPercentageString)
+                    entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
+                size = Precise.string_mul(contractsStringAbs, market['contractSize'])
+                leftSide = Precise.string_mul(size, onePlusMaintenanceMarginPercentageString)
+                rightSide = Precise.string_sub(Precise.string_mul(Precise.string_div('1', entryPriceSignString), size), walletBalance)
+                liquidationPriceStringRaw = Precise.string_div(leftSide, rightSide)
+            pricePrecision = market['precision']['price']
+            pricePrecisionPlusOne = pricePrecision + 1
+            pricePrecisionPlusOneString = str(pricePrecisionPlusOne)
+            # round half up
+            rounder = Precise('5e-' + pricePrecisionPlusOneString)
+            rounderString = str(rounder)
+            liquidationPriceRoundedString = Precise.string_add(rounderString, liquidationPriceStringRaw)
+            truncatedLiquidationPrice = Precise.string_div(liquidationPriceRoundedString, '1', pricePrecision)
+            if truncatedLiquidationPrice[0] == '-':
+                # user cannot be liquidated
+                # since he has more collateral than the size of the position
+                truncatedLiquidationPrice = None
+            liquidationPrice = self.parse_number(truncatedLiquidationPrice)
+        return {
+            'info': position,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'initialMargin': initialMargin,
+            'initialMarginPercentage': self.parse_number(initialMarginPercentageString),
+            'maintenanceMargin': maintenanceMargin,
+            'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'entryPrice': entryPrice,
+            'notional': notional,
+            'leverage': leverage,
+            'unrealizedPnl': unrealizedPnl,
+            'contracts': contracts,
+            'contractSize': self.parse_number(market['contractSize']),
+            'marginRatio': marginRatio,
+            'liquidationPrice': liquidationPrice,
+            'markPrice': None,
+            'collateral': collateral,
+            'marginType': marginType,
+            'side': side,
+            'percentage': percentage,
+        }
+
+    def parse_position_risk(self, position, market=None):
+        #
+        # usdm
+        #     {
+        #       "symbol": "BTCUSDT",
+        #       "positionAmt": "0.001",
+        #       "entryPrice": "43578.07000",
+        #       "markPrice": "43532.30000000",
+        #       "unRealizedProfit": "-0.04577000",
+        #       "liquidationPrice": "21841.24993976",
+        #       "leverage": "2",
+        #       "maxNotionalValue": "300000000",
+        #       "marginType": "isolated",
+        #       "isolatedMargin": "21.77841506",
+        #       "isAutoAddMargin": "false",
+        #       "positionSide": "BOTH",
+        #       "notional": "43.53230000",
+        #       "isolatedWallet": "21.82418506",
+        #       "updateTime": "1621358023886"
+        #     }
+        #
+        # coinm
+        #     {
+        #       "symbol": "BTCUSD_PERP",
+        #       "positionAmt": "2",
+        #       "entryPrice": "37643.10000021",
+        #       "markPrice": "38103.05510455",
+        #       "unRealizedProfit": "0.00006413",
+        #       "liquidationPrice": "25119.97445760",
+        #       "leverage": "2",
+        #       "maxQty": "1500",
+        #       "marginType": "isolated",
+        #       "isolatedMargin": "0.00274471",
+        #       "isAutoAddMargin": "false",
+        #       "positionSide": "BOTH",
+        #       "notionalValue": "0.00524892",
+        #       "isolatedWallet": "0.00268058"
+        #     }
+        #
+        marketId = self.safe_string(position, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        leverageBrackets = self.safe_value(self.options, 'leverageBrackets', {})
+        leverageBracket = self.safe_value(leverageBrackets, symbol, [])
+        notionalString = self.safe_string_2(position, 'notional', 'notionalValue')
+        notionalStringAbs = Precise.string_abs(notionalString)
+        notionalFloatAbs = float(notionalStringAbs)
+        notionalFloat = float(notionalString)
+        maintenanceMarginPercentageString = None
+        for i in range(0, len(leverageBracket)):
+            bracket = leverageBracket[i]
+            if notionalFloatAbs < bracket[0]:
+                break
+            maintenanceMarginPercentageString = bracket[1]
+        notional = self.parse_number(notionalStringAbs)
+        contractsAbs = Precise.string_abs(self.safe_string(position, 'positionAmt'))
+        contracts = self.parse_number(contractsAbs)
+        unrealizedPnlString = self.safe_string(position, 'unRealizedProfit')
+        unrealizedPnl = self.parse_number(unrealizedPnlString)
+        leverageString = self.safe_string(position, 'leverage')
+        leverage = int(leverageString)
+        liquidationPrice = self.safe_number(position, 'liquidationPrice')
+        collateralString = self.safe_string(position, 'isolatedMargin')
+        collateralFloat = float(collateralString)
+        collateral = self.parse_number(collateralString)
+        markPriceString = self.safe_string(position, 'markPrice')
+        markPriceFloat = float(markPriceString)
+        markPrice = None
+        if markPriceFloat != 0.0:
+            markPrice = self.parse_number(markPriceString)
+        entryPrice = self.safe_number(position, 'entryPrice')
+        timestamp = self.safe_integer(position, 'updateTime')
+        maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
+        maintenanceMarginString = Precise.string_mul(maintenanceMarginPercentageString, notionalStringAbs)
+        maintenanceMargin = self.parse_number(maintenanceMarginString)
+        initialMarginPercentageString = Precise.string_div('1', leverageString, 8)
+        rational = (1000 % leverage) == 0
+        if not rational:
+            initialMarginPercentageString = Precise.string_add(initialMarginPercentageString, '1e-8')
+        initialMarginString = Precise.string_div(Precise.string_mul(notionalStringAbs, initialMarginPercentageString), '1', 8)
+        initialMargin = self.parse_number(initialMarginString)
+        marginRatio = None
+        side = None
+        percentage = None
+        if collateralFloat == 0.0:
+            liquidationPrice = None
+        else:
+            marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
+            side = 'short' if (notionalFloat < 0) else 'long'
+            percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
+        marginType = self.safe_string(position, 'marginType')
+        if marginType == 'cross':
+            liquidationPrice = None
+        return {
+            'info': position,
+            'symbol': symbol,
+            'contracts': contracts,
+            'unrealizedPnl': unrealizedPnl,
+            'leverage': leverage,
+            'liquidationPrice': liquidationPrice,
+            'collateral': collateral,
+            'notional': notional,
+            'markPrice': markPrice,
+            'entryPrice': entryPrice,
+            'timestamp': timestamp,
+            'initialMargin': initialMargin,
+            'initialMarginPercentage': self.parse_number(initialMarginPercentageString),
+            'maintenanceMargin': maintenanceMargin,
+            'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'marginRatio': marginRatio,
+            'datetime': self.iso8601(timestamp),
+            'marginType': marginType,
+            'side': side,
+            'percentage': percentage,
+        }
+
+    async def load_leverage_brackets(self, reload=False, params={}):
+        await self.load_markets()
+        # by default cache the leverage bracket
+        # it contains useful stuff like the maintenance margin and initial margin for positions
+        leverageBrackets = self.safe_value(self.options, 'leverageBrackets')
+        if (leverageBrackets is None) or (reload):
+            method = None
+            defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType', 'future')
+            type = self.safe_string(params, 'type', defaultType)
+            query = self.omit(params, 'type')
+            if type == 'future':
+                method = 'fapiPrivateGetLeverageBracket'
+            elif type == 'delivery':
+                method = 'dapiPrivateV2GetLeverageBracket'
+            else:
+                raise NotSupported(self.id + ' loadLeverageBrackets() supports linear and inverse contracts only')
+            response = await getattr(self, method)(query)
+            self.options['leverageBrackets'] = {}
+            for i in range(0, len(response)):
+                entry = response[i]
+                marketId = self.safe_string(entry, 'symbol')
+                symbol = self.safe_symbol(marketId)
+                brackets = self.safe_value(entry, 'brackets')
+                result = []
+                for j in range(0, len(brackets)):
+                    bracket = brackets[j]
+                    # we use floats here internally on purpose
+                    floorValue = self.safe_float_2(bracket, 'notionalFloor', 'qtyFloor')
+                    maintenanceMarginPercentage = self.safe_string(bracket, 'maintMarginRatio')
+                    result.append([floorValue, maintenanceMarginPercentage])
+                self.options['leverageBrackets'][symbol] = result
+        return self.options['leverageBrackets']
+
+    async def fetch_positions(self, symbols=None, params={}):
+        await self.load_markets()
+        await self.load_leverage_brackets()
+        method = None
+        defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType', 'future')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        if type == 'future':
+            method = 'fapiPrivateGetAccount'
+        elif type == 'delivery':
+            method = 'dapiPrivateGetAccount'
+        else:
+            raise NotSupported(self.id + ' fetchPositions() supports linear and inverse contracts only')
+        account = await getattr(self, method)(query)
+        result = self.parse_account_positions(account)
+        return self.filter_by_array(result, 'symbol', symbols, False)
+
+    async def fetch_isolated_positions(self, symbol=None, params={}):
+        # only supported in usdm futures
+        await self.load_markets()
+        await self.load_leverage_brackets()
+        request = {}
+        market = None
+        method = None
+        defaultType = 'future'
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            if market['linear']:
+                defaultType = 'future'
+            elif market['inverse']:
+                defaultType = 'delivery'
+            else:
+                raise NotSupported(self.id + ' fetchIsolatedPositions() supports linear and inverse contracts only')
+        defaultType = self.safe_string_2(self.options, 'fetchIsolatedPositions', 'defaultType', defaultType)
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        if (type == 'future') or (type == 'linear'):
+            method = 'fapiPrivateGetPositionRisk'
+        elif (type == 'delivery') or (type == 'inverse'):
+            method = 'dapiPrivateGetPositionRisk'
+        else:
+            raise NotSupported(self.id + ' fetchIsolatedPositions() supports linear and inverse contracts only')
+        response = await getattr(self, method)(self.extend(request, params))
+        if symbol is None:
+            result = []
+            for i in range(0, len(response)):
+                parsed = self.parse_position_risk(response[i], market)
+                if parsed['marginType'] == 'isolated':
+                    result.append(parsed)
+            return result
+        else:
+            return self.parse_position_risk(self.safe_value(response, 0), market)
+
+    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = None
+        method = None
+        defaultType = 'future'
+        request = {
+            'incomeType': 'FUNDING_FEE',  # "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            if market['linear']:
+                defaultType = 'future'
+            elif market['inverse']:
+                defaultType = 'delivery'
+            else:
+                raise NotSupported(self.id + ' fetchFundingHistory() supports linear and inverse contracts only')
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        defaultType = self.safe_string_2(self.options, 'fetchFundingHistory', 'defaultType', defaultType)
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        if (type == 'future') or (type == 'linear'):
+            method = 'fapiPrivateGetIncome'
+        elif (type == 'delivery') or (type == 'inverse'):
+            method = 'dapiPrivateGetIncome'
+        else:
+            raise NotSupported(self.id + ' fetchFundingHistory() supports linear and inverse contracts only')
+        response = await getattr(self, method)(self.extend(request, params))
+        return self.parse_incomes(response, market, since, limit)
+
+    async def set_leverage(self, symbol, leverage, params={}):
+        # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (leverage < 1) or (leverage > 125):
+            raise BadRequest(self.id + ' leverage should be between 1 and 125')
+        await self.load_markets()
+        market = self.market(symbol)
+        method = None
+        if market['linear']:
+            method = 'fapiPrivatePostLeverage'
+        elif market['inverse']:
+            method = 'dapiPrivatePostLeverage'
+        else:
+            raise NotSupported(self.id + ' setLeverage() supports linear and inverse contracts only')
+        request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        }
+        return await getattr(self, method)(self.extend(request, params))
+
+    async def set_margin_mode(self, symbol, marginType, params={}):
+        #
+        # {"code": -4048 , "msg": "Margin type cannot be changed if there exists position."}
+        #
+        # or
+        #
+        # {"code": 200, "msg": "success"}
+        #
+        marginType = marginType.upper()
+        if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
+            raise BadRequest(self.id + ' marginType must be either isolated or crossed')
+        await self.load_markets()
+        market = self.market(symbol)
+        method = None
+        if market['linear']:
+            method = 'fapiPrivatePostMarginType'
+        elif market['inverse']:
+            method = 'dapiPrivatePostMarginType'
+        else:
+            raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
+        request = {
+            'symbol': market['id'],
+            'marginType': marginType,
+        }
+        return await getattr(self, method)(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if not (api in self.urls['api']):
@@ -2890,7 +3814,7 @@ class binance(Exchange):
                     body = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
+        elif (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
             recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
@@ -2955,7 +3879,8 @@ class binance(Exchange):
                     response = parsedMessage
         message = self.safe_string(response, 'msg')
         if message is not None:
-            self.throw_exactly_matched_exception(self.exceptions, message, self.id + ' ' + message)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, self.id + ' ' + message)
         # checks against error codes
         error = self.safe_string(response, 'code')
         if error is not None:
@@ -2969,7 +3894,7 @@ class binance(Exchange):
             if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
                 raise DDoSProtection(self.id + ' temporary banned: ' + body)
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions, error, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             raise ExchangeError(feedback)
         if not success:
             raise ExchangeError(self.id + ' ' + body)
@@ -2980,21 +3905,3 @@ class binance(Exchange):
         if (api == 'private') or (api == 'wapi'):
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
-
-    async def futures_transfer(self, code, amount, type, params={}):
-        if (type < 1) or (type > 4):
-            raise ArgumentsRequired(self.id + ' type must be between 1 and 4')
-        await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'asset': currency['id'],
-            'amount': amount,
-            'type': type,
-        }
-        response = await self.sapiPostFuturesTransfer(self.extend(request, params))
-        #
-        #   {
-        #       "tranId": 100000001
-        #   }
-        #
-        return self.parse_transfer(response, currency)

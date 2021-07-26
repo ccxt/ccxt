@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InvalidOrder, InvalidAddress } = require ('./base/errors');
+const { BadRequest, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -14,14 +14,17 @@ module.exports = class zb extends Exchange {
             'id': 'zb',
             'name': 'ZB',
             'countries': [ 'CN' ],
-            'rateLimit': 1000,
+            'rateLimit': 100,
             'version': 'v1',
+            'certified': true,
+            'pro': true,
             'has': {
                 'cancelOrder': true,
                 'CORS': false,
                 'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
                 'fetchDeposits': true,
@@ -54,6 +57,43 @@ module.exports = class zb extends Exchange {
                 '1w': '1week',
             },
             'exceptions': {
+                'ws': {
+                    //  '1000': ExchangeError, // The call is successful.
+                    '1001': ExchangeError, // General error prompt
+                    '1002': ExchangeError, // Internal Error
+                    '1003': AuthenticationError, // Fail to verify
+                    '1004': AuthenticationError, // The transaction password is locked
+                    '1005': AuthenticationError, // Wrong transaction password, please check it and re-enter。
+                    '1006': PermissionDenied, // Real-name authentication is pending approval or unapproved
+                    '1007': ExchangeError, // Channel does not exist
+                    '1009': OnMaintenance, // This interface is under maintenance
+                    '1010': ExchangeNotAvailable, // Not available now
+                    '1012': PermissionDenied, // Insufficient permissions
+                    '1013': ExchangeError, // Cannot trade, please contact email: support@zb.cn for support.
+                    '1014': ExchangeError, // Cannot sell during the pre-sale period
+                    '2001': InsufficientFunds, // Insufficient CNY account balance
+                    '2002': InsufficientFunds, // Insufficient BTC account balance
+                    '2003': InsufficientFunds, // Insufficient LTC account balance
+                    '2005': InsufficientFunds, // Insufficient ETH account balance
+                    '2006': InsufficientFunds, // ETCInsufficient account balance
+                    '2007': InsufficientFunds, // BTSInsufficient account balance
+                    '2008': InsufficientFunds, // EOSInsufficient account balance
+                    '2009': InsufficientFunds, // BCCInsufficient account balance
+                    '3001': OrderNotFound, // Order not found or is completed
+                    '3002': InvalidOrder, // Invalid amount
+                    '3003': InvalidOrder, // Invalid quantity
+                    '3004': AuthenticationError, // User does not exist
+                    '3005': BadRequest, // Invalid parameter
+                    '3006': PermissionDenied, // Invalid IP or not consistent with the bound IP
+                    '3007': RequestTimeout, // The request time has expired
+                    '3008': ExchangeError, // Transaction not found
+                    '3009': InvalidOrder, // The price exceeds the limit
+                    '3010': PermissionDenied, // It fails to place an order, due to you have set up to prohibit trading of this market.
+                    '3011': InvalidOrder, // The entrusted price is abnormal, please modify it and place order again
+                    '3012': InvalidOrder, // Duplicate custom customerOrderId
+                    '4001': AccountSuspended, // APIThe interface is locked for one hour
+                    '4002': RateLimitExceeded, // Request too frequently
+                },
                 'exact': {
                     // '1000': 'Successful operation',
                     '1001': ExchangeError, // 'General error message',
@@ -63,12 +103,17 @@ module.exports = class zb extends Exchange {
                     '1005': AuthenticationError, // 'Funds security password is incorrect, please confirm and re-enter.',
                     '1006': AuthenticationError, // 'Real-name certification pending approval or audit does not pass',
                     '1009': ExchangeNotAvailable, // 'This interface is under maintenance',
+                    '1010': ExchangeNotAvailable, // Not available now
+                    '1012': PermissionDenied, // Insufficient permissions
+                    '1013': ExchangeError, // Cannot trade, please contact email: support@zb.cn for support.
+                    '1014': ExchangeError, // Cannot sell during the pre-sale period
                     '2001': InsufficientFunds, // 'Insufficient CNY Balance',
                     '2002': InsufficientFunds, // 'Insufficient BTC Balance',
                     '2003': InsufficientFunds, // 'Insufficient LTC Balance',
                     '2005': InsufficientFunds, // 'Insufficient ETH Balance',
                     '2006': InsufficientFunds, // 'Insufficient ETC Balance',
                     '2007': InsufficientFunds, // 'Insufficient BTS Balance',
+                    '2008': InsufficientFunds, // EOSInsufficient account balance
                     '2009': InsufficientFunds, // 'Account balance is not enough',
                     '3001': OrderNotFound, // 'Pending orders not found',
                     '3002': InvalidOrder, // 'Invalid price',
@@ -79,9 +124,11 @@ module.exports = class zb extends Exchange {
                     '3007': AuthenticationError, // 'The request time has expired',
                     '3008': OrderNotFound, // 'Transaction records not found',
                     '3009': InvalidOrder, // 'The price exceeds the limit',
+                    '3010': PermissionDenied, // It fails to place an order, due to you have set up to prohibit trading of this market.
                     '3011': InvalidOrder, // 'The entrusted price is abnormal, please modify it and place order again',
+                    '3012': InvalidOrder, // Duplicate custom customerOrderId
                     '4001': ExchangeNotAvailable, // 'API interface is locked or not enabled',
-                    '4002': DDoSProtection, // 'Request too often',
+                    '4002': RateLimitExceeded, // 'Request too often',
                 },
                 'broad': {
                     '提币地址有误，请先添加提币地址。': InvalidAddress, // {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
@@ -92,12 +139,22 @@ module.exports = class zb extends Exchange {
                 'api': {
                     'public': 'https://api.zb.today/data',
                     'private': 'https://trade.zb.today/api',
+                    'trade': 'https://trade.zb.today/api',
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
+                'referral': {
+                    'url': 'https://www.zbex.club/en/register?ref=4301lera',
+                    'discount': 0.16,
+                },
             },
             'api': {
+                'trade': {
+                    'get': [
+                        'getFeeInfo',
+                    ],
+                },
                 'public': {
                     'get': [
                         'markets',
@@ -106,6 +163,7 @@ module.exports = class zb extends Exchange {
                         'depth',
                         'trades',
                         'kline',
+                        'getGroupMarkets',
                     ],
                 },
                 'private': {
@@ -133,7 +191,7 @@ module.exports = class zb extends Exchange {
                         'addSubUser',
                         'getSubUserList',
                         'doTransferFunds',
-                        'createSubUserKey',
+                        'createSubUserKey', // removed on 2021-03-16 according to the update log in the API doc
                         // leverage API
                         'getLeverAssetsInfo',
                         'getLeverBills',
@@ -199,7 +257,10 @@ module.exports = class zb extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'ANG': 'Anagram',
                 'ENT': 'ENTCash',
+                'BCHABC': 'BCHABC', // conflict with BCH / BCHA
+                'BCHSV': 'BCHSV', // conflict with BCH / BSV
             },
         });
     }
@@ -262,6 +323,77 @@ module.exports = class zb extends Exchange {
         return result;
     }
 
+    async fetchCurrencies (params = {}) {
+        const response = await this.tradeGetGetFeeInfo (params);
+        //
+        //     {
+        //         "code":1000,
+        //         "message":"success",
+        //         "result":{
+        //             "USDT":[
+        //                 {
+        //                     "chainName":"TRC20",
+        //                     "canWithdraw":true,
+        //                     "fee":1.0,
+        //                     "mainChainName":"TRX",
+        //                     "canDeposit":true
+        //                 },
+        //                 {
+        //                     "chainName":"OMNI",
+        //                     "canWithdraw":true,
+        //                     "fee":5.0,
+        //                     "mainChainName":"BTC",
+        //                     "canDeposit":true
+        //                 },
+        //                 {
+        //                     "chainName":"ERC20",
+        //                     "canWithdraw":true,
+        //                     "fee":15.0,
+        //                     "mainChainName":"ETH",
+        //                     "canDeposit":true
+        //                 }
+        //             ],
+        //         }
+        //     }
+        //
+        const currencies = this.safeValue (response, 'result', {});
+        const ids = Object.keys (currencies);
+        const result = {};
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const currency = currencies[id];
+            const code = this.safeCurrencyCode (id);
+            const precision = undefined;
+            let isWithdrawEnabled = true;
+            let isDepositEnabled = true;
+            const fees = {};
+            for (let j = 0; j < currency.length; j++) {
+                const networkItem = currency[j];
+                const network = this.safeString (networkItem, 'chainName');
+                // const name = this.safeString (networkItem, 'name');
+                const withdrawFee = this.safeNumber (networkItem, 'fee');
+                const depositEnable = this.safeValue (networkItem, 'canDeposit');
+                const withdrawEnable = this.safeValue (networkItem, 'canWithdraw');
+                isDepositEnabled = isDepositEnabled || depositEnable;
+                isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
+                fees[network] = withdrawFee;
+            }
+            const active = (isWithdrawEnabled && isDepositEnabled);
+            result[code] = {
+                'id': id,
+                'name': undefined,
+                'code': code,
+                'precision': precision,
+                'info': currency,
+                'active': active,
+                'fee': undefined,
+                'fees': fees,
+                'limits': this.limits,
+            };
+        }
+        return result;
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetGetAccountInfo (params);
@@ -291,7 +423,7 @@ module.exports = class zb extends Exchange {
             account['used'] = this.safeString (balance, 'freez');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
@@ -320,7 +452,7 @@ module.exports = class zb extends Exchange {
         //         "canDeposit": true
         //     }
         //
-        let address = this.safeString (depositAddress, 'key');
+        let address = this.safeString2 (depositAddress, 'key', 'address');
         let tag = undefined;
         const memo = this.safeString (depositAddress, 'memo');
         if (memo !== undefined) {
@@ -408,6 +540,21 @@ module.exports = class zb extends Exchange {
             request['size'] = limit;
         }
         const response = await this.publicGetDepth (this.extend (request, params));
+        //
+        //     {
+        //         "asks":[
+        //             [35000.0,0.2741],
+        //             [34949.0,0.0173],
+        //             [34900.0,0.5004],
+        //         ],
+        //         "bids":[
+        //             [34119.32,0.0030],
+        //             [34107.83,0.1500],
+        //             [34104.42,0.1500],
+        //         ],
+        //         "timestamp":1624536510
+        //     }
+        //
         return this.parseOrderBook (response, symbol);
     }
 
@@ -415,15 +562,15 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetAllTicker (params);
         const result = {};
-        const anotherMarketsById = {};
-        const marketIds = Object.keys (this.marketsById);
+        const marketsByIdWithoutUnderscore = {};
+        const marketIds = Object.keys (this.markets_by_id);
         for (let i = 0; i < marketIds.length; i++) {
             const tickerId = marketIds[i].replace ('_', '');
-            anotherMarketsById[tickerId] = this.marketsById[marketIds[i]];
+            marketsByIdWithoutUnderscore[tickerId] = this.markets_by_id[marketIds[i]];
         }
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
-            const market = anotherMarketsById[ids[i]];
+            const market = marketsByIdWithoutUnderscore[ids[i]];
             result[market['symbol']] = this.parseTicker (response[ids[i]], market);
         }
         return this.filterByArray (result, 'symbol', symbols);
@@ -436,12 +583,43 @@ module.exports = class zb extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
-        const ticker = response['ticker'];
+        //
+        //     {
+        //         "date":"1624399623587",
+        //         "ticker":{
+        //             "high":"33298.38",
+        //             "vol":"56152.9012",
+        //             "last":"32578.55",
+        //             "low":"28808.19",
+        //             "buy":"32572.68",
+        //             "sell":"32615.37",
+        //             "turnover":"1764201303.6100",
+        //             "open":"31664.85",
+        //             "riseRate":"2.89"
+        //         }
+        //     }
+        //
+        const ticker = this.safeValue (response, 'ticker', {});
+        ticker['date'] = this.safeValue (response, 'date');
         return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.milliseconds ();
+        //
+        //     {
+        //         "date":"1624399623587", // injected from outside
+        //         "high":"33298.38",
+        //         "vol":"56152.9012",
+        //         "last":"32578.55",
+        //         "low":"28808.19",
+        //         "buy":"32572.68",
+        //         "sell":"32615.37",
+        //         "turnover":"1764201303.6100",
+        //         "open":"31664.85",
+        //         "riseRate":"2.89"
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 'date', this.milliseconds ());
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -502,6 +680,16 @@ module.exports = class zb extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        //     {
+        //         "date":1624537391,
+        //         "amount":"0.0142",
+        //         "price":"33936.42",
+        //         "trade_type":"ask",
+        //         "type":"sell",
+        //         "tid":1718869018
+        //     }
+        //
         const timestamp = this.safeTimestamp (trade, 'date');
         let side = this.safeString (trade, 'trade_type');
         side = (side === 'bid') ? 'buy' : 'sell';
@@ -540,6 +728,13 @@ module.exports = class zb extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //     [
+        //         {"date":1624537391,"amount":"0.0142","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869018},
+        //         {"date":1624537391,"amount":"0.0010","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869020},
+        //         {"date":1624537391,"amount":"0.0133","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869021},
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -991,6 +1186,11 @@ module.exports = class zb extends Exchange {
         let url = this.urls['api'][api];
         if (api === 'public') {
             url += '/' + this.version + '/' + path;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        } else if (api === 'trade') {
+            url += '/' + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }

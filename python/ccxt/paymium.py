@@ -92,7 +92,8 @@ class paymium(Exchange):
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
             code = currencies[i]
-            currencyId = self.currency_id(code)
+            currency = self.currency(code)
+            currencyId = currency['id']
             free = 'balance_' + currencyId
             if free in response:
                 account = self.account()
@@ -100,7 +101,7 @@ class paymium(Exchange):
                 account['free'] = self.safe_string(response, free)
                 account['used'] = self.safe_string(response, used)
                 result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

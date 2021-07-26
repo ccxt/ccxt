@@ -54,6 +54,7 @@ class Transpiler {
             [ /\.binaryConcatArray\s/g, '.binary_concat_array'],
             [ /\.binaryToString\s/g, '.binary_to_string' ],
             [ /\.precisionFromString\s/g, '.precision_from_string'],
+            [ /\.implodeHostname\s/g, '.implode_hostname'],
             [ /\.implodeParams\s/g, '.implode_params'],
             [ /\.extractParams\s/g, '.extract_params'],
             [ /\.parseBalance\s/g, '.parse_balance'],
@@ -149,6 +150,11 @@ class Transpiler {
             [ /\.integerDivide/g, '.integer_divide'],
             [ /\.integerModulo/g, '.integer_modulo'],
             [ /\.integerPow/g, '.integer_pow'],
+            [ /\.parseAccountPosition/g, '.parse_account_position' ],
+            [ /\.parsePositionRisk/g, '.parse_position_risk' ],
+            [ /\.parseIncome/g, '.parse_income' ],
+            [ /\.parseIncomes/g, '.parse_incomes' ],
+            [ /\.parseFundingRate/g, '.parse_funding_rate' ],
             [ /\.findBroadlyMatchedKey\s/g, '.find_broadly_matched_key'],
             [ /\.throwBroadlyMatchedException\s/g, '.throw_broadly_matched_exception'],
             [ /\.throwExactlyMatchedException\s/g, '.throw_exactly_matched_exception'],
@@ -176,9 +182,9 @@ class Transpiler {
             [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '$1 is not None' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'number\'/g, "isinstance($1[$2], numbers.Real)" ],
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "isinstance($1[$2], numbers.Real)'" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "(not isinstance($1[$2], numbers.Real))" ],
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "isinstance($1, numbers.Real)" ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "isinstance($1, numbers.Real)" ],
+            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "(not isinstance($1, numbers.Real))" ],
 
             [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+undefined/g, '$1[$2] is None' ],
             [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '$1[$2] is not None' ],
@@ -205,6 +211,8 @@ class Transpiler {
             [ /Precise\.stringSub\s/g, 'Precise.string_sub' ],
             [ /Precise\.stringAbs\s/g, 'Precise.string_abs' ],
             [ /Precise\.stringNeg\s/g, 'Precise.string_neg' ],
+            [ /Precise\.stringMod\s/g, 'Precise.string_mod' ],
+            [ /Precise\.stringEquals\s/g, 'Precise.string_equals' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -329,9 +337,9 @@ class Transpiler {
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, "gettype($1) !== 'string'" ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'number\'/g, "(is_float($1[$2]) || is_int($1[$2]))" ], // same as above but for number
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "(is_float($1[$2]) || is_int($1[$2]))'" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "!(is_float($1[$2]) || is_int($1[$2]))" ],
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "(is_float($1) || is_int($1))" ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "(is_float($1) || is_int($1))" ],
+            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "!(is_float($1) || is_int($1))" ],
 
             [ /undefined/g, 'null' ],
             [ /this\.extend\s/g, 'array_merge' ],
@@ -352,6 +360,8 @@ class Transpiler {
             [ /Precise\.stringSub\s/g, 'Precise::string_sub' ],
             [ /Precise\.stringAbs\s/g, 'Precise::string_abs' ],
             [ /Precise\.stringNeg\s/g, 'Precise::string_neg' ],
+            [ /Precise\.stringMod\s/g, 'Precise::string_mod' ],
+            [ /Precise\.stringEquals\s/g, 'Precise::string_equals' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -1326,14 +1336,6 @@ class Transpiler {
             "from ccxt.base.precise import Precise                            # noqa F401",
             "",
             "",
-            "def toWei(amount, decimals):",
-            "    return Exchange.to_wei(amount, decimals)",
-            "",
-            "",
-            "def fromWei(amount, decimals):",
-            "    return Exchange.from_wei(amount, decimals)",
-            "",
-            "",
         ].join ("\n")
 
         const phpHeader = [
@@ -1357,12 +1359,6 @@ class Transpiler {
             "}",
             "function number_to_string ($x) {",
             "    return Exchange::number_to_string ($x);",
-            "}",
-            "function toWei ($amount, $decimals) {",
-            "    return Exchange::to_wei ($amount, $decimals);",
-            "}",
-            "function fromWei ($amount, $decimals) {",
-            "    return Exchange::from_wei ($amount, $decimals);",
             "}",
             "",
         ].join ("\n")

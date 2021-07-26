@@ -46,6 +46,7 @@ class coinfalcon(Exchange):
                 'public': {
                     'get': [
                         'markets',
+                        'markets/{market}',
                         'markets/{market}/orders',
                         'markets/{market}/trades',
                     ],
@@ -55,13 +56,22 @@ class coinfalcon(Exchange):
                         'user/accounts',
                         'user/orders',
                         'user/orders/{id}',
+                        'user/orders/{id}/trades',
                         'user/trades',
+                        'user/fees',
+                        'account/withdrawals/{id}',
+                        'account/withdrawals',
+                        'account/deposit/{id}',
+                        'account/deposits',
+                        'account/deposit_address',
                     ],
                     'post': [
                         'user/orders',
+                        'account/withdraw',
                     ],
                     'delete': [
                         'user/orders/{id}',
+                        'account/withdrawals/{id}',
                     ],
                 },
             },
@@ -250,7 +260,7 @@ class coinfalcon(Exchange):
             account['used'] = self.safe_string(balance, 'hold_balance')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order_status(self, status):
         statuses = {

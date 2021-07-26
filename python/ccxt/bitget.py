@@ -164,6 +164,11 @@ class bitget(Exchange):
                         'trace/closeTrack',
                         'trace/currentTrack',
                         'trace/historyTrack',
+                        'trace/summary',
+                        'trace/profitSettleTokenIdGroup',
+                        'trace/profitDateGroupList',
+                        'trace/profitDateList',
+                        'trace/waitProfitDateList',
                     ],
                     'post': [
                         'account/leverage',
@@ -176,6 +181,7 @@ class bitget(Exchange):
                         'order/plan_order',
                         'order/cancel_plan',
                         'position/changeHoldModel',
+                        'trace/closeTrackOrder',
                     ],
                 },
             },
@@ -1576,7 +1582,7 @@ class bitget(Exchange):
             elif (type == 'frozen') or (type == 'lock'):
                 used = self.safe_string(result[code], 'used')
                 result[code]['used'] = Precise.string_add(used, self.safe_string(balance, 'balance'))
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_swap_balance(self, response):
         #
@@ -1601,7 +1607,7 @@ class bitget(Exchange):
             account['total'] = self.safe_string(balance, 'equity')
             account['free'] = self.safe_string(balance, 'total_avail_balance')
             result[symbol] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_accounts(self, params={}):
         request = {
@@ -2669,7 +2675,7 @@ class bitget(Exchange):
         else:
             request = '/' + api + '/v1' + request
         query = self.omit(params, self.extract_params(path))
-        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + request
+        url = self.implode_hostname(self.urls['api'][api]) + request
         if (api == 'data') or (api == 'capi'):
             if query:
                 url += '?' + self.urlencode(query)

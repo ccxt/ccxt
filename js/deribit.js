@@ -101,6 +101,8 @@ module.exports = class deribit extends Exchange {
                         'get_funding_rate_value',
                         'get_historical_volatility',
                         'get_index',
+                        'get_index_price',
+                        'get_index_price_names',
                         'get_instruments',
                         'get_last_settlements_by_currency',
                         'get_last_settlements_by_instrument',
@@ -537,7 +539,7 @@ module.exports = class deribit extends Exchange {
         account['used'] = this.safeString (balance, 'maintenanceMargin');
         account['total'] = this.safeString (balance, 'equity');
         result[currencyCode] = account;
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async createDepositAddress (code, params = {}) {

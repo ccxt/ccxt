@@ -39,6 +39,7 @@ class aax(Exchange):
             'version': 'v2',
             'hostname': 'aaxpro.com',  # aax.com
             'certified': True,
+            'pro': True,
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
@@ -47,6 +48,7 @@ class aax(Exchange):
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -107,6 +109,7 @@ class aax(Exchange):
                     #     'tickers/{market}',  # Get ticker of specific market
                     # ],
                     'get': [
+                        'currencies',
                         'announcement/maintenance',  # System Maintenance Notice
                         'instruments',  # Retrieve all trading pairs information
                         'market/orderbook',  # Order Book
@@ -436,6 +439,72 @@ class aax(Exchange):
             })
         return result
 
+    async def fetch_currencies(self, params={}):
+        response = await self.publicGetCurrencies(params)
+        #
+        #     {
+        #         "code":1,
+        #         "data":[
+        #             {
+        #                 "chain":"BTC",
+        #                 "displayName":"Bitcoin",
+        #                 "withdrawFee":"0.0004",
+        #                 "withdrawMin":"0.001",
+        #                 "otcFee":"0",
+        #                 "enableOTC":true,
+        #                 "visible":true,
+        #                 "enableTransfer":true,
+        #                 "transferMin":"0.00001",
+        #                 "depositMin":"0.0005",
+        #                 "enableWithdraw":true,
+        #                 "enableDeposit":true,
+        #                 "addrWithMemo":false,
+        #                 "withdrawPrecision":"0.00000001",
+        #                 "currency":"BTC",
+        #                 "network":"BTC",  # ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
+        #                 "minConfirm":"2"
+        #             },
+        #         ],
+        #         "message":"success",
+        #         "ts":1624330530697
+        #     }
+        #
+        result = {}
+        data = self.safe_value(response, 'data', [])
+        for i in range(0, len(data)):
+            currency = data[i]
+            id = self.safe_string(currency, 'chain')
+            name = self.safe_string(currency, 'displayName')
+            code = self.safe_currency_code(id)
+            precision = self.safe_number(currency, 'withdrawPrecision')
+            enableWithdraw = self.safe_value(currency, 'enableWithdraw')
+            enableDeposit = self.safe_value(currency, 'enableDeposit')
+            fee = self.safe_number(currency, 'withdrawFee')
+            visible = self.safe_value(currency, 'visible')
+            active = (enableWithdraw and enableDeposit and visible)
+            network = self.safe_string(currency, 'network')
+            result[code] = {
+                'id': id,
+                'name': name,
+                'code': code,
+                'precision': precision,
+                'info': currency,
+                'active': active,
+                'fee': fee,
+                'network': network,
+                'limits': {
+                    'deposit': {
+                        'min': self.safe_number(currency, 'depositMin'),
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.safe_number(currency, 'withdrawMin'),
+                        'max': None,
+                    },
+                },
+            }
+        return result
+
     def parse_ticker(self, ticker, market=None):
         #
         #     {
@@ -486,12 +555,6 @@ class aax(Exchange):
             'quoteVolume': quoteVolume,
             'info': ticker,
         }
-
-    async def fetch_ticker(self, symbol, params={}):
-        tickers = await self.fetch_tickers(None, params)
-        if symbol in tickers:
-            return tickers[symbol]
-        raise BadSymbol(self.id + ' fetchTicker() symbol ' + symbol + ' ticker not found')
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -778,7 +841,7 @@ class aax(Exchange):
                 account['free'] = self.safe_string(balance, 'available')
                 account['used'] = self.safe_string(balance, 'unavailable')
                 result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         orderType = type.upper()
@@ -1725,7 +1788,7 @@ class aax(Exchange):
                     auth += url + body
                 signature = self.hmac(self.encode(auth), self.encode(self.secret))
                 headers['X-ACCESS-SIGN'] = signature
-        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + url
+        url = self.implode_hostname(self.urls['api'][api]) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

@@ -314,6 +314,7 @@ class bitfinex extends Exchange {
                 'RBT' => 'RBTC',
                 'SNG' => 'SNGLS',
                 'STJ' => 'STORJ',
+                'TERRAUST' => 'UST',
                 'TSD' => 'TUSD',
                 'YYW' => 'YOYOW',
                 'UDC' => 'USDC',
@@ -647,7 +648,7 @@ class bitfinex extends Exchange {
                 }
             }
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
@@ -665,9 +666,9 @@ class bitfinex extends Exchange {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
             throw new ExchangeError($this->id . ' transfer $toAccount must be one of ' . implode(', ', $keys));
         }
-        $currencyId = $this->currency_id($code);
-        $fromCurrencyId = $this->convert_derivatives_id($currencyId, $fromAccount);
-        $toCurrencyId = $this->convert_derivatives_id($currencyId, $toAccount);
+        $currency = $this->currency($code);
+        $fromCurrencyId = $this->convert_derivatives_id($currency['id'], $fromAccount);
+        $toCurrencyId = $this->convert_derivatives_id($currency['id'], $toAccount);
         $requestedAmount = $this->currency_to_precision($code, $amount);
         $request = array(
             'amount' => $requestedAmount,
@@ -803,10 +804,7 @@ class bitfinex extends Exchange {
 
     public function parse_trade($trade, $market) {
         $id = $this->safe_string($trade, 'tid');
-        $timestamp = $this->safe_number($trade, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = intval($timestamp) * 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $type = null;
         $side = $this->safe_string_lower($trade, 'type');
         $orderId = $this->safe_string($trade, 'order_id');
@@ -1206,14 +1204,8 @@ class bitfinex extends Exchange {
         //         "timestamp_created" => "1561716066.0"
         //     }
         //
-        $timestamp = $this->safe_number($transaction, 'timestamp_created');
-        if ($timestamp !== null) {
-            $timestamp = intval($timestamp * 1000);
-        }
-        $updated = $this->safe_number($transaction, 'timestamp');
-        if ($updated !== null) {
-            $updated = intval($updated * 1000);
-        }
+        $timestamp = $this->safe_timestamp($transaction, 'timestamp_created');
+        $updated = $this->safe_timestamp($transaction, 'timestamp');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $type = $this->safe_string_lower($transaction, 'type'); // DEPOSIT or WITHDRAWAL

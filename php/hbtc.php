@@ -261,6 +261,15 @@ class hbtc extends Exchange {
                 'fetchTickers' => array(
                     'method' => 'quoteGetTicker24hr',
                 ),
+                'accountsByType' => array(
+                    'trade' => 1,
+                    'trading' => 1,
+                    'spot' => 1,
+                    'option' => 2,
+                    'options' => 2,
+                    'futures' => 3,
+                    'contract' => 3,
+                ),
             ),
             'commonCurrencies' => array(
                 'MIS' => 'Themis Protocol',
@@ -309,7 +318,6 @@ class hbtc extends Exchange {
             $active = false;
         }
         $amountMin = null;
-        $amountMax = null;
         $priceMin = null;
         $priceMax = null;
         $costMin = null;
@@ -320,7 +328,6 @@ class hbtc extends Exchange {
             $filterType = $this->safe_string($filter, 'filterType');
             if ($filterType === 'LOT_SIZE') {
                 $amountMin = $this->safe_number($filter, 'minQty');
-                $amountMax = $this->safe_number($filter, 'maxQty');
                 $amountPrecision = $this->safe_number($filter, 'stepSize');
             }
             if ($filterType === 'PRICE_FILTER') {
@@ -341,7 +348,7 @@ class hbtc extends Exchange {
         $limits = array(
             'amount' => array(
                 'min' => $amountMin,
-                'max' => $amountMax,
+                'max' => null,
             ),
             'price' => array(
                 'min' => $priceMin,
@@ -754,7 +761,7 @@ class hbtc extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = 50, $params = array ()) {

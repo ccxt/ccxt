@@ -702,7 +702,13 @@ class bitvavo extends Exchange {
             // 'end' => $this->milliseconds(),
         );
         if ($since !== null) {
+            // https://github.com/ccxt/ccxt/issues/9227
+            $duration = $this->parse_timeframe($timeframe);
             $request['start'] = $since;
+            if ($limit === null) {
+                $limit = 1440;
+            }
+            $request['end'] = $this->sum($since, $limit * $duration * 1000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 1440, max 1440
@@ -744,7 +750,7 @@ class bitvavo extends Exchange {
             $account['used'] = $this->safe_string($balance, 'inOrder');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {

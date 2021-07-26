@@ -127,7 +127,8 @@ class coincheck extends Exchange {
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            $currencyId = $this->currency_id($code);
+            $currency = $this->currency($code);
+            $currencyId = $currency['id'];
             if (is_array($balances) && array_key_exists($currencyId, $balances)) {
                 $account = $this->account();
                 $reserved = $currencyId . '_reserved';
@@ -136,7 +137,7 @@ class coincheck extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

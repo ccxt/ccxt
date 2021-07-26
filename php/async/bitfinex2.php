@@ -148,6 +148,9 @@ class bitfinex2 extends bitfinex {
                         'liquidations/hist',
                         'rankings/{key}:{timeframe}:{symbol}/{section}',
                         'rankings/{key}:{timeframe}:{symbol}/hist',
+                        'pulse/hist',
+                        'pulse/profile/{nickname}',
+                        'funding/stats/{symbol}/hist',
                     ),
                     'post' => array(
                         'calc/trade/avg',
@@ -339,7 +342,7 @@ class bitfinex2 extends bitfinex {
         //    [0] // maintenance
         //
         $response = yield $this->publicGetPlatformStatus ($params);
-        $status = $this->safe_value($response, 0);
+        $status = $this->safe_integer($response, 0);
         $formattedStatus = ($status === 1) ? 'ok' : 'maintenance';
         $this->status = array_merge($this->status, array(
             'status' => $formattedStatus,
@@ -595,7 +598,7 @@ class bitfinex2 extends bitfinex {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
@@ -937,7 +940,8 @@ class bitfinex2 extends bitfinex {
             $limit = 100; // default 100, max 5000
         }
         if ($since === null) {
-            $since = $this->milliseconds() - $this->parse_timeframe($timeframe) * $limit * 1000;
+            $duration = $this->parse_timeframe($timeframe);
+            $since = $this->milliseconds() - $duration * $limit * 1000;
         }
         $request = array(
             'symbol' => $market['id'],

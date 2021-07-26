@@ -98,6 +98,9 @@ class coinone extends Exchange {
                 '108' => '\\ccxt\\BadSymbol', // array("errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error")
                 '107' => '\\ccxt\\BadRequest', // array("errorCode":"107","errorMsg":"Parameter error","result":"error")
             ),
+            'commonCurrencies' => array(
+                'SOC' => 'Soda Coin',
+            ),
         ));
     }
 
@@ -151,7 +154,7 @@ class coinone extends Exchange {
             $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -520,7 +523,7 @@ class coinone extends Exchange {
             'average' => null,
             'amount' => $amount,
             'filled' => null,
-            'remaining' => $amount,
+            'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,

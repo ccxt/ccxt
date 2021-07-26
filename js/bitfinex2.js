@@ -141,6 +141,9 @@ module.exports = class bitfinex2 extends bitfinex {
                         'liquidations/hist',
                         'rankings/{key}:{timeframe}:{symbol}/{section}',
                         'rankings/{key}:{timeframe}:{symbol}/hist',
+                        'pulse/hist',
+                        'pulse/profile/{nickname}',
+                        'funding/stats/{symbol}/hist',
                     ],
                     'post': [
                         'calc/trade/avg',
@@ -332,7 +335,7 @@ module.exports = class bitfinex2 extends bitfinex {
         //    [0] // maintenance
         //
         const response = await this.publicGetPlatformStatus (params);
-        const status = this.safeValue (response, 0);
+        const status = this.safeInteger (response, 0);
         const formattedStatus = (status === 1) ? 'ok' : 'maintenance';
         this.status = this.extend (this.status, {
             'status': formattedStatus,
@@ -588,7 +591,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -930,7 +933,8 @@ module.exports = class bitfinex2 extends bitfinex {
             limit = 100; // default 100, max 5000
         }
         if (since === undefined) {
-            since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
+            const duration = this.parseTimeframe (timeframe);
+            since = this.milliseconds () - duration * limit * 1000;
         }
         const request = {
             'symbol': market['id'],

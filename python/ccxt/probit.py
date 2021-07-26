@@ -137,6 +137,7 @@ class probit(Exchange):
                     'MARKET_UNAVAILABLE': ExchangeNotAvailable,  # Market is closed today
                     'INVALID_MARKET': BadSymbol,  # Requested market is not exist
                     'MARKET_CLOSED': BadSymbol,  # {"errorCode":"MARKET_CLOSED"}
+                    'MARKET_NOT_FOUND': BadSymbol,  # {"errorCode":"MARKET_NOT_FOUND","message":"8e2b8496-0a1e-5beb-b990-a205b902eabe","details":{}}
                     'INVALID_CURRENCY': BadRequest,  # Requested currency is not exist on ProBit system
                     'TOO_MANY_OPEN_ORDERS': DDoSProtection,  # Too many open orders
                     'DUPLICATE_ADDRESS': InvalidAddress,  # Address already exists in withdrawal address list
@@ -156,12 +157,16 @@ class probit(Exchange):
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
+                'BCC': 'BCC',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'CBC': 'CryptoBharatCoin',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'HBC': 'Hybrid Bank Cash',
+                'ORC': 'Oracle System',
+                'SOC': 'Soda Coin',
                 'UNI': 'UNICORN Token',
+                'UNISWAP': 'UNI',
             },
         })
 
@@ -384,7 +389,7 @@ class probit(Exchange):
             account['total'] = self.safe_string(balance, 'total')
             account['free'] = self.safe_string(balance, 'available')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -683,7 +688,7 @@ class probit(Exchange):
             timestamp = int(timestamp / 1000)
             firstSunday = 259200  # 1970-01-04T00:00:00.000Z
             difference = timestamp - firstSunday
-            numWeeks = self.integer_divide(difference, duration)
+            numWeeks = int(math.floor(difference / duration))
             previousSunday = self.sum(firstSunday, numWeeks * duration)
             if after:
                 previousSunday = self.sum(previousSunday, duration)
@@ -1042,7 +1047,7 @@ class probit(Exchange):
             # 'platform_id': 'ETH',  # if omitted it will use the default platform for the currency
             'address': address,
             'destination_tag': tag,
-            'amount': self.currency_to_precision(code, amount),
+            'amount': self.number_to_string(amount),
             # which currency to pay the withdrawal fees
             # only applicable for currencies that accepts multiple withdrawal fee options
             # 'fee_currency_id': 'ETH',  # if omitted it will use the default fee policy for each currency

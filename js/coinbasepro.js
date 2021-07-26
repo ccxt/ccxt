@@ -392,7 +392,7 @@ module.exports = class coinbasepro extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -563,7 +563,9 @@ module.exports = class coinbasepro extends Exchange {
         let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         const orderId = this.safeString (trade, 'order_id');
         // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
-        if (orderId !== undefined) {
+        const makerOrderId = this.safeString (trade, 'maker_order_id');
+        const takerOrderId = this.safeString (trade, 'taker_order_id');
+        if ((orderId !== undefined) || ((makerOrderId !== undefined) && (takerOrderId !== undefined))) {
             side = (trade['side'] === 'buy') ? 'buy' : 'sell';
         }
         const priceString = this.safeString (trade, 'price');
@@ -654,6 +656,8 @@ module.exports = class coinbasepro extends Exchange {
             if (limit === undefined) {
                 // https://docs.pro.coinbase.com/#get-historic-rates
                 limit = 300; // max = 300
+            } else {
+                limit = Math.min (300, limit);
             }
             request['end'] = this.iso8601 (this.sum ((limit - 1) * granularity * 1000, since));
         }
@@ -1150,7 +1154,7 @@ module.exports = class coinbasepro extends Exchange {
                 request += '?' + this.urlencode (query);
             }
         }
-        const url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + request;
+        const url = this.implodeHostname (this.urls['api'][api]) + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

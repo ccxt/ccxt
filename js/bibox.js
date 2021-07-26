@@ -128,10 +128,13 @@ module.exports = class bibox extends Exchange {
                 '4003': DDoSProtection, // server busy please try again later
             },
             'commonCurrencies': {
+                'APENFT(NFT)': 'NFT',
                 'BOX': 'DefiBox',
                 'BPT': 'BlockPool Token',
+                'GTC': 'Game.com',
                 'KEY': 'Bihu',
                 'MTC': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
+                'NFT': 'NFT Protocol',
                 'PAI': 'PCHAIN',
                 'TERN': 'Ternio-ERC20',
             },
@@ -143,36 +146,23 @@ module.exports = class bibox extends Exchange {
 
     async fetchMarkets (params = {}) {
         const request = {
-            'cmd': 'marketAll',
+            'cmd': 'pairList',
         };
         const response = await this.publicGetMdata (this.extend (request, params));
         //
         //     {
         //         "result": [
         //             {
-        //                 "is_hide":0,
-        //                 "high_cny":"1.9478",
-        //                 "amount":"272.41",
-        //                 "coin_symbol":"BIX",
-        //                 "last":"0.00002487",
-        //                 "currency_symbol":"BTC",
-        //                 "change":"+0.00000073",
-        //                 "low_cny":"1.7408",
-        //                 "base_last_cny":"1.84538041",
-        //                 "area_id":7,
-        //                 "percent":"+3.02%",
-        //                 "last_cny":"1.8454",
-        //                 "high":"0.00002625",
-        //                 "low":"0.00002346",
-        //                 "pair_type":0,
-        //                 "last_usd":"0.2686",
-        //                 "vol24H":"10940613",
         //                 "id":1,
-        //                 "high_usd":"0.2835",
-        //                 "low_usd":"0.2534"
+        //                 "pair":"BIX_BTC",
+        //                 "pair_type":0,
+        //                 "area_id":7,
+        //                 "is_hide":0,
+        //                 "decimal":8,
+        //                 "amount_scale":4
         //             }
         //         ],
-        //         "cmd":"marketAll",
+        //         "cmd":"pairList",
         //         "ver":"1.1"
         //     }
         //
@@ -181,15 +171,20 @@ module.exports = class bibox extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const numericId = this.safeInteger (market, 'id');
-            const baseId = this.safeString (market, 'coin_symbol');
-            const quoteId = this.safeString (market, 'currency_symbol');
+            const id = this.safeString (market, 'pair');
+            let baseId = undefined;
+            let quoteId = undefined;
+            if (id !== undefined) {
+                const parts = id.split ('_');
+                baseId = this.safeString (parts, 0);
+                quoteId = this.safeString (parts, 1);
+            }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const id = baseId + '_' + quoteId;
             const precision = {
-                'amount': 4,
-                'price': 8,
+                'amount': this.safeNumber (market, 'amount_scale'),
+                'price': this.safeNumber (market, 'decimal'),
             };
             result.push ({
                 'id': id,
@@ -309,7 +304,7 @@ module.exports = class bibox extends Exchange {
             symbol = market['symbol'];
         }
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCostString = this.safeString (trade, 'fee');
         let feeCurrency = this.safeString (trade, 'fee_symbol');
         if (feeCurrency !== undefined) {
             if (feeCurrency in this.currencies_by_id) {
@@ -324,9 +319,9 @@ module.exports = class bibox extends Exchange {
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': -feeCost,
+                'cost': this.parseNumber (Precise.stringNeg (feeCostString)),
                 'currency': feeCurrency,
                 'rate': feeRate,
             };
@@ -612,7 +607,7 @@ module.exports = class bibox extends Exchange {
             }
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1032,7 +1027,7 @@ module.exports = class bibox extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname }) + '/' + this.version + '/' + path;
+        let url = this.implodeHostname (this.urls['api']) + '/' + this.version + '/' + path;
         const cmds = this.json ([ params ]);
         if (api === 'public') {
             if (method !== 'GET') {
@@ -1042,7 +1037,7 @@ module.exports = class bibox extends Exchange {
             }
         } else if (api === 'v2private') {
             this.checkRequiredCredentials ();
-            url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname }) + '/v2/' + path;
+            url = this.implodeHostname (this.urls['api']) + '/v2/' + path;
             const json_params = this.json (params);
             body = {
                 'body': json_params,

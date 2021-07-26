@@ -395,7 +395,7 @@ class coinbasepro extends Exchange {
             $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -566,7 +566,9 @@ class coinbasepro extends Exchange {
         $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
         $orderId = $this->safe_string($trade, 'order_id');
         // Coinbase Pro returns inverted $side to fetchMyTrades vs fetchTrades
-        if ($orderId !== null) {
+        $makerOrderId = $this->safe_string($trade, 'maker_order_id');
+        $takerOrderId = $this->safe_string($trade, 'taker_order_id');
+        if (($orderId !== null) || (($makerOrderId !== null) && ($takerOrderId !== null))) {
             $side = ($trade['side'] === 'buy') ? 'buy' : 'sell';
         }
         $priceString = $this->safe_string($trade, 'price');
@@ -657,6 +659,8 @@ class coinbasepro extends Exchange {
             if ($limit === null) {
                 // https://docs.pro.coinbase.com/#get-historic-rates
                 $limit = 300; // max = 300
+            } else {
+                $limit = min (300, $limit);
             }
             $request['end'] = $this->iso8601($this->sum(($limit - 1) * $granularity * 1000, $since));
         }
@@ -1153,7 +1157,7 @@ class coinbasepro extends Exchange {
                 $request .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $request;
+        $url = $this->implode_hostname($this->urls['api'][$api]) . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();

@@ -7,14 +7,18 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
+from ccxt.base.errors import RequestTimeout
 from ccxt.base.precise import Precise
 
 
@@ -25,14 +29,17 @@ class zb(Exchange):
             'id': 'zb',
             'name': 'ZB',
             'countries': ['CN'],
-            'rateLimit': 1000,
+            'rateLimit': 100,
             'version': 'v1',
+            'certified': True,
+            'pro': True,
             'has': {
                 'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
                 'fetchDeposits': True,
@@ -65,6 +72,43 @@ class zb(Exchange):
                 '1w': '1week',
             },
             'exceptions': {
+                'ws': {
+                    #  '1000': ExchangeError,  # The call is successful.
+                    '1001': ExchangeError,  # General error prompt
+                    '1002': ExchangeError,  # Internal Error
+                    '1003': AuthenticationError,  # Fail to verify
+                    '1004': AuthenticationError,  # The transaction password is locked
+                    '1005': AuthenticationError,  # Wrong transaction password, please check it and re-enter。
+                    '1006': PermissionDenied,  # Real-name authentication is pending approval or unapproved
+                    '1007': ExchangeError,  # Channel does not exist
+                    '1009': OnMaintenance,  # This interface is under maintenance
+                    '1010': ExchangeNotAvailable,  # Not available now
+                    '1012': PermissionDenied,  # Insufficient permissions
+                    '1013': ExchangeError,  # Cannot trade, please contact email: support@zb.cn for support.
+                    '1014': ExchangeError,  # Cannot sell during the pre-sale period
+                    '2001': InsufficientFunds,  # Insufficient CNY account balance
+                    '2002': InsufficientFunds,  # Insufficient BTC account balance
+                    '2003': InsufficientFunds,  # Insufficient LTC account balance
+                    '2005': InsufficientFunds,  # Insufficient ETH account balance
+                    '2006': InsufficientFunds,  # ETCInsufficient account balance
+                    '2007': InsufficientFunds,  # BTSInsufficient account balance
+                    '2008': InsufficientFunds,  # EOSInsufficient account balance
+                    '2009': InsufficientFunds,  # BCCInsufficient account balance
+                    '3001': OrderNotFound,  # Order not found or is completed
+                    '3002': InvalidOrder,  # Invalid amount
+                    '3003': InvalidOrder,  # Invalid quantity
+                    '3004': AuthenticationError,  # User does not exist
+                    '3005': BadRequest,  # Invalid parameter
+                    '3006': PermissionDenied,  # Invalid IP or not consistent with the bound IP
+                    '3007': RequestTimeout,  # The request time has expired
+                    '3008': ExchangeError,  # Transaction not found
+                    '3009': InvalidOrder,  # The price exceeds the limit
+                    '3010': PermissionDenied,  # It fails to place an order, due to you have set up to prohibit trading of self market.
+                    '3011': InvalidOrder,  # The entrusted price is abnormal, please modify it and place order again
+                    '3012': InvalidOrder,  # Duplicate custom customerOrderId
+                    '4001': AccountSuspended,  # APIThe interface is locked for one hour
+                    '4002': RateLimitExceeded,  # Request too frequently
+                },
                 'exact': {
                     # '1000': 'Successful operation',
                     '1001': ExchangeError,  # 'General error message',
@@ -74,12 +118,17 @@ class zb(Exchange):
                     '1005': AuthenticationError,  # 'Funds security password is incorrect, please confirm and re-enter.',
                     '1006': AuthenticationError,  # 'Real-name certification pending approval or audit does not pass',
                     '1009': ExchangeNotAvailable,  # 'This interface is under maintenance',
+                    '1010': ExchangeNotAvailable,  # Not available now
+                    '1012': PermissionDenied,  # Insufficient permissions
+                    '1013': ExchangeError,  # Cannot trade, please contact email: support@zb.cn for support.
+                    '1014': ExchangeError,  # Cannot sell during the pre-sale period
                     '2001': InsufficientFunds,  # 'Insufficient CNY Balance',
                     '2002': InsufficientFunds,  # 'Insufficient BTC Balance',
                     '2003': InsufficientFunds,  # 'Insufficient LTC Balance',
                     '2005': InsufficientFunds,  # 'Insufficient ETH Balance',
                     '2006': InsufficientFunds,  # 'Insufficient ETC Balance',
                     '2007': InsufficientFunds,  # 'Insufficient BTS Balance',
+                    '2008': InsufficientFunds,  # EOSInsufficient account balance
                     '2009': InsufficientFunds,  # 'Account balance is not enough',
                     '3001': OrderNotFound,  # 'Pending orders not found',
                     '3002': InvalidOrder,  # 'Invalid price',
@@ -90,9 +139,11 @@ class zb(Exchange):
                     '3007': AuthenticationError,  # 'The request time has expired',
                     '3008': OrderNotFound,  # 'Transaction records not found',
                     '3009': InvalidOrder,  # 'The price exceeds the limit',
+                    '3010': PermissionDenied,  # It fails to place an order, due to you have set up to prohibit trading of self market.
                     '3011': InvalidOrder,  # 'The entrusted price is abnormal, please modify it and place order again',
+                    '3012': InvalidOrder,  # Duplicate custom customerOrderId
                     '4001': ExchangeNotAvailable,  # 'API interface is locked or not enabled',
-                    '4002': DDoSProtection,  # 'Request too often',
+                    '4002': RateLimitExceeded,  # 'Request too often',
                 },
                 'broad': {
                     '提币地址有误，请先添加提币地址。': InvalidAddress,  # {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
@@ -103,12 +154,22 @@ class zb(Exchange):
                 'api': {
                     'public': 'https://api.zb.today/data',
                     'private': 'https://trade.zb.today/api',
+                    'trade': 'https://trade.zb.today/api',
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
+                'referral': {
+                    'url': 'https://www.zbex.club/en/register?ref=4301lera',
+                    'discount': 0.16,
+                },
             },
             'api': {
+                'trade': {
+                    'get': [
+                        'getFeeInfo',
+                    ],
+                },
                 'public': {
                     'get': [
                         'markets',
@@ -117,6 +178,7 @@ class zb(Exchange):
                         'depth',
                         'trades',
                         'kline',
+                        'getGroupMarkets',
                     ],
                 },
                 'private': {
@@ -144,7 +206,7 @@ class zb(Exchange):
                         'addSubUser',
                         'getSubUserList',
                         'doTransferFunds',
-                        'createSubUserKey',
+                        'createSubUserKey',  # removed on 2021-03-16 according to the update log in the API doc
                         # leverage API
                         'getLeverAssetsInfo',
                         'getLeverBills',
@@ -210,7 +272,10 @@ class zb(Exchange):
                 },
             },
             'commonCurrencies': {
+                'ANG': 'Anagram',
                 'ENT': 'ENTCash',
+                'BCHABC': 'BCHABC',  # conflict with BCH / BCHA
+                'BCHSV': 'BCHSV',  # conflict with BCH / BSV
             },
         })
 
@@ -270,6 +335,74 @@ class zb(Exchange):
             })
         return result
 
+    async def fetch_currencies(self, params={}):
+        response = await self.tradeGetGetFeeInfo(params)
+        #
+        #     {
+        #         "code":1000,
+        #         "message":"success",
+        #         "result":{
+        #             "USDT":[
+        #                 {
+        #                     "chainName":"TRC20",
+        #                     "canWithdraw":true,
+        #                     "fee":1.0,
+        #                     "mainChainName":"TRX",
+        #                     "canDeposit":true
+        #                 },
+        #                 {
+        #                     "chainName":"OMNI",
+        #                     "canWithdraw":true,
+        #                     "fee":5.0,
+        #                     "mainChainName":"BTC",
+        #                     "canDeposit":true
+        #                 },
+        #                 {
+        #                     "chainName":"ERC20",
+        #                     "canWithdraw":true,
+        #                     "fee":15.0,
+        #                     "mainChainName":"ETH",
+        #                     "canDeposit":true
+        #                 }
+        #             ],
+        #         }
+        #     }
+        #
+        currencies = self.safe_value(response, 'result', {})
+        ids = list(currencies.keys())
+        result = {}
+        for i in range(0, len(ids)):
+            id = ids[i]
+            currency = currencies[id]
+            code = self.safe_currency_code(id)
+            precision = None
+            isWithdrawEnabled = True
+            isDepositEnabled = True
+            fees = {}
+            for j in range(0, len(currency)):
+                networkItem = currency[j]
+                network = self.safe_string(networkItem, 'chainName')
+                # name = self.safe_string(networkItem, 'name')
+                withdrawFee = self.safe_number(networkItem, 'fee')
+                depositEnable = self.safe_value(networkItem, 'canDeposit')
+                withdrawEnable = self.safe_value(networkItem, 'canWithdraw')
+                isDepositEnabled = isDepositEnabled or depositEnable
+                isWithdrawEnabled = isWithdrawEnabled or withdrawEnable
+                fees[network] = withdrawFee
+            active = (isWithdrawEnabled and isDepositEnabled)
+            result[code] = {
+                'id': id,
+                'name': None,
+                'code': code,
+                'precision': precision,
+                'info': currency,
+                'active': active,
+                'fee': None,
+                'fees': fees,
+                'limits': self.limits,
+            }
+        return result
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetGetAccountInfo(params)
@@ -298,7 +431,7 @@ class zb(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'freez')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #
@@ -326,7 +459,7 @@ class zb(Exchange):
         #         "canDeposit": True
         #     }
         #
-        address = self.safe_string(depositAddress, 'key')
+        address = self.safe_string_2(depositAddress, 'key', 'address')
         tag = None
         memo = self.safe_string(depositAddress, 'memo')
         if memo is not None:
@@ -409,20 +542,35 @@ class zb(Exchange):
         if limit is not None:
             request['size'] = limit
         response = await self.publicGetDepth(self.extend(request, params))
+        #
+        #     {
+        #         "asks":[
+        #             [35000.0,0.2741],
+        #             [34949.0,0.0173],
+        #             [34900.0,0.5004],
+        #         ],
+        #         "bids":[
+        #             [34119.32,0.0030],
+        #             [34107.83,0.1500],
+        #             [34104.42,0.1500],
+        #         ],
+        #         "timestamp":1624536510
+        #     }
+        #
         return self.parse_order_book(response, symbol)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.publicGetAllTicker(params)
         result = {}
-        anotherMarketsById = {}
-        marketIds = list(self.marketsById.keys())
+        marketsByIdWithoutUnderscore = {}
+        marketIds = list(self.markets_by_id.keys())
         for i in range(0, len(marketIds)):
             tickerId = marketIds[i].replace('_', '')
-            anotherMarketsById[tickerId] = self.marketsById[marketIds[i]]
+            marketsByIdWithoutUnderscore[tickerId] = self.markets_by_id[marketIds[i]]
         ids = list(response.keys())
         for i in range(0, len(ids)):
-            market = anotherMarketsById[ids[i]]
+            market = marketsByIdWithoutUnderscore[ids[i]]
             result[market['symbol']] = self.parse_ticker(response[ids[i]], market)
         return self.filter_by_array(result, 'symbol', symbols)
 
@@ -433,11 +581,42 @@ class zb(Exchange):
             'market': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
-        ticker = response['ticker']
+        #
+        #     {
+        #         "date":"1624399623587",
+        #         "ticker":{
+        #             "high":"33298.38",
+        #             "vol":"56152.9012",
+        #             "last":"32578.55",
+        #             "low":"28808.19",
+        #             "buy":"32572.68",
+        #             "sell":"32615.37",
+        #             "turnover":"1764201303.6100",
+        #             "open":"31664.85",
+        #             "riseRate":"2.89"
+        #         }
+        #     }
+        #
+        ticker = self.safe_value(response, 'ticker', {})
+        ticker['date'] = self.safe_value(response, 'date')
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.milliseconds()
+        #
+        #     {
+        #         "date":"1624399623587",  # injected from outside
+        #         "high":"33298.38",
+        #         "vol":"56152.9012",
+        #         "last":"32578.55",
+        #         "low":"28808.19",
+        #         "buy":"32572.68",
+        #         "sell":"32615.37",
+        #         "turnover":"1764201303.6100",
+        #         "open":"31664.85",
+        #         "riseRate":"2.89"
+        #     }
+        #
+        timestamp = self.safe_integer(ticker, 'date', self.milliseconds())
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -492,6 +671,16 @@ class zb(Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
+        #
+        #     {
+        #         "date":1624537391,
+        #         "amount":"0.0142",
+        #         "price":"33936.42",
+        #         "trade_type":"ask",
+        #         "type":"sell",
+        #         "tid":1718869018
+        #     }
+        #
         timestamp = self.safe_timestamp(trade, 'date')
         side = self.safe_string(trade, 'trade_type')
         side = 'buy' if (side == 'bid') else 'sell'
@@ -528,6 +717,13 @@ class zb(Exchange):
             'market': market['id'],
         }
         response = await self.publicGetTrades(self.extend(request, params))
+        #
+        #     [
+        #         {"date":1624537391,"amount":"0.0142","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869018},
+        #         {"date":1624537391,"amount":"0.0010","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869020},
+        #         {"date":1624537391,"amount":"0.0133","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869021},
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -941,6 +1137,10 @@ class zb(Exchange):
         url = self.urls['api'][api]
         if api == 'public':
             url += '/' + self.version + '/' + path
+            if params:
+                url += '?' + self.urlencode(params)
+        elif api == 'trade':
+            url += '/' + path
             if params:
                 url += '?' + self.urlencode(params)
         else:

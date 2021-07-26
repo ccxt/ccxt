@@ -115,6 +115,8 @@ class deribit(Exchange):
                         'get_funding_rate_value',
                         'get_historical_volatility',
                         'get_index',
+                        'get_index_price',
+                        'get_index_price_names',
                         'get_instruments',
                         'get_last_settlements_by_currency',
                         'get_last_settlements_by_instrument',
@@ -544,7 +546,7 @@ class deribit(Exchange):
         account['used'] = self.safe_string(balance, 'maintenanceMargin')
         account['total'] = self.safe_string(balance, 'equity')
         result[currencyCode] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()

@@ -370,7 +370,7 @@ class bitz extends Exchange {
             $account['free'] = $this->safe_string($balance, 'over');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -693,7 +693,7 @@ class bitz extends Exchange {
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $duration = $this->parse_timeframe($timeframe) * 1000;
+        $duration = $this->parse_timeframe($timeframe);
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1262,7 +1262,7 @@ class bitz extends Exchange {
     }
 
     public function sign($path, $api = 'market', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $baseUrl = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
+        $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->capitalize($api) . '/' . $path;
         $query = null;
         if ($api === 'market') {

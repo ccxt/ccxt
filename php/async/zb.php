@@ -20,14 +20,17 @@ class zb extends Exchange {
             'id' => 'zb',
             'name' => 'ZB',
             'countries' => array( 'CN' ),
-            'rateLimit' => 1000,
+            'rateLimit' => 100,
             'version' => 'v1',
+            'certified' => true,
+            'pro' => true,
             'has' => array(
                 'cancelOrder' => true,
                 'CORS' => false,
                 'createMarketOrder' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
                 'fetchDeposits' => true,
@@ -60,6 +63,43 @@ class zb extends Exchange {
                 '1w' => '1week',
             ),
             'exceptions' => array(
+                'ws' => array(
+                    //  '1000' => '\\ccxt\\ExchangeError', // The call is successful.
+                    '1001' => '\\ccxt\\ExchangeError', // General error prompt
+                    '1002' => '\\ccxt\\ExchangeError', // Internal Error
+                    '1003' => '\\ccxt\\AuthenticationError', // Fail to verify
+                    '1004' => '\\ccxt\\AuthenticationError', // The transaction password is locked
+                    '1005' => '\\ccxt\\AuthenticationError', // Wrong transaction password, please check it and re-enter。
+                    '1006' => '\\ccxt\\PermissionDenied', // Real-name authentication is pending approval or unapproved
+                    '1007' => '\\ccxt\\ExchangeError', // Channel does not exist
+                    '1009' => '\\ccxt\\OnMaintenance', // This interface is under maintenance
+                    '1010' => '\\ccxt\\ExchangeNotAvailable', // Not available now
+                    '1012' => '\\ccxt\\PermissionDenied', // Insufficient permissions
+                    '1013' => '\\ccxt\\ExchangeError', // Cannot trade, please contact email => support@zb.cn for support.
+                    '1014' => '\\ccxt\\ExchangeError', // Cannot sell during the pre-sale period
+                    '2001' => '\\ccxt\\InsufficientFunds', // Insufficient CNY account balance
+                    '2002' => '\\ccxt\\InsufficientFunds', // Insufficient BTC account balance
+                    '2003' => '\\ccxt\\InsufficientFunds', // Insufficient LTC account balance
+                    '2005' => '\\ccxt\\InsufficientFunds', // Insufficient ETH account balance
+                    '2006' => '\\ccxt\\InsufficientFunds', // ETCInsufficient account balance
+                    '2007' => '\\ccxt\\InsufficientFunds', // BTSInsufficient account balance
+                    '2008' => '\\ccxt\\InsufficientFunds', // EOSInsufficient account balance
+                    '2009' => '\\ccxt\\InsufficientFunds', // BCCInsufficient account balance
+                    '3001' => '\\ccxt\\OrderNotFound', // Order not found or is completed
+                    '3002' => '\\ccxt\\InvalidOrder', // Invalid amount
+                    '3003' => '\\ccxt\\InvalidOrder', // Invalid quantity
+                    '3004' => '\\ccxt\\AuthenticationError', // User does not exist
+                    '3005' => '\\ccxt\\BadRequest', // Invalid parameter
+                    '3006' => '\\ccxt\\PermissionDenied', // Invalid IP or not consistent with the bound IP
+                    '3007' => '\\ccxt\\RequestTimeout', // The request time has expired
+                    '3008' => '\\ccxt\\ExchangeError', // Transaction not found
+                    '3009' => '\\ccxt\\InvalidOrder', // The price exceeds the limit
+                    '3010' => '\\ccxt\\PermissionDenied', // It fails to place an order, due to you have set up to prohibit trading of this market.
+                    '3011' => '\\ccxt\\InvalidOrder', // The entrusted price is abnormal, please modify it and place order again
+                    '3012' => '\\ccxt\\InvalidOrder', // Duplicate custom customerOrderId
+                    '4001' => '\\ccxt\\AccountSuspended', // APIThe interface is locked for one hour
+                    '4002' => '\\ccxt\\RateLimitExceeded', // Request too frequently
+                ),
                 'exact' => array(
                     // '1000' => 'Successful operation',
                     '1001' => '\\ccxt\\ExchangeError', // 'General error message',
@@ -69,12 +109,17 @@ class zb extends Exchange {
                     '1005' => '\\ccxt\\AuthenticationError', // 'Funds security password is incorrect, please confirm and re-enter.',
                     '1006' => '\\ccxt\\AuthenticationError', // 'Real-name certification pending approval or audit does not pass',
                     '1009' => '\\ccxt\\ExchangeNotAvailable', // 'This interface is under maintenance',
+                    '1010' => '\\ccxt\\ExchangeNotAvailable', // Not available now
+                    '1012' => '\\ccxt\\PermissionDenied', // Insufficient permissions
+                    '1013' => '\\ccxt\\ExchangeError', // Cannot trade, please contact email => support@zb.cn for support.
+                    '1014' => '\\ccxt\\ExchangeError', // Cannot sell during the pre-sale period
                     '2001' => '\\ccxt\\InsufficientFunds', // 'Insufficient CNY Balance',
                     '2002' => '\\ccxt\\InsufficientFunds', // 'Insufficient BTC Balance',
                     '2003' => '\\ccxt\\InsufficientFunds', // 'Insufficient LTC Balance',
                     '2005' => '\\ccxt\\InsufficientFunds', // 'Insufficient ETH Balance',
                     '2006' => '\\ccxt\\InsufficientFunds', // 'Insufficient ETC Balance',
                     '2007' => '\\ccxt\\InsufficientFunds', // 'Insufficient BTS Balance',
+                    '2008' => '\\ccxt\\InsufficientFunds', // EOSInsufficient account balance
                     '2009' => '\\ccxt\\InsufficientFunds', // 'Account balance is not enough',
                     '3001' => '\\ccxt\\OrderNotFound', // 'Pending orders not found',
                     '3002' => '\\ccxt\\InvalidOrder', // 'Invalid price',
@@ -85,9 +130,11 @@ class zb extends Exchange {
                     '3007' => '\\ccxt\\AuthenticationError', // 'The request time has expired',
                     '3008' => '\\ccxt\\OrderNotFound', // 'Transaction records not found',
                     '3009' => '\\ccxt\\InvalidOrder', // 'The price exceeds the limit',
+                    '3010' => '\\ccxt\\PermissionDenied', // It fails to place an order, due to you have set up to prohibit trading of this market.
                     '3011' => '\\ccxt\\InvalidOrder', // 'The entrusted price is abnormal, please modify it and place order again',
+                    '3012' => '\\ccxt\\InvalidOrder', // Duplicate custom customerOrderId
                     '4001' => '\\ccxt\\ExchangeNotAvailable', // 'API interface is locked or not enabled',
-                    '4002' => '\\ccxt\\DDoSProtection', // 'Request too often',
+                    '4002' => '\\ccxt\\RateLimitExceeded', // 'Request too often',
                 ),
                 'broad' => array(
                     '提币地址有误，请先添加提币地址。' => '\\ccxt\\InvalidAddress', // array("code":1001,"message":"提币地址有误，请先添加提币地址。")
@@ -98,12 +145,22 @@ class zb extends Exchange {
                 'api' => array(
                     'public' => 'https://api.zb.today/data',
                     'private' => 'https://trade.zb.today/api',
+                    'trade' => 'https://trade.zb.today/api',
                 ),
                 'www' => 'https://www.zb.com',
                 'doc' => 'https://www.zb.com/i/developer',
                 'fees' => 'https://www.zb.com/i/rate',
+                'referral' => array(
+                    'url' => 'https://www.zbex.club/en/register?ref=4301lera',
+                    'discount' => 0.16,
+                ),
             ),
             'api' => array(
+                'trade' => array(
+                    'get' => array(
+                        'getFeeInfo',
+                    ),
+                ),
                 'public' => array(
                     'get' => array(
                         'markets',
@@ -112,6 +169,7 @@ class zb extends Exchange {
                         'depth',
                         'trades',
                         'kline',
+                        'getGroupMarkets',
                     ),
                 ),
                 'private' => array(
@@ -139,7 +197,7 @@ class zb extends Exchange {
                         'addSubUser',
                         'getSubUserList',
                         'doTransferFunds',
-                        'createSubUserKey',
+                        'createSubUserKey', // removed on 2021-03-16 according to the update log in the API doc
                         // leverage API
                         'getLeverAssetsInfo',
                         'getLeverBills',
@@ -205,7 +263,10 @@ class zb extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'ANG' => 'Anagram',
                 'ENT' => 'ENTCash',
+                'BCHABC' => 'BCHABC', // conflict with BCH / BCHA
+                'BCHSV' => 'BCHSV', // conflict with BCH / BSV
             ),
         ));
     }
@@ -268,6 +329,77 @@ class zb extends Exchange {
         return $result;
     }
 
+    public function fetch_currencies($params = array ()) {
+        $response = yield $this->tradeGetGetFeeInfo ($params);
+        //
+        //     {
+        //         "$code":1000,
+        //         "message":"success",
+        //         "$result":{
+        //             "USDT":array(
+        //                 array(
+        //                     "chainName":"TRC20",
+        //                     "canWithdraw":true,
+        //                     "fee":1.0,
+        //                     "mainChainName":"TRX",
+        //                     "canDeposit":true
+        //                 ),
+        //                 array(
+        //                     "chainName":"OMNI",
+        //                     "canWithdraw":true,
+        //                     "fee":5.0,
+        //                     "mainChainName":"BTC",
+        //                     "canDeposit":true
+        //                 ),
+        //                 {
+        //                     "chainName":"ERC20",
+        //                     "canWithdraw":true,
+        //                     "fee":15.0,
+        //                     "mainChainName":"ETH",
+        //                     "canDeposit":true
+        //                 }
+        //             ),
+        //         }
+        //     }
+        //
+        $currencies = $this->safe_value($response, 'result', array());
+        $ids = is_array($currencies) ? array_keys($currencies) : array();
+        $result = array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $ids[$i];
+            $currency = $currencies[$id];
+            $code = $this->safe_currency_code($id);
+            $precision = null;
+            $isWithdrawEnabled = true;
+            $isDepositEnabled = true;
+            $fees = array();
+            for ($j = 0; $j < count($currency); $j++) {
+                $networkItem = $currency[$j];
+                $network = $this->safe_string($networkItem, 'chainName');
+                // $name = $this->safe_string($networkItem, 'name');
+                $withdrawFee = $this->safe_number($networkItem, 'fee');
+                $depositEnable = $this->safe_value($networkItem, 'canDeposit');
+                $withdrawEnable = $this->safe_value($networkItem, 'canWithdraw');
+                $isDepositEnabled = $isDepositEnabled || $depositEnable;
+                $isWithdrawEnabled = $isWithdrawEnabled || $withdrawEnable;
+                $fees[$network] = $withdrawFee;
+            }
+            $active = ($isWithdrawEnabled && $isDepositEnabled);
+            $result[$code] = array(
+                'id' => $id,
+                'name' => null,
+                'code' => $code,
+                'precision' => $precision,
+                'info' => $currency,
+                'active' => $active,
+                'fee' => null,
+                'fees' => $fees,
+                'limits' => $this->limits,
+            );
+        }
+        return $result;
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetGetAccountInfo ($params);
@@ -297,7 +429,7 @@ class zb extends Exchange {
             $account['used'] = $this->safe_string($balance, 'freez');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
@@ -326,7 +458,7 @@ class zb extends Exchange {
         //         "canDeposit" => true
         //     }
         //
-        $address = $this->safe_string($depositAddress, 'key');
+        $address = $this->safe_string_2($depositAddress, 'key', 'address');
         $tag = null;
         $memo = $this->safe_string($depositAddress, 'memo');
         if ($memo !== null) {
@@ -414,6 +546,21 @@ class zb extends Exchange {
             $request['size'] = $limit;
         }
         $response = yield $this->publicGetDepth (array_merge($request, $params));
+        //
+        //     {
+        //         "asks":[
+        //             [35000.0,0.2741],
+        //             [34949.0,0.0173],
+        //             [34900.0,0.5004],
+        //         ],
+        //         "bids":[
+        //             [34119.32,0.0030],
+        //             [34107.83,0.1500],
+        //             [34104.42,0.1500],
+        //         ],
+        //         "timestamp":1624536510
+        //     }
+        //
         return $this->parse_order_book($response, $symbol);
     }
 
@@ -421,15 +568,15 @@ class zb extends Exchange {
         yield $this->load_markets();
         $response = yield $this->publicGetAllTicker ($params);
         $result = array();
-        $anotherMarketsById = array();
-        $marketIds = is_array($this->marketsById) ? array_keys($this->marketsById) : array();
+        $marketsByIdWithoutUnderscore = array();
+        $marketIds = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $tickerId = str_replace('_', '', $marketIds[$i]);
-            $anotherMarketsById[$tickerId] = $this->marketsById[$marketIds[$i]];
+            $marketsByIdWithoutUnderscore[$tickerId] = $this->markets_by_id[$marketIds[$i]];
         }
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
-            $market = $anotherMarketsById[$ids[$i]];
+            $market = $marketsByIdWithoutUnderscore[$ids[$i]];
             $result[$market['symbol']] = $this->parse_ticker($response[$ids[$i]], $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
@@ -442,12 +589,43 @@ class zb extends Exchange {
             'market' => $market['id'],
         );
         $response = yield $this->publicGetTicker (array_merge($request, $params));
-        $ticker = $response['ticker'];
+        //
+        //     {
+        //         "date":"1624399623587",
+        //         "$ticker":{
+        //             "high":"33298.38",
+        //             "vol":"56152.9012",
+        //             "last":"32578.55",
+        //             "low":"28808.19",
+        //             "buy":"32572.68",
+        //             "sell":"32615.37",
+        //             "turnover":"1764201303.6100",
+        //             "open":"31664.85",
+        //             "riseRate":"2.89"
+        //         }
+        //     }
+        //
+        $ticker = $this->safe_value($response, 'ticker', array());
+        $ticker['date'] = $this->safe_value($response, 'date');
         return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_ticker($ticker, $market = null) {
-        $timestamp = $this->milliseconds();
+        //
+        //     {
+        //         "date":"1624399623587", // injected from outside
+        //         "high":"33298.38",
+        //         "vol":"56152.9012",
+        //         "$last":"32578.55",
+        //         "low":"28808.19",
+        //         "buy":"32572.68",
+        //         "sell":"32615.37",
+        //         "turnover":"1764201303.6100",
+        //         "open":"31664.85",
+        //         "riseRate":"2.89"
+        //     }
+        //
+        $timestamp = $this->safe_integer($ticker, 'date', $this->milliseconds());
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -508,6 +686,16 @@ class zb extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        //     {
+        //         "date":1624537391,
+        //         "$amount":"0.0142",
+        //         "$price":"33936.42",
+        //         "trade_type":"ask",
+        //         "type":"sell",
+        //         "tid":1718869018
+        //     }
+        //
         $timestamp = $this->safe_timestamp($trade, 'date');
         $side = $this->safe_string($trade, 'trade_type');
         $side = ($side === 'bid') ? 'buy' : 'sell';
@@ -546,6 +734,13 @@ class zb extends Exchange {
             'market' => $market['id'],
         );
         $response = yield $this->publicGetTrades (array_merge($request, $params));
+        //
+        //     array(
+        //         array("date":1624537391,"amount":"0.0142","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869018),
+        //         array("date":1624537391,"amount":"0.0010","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869020),
+        //         array("date":1624537391,"amount":"0.0133","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869021),
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -997,6 +1192,11 @@ class zb extends Exchange {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
             $url .= '/' . $this->version . '/' . $path;
+            if ($params) {
+                $url .= '?' . $this->urlencode($params);
+            }
+        } else if ($api === 'trade') {
+            $url .= '/' . $path;
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }

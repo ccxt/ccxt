@@ -65,6 +65,10 @@ class currencycom(Exchange):
                     'public': 'https://api-adapter.backend.currency.com/api',
                     'private': 'https://api-adapter.backend.currency.com/api',
                 },
+                'test': {
+                    'public': 'https://demo-api-adapter.backend.currency.com/api',
+                    'private': 'https://demo-api-adapter.backend.currency.com/api',
+                },
                 'www': 'https://www.currency.com',
                 'referral': 'https://currency.com/trading/signup?c=362jaimv&pid=referral',
                 'doc': [
@@ -151,7 +155,11 @@ class currencycom(Exchange):
                 },
             },
             'commonCurrencies': {
+                'BNS': 'Bank of Nova Scotia',
+                'EDU': 'New Oriental Education & Technology Group Inc',
+                'ETN': 'Eaton',
                 'IQ': 'iQIYI',
+                'PLAY': "Dave & Buster's Entertainment",
             },
         })
 
@@ -415,7 +423,7 @@ class currencycom(Exchange):
             account['free'] = self.safe_string(balance, 'free')
             account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

@@ -93,7 +93,8 @@ class paymium extends Exchange {
         $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($currencies); $i++) {
             $code = $currencies[$i];
-            $currencyId = $this->currency_id($code);
+            $currency = $this->currency($code);
+            $currencyId = $currency['id'];
             $free = 'balance_' . $currencyId;
             if (is_array($response) && array_key_exists($free, $response)) {
                 $account = $this->account();
@@ -103,7 +104,7 @@ class paymium extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

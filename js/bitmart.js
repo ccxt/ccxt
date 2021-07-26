@@ -612,10 +612,7 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const spotMarkets = await this.fetchSpotMarkets ();
-        const contractMarkets = await this.fetchContractMarkets ();
-        const allMarkets = this.arrayConcat (spotMarkets, contractMarkets);
-        return allMarkets;
+        return await this.fetchSpotMarkets ();
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1477,7 +1474,7 @@ module.exports = class bitmart extends Exchange {
             account['used'] = this.safeString2 (balance, 'frozen', 'freeze_vol');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrder (order, market = undefined) {
@@ -2221,7 +2218,7 @@ module.exports = class bitmart extends Exchange {
             id = depositId;
         }
         const amount = this.safeNumber (transaction, 'arrival_amount');
-        const timestamp = this.safeInteger (transaction, 'tapply_timeime');
+        const timestamp = this.safeInteger (transaction, 'apply_time');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
@@ -2265,7 +2262,7 @@ module.exports = class bitmart extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseUrl = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
+        const baseUrl = this.implodeHostname (this.urls['api']);
         const access = this.safeString (api, 0);
         const type = this.safeString (api, 1);
         let url = baseUrl + '/' + type;

@@ -196,9 +196,9 @@ class exx(Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            if not (id in self.marketsById):
+            if not (id in self.markets_by_id):
                 continue
-            market = self.marketsById[id]
+            market = self.markets_by_id[id]
             symbol = market['symbol']
             ticker = {
                 'date': timestamp,
@@ -269,7 +269,7 @@ class exx(Exchange):
             account['used'] = self.safe_string(balance, 'freeze')
             account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
         #

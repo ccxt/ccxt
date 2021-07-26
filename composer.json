@@ -238,6 +238,7 @@
         "ext-pcre": "*",
         "ext-json": "*",
         "ext-openssl": "*",
+        "ext-gmp": "*",
         "symfony/polyfill-mbstring": "^1.7",
         "pear/console_table": "1.3.1"
     },

@@ -128,6 +128,7 @@ class probit extends Exchange {
                     'MARKET_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable', // Market is closed today
                     'INVALID_MARKET' => '\\ccxt\\BadSymbol', // Requested market is not exist
                     'MARKET_CLOSED' => '\\ccxt\\BadSymbol', // array("errorCode":"MARKET_CLOSED")
+                    'MARKET_NOT_FOUND' => '\\ccxt\\BadSymbol', // array("errorCode":"MARKET_NOT_FOUND","message":"8e2b8496-0a1e-5beb-b990-a205b902eabe","details":array())
                     'INVALID_CURRENCY' => '\\ccxt\\BadRequest', // Requested currency is not exist on ProBit system
                     'TOO_MANY_OPEN_ORDERS' => '\\ccxt\\DDoSProtection', // Too many open orders
                     'DUPLICATE_ADDRESS' => '\\ccxt\\InvalidAddress', // Address already exists in withdrawal address list
@@ -147,12 +148,16 @@ class probit extends Exchange {
             ),
             'commonCurrencies' => array(
                 'AUTO' => 'Cube',
+                'BCC' => 'BCC',
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
                 'CBC' => 'CryptoBharatCoin',
                 'EPS' => 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'HBC' => 'Hybrid Bank Cash',
+                'ORC' => 'Oracle System',
+                'SOC' => 'Soda Coin',
                 'UNI' => 'UNICORN Token',
+                'UNISWAP' => 'UNI',
             ),
         ));
     }
@@ -383,7 +388,7 @@ class probit extends Exchange {
             $account['free'] = $this->safe_string($balance, 'available');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -704,7 +709,7 @@ class probit extends Exchange {
             $timestamp = intval($timestamp / 1000);
             $firstSunday = 259200; // 1970-01-04T00:00:00.000Z
             $difference = $timestamp - $firstSunday;
-            $numWeeks = $this->integer_divide($difference, $duration);
+            $numWeeks = (int) floor($difference / $duration);
             $previousSunday = $this->sum($firstSunday, $numWeeks * $duration);
             if ($after) {
                 $previousSunday = $this->sum($previousSunday, $duration);
@@ -1104,7 +1109,7 @@ class probit extends Exchange {
             // 'platform_id' => 'ETH', // if omitted it will use the default platform for the $currency
             'address' => $address,
             'destination_tag' => $tag,
-            'amount' => $this->currency_to_precision($code, $amount),
+            'amount' => $this->number_to_string($amount),
             // which $currency to pay the withdrawal fees
             // only applicable for currencies that accepts multiple withdrawal fee options
             // 'fee_currency_id' => 'ETH', // if omitted it will use the default fee policy for each $currency

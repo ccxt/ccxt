@@ -344,7 +344,7 @@ class aofex(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'frozen')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_trading_fee(self, symbol, params={}):
         self.load_markets()
@@ -955,7 +955,7 @@ class aofex(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + '/' + path
+        url = self.implode_hostname(self.urls['api'][api]) + '/' + path
         keys = list(params.keys())
         keysLength = len(keys)
         if api == 'public':
