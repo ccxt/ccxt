@@ -18,7 +18,7 @@ class Precise {
             $decimalIndex = strpos($number, '.');
             $this->decimals = ($decimalIndex > -1) ? strlen($number) - $decimalIndex - 1 : 0;
             $integerString = str_replace('.', '', $number);
-            $this->integer = gmp_init($integerString);
+            $this->integer = gmp_init($integerString, 10);
             $this->decimals = $this->decimals - $modifier;
         } else {
             $this->integer = $number;
@@ -102,7 +102,7 @@ class Precise {
             return $this;
         }
         $this->decimals -= $difference;
-        $this->integer = gmp_init(mb_substr($string, 0, $i + 1));
+        $this->integer = gmp_init(mb_substr($string, 0, $i + 1), 10);
     }
 
     public function equals ($other) {
