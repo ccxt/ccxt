@@ -1140,7 +1140,7 @@ module.exports = class coinbase extends Exchange {
             this.checkRequiredCredentials ();
             if (this.token) {
                 headers = {
-                    'Authorization': `Bearer ${this.token}`,
+                    'Authorization': 'Bearer ' + this.token,
                     'Content-Type': 'application/json',
                 };
             } else {
