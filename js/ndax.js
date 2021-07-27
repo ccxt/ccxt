@@ -40,6 +40,7 @@ module.exports = class ndax extends Exchange {
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'signIn': true,
             },
             'timeframes': {
                 '1m': '60',
@@ -187,9 +188,12 @@ module.exports = class ndax extends Exchange {
                 },
             },
             'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
+                // 'apiKey': true,
+                // 'secret': true,
                 'uid': true,
+                'login': true,
+                'password': true,
+                'twofa': true,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -216,6 +220,44 @@ module.exports = class ndax extends Exchange {
                 },
             },
         });
+    }
+
+    async signIn (params = {}) {
+        this.checkRequiredCredentials ();
+        const request = {
+            'grant_type': 'client_credentials', // the only supported value
+        };
+        const response = await this.publicGetAuthenticate (this.extend (request, params));
+        //
+        //     {
+        //         "Authenticated":true,
+        //         "Requires2FA":true,
+        //         "AuthType":"Google",
+        //         "AddtlInfo":"",
+        //         "Pending2FaToken": "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
+        //     }
+        //
+        let sessionToken = this.safeString (response, 'SessionToken');
+        if (sessionToken !== undefined) {
+            this.options['sessionToken'] = sessionToken;
+            return response;
+        }
+        const pending2faToken = this.safeString (response, 'Pending2FaToken');
+        if (pending2faToken !== undefined) {
+            this.options['pending2faToken'] = pending2faToken;
+            const response = await this.publicGetAuthenticate2FA (this.extend (request, params));
+            //
+            //     {
+            //         "Authenticated": true,
+            //         "UserId":57765,
+            //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
+            //     }
+            //
+            sessionToken = this.safeString (response, 'SessionToken');
+            this.options['sessionToken'] = sessionToken;
+            return response;
+        }
+        return response;
     }
 
     async fetchCurrencies (params = {}) {
@@ -2049,26 +2091,61 @@ module.exports = class ndax extends Exchange {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
+            if (path === 'Authenticate') {
+                const auth = this.login + ':' + this.password;
+                const auth64 = this.stringToBase64 (auth);
+                headers = {
+                    'Authorization': 'Basic ' + this.decode (auth64),
+                    'Content-Type': 'application/json',
+                };
+            } else if (path === 'Authenticate2FA') {
+                const pending2faToken = this.safeString (this.options, 'pending2faToken');
+                if (pending2faToken !== undefined) {
+                    query['Code'] = this.oath ();
+                    headers = {
+                        'Pending2FaToken': pending2faToken,
+                        'Content-Type': 'application/json',
+                    };
+                }
+            }
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            const auth = nonce + this.uid + this.apiKey;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            headers = {
-                'Nonce': nonce,
-                'APIKey': this.apiKey,
-                'Signature': signature,
-                'UserId': this.uid,
-            };
-            if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                body = this.json (query);
+            const sessionToken = this.safeString (this.options, 'sessionToken');
+            if (sessionToken === undefined) {
+                throw new AuthenticationError (this.id + ' call signIn() method to obtain a session token');
+                //
+                //     const nonce = this.nonce ().toString ();
+                //     const auth = nonce + this.uid + this.apiKey;
+                //     const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                //     headers = {
+                //         'Nonce': nonce,
+                //         'APIKey': this.apiKey,
+                //         'Signature': signature,
+                //         'UserId': this.uid,
+                //     };
+                //     if (method === 'POST') {
+                //         headers['Content-Type'] = 'application/json';
+                //         body = this.json (query);
+                //     } else {
+                //         if (Object.keys (query).length) {
+                //             url += '?' + this.urlencode (query);
+                //         }
+                //     }
+                //
             } else {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
+                headers = {
+                    'APToken': sessionToken,
+                };
+                if (method === 'POST') {
+                    headers['Content-Type'] = 'application/json';
+                    body = this.json (query);
+                } else {
+                    if (Object.keys (query).length) {
+                        url += '?' + this.urlencode (query);
+                    }
                 }
             }
         }
