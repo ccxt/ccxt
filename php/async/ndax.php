@@ -42,6 +42,7 @@ class ndax extends Exchange {
                 'fetchTicker' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'signIn' => true,
             ),
             'timeframes' => array(
                 '1m' => '60',
@@ -189,9 +190,12 @@ class ndax extends Exchange {
                 ),
             ),
             'requiredCredentials' => array(
-                'apiKey' => true,
-                'secret' => true,
+                // 'apiKey' => true,
+                // 'secret' => true,
                 'uid' => true,
+                'login' => true,
+                'password' => true,
+                'twofa' => true,
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -218,6 +222,44 @@ class ndax extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function sign_in($params = array ()) {
+        $this->check_required_credentials();
+        $request = array(
+            'grant_type' => 'client_credentials', // the only supported value
+        );
+        $response = yield $this->publicGetAuthenticate (array_merge($request, $params));
+        //
+        //     {
+        //         "Authenticated":true,
+        //         "Requires2FA":true,
+        //         "AuthType":"Google",
+        //         "AddtlInfo":"",
+        //         "Pending2FaToken" => "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
+        //     }
+        //
+        $sessionToken = $this->safe_string($response, 'SessionToken');
+        if ($sessionToken !== null) {
+            $this->options['sessionToken'] = $sessionToken;
+            return $response;
+        }
+        $pending2faToken = $this->safe_string($response, 'Pending2FaToken');
+        if ($pending2faToken !== null) {
+            $this->options['pending2faToken'] = $pending2faToken;
+            $response = yield $this->publicGetAuthenticate2FA (array_merge($request, $params));
+            //
+            //     {
+            //         "Authenticated" => true,
+            //         "UserId":57765,
+            //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
+            //     }
+            //
+            $sessionToken = $this->safe_string($response, 'SessionToken');
+            $this->options['sessionToken'] = $sessionToken;
+            return $response;
+        }
+        return $response;
     }
 
     public function fetch_currencies($params = array ()) {
@@ -2051,26 +2093,61 @@ class ndax extends Exchange {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
+            if ($path === 'Authenticate') {
+                $auth = $this->login . ':' . $this->password;
+                $auth64 = base64_encode($auth);
+                $headers = array(
+                    'Authorization' => 'Basic ' . $this->decode($auth64),
+                    'Content-Type' => 'application/json',
+                );
+            } else if ($path === 'Authenticate2FA') {
+                $pending2faToken = $this->safe_string($this->options, 'pending2faToken');
+                if ($pending2faToken !== null) {
+                    $query['Code'] = $this->oath();
+                    $headers = array(
+                        'Pending2FaToken' => $pending2faToken,
+                        'Content-Type' => 'application/json',
+                    );
+                }
+            }
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
-            $auth = $nonce . $this->uid . $this->apiKey;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
-            $headers = array(
-                'Nonce' => $nonce,
-                'APIKey' => $this->apiKey,
-                'Signature' => $signature,
-                'UserId' => $this->uid,
-            );
-            if ($method === 'POST') {
-                $headers['Content-Type'] = 'application/json';
-                $body = $this->json($query);
+            $sessionToken = $this->safe_string($this->options, 'sessionToken');
+            if ($sessionToken === null) {
+                throw new AuthenticationError($this->id . ' call signIn() $method to obtain a session token');
+                //
+                //     $nonce = (string) $this->nonce();
+                //     $auth = $nonce . $this->uid . $this->apiKey;
+                //     $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                //     $headers = array(
+                //         'Nonce' => $nonce,
+                //         'APIKey' => $this->apiKey,
+                //         'Signature' => $signature,
+                //         'UserId' => $this->uid,
+                //     );
+                //     if ($method === 'POST') {
+                //         $headers['Content-Type'] = 'application/json';
+                //         $body = $this->json($query);
+                //     } else {
+                //         if ($query) {
+                //             $url .= '?' . $this->urlencode($query);
+                //         }
+                //     }
+                //
             } else {
-                if ($query) {
-                    $url .= '?' . $this->urlencode($query);
+                $headers = array(
+                    'APToken' => $sessionToken,
+                );
+                if ($method === 'POST') {
+                    $headers['Content-Type'] = 'application/json';
+                    $body = $this->json($query);
+                } else {
+                    if ($query) {
+                        $url .= '?' . $this->urlencode($query);
+                    }
                 }
             }
         }

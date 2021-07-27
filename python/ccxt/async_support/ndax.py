@@ -46,6 +46,7 @@ class ndax(Exchange):
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'signIn': True,
             },
             'timeframes': {
                 '1m': '60',
@@ -193,9 +194,12 @@ class ndax(Exchange):
                 },
             },
             'requiredCredentials': {
-                'apiKey': True,
-                'secret': True,
+                # 'apiKey': True,
+                # 'secret': True,
                 'uid': True,
+                'login': True,
+                'password': True,
+                'twofa': True,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -222,6 +226,41 @@ class ndax(Exchange):
                 },
             },
         })
+
+    async def sign_in(self, params={}):
+        self.check_required_credentials()
+        request = {
+            'grant_type': 'client_credentials',  # the only supported value
+        }
+        response = await self.publicGetAuthenticate(self.extend(request, params))
+        #
+        #     {
+        #         "Authenticated":true,
+        #         "Requires2FA":true,
+        #         "AuthType":"Google",
+        #         "AddtlInfo":"",
+        #         "Pending2FaToken": "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
+        #     }
+        #
+        sessionToken = self.safe_string(response, 'SessionToken')
+        if sessionToken is not None:
+            self.options['sessionToken'] = sessionToken
+            return response
+        pending2faToken = self.safe_string(response, 'Pending2FaToken')
+        if pending2faToken is not None:
+            self.options['pending2faToken'] = pending2faToken
+            response = await self.publicGetAuthenticate2FA(self.extend(request, params))
+            #
+            #     {
+            #         "Authenticated": True,
+            #         "UserId":57765,
+            #         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
+            #     }
+            #
+            sessionToken = self.safe_string(response, 'SessionToken')
+            self.options['sessionToken'] = sessionToken
+            return response
+        return response
 
     async def fetch_currencies(self, params={}):
         omsId = self.safe_integer(self.options, 'omsId', 1)
@@ -1973,25 +2012,57 @@ class ndax(Exchange):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
+            if path == 'Authenticate':
+                auth = self.login + ':' + self.password
+                auth64 = self.string_to_base64(auth)
+                headers = {
+                    'Authorization': 'Basic ' + self.decode(auth64),
+                    'Content-Type': 'application/json',
+                }
+            elif path == 'Authenticate2FA':
+                pending2faToken = self.safe_string(self.options, 'pending2faToken')
+                if pending2faToken is not None:
+                    query['Code'] = self.oath()
+                    headers = {
+                        'Pending2FaToken': pending2faToken,
+                        'Content-Type': 'application/json',
+                    }
             if query:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
-            nonce = str(self.nonce())
-            auth = nonce + self.uid + self.apiKey
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
-            headers = {
-                'Nonce': nonce,
-                'APIKey': self.apiKey,
-                'Signature': signature,
-                'UserId': self.uid,
-            }
-            if method == 'POST':
-                headers['Content-Type'] = 'application/json'
-                body = self.json(query)
+            sessionToken = self.safe_string(self.options, 'sessionToken')
+            if sessionToken is None:
+                raise AuthenticationError(self.id + ' call signIn() method to obtain a session token')
+                #
+                #     nonce = str(self.nonce())
+                #     auth = nonce + self.uid + self.apiKey
+                #     signature = self.hmac(self.encode(auth), self.encode(self.secret))
+                #     headers = {
+                #         'Nonce': nonce,
+                #         'APIKey': self.apiKey,
+                #         'Signature': signature,
+                #         'UserId': self.uid,
+                #     }
+                #     if method == 'POST':
+                #         headers['Content-Type'] = 'application/json'
+                #         body = self.json(query)
+                #     else:
+                #         if query:
+                #             url += '?' + self.urlencode(query)
+                #         }
+                #     }
+                #
             else:
-                if query:
-                    url += '?' + self.urlencode(query)
+                headers = {
+                    'APToken': sessionToken,
+                }
+                if method == 'POST':
+                    headers['Content-Type'] = 'application/json'
+                    body = self.json(query)
+                else:
+                    if query:
+                        url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
