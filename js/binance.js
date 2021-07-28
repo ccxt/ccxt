@@ -702,7 +702,7 @@ module.exports = class binance extends Exchange {
                     'CAD': true,
                     'INR': true,
                     'JPY': true,
-                    'NZD': true
+                    'NZD': true,
                 },
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
