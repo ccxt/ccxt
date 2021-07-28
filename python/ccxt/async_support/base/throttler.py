@@ -14,7 +14,6 @@ class Throttler:
             'delay': 0.001,
             'defaultCost': 1.0,
             'tokens': 0,
-            'maxtokens': 1000.0,
             'capacity': 1200,
         }
         self.config.update(config)
