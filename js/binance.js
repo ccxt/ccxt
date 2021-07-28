@@ -149,8 +149,8 @@ module.exports = class binance extends Exchange {
                         'margin/isolated/pair',
                         'margin/isolated/allPairs',
                         'margin/interestRateHistory',
-                        'fiatpayment/query/deposit/history',
-                        'fiatpayment/query/withdraw/history',
+                        'fiat/orders',
+                        'fiat/payments',
                         'futures/transfer',
                         'futures/loan/borrow/history',
                         'futures/loan/repay/history',
@@ -669,6 +669,40 @@ module.exports = class binance extends Exchange {
                     'UMFUTURE': 'future',
                     'CMFUTURE': 'delivery',
                     'MINING': 'mining',
+                },
+                'legalMoney': {
+                    'MXN': true,
+                    'UGX': true,
+                    'SEK': true,
+                    'CHF': true,
+                    'VND': true,
+                    'AED': true,
+                    'DKK': true,
+                    'KZT': true,
+                    'HUF': true,
+                    'PEN': true,
+                    'PHP': true,
+                    'USD': true,
+                    'TRY': true,
+                    'EUR': true,
+                    'NGN': true,
+                    'PLN': true,
+                    'BRL': true,
+                    'ZAR': true,
+                    'KES': true,
+                    'ARS': true,
+                    'RUB': true,
+                    'AUD': true,
+                    'NOK': true,
+                    'CZK': true,
+                    'GBP': true,
+                    'UAH': true,
+                    'GHS': true,
+                    'HKD': true,
+                    'CAD': true,
+                    'INR': true,
+                    'JPY': true,
+                    'NZD': true
                 },
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
@@ -2598,66 +2632,94 @@ module.exports = class binance extends Exchange {
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
+        let response = undefined;
         const request = {};
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['coin'] = currency['id'];
+        const legalMoney = this.safeValue (this.options, 'legalMoney', {});
+        if (code in legalMoney) {
+            if (code !== undefined) {
+                currency = this.currency (code);
+            }
+            request['transactionType'] = 0;
+            if (since !== undefined) {
+                request['beginTime'] = since;
+            }
+            const raw = await this.sapiGetFiatOrders (this.extend (request, params));
+            response = this.safeValue (raw, 'data');
+        } else {
+            if (code !== undefined) {
+                currency = this.currency (code);
+                request['coin'] = currency['id'];
+            }
+            if (since !== undefined) {
+                request['startTime'] = since;
+                // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+                request['endTime'] = this.sum (since, 7776000000);
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            response = await this.sapiGetCapitalDepositHisrec (this.extend (request, params));
+            //     [
+            //       {
+            //         "amount": "0.01844487",
+            //         "coin": "BCH",
+            //         "network": "BCH",
+            //         "status": 1,
+            //         "address": "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
+            //         "addressTag": "",
+            //         "txId": "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
+            //         "insertTime": 1610784980000,
+            //         "transferType": 0,
+            //         "confirmTimes": "2/2"
+            //       },
+            //       {
+            //         "amount": "4500",
+            //         "coin": "USDT",
+            //         "network": "BSC",
+            //         "status": 1,
+            //         "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
+            //         "addressTag": "",
+            //         "txId": "Internal transfer 51376627901",
+            //         "insertTime": 1618394381000,
+            //         "transferType": 1,
+            //         "confirmTimes": "1/15"
+            //     }
+            //   ]
         }
-        if (since !== undefined) {
-            request['startTime'] = since;
-            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            request['endTime'] = this.sum (since, 7776000000);
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.sapiGetCapitalDepositHisrec (this.extend (request, params));
-        //     [
-        //       {
-        //         "amount": "0.01844487",
-        //         "coin": "BCH",
-        //         "network": "BCH",
-        //         "status": 1,
-        //         "address": "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
-        //         "addressTag": "",
-        //         "txId": "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
-        //         "insertTime": 1610784980000,
-        //         "transferType": 0,
-        //         "confirmTimes": "2/2"
-        //       },
-        //       {
-        //         "amount": "4500",
-        //         "coin": "USDT",
-        //         "network": "BSC",
-        //         "status": 1,
-        //         "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
-        //         "addressTag": "",
-        //         "txId": "Internal transfer 51376627901",
-        //         "insertTime": 1618394381000,
-        //         "transferType": 1,
-        //         "confirmTimes": "1/15"
-        //     }
-        //   ]
         return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = undefined;
+        const legalMoney = this.safeValue (this.options, 'legalMoney', {});
         const request = {};
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['coin'] = currency['id'];
+        let response = undefined;
+        let currency = undefined;
+        if (code in legalMoney) {
+            if (code !== undefined) {
+                currency = this.currency (code);
+            }
+            request['transactionType'] = 1;
+            if (since !== undefined) {
+                request['beginTime'] = since;
+            }
+            const raw = await this.sapiGetFiatOrders (this.extend (request, params));
+            response = this.safeValue (raw, 'data');
+        } else {
+            if (code !== undefined) {
+                currency = this.currency (code);
+                request['coin'] = currency['id'];
+            }
+            if (since !== undefined) {
+                request['startTime'] = since;
+                // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+                request['endTime'] = this.sum (since, 7776000000);
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, params));
         }
-        if (since !== undefined) {
-            request['startTime'] = since;
-            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            request['endTime'] = this.sum (since, 7776000000);
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, params));
         //     [
         //       {
         //         "id": "69e53ad305124b96b43668ceab158a18",
@@ -2714,6 +2776,14 @@ module.exports = class binance extends Exchange {
                 '4': 'pending', // Processing
                 '5': 'failed', // Failure
                 '6': 'ok', // Completed
+                // Fiat
+                // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
+                'Processing': 'pending',
+                'Failed': 'failed',
+                'Successful': 'ok',
+                'Refunding': 'canceled',
+                'Refunded': 'canceled',
+                'Refund Failed': 'failed',
             },
         };
         const statuses = this.safeValue (statusesByType, type, {});
@@ -2753,7 +2823,34 @@ module.exports = class binance extends Exchange {
         //       "transferType": 0
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        // fiat transaction
+        // withdraw
+        //     {
+        //       "orderNo": "CJW684897551397171200",
+        //       "fiatCurrency": "GBP",
+        //       "indicatedAmount": "29.99",
+        //       "amount": "28.49",
+        //       "totalFee": "1.50",
+        //       "method": "bank transfer",
+        //       "status": "Successful",
+        //       "createTime": 1614898701000,
+        //       "updateTime": 1614898820000
+        //     }
+        //
+        // deposit
+        //     {
+        //       "orderNo": "25ced37075c1470ba8939d0df2316e23",
+        //       "fiatCurrency": "EUR",
+        //       "indicatedAmount": "15.00",
+        //       "amount": "15.00",
+        //       "totalFee": "0.00",
+        //       "method": "card",
+        //       "status": "Failed",
+        //       "createTime": "1627501026000",
+        //       "updateTime": "1627501027000"
+        //     }
+        //
+        const id = this.safeString2 (transaction, 'id', 'orderNo');
         const address = this.safeString (transaction, 'address');
         let tag = this.safeString (transaction, 'addressTag'); // set but unused
         if (tag !== undefined) {
@@ -2765,10 +2862,10 @@ module.exports = class binance extends Exchange {
         if ((txid !== undefined) && (txid.indexOf ('Internal transfer ') >= 0)) {
             txid = txid.slice (18);
         }
-        const currencyId = this.safeString (transaction, 'coin');
+        const currencyId = this.safeString2 (transaction, 'coin', 'fiatCurrency');
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
-        const insertTime = this.safeInteger (transaction, 'insertTime');
+        const insertTime = this.safeInteger2 (transaction, 'insertTime', 'createTime');
         const applyTime = this.parse8601 (this.safeString (transaction, 'applyTime'));
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
@@ -2782,12 +2879,12 @@ module.exports = class binance extends Exchange {
         }
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
-        const feeCost = this.safeNumber (transaction, 'transactionFee');
+        const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const updated = this.safeInteger (transaction, 'successTime');
+        const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let internal = this.safeInteger (transaction, 'transferType', false);
         internal = internal ? true : false;
         return {
@@ -4118,7 +4215,7 @@ module.exports = class binance extends Exchange {
         if (error !== undefined) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if ((error === '200') || (error === '0')) {
+            if ((error === '200') || Precise.stringEquals (error, '0')) {
                 return;
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
