@@ -71,9 +71,7 @@ class Exchange(BaseExchange):
                 'print': getattr(self, 'print'),
                 'ping': getattr(self, 'ping', None),
                 'verbose': self.verbose,
-                'throttle': throttle(self.extend({
-                    'loop': self.asyncio_loop,
-                }, self.tokenBucket)),
+                'throttle': throttle(self.tokenBucket, self.asyncio_loop),
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
@@ -117,7 +115,6 @@ class Exchange(BaseExchange):
             else asyncio.ensure_future(client.connect(self.session, backoff_delay))
 
         def after(fut):
-            rate_limit = None
             exception = fut.exception()
             if exception is not None:
                 # future will already have this exception set to it in self.reset
@@ -125,19 +122,16 @@ class Exchange(BaseExchange):
                 return
             if subscribe_hash not in client.subscriptions:
                 client.subscriptions[subscribe_hash] = subscription or True
-                if self.enableRateLimit:
-                    options = self.safe_value(self.options, 'ws', {})
-                    rate_limit = self.safe_integer(options, 'rateLimit', self.rateLimit)
                 # todo: decouple signing from subscriptions
                 if message:
-                    async def send_message(rate_limit):
-                        if rate_limit is not None:
-                            await client.throttle(rate_limit)
+                    async def send_message():
+                        if self.enableRateLimit:
+                            await client.throttle()
                         try:
                             await client.send(message)
                         except ConnectionError as e:
                             future.reject(e)
-                    asyncio.ensure_future(send_message(rate_limit))
+                    asyncio.ensure_future(send_message())
 
         connected.add_done_callback(after)
 
