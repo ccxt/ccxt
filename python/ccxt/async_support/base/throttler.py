@@ -15,6 +15,7 @@ class Throttler:
             'cost': 1.0,
             'tokens': 0,
             'maxCapacity': 1000,
+            'capacity': 1.0,
         }
         self.config.update(config)
         self.queue = collections.deque()
@@ -38,7 +39,7 @@ class Throttler:
                 now = time() * 1000
                 elapsed = now - last_timestamp
                 last_timestamp = now
-                self.config['tokens'] = min(self.config['tokens'] + elapsed * self.config['refillRate'], self.config['cost'])
+                self.config['tokens'] = min(self.config['tokens'] + elapsed * self.config['refillRate'], self.config['capacity'])
 
     def __call__(self, cost=None):
         future = asyncio.Future()
