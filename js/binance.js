@@ -1743,9 +1743,7 @@ module.exports = class binance extends Exchange {
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const marketId = this.safeString (trade, 'symbol');
-        if (market === undefined) {
-            market = this.safeMarket (marketId, market);
-        }
+        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const costStringRaw = Precise.stringMul (priceString, amountString);
         const costString = this.costToPrecision (symbol, costStringRaw);
