@@ -115,7 +115,6 @@ class Exchange(BaseExchange):
             else asyncio.ensure_future(client.connect(self.session, backoff_delay))
 
         def after(fut):
-            rate_limit = None
             exception = fut.exception()
             if exception is not None:
                 # future will already have this exception set to it in self.reset
