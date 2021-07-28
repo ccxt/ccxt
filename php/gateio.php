@@ -796,7 +796,6 @@ class gateio extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'currency_pair' => $market['id'],

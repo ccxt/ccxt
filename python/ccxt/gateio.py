@@ -781,7 +781,6 @@ class gateio(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        self.load_markets()
         market = self.market(symbol)
         request = {
             'currency_pair': market['id'],
