@@ -592,7 +592,7 @@ The CCXT Pro library currently supports the following 33 cryptocurrency exchange
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
-     -
+     
 
 
 This is the list of exchanges in CCXT Pro with support for WebSockets APIs. This list will be updated with new exchanges on a regular basis.

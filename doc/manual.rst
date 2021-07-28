@@ -1561,7 +1561,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
-     -
+     
 
 
 Besides making basic market and limit orders, some exchanges offer margin trading (leverage), various derivatives (like futures contracts and options) and also have `dark pools <https://en.wikipedia.org/wiki/Dark_pool>`__\ , `OTC <https://en.wikipedia.org/wiki/Over-the-counter_(finance>`__\ ) (over-the-counter trading), merchant APIs and much more.
