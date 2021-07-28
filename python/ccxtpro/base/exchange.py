@@ -11,7 +11,7 @@ from ccxtpro.base.fast_client import FastClient
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
 from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
-from ccxt.async_support.base.throttle import throttle
+from ccxt.async_support.base.throttler import Throttler
 import asyncio
 
 # -----------------------------------------------------------------------------
@@ -71,7 +71,7 @@ class Exchange(BaseExchange):
                 'print': getattr(self, 'print'),
                 'ping': getattr(self, 'ping', None),
                 'verbose': self.verbose,
-                'throttle': throttle(self.tokenBucket, self.asyncio_loop),
+                'throttle': Throttler(self.tokenBucket, self.asyncio_loop),
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
