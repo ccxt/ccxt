@@ -12,7 +12,7 @@ from ccxt.async_support.base.throttler import Throttler as Throttle  # noqa: E40
 # from ccxt.async_support.base.throttle import throttle as Throttle
 
 
-delta = 50
+delta = 10
 
 test_cases = [
     {
@@ -68,6 +68,12 @@ test_cases = [
         'refillRate': 1 / 500,
         'cost': 1,
         'runs': 10,
+    },
+    {
+        'capacity': 0,
+        'refillRate': 1 / 10,
+        'cost': 1,
+        'runs': 500,
     },
 ]
 
