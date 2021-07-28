@@ -2466,22 +2466,36 @@ module.exports = class binance extends Exchange {
         const request = {};
         if (since !== undefined) {
             request['startTime'] = since;
-            request['endTime'] = since + this.parse_timeframe ('3M');
+            request['endTime'] = this.sum (since, 90 * 24 * 60 * 60 * 1000);
         }
         const response = await this.wapiGetUserAssetDribbletLog (this.extend (request, params));
-        // { success:    true,
-        //   results: { total:    1,
-        //               rows: [ {     transfered_total: "1.06468458",
-        //                         service_charge_total: "0.02172826",
-        //                                      tran_id: 2701371634,
-        //                                         logs: [ {              tranId:  2701371634,
-        //                                                   serviceChargeAmount: "0.00012819",
-        //                                                                   uid: "35103861",
-        //                                                                amount: "0.8012",
-        //                                                           operateTime: "2018-10-07 17:56:07",
-        //                                                      transferedAmount: "0.00628141",
-        //                                                             fromAsset: "ADA"                  } ],
-        //                                 operate_time: "2018-10-07 17:56:06"                                } ] } }
+        //
+        //     {
+        //         success: true,
+        //         results: {
+        //             total: 1,
+        //             rows: [
+        //                 {
+        //                     transfered_total: "1.06468458",
+        //                     service_charge_total: "0.02172826",
+        //                     tran_id: 2701371634,
+        //                     logs: [
+        //                         {
+        //                             tranId:  2701371634,
+        //                             serviceChargeAmount: "0.00012819",
+        //                             uid: "35103861",
+        //                             amount: "0.8012",
+        //                             operateTime: "2018-10-07 17:56:07",
+        //                             transferedAmount: "0.00628141",
+        //                             fromAsset: "ADA"
+        //                         }
+        //                     ],
+        //                     operate_time: "2018-10-07 17:56:06"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         const results = this.safeValue (response, 'results', {});
         const rows = this.safeValue (results, 'rows', []);
         const data = [];
