@@ -456,15 +456,14 @@ class bitbank(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        if price is None:
-            raise InvalidOrder(self.id + ' createOrder() requires a price argument for both market and limit orders')
         request = {
             'pair': market['id'],
             'amount': self.amount_to_precision(symbol, amount),
-            'price': self.price_to_precision(symbol, price),
             'side': side,
             'type': type,
         }
+        if type == 'limit':
+            request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostUserSpotOrder(self.extend(request, params))
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
