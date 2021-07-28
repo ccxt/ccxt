@@ -128,8 +128,8 @@ module.exports = class bitbay extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0,
-                    'taker': 0.1 / 100,
+                    'maker': this.parseNumber ('0.0'),
+                    'taker': this.parseNumber ('0.001'),
                     'percentage': true,
                     'tierBased': false,
                 },

@@ -177,8 +177,8 @@ module.exports = class stex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
+                    'taker': this.parseNumber ('0.002'),
+                    'maker': this.parseNumber ('0.002'),
                 },
             },
             'commonCurrencies': {
