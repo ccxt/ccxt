@@ -2645,6 +2645,25 @@ module.exports = class binance extends Exchange {
             }
             const raw = await this.sapiGetFiatOrders (this.extend (request, params));
             response = this.safeValue (raw, 'data');
+            //     {
+            //       "code": "000000",
+            //       "message": "success",
+            //       "data": [
+            //         {
+            //           "orderNo": "25ced37075c1470ba8939d0df2316e23",
+            //           "fiatCurrency": "EUR",
+            //           "indicatedAmount": "15.00",
+            //           "amount": "15.00",
+            //           "totalFee": "0.00",
+            //           "method": "card",
+            //           "status": "Failed",
+            //           "createTime": 1627501026000,
+            //           "updateTime": 1627501027000
+            //         }
+            //       ],
+            //       "total": 1,
+            //       "success": true
+            //     }
         } else {
             if (code !== undefined) {
                 currency = this.currency (code);
@@ -2705,6 +2724,36 @@ module.exports = class binance extends Exchange {
             }
             const raw = await this.sapiGetFiatOrders (this.extend (request, params));
             response = this.safeValue (raw, 'data');
+            //     {
+            //       "code": "000000",
+            //       "message": "success",
+            //       "data": [
+            //         {
+            //           "orderNo": "CJW706452266115170304",
+            //           "fiatCurrency": "GBP",
+            //           "indicatedAmount": "10001.50",
+            //           "amount": "100.00",
+            //           "totalFee": "1.50",
+            //           "method": "bank transfer",
+            //           "status": "Successful",
+            //           "createTime": 1620037745000,
+            //           "updateTime": 1620038480000
+            //         },
+            //         {
+            //           "orderNo": "CJW706287492781891584",
+            //           "fiatCurrency": "GBP",
+            //           "indicatedAmount": "10001.50",
+            //           "amount": "100.00",
+            //           "totalFee": "1.50",
+            //           "method": "bank transfer",
+            //           "status": "Successful",
+            //           "createTime": 1619998460000,
+            //           "updateTime": 1619998823000
+            //         }
+            //       ],
+            //       "total": 39,
+            //       "success": true
+            //     }
         } else {
             if (code !== undefined) {
                 currency = this.currency (code);
@@ -2719,46 +2768,46 @@ module.exports = class binance extends Exchange {
                 request['limit'] = limit;
             }
             response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, params));
+            //     [
+            //       {
+            //         "id": "69e53ad305124b96b43668ceab158a18",
+            //         "amount": "28.75",
+            //         "transactionFee": "0.25",
+            //         "coin": "XRP",
+            //         "status": 6,
+            //         "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+            //         "addressTag": "101286922",
+            //         "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+            //         "applyTime": "2021-04-15 12:09:16",
+            //         "network": "XRP",
+            //         "transferType": 0
+            //       },
+            //       {
+            //         "id": "9a67628b16ba4988ae20d329333f16bc",
+            //         "amount": "20",
+            //         "transactionFee": "20",
+            //         "coin": "USDT",
+            //         "status": 6,
+            //         "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+            //         "txId": "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
+            //         "applyTime": "2021-04-15 12:06:53",
+            //         "network": "ETH",
+            //         "transferType": 0
+            //       },
+            //       {
+            //         "id": "a7cdc0afbfa44a48bd225c9ece958fe2",
+            //         "amount": "51",
+            //         "transactionFee": "1",
+            //         "coin": "USDT",
+            //         "status": 6,
+            //         "address": "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
+            //         "txId": "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
+            //         "applyTime": "2021-04-13 12:46:59",
+            //         "network": "TRX",
+            //         "transferType": 0
+            //       }
+            //     ]
         }
-        //     [
-        //       {
-        //         "id": "69e53ad305124b96b43668ceab158a18",
-        //         "amount": "28.75",
-        //         "transactionFee": "0.25",
-        //         "coin": "XRP",
-        //         "status": 6,
-        //         "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
-        //         "addressTag": "101286922",
-        //         "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
-        //         "applyTime": "2021-04-15 12:09:16",
-        //         "network": "XRP",
-        //         "transferType": 0
-        //       },
-        //       {
-        //         "id": "9a67628b16ba4988ae20d329333f16bc",
-        //         "amount": "20",
-        //         "transactionFee": "20",
-        //         "coin": "USDT",
-        //         "status": 6,
-        //         "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
-        //         "txId": "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
-        //         "applyTime": "2021-04-15 12:06:53",
-        //         "network": "ETH",
-        //         "transferType": 0
-        //       },
-        //       {
-        //         "id": "a7cdc0afbfa44a48bd225c9ece958fe2",
-        //         "amount": "51",
-        //         "transactionFee": "1",
-        //         "coin": "USDT",
-        //         "status": 6,
-        //         "address": "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
-        //         "txId": "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
-        //         "applyTime": "2021-04-13 12:46:59",
-        //         "network": "TRX",
-        //         "transferType": 0
-        //       }
-        //     ]
         return this.parseTransactions (response, currency, since, limit);
     }
 
