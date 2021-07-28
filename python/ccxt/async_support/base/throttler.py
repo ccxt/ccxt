@@ -14,6 +14,7 @@ class Throttler:
             'delay': 0.001,
             'defaultCost': 1.0,
             'tokens': 0,
+            'maxCapacity': 1000.0,
             'capacity': 1200,
         }
         self.config.update(config)
@@ -42,8 +43,8 @@ class Throttler:
 
     def __call__(self, cost=None):
         future = asyncio.Future()
-        if len(self.queue) > self.config['maxtokens']:
-            raise RuntimeError('throttle queue is over maxtokens')
+        if len(self.queue) > self.config['maxCapacity']:
+            raise RuntimeError('throttle queue is over maxCapacity')
         self.queue.append((future, cost))
         if not self.running:
             self.running = True
