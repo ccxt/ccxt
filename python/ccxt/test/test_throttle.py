@@ -16,61 +16,61 @@ delta = 10
 
 test_cases = [
     {
-        'capacity': 0,
+        'tokens': 0,
         'refillRate': 1 / 50,
         'cost': 1,
         'runs': 100,
     },
     {
-        'capacity': 20,
+        'tokens': 20,
         'refillRate': 1 / 50,
         'cost': 1,
         'runs': 100,
     },
     {
-        'capacity': 40,
+        'tokens': 40,
         'refillRate': 1 / 50,
         'cost': 1,
         'runs': 100,
     },
     {
-        'capacity': 0,
+        'tokens': 0,
         'refillRate': 1 / 20,
         'cost': 1,
         'runs': 100,
     },
     {
-        'capacity': 100,
+        'tokens': 100,
         'refillRate': 1 / 20,
         'cost': 5,
         'runs': 50,
     },
     {
-        'capacity': 0,
+        'tokens': 0,
         'refillRate': 1 / 40,
         'cost': 2,
         'runs': 50,
     },
     {
-        'capacity': 1,
+        'tokens': 1,
         'refillRate': 1 / 100,
         'cost': 1,
         'runs': 10,
     },
     {
-        'capacity': 5,
+        'tokens': 5,
         'refillRate': 1 / 100,
         'cost': 1,
         'runs': 10,
     },
     {
-        'capacity': 0,
+        'tokens': 0,
         'refillRate': 1 / 500,
         'cost': 1,
         'runs': 10,
     },
     {
-        'capacity': 0,
+        'tokens': 0,
         'refillRate': 1 / 10,
         'cost': 1,
         'runs': 500,
@@ -82,9 +82,9 @@ test_cases = [
 
 for i, case in enumerate(test_cases, 1):
     case['number'] = i
-    # while the tokenBucket has capacity the throttler should return instantly
-    # so the first capacity / cost runs are deducted
-    instantly_complete = case['capacity'] / case['cost']
+    # while the tokenBucket has tokens the throttler should return instantly
+    # so the first tokens / cost runs are deducted
+    instantly_complete = case['tokens'] / case['cost']
     # after that each run will take cost and the total time will be runs * cost / refillRate
     remaining = case['runs'] - instantly_complete - 1
     case['expected'] = remaining * case['cost'] / case['refillRate']
@@ -92,7 +92,7 @@ for i, case in enumerate(test_cases, 1):
 
 async def schedule(case):
     throttle = Throttle({
-        'capacity': case['capacity'],
+        'tokens': case['tokens'],
         'refillRate': case['refillRate'],
     })
     start = time.perf_counter_ns()

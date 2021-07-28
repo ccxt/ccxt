@@ -13,8 +13,9 @@ class Throttler:
             'refillRate': 1.0,
             'delay': 0.001,
             'defaultCost': 1.0,
-            'capacity': 0,
-            'maxCapacity': 1000.0,
+            'tokens': 0,
+            'maxtokens': 1000.0,
+            'capacity': 1200,
         }
         self.config.update(config)
         self.queue = collections.deque()
@@ -25,8 +26,8 @@ class Throttler:
         while self.running:
             future, cost = self.queue[0]
             cost = self.config['defaultCost'] if cost is None else cost
-            if self.config['capacity'] > 0:
-                self.config['capacity'] -= cost
+            if self.config['tokens'] > 0:
+                self.config['tokens'] -= cost
                 future.set_result(None)
                 self.queue.popleft()
                 # context switch
@@ -38,12 +39,12 @@ class Throttler:
                 now = time() * 1000
                 elapsed = now - last_timestamp
                 last_timestamp = now
-                self.config['capacity'] += elapsed * self.config['refillRate']
+                self.config['tokens'] += min(elapsed * self.config['refillRate'], self.config['capacity'])
 
     def __call__(self, cost=None):
         future = asyncio.Future()
-        if len(self.queue) > self.config['maxCapacity']:
-            raise RuntimeError('throttle queue is over maxCapacity')
+        if len(self.queue) > self.config['maxtokens']:
+            raise RuntimeError('throttle queue is over maxtokens')
         self.queue.append((future, cost))
         if not self.running:
             self.running = True
