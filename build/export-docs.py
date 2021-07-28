@@ -24,8 +24,8 @@ for file in files:
     remove_newline = re.sub(r'\n(Supported Cryptocurrency Exchange Markets)', r'\1', remove_sublinks)
     add_space = re.sub(r'^\*', r' *', remove_newline, flags=re.MULTILINE)
     fix_list = re.sub(r'^   `', r'\n   `', add_space, flags=re.MULTILINE)
-    fix_table = re.sub(r' {5}\n\n\n', '     -\n\n\n', fix_list)
+    # fix_table = re.sub(r' {5}\n\n\n', '     -\n\n\n', fix_list)
     basename = os.path.basename(file)
     lowername = basename.lower()
     with open('./doc/' + lowername + '.rst', 'w') as f:
-        f.write(fix_table)
+        f.write(fix_list)
