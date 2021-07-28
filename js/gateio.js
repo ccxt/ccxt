@@ -792,7 +792,6 @@ module.exports = class gateio extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'currency_pair': market['id'],
