@@ -202,6 +202,7 @@ module.exports = class bitfinex extends Exchange {
                     // to be reimplemented with bitfinex funding fees from their API or web endpoints
                     'deposit': {},
                     'withdraw': {},
+                },
             },
             // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
             'commonCurrencies': {
