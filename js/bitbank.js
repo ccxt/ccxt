@@ -468,16 +468,15 @@ module.exports = class bitbank extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (price === undefined) {
-            throw new InvalidOrder (this.id + ' createOrder() requires a price argument for both market and limit orders');
-        }
         const request = {
             'pair': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
             'side': side,
             'type': type,
         };
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         const response = await this.privatePostUserSpotOrder (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
