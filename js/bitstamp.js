@@ -224,17 +224,7 @@ module.exports = class bitstamp extends Exchange {
                 'funding': {
                     'tierBased': false,
                     'percentage': false,
-                    'withdraw': {
-                        'BTC': 0.0005,
-                        'BCH': 0.0001,
-                        'LTC': 0.001,
-                        'ETH': 0.001,
-                        'XRP': 0.02,
-                        'XLM': 0.005,
-                        'PAX': 0.5,
-                        'USD': 25,
-                        'EUR': 3.0,
-                    },
+                    'withdraw': {},
                     'deposit': {
                         'BTC': 0,
                         'BCH': 0,
