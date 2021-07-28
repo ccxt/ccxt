@@ -12,10 +12,10 @@ class Throttler:
         self.config = {
             'refillRate': 1.0,
             'delay': 0.001,
-            'defaultCost': 1.0,
+            'cost': 1.0,
             'tokens': 0,
-            'maxCapacity': 1000.0,
-            'capacity': 1200,
+            'maxCapacity': 1000,
+            'capacity': 1200.0,
         }
         self.config.update(config)
         self.queue = collections.deque()
@@ -25,7 +25,7 @@ class Throttler:
         last_timestamp = time() * 1000
         while self.running:
             future, cost = self.queue[0]
-            cost = self.config['defaultCost'] if cost is None else cost
+            cost = self.config['cost'] if cost is None else cost
             if self.config['tokens'] > 0:
                 self.config['tokens'] -= cost
                 future.set_result(None)
