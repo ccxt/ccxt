@@ -85,14 +85,13 @@ for i, case in enumerate(test_cases, 1):
 
 
 async def schedule(case):
-    # 😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏
-    thot = Throttle({
+    throttle = Throttle({
         'capacity': case['capacity'],
         'refillRate': case['refillRate'],
     })
     start = time.perf_counter_ns()
     for i in range(case['runs']):
-        await thot(case['cost'])
+        await throttle(case['cost'])
     end = time.perf_counter_ns()
     elapsed_ms = (end - start) / 1000000
     result = abs(case['expected'] - elapsed_ms) < delta
