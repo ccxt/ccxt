@@ -52,9 +52,13 @@ class Exchange(BaseExchange):
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
         super(Exchange, self).__init__(config)
-        self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
+        self.throttle = None
+        self.init_rest_rate_limiter()
         self.markets_loading = None
         self.reloading_markets = False
+
+    def init_rest_rate_limiter(self):
+        self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
 
     def __del__(self):
         if self.session is not None:
