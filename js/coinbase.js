@@ -1137,13 +1137,19 @@ module.exports = class coinbase extends Exchange {
         }
         const url = this.urls['api'] + fullPath;
         if (api === 'private') {
-            this.checkRequiredCredentials ();
-            if (this.token) {
+            const authorization = this.safeString (this.headers, 'Authorization');
+            if (authorization !== undefined) {
+                headers = {
+                    'Authorization': authorization,
+                    'Content-Type': 'application/json',
+                };
+            } else if (this.token) {
                 headers = {
                     'Authorization': 'Bearer ' + this.token,
                     'Content-Type': 'application/json',
                 };
             } else {
+                this.checkRequiredCredentials ();
                 const nonce = this.nonce ().toString ();
                 let payload = '';
                 if (method !== 'GET') {
