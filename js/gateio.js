@@ -1141,15 +1141,65 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersHelper ('open', symbol, since, limit, params);
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            const request = {
+                // 'page': 1,
+                // 'limit': limit,
+                // 'account': '', // spot/margin (default), cross_margin
+            };
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            const response = await this.privateGetSpotOpenOrders (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "currency_pair": "ETH_BTC",
+            //             "total": 1,
+            //             "orders": [
+            //                 {
+            //                     "id": "12332324",
+            //                     "text": "t-123456",
+            //                     "create_time": "1548000000",
+            //                     "update_time": "1548000100",
+            //                     "currency_pair": "ETH_BTC",
+            //                     "status": "open",
+            //                     "type": "limit",
+            //                     "account": "spot",
+            //                     "side": "buy",
+            //                     "amount": "1",
+            //                     "price": "5.00032",
+            //                     "time_in_force": "gtc",
+            //                     "left": "0.5",
+            //                     "filled_total": "2.50016",
+            //                     "fee": "0.005",
+            //                     "fee_currency": "ETH",
+            //                     "point_fee": "0",
+            //                     "gt_fee": "0",
+            //                     "gt_discount": false,
+            //                     "rebated_fee": "0",
+            //                     "rebated_fee_currency": "BTC"
+            //                 }
+            //             ]
+            //         }
+            //     ]
+            //
+            const orders = this.safeValue (response, 'orders', []);
+            return this.parseOrders (orders, undefined, since, limit);
+        }
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersHelper ('finished', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
     }
 
-    async fetchOrdersHelper (status, symbol, since, limit, params = {}) {
+    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatusr requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request = {
             'currency_pair': market['id'],
