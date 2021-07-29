@@ -1007,7 +1007,9 @@ class gateio(Exchange):
         return self.parse_order(response, market)
 
     def parse_order(self, order, market=None):
+        #
         # createOrder
+        #
         #     {
         #       "id": "62364648575",
         #       "text": "apiv4",
@@ -1036,11 +1038,14 @@ class gateio(Exchange):
         #       "rebated_fee_currency": "USDT"
         #     }
         #
+        #
         id = self.safe_string(order, 'id')
         marketId = self.safe_string(order, 'currency_pair')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_integer(order, 'create_time_ms')
-        lastTradeTimestamp = self.safe_integer(order, 'update_time_ms')
+        timestamp = self.safe_timestamp(order, 'create_time')
+        timestamp = self.safe_integer(order, 'create_time_ms', timestamp)
+        lastTradeTimestamp = self.safe_timestamp(order, 'update_time')
+        lastTradeTimestamp = self.safe_integer(order, 'update_time_ms', lastTradeTimestamp)
         amount = self.safe_number(order, 'amount')
         price = self.safe_number(order, 'price')
         remaining = self.safe_number(order, 'left')
@@ -1113,7 +1118,7 @@ class gateio(Exchange):
             }
             if limit is not None:
                 request['limit'] = limit
-            response = self.privateGetSpotOpenOrders(self.extend(request, params))
+            response = self.privateSpotGetOpenOrders(self.extend(request, params))
             #
             #     [
             #         {
@@ -1144,11 +1149,17 @@ class gateio(Exchange):
             #                     "rebated_fee_currency": "BTC"
             #                 }
             #             ]
-            #         }
+            #         },
+            #         ...
             #     ]
             #
-            orders = self.safe_value(response, 'orders', [])
-            return self.parse_orders(orders, None, since, limit)
+            allOrders = []
+            for i in range(0, response.lnegth):
+                entry = response[i]
+                orders = self.safe_value(entry, 'orders', [])
+                parsed = self.parse_orders(orders, None, since, limit)
+                allOrders = self.array_concat(allOrders, parsed)
+            return self.filter_by_since_limit(allOrders, since, limit)
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):

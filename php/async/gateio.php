@@ -1045,7 +1045,9 @@ class gateio extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
         // createOrder
+        //
         //     {
         //       "$id" => "62364648575",
         //       "text" => "apiv4",
@@ -1074,11 +1076,14 @@ class gateio extends Exchange {
         //       "rebated_fee_currency" => "USDT"
         //     }
         //
+        //
         $id = $this->safe_string($order, 'id');
         $marketId = $this->safe_string($order, 'currency_pair');
         $symbol = $this->safe_symbol($marketId, $market);
-        $timestamp = $this->safe_integer($order, 'create_time_ms');
-        $lastTradeTimestamp = $this->safe_integer($order, 'update_time_ms');
+        $timestamp = $this->safe_timestamp($order, 'create_time');
+        $timestamp = $this->safe_integer($order, 'create_time_ms', $timestamp);
+        $lastTradeTimestamp = $this->safe_timestamp($order, 'update_time');
+        $lastTradeTimestamp = $this->safe_integer($order, 'update_time_ms', $lastTradeTimestamp);
         $amount = $this->safe_number($order, 'amount');
         $price = $this->safe_number($order, 'price');
         $remaining = $this->safe_number($order, 'left');
@@ -1156,14 +1161,14 @@ class gateio extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = yield $this->privateGetSpotOpenOrders (array_merge($request, $params));
+            $response = yield $this->privateSpotGetOpenOrders (array_merge($request, $params));
             //
             //     array(
             //         {
             //             "currency_pair" => "ETH_BTC",
             //             "total" => 1,
             //             "$orders" => array(
-            //                 {
+            //                 array(
             //                     "id" => "12332324",
             //                     "text" => "t-123456",
             //                     "create_time" => "1548000000",
@@ -1187,11 +1192,18 @@ class gateio extends Exchange {
             //                     "rebated_fee_currency" => "BTC"
             //                 }
             //             )
-            //         }
+            //         ),
+            //         ...
             //     )
             //
-            $orders = $this->safe_value($response, 'orders', array());
-            return $this->parse_orders($orders, null, $since, $limit);
+            $allOrders = array();
+            for ($i = 0; $i < $response->lnegth; $i++) {
+                $entry = $response[$i];
+                $orders = $this->safe_value($entry, 'orders', array());
+                $parsed = $this->parse_orders($orders, null, $since, $limit);
+                $allOrders = $this->array_concat($allOrders, $parsed);
+            }
+            return $this->filter_by_since_limit($allOrders, $since, $limit);
         }
         return yield $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
