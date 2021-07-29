@@ -147,8 +147,8 @@ module.exports = class aax extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.06 / 100,
-                    'taker': 0.10 / 100,
+                    'maker': this.parseNumber ('0.0006'),
+                    'taker': this.parseNumber ('0.001'),
                 },
                 'funding': {
                     'tierBased': false,
