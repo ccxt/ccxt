@@ -1139,23 +1139,36 @@ class coinbase extends Exchange {
         }
         $url = $this->urls['api'] . $fullPath;
         if ($api === 'private') {
-            $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
-            $payload = '';
-            if ($method !== 'GET') {
-                if ($query) {
-                    $body = $this->json($query);
-                    $payload = $body;
+            $authorization = $this->safe_string($this->headers, 'Authorization');
+            if ($authorization !== null) {
+                $headers = array(
+                    'Authorization' => $authorization,
+                    'Content-Type' => 'application/json',
+                );
+            } else if ($this->token) {
+                $headers = array(
+                    'Authorization' => 'Bearer ' . $this->token,
+                    'Content-Type' => 'application/json',
+                );
+            } else {
+                $this->check_required_credentials();
+                $nonce = (string) $this->nonce();
+                $payload = '';
+                if ($method !== 'GET') {
+                    if ($query) {
+                        $body = $this->json($query);
+                        $payload = $body;
+                    }
                 }
+                $auth = $nonce . $method . $fullPath . $payload;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                $headers = array(
+                    'CB-ACCESS-KEY' => $this->apiKey,
+                    'CB-ACCESS-SIGN' => $signature,
+                    'CB-ACCESS-TIMESTAMP' => $nonce,
+                    'Content-Type' => 'application/json',
+                );
             }
-            $auth = $nonce . $method . $fullPath . $payload;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
-            $headers = array(
-                'CB-ACCESS-KEY' => $this->apiKey,
-                'CB-ACCESS-SIGN' => $signature,
-                'CB-ACCESS-TIMESTAMP' => $nonce,
-                'Content-Type' => 'application/json',
-            );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
