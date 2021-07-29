@@ -1154,7 +1154,7 @@ class gateio(Exchange):
             #     ]
             #
             allOrders = []
-            for i in range(0, response.lnegth):
+            for i in range(0, len(response)):
                 entry = response[i]
                 orders = self.safe_value(entry, 'orders', [])
                 parsed = self.parse_orders(orders, None, since, limit)
@@ -1168,7 +1168,7 @@ class gateio(Exchange):
     def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrdersByStatusr requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus requires a symbol argument')
         market = self.market(symbol)
         request = {
             'currency_pair': market['id'],

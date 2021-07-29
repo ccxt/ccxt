@@ -1197,7 +1197,7 @@ class gateio extends Exchange {
             //     )
             //
             $allOrders = array();
-            for ($i = 0; $i < $response->lnegth; $i++) {
+            for ($i = 0; $i < count($response); $i++) {
                 $entry = $response[$i];
                 $orders = $this->safe_value($entry, 'orders', array());
                 $parsed = $this->parse_orders($orders, null, $since, $limit);
@@ -1215,7 +1215,7 @@ class gateio extends Exchange {
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatusr requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus requires a $symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
