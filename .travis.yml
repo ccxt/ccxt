@@ -25,10 +25,8 @@ before_install:
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - git pull --tags
-- composer self-update --2
-- composer --version
 - composer install
-- composer require --ignore-platform-reqs react/http:"^1.4.0" recoil/react:"1.0.2"
+- composer require --ignore-platform-reqs react/http:"^1.2.0" recoil/react:"1.0.2"
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - npm run force-build
