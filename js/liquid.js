@@ -224,6 +224,15 @@ module.exports = class liquid extends Exchange {
         //             depositable: true,
         //             withdrawable: true,
         //             discount_fee: 0.5,
+        //             credit_card_fundable: false,
+        //             lendable: false,
+        //             position_fundable: true,
+        //             has_memo: false,
+        //             stable_currency: null,
+        //             root_currency: 'USD',
+        //             minimum_loan_bid_quantity: '0.0',
+        //             maximum_order_taker_quantity: null,
+        //             name: 'United States Dollar'
         //         },
         //     ]
         //
@@ -232,13 +241,14 @@ module.exports = class liquid extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
             const active = currency['depositable'] && currency['withdrawable'];
             const amountPrecision = this.safeInteger (currency, 'assets_precision');
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': code,
+                'name': name,
                 'active': active,
                 'fee': this.safeNumber (currency, 'withdrawal_fee'),
                 'precision': amountPrecision,
