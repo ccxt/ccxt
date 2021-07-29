@@ -158,6 +158,7 @@ class bigone(Exchange):
                 },
             },
             'commonCurrencies': {
+                'FXT': 'FXTTOKEN',
                 'MBN': 'Mobilian Coin',
                 'ONE': 'BigONE Token',
             },
