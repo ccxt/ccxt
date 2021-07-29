@@ -87,8 +87,6 @@ for ($i = 0; $i < count($test_cases); $i++) {
 
 $kernel = ReactKernel::create(Loop::get());
 
-$x = 5;
-
 $scheduler = function ($case) use ($kernel, $delta) {
     $throttle = new Throttle(array(
         'refillRate' => $case['refillRate'],
