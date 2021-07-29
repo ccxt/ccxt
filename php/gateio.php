@@ -1145,15 +1145,65 @@ class gateio extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_helper('open', $symbol, $since, $limit, $params);
+        $this->load_markets();
+        if ($symbol === null) {
+            $request = array(
+                // 'page' => 1,
+                // 'limit' => $limit,
+                // 'account' => '', // spot/margin (default), cross_margin
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = $this->privateGetSpotOpenOrders (array_merge($request, $params));
+            //
+            //     array(
+            //         {
+            //             "currency_pair" => "ETH_BTC",
+            //             "total" => 1,
+            //             "$orders" => array(
+            //                 {
+            //                     "id" => "12332324",
+            //                     "text" => "t-123456",
+            //                     "create_time" => "1548000000",
+            //                     "update_time" => "1548000100",
+            //                     "currency_pair" => "ETH_BTC",
+            //                     "status" => "open",
+            //                     "type" => "$limit",
+            //                     "account" => "spot",
+            //                     "side" => "buy",
+            //                     "amount" => "1",
+            //                     "price" => "5.00032",
+            //                     "time_in_force" => "gtc",
+            //                     "left" => "0.5",
+            //                     "filled_total" => "2.50016",
+            //                     "fee" => "0.005",
+            //                     "fee_currency" => "ETH",
+            //                     "point_fee" => "0",
+            //                     "gt_fee" => "0",
+            //                     "gt_discount" => false,
+            //                     "rebated_fee" => "0",
+            //                     "rebated_fee_currency" => "BTC"
+            //                 }
+            //             )
+            //         }
+            //     )
+            //
+            $orders = $this->safe_value($response, 'orders', array());
+            return $this->parse_orders($orders, null, $since, $limit);
+        }
+        return $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_helper('finished', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_orders_helper($status, $symbol, $since, $limit, $params = array ()) {
+    public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatusr requires a $symbol argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'currency_pair' => $market['id'],
