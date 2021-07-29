@@ -336,7 +336,6 @@ module.exports = class Exchange {
     }
 
     checkRequiredCredentials (error = true) {
-        if (this.token) return true;
         const keys = Object.keys (this.requiredCredentials)
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i]
