@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "626d5d283fc5ae8aa039c1bdc137c09d",
+    "content-hash": "63291723a866b6e748ada56879027414",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.53.78",
+            "version": "1.53.80",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "52b4ebe39687b33146068b8c9eaa6f8187e1ec66"
+                "reference": "a0f157b2ec9d409158d6e8905e6e2fae7dc03a88"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/52b4ebe39687b33146068b8c9eaa6f8187e1ec66",
-                "reference": "52b4ebe39687b33146068b8c9eaa6f8187e1ec66",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/a0f157b2ec9d409158d6e8905e6e2fae7dc03a88",
+                "reference": "a0f157b2ec9d409158d6e8905e6e2fae7dc03a88",
                 "shasum": ""
             },
             "require": {
@@ -280,7 +280,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.53.78"
+                "source": "https://github.com/ccxt/ccxt/tree/1.53.80"
             },
             "funding": [
                 {
@@ -288,7 +288,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2021-07-28T22:54:23+00:00"
+            "time": "2021-07-29T03:30:56+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -1674,16 +1674,16 @@
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.23.0",
+            "version": "v1.23.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "2df51500adbaebdc4c38dea4c89a2e131c45c8a1"
+                "reference": "9174a3d80210dca8daa7f31fec659150bbeabfc6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/2df51500adbaebdc4c38dea4c89a2e131c45c8a1",
-                "reference": "2df51500adbaebdc4c38dea4c89a2e131c45c8a1",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/9174a3d80210dca8daa7f31fec659150bbeabfc6",
+                "reference": "9174a3d80210dca8daa7f31fec659150bbeabfc6",
                 "shasum": ""
             },
             "require": {
@@ -1734,7 +1734,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.23.0"
+                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.23.1"
             },
             "funding": [
                 {
@@ -1750,7 +1750,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-05-27T09:27:20+00:00"
+            "time": "2021-05-27T12:26:48+00:00"
         }
     ],
     "packages-dev": [],
