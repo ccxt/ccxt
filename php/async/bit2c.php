@@ -85,8 +85,8 @@ class bit2c extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.5 / 100,
-                    'taker' => 0.5 / 100,
+                    'maker' => $this->parse_number('0.005'),
+                    'taker' => $this->parse_number('0.005'),
                 ),
             ),
             'options' => array(

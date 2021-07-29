@@ -108,8 +108,8 @@ class bigone(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.001'),
                 },
                 'funding': {
                     # HARDCODING IS DEPRECATED THE FEES BELOW ARE TO BE REMOVED SOON

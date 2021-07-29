@@ -110,8 +110,8 @@ module.exports = class coincheck extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0,
-                    'taker': 0,
+                    'maker': this.parseNumber ('0'),
+                    'taker': this.parseNumber ('0'),
                 },
             },
         });

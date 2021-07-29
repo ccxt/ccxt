@@ -89,8 +89,8 @@ class bithumb(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.25 / 100,
-                    'taker': 0.25 / 100,
+                    'maker': self.parse_number('0.0025'),
+                    'taker': self.parse_number('0.0025'),
                 },
             },
             'precisionMode': SIGNIFICANT_DIGITS,

@@ -141,8 +141,8 @@ class bitbay(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0,
-                    'taker': 0.1 / 100,
+                    'maker': self.parse_number('0.0'),
+                    'taker': self.parse_number('0.001'),
                     'percentage': True,
                     'tierBased': False,
                 },

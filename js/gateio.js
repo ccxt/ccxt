@@ -803,6 +803,9 @@ module.exports = class gateio extends Exchange {
         const request = {
             'currency_pair': market['id'],
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 1000
+        }
         const response = await this.privateSpotGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }

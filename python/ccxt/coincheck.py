@@ -112,8 +112,8 @@ class coincheck(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0,
-                    'taker': 0,
+                    'maker': self.parse_number('0'),
+                    'taker': self.parse_number('0'),
                 },
             },
         })

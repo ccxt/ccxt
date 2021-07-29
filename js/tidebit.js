@@ -110,8 +110,8 @@ module.exports = class tidebit extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.3 / 100,
-                    'taker': 0.3 / 100,
+                    'maker': this.parseNumber ('0.003'),
+                    'taker': this.parseNumber ('0.003'),
                 },
                 'funding': {
                     'tierBased': false,
