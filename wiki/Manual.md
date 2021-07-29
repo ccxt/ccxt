@@ -3845,6 +3845,7 @@ The type of the ledger entry is the type of the operation associated with it. If
 - `cashback`
 - `referral`
 - `transfer`
+- `airdrop`
 - `whatever`
 - ...
 
