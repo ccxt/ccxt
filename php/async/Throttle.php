@@ -25,7 +25,7 @@ class Throttle {
         $this->kernel = $kernel;
     }
 
-    public function looper() {
+    public function loop() {
         $last_timestamp = microtime(true) * 1000.0;
         while ($this->running) {
             list($future, $cost) = $this->queue->bottom();
@@ -47,8 +47,6 @@ class Throttle {
                 $this->config['tokens'] = min($this->config['tokens'] + ($elapsed * $this->config['refillRate']), $this->config['capacity']);
             }
         }
-
-
     }
 
 
@@ -59,7 +57,7 @@ class Throttle {
         }
         $this->queue->enqueue(array($future, $cost));
         if (!$this->running) {
-            $this->kernel->execute(array($this, 'looper'));
+            $this->kernel->execute(array($this, 'loop'));
             $this->running = true;
         }
         return $future->promise();
