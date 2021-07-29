@@ -1040,7 +1040,9 @@ module.exports = class gateio extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
         // createOrder
+        //
         //     {
         //       "id": "62364648575",
         //       "text": "apiv4",
@@ -1069,11 +1071,14 @@ module.exports = class gateio extends Exchange {
         //       "rebated_fee_currency": "USDT"
         //     }
         //
+        //
         const id = this.safeString (order, 'id');
         const marketId = this.safeString (order, 'currency_pair');
         const symbol = this.safeSymbol (marketId, market);
-        const timestamp = this.safeInteger (order, 'create_time_ms');
-        const lastTradeTimestamp = this.safeInteger (order, 'update_time_ms');
+        let timestamp = this.safeTimestamp (order, 'create_time');
+        timestamp = this.safeInteger (order, 'create_time_ms', timestamp);
+        let lastTradeTimestamp = this.safeTimestamp (order, 'update_time');
+        lastTradeTimestamp = this.safeInteger (order, 'update_time_ms', lastTradeTimestamp);
         const amount = this.safeNumber (order, 'amount');
         const price = this.safeNumber (order, 'price');
         const remaining = this.safeNumber (order, 'left');
@@ -1151,7 +1156,7 @@ module.exports = class gateio extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const response = await this.privateGetSpotOpenOrders (this.extend (request, params));
+            const response = await this.privateSpotGetOpenOrders (this.extend (request, params));
             //
             //     [
             //         {
@@ -1182,11 +1187,18 @@ module.exports = class gateio extends Exchange {
             //                     "rebated_fee_currency": "BTC"
             //                 }
             //             ]
-            //         }
+            //         },
+            //         ...
             //     ]
             //
-            const orders = this.safeValue (response, 'orders', []);
-            return this.parseOrders (orders, undefined, since, limit);
+            let allOrders = [];
+            for (let i = 0; i < response.lnegth; i++) {
+                const entry = response[i];
+                const orders = this.safeValue (entry, 'orders', []);
+                const parsed = this.parseOrders (orders, undefined, since, limit);
+                allOrders = this.arrayConcat (allOrders, parsed);
+            }
+            return this.filterBySinceLimit (allOrders, since, limit);
         }
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
