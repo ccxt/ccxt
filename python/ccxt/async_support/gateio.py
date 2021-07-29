@@ -1104,13 +1104,60 @@ class gateio(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return await self.fetch_orders_helper('open', symbol, since, limit, params)
+        await self.load_markets()
+        if symbol is None:
+            request = {
+                # 'page': 1,
+                # 'limit': limit,
+                # 'account': '',  # spot/margin(default), cross_margin
+            }
+            if limit is not None:
+                request['limit'] = limit
+            response = await self.privateGetSpotOpenOrders(self.extend(request, params))
+            #
+            #     [
+            #         {
+            #             "currency_pair": "ETH_BTC",
+            #             "total": 1,
+            #             "orders": [
+            #                 {
+            #                     "id": "12332324",
+            #                     "text": "t-123456",
+            #                     "create_time": "1548000000",
+            #                     "update_time": "1548000100",
+            #                     "currency_pair": "ETH_BTC",
+            #                     "status": "open",
+            #                     "type": "limit",
+            #                     "account": "spot",
+            #                     "side": "buy",
+            #                     "amount": "1",
+            #                     "price": "5.00032",
+            #                     "time_in_force": "gtc",
+            #                     "left": "0.5",
+            #                     "filled_total": "2.50016",
+            #                     "fee": "0.005",
+            #                     "fee_currency": "ETH",
+            #                     "point_fee": "0",
+            #                     "gt_fee": "0",
+            #                     "gt_discount": False,
+            #                     "rebated_fee": "0",
+            #                     "rebated_fee_currency": "BTC"
+            #                 }
+            #             ]
+            #         }
+            #     ]
+            #
+            orders = self.safe_value(response, 'orders', [])
+            return self.parse_orders(orders, None, since, limit)
+        return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return await self.fetch_orders_helper('finished', symbol, since, limit, params)
+        return await self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
-    async def fetch_orders_helper(self, status, symbol, since, limit, params={}):
+    async def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrdersByStatusr requires a symbol argument')
         market = self.market(symbol)
         request = {
             'currency_pair': market['id'],
