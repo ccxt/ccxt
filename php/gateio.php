@@ -807,6 +807,9 @@ class gateio extends Exchange {
         $request = array(
             'currency_pair' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100, max 1000
+        }
         $response = $this->privateSpotGetMyTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }

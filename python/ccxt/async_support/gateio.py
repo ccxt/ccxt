@@ -791,6 +791,8 @@ class gateio(Exchange):
         request = {
             'currency_pair': market['id'],
         }
+        if limit is not None:
+            request['limit'] = limit  # default 100, max 1000
         response = await self.privateSpotGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
