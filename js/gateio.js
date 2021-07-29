@@ -1192,7 +1192,7 @@ module.exports = class gateio extends Exchange {
             //     ]
             //
             let allOrders = [];
-            for (let i = 0; i < response.lnegth; i++) {
+            for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
                 const orders = this.safeValue (entry, 'orders', []);
                 const parsed = this.parseOrders (orders, undefined, since, limit);
@@ -1210,7 +1210,7 @@ module.exports = class gateio extends Exchange {
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatusr requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument');
         }
         const market = this.market (symbol);
         const request = {
