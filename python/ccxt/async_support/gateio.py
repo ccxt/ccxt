@@ -637,12 +637,14 @@ class gateio(Exchange):
             'deposit': {},
         }
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'currency_pair': market['id'],
         }
+        if limit is not None:
+            request['limit'] = limit  # default 10, max 100
         response = await self.publicSpotGetOrderBook(self.extend(request, params))
         timestamp = self.safe_integer(response, 'current')
         return self.parse_order_book(response, symbol, timestamp)
