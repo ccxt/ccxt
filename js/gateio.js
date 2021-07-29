@@ -637,12 +637,15 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'currency_pair': market['id'],
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 10, max 100
+        }
         const response = await this.publicSpotGetOrderBook (this.extend (request, params));
         const timestamp = this.safeInteger (response, 'current');
         return this.parseOrderBook (response, symbol, timestamp);

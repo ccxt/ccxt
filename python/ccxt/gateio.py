@@ -38,6 +38,10 @@ class gateio(Exchange):
                     'public': 'https://api.gateio.ws/api/v4',
                     'private': 'https://api.gateio.ws/api/v4',
                 },
+                'referral': {
+                    'url': 'https://www.gate.io/ref/2436035',
+                    'discount': 0.2,
+                },
             },
             'has': {
                 'fetchMarkets': True,
