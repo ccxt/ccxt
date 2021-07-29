@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.53.80'
+__version__ = '1.53.82'
 
 # -----------------------------------------------------------------------------
 
@@ -2072,16 +2072,6 @@ class Exchange(object):
             raise ExchangeError(self.id + ' set .twofa to use this feature')
 
     @staticmethod
-    def decimal_to_bytes(n, endian='big'):
-        """int.from_bytes and int.to_bytes don't work in python2"""
-        if n > 0:
-            next_byte = Exchange.decimal_to_bytes(n // 0x100, endian)
-            remainder = bytes([n % 0x100])
-            return next_byte + remainder if endian == 'big' else remainder + next_byte
-        else:
-            return b''
-
-    @staticmethod
     def totp(key):
         def hex_to_dec(n):
             return int(n, base=16)
@@ -2093,18 +2083,18 @@ class Exchange(object):
             return base64.b32decode(padded)  # throws an error if the key is invalid
 
         epoch = int(time.time()) // 30
-        hmac_res = Exchange.hmac(Exchange.decimal_to_bytes(epoch, 'big'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
+        hmac_res = Exchange.hmac(epoch.to_bytes(8, 'big'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
 
     @staticmethod
     def number_to_le(n, size):
-        return Exchange.decimal_to_bytes(int(n), 'little').ljust(size, b'\x00')
+        return int(n).to_bytes(size, 'little')
 
     @staticmethod
     def number_to_be(n, size):
-        return Exchange.decimal_to_bytes(int(n), 'big').rjust(size, b'\x00')
+        return int(n).to_bytes(size, 'big')
 
     @staticmethod
     def base16_to_binary(s):
@@ -2130,7 +2120,7 @@ class Exchange(object):
         for i in range(len(s)):
             result *= 58
             result += Exchange.base58_decoder[s[i]]
-        return Exchange.decimal_to_bytes(result)
+        return result.to_bytes((result.bit_length() + 7) // 8, 'big')
 
     @staticmethod
     def binary_to_base58(b):

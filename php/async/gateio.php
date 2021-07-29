@@ -642,12 +642,15 @@ class gateio extends Exchange {
         );
     }
 
-    public function fetch_order_book($symbol, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'currency_pair' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 10, max 100
+        }
         $response = yield $this->publicSpotGetOrderBook (array_merge($request, $params));
         $timestamp = $this->safe_integer($response, 'current');
         return $this->parse_order_book($response, $symbol, $timestamp);
