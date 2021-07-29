@@ -2120,7 +2120,7 @@ class Exchange(object):
         for i in range(len(s)):
             result *= 58
             result += Exchange.base58_decoder[s[i]]
-        return result.to_bytes(result.bit_length() + 7 // 8, 'big')
+        return result.to_bytes((result.bit_length() + 7) // 8, 'big')
 
     @staticmethod
     def binary_to_base58(b):
