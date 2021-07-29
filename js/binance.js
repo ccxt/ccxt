@@ -2562,7 +2562,6 @@ module.exports = class binance extends Exchange {
         const amount = this.parseNumber (amountString);
         const price = this.parseNumber (priceString);
         const cost = this.parseNumber (costString);
-        const id = orderId;
         const type = undefined;
         const takerOrMaker = undefined;
         return {
