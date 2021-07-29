@@ -88,8 +88,8 @@ class bw(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'taker': 0.2 / 100,
-                    'maker': 0.2 / 100,
+                    'taker': self.parse_number('0.002'),
+                    'maker': self.parse_number('0.002'),
                 },
                 'funding': {
                 },

@@ -132,8 +132,8 @@ class poloniex(Exchange):
                 'trading': {
                     'feeSide': 'get',
                     # starting from Jan 8 2020
-                    'maker': 0.0009,
-                    'taker': 0.0009,
+                    'maker': self.parse_number('0.0009'),
+                    'taker': self.parse_number('0.0009'),
                 },
                 'funding': {},
             },

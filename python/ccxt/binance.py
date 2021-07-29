@@ -571,8 +571,8 @@ class binance(Exchange):
                     'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
-                    'taker': 0.001,
-                    'maker': 0.001,
+                    'taker': self.parse_number('0.001'),
+                    'maker': self.parse_number('0.001'),
                 },
                 'future': {
                     'trading': {

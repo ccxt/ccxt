@@ -103,8 +103,8 @@ class novadax extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => 0.5 / 100,
-                    'maker' => 0.3 / 100,
+                    'taker' => $this->parse_number('0.005'),
+                    'maker' => $this->parse_number('0.003'),
                 ),
             ),
             'requiredCredentials' => array(

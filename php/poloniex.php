@@ -119,8 +119,8 @@ class poloniex extends Exchange {
                 'trading' => array(
                     'feeSide' => 'get',
                     // starting from Jan 8 2020
-                    'maker' => 0.0009,
-                    'taker' => 0.0009,
+                    'maker' => $this->parse_number('0.0009'),
+                    'taker' => $this->parse_number('0.0009'),
                 ),
                 'funding' => array(),
             ),

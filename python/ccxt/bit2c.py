@@ -95,8 +95,8 @@ class bit2c(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.5 / 100,
-                    'taker': 0.5 / 100,
+                    'maker': self.parse_number('0.005'),
+                    'taker': self.parse_number('0.005'),
                 },
             },
             'options': {

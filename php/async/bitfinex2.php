@@ -229,8 +229,39 @@ class bitfinex2 extends bitfinex {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.1 / 100,
-                    'taker' => 0.2 / 100,
+                    'feeSide' => 'get',
+                    'percentage' => true,
+                    'tierBased' => true,
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.002'),
+                    'tiers' => array(
+                        'taker' => [
+                            [$this->parse_number('0'), $this->parse_number('0.002')],
+                            [$this->parse_number('500000'), $this->parse_number('0.002')],
+                            [$this->parse_number('1000000'), $this->parse_number('0.002')],
+                            [$this->parse_number('2500000'), $this->parse_number('0.002')],
+                            [$this->parse_number('5000000'), $this->parse_number('0.002')],
+                            [$this->parse_number('7500000'), $this->parse_number('0.002')],
+                            [$this->parse_number('10000000'), $this->parse_number('0.0018')],
+                            [$this->parse_number('15000000'), $this->parse_number('0.0016')],
+                            [$this->parse_number('20000000'), $this->parse_number('0.0014')],
+                            [$this->parse_number('25000000'), $this->parse_number('0.0012')],
+                            [$this->parse_number('30000000'), $this->parse_number('0.001')],
+                        ],
+                        'maker' => [
+                            [$this->parse_number('0'), $this->parse_number('0.001')],
+                            [$this->parse_number('500000'), $this->parse_number('0.0008')],
+                            [$this->parse_number('1000000'), $this->parse_number('0.0006')],
+                            [$this->parse_number('2500000'), $this->parse_number('0.0004')],
+                            [$this->parse_number('5000000'), $this->parse_number('0.0002')],
+                            [$this->parse_number('7500000'), $this->parse_number('0')],
+                            [$this->parse_number('10000000'), $this->parse_number('0')],
+                            [$this->parse_number('15000000'), $this->parse_number('0')],
+                            [$this->parse_number('20000000'), $this->parse_number('0')],
+                            [$this->parse_number('25000000'), $this->parse_number('0')],
+                            [$this->parse_number('30000000'), $this->parse_number('0')],
+                        ],
+                    ),
                 ),
                 'funding' => array(
                     'withdraw' => array(

@@ -170,12 +170,12 @@ class bitget extends Exchange {
             ),
             'fees' => array(
                 'spot' => array(
-                    'taker' => 0.002,
-                    'maker' => 0.002,
+                    'taker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('0.002'),
                 ),
                 'swap' => array(
-                    'taker' => 0.0006,
-                    'maker' => 0.0004,
+                    'taker' => $this->parse_number('0.0006'),
+                    'maker' => $this->parse_number('0.0004'),
                 ),
             ),
             'requiredCredentials' => array(

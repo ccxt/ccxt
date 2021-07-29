@@ -129,8 +129,8 @@ class bitbay extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.0,
-                    'taker' => 0.1 / 100,
+                    'maker' => $this->parse_number('0.0'),
+                    'taker' => $this->parse_number('0.001'),
                     'percentage' => true,
                     'tierBased' => false,
                 ),
