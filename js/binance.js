@@ -2466,7 +2466,7 @@ module.exports = class binance extends Exchange {
         const request = {};
         if (since !== undefined) {
             request['startTime'] = since;
-            request['endTime'] = this.sum (since, 90 * 24 * 60 * 60 * 1000);
+            request['endTime'] = this.sum (since, 7776000000);
         }
         const response = await this.wapiGetUserAssetDribbletLog (this.extend (request, params));
         //
@@ -2559,7 +2559,7 @@ module.exports = class binance extends Exchange {
         let priceString = undefined;
         if (costString !== undefined) {
             if (amountString) {
-                priceString = this.priceToPrecision (symbol, Precise.stringDiv (costString, amountString));
+                priceString = Precise.stringDiv (costString, amountString);
             }
         }
         const amount = this.parseNumber (amountString);
