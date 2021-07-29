@@ -2559,6 +2559,7 @@ module.exports = class binance extends Exchange {
                 priceString = Precise.stringDiv (costString, amountString);
             }
         }
+        const id = undefined;
         const amount = this.parseNumber (amountString);
         const price = this.parseNumber (priceString);
         const cost = this.parseNumber (costString);
