@@ -2528,7 +2528,7 @@ class okex(Exchange):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         contractsString = self.safe_string(position, 'availPos')
-        contracts = int(contractsString)
+        contracts = int(self.parse_number(contractsString))
         notionalString = self.safe_string(position, 'notionalUsd')
         notional = self.parse_number(notionalString)
         marginType = self.safe_string(position, 'mgnMode')
