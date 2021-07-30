@@ -197,18 +197,7 @@ class bitbay(Exchange):
                     },
                 },
                 'funding': {
-                    'withdraw': {
-                        'BTC': 0.0009,
-                        'LTC': 0.005,
-                        'ETH': 0.00126,
-                        'LSK': 0.2,
-                        'BCH': 0.0006,
-                        'GAME': 0.005,
-                        'DASH': 0.001,
-                        'BTG': 0.0008,
-                        'PLN': 4,
-                        'EUR': 1.5,
-                    },
+                    'withdraw': {},
                 },
             },
             'options': {
