@@ -274,7 +274,7 @@ module.exports = class gateio extends Exchange {
                     'delivery': 'delivery',
                 },
             },
-            'fee': {
+            'fees': {
                 'trading': {
                     'tierBased': true,
                     'feeSide': 'get',
