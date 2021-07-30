@@ -44,6 +44,7 @@ module.exports = class crex24 extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false, // actually, true, but will be implemented later
                 'fetchTradingFees': false, // actually, true, but will be implemented later
+                'fetchFundingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -77,6 +78,10 @@ module.exports = class crex24 extends Exchange {
                         'recentTrades',
                         'orderBook',
                         'ohlcv',
+                        'tradingFeeSchedules',
+                        'withdrawalFees',
+                        'currencyTransport',
+                        'currenciesWithdrawalFees',
                     ],
                 },
                 'trading': {
@@ -86,9 +91,8 @@ module.exports = class crex24 extends Exchange {
                         'activeOrders',
                         'orderHistory',
                         'tradeHistory',
-                        'tradeFee',
-                        // this is in trading API according to their docs, but most likely a typo in their docs
-                        'moneyTransferStatus',
+                        'tradingFee',
+                        'tradeFee', // The support of this method has been dropped on February 18, 2020. Please, use tradingFee method instead. https://docs.crex24.com/trade-api/v2/#trade-fee-and-rebate-discontinued
                     ],
                     'post': [
                         'placeOrder',
@@ -103,7 +107,6 @@ module.exports = class crex24 extends Exchange {
                         'balance',
                         'depositAddress',
                         'moneyTransfers',
-                        // this is in trading API according to their docs, but most likely a typo in their docs
                         'moneyTransferStatus',
                         'previewWithdrawal',
                     ],
@@ -337,6 +340,49 @@ module.exports = class crex24 extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchFundingFees (codes = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetCurrenciesWithdrawalFees (params);
+        //
+        //     [
+        //         {
+        //             currency: '1INCH',
+        //             fees: [
+        //                 { feeCurrency: 'BTC', amount: 0.00032 },
+        //                 { feeCurrency: 'ETH', amount: 0.0054 },
+        //                 { feeCurrency: 'DOGE', amount: 63.06669 },
+        //                 { feeCurrency: 'LTC', amount: 0.0912 },
+        //                 { feeCurrency: 'BCH', amount: 0.02364 },
+        //                 { feeCurrency: 'USDT', amount: 12.717 },
+        //                 { feeCurrency: 'USDC', amount: 12.7367 },
+        //                 { feeCurrency: 'TRX', amount: 205.99108 },
+        //                 { feeCurrency: 'EOS', amount: 3.30141 }
+        //             ]
+        //         }
+        //     ]
+        //
+        const withdrawFees = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencyId = this.safeString (entry, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const networkList = this.safeValue (entry, 'fees');
+            withdrawFees[code] = {};
+            for (let j = 0; j < networkList.length; j++) {
+                const networkEntry = networkList[j];
+                const networkId = this.safeString (networkEntry, 'feeCurrency');
+                const networkCode = this.safeCurrencyCode (networkId);
+                const fee = this.safeNumber (networkEntry, 'amount');
+                withdrawFees[code][networkCode] = fee;
+            }
+        }
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
+            'info': response,
+        };
     }
 
     async fetchBalance (params = {}) {
