@@ -274,6 +274,15 @@ module.exports = class gateio extends Exchange {
                     'delivery': 'delivery',
                 },
             },
+            'fee': {
+                'trading': {
+                    'tierBased': true,
+                    'feeSide': 'get',
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.002'),
+                },
+            },
             // https://www.gate.io/docs/apiv4/en/index.html#label-list
             'exceptions': {
                 'INVALID_PARAM_VALUE': BadRequest,
