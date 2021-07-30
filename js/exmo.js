@@ -541,6 +541,7 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchFundingFees (params = {}) {
+        await this.loadMarkets ();
         let response = undefined;
         if (this.options['useWebapiForFetchingFees']) {
             response = await this.webGetCtrlFeesAndLimits (params);
