@@ -3059,6 +3059,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.sapiGetCapitalConfigGetall (params);
         //
         //  [
