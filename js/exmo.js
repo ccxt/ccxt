@@ -540,8 +540,7 @@ module.exports = class exmo extends Exchange {
         return result;
     }
 
-    async fetchFundingFees (params = {}) {
-        await this.loadMarkets ();
+    async fetchFundingFeesHelper (params = {}) {
         let response = undefined;
         if (this.options['useWebapiForFetchingFees']) {
             response = await this.webGetCtrlFeesAndLimits (params);
@@ -583,8 +582,13 @@ module.exports = class exmo extends Exchange {
         return result;
     }
 
+    async fetchFundingFees (params = {}) {
+        await this.loadMarkets ();
+        return await this.fetchFundingFeesHelper (params);
+    }
+
     async fetchCurrencies (params = {}) {
-        const fees = await this.fetchFundingFees (params);
+        const fees = await this.fetchFundingFeesHelper (params);
         // todo redesign the 'fee' property in currencies
         const ids = Object.keys (fees['withdraw']);
         const limitsByMarketId = this.indexBy (fees['info']['data']['limits'], 'pair');
