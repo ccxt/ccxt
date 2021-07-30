@@ -144,6 +144,7 @@ module.exports = class probit extends Exchange {
             'commonCurrencies': {
                 'AUTO': 'Cube',
                 'BCC': 'BCC',
+                'BDP': 'BidiPass',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'CBC': 'CryptoBharatCoin',
