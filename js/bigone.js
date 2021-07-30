@@ -103,22 +103,7 @@ module.exports = class bigone extends Exchange {
                     'taker': this.parseNumber ('0.001'),
                 },
                 'funding': {
-                    // HARDCODING IS DEPRECATED THE FEES BELOW ARE TO BE REMOVED SOON
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'ETH': 0.005,
-                        'EOS': 0.01,
-                        'ZEC': 0.003,
-                        'LTC': 0.01,
-                        'QTUM': 0.01,
-                        // 'INK': 0.01 QTUM,
-                        // 'BOT': 0.01 QTUM,
-                        'ETC': 0.01,
-                        'GAS': 0.0,
-                        'BTS': 1.0,
-                        'GXS': 0.1,
-                        'BITCNY': 19.0,
-                    },
+                    'withdraw': {},
                 },
             },
             'exceptions': {
