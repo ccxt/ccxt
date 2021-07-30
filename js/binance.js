@@ -2146,7 +2146,7 @@ module.exports = class binance extends Exchange {
                 if (quoteOrderQty !== undefined) {
                     request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
                     params = this.omit (params, 'quoteOrderQty');
-                } else if (price !== undefined) {
+                } else if (price !== undefined && price !== null) {
                     request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
                 } else {
                     quantityIsRequired = true;
