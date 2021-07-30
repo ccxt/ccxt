@@ -158,6 +158,7 @@ class probit(Exchange):
             'commonCurrencies': {
                 'AUTO': 'Cube',
                 'BCC': 'BCC',
+                'BDP': 'BidiPass',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'CBC': 'CryptoBharatCoin',

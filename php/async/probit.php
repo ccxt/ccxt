@@ -150,6 +150,7 @@ class probit extends Exchange {
             'commonCurrencies' => array(
                 'AUTO' => 'Cube',
                 'BCC' => 'BCC',
+                'BDP' => 'BidiPass',
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
                 'CBC' => 'CryptoBharatCoin',
