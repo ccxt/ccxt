@@ -2917,6 +2917,7 @@ class binance(Exchange):
         }
 
     def fetch_funding_fees(self, codes=None, params={}):
+        self.load_markets()
         response = self.sapiGetCapitalConfigGetall(params)
         #
         #  [

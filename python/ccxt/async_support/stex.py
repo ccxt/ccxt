@@ -1651,6 +1651,7 @@ class stex(Exchange):
         return self.parse_transaction(data, currency)
 
     async def fetch_funding_fees(self, codes=None, params={}):
+        await self.load_markets()
         response = await self.publicGetCurrencies(params)
         #
         #     {

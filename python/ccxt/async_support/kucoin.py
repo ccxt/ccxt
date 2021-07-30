@@ -570,6 +570,7 @@ class kucoin(Exchange):
         return result
 
     async def fetch_funding_fee(self, code, params={}):
+        await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],

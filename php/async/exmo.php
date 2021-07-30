@@ -545,7 +545,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_funding_fees_helper($params = array ()) {
         $response = null;
         if ($this->options['useWebapiForFetchingFees']) {
             $response = yield $this->webGetCtrlFeesAndLimits ($params);
@@ -587,8 +587,13 @@ class exmo extends Exchange {
         return $result;
     }
 
+    public function fetch_funding_fees($params = array ()) {
+        yield $this->load_markets();
+        return yield $this->fetch_funding_fees_helper($params);
+    }
+
     public function fetch_currencies($params = array ()) {
-        $fees = yield $this->fetch_funding_fees($params);
+        $fees = yield $this->fetch_funding_fees_helper($params);
         // todo redesign the 'fee' property in currencies
         $ids = is_array($fees['withdraw']) ? array_keys($fees['withdraw']) : array();
         $limitsByMarketId = $this->index_by($fees['info']['data']['limits'], 'pair');

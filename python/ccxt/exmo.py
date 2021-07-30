@@ -551,7 +551,7 @@ class exmo(Exchange):
             raise ExchangeError(self.id + ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' + input)
         return result
 
-    def fetch_funding_fees(self, params={}):
+    def fetch_funding_fees_helper(self, params={}):
         response = None
         if self.options['useWebapiForFetchingFees']:
             response = self.webGetCtrlFeesAndLimits(params)
@@ -587,8 +587,12 @@ class exmo(Exchange):
         self.options['fundingFees'] = result
         return result
 
+    def fetch_funding_fees(self, params={}):
+        self.load_markets()
+        return self.fetch_funding_fees_helper(params)
+
     def fetch_currencies(self, params={}):
-        fees = self.fetch_funding_fees(params)
+        fees = self.fetch_funding_fees_helper(params)
         # todo redesign the 'fee' property in currencies
         ids = list(fees['withdraw'].keys())
         limitsByMarketId = self.index_by(fees['info']['data']['limits'], 'pair')

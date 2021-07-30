@@ -570,6 +570,7 @@ class kucoin extends Exchange {
     }
 
     public function fetch_funding_fee($code, $params = array ()) {
+        yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],

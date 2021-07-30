@@ -3065,6 +3065,7 @@ class binance extends Exchange {
     }
 
     public function fetch_funding_fees($codes = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->sapiGetCapitalConfigGetall ($params);
         //
         //  [

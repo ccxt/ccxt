@@ -1651,6 +1651,7 @@ class stex(Exchange):
         return self.parse_transaction(data, currency)
 
     def fetch_funding_fees(self, codes=None, params={}):
+        self.load_markets()
         response = self.publicGetCurrencies(params)
         #
         #     {
