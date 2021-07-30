@@ -103,8 +103,8 @@ $scheduler = function ($case) use ($kernel, $delta) {
     printf("case ${case['number']} $success in ${elapsed_ms}ms expected ${case['expected']}\n");
 };
 
-foreach ($test_cases as $case) {
-    $kernel->execute($scheduler($case));
+foreach ($test_cases as $test) {
+    $kernel->execute($scheduler($test));
 }
 
 $kernel->run();
