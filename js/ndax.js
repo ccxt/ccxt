@@ -855,7 +855,7 @@ module.exports = class ndax extends Exchange {
 
     async fetchAccounts (params = {}) {
         if (!this.login) {
-            throw new AuthenticationError (this.id + ' requires exchange.login email credential');
+            throw new AuthenticationError (this.id + ' fetchAccounts() requires exchange.login email credential');
         }
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         this.checkRequiredCredentials ();
