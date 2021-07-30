@@ -41,6 +41,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchStatus': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'fetchFundingFee': true,
                 'withdraw': true,
             },
             'hostname': 'bitmart.com', // bitmart.info for Hong Kong users
@@ -613,6 +614,36 @@ module.exports = class bitmart extends Exchange {
 
     async fetchMarkets (params = {}) {
         return await this.fetchSpotMarkets ();
+    }
+
+    async fetchFundingFee (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateAccountGetWithdrawCharge (this.extend (request, params));
+        //
+        //     {
+        //         message: 'OK',
+        //         code: '1000',
+        //         trace: '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
+        //         data: {
+        //             today_available_withdraw_BTC: '100.0000',
+        //             min_withdraw: '0.005',
+        //             withdraw_precision: '8',
+        //             withdraw_fee: '0.000500000000000000000000000000'
+        //         }
+        //     }
+        //
+        const data = response['data'];
+        const withdrawFees = {};
+        withdrawFees[code] = this.safeNumber (data, 'withdraw_fee');
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        };
     }
 
     parseTicker (ticker, market = undefined) {
