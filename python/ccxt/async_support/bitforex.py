@@ -107,6 +107,7 @@ class bitforex(Exchange):
             },
             'commonCurrencies': {
                 'ACE': 'ACE Entertainment',
+                'BDP': 'BidiPass',
                 'CAPP': 'Crypto Application Token',
                 'CREDIT': 'TerraCredit',
                 'CTC': 'Culture Ticket Chain',

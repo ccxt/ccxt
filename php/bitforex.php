@@ -93,6 +93,7 @@ class bitforex extends Exchange {
             ),
             'commonCurrencies' => array(
                 'ACE' => 'ACE Entertainment',
+                'BDP' => 'BidiPass',
                 'CAPP' => 'Crypto Application Token',
                 'CREDIT' => 'TerraCredit',
                 'CTC' => 'Culture Ticket Chain',
