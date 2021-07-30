@@ -46,6 +46,7 @@ class bitmart extends Exchange {
                 'fetchStatus' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'fetchFundingFee' => true,
                 'withdraw' => true,
             ),
             'hostname' => 'bitmart.com', // bitmart.info for Hong Kong users
@@ -618,6 +619,36 @@ class bitmart extends Exchange {
 
     public function fetch_markets($params = array ()) {
         return yield $this->fetch_spot_markets();
+    }
+
+    public function fetch_funding_fee($code, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = yield $this->privateAccountGetWithdrawCharge (array_merge($request, $params));
+        //
+        //     {
+        //         message => 'OK',
+        //         $code => '1000',
+        //         trace => '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
+        //         $data => {
+        //             today_available_withdraw_BTC => '100.0000',
+        //             min_withdraw => '0.005',
+        //             withdraw_precision => '8',
+        //             withdraw_fee => '0.000500000000000000000000000000'
+        //         }
+        //     }
+        //
+        $data = $response['data'];
+        $withdrawFees = array();
+        $withdrawFees[$code] = $this->safe_number($data, 'withdraw_fee');
+        return array(
+            'info' => $response,
+            'withdraw' => $withdrawFees,
+            'deposit' => array(),
+        );
     }
 
     public function parse_ticker($ticker, $market = null) {

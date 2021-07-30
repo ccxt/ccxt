@@ -66,6 +66,7 @@ class bitmart(Exchange):
                 'fetchStatus': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'fetchFundingFee': True,
                 'withdraw': True,
             },
             'hostname': 'bitmart.com',  # bitmart.info for Hong Kong users
@@ -627,6 +628,35 @@ class bitmart(Exchange):
 
     async def fetch_markets(self, params={}):
         return await self.fetch_spot_markets()
+
+    async def fetch_funding_fee(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.privateAccountGetWithdrawCharge(self.extend(request, params))
+        #
+        #     {
+        #         message: 'OK',
+        #         code: '1000',
+        #         trace: '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
+        #         data: {
+        #             today_available_withdraw_BTC: '100.0000',
+        #             min_withdraw: '0.005',
+        #             withdraw_precision: '8',
+        #             withdraw_fee: '0.000500000000000000000000000000'
+        #         }
+        #     }
+        #
+        data = response['data']
+        withdrawFees = {}
+        withdrawFees[code] = self.safe_number(data, 'withdraw_fee')
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        }
 
     def parse_ticker(self, ticker, market=None):
         #
