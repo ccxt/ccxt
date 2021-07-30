@@ -1725,6 +1725,7 @@ module.exports = class stex extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.publicGetCurrencies (params);
         //
         //     {
