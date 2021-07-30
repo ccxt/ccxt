@@ -286,7 +286,7 @@ module.exports = class gateio extends Exchange {
                         'maker': [
                             [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
                             [ this.parseNumber ('1.5'), this.parseNumber ('0.00185') ],
-                            [ this.parseNumber ('3'), this.parseNumber ('0.00175')],
+                            [ this.parseNumber ('3'), this.parseNumber ('0.00175') ],
                             [ this.parseNumber ('6'), this.parseNumber ('0.00165') ],
                             [ this.parseNumber ('12.5'), this.parseNumber ('0.00155') ],
                             [ this.parseNumber ('25'), this.parseNumber ('0.00145') ],
@@ -305,7 +305,7 @@ module.exports = class gateio extends Exchange {
                         'taker': [
                             [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
                             [ this.parseNumber ('1.5'), this.parseNumber ('0.00195') ],
-                            [ this.parseNumber ('3'), this.parseNumber ('0.00185')],
+                            [ this.parseNumber ('3'), this.parseNumber ('0.00185') ],
                             [ this.parseNumber ('6'), this.parseNumber ('0.00175') ],
                             [ this.parseNumber ('12.5'), this.parseNumber ('0.00165') ],
                             [ this.parseNumber ('25'), this.parseNumber ('0.00155') ],
