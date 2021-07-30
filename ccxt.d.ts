@@ -291,7 +291,7 @@ declare module 'ccxt' {
         currencies: Dictionary<Currency>;
         ids: string[];
         symbols: string[];
-        id: ExchangeId;
+        id: string;
         proxy: string;
         parse8601: typeof Date.parse
         milliseconds: typeof Date.now;
