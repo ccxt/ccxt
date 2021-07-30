@@ -566,6 +566,7 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchFundingFee (code, params = {}) {
+        await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
