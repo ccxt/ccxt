@@ -97,7 +97,7 @@ $scheduler = function ($case) use ($kernel, $delta) {
         yield $throttle($case['cost']);
     }
     $end = microtime(true);
-    $elapsed_ms = floor(($end - $start) * 1000);
+    $elapsed_ms = ($end - $start) * 1000;
     $result = abs($case['expected'] - $elapsed_ms) < $delta;
     $success = $result ? 'succeeded' : 'failed';
     printf("case ${case['number']} $success in ${elapsed_ms}ms expected ${case['expected']}\n");
