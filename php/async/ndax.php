@@ -856,12 +856,15 @@ class ndax extends Exchange {
     }
 
     public function fetch_accounts($params = array ()) {
+        if (!$this->login) {
+            throw new AuthenticationError($this->id . ' fetchAccounts() requires exchange.login email credential');
+        }
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->check_required_credentials();
         $request = array(
             'omsId' => $omsId,
             'UserId' => $this->uid,
-            'UserName' => 'igor@ccxt.trade',
+            'UserName' => $this->login,
         );
         $response = yield $this->privateGetGetUserAccounts (array_merge($request, $params));
         //

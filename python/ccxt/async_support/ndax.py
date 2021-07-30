@@ -832,12 +832,14 @@ class ndax(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_accounts(self, params={}):
+        if not self.login:
+            raise AuthenticationError(self.id + ' fetchAccounts() requires exchange.login email credential')
         omsId = self.safe_integer(self.options, 'omsId', 1)
         self.check_required_credentials()
         request = {
             'omsId': omsId,
             'UserId': self.uid,
-            'UserName': 'igor@ccxt.trade',
+            'UserName': self.login,
         }
         response = await self.privateGetGetUserAccounts(self.extend(request, params))
         #
