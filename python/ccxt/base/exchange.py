@@ -467,11 +467,13 @@ class Exchange(object):
             else:
                 cls.define_rest_api(value, method_name, paths + [key])
 
-    def throttle(self):
+    def throttle(self, cost=None):
         now = float(self.milliseconds())
         elapsed = now - self.lastRestRequestTimestamp
-        if elapsed < self.rateLimit:
-            delay = self.rateLimit - elapsed
+        cost = 1 if cost is None else cost
+        sleep_time = self.rateLimit * cost
+        if elapsed < sleep_time:
+            delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
 
     def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
