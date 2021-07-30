@@ -2619,10 +2619,10 @@ class okex extends Exchange {
         $marketId = $this->safe_string($position, 'instId');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $contractsString = $this->safe_string($position, 'availPos');
+        $contractsString = $this->safe_string($position, 'pos');
         $contracts = null;
         if ($contractsString !== null) {
-            $contracts = intval($this->parse_number($contractsString));
+            $contracts = intval($contractsString);
         }
         $notionalString = $this->safe_string($position, 'notionalUsd');
         $notional = $this->parse_number($notionalString);
