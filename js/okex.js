@@ -2616,10 +2616,10 @@ module.exports = class okex extends Exchange {
         const marketId = this.safeString (position, 'instId');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const contractsString = this.safeString (position, 'availPos');
+        const contractsString = this.safeString (position, 'pos');
         let contracts = undefined;
         if (contractsString !== undefined) {
-            contracts = parseInt (this.parseNumber (contractsString));
+            contracts = parseInt (contractsString);
         }
         const notionalString = this.safeString (position, 'notionalUsd');
         const notional = this.parseNumber (notionalString);
