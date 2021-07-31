@@ -26,7 +26,7 @@ class Throttle {
         while (this.running) {
             const { resolver, cost } = this.queue[0]
             if (this.config['tokens'] >= 0) {
-                this.config['tokens'] -= (cost === undefined) ? this.config['cost'] : cost
+                this.config['tokens'] -= cost
                 resolver ()
                 this.queue.shift ()
                 // contextswitch
