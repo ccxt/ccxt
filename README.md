@@ -196,8 +196,11 @@ You can also clone it into your project directory from [ccxt GitHub repository](
 
 ```shell
 git clone https://github.com/ccxt/ccxt.git
+
+# or
+
+git clone https://github.com/ccxt/ccxt.git --depth 1  # to avoid downloading 1GB of commit history
 ```
-*(to avoid retrieval of 1GB extra commit history, use `--depth 1` parameter while cloning)*
 
 ### JavaScript (NPM)
 
