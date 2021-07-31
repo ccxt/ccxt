@@ -88,11 +88,11 @@ class Precise:
         return self if self.gt(other) else other
 
     def gt(self, other):
-        add = self.sum(other)
+        add = self.sub(other)
         return add.integer > 0
 
     def ge(self, other):
-        add = self.sum(other)
+        add = self.sub(other)
         return add >= 0
 
     def lt(self, other):
