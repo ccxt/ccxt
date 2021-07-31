@@ -82,58 +82,18 @@ class Precise:
         return Precise(result, rationizerDenominator + other.decimals)
 
     def min(self, other):
-        if self.decimals == other.decimals:
-            if self.integer < other.integer:
-                return self
-            else:
-                return other
-        else:
-            smaller, bigger = [other, self] if self.decimals > other.decimals else [self, other]
-            exponent = bigger.decimals - smaller.decimals
-            normalised = smaller.integer * (self.base ** exponent)
-            if normalised < bigger.integer:
-                return smaller
-            else:
-                return bigger
+        return self if self.lt(other) else other
 
     def max(self, other):
-        if self.decimals == other.decimals:
-            if self.integer > other.integer:
-                return self
-            else:
-                return other
-        else:
-            smaller, bigger = [other, self] if self.decimals > other.decimals else [self, other]
-            exponent = bigger.decimals - smaller.decimals
-            normalised = smaller.integer * (self.base ** exponent)
-            if normalised > bigger.integer:
-                return smaller
-            else:
-                return bigger
+        return self if self.gt(other) else other
 
     def gt(self, other):
-        if self.decimals == other.decimals:
-            return self.integer > other.integer
-        else:
-            smaller, bigger = [other, self] if self.decimals > other.decimals else [self, other]
-            exponent = bigger.decimals - smaller.decimals
-            normalised = smaller.integer * (self.base ** exponent)
-            if self.decimals > other.decimals:
-                return bigger.integer > normalised
-            else:
-                return normalised > bigger.integer
+        add = self.sum(other)
+        return add.integer > 0
 
     def ge(self, other):
-        if self.decimals == other.decimals:
-            return self.integer >= other.integer
-        else:
-            smaller, bigger = [other, self] if self.decimals > other.decimals else [self, other]
-            exponent = bigger.decimals - smaller.decimals
-            normalised = smaller.integer * (self.base ** exponent)
-            if self.decimals > other.decimals:
-                return bigger.integer >= normalised
-            else:
-                return normalised >= bigger.integer
+        add = self.sum(other)
+        return add >= 0
 
     def lt(self, other):
         return other.gt(self)
