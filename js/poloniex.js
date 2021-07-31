@@ -144,6 +144,7 @@ module.exports = class poloniex extends Exchange {
                 'AIR': 'AirCoin',
                 'APH': 'AphroditeCoin',
                 'BCC': 'BTCtalkcoin',
+                'BCHABC': 'BCHABC',
                 'BDG': 'Badgercoin',
                 'BTM': 'Bitmark',
                 'CON': 'Coino',
