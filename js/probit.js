@@ -127,6 +127,7 @@ module.exports = class probit extends Exchange {
                     'INVALID_CURRENCY': BadRequest, // Requested currency is not exist on ProBit system
                     'TOO_MANY_OPEN_ORDERS': DDoSProtection, // Too many open orders
                     'DUPLICATE_ADDRESS': InvalidAddress, // Address already exists in withdrawal address list
+                    'invalid_grant': AuthenticationError, // {"error":"invalid_grant"}
                 },
             },
             'requiredCredentials': {
