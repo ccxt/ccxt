@@ -132,6 +132,7 @@ class probit extends Exchange {
                     'INVALID_CURRENCY' => '\\ccxt\\BadRequest', // Requested currency is not exist on ProBit system
                     'TOO_MANY_OPEN_ORDERS' => '\\ccxt\\DDoSProtection', // Too many open orders
                     'DUPLICATE_ADDRESS' => '\\ccxt\\InvalidAddress', // Address already exists in withdrawal address list
+                    'invalid_grant' => '\\ccxt\\AuthenticationError', // array("error":"invalid_grant")
                 ),
             ),
             'requiredCredentials' => array(
