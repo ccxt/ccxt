@@ -99,7 +99,7 @@ class Precise {
 
     public function ge($other) {
         $sum = $this->sub($other);
-        return gmp_cmp($sum->integer, '1') > -1;
+        return gmp_cmp($sum->integer, '0') > -1;
     }
 
     public function lt($other) {
