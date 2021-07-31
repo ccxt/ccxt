@@ -14,7 +14,9 @@ for file in files:
     with open(file + '.md', 'r') as f:
         contents = f.read()
     stripped = re.sub(r'</?su[bp]>', r'', contents)
-    rst = m2r2.convert(stripped, parse_relative_links=True, anonymous_references=True)
+    remove_italic_links = re.sub(r'\*\*\[', '[', stripped)
+    remove_italic_links2 = re.sub(r'\)\*\*', ')', remove_italic_links)
+    rst = m2r2.convert(remove_italic_links2, parse_relative_links=True, anonymous_references=True)
     blank_lines = re.sub(r'([-*]) \n {2,5}.. image', r'\1 .. image', rst)
     indent_level = re.sub(r':(target|alt):', r'  :\1:', blank_lines)
     reference_links = re.sub(r'<(\w+)-(\w+)-(\w+)-(\w+)>`', r'<\1 \2 \3 \4>`', indent_level)
