@@ -578,7 +578,7 @@ $exchange->enableRateLimit = false; // disable
 
 In case your calls hit a rate limit or get nonce errors, the ccxt library will throw an `InvalidNonce` exception, or, in some cases, one of the following types:
 
-- `DDoSProtectionError`
+- `DDoSProtection`
 - `ExchangeNotAvailable`
 - `ExchangeError`
 - `InvalidNonce`
