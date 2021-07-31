@@ -3294,7 +3294,7 @@ Notes On Order Book Structure
 Market Depth
 ^^^^^^^^^^^^
 
-Some exchanges accept a dictionary of extra parameters to the ``fetchOrderBook () / fetch_order_book ()`` function. **All extra ``params`` are exchange-specific (non-unified)**. You will need to consult exchanges docs if you want to override a particular param, like the depth of the order book. You can get a limited count of returned orders or a desired level of aggregation (aka *market depth*\ ) by specifying an limit argument and exchange-specific extra ``params`` like so:
+Some exchanges accept a dictionary of extra parameters to the ``fetchOrderBook () / fetch_order_book ()`` function. *\ *All extra ``params`` are exchange-specific (non-unified). You will need to consult exchanges docs if you want to override a particular param, like the depth of the order book. You can get a limited count of returned orders or a desired level of aggregation (aka *\ market depth*) by specifying an limit argument and exchange-specific extra ``params`` like so:
 
 .. code-block:: JavaScript
 
@@ -4774,7 +4774,7 @@ As with all other unified methods for fetching historical data, the ``fetchMyTra
 
 To fetch historical trades, the user will need to traverse the data in portions or "pages" of objects. Pagination often implies *"fetching portions of data one by one"* in a loop.
 
-In most cases users are **required to use at least some type of :ref:`pagination <pagination>`\ ** in order to get the expected results consistently.
+In most cases users are **required to use at least some type of :ref:`pagination <pagination>` in order to get the expected results consistently.
 
 .. code-block:: JavaScript
 
