@@ -2005,7 +2005,7 @@ Turn on/off the built-in rate-limiter with ``.enableRateLimit`` property, like s
 In case your calls hit a rate limit or get nonce errors, the ccxt library will throw an ``InvalidNonce`` exception, or, in some cases, one of the following types:
 
 
- * ``DDoSProtectionError``
+ * ``DDoSProtection``
  * ``ExchangeNotAvailable``
  * ``ExchangeError``
  * ``InvalidNonce``
