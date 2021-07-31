@@ -292,6 +292,15 @@ module.exports = class okex3 extends Exchange {
                         'amend_batch_orders/{underlying}',
                     ],
                 },
+                'information': {
+                    'get': [
+                        '{currency}/long_short_ratio',
+                        '{currency}/volume',
+                        '{currency}/taker',
+                        '{currency}/sentiment',
+                        '{currency}/margin',
+                    ],
+                },
                 'index': {
                     'get': [
                         '{instrument_id}/constituents',
@@ -3588,7 +3597,7 @@ module.exports = class okex3 extends Exchange {
         const query = isArray ? params : this.omit (params, this.extractParams (path));
         let url = this.implodeHostname (this.urls['api']['rest']) + request;
         const type = this.getPathAuthenticationType (path);
-        if (type === 'public') {
+        if ((type === 'public') || (type === 'information')) {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
