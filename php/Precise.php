@@ -83,6 +83,86 @@ class Precise {
         return new Precise($result, $denominatorRationizer + $other->decimals);
     }
 
+    public function min($other) {
+        if ($this->decimals === $other->decimals) {
+            if (gmp_cmp($this->integer, $other->integer) < 0) {
+                return $this;
+            } else {
+                return $other;
+            }
+        } else {
+            list($smaller, $bigger) =
+            ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
+            $exponent = $bigger->decimals - $smaller->decimals;
+            $normalised = gmp_mul($smaller->integer, gmp_pow($this->base, $exponent));
+            if (gmp_cmp($normalised, $bigger->integer) < 0) {
+                return $smaller;
+            } else {
+                return $bigger;
+            }
+        }
+    }
+    
+    public function max($other) {
+        if ($this->decimals === $other->decimals) {
+            if (gmp_cmp($this->integer, $other->integer) > 0) {
+                return $this;
+            } else {
+                return $other;
+            }
+        } else {
+            list($smaller, $bigger) =
+            ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
+            $exponent = $bigger->decimals - $smaller->decimals;
+            $normalised = gmp_mul($smaller->integer, gmp_pow($this->base, $exponent));
+            if (gmp_cmp($normalised, $bigger->integer) > 0) {
+                return $smaller;
+            } else {
+                return $bigger;
+            }
+        }
+    }
+    
+    public function gt($other) {
+        if ($this->decimals === $other->decimals) {
+            return gmp_cmp($this->integer, $other->integer) > 0;
+        } else {
+            list($smaller, $bigger) =
+            ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
+            $exponent = $bigger->decimals - $smaller->decimals;
+            $normalised = gmp_mul($smaller->integer, gmp_pow($this->base, $exponent));
+            if ($this->decimals > $other->decimals) {
+                return gmp_cmp($bigger->integer, $normalised) > 0;
+            } else {
+                return gmp_cmp($normalised, $bigger->integer) > 0;
+            }
+        }
+    }
+    
+    public function ge($other) {
+        if ($this->decimals === $other->decimals) {
+            return gmp_cmp($this->integer, $other->integer) >= 0;
+        } else {
+            list($smaller, $bigger) =
+            ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
+            $exponent = $bigger->decimals - $smaller->decimals;
+            $normalised = gmp_mul($smaller->integer, gmp_pow($this->base, $exponent));
+            if ($this->decimals > $other->decimals) {
+                return gmp_cmp($bigger->integer, $normalised) >= 0;
+            } else {
+                return gmp_cmp($normalised, $bigger->integer) >= 0;
+            }
+        }
+    }
+    
+    public function lt($other) {
+        return $other->gt($this);
+    }
+    
+    public function le($other) {
+        return $other->ge($this);
+    }
+    
     public function reduce() {
         $string = strval($this->integer);
         $start = strlen($string) - 1;
@@ -189,5 +269,47 @@ class Precise {
             return null;
         }
         return (new Precise($string1))->equals(new Precise($string2));
+    }
+    
+    public static function string_min($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return strval((new Precise($string1))->min(new Precise($string2)));
+    }
+    
+    public static function string_max($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return strval((new Precise($string1))->max(new Precise($string2)));
+    }
+    
+    public static function string_gt($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->gt(new Precise($string2));
+    }
+    
+    public static function string_ge($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->ge(new Precise($string2));
+    }
+    
+    public static function string_lt($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->lt(new Precise($string2));
+    }
+    
+    public static function string_le($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->le(new Precise($string2));
     }
 }
