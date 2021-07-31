@@ -213,6 +213,12 @@ class Transpiler {
             [ /Precise\.stringNeg\s/g, 'Precise.string_neg' ],
             [ /Precise\.stringMod\s/g, 'Precise.string_mod' ],
             [ /Precise\.stringEquals\s/g, 'Precise.string_equals' ],
+            [ /Precise\.stringMin\s/g, 'Precise.string_min' ],
+            [ /Precise\.stringMax\s/g, 'Precise.string_max' ],
+            [ /Precise\.stringGt\s/g, 'Precise.string_gt' ],
+            [ /Precise\.stringGe\s/g, 'Precise.string_ge' ],
+            [ /Precise\.stringLt\s/g, 'Precise.string_lt' ],
+            [ /Precise\.stringLe\s/g, 'Precise.string_le' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -362,6 +368,12 @@ class Transpiler {
             [ /Precise\.stringNeg\s/g, 'Precise::string_neg' ],
             [ /Precise\.stringMod\s/g, 'Precise::string_mod' ],
             [ /Precise\.stringEquals\s/g, 'Precise::string_equals' ],
+            [ /Precise\.stringMin\s/g, 'Precise::string_min' ],
+            [ /Precise\.stringMax\s/g, 'Precise::string_max' ],
+            [ /Precise\.stringGt\s/g, 'Precise::string_gt' ],
+            [ /Precise\.stringGe\s/g, 'Precise::string_ge' ],
+            [ /Precise\.stringLt\s/g, 'Precise::string_lt' ],
+            [ /Precise\.stringLe\s/g, 'Precise::string_le' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([

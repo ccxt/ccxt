@@ -318,4 +318,45 @@ assert (Precise.stringMod ('5550', '120') === '30');
 
 assert (Precise.stringEquals ('1.0000', '1'));
 assert (Precise.stringEquals ('-0.0', '0'));
+assert (Precise.stringEquals ('-0.0', '0.0'));
 assert (Precise.stringEquals ('5.534000', '5.5340'));
+
+assert (Precise.stringMin ('1.0000', '2') === '1');
+assert (Precise.stringMin ('2', '1.2345') === '1.2345');
+assert (Precise.stringMin ('3.1415', '-2') === '-2');
+assert (Precise.stringMin ('-3.1415', '-2') === '-3.1415');
+assert (Precise.stringMin ('0.000', '-0.0') === '0');
+
+assert (Precise.stringMax ('1.0000', '2') === '2');
+assert (Precise.stringMax ('2', '1.2345') === '2');
+assert (Precise.stringMax ('3.1415', '-2') === '3.1415');
+assert (Precise.stringMax ('-3.1415', '-2') === '-2');
+assert (Precise.stringMax ('0.000', '-0.0') === '0');
+
+assert (!Precise.stringGt ('1.0000', '2'));
+assert (Precise.stringGt ('2', '1.2345'));
+assert (Precise.stringGt ('3.1415', '-2'));
+assert (!Precise.stringGt ('-3.1415', '-2'));
+assert (!Precise.stringGt ('3.1415', '3.1415'));
+assert (Precise.stringGt ('3.14150000000000000000001', '3.1415'));
+
+assert (!Precise.stringGe ('1.0000', '2'));
+assert (Precise.stringGe ('2', '1.2345'));
+assert (Precise.stringGe ('3.1415', '-2'));
+assert (!Precise.stringGe ('-3.1415', '-2'));
+assert (Precise.stringGe ('3.1415', '3.1415'));
+assert (Precise.stringGe ('3.14150000000000000000001', '3.1415'));
+
+assert (Precise.stringLt ('1.0000', '2'));
+assert (!Precise.stringLt ('2', '1.2345'));
+assert (!Precise.stringLt ('3.1415', '-2'));
+assert (Precise.stringLt ('-3.1415', '-2'));
+assert (!Precise.stringLt ('3.1415', '3.1415'));
+assert (Precise.stringLt ('3.1415', '3.14150000000000000000001'));
+
+assert (Precise.stringLe ('1.0000', '2'));
+assert (!Precise.stringLe ('2', '1.2345'));
+assert (!Precise.stringLe ('3.1415', '-2'));
+assert (Precise.stringLe ('-3.1415', '-2'));
+assert (Precise.stringLe ('3.1415', '3.1415'));
+assert (Precise.stringLe ('3.1415', '3.14150000000000000000001'));
