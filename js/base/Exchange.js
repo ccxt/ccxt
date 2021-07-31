@@ -378,7 +378,7 @@ module.exports = class Exchange {
             refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE
         }, this.tokenBucket)
 
-        this.throttle = throttle ()
+        this.throttle = throttle (this.tokenBucket)
 
         this.executeRestRequest = (url, method = 'GET', headers = undefined, body = undefined) => {
 
