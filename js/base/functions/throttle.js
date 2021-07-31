@@ -71,7 +71,6 @@ function throttle (config) {
 
 module.exports = {
     throttle,
-    Throttle,
 }
 
 // ----------------------------------------
