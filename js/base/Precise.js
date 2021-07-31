@@ -82,6 +82,86 @@ class Precise {
         return new Precise (-this.integer, this.decimals)
     }
 
+    min (other) {
+        if (this.decimals === other.decimals) {
+            if (this.integer < other.integer) {
+                return this
+            } else {
+                return other
+            }
+        } else {
+            const [ smaller, bigger ] =
+                (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
+            const exponent = bigger.decimals - smaller.decimals
+            const normalised = smaller.integer * (base ** BigInt(exponent))
+            if (normalised < bigger.integer) {
+                return smaller
+            } else {
+                return bigger
+            }
+        }
+    }
+
+    max (other) {
+        if (this.decimals === other.decimals) {
+            if (this.integer > other.integer) {
+                return this
+            } else {
+                return other
+            }
+        } else {
+            const [ smaller, bigger ] =
+                (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
+            const exponent = bigger.decimals - smaller.decimals
+            const normalised = smaller.integer * (base ** BigInt(exponent))
+            if (normalised > bigger.integer) {
+                return smaller
+            } else {
+                return bigger
+            }
+        }
+    }
+
+    gt (other) {
+        if (this.decimals === other.decimals) {
+            return this.integer > other.integer
+        } else {
+            const [ smaller, bigger ] =
+                (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
+            const exponent = bigger.decimals - smaller.decimals
+            const normalised = smaller.integer * (base ** BigInt(exponent))
+            if (this.decimals > other.decimals) {
+                return bigger.integer > normalised
+            } else {
+                return normalised > bigger.integer
+            }
+        }
+    }
+    
+    ge (other) {
+        if (this.decimals === other.decimals) {
+            return this.integer >= other.integer
+        } else {
+            const [ smaller, bigger ] =
+                (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
+            const exponent = bigger.decimals - smaller.decimals
+            const normalised = smaller.integer * (base ** BigInt(exponent))
+            if (this.decimals > other.decimals) {
+                return bigger.integer >= normalised
+            } else {
+                return normalised >= bigger.integer
+            }
+        }
+    }
+    
+    lt (other) {
+    	return other.gt (this)
+    }
+
+    le (other) {
+    	return other.ge (this)
+    }
+
     reduce () {
         const string = this.integer.toString ()
         const start = string.length - 1
@@ -198,6 +278,48 @@ class Precise {
             return undefined
         }
         return (new Precise (string1)).equals (new Precise (string2))
+    }
+
+    static stringMin (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).min (new Precise (string2)).toString ()
+    }
+
+    static stringMax (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).max (new Precise (string2)).toString ()
+    }
+
+    static stringGt (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).gt (new Precise (string2))
+    }
+
+    static stringGe (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).ge (new Precise (string2))
+    }
+
+    static stringLt (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).lt (new Precise (string2))
+    }
+
+    static stringLe (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).le (new Precise (string2))
     }
 }
 
