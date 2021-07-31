@@ -83,83 +83,29 @@ class Precise {
     }
 
     min (other) {
-        if (this.decimals === other.decimals) {
-            if (this.integer < other.integer) {
-                return this
-            } else {
-                return other
-            }
-        } else {
-            const [ smaller, bigger ] =
-                (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
-            const exponent = bigger.decimals - smaller.decimals
-            const normalised = smaller.integer * (base ** BigInt(exponent))
-            if (normalised < bigger.integer) {
-                return smaller
-            } else {
-                return bigger
-            }
-        }
+        return this.lt (other) ? this : other
     }
 
     max (other) {
-        if (this.decimals === other.decimals) {
-            if (this.integer > other.integer) {
-                return this
-            } else {
-                return other
-            }
-        } else {
-            const [ smaller, bigger ] =
-                (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
-            const exponent = bigger.decimals - smaller.decimals
-            const normalised = smaller.integer * (base ** BigInt(exponent))
-            if (normalised > bigger.integer) {
-                return smaller
-            } else {
-                return bigger
-            }
-        }
+        return this.gt (other) ? this : other
     }
 
     gt (other) {
-        if (this.decimals === other.decimals) {
-            return this.integer > other.integer
-        } else {
-            const [ smaller, bigger ] =
-                (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
-            const exponent = bigger.decimals - smaller.decimals
-            const normalised = smaller.integer * (base ** BigInt(exponent))
-            if (this.decimals > other.decimals) {
-                return bigger.integer > normalised
-            } else {
-                return normalised > bigger.integer
-            }
-        }
+        const sum = this.sub (other)
+        return sum.integer > 0
     }
-    
+
     ge (other) {
-        if (this.decimals === other.decimals) {
-            return this.integer >= other.integer
-        } else {
-            const [ smaller, bigger ] =
-                (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
-            const exponent = bigger.decimals - smaller.decimals
-            const normalised = smaller.integer * (base ** BigInt(exponent))
-            if (this.decimals > other.decimals) {
-                return bigger.integer >= normalised
-            } else {
-                return normalised >= bigger.integer
-            }
-        }
+        const sum = this.sub (other)
+        return sum.integer >= 0
     }
-    
+
     lt (other) {
-    	return other.gt (this)
+        return other.gt (this)
     }
 
     le (other) {
-    	return other.ge (this)
+        return other.ge (this)
     }
 
     reduce () {
