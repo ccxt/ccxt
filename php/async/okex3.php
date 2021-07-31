@@ -298,6 +298,15 @@ class okex3 extends Exchange {
                         'amend_batch_orders/{underlying}',
                     ),
                 ),
+                'information' => array(
+                    'get' => array(
+                        '{currency}/long_short_ratio',
+                        '{currency}/volume',
+                        '{currency}/taker',
+                        '{currency}/sentiment',
+                        '{currency}/margin',
+                    ),
+                ),
                 'index' => array(
                     'get' => array(
                         '{instrument_id}/constituents',
@@ -3594,7 +3603,7 @@ class okex3 extends Exchange {
         $query = $isArray ? $params : $this->omit($params, $this->extract_params($path));
         $url = $this->implode_hostname($this->urls['api']['rest']) . $request;
         $type = $this->get_path_authentication_type($path);
-        if ($type === 'public') {
+        if (($type === 'public') || ($type === 'information')) {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
