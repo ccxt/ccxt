@@ -93,7 +93,7 @@ class Precise:
 
     def ge(self, other):
         add = self.sub(other)
-        return add >= 0
+        return add.integer >= 0
 
     def lt(self, other):
         return other.gt(self)
