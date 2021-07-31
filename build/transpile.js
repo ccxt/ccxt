@@ -482,7 +482,7 @@ class Transpiler {
     //-------------------------------------------------------------------------
     // the following common headers are used for transpiled tests
 
-    getPythonPreamble (pythonBody) {
+    getPythonPreamble () {
         return [
             "import os",
             "import sys",
@@ -1505,7 +1505,7 @@ class Transpiler {
         ].join('\n')
 
         let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
-        const python = this.getPythonPreamble () + pythonHeader + python3Body;
+        const python = pythonHeader + python3Body;
         const php = this.getPHPPreamble (false) + phpBody;
 
         log.magenta ('→', test.pyFile.yellow)
