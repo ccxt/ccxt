@@ -43,10 +43,7 @@ class Exchange extends \ccxt\Exchange {
     public $throttle;
 
     public static function get_loop() {
-        if (!static::$loop) {
-            static::$loop = React\EventLoop\Factory::create();
-        }
-        return static::$loop;
+        return React\EventLoop\Loop::get();
     }
 
     public static function get_kernel() {
@@ -76,7 +73,7 @@ class Exchange extends \ccxt\Exchange {
             if (array_key_exists('loop', $options)) {
                 static::$loop = $options['loop'];
             } else {
-                static::$loop = React\EventLoop\Factory::create();
+                static::$loop = static::get_loop();
             }
         } else if (array_key_exists('loop', $options)) {
             throw new Exception($this->id . ' cannot use two different loops');
@@ -98,7 +95,7 @@ class Exchange extends \ccxt\Exchange {
         if ($this->browser === null) {
             $this->browser = (new React\Http\Browser(static::$loop, $connector))->withRejectErrorResponse(false);
         }
-        $this->throttle = throttle($this->tokenBucket, static::$loop);
+        $this->throttle = new Throttle($this->tokenBucket, static::$kernel);
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
