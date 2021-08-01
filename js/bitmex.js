@@ -1147,16 +1147,14 @@ module.exports = class bitmex extends Exchange {
         let costString = this.safeString (trade, 'execCost');
         costString = Precise.stringDiv (Precise.stringAbs (costString), '1e8');
         let fee = undefined;
-        let feeCostString = undefined;
-        if ('execComm' in trade) {
-            feeCostString = this.safeString (trade, 'execComm');
-            feeCostString = Precise.stringDiv (feeCostString, '1e8');
+        const feeCostString = Precise.stringDiv (this.safeString (trade, 'execComm'), '1e8');
+        if (feeCostString !== undefined) {
             const currencyId = this.safeString (trade, 'settlCurrency');
-            const feeCurrency = this.safeCurrencyCode (currencyId);
+            const feeCurrencyCode = this.safeCurrencyCode (currencyId);
             const feeRateString = this.safeString (trade, 'commission');
             fee = {
                 'cost': this.parseNumber (feeCostString),
-                'currency': feeCurrency,
+                'currency': feeCurrencyCode,
                 'rate': this.parseNumber (feeRateString),
             };
         }
