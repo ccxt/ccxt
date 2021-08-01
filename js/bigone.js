@@ -134,6 +134,7 @@ module.exports = class bigone extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'CRE': 'Cybereits',
                 'FXT': 'FXTTOKEN',
                 'MBN': 'Mobilian Coin',
                 'ONE': 'BigONE Token',
