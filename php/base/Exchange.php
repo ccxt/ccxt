@@ -182,6 +182,7 @@ class Exchange {
         'mandala',
         'mercado',
         'mixcoins',
+        'mxc',
         'oceanex',
         'okcoincny',
         'okcoinusd',
