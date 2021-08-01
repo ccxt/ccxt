@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0999b95e0cfd8e34247c56faf600a069",
+    "content-hash": "78d625840e72b2497a9ec4118357397c",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.54.18",
+            "version": "1.54.19",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "1b84c4474b6758724c213a073a2176ffef80f500"
+                "reference": "78f577c42fe812147e001949ad3fc847d5d844a6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/1b84c4474b6758724c213a073a2176ffef80f500",
-                "reference": "1b84c4474b6758724c213a073a2176ffef80f500",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/78f577c42fe812147e001949ad3fc847d5d844a6",
+                "reference": "78f577c42fe812147e001949ad3fc847d5d844a6",
                 "shasum": ""
             },
             "require": {
@@ -29,7 +29,7 @@
                 "ext-openssl": "*",
                 "ext-pcre": "*",
                 "pear/console_table": "1.3.1",
-                "php": ">=5.4.0",
+                "php": ">=5.5",
                 "symfony/polyfill-mbstring": "^1.7"
             },
             "suggest": {
@@ -280,7 +280,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.54.18"
+                "source": "https://github.com/ccxt/ccxt/tree/1.54.19"
             },
             "funding": [
                 {
@@ -288,7 +288,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2021-07-31T21:06:53+00:00"
+            "time": "2021-08-01T02:58:11+00:00"
         },
         {
             "name": "evenement/evenement",
