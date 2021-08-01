@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -594,14 +595,31 @@ class novadax(Exchange):
             'symbol': market['id'],
             'type': uppercaseType,  # LIMIT, MARKET
             'side': uppercaseSide,  # or SELL
-            # 'accountId': '...',  # subaccount id, optional
             # 'amount': self.amount_to_precision(symbol, amount),
             # "price": "1234.5678",  # required for LIMIT and STOP orders
+            # 'operator': ''  # for stop orders, can be found in order introduction
+            # 'stopPrice': self.price_to_precision(symbol, stopPrice),
+            # 'accountId': '...',  # subaccount id, optional
         }
-        if uppercaseType == 'LIMIT':
+        stopPrice = self.safe_number(params, 'stopPrice')
+        if stopPrice is None:
+            if (uppercaseType == 'STOP_LIMIT') or (uppercaseType == 'STOP_MARKET'):
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter for ' + uppercaseType + ' orders')
+        else:
+            if uppercaseType == 'LIMIT':
+                uppercaseType = 'STOP_LIMIT'
+            elif uppercaseType == 'MARKET':
+                uppercaseType = 'STOP_MARKET'
+            operatorString = self.safe_string(params, 'operator')
+            if operatorString is None:
+                raise ArgumentsRequired(self.id + " createOrder() requires an operator parameter 'GTE' or 'LTE' for " + uppercaseType + ' orders')
+            request['operator'] = operatorString
+            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            params = self.omit(params, 'stopPrice')
+        if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
             request['amount'] = self.amount_to_precision(symbol, amount)
-        elif uppercaseType == 'MARKET':
+        elif (uppercaseType == 'MARKET') or (uppercaseType == 'STOP_MARKET'):
             if uppercaseSide == 'SELL':
                 request['amount'] = self.amount_to_precision(symbol, amount)
             elif uppercaseSide == 'BUY':
@@ -627,14 +645,16 @@ class novadax(Exchange):
         #             "filledAmount": "0",
         #             "filledFee": "0",
         #             "filledValue": "0",
-        #             "id": "633679992971251712",
-        #             "price": "35000",
+        #             "id": "870613508008464384",
+        #             "operator": "GTE",
+        #             "price": "210000",
         #             "side": "BUY",
-        #             "status": "PROCESSING",
+        #             "status": "SUBMITTED",
+        #             "stopPrice": "211000",
         #             "symbol": "BTC_BRL",
-        #             "timestamp": 1571122683535,
-        #             "type": "LIMIT",
-        #             "value": "35"
+        #             "timestamp": 1627612035528,
+        #             "type": "STOP_LIMIT",
+        #             "value": "210"
         #         },
         #         "message": "Success"
         #     }
@@ -801,14 +821,16 @@ class novadax(Exchange):
         #         "filledAmount": "0",
         #         "filledFee": "0",
         #         "filledValue": "0",
-        #         "id": "633679992971251712",
-        #         "price": "35000",
+        #         "id": "870613508008464384",
+        #         "operator": "GTE",
+        #         "price": "210000",
         #         "side": "BUY",
-        #         "status": "PROCESSING",
+        #         "status": "SUBMITTED",
+        #         "stopPrice": "211000",
         #         "symbol": "BTC_BRL",
-        #         "timestamp": 1571122683535,
-        #         "type": "LIMIT",
-        #         "value": "35"
+        #         "timestamp": 1627612035528,
+        #         "type": "STOP_LIMIT",
+        #         "value": "210"
         #     }
         #
         # cancelOrder
@@ -836,6 +858,7 @@ class novadax(Exchange):
             }
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
+        stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'id': id,
             'clientOrderId': None,
@@ -849,7 +872,7 @@ class novadax(Exchange):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
