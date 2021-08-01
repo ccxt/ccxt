@@ -119,7 +119,10 @@ module.exports = class Exchange extends ccxt.Exchange {
                 const rateLimit = this.safeValue (options, 'rateLimit', this.rateLimit);
                 if (message) {
                     if (this.enableRateLimit && client.throttle) {
-                        client.throttle (rateLimit).then (() => {
+                        // add cost here |
+                        //               |
+                        //               V
+                        client.throttle ().then (() => {
                             client.send (message)
                         }).catch ((e) => { throw e })
                     } else {
