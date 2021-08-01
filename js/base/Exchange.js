@@ -371,10 +371,11 @@ module.exports = class Exchange {
         }
 
         this.tokenBucket = this.extend ({
-            delay:       1,
+            delay:       0.001,
             capacity:    1,
-            defaultCost: 1,
+            cost: 1,
             maxCapacity: 1000,
+            refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE
         }, this.tokenBucket)
 
         this.throttle = throttle (this.tokenBucket)
@@ -512,7 +513,7 @@ module.exports = class Exchange {
     async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
 
         if (this.enableRateLimit) {
-            await this.throttle (this.rateLimit)
+            await this.throttle ()
         }
 
         const request = this.sign (path, type, method, params, headers, body)
