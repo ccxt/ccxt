@@ -41,7 +41,7 @@ class Exchange extends \ccxt\Exchange {
     public $reloadingMarkets = null;
     public $tokenBucket;
     public $throttle;
-    
+
     public static function get_loop() {
         return React\EventLoop\Loop::get();
     }
