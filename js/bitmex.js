@@ -774,16 +774,12 @@ module.exports = class bitmex extends Exchange {
             addressFrom = this.safeString (transaction, 'tx');
             addressTo = address;
         }
-        let amount = this.safeInteger (transaction, 'amount');
-        if (amount !== undefined) {
-            amount = Math.abs (amount) / 10000000;
-        }
-        let feeCost = this.safeInteger (transaction, 'fee');
-        if (feeCost !== undefined) {
-            feeCost = feeCost / 10000000;
-        }
+        let amountString = this.safeString (transaction, 'amount');
+        amountString = Precise.stringDiv (Precise.stringAbs (amountString), '1e8');
+        let feeCostString = this.safeString (transaction, 'fee');
+        feeCostString = Precise.stringDiv (feeCostString, '1e8');
         const fee = {
-            'cost': feeCost,
+            'cost': this.parseNumber (feeCostString),
             'currency': 'BTC',
         };
         let status = this.safeString (transaction, 'transactStatus');
@@ -803,7 +799,7 @@ module.exports = class bitmex extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'type': type,
-            'amount': amount,
+            'amount': this.parseNumber (amountString),
             // BTC is the only currency on Bitmex
             'currency': 'BTC',
             'status': status,
