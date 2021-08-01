@@ -41,10 +41,14 @@ class Exchange extends \ccxt\Exchange {
     public $reloadingMarkets = null;
     public $tokenBucket;
     public $throttle;
+    
+    public static function get_loop() {
+        return React\EventLoop\Loop::get();
+    }
 
     public static function get_kernel() {
         if (!static::$kernel) {
-            static::$kernel = Recoil\React\ReactKernel::create(React\EventLoop\Loop::get());
+            static::$kernel = Recoil\React\ReactKernel::create(static::get_loop());
         }
         return static::$kernel;
     }
@@ -69,7 +73,7 @@ class Exchange extends \ccxt\Exchange {
             if (array_key_exists('loop', $options)) {
                 static::$loop = $options['loop'];
             } else {
-                static::$loop = React\EventLoop\Loop::get();
+                static::$loop = static::get_loop();
             }
         } else if (array_key_exists('loop', $options)) {
             throw new Exception($this->id . ' cannot use two different loops');
