@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -598,20 +598,41 @@ module.exports = class novadax extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const uppercaseType = type.toUpperCase ();
+        let uppercaseType = type.toUpperCase ();
         const uppercaseSide = side.toUpperCase ();
         const request = {
             'symbol': market['id'],
             'type': uppercaseType, // LIMIT, MARKET
             'side': uppercaseSide, // or SELL
-            // 'accountId': '...', // subaccount id, optional
             // 'amount': this.amountToPrecision (symbol, amount),
             // "price": "1234.5678", // required for LIMIT and STOP orders
+            // 'operator': '' // for stop orders, can be found in order introduction
+            // 'stopPrice': this.priceToPrecision (symbol, stopPrice),
+            // 'accountId': '...', // subaccount id, optional
         };
-        if (uppercaseType === 'LIMIT') {
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        if (stopPrice === undefined) {
+            if ((uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'STOP_MARKET')) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for ' + uppercaseType + ' orders');
+            }
+        } else {
+            if (uppercaseType === 'LIMIT') {
+                uppercaseType = 'STOP_LIMIT';
+            } else if (uppercaseType === 'MARKET') {
+                uppercaseType = 'STOP_MARKET';
+            }
+            const operatorString = this.safeString (params, 'operator');
+            if (operatorString === undefined) {
+                throw new ArgumentsRequired (this.id + " createOrder() requires an operator parameter 'GTE' or 'LTE' for " + uppercaseType + ' orders');
+            }
+            request['operator'] = operatorString;
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            params = this.omit (params, 'stopPrice');
+        }
+        if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);
             request['amount'] = this.amountToPrecision (symbol, amount);
-        } else if (uppercaseType === 'MARKET') {
+        } else if ((uppercaseType === 'MARKET') || (uppercaseType === 'STOP_MARKET')) {
             if (uppercaseSide === 'SELL') {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             } else if (uppercaseSide === 'BUY') {
@@ -642,14 +663,16 @@ module.exports = class novadax extends Exchange {
         //             "filledAmount": "0",
         //             "filledFee": "0",
         //             "filledValue": "0",
-        //             "id": "633679992971251712",
-        //             "price": "35000",
+        //             "id": "870613508008464384",
+        //             "operator": "GTE",
+        //             "price": "210000",
         //             "side": "BUY",
-        //             "status": "PROCESSING",
+        //             "status": "SUBMITTED",
+        //             "stopPrice": "211000",
         //             "symbol": "BTC_BRL",
-        //             "timestamp": 1571122683535,
-        //             "type": "LIMIT",
-        //             "value": "35"
+        //             "timestamp": 1627612035528,
+        //             "type": "STOP_LIMIT",
+        //             "value": "210"
         //         },
         //         "message": "Success"
         //     }
@@ -828,14 +851,16 @@ module.exports = class novadax extends Exchange {
         //         "filledAmount": "0",
         //         "filledFee": "0",
         //         "filledValue": "0",
-        //         "id": "633679992971251712",
-        //         "price": "35000",
+        //         "id": "870613508008464384",
+        //         "operator": "GTE",
+        //         "price": "210000",
         //         "side": "BUY",
-        //         "status": "PROCESSING",
+        //         "status": "SUBMITTED",
+        //         "stopPrice": "211000",
         //         "symbol": "BTC_BRL",
-        //         "timestamp": 1571122683535,
-        //         "type": "LIMIT",
-        //         "value": "35"
+        //         "timestamp": 1627612035528,
+        //         "type": "STOP_LIMIT",
+        //         "value": "210"
         //     }
         //
         // cancelOrder
@@ -864,6 +889,7 @@ module.exports = class novadax extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
+        const stopPrice = this.safeNumber (order, 'stopPrice');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
@@ -877,7 +903,7 @@ module.exports = class novadax extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
