@@ -267,24 +267,24 @@ class ftx(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'maker': 0.02 / 100,
-                    'taker': 0.07 / 100,
+                    'maker': self.parse_number('0.02'),
+                    'taker': self.parse_number('0.07'),
                     'tiers': {
                         'taker': [
-                            [0, 0.07 / 100],
-                            [1000000, 0.06 / 100],
-                            [5000000, 0.055 / 100],
-                            [10000000, 0.05 / 100],
-                            [15000000, 0.045 / 100],
-                            [35000000, 0.04 / 100],
+                            [self.parse_number('0'), self.parse_number('0.0007')],
+                            [self.parse_number('2000000'), self.parse_number('0.0006')],
+                            [self.parse_number('5000000'), self.parse_number('0.00055')],
+                            [self.parse_number('10000000'), self.parse_number('0.0005')],
+                            [self.parse_number('25000000'), self.parse_number('0.045')],
+                            [self.parse_number('50000000'), self.parse_number('0.0004')],
                         ],
                         'maker': [
-                            [0, 0.02 / 100],
-                            [1000000, 0.02 / 100],
-                            [5000000, 0.015 / 100],
-                            [10000000, 0.015 / 100],
-                            [15000000, 0.01 / 100],
-                            [35000000, 0.01 / 100],
+                            [self.parse_number('0'), self.parse_number('0.0002')],
+                            [self.parse_number('2000000'), self.parse_number('0.00015')],
+                            [self.parse_number('5000000'), self.parse_number('0.0001')],
+                            [self.parse_number('10000000'), self.parse_number('0.00005')],
+                            [self.parse_number('25000000'), self.parse_number('0')],
+                            [self.parse_number('50000000'), self.parse_number('0')],
                         ],
                     },
                 },
@@ -310,12 +310,14 @@ class ftx(Exchange):
                     'Duplicate client order ID': DuplicateOrderId,  # {"error":"Duplicate client order ID","success":false}
                     'Spot orders cannot be reduce-only': InvalidOrder,  # {"error":"Spot orders cannot be reduce-only","success":false}
                     'Invalid reduce-only order': InvalidOrder,  # {"error":"Invalid reduce-only order","success":false}
+                    'Account does not have enough balances': InsufficientFunds,  # {"success":false,"error":"Account does not have enough balances"}
                 },
                 'broad': {
                     'Account does not have enough margin for order': InsufficientFunds,
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
+                    'No such subaccount': BadRequest,
                     'No such future': BadSymbol,
                     'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,

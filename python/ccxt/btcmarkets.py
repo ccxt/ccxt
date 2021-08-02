@@ -129,8 +129,8 @@ class btcmarkets(Exchange):
             'fees': {
                 'percentage': True,
                 'tierBased': True,
-                'maker': -0.05 / 100,
-                'taker': 0.20 / 100,
+                'maker': self.parse_number('-0.0005'),
+                'taker': self.parse_number('0.0020'),
             },
             'options': {
                 'fees': {

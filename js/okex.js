@@ -172,20 +172,20 @@ module.exports = class okex extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'taker': 0.0015,
-                    'maker': 0.0010,
+                    'taker': this.parseNumber ('0.0015'),
+                    'maker': this.parseNumber ('0.0010'),
                 },
                 'spot': {
-                    'taker': 0.0015,
-                    'maker': 0.0010,
+                    'taker': this.parseNumber ('0.0015'),
+                    'maker': this.parseNumber ('0.0010'),
                 },
                 'futures': {
-                    'taker': 0.0005,
-                    'maker': 0.0002,
+                    'taker': this.parseNumber ('0.0005'),
+                    'maker': this.parseNumber ('0.0002'),
                 },
                 'swap': {
-                    'taker': 0.00050,
-                    'maker': 0.00020,
+                    'taker': this.parseNumber ('0.00050'),
+                    'maker': this.parseNumber ('0.00020'),
                 },
             },
             'requiredCredentials': {

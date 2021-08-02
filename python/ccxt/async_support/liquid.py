@@ -1078,7 +1078,7 @@ class liquid(Exchange):
             'address': address,
             'tag': tag,
             'type': type,
-            'amount': amount,
+            'amount': amount - feeCost,
             'currency': code,
             'status': status,
             'updated': updated,
