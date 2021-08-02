@@ -1241,12 +1241,16 @@ class Exchange {
         }
     }
 
-    public function define_rest_api($api, $method_name, $paths = array()) {
+    public function define_rest_api($api, $method_name, $paths = array(), $depth = 0) {
         foreach ($api as $key => $value) {
+            if ($depth === $this->depth) {
+                // stop searching down the tree
+                $value = array_keys($value);
+            }
             if (static::is_associative($value)) {
                 $copy = $paths;
                 array_push ($copy, $key);
-                $this->define_rest_api($value, $method_name, $copy);
+                $this->define_rest_api($value, $method_name, $copy, $depth + 1);
             } else {
                 $uppercaseMethod = mb_strtoupper($key);
                 $lowercaseMethod = mb_strtolower($key);
