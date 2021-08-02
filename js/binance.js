@@ -4180,7 +4180,7 @@ module.exports = class binance extends Exchange {
         } else if (('byLimit' in costs) && ('limit' in params)) {
             const limit = params['limit'];
             const byLimit = costs['byLimit'];
-            for (let i = 0; i < byLimit; i++) {
+            for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit <= entry[0]) {
                     return entry[1];
