@@ -337,10 +337,11 @@ class deribit extends Exchange {
         return $this->safe_integer($response, 'result');
     }
 
-    public function code_from_options($methodName) {
+    public function code_from_options($methodName, $params = array ()) {
         $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
         $options = $this->safe_value($this->options, $methodName, array());
-        return $this->safe_value($options, 'code', $defaultCode);
+        $code = $this->safe_value($options, 'code', $defaultCode);
+        return $this->safe_value($params, 'code', $code);
     }
 
     public function fetch_status($params = array ()) {
@@ -481,7 +482,7 @@ class deribit extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $code = $this->code_from_options('fetchBalance');
+        $code = $this->code_from_options('fetchBalance', $params);
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -725,7 +726,7 @@ class deribit extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $code = $this->code_from_options('fetchTickers');
+        $code = $this->code_from_options('fetchTickers', $params);
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -1316,7 +1317,7 @@ class deribit extends Exchange {
         $market = null;
         $method = null;
         if ($symbol === null) {
-            $code = $this->code_from_options('fetchOpenOrders');
+            $code = $this->code_from_options('fetchOpenOrders', $params);
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
             $method = 'privateGetGetOpenOrdersByCurrency';
@@ -1336,7 +1337,7 @@ class deribit extends Exchange {
         $market = null;
         $method = null;
         if ($symbol === null) {
-            $code = $this->code_from_options('fetchClosedOrders');
+            $code = $this->code_from_options('fetchClosedOrders', $params);
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
             $method = 'privateGetGetOrderHistoryByCurrency';
@@ -1402,7 +1403,7 @@ class deribit extends Exchange {
         $market = null;
         $method = null;
         if ($symbol === null) {
-            $code = $this->code_from_options('fetchMyTrades');
+            $code = $this->code_from_options('fetchMyTrades', $params);
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
             if ($since === null) {
@@ -1658,7 +1659,7 @@ class deribit extends Exchange {
 
     public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
-        $code = $this->code_from_options('fetchPositions');
+        $code = $this->code_from_options('fetchPositions', $params);
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
