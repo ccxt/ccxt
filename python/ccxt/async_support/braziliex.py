@@ -81,8 +81,8 @@ class braziliex(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.005,
-                    'taker': 0.005,
+                    'maker': self.parse_number('0.005'),
+                    'taker': self.parse_number('0.005'),
                 },
             },
             'precision': {

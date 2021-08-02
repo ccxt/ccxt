@@ -175,20 +175,20 @@ class okex extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'taker' => 0.0015,
-                    'maker' => 0.0010,
+                    'taker' => $this->parse_number('0.0015'),
+                    'maker' => $this->parse_number('0.0010'),
                 ),
                 'spot' => array(
-                    'taker' => 0.0015,
-                    'maker' => 0.0010,
+                    'taker' => $this->parse_number('0.0015'),
+                    'maker' => $this->parse_number('0.0010'),
                 ),
                 'futures' => array(
-                    'taker' => 0.0005,
-                    'maker' => 0.0002,
+                    'taker' => $this->parse_number('0.0005'),
+                    'maker' => $this->parse_number('0.0002'),
                 ),
                 'swap' => array(
-                    'taker' => 0.00050,
-                    'maker' => 0.00020,
+                    'taker' => $this->parse_number('0.00050'),
+                    'maker' => $this->parse_number('0.00020'),
                 ),
             ),
             'requiredCredentials' => array(
