@@ -227,6 +227,7 @@ class Exchange(object):
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
     positions = None
+    depth = -1
 
     status = {
         'status': 'ok',
@@ -417,11 +418,14 @@ class Exchange(object):
             self.urls['api'] = self.urls['apiBackup']
             del self.urls['apiBackup']
 
-    @classmethod
-    def define_rest_api(cls, api, method_name, paths=[]):
+    def define_rest_api(self, api, method_name, paths=[], depth=0):
+        cls = type(self)
         delimiters = re.compile('[^a-zA-Z0-9]')
         entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
         for key, value in api.items():
+            if depth == self.depth:
+                # stop searching down the tree
+                value = list(value.keys())
             if isinstance(value, list):
                 uppercase_method = key.upper()
                 lowercase_method = key.lower()
@@ -465,7 +469,7 @@ class Exchange(object):
                     setattr(cls, camelcase, to_bind)
                     setattr(cls, underscore, to_bind)
             else:
-                cls.define_rest_api(value, method_name, paths + [key])
+                self.define_rest_api(value, method_name, paths + [key], depth + 1)
 
     def throttle(self, cost=None):
         now = float(self.milliseconds())
@@ -476,10 +480,14 @@ class Exchange(object):
             delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
 
+    def calculate_cost(self, api, method, path, params):
+        return 1
+
     def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
         """A better wrapper over request for deferred signing"""
         if self.enableRateLimit:
-            self.throttle()
+            cost = self.calculate_cost(api, method, path, params)
+            self.throttle(cost)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])

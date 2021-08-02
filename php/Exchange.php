@@ -253,6 +253,7 @@ class Exchange {
         'setSandboxMode' => 'set_sandbox_mode',
         'defineRestApi' => 'define_rest_api',
         'setHeaders' => 'set_headers',
+        'calculateCost' => 'calculate_cost',
         'parseJson' => 'parse_json',
         'throwExactlyMatchedException' => 'throw_exactly_matched_exception',
         'throwBroadlyMatchedException' => 'throw_broadly_matched_exception',
@@ -996,15 +997,6 @@ class Exchange {
 
         $this->id = null;
 
-        // rate limiter params
-        $this->rateLimit = 2000;
-        $this->tokenBucket = array(
-            'delay' => 1.0,
-            'capacity' => 1.0,
-            'defaultCost' => 1.0,
-            'maxCapacity' => 1000,
-        );
-
         $this->curlopt_interface = null;
         $this->timeout = 10000; // in milliseconds
         $this->proxy = '';
@@ -1185,6 +1177,7 @@ class Exchange {
 
         $this->requiresWeb3 = false;
         $this->requiresEddsa = false;
+        $this->depth = -1;
 
         $this->commonCurrencies = array(
             'XBT' => 'BTC',
@@ -1206,6 +1199,14 @@ class Exchange {
                         $value;
             }
         }
+
+        $this->tokenBucket = array(
+            'delay' => 1.0,
+            'capacity' => 1.0,
+            'cost' => 1.0,
+            'maxCapacity' => 1000,
+            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
+        );
 
         if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
@@ -1391,9 +1392,14 @@ class Exchange {
         throw new NotSupported($this->id . ' sign() not supported yet');
     }
 
+    public function calculate_cost($api, $method, $path, $params) {
+        return 1;
+    }
+
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
         if ($this->enableRateLimit) {
-            $this->throttle();
+            $cost = $this->calculate_cost($api, $method, $path, $params);
+            $this->throttle($cost);
         }
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
         return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
