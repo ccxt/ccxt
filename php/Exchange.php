@@ -1177,6 +1177,7 @@ class Exchange {
 
         $this->requiresWeb3 = false;
         $this->requiresEddsa = false;
+        $this->rateLimit = 2000;
         $this->depth = -1;
 
         $this->commonCurrencies = array(
