@@ -291,12 +291,14 @@ class ftx extends Exchange {
                     'Duplicate client order ID' => '\\ccxt\\DuplicateOrderId', // array("error":"Duplicate client order ID","success":false)
                     'Spot orders cannot be reduce-only' => '\\ccxt\\InvalidOrder', // array("error":"Spot orders cannot be reduce-only","success":false)
                     'Invalid reduce-only order' => '\\ccxt\\InvalidOrder', // array("error":"Invalid reduce-only order","success":false)
+                    'Account does not have enough balances' => '\\ccxt\\InsufficientFunds', // array("success":false,"error":"Account does not have enough balances")
                 ),
                 'broad' => array(
                     'Account does not have enough margin for order' => '\\ccxt\\InsufficientFunds',
                     'Invalid parameter' => '\\ccxt\\BadRequest', // array("error":"Invalid parameter start_time","success":false)
                     'The requested URL was not found on the server' => '\\ccxt\\BadRequest',
                     'No such coin' => '\\ccxt\\BadRequest',
+                    'No such subaccount' => '\\ccxt\\BadRequest',
                     'No such future' => '\\ccxt\\BadSymbol',
                     'No such market' => '\\ccxt\\BadSymbol',
                     'Do not send more than' => '\\ccxt\\RateLimitExceeded',
