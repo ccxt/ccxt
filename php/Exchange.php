@@ -1201,7 +1201,7 @@ class Exchange {
         }
 
         $this->tokenBucket = array(
-            'delay' => 1.0,
+            'delay' => 0.001,
             'capacity' => 1.0,
             'cost' => 1.0,
             'maxCapacity' => 1000,
