@@ -14,7 +14,7 @@ module.exports = class biki extends Exchange {
             'name': 'Biki',
             'countries': [ 'CN' ],
             'version': 'v1',
-            'rateLimit': 10,
+            'rateLimit': 1000,
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
@@ -304,7 +304,7 @@ module.exports = class biki extends Exchange {
             'symbol': symbol,
             'order': undefined,
             'type': undefined,
-            'side': type === '1' ? 'buy' : 'sell',
+            'side': this.parseOrderSide (type),
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
