@@ -487,9 +487,9 @@ class okex extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarkets' => array( 'spot', 'futures', 'swap' ), // spot, futures, swap, option
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
-                'fetchBalance' => array(
-                    'type' => 'spot', // 'funding', 'trading', 'spot'
-                ),
+                // 'fetchBalance' => array(
+                //     'type' => 'spot', // 'funding', 'trading', 'spot'
+                // ),
                 'fetchLedger' => array(
                     'method' => 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
                 ),
