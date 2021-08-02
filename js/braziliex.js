@@ -68,8 +68,8 @@ module.exports = class braziliex extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.005,
-                    'taker': 0.005,
+                    'maker': this.parseNumber ('0.005'),
+                    'taker': this.parseNumber ('0.005'),
                 },
             },
             'precision': {
