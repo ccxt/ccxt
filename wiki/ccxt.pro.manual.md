@@ -699,6 +699,8 @@ Most people use WS to avoid any sorts of delays and have real-time data. So, in 
 
 That explains why some exchanges reasonably think that OHLCVs are not necessary in the WS context, cause users can calculate that information in the userland much faster having just a WS stream of realtime 1st-order trades.
 
+If your application is not very critical about the above, you can still subscribe to OHLCV streams, if the underlying exchange supports them, as shown below:
+
 ```JavaScript
 // JavaScript
 if (exchange.has['watchOHLCV']) {
