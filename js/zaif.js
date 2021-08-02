@@ -46,8 +46,8 @@ module.exports = class zaif extends Exchange {
             'fees': {
                 'trading': {
                     'percentage': true,
-                    'taker': 0.1 / 100,
-                    'maker': 0,
+                    'taker': this.parseNumber ('0.001'),
+                    'maker': this.parseNumber ('0'),
                 },
             },
             'api': {
