@@ -177,8 +177,8 @@ module.exports = class stex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
+                    'taker': this.parseNumber ('0.002'),
+                    'maker': this.parseNumber ('0.002'),
                 },
             },
             'commonCurrencies': {
@@ -1725,6 +1725,7 @@ module.exports = class stex extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.publicGetCurrencies (params);
         //
         //     {

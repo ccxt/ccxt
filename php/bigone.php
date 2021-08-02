@@ -101,26 +101,11 @@ class bigone extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.1 / 100,
-                    'taker' => 0.1 / 100,
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.001'),
                 ),
                 'funding' => array(
-                    // HARDCODING IS DEPRECATED THE FEES BELOW ARE TO BE REMOVED SOON
-                    'withdraw' => array(
-                        'BTC' => 0.001,
-                        'ETH' => 0.005,
-                        'EOS' => 0.01,
-                        'ZEC' => 0.003,
-                        'LTC' => 0.01,
-                        'QTUM' => 0.01,
-                        // 'INK' => 0.01 QTUM,
-                        // 'BOT' => 0.01 QTUM,
-                        'ETC' => 0.01,
-                        'GAS' => 0.0,
-                        'BTS' => 1.0,
-                        'GXS' => 0.1,
-                        'BITCNY' => 19.0,
-                    ),
+                    'withdraw' => array(),
                 ),
             ),
             'exceptions' => array(
@@ -151,6 +136,8 @@ class bigone extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'CRE' => 'Cybereits',
+                'FXT' => 'FXTTOKEN',
                 'MBN' => 'Mobilian Coin',
                 'ONE' => 'BigONE Token',
             ),

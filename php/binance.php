@@ -560,8 +560,8 @@ class binance extends Exchange {
                     'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => 0.001,
-                    'maker' => 0.001,
+                    'taker' => $this->parse_number('0.001'),
+                    'maker' => $this->parse_number('0.001'),
                 ),
                 'future' => array(
                     'trading' => array(
@@ -1784,7 +1784,10 @@ class binance extends Exchange {
         $amountString = $this->safe_string_2($trade, 'q', 'qty');
         $price = $this->parse_number($priceString);
         $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $marketId = $this->safe_string($trade, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $costString = Precise::string_mul($priceString, $amountString);
+        $cost = $this->parse_number($costString);
         $id = $this->safe_string_2($trade, 't', 'a');
         $id = $this->safe_string($trade, 'id', $id);
         $side = null;
@@ -1814,8 +1817,6 @@ class binance extends Exchange {
         if (is_array($trade) && array_key_exists('maker', $trade)) {
             $takerOrMaker = $trade['maker'] ? 'maker' : 'taker';
         }
-        $marketId = $this->safe_string($trade, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -2504,20 +2505,39 @@ class binance extends Exchange {
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
         //
         $this->load_markets();
-        $response = $this->wapiGetUserAssetDribbletLog ($params);
-        // { success =>    true,
-        //   $results => { total =>    1,
-        //               $rows => array( {     transfered_total => "1.06468458",
-        //                         service_charge_total => "0.02172826",
-        //                                      tran_id => 2701371634,
-        //                                         $logs => array( {              tranId =>  2701371634,
-        //                                                   serviceChargeAmount => "0.00012819",
-        //                                                                   uid => "35103861",
-        //                                                                amount => "0.8012",
-        //                                                           operateTime => "2018-10-07 17:56:07",
-        //                                                      transferedAmount => "0.00628141",
-        //                                                             fromAsset => "ADA"                  } ),
-        //                                 operate_time => "2018-10-07 17:56:06"                                } ) } }
+        $request = array();
+        if ($since !== null) {
+            $request['startTime'] = $since;
+            $request['endTime'] = $this->sum($since, 7776000000);
+        }
+        $response = $this->wapiGetUserAssetDribbletLog (array_merge($request, $params));
+        //
+        //     {
+        //         success => true,
+        //         $results => {
+        //             total => 1,
+        //             $rows => array(
+        //                 {
+        //                     transfered_total => "1.06468458",
+        //                     service_charge_total => "0.02172826",
+        //                     tran_id => 2701371634,
+        //                     $logs => array(
+        //                         {
+        //                             tranId =>  2701371634,
+        //                             serviceChargeAmount => "0.00012819",
+        //                             uid => "35103861",
+        //                             amount => "0.8012",
+        //                             operateTime => "2018-10-07 17:56:07",
+        //                             transferedAmount => "0.00628141",
+        //                             fromAsset => "ADA"
+        //                         }
+        //                     ),
+        //                     operate_time => "2018-10-07 17:56:06"
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
         $results = $this->safe_value($response, 'results', array());
         $rows = $this->safe_value($results, 'rows', array());
         $data = array();
@@ -2542,8 +2562,10 @@ class binance extends Exchange {
         //             fromAsset => "ADA"                  ),
         $orderId = $this->safe_string($trade, 'tranId');
         $timestamp = $this->parse8601($this->safe_string($trade, 'operateTime'));
-        $tradedCurrency = $this->safe_currency_code($this->safe_string($trade, 'fromAsset'));
-        $earnedCurrency = $this->currency('BNB')['code'];
+        $currencyId = $this->safe_string($trade, 'fromAsset');
+        $tradedCurrency = $this->safe_currency_code($currencyId);
+        $bnb = $this->currency('BNB');
+        $earnedCurrency = $bnb['code'];
         $applicantSymbol = $earnedCurrency . '/' . $tradedCurrency;
         $tradedCurrencyIsQuote = false;
         if (is_array($this->markets) && array_key_exists($applicantSymbol, $this->markets)) {
@@ -2556,32 +2578,36 @@ class binance extends Exchange {
         // BNB `$amount` (or `$cost` depending on the $trade `$side`). The second of the above options
         // is much more illustrative and therefore preferable.
         //
+        $feeCostString = $this->safe_string($trade, 'serviceChargeAmount');
         $fee = array(
             'currency' => $earnedCurrency,
-            'cost' => $this->safe_number($trade, 'serviceChargeAmount'),
+            'cost' => $this->parse_number($feeCostString),
         );
         $symbol = null;
-        $amount = null;
-        $cost = null;
+        $amountString = null;
+        $costString = null;
         $side = null;
         if ($tradedCurrencyIsQuote) {
             $symbol = $applicantSymbol;
-            $amount = $this->sum($this->safe_number($trade, 'transferedAmount'), $fee['cost']);
-            $cost = $this->safe_number($trade, 'amount');
+            $amountString = Precise::string_add($this->safe_string($trade, 'transferedAmount'), $feeCostString);
+            $costString = $this->safe_string($trade, 'amount');
             $side = 'buy';
         } else {
             $symbol = $tradedCurrency . '/' . $earnedCurrency;
-            $amount = $this->safe_number($trade, 'amount');
-            $cost = $this->sum($this->safe_number($trade, 'transferedAmount'), $fee['cost']);
+            $amountString = $this->safe_string($trade, 'amount');
+            $costString = Precise::string_add($this->safe_string($trade, 'transferedAmount'), $feeCostString);
             $side = 'sell';
         }
-        $price = null;
-        if ($cost !== null) {
-            if ($amount) {
-                $price = $cost / $amount;
+        $priceString = null;
+        if ($costString !== null) {
+            if ($amountString) {
+                $priceString = Precise::string_div($costString, $amountString);
             }
         }
         $id = null;
+        $amount = $this->parse_number($amountString);
+        $price = $this->parse_number($priceString);
+        $cost = $this->parse_number($costString);
         $type = null;
         $takerOrMaker = null;
         return array(
@@ -3039,6 +3065,7 @@ class binance extends Exchange {
     }
 
     public function fetch_funding_fees($codes = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->sapiGetCapitalConfigGetall ($params);
         //
         //  [

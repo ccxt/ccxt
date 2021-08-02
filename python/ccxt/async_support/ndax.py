@@ -194,12 +194,13 @@ class ndax(Exchange):
                 },
             },
             'requiredCredentials': {
-                # 'apiKey': True,
-                # 'secret': True,
+                'apiKey': True,
+                'secret': True,
                 'uid': True,
-                'login': True,
-                'password': True,
-                'twofa': True,
+                # these credentials are required for signIn() and withdraw()
+                # 'login': True,
+                # 'password': True,
+                # 'twofa': True,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -229,6 +230,8 @@ class ndax(Exchange):
 
     async def sign_in(self, params={}):
         self.check_required_credentials()
+        if self.login is None or self.password is None or self.twofa is None:
+            raise AuthenticationError(self.id + ' signIn() requires exchange.login, exchange.password and exchange.twofa credentials')
         request = {
             'grant_type': 'client_credentials',  # the only supported value
         }
@@ -249,6 +252,9 @@ class ndax(Exchange):
         pending2faToken = self.safe_string(response, 'Pending2FaToken')
         if pending2faToken is not None:
             self.options['pending2faToken'] = pending2faToken
+            request = {
+                'Code': self.oath(),
+            }
             response = await self.publicGetAuthenticate2FA(self.extend(request, params))
             #
             #     {
@@ -826,12 +832,14 @@ class ndax(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_accounts(self, params={}):
+        if not self.login:
+            raise AuthenticationError(self.id + ' fetchAccounts() requires exchange.login email credential')
         omsId = self.safe_integer(self.options, 'omsId', 1)
         self.check_required_credentials()
         request = {
             'omsId': omsId,
             'UserId': self.uid,
-            'UserName': 'igor@ccxt.trade',
+            'UserName': self.login,
         }
         response = await self.privateGetGetUserAccounts(self.extend(request, params))
         #
@@ -1930,8 +1938,10 @@ class ndax(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
-        if self.twofa is None:
-            raise ExchangeError(self.id + ' withdraw() requires exchange.twofa credential for OATH codes')
+        # self method required login, password and twofa key
+        sessionToken = self.safe_string(self.options, 'sessionToken')
+        if sessionToken is None:
+            raise AuthenticationError(self.id + ' call signIn() method to obtain a session token')
         self.check_address(address)
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
@@ -2017,52 +2027,41 @@ class ndax(Exchange):
                 auth64 = self.string_to_base64(auth)
                 headers = {
                     'Authorization': 'Basic ' + self.decode(auth64),
-                    'Content-Type': 'application/json',
+                    # 'Content-Type': 'application/json',
                 }
             elif path == 'Authenticate2FA':
                 pending2faToken = self.safe_string(self.options, 'pending2faToken')
                 if pending2faToken is not None:
-                    query['Code'] = self.oath()
                     headers = {
                         'Pending2FaToken': pending2faToken,
-                        'Content-Type': 'application/json',
+                        # 'Content-Type': 'application/json',
                     }
+                    query = self.omit(query, 'pending2faToken')
             if query:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
             sessionToken = self.safe_string(self.options, 'sessionToken')
             if sessionToken is None:
-                raise AuthenticationError(self.id + ' call signIn() method to obtain a session token')
-                #
-                #     nonce = str(self.nonce())
-                #     auth = nonce + self.uid + self.apiKey
-                #     signature = self.hmac(self.encode(auth), self.encode(self.secret))
-                #     headers = {
-                #         'Nonce': nonce,
-                #         'APIKey': self.apiKey,
-                #         'Signature': signature,
-                #         'UserId': self.uid,
-                #     }
-                #     if method == 'POST':
-                #         headers['Content-Type'] = 'application/json'
-                #         body = self.json(query)
-                #     else:
-                #         if query:
-                #             url += '?' + self.urlencode(query)
-                #         }
-                #     }
-                #
+                nonce = str(self.nonce())
+                auth = nonce + self.uid + self.apiKey
+                signature = self.hmac(self.encode(auth), self.encode(self.secret))
+                headers = {
+                    'Nonce': nonce,
+                    'APIKey': self.apiKey,
+                    'Signature': signature,
+                    'UserId': self.uid,
+                }
             else:
                 headers = {
                     'APToken': sessionToken,
                 }
-                if method == 'POST':
-                    headers['Content-Type'] = 'application/json'
-                    body = self.json(query)
-                else:
-                    if query:
-                        url += '?' + self.urlencode(query)
+            if method == 'POST':
+                headers['Content-Type'] = 'application/json'
+                body = self.json(query)
+            else:
+                if query:
+                    url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

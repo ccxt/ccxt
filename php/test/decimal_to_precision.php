@@ -343,4 +343,45 @@ assert (Precise::string_mod('5550', '120') === '30');
 
 assert (Precise::string_equals('1.0000', '1'));
 assert (Precise::string_equals('-0.0', '0'));
+assert (Precise::string_equals('-0.0', '0.0'));
 assert (Precise::string_equals('5.534000', '5.5340'));
+
+assert (Precise::string_min('1.0000', '2') === '1');
+assert (Precise::string_min('2', '1.2345') === '1.2345');
+assert (Precise::string_min('3.1415', '-2') === '-2');
+assert (Precise::string_min('-3.1415', '-2') === '-3.1415');
+assert (Precise::string_min('0.000', '-0.0') === '0');
+
+assert (Precise::string_max('1.0000', '2') === '2');
+assert (Precise::string_max('2', '1.2345') === '2');
+assert (Precise::string_max('3.1415', '-2') === '3.1415');
+assert (Precise::string_max('-3.1415', '-2') === '-2');
+assert (Precise::string_max('0.000', '-0.0') === '0');
+
+assert (!Precise::string_gt('1.0000', '2'));
+assert (Precise::string_gt('2', '1.2345'));
+assert (Precise::string_gt('3.1415', '-2'));
+assert (!Precise::string_gt('-3.1415', '-2'));
+assert (!Precise::string_gt('3.1415', '3.1415'));
+assert (Precise::string_gt('3.14150000000000000000001', '3.1415'));
+
+assert (!Precise::string_ge('1.0000', '2'));
+assert (Precise::string_ge('2', '1.2345'));
+assert (Precise::string_ge('3.1415', '-2'));
+assert (!Precise::string_ge('-3.1415', '-2'));
+assert (Precise::string_ge('3.1415', '3.1415'));
+assert (Precise::string_ge('3.14150000000000000000001', '3.1415'));
+
+assert (Precise::string_lt('1.0000', '2'));
+assert (!Precise::string_lt('2', '1.2345'));
+assert (!Precise::string_lt('3.1415', '-2'));
+assert (Precise::string_lt('-3.1415', '-2'));
+assert (!Precise::string_lt('3.1415', '3.1415'));
+assert (Precise::string_lt('3.1415', '3.14150000000000000000001'));
+
+assert (Precise::string_le('1.0000', '2'));
+assert (!Precise::string_le('2', '1.2345'));
+assert (!Precise::string_le('3.1415', '-2'));
+assert (Precise::string_le('-3.1415', '-2'));
+assert (Precise::string_le('3.1415', '3.1415'));
+assert (Precise::string_le('3.1415', '3.14150000000000000000001'));

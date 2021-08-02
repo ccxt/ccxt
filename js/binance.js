@@ -554,8 +554,8 @@ module.exports = class binance extends Exchange {
                     'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.001,
-                    'maker': 0.001,
+                    'taker': this.parseNumber ('0.001'),
+                    'maker': this.parseNumber ('0.001'),
                 },
                 'future': {
                     'trading': {
@@ -1778,7 +1778,10 @@ module.exports = class binance extends Exchange {
         const amountString = this.safeString2 (trade, 'q', 'qty');
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const costString = Precise.stringMul (priceString, amountString);
+        const cost = this.parseNumber (costString);
         let id = this.safeString2 (trade, 't', 'a');
         id = this.safeString (trade, 'id', id);
         let side = undefined;
@@ -1808,8 +1811,6 @@ module.exports = class binance extends Exchange {
         if ('maker' in trade) {
             takerOrMaker = trade['maker'] ? 'maker' : 'taker';
         }
-        const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -2498,20 +2499,39 @@ module.exports = class binance extends Exchange {
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
         //
         await this.loadMarkets ();
-        const response = await this.wapiGetUserAssetDribbletLog (params);
-        // { success:    true,
-        //   results: { total:    1,
-        //               rows: [ {     transfered_total: "1.06468458",
-        //                         service_charge_total: "0.02172826",
-        //                                      tran_id: 2701371634,
-        //                                         logs: [ {              tranId:  2701371634,
-        //                                                   serviceChargeAmount: "0.00012819",
-        //                                                                   uid: "35103861",
-        //                                                                amount: "0.8012",
-        //                                                           operateTime: "2018-10-07 17:56:07",
-        //                                                      transferedAmount: "0.00628141",
-        //                                                             fromAsset: "ADA"                  } ],
-        //                                 operate_time: "2018-10-07 17:56:06"                                } ] } }
+        const request = {};
+        if (since !== undefined) {
+            request['startTime'] = since;
+            request['endTime'] = this.sum (since, 7776000000);
+        }
+        const response = await this.wapiGetUserAssetDribbletLog (this.extend (request, params));
+        //
+        //     {
+        //         success: true,
+        //         results: {
+        //             total: 1,
+        //             rows: [
+        //                 {
+        //                     transfered_total: "1.06468458",
+        //                     service_charge_total: "0.02172826",
+        //                     tran_id: 2701371634,
+        //                     logs: [
+        //                         {
+        //                             tranId:  2701371634,
+        //                             serviceChargeAmount: "0.00012819",
+        //                             uid: "35103861",
+        //                             amount: "0.8012",
+        //                             operateTime: "2018-10-07 17:56:07",
+        //                             transferedAmount: "0.00628141",
+        //                             fromAsset: "ADA"
+        //                         }
+        //                     ],
+        //                     operate_time: "2018-10-07 17:56:06"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         const results = this.safeValue (response, 'results', {});
         const rows = this.safeValue (results, 'rows', []);
         const data = [];
@@ -2536,8 +2556,10 @@ module.exports = class binance extends Exchange {
         //             fromAsset: "ADA"                  },
         const orderId = this.safeString (trade, 'tranId');
         const timestamp = this.parse8601 (this.safeString (trade, 'operateTime'));
-        const tradedCurrency = this.safeCurrencyCode (this.safeString (trade, 'fromAsset'));
-        const earnedCurrency = this.currency ('BNB')['code'];
+        const currencyId = this.safeString (trade, 'fromAsset');
+        const tradedCurrency = this.safeCurrencyCode (currencyId);
+        const bnb = this.currency ('BNB');
+        const earnedCurrency = bnb['code'];
         const applicantSymbol = earnedCurrency + '/' + tradedCurrency;
         let tradedCurrencyIsQuote = false;
         if (applicantSymbol in this.markets) {
@@ -2550,32 +2572,36 @@ module.exports = class binance extends Exchange {
         // BNB `amount` (or `cost` depending on the trade `side`). The second of the above options
         // is much more illustrative and therefore preferable.
         //
+        const feeCostString = this.safeString (trade, 'serviceChargeAmount');
         const fee = {
             'currency': earnedCurrency,
-            'cost': this.safeNumber (trade, 'serviceChargeAmount'),
+            'cost': this.parseNumber (feeCostString),
         };
         let symbol = undefined;
-        let amount = undefined;
-        let cost = undefined;
+        let amountString = undefined;
+        let costString = undefined;
         let side = undefined;
         if (tradedCurrencyIsQuote) {
             symbol = applicantSymbol;
-            amount = this.sum (this.safeNumber (trade, 'transferedAmount'), fee['cost']);
-            cost = this.safeNumber (trade, 'amount');
+            amountString = Precise.stringAdd (this.safeString (trade, 'transferedAmount'), feeCostString);
+            costString = this.safeString (trade, 'amount');
             side = 'buy';
         } else {
             symbol = tradedCurrency + '/' + earnedCurrency;
-            amount = this.safeNumber (trade, 'amount');
-            cost = this.sum (this.safeNumber (trade, 'transferedAmount'), fee['cost']);
+            amountString = this.safeString (trade, 'amount');
+            costString = Precise.stringAdd (this.safeString (trade, 'transferedAmount'), feeCostString);
             side = 'sell';
         }
-        let price = undefined;
-        if (cost !== undefined) {
-            if (amount) {
-                price = cost / amount;
+        let priceString = undefined;
+        if (costString !== undefined) {
+            if (amountString) {
+                priceString = Precise.stringDiv (costString, amountString);
             }
         }
         const id = undefined;
+        const amount = this.parseNumber (amountString);
+        const price = this.parseNumber (priceString);
+        const cost = this.parseNumber (costString);
         const type = undefined;
         const takerOrMaker = undefined;
         return {
@@ -3033,6 +3059,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.sapiGetCapitalConfigGetall (params);
         //
         //  [

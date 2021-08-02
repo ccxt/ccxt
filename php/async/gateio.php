@@ -27,6 +27,10 @@ class gateio extends Exchange {
                     'public' => 'https://api.gateio.ws/api/v4',
                     'private' => 'https://api.gateio.ws/api/v4',
                 ),
+                'referral' => array(
+                    'url' => 'https://www.gate.io/ref/2436035',
+                    'discount' => 0.2,
+                ),
             ),
             'has' => array(
                 'fetchMarkets' => true,
@@ -273,6 +277,56 @@ class gateio extends Exchange {
                     'margin' => 'margin',
                     'futures' => 'futures',
                     'delivery' => 'delivery',
+                ),
+            ),
+            'fees' => array(
+                'trading' => array(
+                    'tierBased' => true,
+                    'feeSide' => 'get',
+                    'percentage' => true,
+                    'maker' => $this->parse_number('0.002'),
+                    'taker' => $this->parse_number('0.002'),
+                    'tiers' => array(
+                        // volume is in BTC
+                        'maker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('1.5'), $this->parse_number('0.00185') ),
+                            array( $this->parse_number('3'), $this->parse_number('0.00175') ),
+                            array( $this->parse_number('6'), $this->parse_number('0.00165') ),
+                            array( $this->parse_number('12.5'), $this->parse_number('0.00155') ),
+                            array( $this->parse_number('25'), $this->parse_number('0.00145') ),
+                            array( $this->parse_number('75'), $this->parse_number('0.00135') ),
+                            array( $this->parse_number('200'), $this->parse_number('0.00125') ),
+                            array( $this->parse_number('500'), $this->parse_number('0.00115') ),
+                            array( $this->parse_number('1250'), $this->parse_number('0.00105') ),
+                            array( $this->parse_number('2500'), $this->parse_number('0.00095') ),
+                            array( $this->parse_number('3000'), $this->parse_number('0.00085') ),
+                            array( $this->parse_number('6000'), $this->parse_number('0.00075') ),
+                            array( $this->parse_number('11000'), $this->parse_number('0.00065') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.00055') ),
+                            array( $this->parse_number('40000'), $this->parse_number('0.00055') ),
+                            array( $this->parse_number('75000'), $this->parse_number('0.00055') ),
+                        ),
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('1.5'), $this->parse_number('0.00195') ),
+                            array( $this->parse_number('3'), $this->parse_number('0.00185') ),
+                            array( $this->parse_number('6'), $this->parse_number('0.00175') ),
+                            array( $this->parse_number('12.5'), $this->parse_number('0.00165') ),
+                            array( $this->parse_number('25'), $this->parse_number('0.00155') ),
+                            array( $this->parse_number('75'), $this->parse_number('0.00145') ),
+                            array( $this->parse_number('200'), $this->parse_number('0.00135') ),
+                            array( $this->parse_number('500'), $this->parse_number('0.00125') ),
+                            array( $this->parse_number('1250'), $this->parse_number('0.00115') ),
+                            array( $this->parse_number('2500'), $this->parse_number('0.00105') ),
+                            array( $this->parse_number('3000'), $this->parse_number('0.00095') ),
+                            array( $this->parse_number('6000'), $this->parse_number('0.00085') ),
+                            array( $this->parse_number('11000'), $this->parse_number('0.00075') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.00065') ),
+                            array( $this->parse_number('40000'), $this->parse_number('0.00065') ),
+                            array( $this->parse_number('75000'), $this->parse_number('0.00065') ),
+                        ),
+                    ),
                 ),
             ),
             // https://www.gate.io/docs/apiv4/en/index.html#label-list
@@ -638,12 +692,15 @@ class gateio extends Exchange {
         );
     }
 
-    public function fetch_order_book($symbol, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'currency_pair' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 10, max 100
+        }
         $response = yield $this->publicSpotGetOrderBook (array_merge($request, $params));
         $timestamp = $this->safe_integer($response, 'current');
         return $this->parse_order_book($response, $symbol, $timestamp);
@@ -797,11 +854,13 @@ class gateio extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'currency_pair' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100, max 1000
+        }
         $response = yield $this->privateSpotGetMyTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -1036,7 +1095,9 @@ class gateio extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
         // createOrder
+        //
         //     {
         //       "$id" => "62364648575",
         //       "text" => "apiv4",
@@ -1065,11 +1126,14 @@ class gateio extends Exchange {
         //       "rebated_fee_currency" => "USDT"
         //     }
         //
+        //
         $id = $this->safe_string($order, 'id');
         $marketId = $this->safe_string($order, 'currency_pair');
         $symbol = $this->safe_symbol($marketId, $market);
-        $timestamp = $this->safe_integer($order, 'create_time_ms');
-        $lastTradeTimestamp = $this->safe_integer($order, 'update_time_ms');
+        $timestamp = $this->safe_timestamp($order, 'create_time');
+        $timestamp = $this->safe_integer($order, 'create_time_ms', $timestamp);
+        $lastTradeTimestamp = $this->safe_timestamp($order, 'update_time');
+        $lastTradeTimestamp = $this->safe_integer($order, 'update_time_ms', $lastTradeTimestamp);
         $amount = $this->safe_number($order, 'amount');
         $price = $this->safe_number($order, 'price');
         $remaining = $this->safe_number($order, 'left');
@@ -1137,15 +1201,72 @@ class gateio extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return yield $this->fetch_orders_helper('open', $symbol, $since, $limit, $params);
+        yield $this->load_markets();
+        if ($symbol === null) {
+            $request = array(
+                // 'page' => 1,
+                // 'limit' => $limit,
+                // 'account' => '', // spot/margin (default), cross_margin
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = yield $this->privateSpotGetOpenOrders (array_merge($request, $params));
+            //
+            //     array(
+            //         {
+            //             "currency_pair" => "ETH_BTC",
+            //             "total" => 1,
+            //             "$orders" => array(
+            //                 array(
+            //                     "id" => "12332324",
+            //                     "text" => "t-123456",
+            //                     "create_time" => "1548000000",
+            //                     "update_time" => "1548000100",
+            //                     "currency_pair" => "ETH_BTC",
+            //                     "status" => "open",
+            //                     "type" => "$limit",
+            //                     "account" => "spot",
+            //                     "side" => "buy",
+            //                     "amount" => "1",
+            //                     "price" => "5.00032",
+            //                     "time_in_force" => "gtc",
+            //                     "left" => "0.5",
+            //                     "filled_total" => "2.50016",
+            //                     "fee" => "0.005",
+            //                     "fee_currency" => "ETH",
+            //                     "point_fee" => "0",
+            //                     "gt_fee" => "0",
+            //                     "gt_discount" => false,
+            //                     "rebated_fee" => "0",
+            //                     "rebated_fee_currency" => "BTC"
+            //                 }
+            //             )
+            //         ),
+            //         ...
+            //     )
+            //
+            $allOrders = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $orders = $this->safe_value($entry, 'orders', array());
+                $parsed = $this->parse_orders($orders, null, $since, $limit);
+                $allOrders = $this->array_concat($allOrders, $parsed);
+            }
+            return $this->filter_by_since_limit($allOrders, $since, $limit);
+        }
+        return yield $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return yield $this->fetch_orders_helper('finished', $symbol, $since, $limit, $params);
+        return yield $this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_orders_helper($status, $symbol, $since, $limit, $params = array ()) {
+    public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus requires a $symbol argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'currency_pair' => $market['id'],

@@ -78,8 +78,8 @@ module.exports = class bithumb extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.25 / 100,
-                    'taker': 0.25 / 100,
+                    'maker': this.parseNumber ('0.0025'),
+                    'taker': this.parseNumber ('0.0025'),
                 },
             },
             'precisionMode': SIGNIFICANT_DIGITS,

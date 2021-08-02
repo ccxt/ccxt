@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.53.73';
+$version = '1.54.27';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.53.73';
+    const VERSION = '1.54.27';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1375,12 +1375,14 @@ class Exchange {
         return static::binary_to_base58(static::base16_to_binary($signature->toHex()));
     }
 
-    public function throttle($rate_limit, $cost = null) {
+    public function throttle($cost = null) {
         // TODO: use a token bucket here
         $now = $this->milliseconds();
         $elapsed = $now - $this->lastRestRequestTimestamp;
-        if ($elapsed < $rate_limit) {
-            $delay = $rate_limit - $elapsed;
+        $cost = ($cost === null) ? 1 : $cost;
+        $sleep_time = $this->rateLimit * $cost;
+        if ($elapsed < $sleep_time) {
+            $delay = $sleep_time - $elapsed;
             usleep((int) ($delay * 1000.0));
         }
     }
@@ -1391,7 +1393,7 @@ class Exchange {
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
         if ($this->enableRateLimit) {
-            $this->throttle($this->rateLimit);
+            $this->throttle();
         }
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
         return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);

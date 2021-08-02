@@ -81,8 +81,8 @@ module.exports = class bw extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.2 / 100,
-                    'maker': 0.2 / 100,
+                    'taker': this.parseNumber ('0.002'),
+                    'maker': this.parseNumber ('0.002'),
                 },
                 'funding': {
                 },

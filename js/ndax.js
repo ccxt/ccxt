@@ -188,12 +188,13 @@ module.exports = class ndax extends Exchange {
                 },
             },
             'requiredCredentials': {
-                // 'apiKey': true,
-                // 'secret': true,
+                'apiKey': true,
+                'secret': true,
                 'uid': true,
-                'login': true,
-                'password': true,
-                'twofa': true,
+                // these credentials are required for signIn() and withdraw()
+                // 'login': true,
+                // 'password': true,
+                // 'twofa': true,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -224,7 +225,10 @@ module.exports = class ndax extends Exchange {
 
     async signIn (params = {}) {
         this.checkRequiredCredentials ();
-        const request = {
+        if (this.login === undefined || this.password === undefined || this.twofa === undefined) {
+            throw new AuthenticationError (this.id + ' signIn() requires exchange.login, exchange.password and exchange.twofa credentials');
+        }
+        let request = {
             'grant_type': 'client_credentials', // the only supported value
         };
         const response = await this.publicGetAuthenticate (this.extend (request, params));
@@ -245,6 +249,9 @@ module.exports = class ndax extends Exchange {
         const pending2faToken = this.safeString (response, 'Pending2FaToken');
         if (pending2faToken !== undefined) {
             this.options['pending2faToken'] = pending2faToken;
+            request = {
+                'Code': this.oath (),
+            };
             const response = await this.publicGetAuthenticate2FA (this.extend (request, params));
             //
             //     {
@@ -847,12 +854,15 @@ module.exports = class ndax extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
+        if (!this.login) {
+            throw new AuthenticationError (this.id + ' fetchAccounts() requires exchange.login email credential');
+        }
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         this.checkRequiredCredentials ();
         const request = {
             'omsId': omsId,
             'UserId': this.uid,
-            'UserName': 'igor@ccxt.trade',
+            'UserName': this.login,
         };
         const response = await this.privateGetGetUserAccounts (this.extend (request, params));
         //
@@ -2002,8 +2012,10 @@ module.exports = class ndax extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        if (this.twofa === undefined) {
-            throw new ExchangeError (this.id + ' withdraw() requires exchange.twofa credential for OATH codes');
+        // this method required login, password and twofa key
+        const sessionToken = this.safeString (this.options, 'sessionToken');
+        if (sessionToken === undefined) {
+            throw new AuthenticationError (this.id + ' call signIn() method to obtain a session token');
         }
         this.checkAddress (address);
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -2089,23 +2101,23 @@ module.exports = class ndax extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (path === 'Authenticate') {
                 const auth = this.login + ':' + this.password;
                 const auth64 = this.stringToBase64 (auth);
                 headers = {
                     'Authorization': 'Basic ' + this.decode (auth64),
-                    'Content-Type': 'application/json',
+                    // 'Content-Type': 'application/json',
                 };
             } else if (path === 'Authenticate2FA') {
                 const pending2faToken = this.safeString (this.options, 'pending2faToken');
                 if (pending2faToken !== undefined) {
-                    query['Code'] = this.oath ();
                     headers = {
                         'Pending2FaToken': pending2faToken,
-                        'Content-Type': 'application/json',
+                        // 'Content-Type': 'application/json',
                     };
+                    query = this.omit (query, 'pending2faToken');
                 }
             }
             if (Object.keys (query).length) {
@@ -2115,37 +2127,26 @@ module.exports = class ndax extends Exchange {
             this.checkRequiredCredentials ();
             const sessionToken = this.safeString (this.options, 'sessionToken');
             if (sessionToken === undefined) {
-                throw new AuthenticationError (this.id + ' call signIn() method to obtain a session token');
-                //
-                //     const nonce = this.nonce ().toString ();
-                //     const auth = nonce + this.uid + this.apiKey;
-                //     const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-                //     headers = {
-                //         'Nonce': nonce,
-                //         'APIKey': this.apiKey,
-                //         'Signature': signature,
-                //         'UserId': this.uid,
-                //     };
-                //     if (method === 'POST') {
-                //         headers['Content-Type'] = 'application/json';
-                //         body = this.json (query);
-                //     } else {
-                //         if (Object.keys (query).length) {
-                //             url += '?' + this.urlencode (query);
-                //         }
-                //     }
-                //
+                const nonce = this.nonce ().toString ();
+                const auth = nonce + this.uid + this.apiKey;
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                headers = {
+                    'Nonce': nonce,
+                    'APIKey': this.apiKey,
+                    'Signature': signature,
+                    'UserId': this.uid,
+                };
             } else {
                 headers = {
                     'APToken': sessionToken,
                 };
-                if (method === 'POST') {
-                    headers['Content-Type'] = 'application/json';
-                    body = this.json (query);
-                } else {
-                    if (Object.keys (query).length) {
-                        url += '?' + this.urlencode (query);
-                    }
+            }
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
+                body = this.json (query);
+            } else {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
                 }
             }
         }

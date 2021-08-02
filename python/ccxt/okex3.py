@@ -320,6 +320,15 @@ class okex3(Exchange):
                         'amend_batch_orders/{underlying}',
                     ],
                 },
+                'information': {
+                    'get': [
+                        '{currency}/long_short_ratio',
+                        '{currency}/volume',
+                        '{currency}/taker',
+                        '{currency}/sentiment',
+                        '{currency}/margin',
+                    ],
+                },
                 'index': {
                     'get': [
                         '{instrument_id}/constituents',
@@ -3455,7 +3464,7 @@ class okex3(Exchange):
         query = params if isArray else self.omit(params, self.extract_params(path))
         url = self.implode_hostname(self.urls['api']['rest']) + request
         type = self.get_path_authentication_type(path)
-        if type == 'public':
+        if (type == 'public') or (type == 'information'):
             if query:
                 url += '?' + self.urlencode(query)
         elif type == 'private':

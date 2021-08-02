@@ -234,6 +234,15 @@ class liquid(Exchange):
         #             depositable: True,
         #             withdrawable: True,
         #             discount_fee: 0.5,
+        #             credit_card_fundable: False,
+        #             lendable: False,
+        #             position_fundable: True,
+        #             has_memo: False,
+        #             stable_currency: null,
+        #             root_currency: 'USD',
+        #             minimum_loan_bid_quantity: '0.0',
+        #             maximum_order_taker_quantity: null,
+        #             name: 'United States Dollar'
         #         },
         #     ]
         #
@@ -242,13 +251,14 @@ class liquid(Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(id)
+            name = self.safe_string(currency, 'name')
             active = currency['depositable'] and currency['withdrawable']
             amountPrecision = self.safe_integer(currency, 'assets_precision')
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': code,
+                'name': name,
                 'active': active,
                 'fee': self.safe_number(currency, 'withdrawal_fee'),
                 'precision': amountPrecision,

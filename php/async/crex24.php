@@ -38,7 +38,6 @@ class crex24 extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -52,6 +51,7 @@ class crex24 extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false, // actually, true, but will be implemented later
                 'fetchTradingFees' => false, // actually, true, but will be implemented later
+                'fetchFundingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
@@ -85,6 +85,10 @@ class crex24 extends Exchange {
                         'recentTrades',
                         'orderBook',
                         'ohlcv',
+                        'tradingFeeSchedules',
+                        'withdrawalFees',
+                        'currencyTransport',
+                        'currenciesWithdrawalFees',
                     ),
                 ),
                 'trading' => array(
@@ -94,9 +98,8 @@ class crex24 extends Exchange {
                         'activeOrders',
                         'orderHistory',
                         'tradeHistory',
-                        'tradeFee',
-                        // this is in trading API according to their docs, but most likely a typo in their docs
-                        'moneyTransferStatus',
+                        'tradingFee',
+                        'tradeFee', // The support of this method has been dropped on February 18, 2020. Please, use tradingFee method instead. https://docs.crex24.com/trade-api/v2/#trade-fee-and-rebate-discontinued
                     ),
                     'post' => array(
                         'placeOrder',
@@ -111,7 +114,6 @@ class crex24 extends Exchange {
                         'balance',
                         'depositAddress',
                         'moneyTransfers',
-                        // this is in trading API according to their docs, but most likely a typo in their docs
                         'moneyTransferStatus',
                         'previewWithdrawal',
                     ),
@@ -345,6 +347,49 @@ class crex24 extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_funding_fees($codes = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->publicGetCurrenciesWithdrawalFees ($params);
+        //
+        //     array(
+        //         {
+        //             currency => '1INCH',
+        //             fees => array(
+        //                 array( feeCurrency => 'BTC', amount => 0.00032 ),
+        //                 array( feeCurrency => 'ETH', amount => 0.0054 ),
+        //                 array( feeCurrency => 'DOGE', amount => 63.06669 ),
+        //                 array( feeCurrency => 'LTC', amount => 0.0912 ),
+        //                 array( feeCurrency => 'BCH', amount => 0.02364 ),
+        //                 array( feeCurrency => 'USDT', amount => 12.717 ),
+        //                 array( feeCurrency => 'USDC', amount => 12.7367 ),
+        //                 array( feeCurrency => 'TRX', amount => 205.99108 ),
+        //                 array( feeCurrency => 'EOS', amount => 3.30141 )
+        //             )
+        //         }
+        //     )
+        //
+        $withdrawFees = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $currencyId = $this->safe_string($entry, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $networkList = $this->safe_value($entry, 'fees');
+            $withdrawFees[$code] = array();
+            for ($j = 0; $j < count($networkList); $j++) {
+                $networkEntry = $networkList[$j];
+                $networkId = $this->safe_string($networkEntry, 'feeCurrency');
+                $networkCode = $this->safe_currency_code($networkId);
+                $fee = $this->safe_number($networkEntry, 'amount');
+                $withdrawFees[$code][$networkCode] = $fee;
+            }
+        }
+        return array(
+            'withdraw' => $withdrawFees,
+            'deposit' => array(),
+            'info' => $response,
+        );
     }
 
     public function fetch_balance($params = array ()) {

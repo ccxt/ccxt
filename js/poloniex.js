@@ -117,8 +117,8 @@ module.exports = class poloniex extends Exchange {
                 'trading': {
                     'feeSide': 'get',
                     // starting from Jan 8 2020
-                    'maker': 0.0009,
-                    'taker': 0.0009,
+                    'maker': this.parseNumber ('0.0009'),
+                    'taker': this.parseNumber ('0.0009'),
                 },
                 'funding': {},
             },
@@ -144,6 +144,7 @@ module.exports = class poloniex extends Exchange {
                 'AIR': 'AirCoin',
                 'APH': 'AphroditeCoin',
                 'BCC': 'BTCtalkcoin',
+                'BCHABC': 'BCHABC',
                 'BDG': 'Badgercoin',
                 'BTM': 'Bitmark',
                 'CON': 'Coino',

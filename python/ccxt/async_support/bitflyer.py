@@ -90,12 +90,8 @@ class bitflyer(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
-                },
-                'BTC/JPY': {
-                    'maker': 0.15 / 100,
-                    'taker': 0.15 / 100,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
                 },
             },
         })

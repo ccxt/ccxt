@@ -741,14 +741,12 @@ class bitmex(Exchange):
             address = self.safe_string(transaction, 'address')
             addressFrom = self.safe_string(transaction, 'tx')
             addressTo = address
-        amount = self.safe_integer(transaction, 'amount')
-        if amount is not None:
-            amount = abs(amount) / 10000000
-        feeCost = self.safe_integer(transaction, 'fee')
-        if feeCost is not None:
-            feeCost = feeCost / 10000000
+        amountString = self.safe_string(transaction, 'amount')
+        amountString = Precise.string_div(Precise.string_abs(amountString), '1e8')
+        feeCostString = self.safe_string(transaction, 'fee')
+        feeCostString = Precise.string_div(feeCostString, '1e8')
         fee = {
-            'cost': feeCost,
+            'cost': self.parse_number(feeCostString),
             'currency': 'BTC',
         }
         status = self.safe_string(transaction, 'transactStatus')
@@ -767,7 +765,7 @@ class bitmex(Exchange):
             'tag': None,
             'tagTo': None,
             'type': type,
-            'amount': amount,
+            'amount': self.parse_number(amountString),
             # BTC is the only currency on Bitmex
             'currency': 'BTC',
             'status': status,
@@ -1088,30 +1086,30 @@ class bitmex(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
-        price = self.safe_number_2(trade, 'avgPx', 'price')
-        amount = self.safe_number_2(trade, 'size', 'lastQty')
+        priceString = self.safe_string_2(trade, 'avgPx', 'price')
+        amountString = self.safe_string_2(trade, 'size', 'lastQty')
         id = self.safe_string(trade, 'trdMatchID')
         order = self.safe_string(trade, 'orderID')
         side = self.safe_string_lower(trade, 'side')
         # price * amount doesn't work for all symbols(e.g. XBT, ETH)
-        cost = self.safe_number(trade, 'execCost')
-        if cost is not None:
-            cost = abs(cost) / 100000000
+        costString = self.safe_string(trade, 'execCost')
+        costString = Precise.string_div(Precise.string_abs(costString), '1e8')
         fee = None
-        if 'execComm' in trade:
-            feeCost = self.safe_number(trade, 'execComm')
-            feeCost = feeCost / 100000000
+        feeCostString = Precise.string_div(self.safe_string(trade, 'execComm'), '1e8')
+        if feeCostString is not None:
             currencyId = self.safe_string(trade, 'settlCurrency')
-            feeCurrency = self.safe_currency_code(currencyId)
-            feeRate = self.safe_number(trade, 'commission')
+            feeCurrencyCode = self.safe_currency_code(currencyId)
+            feeRateString = self.safe_string(trade, 'commission')
             fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
-                'rate': feeRate,
+                'cost': self.parse_number(feeCostString),
+                'currency': feeCurrencyCode,
+                'rate': self.parse_number(feeRateString),
             }
+        # Trade or Funding
+        execType = self.safe_string(trade, 'execType')
         takerOrMaker = None
-        if fee is not None:
-            takerOrMaker = 'maker' if (fee['cost'] < 0) else 'taker'
+        if feeCostString is not None and execType == 'Trade':
+            takerOrMaker = 'maker' if Precise.string_lt(feeCostString, '0') else 'taker'
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         type = self.safe_string_lower(trade, 'ordType')
@@ -1125,9 +1123,9 @@ class bitmex(Exchange):
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
+            'price': self.parse_number(priceString),
+            'cost': self.parse_number(costString),
+            'amount': self.parse_number(amountString),
             'fee': fee,
         }
 

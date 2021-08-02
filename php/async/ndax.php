@@ -190,12 +190,13 @@ class ndax extends Exchange {
                 ),
             ),
             'requiredCredentials' => array(
-                // 'apiKey' => true,
-                // 'secret' => true,
+                'apiKey' => true,
+                'secret' => true,
                 'uid' => true,
-                'login' => true,
-                'password' => true,
-                'twofa' => true,
+                // these credentials are required for signIn() and withdraw()
+                // 'login' => true,
+                // 'password' => true,
+                // 'twofa' => true,
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -226,6 +227,9 @@ class ndax extends Exchange {
 
     public function sign_in($params = array ()) {
         $this->check_required_credentials();
+        if ($this->login === null || $this->password === null || $this->twofa === null) {
+            throw new AuthenticationError($this->id . ' signIn() requires exchange.login, exchange.password and exchange.twofa credentials');
+        }
         $request = array(
             'grant_type' => 'client_credentials', // the only supported value
         );
@@ -247,6 +251,9 @@ class ndax extends Exchange {
         $pending2faToken = $this->safe_string($response, 'Pending2FaToken');
         if ($pending2faToken !== null) {
             $this->options['pending2faToken'] = $pending2faToken;
+            $request = array(
+                'Code' => $this->oath(),
+            );
             $response = yield $this->publicGetAuthenticate2FA (array_merge($request, $params));
             //
             //     {
@@ -849,12 +856,15 @@ class ndax extends Exchange {
     }
 
     public function fetch_accounts($params = array ()) {
+        if (!$this->login) {
+            throw new AuthenticationError($this->id . ' fetchAccounts() requires exchange.login email credential');
+        }
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->check_required_credentials();
         $request = array(
             'omsId' => $omsId,
             'UserId' => $this->uid,
-            'UserName' => 'igor@ccxt.trade',
+            'UserName' => $this->login,
         );
         $response = yield $this->privateGetGetUserAccounts (array_merge($request, $params));
         //
@@ -2004,8 +2014,10 @@ class ndax extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        if ($this->twofa === null) {
-            throw new ExchangeError($this->id . ' withdraw() requires exchange.twofa credential for OATH codes');
+        // this method required login, password and twofa key
+        $sessionToken = $this->safe_string($this->options, 'sessionToken');
+        if ($sessionToken === null) {
+            throw new AuthenticationError($this->id . ' call signIn() method to obtain a session token');
         }
         $this->check_address($address);
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
@@ -2098,16 +2110,16 @@ class ndax extends Exchange {
                 $auth64 = base64_encode($auth);
                 $headers = array(
                     'Authorization' => 'Basic ' . $this->decode($auth64),
-                    'Content-Type' => 'application/json',
+                    // 'Content-Type' => 'application/json',
                 );
             } else if ($path === 'Authenticate2FA') {
                 $pending2faToken = $this->safe_string($this->options, 'pending2faToken');
                 if ($pending2faToken !== null) {
-                    $query['Code'] = $this->oath();
                     $headers = array(
                         'Pending2FaToken' => $pending2faToken,
-                        'Content-Type' => 'application/json',
+                        // 'Content-Type' => 'application/json',
                     );
+                    $query = $this->omit($query, 'pending2faToken');
                 }
             }
             if ($query) {
@@ -2117,37 +2129,26 @@ class ndax extends Exchange {
             $this->check_required_credentials();
             $sessionToken = $this->safe_string($this->options, 'sessionToken');
             if ($sessionToken === null) {
-                throw new AuthenticationError($this->id . ' call signIn() $method to obtain a session token');
-                //
-                //     $nonce = (string) $this->nonce();
-                //     $auth = $nonce . $this->uid . $this->apiKey;
-                //     $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
-                //     $headers = array(
-                //         'Nonce' => $nonce,
-                //         'APIKey' => $this->apiKey,
-                //         'Signature' => $signature,
-                //         'UserId' => $this->uid,
-                //     );
-                //     if ($method === 'POST') {
-                //         $headers['Content-Type'] = 'application/json';
-                //         $body = $this->json($query);
-                //     } else {
-                //         if ($query) {
-                //             $url .= '?' . $this->urlencode($query);
-                //         }
-                //     }
-                //
+                $nonce = (string) $this->nonce();
+                $auth = $nonce . $this->uid . $this->apiKey;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                $headers = array(
+                    'Nonce' => $nonce,
+                    'APIKey' => $this->apiKey,
+                    'Signature' => $signature,
+                    'UserId' => $this->uid,
+                );
             } else {
                 $headers = array(
                     'APToken' => $sessionToken,
                 );
-                if ($method === 'POST') {
-                    $headers['Content-Type'] = 'application/json';
-                    $body = $this->json($query);
-                } else {
-                    if ($query) {
-                        $url .= '?' . $this->urlencode($query);
-                    }
+            }
+            if ($method === 'POST') {
+                $headers['Content-Type'] = 'application/json';
+                $body = $this->json($query);
+            } else {
+                if ($query) {
+                    $url .= '?' . $this->urlencode($query);
                 }
             }
         }

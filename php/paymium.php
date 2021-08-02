@@ -79,8 +79,8 @@ class paymium extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.002,
-                    'taker' => 0.002,
+                    'maker' => $this->parse_number('0.002'),
+                    'taker' => $this->parse_number('0.002'),
                 ),
             ),
         ));

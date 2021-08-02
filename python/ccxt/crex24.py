@@ -43,7 +43,6 @@ class crex24(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -57,6 +56,7 @@ class crex24(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,  # actually, True, but will be implemented later
                 'fetchTradingFees': False,  # actually, True, but will be implemented later
+                'fetchFundingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
@@ -90,6 +90,10 @@ class crex24(Exchange):
                         'recentTrades',
                         'orderBook',
                         'ohlcv',
+                        'tradingFeeSchedules',
+                        'withdrawalFees',
+                        'currencyTransport',
+                        'currenciesWithdrawalFees',
                     ],
                 },
                 'trading': {
@@ -99,9 +103,8 @@ class crex24(Exchange):
                         'activeOrders',
                         'orderHistory',
                         'tradeHistory',
-                        'tradeFee',
-                        # self is in trading API according to their docs, but most likely a typo in their docs
-                        'moneyTransferStatus',
+                        'tradingFee',
+                        'tradeFee',  # The support of self method has been dropped on February 18, 2020. Please, use tradingFee method instead. https://docs.crex24.com/trade-api/v2/#trade-fee-and-rebate-discontinued
                     ],
                     'post': [
                         'placeOrder',
@@ -116,7 +119,6 @@ class crex24(Exchange):
                         'balance',
                         'depositAddress',
                         'moneyTransfers',
-                        # self is in trading API according to their docs, but most likely a typo in their docs
                         'moneyTransferStatus',
                         'previewWithdrawal',
                     ],
@@ -345,6 +347,46 @@ class crex24(Exchange):
                 },
             }
         return result
+
+    def fetch_funding_fees(self, codes=None, params={}):
+        self.load_markets()
+        response = self.publicGetCurrenciesWithdrawalFees(params)
+        #
+        #     [
+        #         {
+        #             currency: '1INCH',
+        #             fees: [
+        #                 {feeCurrency: 'BTC', amount: 0.00032},
+        #                 {feeCurrency: 'ETH', amount: 0.0054},
+        #                 {feeCurrency: 'DOGE', amount: 63.06669},
+        #                 {feeCurrency: 'LTC', amount: 0.0912},
+        #                 {feeCurrency: 'BCH', amount: 0.02364},
+        #                 {feeCurrency: 'USDT', amount: 12.717},
+        #                 {feeCurrency: 'USDC', amount: 12.7367},
+        #                 {feeCurrency: 'TRX', amount: 205.99108},
+        #                 {feeCurrency: 'EOS', amount: 3.30141}
+        #             ]
+        #         }
+        #     ]
+        #
+        withdrawFees = {}
+        for i in range(0, len(response)):
+            entry = response[i]
+            currencyId = self.safe_string(entry, 'currency')
+            code = self.safe_currency_code(currencyId)
+            networkList = self.safe_value(entry, 'fees')
+            withdrawFees[code] = {}
+            for j in range(0, len(networkList)):
+                networkEntry = networkList[j]
+                networkId = self.safe_string(networkEntry, 'feeCurrency')
+                networkCode = self.safe_currency_code(networkId)
+                fee = self.safe_number(networkEntry, 'amount')
+                withdrawFees[code][networkCode] = fee
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
+            'info': response,
+        }
 
     def fetch_balance(self, params={}):
         self.load_markets()

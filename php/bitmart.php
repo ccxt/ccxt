@@ -46,6 +46,7 @@ class bitmart extends Exchange {
                 'fetchStatus' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'fetchFundingFee' => true,
                 'withdraw' => true,
             ),
             'hostname' => 'bitmart.com', // bitmart.info for Hong Kong users
@@ -166,28 +167,28 @@ class bitmart extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.0025,
-                    'maker' => 0.0025,
+                    'taker' => $this->parse_number('0.0025'),
+                    'maker' => $this->parse_number('0.0025'),
                     'tiers' => array(
                         'taker' => [
-                            [0, 0.20 / 100],
-                            [10, 0.18 / 100],
-                            [50, 0.16 / 100],
-                            [250, 0.14 / 100],
-                            [1000, 0.12 / 100],
-                            [5000, 0.10 / 100],
-                            [25000, 0.08 / 100],
-                            [50000, 0.06 / 100],
+                            [$this->parse_number('0'), $this->parse_number('0.0020')],
+                            [$this->parse_number('10'), $this->parse_number('0.18')],
+                            [$this->parse_number('50'), $this->parse_number('0.0016')],
+                            [$this->parse_number('250'), $this->parse_number('0.0014')],
+                            [$this->parse_number('1000'), $this->parse_number('0.0012')],
+                            [$this->parse_number('5000'), $this->parse_number('0.0010')],
+                            [$this->parse_number('25000'), $this->parse_number('0.0008')],
+                            [$this->parse_number('50000'), $this->parse_number('0.0006')],
                         ],
                         'maker' => [
-                            [0, 0.1 / 100],
-                            [10, 0.09 / 100],
-                            [50, 0.08 / 100],
-                            [250, 0.07 / 100],
-                            [1000, 0.06 / 100],
-                            [5000, 0.05 / 100],
-                            [25000, 0.04 / 100],
-                            [50000, 0.03 / 100],
+                            [$this->parse_number('0'), $this->parse_number('0.001')],
+                            [$this->parse_number('10'), $this->parse_number('0.0009')],
+                            [$this->parse_number('50'), $this->parse_number('0.0008')],
+                            [$this->parse_number('250'), $this->parse_number('0.0007')],
+                            [$this->parse_number('1000'), $this->parse_number('0.0006')],
+                            [$this->parse_number('5000'), $this->parse_number('0.0005')],
+                            [$this->parse_number('25000'), $this->parse_number('0.0004')],
+                            [$this->parse_number('50000'), $this->parse_number('0.0003')],
                         ],
                     ),
                 ),
@@ -618,6 +619,36 @@ class bitmart extends Exchange {
 
     public function fetch_markets($params = array ()) {
         return $this->fetch_spot_markets();
+    }
+
+    public function fetch_funding_fee($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->privateAccountGetWithdrawCharge (array_merge($request, $params));
+        //
+        //     {
+        //         message => 'OK',
+        //         $code => '1000',
+        //         trace => '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
+        //         $data => {
+        //             today_available_withdraw_BTC => '100.0000',
+        //             min_withdraw => '0.005',
+        //             withdraw_precision => '8',
+        //             withdraw_fee => '0.000500000000000000000000000000'
+        //         }
+        //     }
+        //
+        $data = $response['data'];
+        $withdrawFees = array();
+        $withdrawFees[$code] = $this->safe_number($data, 'withdraw_fee');
+        return array(
+            'info' => $response,
+            'withdraw' => $withdrawFees,
+            'deposit' => array(),
+        );
     }
 
     public function parse_ticker($ticker, $market = null) {

@@ -774,16 +774,12 @@ module.exports = class bitmex extends Exchange {
             addressFrom = this.safeString (transaction, 'tx');
             addressTo = address;
         }
-        let amount = this.safeInteger (transaction, 'amount');
-        if (amount !== undefined) {
-            amount = Math.abs (amount) / 10000000;
-        }
-        let feeCost = this.safeInteger (transaction, 'fee');
-        if (feeCost !== undefined) {
-            feeCost = feeCost / 10000000;
-        }
+        let amountString = this.safeString (transaction, 'amount');
+        amountString = Precise.stringDiv (Precise.stringAbs (amountString), '1e8');
+        let feeCostString = this.safeString (transaction, 'fee');
+        feeCostString = Precise.stringDiv (feeCostString, '1e8');
         const fee = {
-            'cost': feeCost,
+            'cost': this.parseNumber (feeCostString),
             'currency': 'BTC',
         };
         let status = this.safeString (transaction, 'transactStatus');
@@ -803,7 +799,7 @@ module.exports = class bitmex extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'type': type,
-            'amount': amount,
+            'amount': this.parseNumber (amountString),
             // BTC is the only currency on Bitmex
             'currency': 'BTC',
             'status': status,
@@ -1142,32 +1138,31 @@ module.exports = class bitmex extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
-        const price = this.safeNumber2 (trade, 'avgPx', 'price');
-        const amount = this.safeNumber2 (trade, 'size', 'lastQty');
+        const priceString = this.safeString2 (trade, 'avgPx', 'price');
+        const amountString = this.safeString2 (trade, 'size', 'lastQty');
         const id = this.safeString (trade, 'trdMatchID');
         const order = this.safeString (trade, 'orderID');
         const side = this.safeStringLower (trade, 'side');
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
-        let cost = this.safeNumber (trade, 'execCost');
-        if (cost !== undefined) {
-            cost = Math.abs (cost) / 100000000;
-        }
+        let costString = this.safeString (trade, 'execCost');
+        costString = Precise.stringDiv (Precise.stringAbs (costString), '1e8');
         let fee = undefined;
-        if ('execComm' in trade) {
-            let feeCost = this.safeNumber (trade, 'execComm');
-            feeCost = feeCost / 100000000;
+        const feeCostString = Precise.stringDiv (this.safeString (trade, 'execComm'), '1e8');
+        if (feeCostString !== undefined) {
             const currencyId = this.safeString (trade, 'settlCurrency');
-            const feeCurrency = this.safeCurrencyCode (currencyId);
-            const feeRate = this.safeNumber (trade, 'commission');
+            const feeCurrencyCode = this.safeCurrencyCode (currencyId);
+            const feeRateString = this.safeString (trade, 'commission');
             fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
-                'rate': feeRate,
+                'cost': this.parseNumber (feeCostString),
+                'currency': feeCurrencyCode,
+                'rate': this.parseNumber (feeRateString),
             };
         }
+        // Trade or Funding
+        const execType = this.safeString (trade, 'execType');
         let takerOrMaker = undefined;
-        if (fee !== undefined) {
-            takerOrMaker = (fee['cost'] < 0) ? 'maker' : 'taker';
+        if (feeCostString !== undefined && execType === 'Trade') {
+            takerOrMaker = Precise.stringLt (feeCostString, '0') ? 'maker' : 'taker';
         }
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -1182,9 +1177,9 @@ module.exports = class bitmex extends Exchange {
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
+            'price': this.parseNumber (priceString),
+            'cost': this.parseNumber (costString),
+            'amount': this.parseNumber (amountString),
             'fee': fee,
         };
     }

@@ -779,16 +779,12 @@ class bitmex extends Exchange {
             $addressFrom = $this->safe_string($transaction, 'tx');
             $addressTo = $address;
         }
-        $amount = $this->safe_integer($transaction, 'amount');
-        if ($amount !== null) {
-            $amount = abs($amount) / 10000000;
-        }
-        $feeCost = $this->safe_integer($transaction, 'fee');
-        if ($feeCost !== null) {
-            $feeCost = $feeCost / 10000000;
-        }
+        $amountString = $this->safe_string($transaction, 'amount');
+        $amountString = Precise::string_div(Precise::string_abs($amountString), '1e8');
+        $feeCostString = $this->safe_string($transaction, 'fee');
+        $feeCostString = Precise::string_div($feeCostString, '1e8');
         $fee = array(
-            'cost' => $feeCost,
+            'cost' => $this->parse_number($feeCostString),
             'currency' => 'BTC',
         );
         $status = $this->safe_string($transaction, 'transactStatus');
@@ -808,7 +804,7 @@ class bitmex extends Exchange {
             'tag' => null,
             'tagTo' => null,
             'type' => $type,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amountString),
             // BTC is the only $currency on Bitmex
             'currency' => 'BTC',
             'status' => $status,
@@ -1086,7 +1082,7 @@ class bitmex extends Exchange {
         //         $symbol => 'XBTUSD',
         //         $side => 'Buy',
         //         size => 2000,
-        //         $price => 6906.5,
+        //         price => 6906.5,
         //         tickDirection => 'PlusTick',
         //         trdMatchID => 'b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8',
         //         grossValue => 28958000,
@@ -1111,14 +1107,14 @@ class bitmex extends Exchange {
         //         "lastLiquidityInd" => "string",
         //         "simpleOrderQty" => 0,
         //         "orderQty" => 0,
-        //         "$price" => 0,
+        //         "price" => 0,
         //         "displayQty" => 0,
         //         "stopPx" => 0,
         //         "pegOffsetValue" => 0,
         //         "pegPriceType" => "string",
         //         "currency" => "string",
         //         "settlCurrency" => "string",
-        //         "execType" => "string",
+        //         "$execType" => "string",
         //         "ordType" => "string",
         //         "timeInForce" => "string",
         //         "execInst" => "string",
@@ -1147,32 +1143,31 @@ class bitmex extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
-        $price = $this->safe_number_2($trade, 'avgPx', 'price');
-        $amount = $this->safe_number_2($trade, 'size', 'lastQty');
+        $priceString = $this->safe_string_2($trade, 'avgPx', 'price');
+        $amountString = $this->safe_string_2($trade, 'size', 'lastQty');
         $id = $this->safe_string($trade, 'trdMatchID');
         $order = $this->safe_string($trade, 'orderID');
         $side = $this->safe_string_lower($trade, 'side');
-        // $price * $amount doesn't work for all symbols (e.g. XBT, ETH)
-        $cost = $this->safe_number($trade, 'execCost');
-        if ($cost !== null) {
-            $cost = abs($cost) / 100000000;
-        }
+        // price * amount doesn't work for all symbols (e.g. XBT, ETH)
+        $costString = $this->safe_string($trade, 'execCost');
+        $costString = Precise::string_div(Precise::string_abs($costString), '1e8');
         $fee = null;
-        if (is_array($trade) && array_key_exists('execComm', $trade)) {
-            $feeCost = $this->safe_number($trade, 'execComm');
-            $feeCost = $feeCost / 100000000;
+        $feeCostString = Precise::string_div($this->safe_string($trade, 'execComm'), '1e8');
+        if ($feeCostString !== null) {
             $currencyId = $this->safe_string($trade, 'settlCurrency');
-            $feeCurrency = $this->safe_currency_code($currencyId);
-            $feeRate = $this->safe_number($trade, 'commission');
+            $feeCurrencyCode = $this->safe_currency_code($currencyId);
+            $feeRateString = $this->safe_string($trade, 'commission');
             $fee = array(
-                'cost' => $feeCost,
-                'currency' => $feeCurrency,
-                'rate' => $feeRate,
+                'cost' => $this->parse_number($feeCostString),
+                'currency' => $feeCurrencyCode,
+                'rate' => $this->parse_number($feeRateString),
             );
         }
+        // Trade or Funding
+        $execType = $this->safe_string($trade, 'execType');
         $takerOrMaker = null;
-        if ($fee !== null) {
-            $takerOrMaker = ($fee['cost'] < 0) ? 'maker' : 'taker';
+        if ($feeCostString !== null && $execType === 'Trade') {
+            $takerOrMaker = Precise::string_lt($feeCostString, '0') ? 'maker' : 'taker';
         }
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1187,9 +1182,9 @@ class bitmex extends Exchange {
             'type' => $type,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
-            'price' => $price,
-            'cost' => $cost,
-            'amount' => $amount,
+            'price' => $this->parse_number($priceString),
+            'cost' => $this->parse_number($costString),
+            'amount' => $this->parse_number($amountString),
             'fee' => $fee,
         );
     }

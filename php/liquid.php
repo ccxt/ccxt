@@ -228,6 +228,15 @@ class liquid extends Exchange {
         //             depositable => true,
         //             withdrawable => true,
         //             discount_fee => 0.5,
+        //             credit_card_fundable => false,
+        //             lendable => false,
+        //             position_fundable => true,
+        //             has_memo => false,
+        //             stable_currency => null,
+        //             root_currency => 'USD',
+        //             minimum_loan_bid_quantity => '0.0',
+        //             maximum_order_taker_quantity => null,
+        //             $name => 'United States Dollar'
         //         ),
         //     )
         //
@@ -236,13 +245,14 @@ class liquid extends Exchange {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'currency');
             $code = $this->safe_currency_code($id);
+            $name = $this->safe_string($currency, 'name');
             $active = $currency['depositable'] && $currency['withdrawable'];
             $amountPrecision = $this->safe_integer($currency, 'assets_precision');
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
-                'name' => $code,
+                'name' => $name,
                 'active' => $active,
                 'fee' => $this->safe_number($currency, 'withdrawal_fee'),
                 'precision' => $amountPrecision,

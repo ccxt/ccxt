@@ -181,8 +181,8 @@ class stex extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => 0.002,
-                    'maker' => 0.002,
+                    'taker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('0.002'),
                 ),
             ),
             'commonCurrencies' => array(
@@ -1729,6 +1729,7 @@ class stex extends Exchange {
     }
 
     public function fetch_funding_fees($codes = null, $params = array ()) {
+        yield $this->load_markets();
         $response = yield $this->publicGetCurrencies ($params);
         //
         //     {
