@@ -255,7 +255,7 @@ module.exports = class ftx extends Exchange {
                             [ this.parseNumber ('5000000'), this.parseNumber ('0.00055') ],
                             [ this.parseNumber ('10000000'), this.parseNumber ('0.0005') ],
                             [ this.parseNumber ('25000000'), this.parseNumber ('0.045') ],
-                            [ this.parseNumber ('50000000'), this.parseNumber ('0.0004')],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.0004') ],
                         ],
                         'maker': [
                             [ this.parseNumber ('0'), this.parseNumber ('0.0002') ],
