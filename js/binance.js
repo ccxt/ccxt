@@ -428,10 +428,10 @@ module.exports = class binance extends Exchange {
                         'trades': { 'weight': 1 },
                         'historicalTrades': { 'weight': 20 },
                         'aggTrades': { 'weight': 20 },
-                        'klines': { 'weight': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10] ] },
-                        'continuousKlines': { 'weight': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10] ] },
-                        'indexPriceKlines': { 'weight': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10] ] },
-                        'markPriceKlines': { 'weight': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10] ] },
+                        'klines': { 'weight': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
+                        'continuousKlines': { 'weight': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
+                        'indexPriceKlines': { 'weight': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
+                        'markPriceKlines': { 'weight': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
                         'fundingRate': { 'weight': 1 },
                         'premiumIndex': { 'weight': 1 },
                         'ticker/24hr': { 'weight': 1, 'noSymbol': 40 },
@@ -4172,7 +4172,8 @@ module.exports = class binance extends Exchange {
     }
 
     calculateCost (api, method, path, params) {
-        const costs = this.api[api][method.toLowerCase ()][path];
+        const lowerCase = method.toLowerCase ();
+        const costs = this.api[api][lowerCase][path];
         if (('noSymbol' in costs) && !('symbol' in params)) {
             return costs['noSymbol'];
         } else if (('noPoolId' in costs) && !('poolId' in params)) {
