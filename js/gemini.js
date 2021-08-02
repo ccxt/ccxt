@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, ExchangeNotAvailable, RateLimitExceeded } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
 module.exports = class gemini extends Exchange {
@@ -105,7 +104,6 @@ module.exports = class gemini extends Exchange {
                     ],
                 },
             },
-            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'taker': 0.0035,
@@ -221,17 +219,17 @@ module.exports = class gemini extends Exchange {
             const minAmount = this.safeFloat (minAmountParts, 0);
             const amountPrecisionString = cells[2].replace ('<td>', '');
             const amountPrecisionParts = amountPrecisionString.split (' ');
-            const amountPrecision = this.safeFloat (amountPrecisionParts, 0);
+            const amountPrecision = this.safeString (amountPrecisionParts, 0);
             const idLength = marketId.length - 0;
             const quoteId = marketId.slice (idLength - 3, idLength);
             const quote = this.safeCurrencyCode (quoteId);
             const pricePrecisionString = cells[3].replace ('<td>', '');
             const pricePrecisionParts = pricePrecisionString.split (' ');
-            const pricePrecision = this.safeFloat (pricePrecisionParts, 0);
+            const pricePrecision = this.safeString (pricePrecisionParts, 0);
             const baseId = marketId.replace (quoteId, '');
             const base = this.safeCurrencyCode (baseId);
             const symbol = base + '/' + quote;
-            const active = undefined;
+            const active = true;
             result.push ({
                 'id': marketId,
                 'info': row,
@@ -242,8 +240,8 @@ module.exports = class gemini extends Exchange {
                 'quoteId': quoteId,
                 'active': active,
                 'precision': {
-                    'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'amount': this.precisionFromString (amountPrecision),
+                    'price': this.precisionFromString (pricePrecision),
                 },
                 'limits': {
                     'amount': {
@@ -251,7 +249,7 @@ module.exports = class gemini extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined,
+                        'min': pricePrecision,
                         'max': undefined,
                     },
                     'cost': {
