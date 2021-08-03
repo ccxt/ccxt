@@ -18,6 +18,7 @@ module.exports = class okex extends Exchange {
             'version': 'v5',
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'pro': true,
+            'certified': true,
             'has': {
                 'CORS': false,
                 'cancelOrder': true,
