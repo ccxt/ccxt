@@ -67,7 +67,6 @@ class bitstamp(Exchange):
                 'api': {
                     'public': 'https://www.bitstamp.net/api',
                     'private': 'https://www.bitstamp.net/api',
-                    'v1': 'https://www.bitstamp.net/api',
                 },
                 'www': 'https://www.bitstamp.net',
                 'doc': 'https://www.bitstamp.net/api',
@@ -89,7 +88,6 @@ class bitstamp(Exchange):
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': True,
-                'uid': True,
             },
             'api': {
                 'public': {
@@ -186,11 +184,7 @@ class bitstamp(Exchange):
                         'withdrawal/cancel/',
                         'liquidation_address/new/',
                         'liquidation_address/info/',
-                    ],
-                },
-                'v1': {
-                    'post': [
-                        'unconfirmed_btc/',
+                        'btc_unconfirmed/',
                     ],
                 },
             },
@@ -1402,8 +1396,7 @@ class bitstamp(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'
-        if api != 'v1':
-            url += self.version + '/'
+        url += self.version + '/'
         url += self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -1411,49 +1404,34 @@ class bitstamp(Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            authVersion = self.safe_value(self.options, 'auth', 'v2')
-            if (authVersion == 'v1') or (api == 'v1'):
-                nonce = str(self.nonce())
-                auth = nonce + self.uid + self.apiKey
-                signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
-                query = self.extend({
-                    'key': self.apiKey,
-                    'signature': signature.upper(),
-                    'nonce': nonce,
-                }, query)
-                body = self.urlencode(query)
-                headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                }
-            else:
-                xAuth = 'BITSTAMP ' + self.apiKey
-                xAuthNonce = self.uuid()
-                xAuthTimestamp = str(self.milliseconds())
-                xAuthVersion = 'v2'
-                contentType = ''
-                headers = {
-                    'X-Auth': xAuth,
-                    'X-Auth-Nonce': xAuthNonce,
-                    'X-Auth-Timestamp': xAuthTimestamp,
-                    'X-Auth-Version': xAuthVersion,
-                }
-                if method == 'POST':
-                    if query:
-                        body = self.urlencode(query)
-                        contentType = 'application/x-www-form-urlencoded'
-                        headers['Content-Type'] = contentType
-                    else:
-                        # sending an empty POST request will trigger
-                        # an API0020 error returned by the exchange
-                        # therefore for empty requests we send a dummy object
-                        # https://github.com/ccxt/ccxt/issues/6846
-                        body = self.urlencode({'foo': 'bar'})
-                        contentType = 'application/x-www-form-urlencoded'
-                        headers['Content-Type'] = contentType
-                authBody = body if body else ''
-                auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
-                signature = self.hmac(self.encode(auth), self.encode(self.secret))
-                headers['X-Auth-Signature'] = signature
+            xAuth = 'BITSTAMP ' + self.apiKey
+            xAuthNonce = self.uuid()
+            xAuthTimestamp = str(self.milliseconds())
+            xAuthVersion = 'v2'
+            contentType = ''
+            headers = {
+                'X-Auth': xAuth,
+                'X-Auth-Nonce': xAuthNonce,
+                'X-Auth-Timestamp': xAuthTimestamp,
+                'X-Auth-Version': xAuthVersion,
+            }
+            if method == 'POST':
+                if query:
+                    body = self.urlencode(query)
+                    contentType = 'application/x-www-form-urlencoded'
+                    headers['Content-Type'] = contentType
+                else:
+                    # sending an empty POST request will trigger
+                    # an API0020 error returned by the exchange
+                    # therefore for empty requests we send a dummy object
+                    # https://github.com/ccxt/ccxt/issues/6846
+                    body = self.urlencode({'foo': 'bar'})
+                    contentType = 'application/x-www-form-urlencoded'
+                    headers['Content-Type'] = contentType
+            authBody = body if body else ''
+            auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
+            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            headers['X-Auth-Signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
