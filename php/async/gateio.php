@@ -768,8 +768,7 @@ class gateio extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->publicSpotGetTickers ($params);
-        $ticker = $this->safe_value($response, 0);
-        return $this->parse_tickers($ticker, $symbols);
+        return $this->parse_tickers($response, $symbols);
     }
 
     public function fetch_balance($params = array ()) {
