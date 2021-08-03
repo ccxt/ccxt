@@ -118,6 +118,7 @@ module.exports = class bibox extends Exchange {
                 '2085': InvalidOrder, // Order quantity is too small
                 '2091': RateLimitExceeded, // request is too frequency, please try again later
                 '2092': InvalidOrder, // Minimum amount not met
+                '2131': InvalidOrder, // The order quantity cannot be greater than
                 '3000': BadRequest, // Requested parameter incorrect
                 '3002': BadRequest, // Parameter cannot be null
                 '3012': AuthenticationError, // invalid apiKey
