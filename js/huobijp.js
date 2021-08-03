@@ -3,11 +3,11 @@
 //  ---------------------------------------------------------------------------
 
 const { NotSupported } = require ('ccxt/js/base/errors');
-const huobipro = require ('./huobipro.js');
+const huobi = require ('./huobi.js');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class huobijp extends huobipro {
+module.exports = class huobijp extends huobi {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'huobijp',
