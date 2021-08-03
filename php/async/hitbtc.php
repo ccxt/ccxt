@@ -188,7 +188,12 @@ class hitbtc extends Exchange {
                 ),
                 'fetchBalanceMethod' => array(
                     'account' => 'account',
+                    'bank' => 'account',
                     'main' => 'account',
+                    'funding' => 'account',
+                    'exchange' => 'trading',
+                    'spot' => 'trading',
+                    'trade' => 'trading',
                     'trading' => 'trading',
                 ),
             ),
