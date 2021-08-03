@@ -112,8 +112,8 @@ class coincheck(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0,
-                    'taker': 0,
+                    'maker': self.parse_number('0'),
+                    'taker': self.parse_number('0'),
                 },
             },
         })
@@ -125,7 +125,8 @@ class coincheck(Exchange):
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
-            currencyId = self.currency_id(code)
+            currency = self.currency(code)
+            currencyId = currency['id']
             if currencyId in balances:
                 account = self.account()
                 reserved = currencyId + '_reserved'

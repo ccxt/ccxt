@@ -107,8 +107,8 @@ module.exports = class probit extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.002'),
                 },
             },
             'exceptions': {
@@ -127,6 +127,7 @@ module.exports = class probit extends Exchange {
                     'INVALID_CURRENCY': BadRequest, // Requested currency is not exist on ProBit system
                     'TOO_MANY_OPEN_ORDERS': DDoSProtection, // Too many open orders
                     'DUPLICATE_ADDRESS': InvalidAddress, // Address already exists in withdrawal address list
+                    'invalid_grant': AuthenticationError, // {"error":"invalid_grant"}
                 },
             },
             'requiredCredentials': {
@@ -144,6 +145,7 @@ module.exports = class probit extends Exchange {
             'commonCurrencies': {
                 'AUTO': 'Cube',
                 'BCC': 'BCC',
+                'BDP': 'BidiPass',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'CBC': 'CryptoBharatCoin',

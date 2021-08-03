@@ -114,8 +114,8 @@ class tidebit(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.3 / 100,
-                    'taker': 0.3 / 100,
+                    'maker': self.parse_number('0.003'),
+                    'taker': self.parse_number('0.003'),
                 },
                 'funding': {
                     'tierBased': False,

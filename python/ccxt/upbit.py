@@ -126,8 +126,8 @@ class upbit(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.0025,
-                    'taker': 0.0025,
+                    'maker': self.parse_number('0.0025'),
+                    'taker': self.parse_number('0.0025'),
                 },
                 'funding': {
                     'tierBased': False,

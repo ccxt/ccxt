@@ -80,8 +80,8 @@ class btcturk(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.002 * 1.18,
-                    'taker': 0.003 * 1.18,
+                    'maker': self.parse_number('0.0005'),
+                    'taker': self.parse_number('0.0009'),
                 },
             },
             'exceptions': {

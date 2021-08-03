@@ -110,8 +110,8 @@ module.exports = class coincheck extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0,
-                    'taker': 0,
+                    'maker': this.parseNumber ('0'),
+                    'taker': this.parseNumber ('0'),
                 },
             },
         });
@@ -124,7 +124,8 @@ module.exports = class coincheck extends Exchange {
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            const currencyId = this.currencyId (code);
+            const currency = this.currency (code);
+            const currencyId = currency['id'];
             if (currencyId in balances) {
                 const account = this.account ();
                 const reserved = currencyId + '_reserved';

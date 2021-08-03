@@ -164,8 +164,8 @@ class bittrex(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'maker': 0.0035,
-                    'taker': 0.0035,
+                    'maker': self.parse_number('0.0075'),
+                    'taker': self.parse_number('0.0075'),
                 },
                 'funding': {
                     'tierBased': False,

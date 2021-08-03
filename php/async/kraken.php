@@ -1295,9 +1295,9 @@ class kraken extends Exchange {
         yield $this->load_markets();
         $options = $this->safe_value($this->options, 'fetchOrderTrades', array());
         $batchSize = $this->safe_integer($options, 'batchSize', 20);
-        $numBatches = intval($tradeIds / $batchSize);
-        $numBatches = $this->sum($numBatches, 1);
         $numTradeIds = is_array($tradeIds) ? count($tradeIds) : 0;
+        $numBatches = intval($numTradeIds / $batchSize);
+        $numBatches = $this->sum($numBatches, 1);
         $result = array();
         for ($j = 0; $j < $numBatches; $j++) {
             $requestIds = array();

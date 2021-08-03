@@ -324,7 +324,8 @@ module.exports = class coinmate extends Exchange {
             request['timestampFrom'] = since;
         }
         if (code !== undefined) {
-            request['currency'] = this.currencyId (code);
+            const currency = this.currency (code);
+            request['currency'] = currency['id'];
         }
         const response = await this.privatePostTransferHistory (this.extend (request, params));
         const items = response['data'];

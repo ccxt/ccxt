@@ -158,8 +158,8 @@ module.exports = class phemex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.1 / 100,
-                    'maker': 0.1 / 100,
+                    'taker': this.parseNumber ('0.001'),
+                    'maker': this.parseNumber ('0.001'),
                 },
             },
             'requiredCredentials': {

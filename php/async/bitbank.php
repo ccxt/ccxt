@@ -7,7 +7,6 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
-use \ccxt\InvalidOrder;
 use \ccxt\Precise;
 
 class bitbank extends Exchange {
@@ -471,16 +470,15 @@ class bitbank extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        if ($price === null) {
-            throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for both $market and limit orders');
-        }
         $request = array(
             'pair' => $market['id'],
             'amount' => $this->amount_to_precision($symbol, $amount),
-            'price' => $this->price_to_precision($symbol, $price),
             'side' => $side,
             'type' => $type,
         );
+        if ($type === 'limit') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
         $response = yield $this->privatePostUserSpotOrder (array_merge($request, $params));
         $data = $this->safe_value($response, 'data');
         return $this->parse_order($data, $market);

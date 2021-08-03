@@ -108,8 +108,8 @@ class bitbns(Exchange):
                     'feeSide': 'quote',
                     'tierBased': False,
                     'percentage': True,
-                    'taker': 0.0025,
-                    'maker': 0.0025,
+                    'taker': self.parse_number('0.0025'),
+                    'maker': self.parse_number('0.0025'),
                 },
             },
             'exceptions': {

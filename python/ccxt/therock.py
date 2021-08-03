@@ -92,21 +92,13 @@ class therock(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
                 },
                 'funding': {
                     'tierBased': False,
                     'percentage': False,
-                    'withdraw': {
-                        'BTC': 0.0005,
-                        'BCH': 0.0005,
-                        'PPC': 0.02,
-                        'ETH': 0.001,
-                        'ZEC': 0.001,
-                        'LTC': 0.002,
-                        'EUR': 2.5,  # worst-case scenario: https://therocktrading.com/en/pages/fees
-                    },
+                    'withdraw': {},
                     'deposit': {
                         'BTC': 0,
                         'BCH': 0,

@@ -117,8 +117,8 @@ class bibox(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'taker': 0.001,
-                    'maker': 0.0008,
+                    'taker': self.parse_number('0.001'),
+                    'maker': self.parse_number('0.0008'),
                 },
                 'funding': {
                     'tierBased': False,

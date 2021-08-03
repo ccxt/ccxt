@@ -677,6 +677,30 @@ if ($exchange->has['watchTickers']) {
 
 ##### watchOHLCV
 
+A very common misconception about WebSockets is that WS OHLCV streams can somehow speed up a trading strategy.
+If the purpose of your app is to implement OHLCV-trading or a speculative algorithmic strategy, **consider the following carefully**.
+
+In general, there's two types of trading data used in the algorithms:
+
+- 1st-order real-time data like orderbooks and trades
+- 2nd-order non-real-time data like tickers, ohlcvs, etc
+
+When developers say _"real-time"_, that usually means pseudo real-time, or, put simply, _"as fast and as close to real time as possible"_.
+
+The 2nd-order data is **always** calculated from the 1st-order data. OHLCVs are calculated from aggregated trades. Tickers are calculated from trades and orderbooks.
+
+Some exchanges do the calculation of OHLCVs (2nd order data) for you on the exchange side and send you updates over WS (Binance). Other exchanges don't really think that is necessary, for a reason (FTX).
+
+Obviously, it takes time to calculate 2nd-order OHLCV candles from trades. Apart from that sending the calculated candle back to all connected users also takes time. Additional delays can happen during periods of high volatility if an exchange is traded very actively under high load.
+
+There is no strict guarantee on how much time it will take from the exchange to calculate the 2nd order data and stream it to you over WS. The delays and lags on OHLCV candles can vary significantly from exchange to exchange. For example, an exchange can send an OHLCV update ~30 seconds after the actual closing of a corresponding period. Other exchanges may send the current OHLCV updates at a regular intervals (say, once every 100ms), while in reality trades can happen much more frequently.
+
+Most people use WS to avoid any sorts of delays and have real-time data. So, in most cases it is much better to not wait for the exchange. Recalculating the 2nd order data from 1st order data on your own may be much faster and that can lower the unnecessary delays. Therefore it does not make much sense to use WS for watching just the OHLCV candles from the exchange. Developers would rather `watch_trades()` instead and recalculate the OHLCV candles using CCXT's built-in methods like `build_ohlcvc()`.
+
+That explains why some exchanges reasonably think that OHLCVs are not necessary in the WS context, cause users can calculate that information in the userland much faster having just a WS stream of realtime 1st-order trades.
+
+If your application is not very time-critical, you can still subscribe to OHLCV streams, for charting purposes. If the underlying `exchange.has['watchOHLCV']`, you can `watchOHLCV()/watch_ohlcv()` as shown below:
+
 ```JavaScript
 // JavaScript
 if (exchange.has['watchOHLCV']) {

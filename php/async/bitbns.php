@@ -104,8 +104,8 @@ class bitbns extends Exchange {
                     'feeSide' => 'quote',
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => 0.0025,
-                    'maker' => 0.0025,
+                    'taker' => $this->parse_number('0.0025'),
+                    'maker' => $this->parse_number('0.0025'),
                 ),
             ),
             'exceptions' => array(

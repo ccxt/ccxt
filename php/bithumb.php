@@ -80,8 +80,8 @@ class bithumb extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.25 / 100,
-                    'taker' => 0.25 / 100,
+                    'maker' => $this->parse_number('0.0025'),
+                    'taker' => $this->parse_number('0.0025'),
                 ),
             ),
             'precisionMode' => SIGNIFICANT_DIGITS,

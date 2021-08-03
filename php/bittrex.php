@@ -148,8 +148,8 @@ class bittrex extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'maker' => 0.0035,
-                    'taker' => 0.0035,
+                    'maker' => $this->parse_number('0.0075'),
+                    'taker' => $this->parse_number('0.0075'),
                 ),
                 'funding' => array(
                     'tierBased' => false,

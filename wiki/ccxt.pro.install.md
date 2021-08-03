@@ -62,13 +62,16 @@ git clone https://github.com/kroitor/ccxt.pro.git
 cd ccxt.pro
 # ...
 
-# Step 3: Build the CCXT Pro library with Node.js and NPM
+# Step 3: Install CCXT Pro's dependencies
+npm install
+
+# Step 4: Build the CCXT Pro library with Node.js and NPM
 npm run build
 
-# Step 4: Make an NPM link to CCXT Pro
+# Step 5: Make an NPM link to CCXT Pro
 npm link
 
-# Step 5: Link your project to CCXT Pro
+# Step 6: Link your project to CCXT Pro
 cd path/to/your/project
 npm link ccxt
 ```

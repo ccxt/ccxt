@@ -75,8 +75,8 @@ module.exports = class btcturk extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.002 * 1.18,
-                    'taker': 0.003 * 1.18,
+                    'maker': this.parseNumber ('0.0005'),
+                    'taker': this.parseNumber ('0.0009'),
                 },
             },
             'exceptions': {

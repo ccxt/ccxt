@@ -149,8 +149,8 @@ class aax extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.06 / 100,
-                    'taker' => 0.10 / 100,
+                    'maker' => $this->parse_number('0.0006'),
+                    'taker' => $this->parse_number('0.001'),
                 ),
                 'funding' => array(
                     'tierBased' => false,

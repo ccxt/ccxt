@@ -246,24 +246,24 @@ module.exports = class ftx extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'maker': 0.02 / 100,
-                    'taker': 0.07 / 100,
+                    'maker': this.parseNumber ('0.02'),
+                    'taker': this.parseNumber ('0.07'),
                     'tiers': {
                         'taker': [
-                            [0, 0.07 / 100],
-                            [1000000, 0.06 / 100],
-                            [5000000, 0.055 / 100],
-                            [10000000, 0.05 / 100],
-                            [15000000, 0.045 / 100],
-                            [35000000, 0.04 / 100],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('2000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00055') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.045') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.0004') ],
                         ],
                         'maker': [
-                            [0, 0.02 / 100],
-                            [1000000, 0.02 / 100],
-                            [5000000, 0.015 / 100],
-                            [10000000, 0.015 / 100],
-                            [15000000, 0.01 / 100],
-                            [35000000, 0.01 / 100],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('2000000'), this.parseNumber ('0.00015') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0001') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00005') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0') ],
                         ],
                     },
                 },
@@ -289,12 +289,14 @@ module.exports = class ftx extends Exchange {
                     'Duplicate client order ID': DuplicateOrderId, // {"error":"Duplicate client order ID","success":false}
                     'Spot orders cannot be reduce-only': InvalidOrder, // {"error":"Spot orders cannot be reduce-only","success":false}
                     'Invalid reduce-only order': InvalidOrder, // {"error":"Invalid reduce-only order","success":false}
+                    'Account does not have enough balances': InsufficientFunds, // {"success":false,"error":"Account does not have enough balances"}
                 },
                 'broad': {
                     'Account does not have enough margin for order': InsufficientFunds,
                     'Invalid parameter': BadRequest, // {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
+                    'No such subaccount': BadRequest,
                     'No such future': BadSymbol,
                     'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,

@@ -198,63 +198,53 @@ class bitstamp(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.5 / 100,
-                    'maker': 0.5 / 100,
+                    'taker': self.parse_number('0.005'),
+                    'maker': self.parse_number('0.005'),
                     'tiers': {
                         'taker': [
-                            [0, 0.5 / 100],
-                            [20000, 0.25 / 100],
-                            [100000, 0.24 / 100],
-                            [200000, 0.22 / 100],
-                            [400000, 0.20 / 100],
-                            [600000, 0.15 / 100],
-                            [1000000, 0.14 / 100],
-                            [2000000, 0.13 / 100],
-                            [4000000, 0.12 / 100],
-                            [20000000, 0.11 / 100],
-                            [50000000, 0.10 / 100],
-                            [100000000, 0.07 / 100],
-                            [500000000, 0.05 / 100],
-                            [2000000000, 0.03 / 100],
-                            [6000000000, 0.01 / 100],
-                            [10000000000, 0.005 / 100],
-                            [10000000001, 0.0],
+                            [self.parse_number('0'), self.parse_number('0.005')],
+                            [self.parse_number('20000'), self.parse_number('0.0025')],
+                            [self.parse_number('100000'), self.parse_number('0.0024')],
+                            [self.parse_number('200000'), self.parse_number('0.0022')],
+                            [self.parse_number('400000'), self.parse_number('0.0020')],
+                            [self.parse_number('600000'), self.parse_number('0.0015')],
+                            [self.parse_number('1000000'), self.parse_number('0.0014')],
+                            [self.parse_number('2000000'), self.parse_number('0.0013')],
+                            [self.parse_number('4000000'), self.parse_number('0.0012')],
+                            [self.parse_number('20000000'), self.parse_number('0.0011')],
+                            [self.parse_number('50000000'), self.parse_number('0.0010')],
+                            [self.parse_number('100000000'), self.parse_number('0.0007')],
+                            [self.parse_number('500000000'), self.parse_number('0.0005')],
+                            [self.parse_number('2000000000'), self.parse_number('0.0003')],
+                            [self.parse_number('6000000000'), self.parse_number('0.0001')],
+                            [self.parse_number('20000000000'), self.parse_number('0.00005')],
+                            [self.parse_number('20000000001'), self.parse_number('0')],
                         ],
                         'maker': [
-                            [0, 0.5 / 100],
-                            [20000, 0.25 / 100],
-                            [100000, 0.24 / 100],
-                            [200000, 0.22 / 100],
-                            [400000, 0.20 / 100],
-                            [600000, 0.15 / 100],
-                            [1000000, 0.14 / 100],
-                            [2000000, 0.13 / 100],
-                            [4000000, 0.12 / 100],
-                            [20000000, 0.11 / 100],
-                            [50000000, 0.10 / 100],
-                            [100000000, 0.07 / 100],
-                            [500000000, 0.05 / 100],
-                            [2000000000, 0.03 / 100],
-                            [6000000000, 0.01 / 100],
-                            [10000000000, 0.005 / 100],
-                            [10000000001, 0.0],
+                            [self.parse_number('0'), self.parse_number('0.005')],
+                            [self.parse_number('20000'), self.parse_number('0.0025')],
+                            [self.parse_number('100000'), self.parse_number('0.0024')],
+                            [self.parse_number('200000'), self.parse_number('0.0022')],
+                            [self.parse_number('400000'), self.parse_number('0.0020')],
+                            [self.parse_number('600000'), self.parse_number('0.0015')],
+                            [self.parse_number('1000000'), self.parse_number('0.0014')],
+                            [self.parse_number('2000000'), self.parse_number('0.0013')],
+                            [self.parse_number('4000000'), self.parse_number('0.0012')],
+                            [self.parse_number('20000000'), self.parse_number('0.0011')],
+                            [self.parse_number('50000000'), self.parse_number('0.0010')],
+                            [self.parse_number('100000000'), self.parse_number('0.0007')],
+                            [self.parse_number('500000000'), self.parse_number('0.0005')],
+                            [self.parse_number('2000000000'), self.parse_number('0.0003')],
+                            [self.parse_number('6000000000'), self.parse_number('0.0001')],
+                            [self.parse_number('20000000000'), self.parse_number('0.00005')],
+                            [self.parse_number('20000000001'), self.parse_number('0')],
                         ],
                     },
                 },
                 'funding': {
                     'tierBased': False,
                     'percentage': False,
-                    'withdraw': {
-                        'BTC': 0.0005,
-                        'BCH': 0.0001,
-                        'LTC': 0.001,
-                        'ETH': 0.001,
-                        'XRP': 0.02,
-                        'XLM': 0.005,
-                        'PAX': 0.5,
-                        'USD': 25,
-                        'EUR': 3.0,
-                    },
+                    'withdraw': {},
                     'deposit': {
                         'BTC': 0,
                         'BCH': 0,
@@ -1297,13 +1287,14 @@ class bitstamp(Exchange):
                 'fee': parsedTrade['fee'],
             }
         else:
-            parsedTransaction = self.parse_transaction(item)
+            parsedTransaction = self.parse_transaction(item, currency)
             direction = None
             if 'amount' in item:
                 amount = self.safe_number(item, 'amount')
                 direction = amount > 'in' if 0 else 'out'
             elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
-                currencyId = self.currency_id(parsedTransaction['currency'])
+                code = parsedTransaction['currency']
+                currencyId = self.safe_string(self.currencies_by_id, code, code)
                 amount = self.safe_number(item, currencyId)
                 direction = amount > 'in' if 0 else 'out'
             return {

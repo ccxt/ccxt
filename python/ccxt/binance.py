@@ -571,8 +571,8 @@ class binance(Exchange):
                     'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
-                    'taker': 0.001,
-                    'maker': 0.001,
+                    'taker': self.parse_number('0.001'),
+                    'maker': self.parse_number('0.001'),
                 },
                 'future': {
                     'trading': {
@@ -1744,7 +1744,10 @@ class binance(Exchange):
         amountString = self.safe_string_2(trade, 'q', 'qty')
         price = self.parse_number(priceString)
         amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        marketId = self.safe_string(trade, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        costString = Precise.string_mul(priceString, amountString)
+        cost = self.parse_number(costString)
         id = self.safe_string_2(trade, 't', 'a')
         id = self.safe_string(trade, 'id', id)
         side = None
@@ -1769,8 +1772,6 @@ class binance(Exchange):
             takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
         if 'maker' in trade:
             takerOrMaker = 'maker' if trade['maker'] else 'taker'
-        marketId = self.safe_string(trade, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -2398,20 +2399,38 @@ class binance(Exchange):
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
         #
         self.load_markets()
-        response = self.wapiGetUserAssetDribbletLog(params)
-        # {success:    True,
-        #   results: {total:    1,
-        #               rows: [{    transfered_total: "1.06468458",
-        #                         service_charge_total: "0.02172826",
-        #                                      tran_id: 2701371634,
-        #                                         logs: [{             tranId:  2701371634,
-        #                                                   serviceChargeAmount: "0.00012819",
-        #                                                                   uid: "35103861",
-        #                                                                amount: "0.8012",
-        #                                                           operateTime: "2018-10-07 17:56:07",
-        #                                                      transferedAmount: "0.00628141",
-        #                                                             fromAsset: "ADA"                  }],
-        #                                 operate_time: "2018-10-07 17:56:06"                                }]}}
+        request = {}
+        if since is not None:
+            request['startTime'] = since
+            request['endTime'] = self.sum(since, 7776000000)
+        response = self.wapiGetUserAssetDribbletLog(self.extend(request, params))
+        #
+        #     {
+        #         success: True,
+        #         results: {
+        #             total: 1,
+        #             rows: [
+        #                 {
+        #                     transfered_total: "1.06468458",
+        #                     service_charge_total: "0.02172826",
+        #                     tran_id: 2701371634,
+        #                     logs: [
+        #                         {
+        #                             tranId:  2701371634,
+        #                             serviceChargeAmount: "0.00012819",
+        #                             uid: "35103861",
+        #                             amount: "0.8012",
+        #                             operateTime: "2018-10-07 17:56:07",
+        #                             transferedAmount: "0.00628141",
+        #                             fromAsset: "ADA"
+        #                         }
+        #                     ],
+        #                     operate_time: "2018-10-07 17:56:06"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
         results = self.safe_value(response, 'results', {})
         rows = self.safe_value(results, 'rows', [])
         data = []
@@ -2433,8 +2452,10 @@ class binance(Exchange):
         #             fromAsset: "ADA"                  },
         orderId = self.safe_string(trade, 'tranId')
         timestamp = self.parse8601(self.safe_string(trade, 'operateTime'))
-        tradedCurrency = self.safe_currency_code(self.safe_string(trade, 'fromAsset'))
-        earnedCurrency = self.currency('BNB')['code']
+        currencyId = self.safe_string(trade, 'fromAsset')
+        tradedCurrency = self.safe_currency_code(currencyId)
+        bnb = self.currency('BNB')
+        earnedCurrency = bnb['code']
         applicantSymbol = earnedCurrency + '/' + tradedCurrency
         tradedCurrencyIsQuote = False
         if applicantSymbol in self.markets:
@@ -2446,29 +2467,33 @@ class binance(Exchange):
         # BNB `amount`(or `cost` depending on the trade `side`). The second of the above options
         # is much more illustrative and therefore preferable.
         #
+        feeCostString = self.safe_string(trade, 'serviceChargeAmount')
         fee = {
             'currency': earnedCurrency,
-            'cost': self.safe_number(trade, 'serviceChargeAmount'),
+            'cost': self.parse_number(feeCostString),
         }
         symbol = None
-        amount = None
-        cost = None
+        amountString = None
+        costString = None
         side = None
         if tradedCurrencyIsQuote:
             symbol = applicantSymbol
-            amount = self.sum(self.safe_number(trade, 'transferedAmount'), fee['cost'])
-            cost = self.safe_number(trade, 'amount')
+            amountString = Precise.string_add(self.safe_string(trade, 'transferedAmount'), feeCostString)
+            costString = self.safe_string(trade, 'amount')
             side = 'buy'
         else:
             symbol = tradedCurrency + '/' + earnedCurrency
-            amount = self.safe_number(trade, 'amount')
-            cost = self.sum(self.safe_number(trade, 'transferedAmount'), fee['cost'])
+            amountString = self.safe_string(trade, 'amount')
+            costString = Precise.string_add(self.safe_string(trade, 'transferedAmount'), feeCostString)
             side = 'sell'
-        price = None
-        if cost is not None:
-            if amount:
-                price = cost / amount
+        priceString = None
+        if costString is not None:
+            if amountString:
+                priceString = Precise.string_div(costString, amountString)
         id = None
+        amount = self.parse_number(amountString)
+        price = self.parse_number(priceString)
+        cost = self.parse_number(costString)
         type = None
         takerOrMaker = None
         return {
@@ -2892,6 +2917,7 @@ class binance(Exchange):
         }
 
     def fetch_funding_fees(self, codes=None, params={}):
+        self.load_markets()
         response = self.sapiGetCapitalConfigGetall(params)
         #
         #  [
@@ -3496,6 +3522,7 @@ class binance(Exchange):
             'leverage': leverage,
             'unrealizedPnl': unrealizedPnl,
             'contracts': contracts,
+            'contractSize': self.parse_number(market['contractSize']),
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': None,
