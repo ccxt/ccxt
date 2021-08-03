@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\NotSupported;
 
-class huobijp extends huobipro {
+class huobijp extends huobi {
 
     public function describe() {
         return $this->deep_extend(parent::describe (), array(

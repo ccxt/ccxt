@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.7.95'
+__version__ = '0.7.96'
 
 # -----------------------------------------------------------------------------
 
@@ -160,6 +160,7 @@ from ccxtpro.ftx import ftx                                               # noqa
 from ccxtpro.gateio import gateio                                         # noqa: F401
 from ccxtpro.gopax import gopax                                           # noqa: F401
 from ccxtpro.hitbtc import hitbtc                                         # noqa: F401
+from ccxtpro.huobi import huobi                                           # noqa: F401
 from ccxtpro.huobijp import huobijp                                       # noqa: F401
 from ccxtpro.huobipro import huobipro                                     # noqa: F401
 from ccxtpro.idex import idex                                             # noqa: F401
