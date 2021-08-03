@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9a4cc680fe617c8e16fb72dfe9a6126d",
+    "content-hash": "97d86fa10cd0dbe4c83874c565e6f24e",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.54.24",
+            "version": "1.54.40",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "b46ad1850710356a72ad9c2f2a5e9bbe3eac2122"
+                "reference": "86602c33f9ea7fa072a1692ef85909250108f61c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/b46ad1850710356a72ad9c2f2a5e9bbe3eac2122",
-                "reference": "b46ad1850710356a72ad9c2f2a5e9bbe3eac2122",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/86602c33f9ea7fa072a1692ef85909250108f61c",
+                "reference": "86602c33f9ea7fa072a1692ef85909250108f61c",
                 "shasum": ""
             },
             "require": {
@@ -280,7 +280,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.54.24"
+                "source": "https://github.com/ccxt/ccxt/tree/1.54.40"
             },
             "funding": [
                 {
@@ -288,7 +288,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2021-08-01T21:53:57+00:00"
+            "time": "2021-08-03T21:26:21+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -1255,16 +1255,16 @@
         },
         {
             "name": "react/socket",
-            "version": "v1.8.0",
+            "version": "v1.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/socket.git",
-                "reference": "92fb72d8e58fff94da84ea86ebda26788ddd672f"
+                "reference": "aa6e3f8ebcd6dec3ad1ee92a449b4cc341994001"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/socket/zipball/92fb72d8e58fff94da84ea86ebda26788ddd672f",
-                "reference": "92fb72d8e58fff94da84ea86ebda26788ddd672f",
+                "url": "https://api.github.com/repos/reactphp/socket/zipball/aa6e3f8ebcd6dec3ad1ee92a449b4cc341994001",
+                "reference": "aa6e3f8ebcd6dec3ad1ee92a449b4cc341994001",
                 "shasum": ""
             },
             "require": {
@@ -1323,7 +1323,7 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/socket/issues",
-                "source": "https://github.com/reactphp/socket/tree/v1.8.0"
+                "source": "https://github.com/reactphp/socket/tree/v1.9.0"
             },
             "funding": [
                 {
@@ -1335,7 +1335,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-07-11T12:50:07+00:00"
+            "time": "2021-08-03T12:37:06+00:00"
         },
         {
             "name": "react/stream",
