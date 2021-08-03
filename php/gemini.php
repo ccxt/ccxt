@@ -109,7 +109,6 @@ class gemini extends Exchange {
                     ),
                 ),
             ),
-            'precisionMode' => TICK_SIZE,
             'fees' => array(
                 'trading' => array(
                     'taker' => 0.0035,
@@ -225,17 +224,17 @@ class gemini extends Exchange {
             $minAmount = $this->safe_float($minAmountParts, 0);
             $amountPrecisionString = str_replace('<td>', '', $cells[2]);
             $amountPrecisionParts = explode(' ', $amountPrecisionString);
-            $amountPrecision = $this->safe_float($amountPrecisionParts, 0);
+            $amountPrecision = $this->safe_string($amountPrecisionParts, 0);
             $idLength = strlen($marketId) - 0;
             $quoteId = mb_substr($marketId, $idLength - 3, $idLength - $idLength - 3);
             $quote = $this->safe_currency_code($quoteId);
             $pricePrecisionString = str_replace('<td>', '', $cells[3]);
             $pricePrecisionParts = explode(' ', $pricePrecisionString);
-            $pricePrecision = $this->safe_float($pricePrecisionParts, 0);
+            $pricePrecision = $this->safe_string($pricePrecisionParts, 0);
             $baseId = str_replace($quoteId, '', $marketId);
             $base = $this->safe_currency_code($baseId);
             $symbol = $base . '/' . $quote;
-            $active = null;
+            $active = true;
             $result[] = array(
                 'id' => $marketId,
                 'info' => $row,
@@ -246,8 +245,8 @@ class gemini extends Exchange {
                 'quoteId' => $quoteId,
                 'active' => $active,
                 'precision' => array(
-                    'amount' => $amountPrecision,
-                    'price' => $pricePrecision,
+                    'amount' => $this->precision_from_string($amountPrecision),
+                    'price' => $this->precision_from_string($pricePrecision),
                 ),
                 'limits' => array(
                     'amount' => array(
@@ -255,7 +254,7 @@ class gemini extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => null,
+                        'min' => $pricePrecision,
                         'max' => null,
                     ),
                     'cost' => array(

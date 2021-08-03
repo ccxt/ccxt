@@ -26,7 +26,6 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class gemini(Exchange):
@@ -128,7 +127,6 @@ class gemini(Exchange):
                     ],
                 },
             },
-            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'taker': 0.0035,
@@ -238,17 +236,17 @@ class gemini(Exchange):
             minAmount = self.safe_float(minAmountParts, 0)
             amountPrecisionString = cells[2].replace('<td>', '')
             amountPrecisionParts = amountPrecisionString.split(' ')
-            amountPrecision = self.safe_float(amountPrecisionParts, 0)
+            amountPrecision = self.safe_string(amountPrecisionParts, 0)
             idLength = len(marketId) - 0
             quoteId = marketId[idLength - 3:idLength]
             quote = self.safe_currency_code(quoteId)
             pricePrecisionString = cells[3].replace('<td>', '')
             pricePrecisionParts = pricePrecisionString.split(' ')
-            pricePrecision = self.safe_float(pricePrecisionParts, 0)
+            pricePrecision = self.safe_string(pricePrecisionParts, 0)
             baseId = marketId.replace(quoteId, '')
             base = self.safe_currency_code(baseId)
             symbol = base + '/' + quote
-            active = None
+            active = True
             result.append({
                 'id': marketId,
                 'info': row,
@@ -259,8 +257,8 @@ class gemini(Exchange):
                 'quoteId': quoteId,
                 'active': active,
                 'precision': {
-                    'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'amount': self.precision_from_string(amountPrecision),
+                    'price': self.precision_from_string(pricePrecision),
                 },
                 'limits': {
                     'amount': {
@@ -268,7 +266,7 @@ class gemini(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': None,
+                        'min': pricePrecision,
                         'max': None,
                     },
                     'cost': {
