@@ -90,7 +90,10 @@ class huobipro(Exchange):
                     'v2Private': 'https://{hostname}',
                 },
                 'www': 'https://www.huobi.com',
-                'referral': 'https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3',
+                'referral': {
+                    'url': 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
+                    'discount': 0.15,
+                },
                 'doc': [
                     'https://huobiapi.github.io/docs/spot/v1/cn/',
                     'https://huobiapi.github.io/docs/dm/v1/cn/',
@@ -297,6 +300,9 @@ class huobipro(Exchange):
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
+                'broker': {
+                    'id': 'AA03022abc',
+                },
             },
             'commonCurrencies': {
                 # https://github.com/ccxt/ccxt/issues/6081
@@ -1111,7 +1117,11 @@ class huobipro(Exchange):
             'type': side + '-' + type,
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
-        if clientOrderId is not None:
+        if clientOrderId is None:
+            broker = self.safe_value(self.options, 'broker', {})
+            brokerId = self.safe_string(broker, 'id')
+            request['client-order-id'] = brokerId + self.uuid()
+        else:
             request['client-order-id'] = clientOrderId
         params = self.omit(params, ['clientOrderId', 'client-order-id'])
         if (type == 'market') and (side == 'buy'):

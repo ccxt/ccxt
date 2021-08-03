@@ -79,7 +79,10 @@ class huobipro extends Exchange {
                     'v2Private' => 'https://{hostname}',
                 ),
                 'www' => 'https://www.huobi.com',
-                'referral' => 'https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3',
+                'referral' => array(
+                    'url' => 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
+                    'discount' => 0.15,
+                ),
                 'doc' => array(
                     'https://huobiapi.github.io/docs/spot/v1/cn/',
                     'https://huobiapi.github.io/docs/dm/v1/cn/',
@@ -286,6 +289,9 @@ class huobipro extends Exchange {
                 'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod' => 'privatePostOrderOrdersPlace',
                 'language' => 'en-US',
+                'broker' => array(
+                    'id' => 'AA03022abc',
+                ),
             ),
             'commonCurrencies' => array(
                 // https://github.com/ccxt/ccxt/issues/6081
@@ -1170,7 +1176,11 @@ class huobipro extends Exchange {
             'type' => $side . '-' . $type,
         );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
-        if ($clientOrderId !== null) {
+        if ($clientOrderId === null) {
+            $broker = $this->safe_value($this->options, 'broker', array());
+            $brokerId = $this->safe_string($broker, 'id');
+            $request['client-order-id'] = $brokerId . $this->uuid();
+        } else {
             $request['client-order-id'] = $clientOrderId;
         }
         $params = $this->omit($params, array( 'clientOrderId', 'client-order-id' ));
