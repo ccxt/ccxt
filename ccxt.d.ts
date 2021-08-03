@@ -496,8 +496,9 @@ declare module 'ccxt' {
     export class hbtc extends Exchange {}
     export class hitbtc extends Exchange {}
     export class hollaex extends Exchange {}
+    export class huobi extends Exchange {}
     export class huobijp extends huobipro {}
-    export class huobipro extends Exchange {}
+    export class huobipro extends huobi {}
     export class idex extends Exchange {}
     export class independentreserve extends Exchange {}
     export class indodax extends Exchange {}
@@ -613,6 +614,7 @@ declare module 'ccxt' {
         | 'hbtc'
         | 'hitbtc'
         | 'hollaex'
+        | 'huobi'
         | 'huobijp'
         | 'huobipro'
         | 'idex'
