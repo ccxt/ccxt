@@ -17,7 +17,7 @@ module.exports = class b2c2 extends Exchange {
             'countries': [ 'GB' ],
             'rateLimit': 500,
             'has': {
-                'fetchBalance': true, // implemented
+                'fetchBalance': true,  // partially implemented
                 'fetchCurrencies': true, // partially implemented
                 'fetchMarkets': true, // partially implemented
                 'fetchOrders': true, // partially implemented
@@ -25,8 +25,8 @@ module.exports = class b2c2 extends Exchange {
                 'fetchMyTrades': true, // partially implemented
                 'createOrder': true, // partially implemented
                 'fetchOrder': true, // partially implemented
-                'fetchWithdrawals': true,
-                'withdraw': true,
+                'fetchWithdrawals': true, // partially implemented
+                'withdraw': true, // partially implemented
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRates': true,
@@ -46,22 +46,27 @@ module.exports = class b2c2 extends Exchange {
             'api': {
                 'private': {
                     'get': [
+                        'account_info',
                         'balance',
-                        'margin_requirements',
+                        'currency',
+                        'funding_rates',
                         'instruments',
+                        'ledger',
                         'order',
                         'order/{id}',
                         'trade',
-                        'ledger',
+                        'trade/{id}',
                         'withdrawal',
-                        'currency',
-                        'funding_rates',
-                        'account_info',
+                        'withdrawal/{id}',
                     ],
                     'post': [
                         'request_for_quote',
                         'order',
                         'withdrawal',
+                    ],
+                    'delete': [
+                        'order/{id}',
+                        'withdrawal/{id}',
                     ],
                 },
             },
@@ -467,13 +472,15 @@ module.exports = class b2c2 extends Exchange {
     }
 
     parseLedgerEntryType (type) {
+        // Currently four types of ledgers are possible:
+        // trade (ledger resulting of a trade, there are two ledgers per trade)
+        // transfer (either you sent funds to B2C2, or B2C2 sent you funds)
+        // funding (funding rate charged for your open positions if you have some, CFD only)
+        // realised_pnl (Realised P&L, CFD only)
         const types = {
-            'Withdrawal': 'transaction',
-            'RealisedPNL': 'margin',
-            'UnrealisedPNL': 'margin',
-            'Deposit': 'transaction',
-            'Transfer': 'transfer',
-            'AffiliatePayout': 'referral',
+            'transfer': 'transaction',
+            'funding': 'funding',
+            'realised_pnl': 'margin',
             'trade': 'trade',
         };
         return this.safeString (types, type, type);
@@ -724,6 +731,172 @@ module.exports = class b2c2 extends Exchange {
             'fee': fee,
         };
     }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        // Request a settlement for a given amount to the given destination in a given currency. 
+        // Your account must exhibit a sufficient balance in the requested currency. 
+        // Note that for non approved addresses, the amount can only be lower than 0.1.
+        // The address_protocol parameter is either “Omni” or “ERC20” and only used for UST settlement requests. 
+        // For other currencies, leave null. The address_suffix is the memo or the tag of the address as entered on the website.
+        // post_data = {
+        //     'amount': '1000',
+        //     'currency': 'XRP',
+        //     'destination_address': {
+        //         'address_value': 'rUQngTebGgF1tCexhuPaQBr5MufweybMom',
+        //         'address_suffix': 'tag0',
+        //         'address_protocol': None
+        //     }
+        // }
+        // # Fiat withdrawal
+        // post_data = {
+        //     'amount': '1000',
+        //     'currency': 'USD',
+        //     'destination_bank_account': 'USD Bank Account'
+        // }
+        // Response:
+        // {
+        //     "amount": "1000.00000000",
+        //     "currency": "XRP",
+        //     "withdrawal_id": "5c7e90cc-a8d6-4db5-8348-44053b2dcbdf",
+        //     "reference": "",
+        //     "settled": false,
+        //     "created": "2021-06-09T09:46:00.162599Z",
+        //     "destination_address": {
+        //       "address_value": "rUQngTebGgF1tCexhuPaQBr5MufweybMom",
+        //       "address_suffix": "tag0",
+        //       "address_protocol": null
+        //     },
+        //     "destination_bank_account": null
+        //   }
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'amount': amount,
+            'currency': currency['id'],
+        };
+        const dest = {
+            'address_value': address,
+        }
+        if (tag !== undefined) {
+            request['addressTag'] = tag;
+        }
+        if (currency == 'UST') {
+            request['address_protocol'] = 'ERC20';
+        }
+        request['destination_address'] = dest;
+        const response = await this.privatePostWithdrawal (this.extend (request, params));
+        return {
+            'info': response,
+            'id': this.safeString (response, 'withdrawal_id'),
+        };
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = this.sum (since, 7776000000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetWithdrawal (this.extend (request, params));
+        // [
+        //     {
+        //       "amount": "2.00000000",
+        //       "currency": "BTC",
+        //       "destination_address": "0xC323E80eF4deC2195G239F4f1e830417D294F841",
+        //       "destination_bank_account": null,
+        //       "reference": "",
+        //       "settled": false,
+        //       "created": "2021-06-09T09:46:00.162599Z",
+        //       "withdrawal_id": "ed846746-f7e0-4af9-85bb-36732e60d6d8"
+        //     },
+        //     {
+        //       "amount": "10.00000000",
+        //       "currency": "BTC",
+        //       "destination_address": null,
+        //       "destination_bank_account": "EUR BA",
+        //       "reference": "",
+        //       "settled": true,
+        //       "created": "2021-06-09T09:46:00.162599Z",
+        //       "withdrawal_id": "b4426ff2-19c6-48ca-8b07-2c344dc34ecb"
+        //     }
+        //   ]
+        return this.parseWithdrawals (response, currency, since, limit);
+    }
+
+    parseWithdrawals (transaction, currency = undefined) {
+        // [
+        //     {
+        //       "amount": "2.00000000",
+        //       "currency": "BTC",
+        //       "destination_address": "0xC323E80eF4deC2195G239F4f1e830417D294F841",
+        //       "destination_bank_account": null,
+        //       "reference": "",
+        //       "settled": false,
+        //       "created": "2021-06-09T09:46:00.162599Z",
+        //       "withdrawal_id": "ed846746-f7e0-4af9-85bb-36732e60d6d8"
+        //     },
+        //     {
+        //       "amount": "10.00000000",
+        //       "currency": "BTC",
+        //       "destination_address": null,
+        //       "destination_bank_account": "EUR BA",
+        //       "reference": "",
+        //       "settled": true,
+        //       "created": "2021-06-09T09:46:00.162599Z",
+        //       "withdrawal_id": "b4426ff2-19c6-48ca-8b07-2c344dc34ecb"
+        //     }
+        //   ]
+        const id = this.safeString (transaction, 'withdrawal_id');
+        const address = this.safeString (transaction, 'destination_address');
+        let tag = this.safeString (transaction, 'reference'); // set but unused
+        if (tag !== undefined) {
+            if (tag.length < 1) {
+                tag = undefined;
+            }
+        }
+        let txid = this.safeString (transaction, 'withdrawal_id');
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.parse8601 (this.safeString (transaction, 'applyTime'));
+        let status = 'pending';
+        if (transaction['settled'] == true) {
+            status = 'settled';
+        }
+        const amount = this.safeNumber (transaction, 'amount');
+        // const updated = this.safeInteger (transaction, 'successTime');
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
+            'type': 'withdrawal',
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'internal': false,
+            'fee': undefined,
+        };
+    }
+
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
