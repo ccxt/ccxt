@@ -1067,8 +1067,9 @@ class liquid(Exchange):
         updated = self.safe_timestamp(transaction, 'updated_at')
         type = 'withdrawal'
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        amount = self.safe_number(transaction, 'amount')
-        feeCost = self.safe_number(transaction, 'withdrawal_fee')
+        amountString = self.safe_string(transaction, 'amount')
+        feeCostString = self.safe_string(transaction, 'withdrawal_fee')
+        amount = self.parse_number(Precise.string_sub(amountString, feeCostString))
         return {
             'info': transaction,
             'id': id,
@@ -1078,13 +1079,13 @@ class liquid(Exchange):
             'address': address,
             'tag': tag,
             'type': type,
-            'amount': amount - feeCost,
+            'amount': amount,
             'currency': code,
             'status': status,
             'updated': updated,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCostString),
             },
         }
 

@@ -759,8 +759,7 @@ class gateio(Exchange):
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.publicSpotGetTickers(params)
-        ticker = self.safe_value(response, 0)
-        return self.parse_tickers(ticker, symbols)
+        return self.parse_tickers(response, symbols)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

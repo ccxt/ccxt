@@ -763,8 +763,7 @@ module.exports = class gateio extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicSpotGetTickers (params);
-        const ticker = this.safeValue (response, 0);
-        return this.parseTickers (ticker, symbols);
+        return this.parseTickers (response, symbols);
     }
 
     async fetchBalance (params = {}) {

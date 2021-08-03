@@ -123,6 +123,7 @@ class bibox extends Exchange {
                 '2085' => '\\ccxt\\InvalidOrder', // Order quantity is too small
                 '2091' => '\\ccxt\\RateLimitExceeded', // request is too frequency, please try again later
                 '2092' => '\\ccxt\\InvalidOrder', // Minimum amount not met
+                '2131' => '\\ccxt\\InvalidOrder', // The order quantity cannot be greater than
                 '3000' => '\\ccxt\\BadRequest', // Requested parameter incorrect
                 '3002' => '\\ccxt\\BadRequest', // Parameter cannot be null
                 '3012' => '\\ccxt\\AuthenticationError', // invalid apiKey

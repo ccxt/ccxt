@@ -502,9 +502,9 @@ class okex(Exchange):
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': ['spot', 'futures', 'swap'],  # spot, futures, swap, option
                 'defaultType': 'spot',  # 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
-                'fetchBalance': {
-                    'type': 'spot',  # 'funding', 'trading', 'spot'
-                },
+                # 'fetchBalance': {
+                #     'type': 'spot',  # 'funding', 'trading', 'spot'
+                # },
                 'fetchLedger': {
                     'method': 'privateGetAccountBills',  # privateGetAccountBillsArchive, privateGetAssetBills
                 },

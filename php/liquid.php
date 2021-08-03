@@ -1126,8 +1126,9 @@ class liquid extends Exchange {
         $updated = $this->safe_timestamp($transaction, 'updated_at');
         $type = 'withdrawal';
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
-        $amount = $this->safe_number($transaction, 'amount');
-        $feeCost = $this->safe_number($transaction, 'withdrawal_fee');
+        $amountString = $this->safe_string($transaction, 'amount');
+        $feeCostString = $this->safe_string($transaction, 'withdrawal_fee');
+        $amount = $this->parse_number(Precise::string_sub($amountString, $feeCostString));
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1137,13 +1138,13 @@ class liquid extends Exchange {
             'address' => $address,
             'tag' => $tag,
             'type' => $type,
-            'amount' => $amount - $feeCost,
+            'amount' => $amount,
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCostString),
             ),
         );
     }
