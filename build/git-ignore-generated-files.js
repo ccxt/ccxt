@@ -46,9 +46,9 @@ let files = [
     'wiki/Exchange-Markets.md',
 
     'doc/FAQ.rst',
-    'doc/README.rst',
-    'doc/exchanges-by-country.rst',
-    'doc/exchanges.rst',
+    'doc/readme.rst',
+    'doc/exchange-markets-by-country.rst',
+    'doc/exchange-markets.rst',
     'doc/install.rst',
     'doc/manual.rst',
     'python/README.rst',

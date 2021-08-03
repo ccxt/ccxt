@@ -54,6 +54,7 @@ from ccxt.base.errors import error_hierarchy                # noqa: F401
 from ccxt.async_support.aax import aax                                    # noqa: F401
 from ccxt.async_support.aofex import aofex                                # noqa: F401
 from ccxt.async_support.ascendex import ascendex                          # noqa: F401
+from ccxt.async_support.b2c2 import b2c2                                  # noqa: F401
 from ccxt.async_support.bequant import bequant                            # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
 from ccxt.async_support.bigone import bigone                              # noqa: F401
@@ -169,6 +170,7 @@ exchanges = [
     'aax',
     'aofex',
     'ascendex',
+    'b2c2',
     'bequant',
     'bibox',
     'bigone',

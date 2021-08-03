@@ -72,6 +72,7 @@ from ccxt.base.errors import error_hierarchy                # noqa: F401
 from ccxt.aax import aax                                    # noqa: F401
 from ccxt.aofex import aofex                                # noqa: F401
 from ccxt.ascendex import ascendex                          # noqa: F401
+from ccxt.b2c2 import b2c2                                  # noqa: F401
 from ccxt.bequant import bequant                            # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
 from ccxt.bigone import bigone                              # noqa: F401
@@ -187,6 +188,7 @@ exchanges = [
     'aax',
     'aofex',
     'ascendex',
+    'b2c2',
     'bequant',
     'bibox',
     'bigone',
