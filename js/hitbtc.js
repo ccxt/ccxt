@@ -177,6 +177,9 @@ module.exports = class hitbtc extends Exchange {
                     'bank': 'bank',
                     'exchange': 'exchange',
                     'main': 'bank',  // alias of the above
+                    'funding': 'bank',
+                    'spot': 'exchange',
+                    'trade': 'exchange',
                     'trading': 'exchange',
                 },
                 'fetchBalanceMethod': {
