@@ -166,8 +166,8 @@ class binance(Exchange):
                         'margin/isolated/pair',
                         'margin/isolated/allPairs',
                         'margin/interestRateHistory',
-                        'fiatpayment/query/deposit/history',
-                        'fiatpayment/query/withdraw/history',
+                        'fiat/orders',
+                        'fiat/payments',
                         'futures/transfer',
                         'futures/loan/borrow/history',
                         'futures/loan/repay/history',
@@ -686,6 +686,40 @@ class binance(Exchange):
                     'UMFUTURE': 'future',
                     'CMFUTURE': 'delivery',
                     'MINING': 'mining',
+                },
+                'legalMoney': {
+                    'MXN': True,
+                    'UGX': True,
+                    'SEK': True,
+                    'CHF': True,
+                    'VND': True,
+                    'AED': True,
+                    'DKK': True,
+                    'KZT': True,
+                    'HUF': True,
+                    'PEN': True,
+                    'PHP': True,
+                    'USD': True,
+                    'TRY': True,
+                    'EUR': True,
+                    'NGN': True,
+                    'PLN': True,
+                    'BRL': True,
+                    'ZAR': True,
+                    'KES': True,
+                    'ARS': True,
+                    'RUB': True,
+                    'AUD': True,
+                    'NOK': True,
+                    'CZK': True,
+                    'GBP': True,
+                    'UAH': True,
+                    'GHS': True,
+                    'HKD': True,
+                    'CAD': True,
+                    'INR': True,
+                    'JPY': True,
+                    'NZD': True,
                 },
             },
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
@@ -2515,98 +2549,169 @@ class binance(Exchange):
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         currency = None
+        response = None
         request = {}
-        if code is not None:
-            currency = self.currency(code)
-            request['coin'] = currency['id']
-        if since is not None:
-            request['startTime'] = since
-            # max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            request['endTime'] = self.sum(since, 7776000000)
-        if limit is not None:
-            request['limit'] = limit
-        response = await self.sapiGetCapitalDepositHisrec(self.extend(request, params))
-        #     [
-        #       {
-        #         "amount": "0.01844487",
-        #         "coin": "BCH",
-        #         "network": "BCH",
-        #         "status": 1,
-        #         "address": "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
-        #         "addressTag": "",
-        #         "txId": "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
-        #         "insertTime": 1610784980000,
-        #         "transferType": 0,
-        #         "confirmTimes": "2/2"
-        #       },
-        #       {
-        #         "amount": "4500",
-        #         "coin": "USDT",
-        #         "network": "BSC",
-        #         "status": 1,
-        #         "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
-        #         "addressTag": "",
-        #         "txId": "Internal transfer 51376627901",
-        #         "insertTime": 1618394381000,
-        #         "transferType": 1,
-        #         "confirmTimes": "1/15"
-        #     }
-        #   ]
+        legalMoney = self.safe_value(self.options, 'legalMoney', {})
+        if code in legalMoney:
+            if code is not None:
+                currency = self.currency(code)
+            request['transactionType'] = 0
+            if since is not None:
+                request['beginTime'] = since
+            raw = await self.sapiGetFiatOrders(self.extend(request, params))
+            response = self.safe_value(raw, 'data')
+            #     {
+            #       "code": "000000",
+            #       "message": "success",
+            #       "data": [
+            #         {
+            #           "orderNo": "25ced37075c1470ba8939d0df2316e23",
+            #           "fiatCurrency": "EUR",
+            #           "indicatedAmount": "15.00",
+            #           "amount": "15.00",
+            #           "totalFee": "0.00",
+            #           "method": "card",
+            #           "status": "Failed",
+            #           "createTime": 1627501026000,
+            #           "updateTime": 1627501027000
+            #         }
+            #       ],
+            #       "total": 1,
+            #       "success": True
+            #     }
+        else:
+            if code is not None:
+                currency = self.currency(code)
+                request['coin'] = currency['id']
+            if since is not None:
+                request['startTime'] = since
+                # max 3 months range https://github.com/ccxt/ccxt/issues/6495
+                request['endTime'] = self.sum(since, 7776000000)
+            if limit is not None:
+                request['limit'] = limit
+            response = await self.sapiGetCapitalDepositHisrec(self.extend(request, params))
+            #     [
+            #       {
+            #         "amount": "0.01844487",
+            #         "coin": "BCH",
+            #         "network": "BCH",
+            #         "status": 1,
+            #         "address": "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
+            #         "addressTag": "",
+            #         "txId": "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
+            #         "insertTime": 1610784980000,
+            #         "transferType": 0,
+            #         "confirmTimes": "2/2"
+            #       },
+            #       {
+            #         "amount": "4500",
+            #         "coin": "USDT",
+            #         "network": "BSC",
+            #         "status": 1,
+            #         "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
+            #         "addressTag": "",
+            #         "txId": "Internal transfer 51376627901",
+            #         "insertTime": 1618394381000,
+            #         "transferType": 1,
+            #         "confirmTimes": "1/15"
+            #     }
+            #   ]
         return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
-        currency = None
+        legalMoney = self.safe_value(self.options, 'legalMoney', {})
         request = {}
-        if code is not None:
-            currency = self.currency(code)
-            request['coin'] = currency['id']
-        if since is not None:
-            request['startTime'] = since
-            # max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            request['endTime'] = self.sum(since, 7776000000)
-        if limit is not None:
-            request['limit'] = limit
-        response = await self.sapiGetCapitalWithdrawHistory(self.extend(request, params))
-        #     [
-        #       {
-        #         "id": "69e53ad305124b96b43668ceab158a18",
-        #         "amount": "28.75",
-        #         "transactionFee": "0.25",
-        #         "coin": "XRP",
-        #         "status": 6,
-        #         "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
-        #         "addressTag": "101286922",
-        #         "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
-        #         "applyTime": "2021-04-15 12:09:16",
-        #         "network": "XRP",
-        #         "transferType": 0
-        #       },
-        #       {
-        #         "id": "9a67628b16ba4988ae20d329333f16bc",
-        #         "amount": "20",
-        #         "transactionFee": "20",
-        #         "coin": "USDT",
-        #         "status": 6,
-        #         "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
-        #         "txId": "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
-        #         "applyTime": "2021-04-15 12:06:53",
-        #         "network": "ETH",
-        #         "transferType": 0
-        #       },
-        #       {
-        #         "id": "a7cdc0afbfa44a48bd225c9ece958fe2",
-        #         "amount": "51",
-        #         "transactionFee": "1",
-        #         "coin": "USDT",
-        #         "status": 6,
-        #         "address": "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
-        #         "txId": "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
-        #         "applyTime": "2021-04-13 12:46:59",
-        #         "network": "TRX",
-        #         "transferType": 0
-        #       }
-        #     ]
+        response = None
+        currency = None
+        if code in legalMoney:
+            if code is not None:
+                currency = self.currency(code)
+            request['transactionType'] = 1
+            if since is not None:
+                request['beginTime'] = since
+            raw = await self.sapiGetFiatOrders(self.extend(request, params))
+            response = self.safe_value(raw, 'data')
+            #     {
+            #       "code": "000000",
+            #       "message": "success",
+            #       "data": [
+            #         {
+            #           "orderNo": "CJW706452266115170304",
+            #           "fiatCurrency": "GBP",
+            #           "indicatedAmount": "10001.50",
+            #           "amount": "100.00",
+            #           "totalFee": "1.50",
+            #           "method": "bank transfer",
+            #           "status": "Successful",
+            #           "createTime": 1620037745000,
+            #           "updateTime": 1620038480000
+            #         },
+            #         {
+            #           "orderNo": "CJW706287492781891584",
+            #           "fiatCurrency": "GBP",
+            #           "indicatedAmount": "10001.50",
+            #           "amount": "100.00",
+            #           "totalFee": "1.50",
+            #           "method": "bank transfer",
+            #           "status": "Successful",
+            #           "createTime": 1619998460000,
+            #           "updateTime": 1619998823000
+            #         }
+            #       ],
+            #       "total": 39,
+            #       "success": True
+            #     }
+        else:
+            if code is not None:
+                currency = self.currency(code)
+                request['coin'] = currency['id']
+            if since is not None:
+                request['startTime'] = since
+                # max 3 months range https://github.com/ccxt/ccxt/issues/6495
+                request['endTime'] = self.sum(since, 7776000000)
+            if limit is not None:
+                request['limit'] = limit
+            response = await self.sapiGetCapitalWithdrawHistory(self.extend(request, params))
+            #     [
+            #       {
+            #         "id": "69e53ad305124b96b43668ceab158a18",
+            #         "amount": "28.75",
+            #         "transactionFee": "0.25",
+            #         "coin": "XRP",
+            #         "status": 6,
+            #         "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+            #         "addressTag": "101286922",
+            #         "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+            #         "applyTime": "2021-04-15 12:09:16",
+            #         "network": "XRP",
+            #         "transferType": 0
+            #       },
+            #       {
+            #         "id": "9a67628b16ba4988ae20d329333f16bc",
+            #         "amount": "20",
+            #         "transactionFee": "20",
+            #         "coin": "USDT",
+            #         "status": 6,
+            #         "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+            #         "txId": "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
+            #         "applyTime": "2021-04-15 12:06:53",
+            #         "network": "ETH",
+            #         "transferType": 0
+            #       },
+            #       {
+            #         "id": "a7cdc0afbfa44a48bd225c9ece958fe2",
+            #         "amount": "51",
+            #         "transactionFee": "1",
+            #         "coin": "USDT",
+            #         "status": 6,
+            #         "address": "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
+            #         "txId": "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
+            #         "applyTime": "2021-04-13 12:46:59",
+            #         "network": "TRX",
+            #         "transferType": 0
+            #       }
+            #     ]
         return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):
@@ -2623,6 +2728,14 @@ class binance(Exchange):
                 '4': 'pending',  # Processing
                 '5': 'failed',  # Failure
                 '6': 'ok',  # Completed
+                # Fiat
+                # Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
+                'Processing': 'pending',
+                'Failed': 'failed',
+                'Successful': 'ok',
+                'Refunding': 'canceled',
+                'Refunded': 'canceled',
+                'Refund Failed': 'failed',
             },
         }
         statuses = self.safe_value(statusesByType, type, {})
@@ -2661,7 +2774,34 @@ class binance(Exchange):
         #       "transferType": 0
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        # fiat transaction
+        # withdraw
+        #     {
+        #       "orderNo": "CJW684897551397171200",
+        #       "fiatCurrency": "GBP",
+        #       "indicatedAmount": "29.99",
+        #       "amount": "28.49",
+        #       "totalFee": "1.50",
+        #       "method": "bank transfer",
+        #       "status": "Successful",
+        #       "createTime": 1614898701000,
+        #       "updateTime": 1614898820000
+        #     }
+        #
+        # deposit
+        #     {
+        #       "orderNo": "25ced37075c1470ba8939d0df2316e23",
+        #       "fiatCurrency": "EUR",
+        #       "indicatedAmount": "15.00",
+        #       "amount": "15.00",
+        #       "totalFee": "0.00",
+        #       "method": "card",
+        #       "status": "Failed",
+        #       "createTime": "1627501026000",
+        #       "updateTime": "1627501027000"
+        #     }
+        #
+        id = self.safe_string_2(transaction, 'id', 'orderNo')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')  # set but unused
         if tag is not None:
@@ -2670,10 +2810,10 @@ class binance(Exchange):
         txid = self.safe_string(transaction, 'txId')
         if (txid is not None) and (txid.find('Internal transfer ') >= 0):
             txid = txid[18:]
-        currencyId = self.safe_string(transaction, 'coin')
+        currencyId = self.safe_string_2(transaction, 'coin', 'fiatCurrency')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None
-        insertTime = self.safe_integer(transaction, 'insertTime')
+        insertTime = self.safe_integer_2(transaction, 'insertTime', 'createTime')
         applyTime = self.parse8601(self.safe_string(transaction, 'applyTime'))
         type = self.safe_string(transaction, 'type')
         if type is None:
@@ -2685,11 +2825,11 @@ class binance(Exchange):
                 timestamp = applyTime
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_number(transaction, 'amount')
-        feeCost = self.safe_number(transaction, 'transactionFee')
+        feeCost = self.safe_number_2(transaction, 'transactionFee', 'totalFee')
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
-        updated = self.safe_integer(transaction, 'successTime')
+        updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
         internal = self.safe_integer(transaction, 'transferType', False)
         internal = True if internal else False
         return {
@@ -3912,7 +4052,7 @@ class binance(Exchange):
         if error is not None:
             # https://github.com/ccxt/ccxt/issues/6501
             # https://github.com/ccxt/ccxt/issues/7742
-            if (error == '200') or (error == '0'):
+            if (error == '200') or Precise.string_equals(error, '0'):
                 return
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance
