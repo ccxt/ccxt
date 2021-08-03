@@ -139,6 +139,7 @@ class binance extends Exchange {
                         'asset/transfer',
                         'asset/assetDetail',
                         'asset/tradeFee',
+                        'asset/get-funding-asset',
                         'margin/loan',
                         'margin/repay',
                         'margin/account',
@@ -247,6 +248,8 @@ class binance extends Exchange {
                         // v2 not supported yet
                         // GET /sapi/v2/broker/subAccount/futuresSummary
                         'account/apiRestrictions',
+                        // subaccounts
+                        'managed-subaccount/asset',
                     ),
                     'post' => array(
                         'asset/dust',
@@ -271,6 +274,8 @@ class binance extends Exchange {
                         'sub-account/transfer/subToSub',
                         'sub-account/transfer/subToMaster',
                         'sub-account/universalTransfer',
+                        'managed-subaccount/deposit',
+                        'managed-subaccount/withdraw',
                         'userDataStream',
                         'userDataStream/isolated',
                         'futures/transfer',

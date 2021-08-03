@@ -321,17 +321,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 1
      
    * - China
-     - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
-          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
-          :alt: huobipro
-     
-     - huobipro
-     - `Huobi <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://huobiapi.github.io/docs/spot/v1/cn/
-          :alt: API Version 1
-     
-   * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg
           :target: https://www.lbex.io/invite?icode=7QCY
           :alt: lbank
