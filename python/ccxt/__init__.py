@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.54.40'
+__version__ = '1.54.41'
 
 # ----------------------------------------------------------------------------
 
@@ -140,6 +140,7 @@ from ccxt.gopax import gopax                                # noqa: F401
 from ccxt.hbtc import hbtc                                  # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hollaex import hollaex                            # noqa: F401
+from ccxt.huobi import huobi                                # noqa: F401
 from ccxt.huobijp import huobijp                            # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
 from ccxt.idex import idex                                  # noqa: F401
@@ -255,6 +256,7 @@ exchanges = [
     'hbtc',
     'hitbtc',
     'hollaex',
+    'huobi',
     'huobijp',
     'huobipro',
     'idex',

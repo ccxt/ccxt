@@ -54,7 +54,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -998,6 +998,21 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - 
      - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
+          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
+          :alt: huobi
+     
+     - huobi
+     - `Huobi <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://huobiapi.github.io/docs/spot/v1/cn/
+          :alt: API Version 1
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg
           :target: https://www.huobi.co.jp/register/?invite_code=znnq3
           :alt: huobijp
@@ -1018,7 +1033,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :alt: huobipro
      
      - huobipro
-     - `Huobi Pro <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
+     - `Huobi <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
