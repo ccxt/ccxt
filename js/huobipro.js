@@ -282,6 +282,9 @@ module.exports = class huobipro extends Exchange {
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
+                'broker': {
+                    'id': 'AA03022abc',
+                },
             },
             'commonCurrencies': {
                 // https://github.com/ccxt/ccxt/issues/6081
@@ -1166,7 +1169,11 @@ module.exports = class huobipro extends Exchange {
             'type': side + '-' + type,
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
-        if (clientOrderId !== undefined) {
+        if (clientOrderId === undefined) {
+            const broker = this.safeValue (this.options, 'broker', {});
+            const brokerId = this.safeString (broker, 'id');
+            request['client-order-id'] = brokerId + this.uuid ();
+        } else {
             request['client-order-id'] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'client-order-id' ]);
