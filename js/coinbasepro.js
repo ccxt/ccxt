@@ -1048,11 +1048,11 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchTransactions (code, since, limit, this.extend (params, { 'type': 'deposit' }));
+        return this.fetchTransactions (code, since, limit, this.extend ({ 'type': 'deposit' }, params));
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchTransactions (code, since, limit, this.extend (params, { 'type': 'withdraw' }));
+        return this.fetchTransactions (code, since, limit, this.extend ({ 'type': 'withdraw' }, params));
     }
 
     parseTransactionStatus (transaction) {
