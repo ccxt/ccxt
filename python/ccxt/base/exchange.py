@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.53.67'
+__version__ = '1.54.33'
 
 # -----------------------------------------------------------------------------
 
@@ -467,11 +467,13 @@ class Exchange(object):
             else:
                 cls.define_rest_api(value, method_name, paths + [key])
 
-    def throttle(self):
+    def throttle(self, cost=None):
         now = float(self.milliseconds())
         elapsed = now - self.lastRestRequestTimestamp
-        if elapsed < self.rateLimit:
-            delay = self.rateLimit - elapsed
+        cost = 1 if cost is None else cost
+        sleep_time = self.rateLimit * cost
+        if elapsed < sleep_time:
+            delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
 
     def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -1288,15 +1290,6 @@ class Exchange(object):
             return currency
         return self.safe_string(self.commonCurrencies, currency, currency)
 
-    def currency_id(self, commonCode):
-
-        if self.currencies:
-            if commonCode in self.currencies:
-                return self.currencies[commonCode]['id']
-
-        currencyIds = {v: k for k, v in self.commonCurrencies.items()}
-        return self.safe_string(currencyIds, commonCode, commonCode)
-
     def precision_from_string(self, string):
         parts = re.sub(r'0+$', '', string).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
@@ -1916,12 +1909,12 @@ class Exchange(object):
     def market(self, symbol):
         if not self.markets:
             raise ExchangeError('Markets not loaded')
-        if isinstance(symbol, basestring) and (symbol in self.markets):
-            return self.markets[symbol]
+        if isinstance(symbol, basestring):
+            if symbol in self.markets:
+                return self.markets[symbol]
+            elif symbol in self.markets_by_id:
+                return self.markets_by_id[symbol]
         raise BadSymbol('{} does not have market symbol {}'.format(self.id, symbol))
-
-    def currency_ids(self, codes):
-        return [self.currency_id(code) for code in codes]
 
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]
@@ -2081,16 +2074,6 @@ class Exchange(object):
             raise ExchangeError(self.id + ' set .twofa to use this feature')
 
     @staticmethod
-    def decimal_to_bytes(n, endian='big'):
-        """int.from_bytes and int.to_bytes don't work in python2"""
-        if n > 0:
-            next_byte = Exchange.decimal_to_bytes(n // 0x100, endian)
-            remainder = bytes([n % 0x100])
-            return next_byte + remainder if endian == 'big' else remainder + next_byte
-        else:
-            return b''
-
-    @staticmethod
     def totp(key):
         def hex_to_dec(n):
             return int(n, base=16)
@@ -2102,18 +2085,18 @@ class Exchange(object):
             return base64.b32decode(padded)  # throws an error if the key is invalid
 
         epoch = int(time.time()) // 30
-        hmac_res = Exchange.hmac(Exchange.decimal_to_bytes(epoch, 'big'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
+        hmac_res = Exchange.hmac(epoch.to_bytes(8, 'big'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
 
     @staticmethod
     def number_to_le(n, size):
-        return Exchange.decimal_to_bytes(int(n), 'little').ljust(size, b'\x00')
+        return int(n).to_bytes(size, 'little')
 
     @staticmethod
     def number_to_be(n, size):
-        return Exchange.decimal_to_bytes(int(n), 'big').rjust(size, b'\x00')
+        return int(n).to_bytes(size, 'big')
 
     @staticmethod
     def base16_to_binary(s):
@@ -2139,7 +2122,7 @@ class Exchange(object):
         for i in range(len(s)):
             result *= 58
             result += Exchange.base58_decoder[s[i]]
-        return Exchange.decimal_to_bytes(result)
+        return result.to_bytes((result.bit_length() + 7) // 8, 'big')
 
     @staticmethod
     def binary_to_base58(b):

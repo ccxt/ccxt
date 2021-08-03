@@ -166,8 +166,8 @@ class aax(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.06 / 100,
-                    'taker': 0.10 / 100,
+                    'maker': self.parse_number('0.0006'),
+                    'taker': self.parse_number('0.001'),
                 },
                 'funding': {
                     'tierBased': False,

@@ -22,6 +22,10 @@ module.exports = class gateio extends Exchange {
                     'public': 'https://api.gateio.ws/api/v4',
                     'private': 'https://api.gateio.ws/api/v4',
                 },
+                'referral': {
+                    'url': 'https://www.gate.io/ref/2436035',
+                    'discount': 0.2,
+                },
             },
             'has': {
                 'fetchMarkets': true,
@@ -268,6 +272,56 @@ module.exports = class gateio extends Exchange {
                     'margin': 'margin',
                     'futures': 'futures',
                     'delivery': 'delivery',
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'feeSide': 'get',
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.002'),
+                    'tiers': {
+                        // volume is in BTC
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('1.5'), this.parseNumber ('0.00185') ],
+                            [ this.parseNumber ('3'), this.parseNumber ('0.00175') ],
+                            [ this.parseNumber ('6'), this.parseNumber ('0.00165') ],
+                            [ this.parseNumber ('12.5'), this.parseNumber ('0.00155') ],
+                            [ this.parseNumber ('25'), this.parseNumber ('0.00145') ],
+                            [ this.parseNumber ('75'), this.parseNumber ('0.00135') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('0.00125') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('0.00115') ],
+                            [ this.parseNumber ('1250'), this.parseNumber ('0.00105') ],
+                            [ this.parseNumber ('2500'), this.parseNumber ('0.00095') ],
+                            [ this.parseNumber ('3000'), this.parseNumber ('0.00085') ],
+                            [ this.parseNumber ('6000'), this.parseNumber ('0.00075') ],
+                            [ this.parseNumber ('11000'), this.parseNumber ('0.00065') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.00055') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('0.00055') ],
+                            [ this.parseNumber ('75000'), this.parseNumber ('0.00055') ],
+                        ],
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('1.5'), this.parseNumber ('0.00195') ],
+                            [ this.parseNumber ('3'), this.parseNumber ('0.00185') ],
+                            [ this.parseNumber ('6'), this.parseNumber ('0.00175') ],
+                            [ this.parseNumber ('12.5'), this.parseNumber ('0.00165') ],
+                            [ this.parseNumber ('25'), this.parseNumber ('0.00155') ],
+                            [ this.parseNumber ('75'), this.parseNumber ('0.00145') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('0.00135') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('0.00125') ],
+                            [ this.parseNumber ('1250'), this.parseNumber ('0.00115') ],
+                            [ this.parseNumber ('2500'), this.parseNumber ('0.00105') ],
+                            [ this.parseNumber ('3000'), this.parseNumber ('0.00095') ],
+                            [ this.parseNumber ('6000'), this.parseNumber ('0.00085') ],
+                            [ this.parseNumber ('11000'), this.parseNumber ('0.00075') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.00065') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('0.00065') ],
+                            [ this.parseNumber ('75000'), this.parseNumber ('0.00065') ],
+                        ],
+                    },
                 },
             },
             // https://www.gate.io/docs/apiv4/en/index.html#label-list
@@ -633,12 +687,15 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'currency_pair': market['id'],
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 10, max 100
+        }
         const response = await this.publicSpotGetOrderBook (this.extend (request, params));
         const timestamp = this.safeInteger (response, 'current');
         return this.parseOrderBook (response, symbol, timestamp);
@@ -792,11 +849,13 @@ module.exports = class gateio extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'currency_pair': market['id'],
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 1000
+        }
         const response = await this.privateSpotGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -1031,7 +1090,9 @@ module.exports = class gateio extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
         // createOrder
+        //
         //     {
         //       "id": "62364648575",
         //       "text": "apiv4",
@@ -1060,11 +1121,14 @@ module.exports = class gateio extends Exchange {
         //       "rebated_fee_currency": "USDT"
         //     }
         //
+        //
         const id = this.safeString (order, 'id');
         const marketId = this.safeString (order, 'currency_pair');
         const symbol = this.safeSymbol (marketId, market);
-        const timestamp = this.safeInteger (order, 'create_time_ms');
-        const lastTradeTimestamp = this.safeInteger (order, 'update_time_ms');
+        let timestamp = this.safeTimestamp (order, 'create_time');
+        timestamp = this.safeInteger (order, 'create_time_ms', timestamp);
+        let lastTradeTimestamp = this.safeTimestamp (order, 'update_time');
+        lastTradeTimestamp = this.safeInteger (order, 'update_time_ms', lastTradeTimestamp);
         const amount = this.safeNumber (order, 'amount');
         const price = this.safeNumber (order, 'price');
         const remaining = this.safeNumber (order, 'left');
@@ -1132,15 +1196,72 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersHelper ('open', symbol, since, limit, params);
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            const request = {
+                // 'page': 1,
+                // 'limit': limit,
+                // 'account': '', // spot/margin (default), cross_margin
+            };
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            const response = await this.privateSpotGetOpenOrders (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "currency_pair": "ETH_BTC",
+            //             "total": 1,
+            //             "orders": [
+            //                 {
+            //                     "id": "12332324",
+            //                     "text": "t-123456",
+            //                     "create_time": "1548000000",
+            //                     "update_time": "1548000100",
+            //                     "currency_pair": "ETH_BTC",
+            //                     "status": "open",
+            //                     "type": "limit",
+            //                     "account": "spot",
+            //                     "side": "buy",
+            //                     "amount": "1",
+            //                     "price": "5.00032",
+            //                     "time_in_force": "gtc",
+            //                     "left": "0.5",
+            //                     "filled_total": "2.50016",
+            //                     "fee": "0.005",
+            //                     "fee_currency": "ETH",
+            //                     "point_fee": "0",
+            //                     "gt_fee": "0",
+            //                     "gt_discount": false,
+            //                     "rebated_fee": "0",
+            //                     "rebated_fee_currency": "BTC"
+            //                 }
+            //             ]
+            //         },
+            //         ...
+            //     ]
+            //
+            let allOrders = [];
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const orders = this.safeValue (entry, 'orders', []);
+                const parsed = this.parseOrders (orders, undefined, since, limit);
+                allOrders = this.arrayConcat (allOrders, parsed);
+            }
+            return this.filterBySinceLimit (allOrders, since, limit);
+        }
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersHelper ('finished', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
     }
 
-    async fetchOrdersHelper (status, symbol, since, limit, params = {}) {
+    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request = {
             'currency_pair': market['id'],

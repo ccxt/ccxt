@@ -137,8 +137,8 @@ class exmo(Exchange):
                     'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
                 },
                 'funding': {
                     'tierBased': False,
@@ -383,6 +383,22 @@ class exmo(Exchange):
                                     {'prov': 'ONG', 'dep': '0%', 'wd': '5 ONG'},
                                     {'prov': 'ALGO', 'dep': '0%', 'wd': '0.01 ALGO'},
                                     {'prov': 'ATOM', 'dep': '0%', 'wd': '0.05 ATOM'},
+                                    {'prov': 'XTZ', 'dep': '-', 'wd': '0.5 XTZ'},
+                                    {'prov': 'HP', 'dep': '0%', 'wd': '250 HP'},
+                                    {'prov': 'WXT', 'dep': '-', 'wd': '50 WXT'},
+                                    {'prov': 'CHZ', 'dep': '-', 'wd': '30 CHZ'},
+                                    {'prov': 'ONE', 'dep': '-', 'wd': '1 ONE'},
+                                    {'prov': 'IQN', 'dep': '-', 'wd': '3 IQN'},
+                                    {'prov': 'PRQ', 'dep': '-', 'wd': '20 PRQ'},
+                                    {'prov': 'HAI', 'dep': '-', 'wd': '50 HAI'},
+                                    {'prov': 'LINK', 'dep': '-', 'wd': '0.3 LINK'},
+                                    {'prov': 'UNI', 'dep': '0%', 'wd': '0.3 UNI'},
+                                    {'prov': 'YFI', 'dep': '0%', 'wd': '0.0002 YFI'},
+                                    {'prov': 'GNY', 'dep': '-', 'wd': '10 GNY'},
+                                    {'prov': 'XYM', 'dep': '-', 'wd': '0.5 XYM'},
+                                    {'prov': 'VITAE', 'dep': '-', 'wd': '0.5 VITAE'},
+                                    {'prov': 'BTCV', 'dep': '0%', 'wd': '-'},
+                                    {'prov': 'DOT', 'dep': '-', 'wd': '0.1 DOT'},
                                 ],
                             },
                             {
@@ -535,7 +551,7 @@ class exmo(Exchange):
             raise ExchangeError(self.id + ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' + input)
         return result
 
-    def fetch_funding_fees(self, params={}):
+    def fetch_funding_fees_helper(self, params={}):
         response = None
         if self.options['useWebapiForFetchingFees']:
             response = self.webGetCtrlFeesAndLimits(params)
@@ -571,8 +587,12 @@ class exmo(Exchange):
         self.options['fundingFees'] = result
         return result
 
+    def fetch_funding_fees(self, params={}):
+        self.load_markets()
+        return self.fetch_funding_fees_helper(params)
+
     def fetch_currencies(self, params={}):
-        fees = self.fetch_funding_fees(params)
+        fees = self.fetch_funding_fees_helper(params)
         # todo redesign the 'fee' property in currencies
         ids = list(fees['withdraw'].keys())
         limitsByMarketId = self.index_by(fees['info']['data']['limits'], 'pair')
@@ -764,7 +784,8 @@ class exmo(Exchange):
         codes = list(free.keys())
         for i in range(0, len(codes)):
             code = codes[i]
-            currencyId = self.currency_id(code)
+            currency = self.currency(code)
+            currencyId = currency['id']
             account = self.account()
             if currencyId in free:
                 account['free'] = self.safe_string(free, currencyId)

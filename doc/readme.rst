@@ -80,15 +80,18 @@ See Also
  * .. image:: https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png
        :target: https://tab-trader.com/?utm_source=ccxt
        :alt: TabTrader
-   **\ `TabTrader <https://tab-trader.com/?utm_source=ccxt>`__\ ** – trading on all exchanges in one app. Avaliable on **\ `Android <https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt>`__\ ** and **\ `iOS <https://itunes.apple.com/app/apple-store/id1095716562?mt=8>`__\ **\ !
+
+   `TabTrader <https://tab-trader.com/?utm_source=ccxt>`__ – trading on all exchanges in one app. Avaliable on `Android <https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt>`__ and `iOS <https://itunes.apple.com/app/apple-store/id1095716562?mt=8>`__\ !
  * .. image:: https://user-images.githubusercontent.com/1294454/106509642-ef957980-64de-11eb-92e0-8323cda7874e.png
        :target: https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=one-liner&utm_campaign=futures
        :alt: AAX
-   **\ `AAX <https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=one-liner&utm_campaign=futures>`__\ ** – trade bitcoin futures with fees as low as 0.02% and up to 100x leverage!
+
+   `AAX <https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=one-liner&utm_campaign=futures>`__ – trade bitcoin futures with fees as low as 0.02% and up to 100x leverage!
  * .. image:: https://user-images.githubusercontent.com/1294454/114340585-8e35fa80-9b60-11eb-860f-4379125e2db6.png
        :target: https://www.freqtrade.io
        :alt: Freqtrade
-   **\ `Freqtrade <https://www.freqtrade.io>`__\ ** – leading opensource cryptocurrency algorithmic trading software!
+
+   `Freqtrade <https://www.freqtrade.io>`__ – leading opensource cryptocurrency algorithmic trading software!
 
 Certified Cryptocurrency Exchanges
 ----------------------------------
@@ -1246,11 +1249,11 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
-          :target: https://gate.io/
+          :target: https://www.gate.io/ref/2436035
           :alt: gateio
      
      - gateio
-     - `Gate.io <https://gate.io/>`__
+     - `Gate.io <https://www.gate.io/ref/2436035>`__
      - .. image:: https://img.shields.io/badge/4-lightgray
           :target: https://www.gate.io/docs/apiv4/en/index.html
           :alt: API Version 4
@@ -1889,7 +1892,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
-     -
+     
 
 
 The list above is updated frequently, new crypto markets, exchanges, bug fixes, and API endpoints are introduced on a regular basis. See the `Manual <https://ccxt.readthedocs.io/en/latest/manual.html>`__ for more details. If you can't find a cryptocurrency exchange in the list above and want it to be added, post a link to it by opening an issue here on GitHub or send us an email.
@@ -1919,7 +1922,11 @@ You can also clone it into your project directory from `ccxt GitHub repository <
 
 .. code-block:: shell
 
-   git clone https://github.com/ccxt/ccxt.git
+   git clone https://github.com/ccxt/ccxt.git  # including 1GB of commit history
+
+   # or
+
+   git clone https://github.com/ccxt/ccxt.git --depth 1  # avoid downloading 1GB of commit history
 
 JavaScript (NPM)
 ^^^^^^^^^^^^^^^^
@@ -1944,14 +1951,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.53.67/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.53.67/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.54.33/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.54.33/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.53.67/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.54.33/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

@@ -63,6 +63,7 @@ declare module 'ccxt' {
         margin?: boolean;
         swap?: boolean;
         future?: boolean;
+        option?: boolean;
         active: boolean;
         precision: { base: number, quote: number, amount: number, price: number };
         limits: { amount: MinMax, price: MinMax, cost?: MinMax };
@@ -290,7 +291,7 @@ declare module 'ccxt' {
         currencies: Dictionary<Currency>;
         ids: string[];
         symbols: string[];
-        id: ExchangeId;
+        id: string;
         proxy: string;
         parse8601: typeof Date.parse
         milliseconds: typeof Date.now;

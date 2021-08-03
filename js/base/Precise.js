@@ -82,6 +82,32 @@ class Precise {
         return new Precise (-this.integer, this.decimals)
     }
 
+    min (other) {
+        return this.lt (other) ? this : other
+    }
+
+    max (other) {
+        return this.gt (other) ? this : other
+    }
+
+    gt (other) {
+        const sum = this.sub (other)
+        return sum.integer > 0
+    }
+
+    ge (other) {
+        const sum = this.sub (other)
+        return sum.integer >= 0
+    }
+
+    lt (other) {
+        return other.gt (this)
+    }
+
+    le (other) {
+        return other.ge (this)
+    }
+
     reduce () {
         const string = this.integer.toString ()
         const start = string.length - 1
@@ -198,6 +224,48 @@ class Precise {
             return undefined
         }
         return (new Precise (string1)).equals (new Precise (string2))
+    }
+
+    static stringMin (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).min (new Precise (string2)).toString ()
+    }
+
+    static stringMax (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).max (new Precise (string2)).toString ()
+    }
+
+    static stringGt (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).gt (new Precise (string2))
+    }
+
+    static stringGe (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).ge (new Precise (string2))
+    }
+
+    static stringLt (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).lt (new Precise (string2))
+    }
+
+    static stringLe (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).le (new Precise (string2))
     }
 }
 

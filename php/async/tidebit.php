@@ -114,8 +114,8 @@ class tidebit extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.3 / 100,
-                    'taker' => 0.3 / 100,
+                    'maker' => $this->parse_number('0.003'),
+                    'taker' => $this->parse_number('0.003'),
                 ),
                 'funding' => array(
                     'tierBased' => false,

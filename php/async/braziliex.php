@@ -73,8 +73,8 @@ class braziliex extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.005,
-                    'taker' => 0.005,
+                    'maker' => $this->parse_number('0.005'),
+                    'taker' => $this->parse_number('0.005'),
                 ),
             ),
             'precision' => array(

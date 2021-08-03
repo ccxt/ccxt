@@ -188,6 +188,7 @@ module.exports = class hitbtc extends Exchange {
             'commonCurrencies': {
                 'AUTO': 'Cube',
                 'BCC': 'BCC', // initial symbol for Bitcoin Cash, now inactive
+                'BDP': 'BidiPass',
                 'BET': 'DAO.Casino',
                 'BOX': 'BOX Token',
                 'CPT': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081

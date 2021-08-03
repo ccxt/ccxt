@@ -38,6 +38,10 @@ class gateio(Exchange):
                     'public': 'https://api.gateio.ws/api/v4',
                     'private': 'https://api.gateio.ws/api/v4',
                 },
+                'referral': {
+                    'url': 'https://www.gate.io/ref/2436035',
+                    'discount': 0.2,
+                },
             },
             'has': {
                 'fetchMarkets': True,
@@ -284,6 +288,56 @@ class gateio(Exchange):
                     'margin': 'margin',
                     'futures': 'futures',
                     'delivery': 'delivery',
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': True,
+                    'feeSide': 'get',
+                    'percentage': True,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
+                    'tiers': {
+                        # volume is in BTC
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.002')],
+                            [self.parse_number('1.5'), self.parse_number('0.00185')],
+                            [self.parse_number('3'), self.parse_number('0.00175')],
+                            [self.parse_number('6'), self.parse_number('0.00165')],
+                            [self.parse_number('12.5'), self.parse_number('0.00155')],
+                            [self.parse_number('25'), self.parse_number('0.00145')],
+                            [self.parse_number('75'), self.parse_number('0.00135')],
+                            [self.parse_number('200'), self.parse_number('0.00125')],
+                            [self.parse_number('500'), self.parse_number('0.00115')],
+                            [self.parse_number('1250'), self.parse_number('0.00105')],
+                            [self.parse_number('2500'), self.parse_number('0.00095')],
+                            [self.parse_number('3000'), self.parse_number('0.00085')],
+                            [self.parse_number('6000'), self.parse_number('0.00075')],
+                            [self.parse_number('11000'), self.parse_number('0.00065')],
+                            [self.parse_number('20000'), self.parse_number('0.00055')],
+                            [self.parse_number('40000'), self.parse_number('0.00055')],
+                            [self.parse_number('75000'), self.parse_number('0.00055')],
+                        ],
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.002')],
+                            [self.parse_number('1.5'), self.parse_number('0.00195')],
+                            [self.parse_number('3'), self.parse_number('0.00185')],
+                            [self.parse_number('6'), self.parse_number('0.00175')],
+                            [self.parse_number('12.5'), self.parse_number('0.00165')],
+                            [self.parse_number('25'), self.parse_number('0.00155')],
+                            [self.parse_number('75'), self.parse_number('0.00145')],
+                            [self.parse_number('200'), self.parse_number('0.00135')],
+                            [self.parse_number('500'), self.parse_number('0.00125')],
+                            [self.parse_number('1250'), self.parse_number('0.00115')],
+                            [self.parse_number('2500'), self.parse_number('0.00105')],
+                            [self.parse_number('3000'), self.parse_number('0.00095')],
+                            [self.parse_number('6000'), self.parse_number('0.00085')],
+                            [self.parse_number('11000'), self.parse_number('0.00075')],
+                            [self.parse_number('20000'), self.parse_number('0.00065')],
+                            [self.parse_number('40000'), self.parse_number('0.00065')],
+                            [self.parse_number('75000'), self.parse_number('0.00065')],
+                        ],
+                    },
                 },
             },
             # https://www.gate.io/docs/apiv4/en/index.html#label-list
@@ -633,12 +687,14 @@ class gateio(Exchange):
             'deposit': {},
         }
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'currency_pair': market['id'],
         }
+        if limit is not None:
+            request['limit'] = limit  # default 10, max 100
         response = await self.publicSpotGetOrderBook(self.extend(request, params))
         timestamp = self.safe_integer(response, 'current')
         return self.parse_order_book(response, symbol, timestamp)
@@ -781,11 +837,12 @@ class gateio(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        await self.load_markets()
         market = self.market(symbol)
         request = {
             'currency_pair': market['id'],
         }
+        if limit is not None:
+            request['limit'] = limit  # default 100, max 1000
         response = await self.privateSpotGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -1000,7 +1057,9 @@ class gateio(Exchange):
         return self.parse_order(response, market)
 
     def parse_order(self, order, market=None):
+        #
         # createOrder
+        #
         #     {
         #       "id": "62364648575",
         #       "text": "apiv4",
@@ -1029,11 +1088,14 @@ class gateio(Exchange):
         #       "rebated_fee_currency": "USDT"
         #     }
         #
+        #
         id = self.safe_string(order, 'id')
         marketId = self.safe_string(order, 'currency_pair')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_integer(order, 'create_time_ms')
-        lastTradeTimestamp = self.safe_integer(order, 'update_time_ms')
+        timestamp = self.safe_timestamp(order, 'create_time')
+        timestamp = self.safe_integer(order, 'create_time_ms', timestamp)
+        lastTradeTimestamp = self.safe_timestamp(order, 'update_time')
+        lastTradeTimestamp = self.safe_integer(order, 'update_time_ms', lastTradeTimestamp)
         amount = self.safe_number(order, 'amount')
         price = self.safe_number(order, 'price')
         remaining = self.safe_number(order, 'left')
@@ -1097,13 +1159,66 @@ class gateio(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return await self.fetch_orders_helper('open', symbol, since, limit, params)
+        await self.load_markets()
+        if symbol is None:
+            request = {
+                # 'page': 1,
+                # 'limit': limit,
+                # 'account': '',  # spot/margin(default), cross_margin
+            }
+            if limit is not None:
+                request['limit'] = limit
+            response = await self.privateSpotGetOpenOrders(self.extend(request, params))
+            #
+            #     [
+            #         {
+            #             "currency_pair": "ETH_BTC",
+            #             "total": 1,
+            #             "orders": [
+            #                 {
+            #                     "id": "12332324",
+            #                     "text": "t-123456",
+            #                     "create_time": "1548000000",
+            #                     "update_time": "1548000100",
+            #                     "currency_pair": "ETH_BTC",
+            #                     "status": "open",
+            #                     "type": "limit",
+            #                     "account": "spot",
+            #                     "side": "buy",
+            #                     "amount": "1",
+            #                     "price": "5.00032",
+            #                     "time_in_force": "gtc",
+            #                     "left": "0.5",
+            #                     "filled_total": "2.50016",
+            #                     "fee": "0.005",
+            #                     "fee_currency": "ETH",
+            #                     "point_fee": "0",
+            #                     "gt_fee": "0",
+            #                     "gt_discount": False,
+            #                     "rebated_fee": "0",
+            #                     "rebated_fee_currency": "BTC"
+            #                 }
+            #             ]
+            #         },
+            #         ...
+            #     ]
+            #
+            allOrders = []
+            for i in range(0, len(response)):
+                entry = response[i]
+                orders = self.safe_value(entry, 'orders', [])
+                parsed = self.parse_orders(orders, None, since, limit)
+                allOrders = self.array_concat(allOrders, parsed)
+            return self.filter_by_since_limit(allOrders, since, limit)
+        return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return await self.fetch_orders_helper('finished', symbol, since, limit, params)
+        return await self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
-    async def fetch_orders_helper(self, status, symbol, since, limit, params={}):
+    async def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus requires a symbol argument')
         market = self.market(symbol)
         request = {
             'currency_pair': market['id'],

@@ -112,8 +112,8 @@ class probit extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.2 / 100,
-                    'taker' => 0.2 / 100,
+                    'maker' => $this->parse_number('0.002'),
+                    'taker' => $this->parse_number('0.002'),
                 ),
             ),
             'exceptions' => array(
@@ -132,6 +132,7 @@ class probit extends Exchange {
                     'INVALID_CURRENCY' => '\\ccxt\\BadRequest', // Requested currency is not exist on ProBit system
                     'TOO_MANY_OPEN_ORDERS' => '\\ccxt\\DDoSProtection', // Too many open orders
                     'DUPLICATE_ADDRESS' => '\\ccxt\\InvalidAddress', // Address already exists in withdrawal address list
+                    'invalid_grant' => '\\ccxt\\AuthenticationError', // array("error":"invalid_grant")
                 ),
             ),
             'requiredCredentials' => array(
@@ -149,6 +150,7 @@ class probit extends Exchange {
             'commonCurrencies' => array(
                 'AUTO' => 'Cube',
                 'BCC' => 'BCC',
+                'BDP' => 'BidiPass',
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
                 'CBC' => 'CryptoBharatCoin',

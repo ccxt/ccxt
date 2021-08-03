@@ -114,23 +114,11 @@ class cex(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.16 / 100,
-                    'taker': 0.25 / 100,
+                    'maker': self.parse_number('0.0016'),
+                    'taker': self.parse_number('0.0025'),
                 },
                 'funding': {
-                    'withdraw': {
-                        # 'USD': None,
-                        # 'EUR': None,
-                        # 'RUB': None,
-                        # 'GBP': None,
-                        'BTC': 0.001,
-                        'ETH': 0.01,
-                        'BCH': 0.001,
-                        'DASH': 0.01,
-                        'BTG': 0.001,
-                        'ZEC': 0.001,
-                        'XRP': 0.02,
-                    },
+                    'withdraw': {},
                     'deposit': {
                         # 'USD': amount => amount * 0.035 + 0.25,
                         # 'EUR': amount => amount * 0.035 + 0.24,

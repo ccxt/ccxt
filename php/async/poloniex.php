@@ -120,8 +120,8 @@ class poloniex extends Exchange {
                 'trading' => array(
                     'feeSide' => 'get',
                     // starting from Jan 8 2020
-                    'maker' => 0.0009,
-                    'taker' => 0.0009,
+                    'maker' => $this->parse_number('0.0009'),
+                    'taker' => $this->parse_number('0.0009'),
                 ),
                 'funding' => array(),
             ),
@@ -147,6 +147,7 @@ class poloniex extends Exchange {
                 'AIR' => 'AirCoin',
                 'APH' => 'AphroditeCoin',
                 'BCC' => 'BTCtalkcoin',
+                'BCHABC' => 'BCHABC',
                 'BDG' => 'Badgercoin',
                 'BTM' => 'Bitmark',
                 'CON' => 'Coino',

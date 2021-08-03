@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.53.67'
+__version__ = '1.54.33'
 
 # -----------------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ import yarl
 
 # -----------------------------------------------------------------------------
 
-from ccxt.async_support.base.throttle import throttle
+from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
@@ -52,14 +52,13 @@ class Exchange(BaseExchange):
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
         super(Exchange, self).__init__(config)
+        self.throttle = None
         self.init_rest_rate_limiter()
         self.markets_loading = None
         self.reloading_markets = False
 
     def init_rest_rate_limiter(self):
-        self.throttle = throttle(self.extend({
-            'loop': self.asyncio_loop,
-        }, self.tokenBucket))
+        self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
 
     def __del__(self):
         if self.session is not None:
@@ -90,7 +89,8 @@ class Exchange(BaseExchange):
     async def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
         """A better wrapper over request for deferred signing"""
         if self.enableRateLimit:
-            await self.throttle(self.rateLimit)
+            # insert cost into here...
+            await self.throttle()
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])

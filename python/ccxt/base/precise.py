@@ -81,6 +81,26 @@ class Precise:
         result = numerator % denominator
         return Precise(result, rationizerDenominator + other.decimals)
 
+    def min(self, other):
+        return self if self.lt(other) else other
+
+    def max(self, other):
+        return self if self.gt(other) else other
+
+    def gt(self, other):
+        add = self.sub(other)
+        return add.integer > 0
+
+    def ge(self, other):
+        add = self.sub(other)
+        return add.integer >= 0
+
+    def lt(self, other):
+        return other.gt(self)
+
+    def le(self, other):
+        return other.ge(self)
+
     def reduce(self):
         string = str(self.integer)
         start = len(string) - 1
@@ -169,3 +189,39 @@ class Precise:
         if string1 is None or string2 is None:
             return None
         return Precise(string1).equals(Precise(string2))
+
+    @staticmethod
+    def string_min(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return str(Precise(string1).min(Precise(string2)))
+
+    @staticmethod
+    def string_max(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return str(Precise(string1).max(Precise(string2)))
+
+    @staticmethod
+    def string_gt(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return Precise(string1).gt(Precise(string2))
+
+    @staticmethod
+    def string_ge(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return Precise(string1).ge(Precise(string2))
+
+    @staticmethod
+    def string_lt(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return Precise(string1).lt(Precise(string2))
+
+    @staticmethod
+    def string_le(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return Precise(string1).le(Precise(string2))

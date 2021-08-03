@@ -98,8 +98,8 @@ class bibox extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => 0.001,
-                    'maker' => 0.0008,
+                    'taker' => $this->parse_number('0.001'),
+                    'maker' => $this->parse_number('0.0008'),
                 ),
                 'funding' => array(
                     'tierBased' => false,
