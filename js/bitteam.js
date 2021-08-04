@@ -879,7 +879,6 @@ module.exports = class bitteam extends Exchange {
     //     };
     //     return await this.privatePostCcxtCancelorder (this.extend (request, params));
     // }
-
     async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
