@@ -525,7 +525,7 @@ module.exports = class bitteam extends Exchange {
             request['from'] = since;
         }
         const response = await this.twGetTwHistoryPairRes (this.extend (request, params));
-        const ohlcvs = this.parseResponse (response, 'data').map ((i) => Object.values (i));
+        const ohlcvs = this.parseResponse (response, 'data');
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -553,9 +553,15 @@ module.exports = class bitteam extends Exchange {
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         const price = this.safeNumber (order, 'price').toString ();
-        const priceDec = this.priceToPrecision (symbol, Precise.stringDiv (price, (10 ** market['precision']['price']).toString ()));
+        const priceDec = this.priceToPrecision (symbol, Precise.stringDiv (
+            price,
+            (10 ** market['precision']['price']).toString ()
+        ));
         const amount = this.safeNumber (order, 'quantity').toString ();
-        const amiuntDec = this.amountToPrecision (symbol, Precise.stringDiv (amount, (10 ** market['precision']['amount']).toString ()));
+        const amiuntDec = this.amountToPrecision (symbol, Precise.stringDiv (
+            amount,
+            (10 ** market['precision']['amount']).toString ()
+        ));
         let fee = undefined;
         const orderFee = this.safeValue (order, 'fee');
         if (orderFee !== undefined) {
