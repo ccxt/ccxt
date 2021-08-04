@@ -134,6 +134,7 @@ class Exchange(object):
     verbose = False
     markets = None
     symbols = None
+    codes = None
     timeframes = None
     fees = {
         'trading': {
@@ -1351,6 +1352,7 @@ class Exchange(object):
             currencies = self.sort_by(base_currencies + quote_currencies, 'code')
             self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
         self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
+        self.codes = sorted(self.currencies.keys())
         return self.markets
 
     def load_markets(self, reload=False, params={}):
