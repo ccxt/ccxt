@@ -181,7 +181,7 @@ module.exports = class bitteam extends Exchange {
         return result;
     }
 
-    async convertMarket (market, precisions) {
+    convertMarket (market, precisions) {
         const id = this.safeString (market, 'name');
         const numericId = this.safeNumber (market, 'id');
         const nameSplitted = id.split ('_');
@@ -283,7 +283,7 @@ module.exports = class bitteam extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const marketPrecisions = precisions[markets[i]['name']];
-            result.push (await this.convertMarket (markets[i], marketPrecisions));
+            result.push (this.convertMarket (markets[i], marketPrecisions));
         }
         return result;
     }
