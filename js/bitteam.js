@@ -505,8 +505,7 @@ module.exports = class bitteam extends Exchange {
         };
         const response = await this.publicGetPairTicker (this.extend (request, params));
         const ticker = this.parseResponse (response, 'pair');
-        const timestamp = new Date (this.safeString (ticker, 'timeStart')).getTime ();
-        return this.parseOrderBook (ticker, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (ticker, symbol, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
