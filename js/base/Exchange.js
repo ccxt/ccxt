@@ -654,6 +654,7 @@ module.exports = class Exchange {
             this.currencies = deepExtend (indexBy (sortedCurrencies, 'code'), this.currencies)
         }
         this.currencies_by_id = indexBy (this.currencies, 'id')
+        this.codes = Object.keys (this.currencies).sort ()
         return this.markets
     }
 

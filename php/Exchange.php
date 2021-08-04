@@ -1029,6 +1029,7 @@ class Exchange {
 
         $this->markets = null;
         $this->symbols = null;
+        $this->codes = null;
         $this->ids = null;
         $this->currencies = array();
         $this->base_currencies = null;
@@ -1710,6 +1711,8 @@ class Exchange {
             $this->currencies = array_replace_recursive($currencies, $this->currencies);
         }
         $this->currencies_by_id = static::index_by(array_values($this->currencies), 'id');
+        $this->codes = array_keys($this->currencies);
+        sort($this->codes);
         return $this->markets;
     }
 
