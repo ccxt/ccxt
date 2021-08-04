@@ -97,7 +97,7 @@ module.exports = class bitteam extends Exchange {
             this.checkRequiredCredentials ();
             const apiKey = this.encode (this.apiKey);
             const secretKey = this.encode (this.secret);
-            const base64Data = Buffer.from (apiKey + ':' + secretKey).toString ('base64');
+            const base64Data = this.stringToBase64 (apiKey + ':' + secretKey);
             headers = {
                 'Authorization': 'Basic ' + base64Data,
             };
