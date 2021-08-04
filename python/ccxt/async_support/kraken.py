@@ -1618,9 +1618,11 @@ class kraken(Exchange):
                 # 'address': address,  # they don't allow withdrawals to direct addresses
             }
             response = await self.privatePostWithdraw(self.extend(request, params))
+            result = self.safe_value(response, 'result', {})
+            id = self.safe_string(result, 'refid')
             return {
-                'info': response,
-                'id': response['result'],
+                'info': result,
+                'id': id,
             }
         raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, as set up on your account)")
 

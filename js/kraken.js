@@ -1725,9 +1725,11 @@ module.exports = class kraken extends Exchange {
                 // 'address': address, // they don't allow withdrawals to direct addresses
             };
             const response = await this.privatePostWithdraw (this.extend (request, params));
+            const result = this.safeValue (response, 'result', {});
+            const id = this.safeString (result, 'refid');
             return {
-                'info': response,
-                'id': response['result'],
+                'info': result,
+                'id': id,
             };
         }
         throw new ExchangeError (this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");

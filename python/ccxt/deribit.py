@@ -348,10 +348,11 @@ class deribit(Exchange):
         #
         return self.safe_integer(response, 'result')
 
-    def code_from_options(self, methodName):
+    def code_from_options(self, methodName, params={}):
         defaultCode = self.safe_value(self.options, 'code', 'BTC')
         options = self.safe_value(self.options, methodName, {})
-        return self.safe_value(options, 'code', defaultCode)
+        code = self.safe_value(options, 'code', defaultCode)
+        return self.safe_value(params, 'code', code)
 
     def fetch_status(self, params={}):
         request = {
@@ -487,7 +488,7 @@ class deribit(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        code = self.code_from_options('fetchBalance')
+        code = self.code_from_options('fetchBalance', params)
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -726,7 +727,7 @@ class deribit(Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        code = self.code_from_options('fetchTickers')
+        code = self.code_from_options('fetchTickers', params)
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -1283,7 +1284,7 @@ class deribit(Exchange):
         market = None
         method = None
         if symbol is None:
-            code = self.code_from_options('fetchOpenOrders')
+            code = self.code_from_options('fetchOpenOrders', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
             method = 'privateGetGetOpenOrdersByCurrency'
@@ -1301,7 +1302,7 @@ class deribit(Exchange):
         market = None
         method = None
         if symbol is None:
-            code = self.code_from_options('fetchClosedOrders')
+            code = self.code_from_options('fetchClosedOrders', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
             method = 'privateGetGetOrderHistoryByCurrency'
@@ -1364,7 +1365,7 @@ class deribit(Exchange):
         market = None
         method = None
         if symbol is None:
-            code = self.code_from_options('fetchMyTrades')
+            code = self.code_from_options('fetchMyTrades', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
             if since is None:
@@ -1605,7 +1606,7 @@ class deribit(Exchange):
 
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
-        code = self.code_from_options('fetchPositions')
+        code = self.code_from_options('fetchPositions', params)
         currency = self.currency(code)
         request = {
             'currency': currency['id'],

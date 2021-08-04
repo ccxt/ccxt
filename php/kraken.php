@@ -1734,9 +1734,11 @@ class kraken extends Exchange {
                 // 'address' => $address, // they don't allow withdrawals to direct addresses
             );
             $response = $this->privatePostWithdraw (array_merge($request, $params));
+            $result = $this->safe_value($response, 'result', array());
+            $id = $this->safe_string($result, 'refid');
             return array(
-                'info' => $response,
-                'id' => $response['result'],
+                'info' => $result,
+                'id' => $id,
             );
         }
         throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");

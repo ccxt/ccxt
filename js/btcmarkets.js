@@ -120,8 +120,8 @@ module.exports = class btcmarkets extends Exchange {
             'fees': {
                 'percentage': true,
                 'tierBased': true,
-                'maker': -0.05 / 100,
-                'taker': 0.20 / 100,
+                'maker': this.parseNumber ('-0.0005'),
+                'taker': this.parseNumber ('0.0020'),
             },
             'options': {
                 'fees': {

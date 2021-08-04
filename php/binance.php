@@ -138,6 +138,7 @@ class binance extends Exchange {
                         'asset/transfer',
                         'asset/assetDetail',
                         'asset/tradeFee',
+                        'asset/get-funding-asset',
                         'margin/loan',
                         'margin/repay',
                         'margin/account',
@@ -155,8 +156,8 @@ class binance extends Exchange {
                         'margin/isolated/pair',
                         'margin/isolated/allPairs',
                         'margin/interestRateHistory',
-                        'fiatpayment/query/deposit/history',
-                        'fiatpayment/query/withdraw/history',
+                        'fiat/orders',
+                        'fiat/payments',
                         'futures/transfer',
                         'futures/loan/borrow/history',
                         'futures/loan/repay/history',
@@ -246,6 +247,8 @@ class binance extends Exchange {
                         // v2 not supported yet
                         // GET /sapi/v2/broker/subAccount/futuresSummary
                         'account/apiRestrictions',
+                        // subaccounts
+                        'managed-subaccount/asset',
                     ),
                     'post' => array(
                         'asset/dust',
@@ -270,6 +273,8 @@ class binance extends Exchange {
                         'sub-account/transfer/subToSub',
                         'sub-account/transfer/subToMaster',
                         'sub-account/universalTransfer',
+                        'managed-subaccount/deposit',
+                        'managed-subaccount/withdraw',
                         'userDataStream',
                         'userDataStream/isolated',
                         'futures/transfer',
@@ -675,6 +680,40 @@ class binance extends Exchange {
                     'UMFUTURE' => 'future',
                     'CMFUTURE' => 'delivery',
                     'MINING' => 'mining',
+                ),
+                'legalMoney' => array(
+                    'MXN' => true,
+                    'UGX' => true,
+                    'SEK' => true,
+                    'CHF' => true,
+                    'VND' => true,
+                    'AED' => true,
+                    'DKK' => true,
+                    'KZT' => true,
+                    'HUF' => true,
+                    'PEN' => true,
+                    'PHP' => true,
+                    'USD' => true,
+                    'TRY' => true,
+                    'EUR' => true,
+                    'NGN' => true,
+                    'PLN' => true,
+                    'BRL' => true,
+                    'ZAR' => true,
+                    'KES' => true,
+                    'ARS' => true,
+                    'RUB' => true,
+                    'AUD' => true,
+                    'NOK' => true,
+                    'CZK' => true,
+                    'GBP' => true,
+                    'UAH' => true,
+                    'GHS' => true,
+                    'HKD' => true,
+                    'CAD' => true,
+                    'INR' => true,
+                    'JPY' => true,
+                    'NZD' => true,
                 ),
             ),
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
@@ -2630,105 +2669,182 @@ class binance extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $currency = null;
+        $response = null;
         $request = array();
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['coin'] = $currency['id'];
+        $legalMoney = $this->safe_value($this->options, 'legalMoney', array());
+        if (is_array($legalMoney) && array_key_exists($code, $legalMoney)) {
+            if ($code !== null) {
+                $currency = $this->currency($code);
+            }
+            $request['transactionType'] = 0;
+            if ($since !== null) {
+                $request['beginTime'] = $since;
+            }
+            $raw = $this->sapiGetFiatOrders (array_merge($request, $params));
+            $response = $this->safe_value($raw, 'data');
+            //     {
+            //       "$code" => "000000",
+            //       "message" => "success",
+            //       "data" => array(
+            //         {
+            //           "orderNo" => "25ced37075c1470ba8939d0df2316e23",
+            //           "fiatCurrency" => "EUR",
+            //           "indicatedAmount" => "15.00",
+            //           "amount" => "15.00",
+            //           "totalFee" => "0.00",
+            //           "method" => "card",
+            //           "status" => "Failed",
+            //           "createTime" => 1627501026000,
+            //           "updateTime" => 1627501027000
+            //         }
+            //       ),
+            //       "total" => 1,
+            //       "success" => true
+            //     }
+        } else {
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['coin'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['startTime'] = $since;
+                // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+                $request['endTime'] = $this->sum($since, 7776000000);
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = $this->sapiGetCapitalDepositHisrec (array_merge($request, $params));
+            //     array(
+            //       array(
+            //         "amount" => "0.01844487",
+            //         "coin" => "BCH",
+            //         "network" => "BCH",
+            //         "status" => 1,
+            //         "address" => "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
+            //         "addressTag" => "",
+            //         "txId" => "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
+            //         "insertTime" => 1610784980000,
+            //         "transferType" => 0,
+            //         "confirmTimes" => "2/2"
+            //       ),
+            //       {
+            //         "amount" => "4500",
+            //         "coin" => "USDT",
+            //         "network" => "BSC",
+            //         "status" => 1,
+            //         "address" => "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
+            //         "addressTag" => "",
+            //         "txId" => "Internal transfer 51376627901",
+            //         "insertTime" => 1618394381000,
+            //         "transferType" => 1,
+            //         "confirmTimes" => "1/15"
+            //     }
+            //   )
         }
-        if ($since !== null) {
-            $request['startTime'] = $since;
-            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            $request['endTime'] = $this->sum($since, 7776000000);
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = $this->sapiGetCapitalDepositHisrec (array_merge($request, $params));
-        //     array(
-        //       array(
-        //         "amount" => "0.01844487",
-        //         "coin" => "BCH",
-        //         "network" => "BCH",
-        //         "status" => 1,
-        //         "address" => "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
-        //         "addressTag" => "",
-        //         "txId" => "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
-        //         "insertTime" => 1610784980000,
-        //         "transferType" => 0,
-        //         "confirmTimes" => "2/2"
-        //       ),
-        //       {
-        //         "amount" => "4500",
-        //         "coin" => "USDT",
-        //         "network" => "BSC",
-        //         "status" => 1,
-        //         "address" => "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
-        //         "addressTag" => "",
-        //         "txId" => "Internal transfer 51376627901",
-        //         "insertTime" => 1618394381000,
-        //         "transferType" => 1,
-        //         "confirmTimes" => "1/15"
-        //     }
-        //   )
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $currency = null;
+        $legalMoney = $this->safe_value($this->options, 'legalMoney', array());
         $request = array();
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['coin'] = $currency['id'];
+        $response = null;
+        $currency = null;
+        if (is_array($legalMoney) && array_key_exists($code, $legalMoney)) {
+            if ($code !== null) {
+                $currency = $this->currency($code);
+            }
+            $request['transactionType'] = 1;
+            if ($since !== null) {
+                $request['beginTime'] = $since;
+            }
+            $raw = $this->sapiGetFiatOrders (array_merge($request, $params));
+            $response = $this->safe_value($raw, 'data');
+            //     {
+            //       "$code" => "000000",
+            //       "message" => "success",
+            //       "data" => array(
+            //         array(
+            //           "orderNo" => "CJW706452266115170304",
+            //           "fiatCurrency" => "GBP",
+            //           "indicatedAmount" => "10001.50",
+            //           "amount" => "100.00",
+            //           "totalFee" => "1.50",
+            //           "method" => "bank transfer",
+            //           "status" => "Successful",
+            //           "createTime" => 1620037745000,
+            //           "updateTime" => 1620038480000
+            //         ),
+            //         {
+            //           "orderNo" => "CJW706287492781891584",
+            //           "fiatCurrency" => "GBP",
+            //           "indicatedAmount" => "10001.50",
+            //           "amount" => "100.00",
+            //           "totalFee" => "1.50",
+            //           "method" => "bank transfer",
+            //           "status" => "Successful",
+            //           "createTime" => 1619998460000,
+            //           "updateTime" => 1619998823000
+            //         }
+            //       ),
+            //       "total" => 39,
+            //       "success" => true
+            //     }
+        } else {
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['coin'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['startTime'] = $since;
+                // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+                $request['endTime'] = $this->sum($since, 7776000000);
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = $this->sapiGetCapitalWithdrawHistory (array_merge($request, $params));
+            //     array(
+            //       array(
+            //         "id" => "69e53ad305124b96b43668ceab158a18",
+            //         "amount" => "28.75",
+            //         "transactionFee" => "0.25",
+            //         "coin" => "XRP",
+            //         "status" => 6,
+            //         "address" => "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+            //         "addressTag" => "101286922",
+            //         "txId" => "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+            //         "applyTime" => "2021-04-15 12:09:16",
+            //         "network" => "XRP",
+            //         "transferType" => 0
+            //       ),
+            //       array(
+            //         "id" => "9a67628b16ba4988ae20d329333f16bc",
+            //         "amount" => "20",
+            //         "transactionFee" => "20",
+            //         "coin" => "USDT",
+            //         "status" => 6,
+            //         "address" => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+            //         "txId" => "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
+            //         "applyTime" => "2021-04-15 12:06:53",
+            //         "network" => "ETH",
+            //         "transferType" => 0
+            //       ),
+            //       {
+            //         "id" => "a7cdc0afbfa44a48bd225c9ece958fe2",
+            //         "amount" => "51",
+            //         "transactionFee" => "1",
+            //         "coin" => "USDT",
+            //         "status" => 6,
+            //         "address" => "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
+            //         "txId" => "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
+            //         "applyTime" => "2021-04-13 12:46:59",
+            //         "network" => "TRX",
+            //         "transferType" => 0
+            //       }
+            //     )
         }
-        if ($since !== null) {
-            $request['startTime'] = $since;
-            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            $request['endTime'] = $this->sum($since, 7776000000);
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = $this->sapiGetCapitalWithdrawHistory (array_merge($request, $params));
-        //     array(
-        //       array(
-        //         "id" => "69e53ad305124b96b43668ceab158a18",
-        //         "amount" => "28.75",
-        //         "transactionFee" => "0.25",
-        //         "coin" => "XRP",
-        //         "status" => 6,
-        //         "address" => "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
-        //         "addressTag" => "101286922",
-        //         "txId" => "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
-        //         "applyTime" => "2021-04-15 12:09:16",
-        //         "network" => "XRP",
-        //         "transferType" => 0
-        //       ),
-        //       array(
-        //         "id" => "9a67628b16ba4988ae20d329333f16bc",
-        //         "amount" => "20",
-        //         "transactionFee" => "20",
-        //         "coin" => "USDT",
-        //         "status" => 6,
-        //         "address" => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
-        //         "txId" => "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
-        //         "applyTime" => "2021-04-15 12:06:53",
-        //         "network" => "ETH",
-        //         "transferType" => 0
-        //       ),
-        //       {
-        //         "id" => "a7cdc0afbfa44a48bd225c9ece958fe2",
-        //         "amount" => "51",
-        //         "transactionFee" => "1",
-        //         "coin" => "USDT",
-        //         "status" => 6,
-        //         "address" => "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
-        //         "txId" => "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
-        //         "applyTime" => "2021-04-13 12:46:59",
-        //         "network" => "TRX",
-        //         "transferType" => 0
-        //       }
-        //     )
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
@@ -2746,6 +2862,14 @@ class binance extends Exchange {
                 '4' => 'pending', // Processing
                 '5' => 'failed', // Failure
                 '6' => 'ok', // Completed
+                // Fiat
+                // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
+                'Processing' => 'pending',
+                'Failed' => 'failed',
+                'Successful' => 'ok',
+                'Refunding' => 'canceled',
+                'Refunded' => 'canceled',
+                'Refund Failed' => 'failed',
             ),
         );
         $statuses = $this->safe_value($statusesByType, $type, array());
@@ -2785,7 +2909,34 @@ class binance extends Exchange {
         //       "transferType" => 0
         //     }
         //
-        $id = $this->safe_string($transaction, 'id');
+        // fiat $transaction
+        // withdraw
+        //     {
+        //       "orderNo" => "CJW684897551397171200",
+        //       "fiatCurrency" => "GBP",
+        //       "indicatedAmount" => "29.99",
+        //       "$amount" => "28.49",
+        //       "totalFee" => "1.50",
+        //       "method" => "bank transfer",
+        //       "$status" => "Successful",
+        //       "createTime" => 1614898701000,
+        //       "updateTime" => 1614898820000
+        //     }
+        //
+        // deposit
+        //     {
+        //       "orderNo" => "25ced37075c1470ba8939d0df2316e23",
+        //       "fiatCurrency" => "EUR",
+        //       "indicatedAmount" => "15.00",
+        //       "$amount" => "15.00",
+        //       "totalFee" => "0.00",
+        //       "method" => "card",
+        //       "$status" => "Failed",
+        //       "createTime" => "1627501026000",
+        //       "updateTime" => "1627501027000"
+        //     }
+        //
+        $id = $this->safe_string_2($transaction, 'id', 'orderNo');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag'); // set but unused
         if ($tag !== null) {
@@ -2797,10 +2948,10 @@ class binance extends Exchange {
         if (($txid !== null) && (mb_strpos($txid, 'Internal transfer ') !== false)) {
             $txid = mb_substr($txid, 18);
         }
-        $currencyId = $this->safe_string($transaction, 'coin');
+        $currencyId = $this->safe_string_2($transaction, 'coin', 'fiatCurrency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;
-        $insertTime = $this->safe_integer($transaction, 'insertTime');
+        $insertTime = $this->safe_integer_2($transaction, 'insertTime', 'createTime');
         $applyTime = $this->parse8601($this->safe_string($transaction, 'applyTime'));
         $type = $this->safe_string($transaction, 'type');
         if ($type === null) {
@@ -2814,12 +2965,12 @@ class binance extends Exchange {
         }
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_number($transaction, 'amount');
-        $feeCost = $this->safe_number($transaction, 'transactionFee');
+        $feeCost = $this->safe_number_2($transaction, 'transactionFee', 'totalFee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
-        $updated = $this->safe_integer($transaction, 'successTime');
+        $updated = $this->safe_integer_2($transaction, 'successTime', 'updateTime');
         $internal = $this->safe_integer($transaction, 'transferType', false);
         $internal = $internal ? true : false;
         return array(
@@ -4151,7 +4302,7 @@ class binance extends Exchange {
         if ($error !== null) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if (($error === '200') || ($error === '0')) {
+            if (($error === '200') || Precise::string_equals($error, '0')) {
                 return;
             }
             // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")

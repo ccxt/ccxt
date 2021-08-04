@@ -1052,11 +1052,11 @@ class coinbasepro extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions($code, $since, $limit, array_merge($params, array( 'type' => 'deposit' )));
+        return $this->fetch_transactions($code, $since, $limit, array_merge(array( 'type' => 'deposit' ), $params));
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions($code, $since, $limit, array_merge($params, array( 'type' => 'withdraw' )));
+        return $this->fetch_transactions($code, $since, $limit, array_merge(array( 'type' => 'withdraw' ), $params));
     }
 
     public function parse_transaction_status($transaction) {

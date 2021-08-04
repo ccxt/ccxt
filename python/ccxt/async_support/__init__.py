@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.54.24'
+__version__ = '1.54.44'
 
 # -----------------------------------------------------------------------------
 
@@ -122,6 +122,7 @@ from ccxt.async_support.gopax import gopax                                # noqa
 from ccxt.async_support.hbtc import hbtc                                  # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                              # noqa: F401
 from ccxt.async_support.hollaex import hollaex                            # noqa: F401
+from ccxt.async_support.huobi import huobi                                # noqa: F401
 from ccxt.async_support.huobijp import huobijp                            # noqa: F401
 from ccxt.async_support.huobipro import huobipro                          # noqa: F401
 from ccxt.async_support.idex import idex                                  # noqa: F401
@@ -237,6 +238,7 @@ exchanges = [
     'hbtc',
     'hitbtc',
     'hollaex',
+    'huobi',
     'huobijp',
     'huobipro',
     'idex',

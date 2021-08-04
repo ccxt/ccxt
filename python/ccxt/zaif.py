@@ -50,8 +50,8 @@ class zaif(Exchange):
             'fees': {
                 'trading': {
                     'percentage': True,
-                    'taker': 0.1 / 100,
-                    'maker': 0,
+                    'taker': self.parse_number('0.001'),
+                    'maker': self.parse_number('0'),
                 },
             },
             'api': {

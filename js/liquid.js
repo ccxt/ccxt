@@ -1122,8 +1122,9 @@ module.exports = class liquid extends Exchange {
         const updated = this.safeTimestamp (transaction, 'updated_at');
         const type = 'withdrawal';
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        const amount = this.safeNumber (transaction, 'amount');
-        const feeCost = this.safeNumber (transaction, 'withdrawal_fee');
+        const amountString = this.safeString (transaction, 'amount');
+        const feeCostString = this.safeString (transaction, 'withdrawal_fee');
+        const amount = this.parseNumber (Precise.stringSub (amountString, feeCostString));
         return {
             'info': transaction,
             'id': id,
@@ -1139,7 +1140,7 @@ module.exports = class liquid extends Exchange {
             'updated': updated,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCostString),
             },
         };
     }

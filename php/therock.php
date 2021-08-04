@@ -88,8 +88,8 @@ class therock extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.2 / 100,
-                    'taker' => 0.2 / 100,
+                    'maker' => $this->parse_number('0.002'),
+                    'taker' => $this->parse_number('0.002'),
                 ),
                 'funding' => array(
                     'tierBased' => false,
