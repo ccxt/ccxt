@@ -1245,13 +1245,9 @@ module.exports = class binance extends Exchange {
             method = 'sapiGetMarginAccount';
         } else if (type === 'savings') {
             method = 'sapiGetLendingUnionAccount';
-        } else if (type === 'pay') {
-            // binance pay
-            method = 'sapiPostAssetGetFundingAsset';
         }
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
-        console.log (response)
         //
         // spot
         //
