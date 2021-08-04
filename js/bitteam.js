@@ -300,9 +300,11 @@ module.exports = class bitteam extends Exchange {
         const isMaker = this.safeValue (trade, 'isBuyerMaker');
         const takerOrMaker = isMaker ? 'maker' : 'taker';
         const price = this.safeNumber (trade, 'price').toString ();
-        const priceDec = this.priceToPrecision (symbol, Precise.stringDiv (price, (10 ** market['precision']['price']).toString ()));
+        const pricePrc = (10 ** market['precision']['price']).toString ();
+        const priceDec = this.priceToPrecision (symbol, Precise.stringDiv (price, pricePrc));
         const amount = this.safeNumber (trade, 'quantity').toString ();
-        const amountDec = this.amountToPrecision (symbol, Precise.stringDiv (amount, (10 ** market['precision']['amount']).toString ()));
+        const amountPrc = (10 ** market['precision']['amount']).toString ();
+        const amountDec = this.amountToPrecision (symbol, Precise.stringDiv (amount, amountPrc));
         const cost = this.costToPrecision (symbol, priceDec * amountDec);
         return {
             'info': trade,
@@ -550,15 +552,11 @@ module.exports = class bitteam extends Exchange {
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         const price = this.safeNumber (order, 'price').toString ();
-        const priceDec = this.priceToPrecision (symbol, Precise.stringDiv (
-            price,
-            (10 ** market['precision']['price']).toString ()
-        ));
+        const pricePrs = (10 ** market['precision']['price']).toString ();
+        const priceDec = this.priceToPrecision (symbol, Precise.stringDiv (price, pricePrs));
         const amount = this.safeNumber (order, 'quantity').toString ();
-        const amiuntDec = this.amountToPrecision (symbol, Precise.stringDiv (
-            amount,
-            (10 ** market['precision']['amount']).toString ()
-        ));
+        const amountPrc = (10 ** market['precision']['amount']).toString ();
+        const amiuntDec = this.amountToPrecision (symbol, Precise.stringDiv (amount, amountPrc));
         let fee = undefined;
         const orderFee = this.safeValue (order, 'fee');
         if (orderFee !== undefined) {
@@ -721,7 +719,8 @@ module.exports = class bitteam extends Exchange {
         const currencyDec = this.safeNumber (currencyValue, 'decimals');
         const code = this.safeCurrencyCode (currencyId, currency);
         const amount = this.safeString (transaction, 'amount').toString ();
-        const amountDec = Precise.stringDiv (amount, (10 ** currencyDec).toString ());
+        const amountPrs = (10 ** currencyDec).toString ();
+        const amountDec = Precise.stringDiv (amount, amountPrs);
         let status = undefined;
         const txStatus = this.safeNumber (transaction, 'status');
         if (txStatus === 1) {
