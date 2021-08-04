@@ -562,7 +562,8 @@ module.exports = class bitteam extends Exchange {
         if (orderFee !== undefined) {
             const feeDecimal = this.safeNumber (orderFee, 'decimals');
             const feeAmount = this.safeNumber (orderFee, 'amount').toString ();
-            const feeAmountDec = Precise.stringDiv (feeAmount, (10 ** feeDecimal).toString ());
+            const feePrs = (10 ** feeDecimal).toString ();
+            const feeAmountDec = Precise.stringDiv (feeAmount, feePrs);
             const currency = this.safeString (orderFee, 'symbol');
             fee = {
                 'currency': this.safeCurrencyCode (currency),
