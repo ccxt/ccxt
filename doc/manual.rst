@@ -1515,10 +1515,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://support.xena.exchange/support/solutions/44000808700
           :alt: API Version *
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg
           :target: https://www.yobit.net
