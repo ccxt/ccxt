@@ -530,7 +530,7 @@ class Exchange(object):
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         return self.set_headers(headers)
 
-    def print(self, *args):
+    def log(self, *args):
         print(*args)
 
     def set_headers(self, headers):
@@ -554,7 +554,7 @@ class Exchange(object):
         url = self.proxy + url
 
         if self.verbose:
-            self.print("\nRequest:", method, url, request_headers, body)
+            self.log("\nRequest:", method, url, request_headers, body)
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
         request_body = body
@@ -592,7 +592,7 @@ class Exchange(object):
             if self.enableLastResponseHeaders:
                 self.last_response_headers = headers
             if self.verbose:
-                self.print("\nResponse:", method, url, http_status_code, headers, http_response)
+                self.log("\nResponse:", method, url, http_status_code, headers, http_response)
             self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
             response.raise_for_status()
 

@@ -1433,16 +1433,16 @@ class Exchange {
         return json_decode($this->on_json_response($json_string), $as_associative_array);
     }
 
-    // public function print() {
-    //     $args = func_get_args();
-    //     if (is_array($args)) {
-    //         $array = array();
-    //         foreach ($args as $arg) {
-    //             $array[] = is_string($arg) ? $arg : json_encode($arg, JSON_PRETTY_PRINT);
-    //         }
-    //         echo implode(' ', $array), "\n";
-    //     }
-    // }
+    public function log() {
+        $args = func_get_args();
+        if (is_array($args)) {
+            $array = array();
+            foreach ($args as $arg) {
+                $array[] = is_string($arg) ? $arg : json_encode($arg, JSON_PRETTY_PRINT);
+            }
+            echo implode(' ', $array), "\n";
+        }
+    }
 
     public function set_headers($headers) {
         return $headers;
