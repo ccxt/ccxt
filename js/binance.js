@@ -774,7 +774,6 @@ module.exports = class binance extends Exchange {
                     '-3041': InsufficientFunds, // {"code":-3041,"msg":"Balance is not enough"}
                     '-5013': InsufficientFunds, // Asset transfer failed: insufficient balance"
                     '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}
-
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
