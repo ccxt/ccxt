@@ -1048,7 +1048,7 @@ module.exports = class binance extends ccxt.binance {
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
         let clientOrderId = this.safeString (order, 'C');
-        if (clientOrderId.length === 0) {
+        if ((clientOrderId !== undefined) && (clientOrderId.length === 0)) {
             clientOrderId = this.safeString (order, 'c');
         }
         const stopPrice = this.safeFloat2 (order, 'P', 'sp');
