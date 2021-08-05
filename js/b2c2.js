@@ -96,7 +96,7 @@ module.exports = class b2c2 extends Exchange {
                     '1007': InvalidOrder, // Quote is not valid – Quote may have expired.
                     '1009': InvalidOrder, // Price not valid – The price is not valid anymore. This error can occur during big market moves.
                     '1010': InvalidOrder, // Quantity too big – Max quantity per trade reached.
-                    '1010': InsufficientFunds, // Not enough balance – Not enough balance.
+                    '1011': InsufficientFunds, // Not enough balance – Not enough balance.
                     '1012': InsufficientFunds, // Max risk exposure reached – Please see our FAQ for more information about the risk exposure.
                     '1013': InsufficientFunds, // Max credit exposure reached – Please see our FAQ for more information about the credit exposure.
                     '1014': InvalidAddress, // No BTC address associated – You don’t have a BTC address associated to your account.
