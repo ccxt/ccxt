@@ -12,48 +12,50 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
 
     // instantiate the exchange
     let exchange = new ccxt.b2c2  ({
-        "apiKey": "INSERT API KEY HERE",
+        "apiKey": "",
     })
+    exchange.setSandboxMode (true);
+    await exchange.loadMarkets (true);
+    console.info ( exchange.markets)
+
+    // // THESE FUNCTIONS WORK WELL AND ARE FULLY IMPLEMENTED
+
+    // // fetch account balance from the exchange
+    // let balance = await exchange.fetchBalance ()
+    // log (exchange.name.green, 'balance', balance)
+
+    // // fetch orders from the exchange
+    // let orders = await exchange.fetchOrders ()
+    // log (exchange.name.green, 'orders', orders)
+
+    // // fetch ledger items from the exchange
+    // let ledger = await exchange.fetchLedger ()
+    // log (exchange.name.green, 'ledger', ledger)
+
+    // // fetch trades from the exchange
+    // let trades = await exchange.fetchMyTrades ()
+    // log (exchange.name.green, 'trades', trades)
 
 
-    // THESE FUNCTIONS WORK WELL AND ARE FULLY IMPLEMENTED
+    // THESE FUNCTIONS WORK WELL AND ARE FULLY MAPPED but you don't need to ever call these directly
 
-    // fetch account balance from the exchange
-    let balance = await exchange.fetchBalance ()
-    log (exchange.name.green, 'balance', balance)
+    // // fetch currencies from the exchange
+    // let currencies = await exchange.fetchCurrencies ()
+    // log (exchange.name.green, 'currencies', currencies)
 
-    // fetch orders from the exchange
-    let orders = await exchange.fetchOrders ()
-    log (exchange.name.green, 'orders', orders)
-
-    // fetch ledger items from the exchange
-    let ledger = await exchange.fetchLedger ()
-    log (exchange.name.green, 'ledger', ledger)
-
-    // fetch trades from the exchange
-    let trades = await exchange.fetchMyTrades ()
-    log (exchange.name.green, 'trades', trades)
+    // // fetch markets from the exchange
+    // let markets = await exchange.fetchMarkets ()
+    // log (exchange.name.green, 'markets', markets)
 
 
-    // THESE FUNCTIONS WORK WELL BUT ARE ONLY PARTIALLY MAPPED
+    // // THESE FUNCTIONS DON'T WORK PROPERLY YET!
 
-    // fetch currencies from the exchange
-    let currencies = await exchange.fetchCurrencies ()
-    log (exchange.name.green, 'currencies', currencies)
+    // // create a new order on the exchange
+    // let new_order = await exchange.createOrder ('ETH/USD', 'MARKET', 'BUY', 1,)
+    // log (exchange.name.green, 'new_order', new_order)
 
-    // fetch markets from the exchange
-    let markets = await exchange.fetchMarkets ()
-    log (exchange.name.green, 'markets', markets)
-
-
-    // THESE FUNCTIONS DON'T WORK PROPERLY YET!
-
-    // create a new order on the exchange
-    let order = await exchange.createOrder ('ETH/USD', 'MARKET', 'BUY', 1,)
-    log (exchange.name.green, 'order', order)
-
-    // fetch single order from the exchange
-    let order = await exchange.fetchOrder ('cee4ca76f-a0ef-45d4-abd0-1dceeadfef1e')
-    log (exchange.name.green, 'order', order)
+    // // fetch single order from the exchange
+    // let order = await exchange.fetchOrder ('cee4ca76f-a0ef-45d4-abd0-1dceeadfef1e')
+    // log (exchange.name.green, 'order', order)
 
 }) ()

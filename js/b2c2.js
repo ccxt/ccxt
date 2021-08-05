@@ -6,6 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, InvalidAddress, AuthenticationError, OnMaintenance, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const { uuid } = require ('./base/functions/string');
+const { deepExtend } = require ('./base/functions/generic');
 
 //  ---------------------------------------------------------------------------
 
@@ -56,11 +57,11 @@ module.exports = class b2c2 extends Exchange {
                         'instruments',
                         'ledger',
                         'order',
-                        'order/{id}',
+                        'order/{order_id_or_client_order_id}',
                         'trade',
-                        'trade/{id}',
+                        'trade/{trade_id}',
                         'withdrawal',
-                        'withdrawal/{id}',
+                        'withdrawal/{withdrawal_id}',
                     ],
                     'post': [
                         'request_for_quote',
@@ -68,15 +69,10 @@ module.exports = class b2c2 extends Exchange {
                         'withdrawal',
                     ],
                     'delete': [
-                        'order/{id}',
-                        'withdrawal/{id}',
+                        'order/{order_id_or_client_order_id}',
+                        'withdrawal/{withdrawal_id}',
                     ],
                 },
-            },
-            'markets': {
-                'BTC/USD': { 'id': 'BTCUSD.SPOT', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'BTC', 'quoteId': 'USD' },
-                'ETH/USD': { 'id': 'ETHUSD.SPOT', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'ETH', 'quoteId': 'USD' },
-                'XRP/USD': { 'id': 'XRPUSD.SPOT', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD', 'baseId': 'XRP', 'quoteId': 'USD' },
             },
             'httpExceptions': {
                 '400': BadRequest, // Bad Request –- Incorrect parameters.
@@ -135,6 +131,88 @@ module.exports = class b2c2 extends Exchange {
         });
     }
 
+    async fetchCurrencies (params = {}) {
+        const ccys = await this.privateGetCurrency (params);
+        const account_info = await this.privateGetAccountInfo (params);
+        //
+        // currencies endpoint
+        // {
+        //     "AUD": {
+        //       "long_only": false,
+        //       "minimum_trade_size": 0.01,
+        //       "stable_coin": false,
+        //       "currency_type": "fiat",
+        //       "is_crypto": false,
+        //       "readable_name": ""
+        //     },
+        //     "BCH": {
+        //       "long_only": false,
+        //       "minimum_trade_size": 0.01,
+        //       "stable_coin": false,
+        //       "currency_type": "crypto",
+        //       "is_crypto": true,
+        //       "readable_name": "Bitcoin cash"
+        //     },
+        // ...
+        // Account info endpoint
+        // {
+        //     "max_risk_exposure": "500000",
+        //     "risk_exposure": "74054.96",
+        //     "currency": "USD",
+        //     "btc_max_qty_per_trade": "100",
+        //     "ust_max_qty_per_trade": "600000",
+        //     "eth_max_qty_per_trade": "1000",
+        //     "ltc_max_qty_per_trade": "4000",
+        //     "bch_max_qty_per_trade": "500",
+        //     "xrp_max_qty_per_trade": "200000",
+        //     ...
+        //   }
+        const result = {};
+        const keys = Object.keys (ccys);
+        for (let i = 0; i < keys.length; i++) {
+            const id = keys[i];
+            const code = this.safeCurrencyCode (id);
+            const ccy = ccys[keys[i]];
+            const name = this.safeString (ccy, 'readable_name');
+            const currency_type = this.safeString (ccy, 'currency_type');
+            const minTradeSize = this.safeNumber (ccy, 'minimum_trade_size');
+            const maxTradeSizeKey = id.toLowerCase () + '_max_qty_per_trade';
+            const maxTradeSize = this.safeNumber (account_info, maxTradeSizeKey);
+            ccy[maxTradeSizeKey] = maxTradeSize; // update back into the raw info for debugging
+            result[code] = {
+                'info': ccy,
+                'id': id,
+                'code': code,
+                'name': name,
+                'type': currency_type,
+                'active': true,
+                'fee': undefined,
+                'precision': 4,
+                'limits': {
+                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'amount': { 'min': minTradeSize, 'max': maxTradeSize },
+                },
+            };
+        }
+        return result;
+    }
+
+    async loadMarketsHelper (reload = false, params = {}) {
+        if (!reload && this.markets) {
+            if (!this.markets_by_id) {
+                return this.setMarkets (this.markets)
+            }
+            return this.markets
+        }
+        let currencies = undefined
+        if (this.has.fetchCurrencies) {
+            currencies = await this.fetchCurrencies ()
+            this.currencies = deepExtend (currencies, this.currencies)
+        }
+        const markets = await this.fetchMarkets (params)
+        return this.setMarkets (markets, currencies)
+    }
+
     async fetchMarkets (params = {}) {
         const response = await this.privateGetInstruments (params);
         //
@@ -158,7 +236,7 @@ module.exports = class b2c2 extends Exchange {
     }
 
     parseMarket (market) {
-        //
+        // instruments endpoint
         // [
         //     {
         //       "name": "LTCUSD.SPOT",
@@ -170,94 +248,80 @@ module.exports = class b2c2 extends Exchange {
         //       "underlier": "BCHUSD",
         //       "type": "SPOT"
         //     },
+        // ...
         //
-        // const locked = this.safeValue (market, 'locked');
-        // const active = !locked;
+        //
+        // currency object
+        //
+        //     result[code] = {
+        //         'info': ccy,
+        //         'id': id,
+        //         'code': code,
+        //         'name': name,
+        //         'type': currency_type,
+        //         'active': true,
+        //         'fee': undefined,
+        //         'precision': 4,
+        //         'limits': {
+        //             'withdraw': { 'min': undefined, 'max': undefined },
+        //             'amount': { 'min': minTradeSize, 'max': maxTradeSize },
+        //         },
+        //     };
+        // }
         const id = this.safeString (market, 'name');
-        const symbol = this.safeString (market, 'underlier'); // needs to be base/quote!!
+        let underlier = this.safeString (market, 'underlier');
+        underlier = underlier.toUpperCase ();
+        const baseId = underlier.slice (0, 3); // left in underlier
+        const quoteId = underlier.slice (3, 6); // right in underlier
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
         const type = this.safeString (market, 'type');
-        // const baseId = this.safeString (market, 'baseCurrency');
-        // const quoteId = this.safeString (market, 'quoteCurrency');
-        // const base = this.safeCurrencyCode (baseId);
-        // const quote = this.safeCurrencyCode (quoteId);
-        // const symbol = base + '/' + quote;
-        // const precision = {
-        //     'amount': this.precisionFromString (this.safeString (market, 'quantityIncrement')),
-        //     'price': this.precisionFromString (this.safeString (market, 'tickSize')),
-        // };
-        // const amountIncrement = this.safeNumber (market, 'quantityIncrement');
-        // const minBase = this.safeNumber (market, 'baseMinSize');
-        // const minAmount = Math.max (amountIncrement, minBase);
-        // const priceIncrement = this.safeNumber (market, 'tickSize');
-        // const minCost = this.safeNumber (market, 'quoteMinSize');
-        // const limits = {
-        //     'amount': { 'min': minAmount, 'max': undefined },
-        //     'price': { 'min': priceIncrement, 'max': undefined },
-        //     'cost': { 'min': Math.max (minCost, minAmount * priceIncrement), 'max': undefined },
-        // };
-        // const taker = this.safeNumber (market, 'takerFee');
-        // const maker = this.safeNumber (market, 'makerFee');
+        let spot = false;
+        let margin = false;
+        if (type === 'SPOT') {
+            spot = true;
+        } else if (type === 'CFD') {
+            margin = true;
+        }
+        const active = true;
+        const ccyBase = this.currencies[base];
+        // console.info(this.currencies);
+        const ccyQuote = this.currencies[quote];
+        const pricePrecision = ccyQuote['limits']['amount']['min'];
+        const amountPrecision = ccyBase['limits']['amount']['min'];
+        const precision = {
+            'price': pricePrecision,
+            'amount': amountPrecision,
+        };
+        const amountMin = ccyBase['limits']['amount']['min'];
+        const amountMax = ccyBase['limits']['amount']['max'];
+        const costMin = ccyQuote['limits']['amount']['min'];
+        const costMax = ccyQuote['limits']['amount']['min'];
+        const limits = {
+            'amount': { 'min': amountMin, 'max': amountMax },
+            'price': { 'min': 0.0001, 'max': undefined },
+            'cost': { 'min': costMin, 'max': costMax },
+        };
+        const taker = undefined; // no maker or taker fees for b2c2
+        const maker = undefined; // no maker or taker fees for b2c2
         return {
+            'info': market,
             'id': id,
             'symbol': symbol,
-            'base': undefined,
-            'quote': undefined,
-            'baseId': undefined,
-            'quoteId': undefined,
+            'base': base,
+            'quote': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
             'type': type,
-            'active': true,
-            'precision': undefined,
-            'limits': undefined,
-            'taker': undefined,
-            'maker': undefined,
-            'info': market,
+            'spot': spot,
+            'margin': margin,
+            'active': active,
+            'precision': precision,
+            'limits': limits,
+            'taker': taker,
+            'maker': maker,
         };
-    }
-
-    async fetchCurrencies (params = {}) {
-        const currencies_raw = await this.privateGetCurrency (params);
-        // {
-        //    "AUD": {
-        //        "long_only": false,
-        //        "minimum_trade_size": 0.01,
-        //        "stable_coin": false,
-        //        "currency_type": "fiat",
-        //        "is_crypto": false,
-        //        "readable_name": ""
-        //    },
-        //    "BCH": {
-        //        "long_only": false,
-        //        "minimum_trade_size": 0.01,
-        //        "stable_coin": false,
-        //        "currency_type": "crypto",
-        //        "is_crypto": true,
-        //        "readable_name": "Bitcoin cash"
-        //    },
-        //
-        const result = {};
-        const keys = Object.keys (currencies_raw);
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            const code = this.safeCurrencyCode (id);
-            const currency_raw = currencies_raw[keys[i]];
-            const name = this.safeString (currency_raw, 'readable_name');
-            const minTradeSize = this.safeNumber (currency_raw, 'minimum_trade_size');
-            result[code] = {
-                'id': code,
-                'code': code,
-                'info': currency_raw,
-                'type': undefined,
-                'name': name,
-                'active': true,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'withdraw': { 'min': undefined, 'max': undefined },
-                    'amount': { 'min': minTradeSize, 'max': undefined },
-                },
-            };
-        }
-        return result;
     }
 
     async fetchBalance (params = {}) {
@@ -326,7 +390,7 @@ module.exports = class b2c2 extends Exchange {
             market = this.market (symbol);
         }
         const request = { 'id': id };
-        const response = await this.privateGetOrderId (request);
+        const response = await this.privateGetOrderOrderidorclientorderid (request);
         return this.parseOrder (response, market);
     }
 
