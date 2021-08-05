@@ -23,7 +23,7 @@ async def test_watch_trades(exchange, symbol):
     if (method in exchange.has) and exchange.has[method]:
         response = None
         now = exchange.milliseconds()
-        end = now + 15000
+        end = now + 10000
         while now < end:
             try:
                 # print('-----------------------------------------------------------')

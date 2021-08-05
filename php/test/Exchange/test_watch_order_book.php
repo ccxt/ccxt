@@ -31,7 +31,7 @@ function test_watch_order_book($exchange, $symbol) {
     }
 
     $now = $exchange->milliseconds();
-    $ends = $now + 20000;
+    $ends = $now + 10000;
     while ($now < $ends) {
         try {
             $result = yield $exchange->watch_order_book($symbol);
