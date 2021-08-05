@@ -1,4 +1,4 @@
-# Overview
+## Overview
 
 The ccxt library is a collection of available crypto *exchanges* or exchange classes. Each class implements the public and private API for a particular crypto exchange. All exchanges are derived from the base Exchange class and share a set of common methods. To access a particular exchange from ccxt library you need to create an instance of corresponding exchange class. Supported exchanges are updated frequently and new exchanges are added regularly.
 
@@ -699,7 +699,7 @@ In terms of the ccxt library, every exchange offers multiple markets within itse
 
 ```JavaScript
 {
-    'id':     ' btcusd',  // string literal for referencing within an exchange
+    'id':      'btcusd',  // string literal for referencing within an exchange
     'symbol':  'BTC/USD', // uppercase string literal of a pair of currencies
     'base':    'BTC',     // uppercase string, unified base currency code, 3 or more letters
     'quote':   'USD',     // uppercase string, unified quote currency code, 3 or more letters
@@ -710,6 +710,7 @@ In terms of the ccxt library, every exchange offers multiple markets within itse
     'maker':    0.0016,   // maker fee rate, 0.0016 = 0.16%
     'percentage': true,   // whether the taker and maker fee rate is a multiplier or a fixed flat amount
     'tierBased': false,   // whether the fee depends on your trading tier (your trading volume)
+    'feeSide': 'get'      // string literal can be 'get', 'give', 'base', 'quote', 'other'
     'precision': {        // number of decimal digits "after the dot"
         'price': 8,       // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
         'amount': 8,      // integer, might be missing if not supplied by the exchange
