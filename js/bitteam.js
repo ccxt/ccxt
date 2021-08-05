@@ -32,6 +32,7 @@ module.exports = class bitteam extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchBalance': true,
                 'createOrder': true,
+                'cancelOrder': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -72,6 +73,7 @@ module.exports = class bitteam extends Exchange {
                     ],
                     'post': [
                         'ccxt/ordercreate',
+                        'ccxt/cancelorder',
                     ],
                 },
                 'tw': {
@@ -836,6 +838,16 @@ module.exports = class bitteam extends Exchange {
         // }
         // }
         return this.parseBalance (balance);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (id === undefined) {
+            throw new ArgumentsRequired ('cancelOrder() requires a id argument');
+        }
+        const request = {
+            'id': id,
+        };
+        return await this.privatePostCcxtCancelorder (this.extend (request, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
