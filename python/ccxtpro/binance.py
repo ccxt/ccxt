@@ -972,7 +972,7 @@ class binance(Exchange, ccxt.binance):
         status = self.parse_order_status(rawStatus)
         trades = None
         clientOrderId = self.safe_string(order, 'C')
-        if len(clientOrderId) == 0:
+        if (clientOrderId is None) or (len(clientOrderId) == 0):
             clientOrderId = self.safe_string(order, 'c')
         stopPrice = self.safe_float_2(order, 'P', 'sp')
         timeInForce = self.safe_string(order, 'f')

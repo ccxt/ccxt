@@ -1051,7 +1051,7 @@ class binance extends \ccxt\async\binance {
         $status = $this->parse_order_status($rawStatus);
         $trades = null;
         $clientOrderId = $this->safe_string($order, 'C');
-        if (strlen($clientOrderId) === 0) {
+        if (($clientOrderId === null) || (strlen($clientOrderId) === 0)) {
             $clientOrderId = $this->safe_string($order, 'c');
         }
         $stopPrice = $this->safe_float_2($order, 'P', 'sp');
