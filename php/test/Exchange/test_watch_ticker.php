@@ -23,7 +23,7 @@ function test_watch_ticker($exchange, $symbol) {
     }
 
     $now = $exchange->milliseconds();
-    $ends = $now + 20000;
+    $ends = $now + 10000;
     while ($now < $ends) {
         try {
             $ticker = yield $exchange->watch_ticker($symbol);

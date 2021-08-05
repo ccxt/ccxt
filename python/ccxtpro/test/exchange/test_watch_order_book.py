@@ -18,7 +18,7 @@ async def test_watch_order_book(exchange, symbol):
     if (method in exchange.has) and exchange.has[method]:
         response = None
         now = exchange.milliseconds()
-        end = now + 20000
+        end = now + 10000
         i = 0
         while now < end:
             try:

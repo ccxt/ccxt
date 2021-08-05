@@ -28,7 +28,7 @@ function test_watch_trades($exchange, $symbol) {
     }
 
     $now = $exchange->milliseconds();
-    $ends = $now + 20000;
+    $ends = $now + 10000;
     while ($now < $ends) {
         try {
             $trades = yield $exchange->watch_trades($symbol);
