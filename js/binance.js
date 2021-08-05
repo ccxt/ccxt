@@ -764,13 +764,17 @@ module.exports = class binance extends Exchange {
                     '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
                     '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
                     '-3005': InsufficientFunds, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
+                    '-3006': InsufficientFunds, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
                     '-3008': InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
                     '-3010': ExchangeError, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                    '-3015': ExchangeError, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
                     '-3022': AccountSuspended, // You account's trading is banned.
                     '-4028': BadRequest, // {"code":-4028,"msg":"Leverage 100 is not valid"}
                     '-3020': InsufficientFunds, // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
                     '-3041': InsufficientFunds, // {"code":-3041,"msg":"Balance is not enough"}
                     '-5013': InsufficientFunds, // Asset transfer failed: insufficient balance"
+                    '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}
+
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
