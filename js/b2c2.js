@@ -5,8 +5,6 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, InvalidAddress, AuthenticationError, OnMaintenance, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol } = require ('./base/errors');
 const Precise = require ('./base/Precise');
-const { uuid } = require ('./base/functions/string');
-const { deepExtend } = require ('./base/functions/generic');
 
 //  ---------------------------------------------------------------------------
 
@@ -76,7 +74,7 @@ module.exports = class b2c2 extends Exchange {
             },
             'httpExceptions': {
                 '400': BadRequest, // Bad Request –- Incorrect parameters.
-                '401': AuthenticationError, //Unauthorized – Wrong Token.
+                '401': AuthenticationError, // Unauthorized – Wrong Token.
                 '404': ExchangeNotAvailable, // Not Found – The specified endpoint could not be found.
                 '405': ExchangeNotAvailable, // Method Not Allowed – You tried to access an endpoint with an invalid method.
                 '406': BadRequest, // Not Acceptable – Incorrect request format.
@@ -199,8 +197,8 @@ module.exports = class b2c2 extends Exchange {
 
     async fetchMarkets (params = {}) {
         // hack to force reload currencies
-        let currencies = await this.fetchCurrencies ()
-        this.currencies = deepExtend (currencies, this.currencies)
+        const currencies = await this.fetchCurrencies ();
+        this.currencies = this.deepExtend (currencies, this.currencies);
         const response = await this.privateGetInstruments (params);
         //
         // [
@@ -329,7 +327,7 @@ module.exports = class b2c2 extends Exchange {
         const result = {
             'info': response,
             'timestamp': now,
-            'datetime': this.iso8601 (now*1000),
+            'datetime': this.iso8601 (now * 1000),
         };
         const assets = response;
         const keys = Object.keys (assets);
@@ -348,14 +346,12 @@ module.exports = class b2c2 extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         // side: 'buy' | 'sell';
         // type: 'market' | 'limit';
-        // ({'Content-Type': 'application/json', 'Authorization': 'Token blah'},) 
-        // {'client_order_id': '745bf810-07ee-483b-902b-c41edf4b119c', 'quantity': '2', 'side': 'sell', 'instrument': 'ETHUSD.SPOT', 'order_type': 'MKT', 'valid_until': '2021-08-07 12:19:41.976496'} to 'https://api.uat.b2c2.net/order/'...
         await this.loadMarkets ();
         const market = this.market (symbol);
         const lowercaseSide = side.toLowerCase ();
         const lowercaseType = type.toLowerCase ();
         const request = {
-            'client_order_id': uuid ().toString (), // to parameterise
+            'client_order_id': this.uuid ().toString (), // to parameterise
             'quantity': this.amountToPrecision (symbol, amount),
             'side': lowercaseSide,
             'instrument': market['id'],
@@ -418,15 +414,19 @@ module.exports = class b2c2 extends Exchange {
         if (symbol !== undefined) {
             marketId = this.market (symbol)['id'];
         }
+        // 'created__lt': undefined,
+        // 'client_order_id': undefined,
+        // 'order_type': undefined,
+        // 'executing_unit': undefined,
         const request = {
-            'created__gte': this.iso8601(since),
-            'created__lt': undefined,
-            'client_order_id': undefined,
-            'order_type': undefined,
-            'executing_unit': undefined,
-            'instrument': marketId,
             'limit': limit,
         };
+        if (marketId !== undefined) {
+            request['instrument'] = marketId;
+        }
+        if (since !== undefined) {
+            request['created__gte'] = this.iso8601 (since);
+        }
         const response = await this.privateGetOrder (request);
         // return this.parseOrders (response, market, since, limit);
         return this.parseOrders (response, undefined, since, limit);
@@ -509,13 +509,12 @@ module.exports = class b2c2 extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
+        // 'created__gte': undefined,
+        // 'created__lt': undefined,
+        // 'since': undefined, // need to map to markets
+        // 'ordering': undefined, // asc or desc, default desc
+        // 'executing_unit': undefined,
         const request = {
-            'created__gte': undefined,
-            'created__lt': undefined,
-            'instrument': symbol, // need to map to markets
-            'since': undefined, // need to map to markets
-            'ordering': undefined, // asc or desc, default desc
-            'executing_unit': undefined,
             'limit': limit,
         };
         let market = undefined;
@@ -659,23 +658,28 @@ module.exports = class b2c2 extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
+        // We don't need to put these in request, python sends
+        // 'created__lt': undefined,
+        // 'type': undefined,
         const request = {
-            'created__gte': this.iso8601 (since),
-            'created__lt': undefined,
-            'currency': currency,
-            'type': undefined,
-            'since': since,
             'limit': limit,
         };
+        if (since !== undefined) {
+            request['since'] = since;
+            request['created__gte'] = since;
+        }
+        if (currency !== undefined) {
+            request['currency'] = currency['code'];
+        }
         const response = await this.privateGetLedger (request);
         return this.parseLedger (response, currency, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        // Request a settlement for a given amount to the given destination in a given currency. 
-        // Your account must exhibit a sufficient balance in the requested currency. 
+        // Request a settlement for a given amount to the given destination in a given currency.
+        // Your account must exhibit a sufficient balance in the requested currency.
         // Note that for non approved addresses, the amount can only be lower than 0.1.
-        // The address_protocol parameter is either “Omni” or “ERC20” and only used for UST settlement requests. 
+        // The address_protocol parameter is either “Omni” or “ERC20” and only used for UST settlement requests.
         // For other currencies, leave null. The address_suffix is the memo or the tag of the address as entered on the website.
         // post_data = {
         //     'amount': '1000',
@@ -686,7 +690,7 @@ module.exports = class b2c2 extends Exchange {
         //         'address_protocol': None
         //     }
         // }
-        // # Fiat withdrawal
+        // Fiat withdrawal
         // post_data = {
         //     'amount': '1000',
         //     'currency': 'USD',
@@ -716,11 +720,11 @@ module.exports = class b2c2 extends Exchange {
         };
         const dest = {
             'address_value': address,
-        }
+        };
         if (tag !== undefined) {
             request['addressTag'] = tag;
         }
-        if (currency == 'UST') {
+        if (currency === 'UST') {
             request['address_protocol'] = 'ERC20';
         }
         request['destination_address'] = dest;
@@ -733,7 +737,7 @@ module.exports = class b2c2 extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
-        let currency = undefined;
+        const currency = undefined;
         const request = {
             'limit': limit,
         };
@@ -768,6 +772,7 @@ module.exports = class b2c2 extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const address = this.safeString (transaction, 'destination_address');
+        const updated = undefined;
         let tag = this.safeString (transaction, 'reference'); // set but unused
         if (tag !== undefined) {
             if (tag.length < 1) {
@@ -775,7 +780,7 @@ module.exports = class b2c2 extends Exchange {
             }
         }
         let status = 'pending';
-        if (transaction['settled'] == true) {
+        if (transaction['settled'] === true) {
             status = 'ok';
         }
         const datetime = this.parse8601 (this.safeString (transaction, 'applyTime'));
@@ -801,7 +806,6 @@ module.exports = class b2c2 extends Exchange {
             'fee': undefined,
         };
     }
-
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
