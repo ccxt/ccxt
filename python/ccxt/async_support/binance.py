@@ -137,6 +137,7 @@ class binance(Exchange):
                 'sapi': {
                     'get': [
                         'accountSnapshot',
+                        'system/status',
                         # these endpoints require self.apiKey
                         'margin/asset',
                         'margin/pair',
@@ -1576,7 +1577,7 @@ class binance(Exchange):
         }
 
     async def fetch_status(self, params={}):
-        response = await self.wapiGetSystemStatus(params)
+        response = await self.sapiGetSystemStatus(params)
         status = self.safe_string(response, 'status')
         if status is not None:
             status = 'ok' if (status == '0') else 'maintenance'
@@ -2445,39 +2446,41 @@ class binance(Exchange):
         if since is not None:
             request['startTime'] = since
             request['endTime'] = self.sum(since, 7776000000)
-        response = await self.wapiGetUserAssetDribbletLog(self.extend(request, params))
-        #
+        response = await self.sapiGetAssetDribblet(self.extend(request, params))
         #     {
-        #         success: True,
-        #         results: {
-        #             total: 1,
-        #             rows: [
-        #                 {
-        #                     transfered_total: "1.06468458",
-        #                     service_charge_total: "0.02172826",
-        #                     tran_id: 2701371634,
-        #                     logs: [
-        #                         {
-        #                             tranId:  2701371634,
-        #                             serviceChargeAmount: "0.00012819",
-        #                             uid: "35103861",
-        #                             amount: "0.8012",
-        #                             operateTime: "2018-10-07 17:56:07",
-        #                             transferedAmount: "0.00628141",
-        #                             fromAsset: "ADA"
-        #                         }
-        #                     ],
-        #                     operate_time: "2018-10-07 17:56:06"
-        #                 }
-        #             ]
-        #         }
+        #       "total": "4",
+        #       "userAssetDribblets": [
+        #         {
+        #           "operateTime": "1627575731000",
+        #           "totalServiceChargeAmount": "0.00001453",
+        #           "totalTransferedAmount": "0.00072693",
+        #           "transId": "70899815863",
+        #           "userAssetDribbletDetails": [
+        #             {
+        #               "fromAsset": "LTC",
+        #               "amount": "0.000006",
+        #               "transferedAmount": "0.00000267",
+        #               "serviceChargeAmount": "0.00000005",
+        #               "operateTime": "1627575731000",
+        #               "transId": "70899815863"
+        #             },
+        #             {
+        #               "fromAsset": "GBP",
+        #               "amount": "0.15949157",
+        #               "transferedAmount": "0.00072426",
+        #               "serviceChargeAmount": "0.00001448",
+        #               "operateTime": "1627575731000",
+        #               "transId": "70899815863"
+        #             }
+        #           ]
+        #         },
+        #       ]
         #     }
-        #
-        results = self.safe_value(response, 'results', {})
-        rows = self.safe_value(results, 'rows', [])
+        results = self.safe_value(response, 'userAssetDribblets', [])
+        rows = self.safe_integer(response, 'total', 0)
         data = []
-        for i in range(0, len(rows)):
-            logs = rows[i]['logs']
+        for i in range(0, rows):
+            logs = self.safe_value(results[i], 'userAssetDribbletDetails', [])
             for j in range(0, len(logs)):
                 logs[j]['isDustTrade'] = True
                 data.append(logs[j])
@@ -2485,14 +2488,18 @@ class binance(Exchange):
         return self.filter_by_since_limit(trades, since, limit)
 
     def parse_dust_trade(self, trade, market=None):
-        # {             tranId:  2701371634,
-        #   serviceChargeAmount: "0.00012819",
-        #                   uid: "35103861",
-        #                amount: "0.8012",
-        #           operateTime: "2018-10-07 17:56:07",
-        #      transferedAmount: "0.00628141",
-        #             fromAsset: "ADA"                  },
-        orderId = self.safe_string(trade, 'tranId')
+        #
+        #     {
+        #       "fromAsset": "USDT",
+        #       "amount": "0.009669",
+        #       "transferedAmount": "0.00002992",
+        #       "serviceChargeAmount": "0.00000059",
+        #       "operateTime": "1628076010000",
+        #       "transId": "71416578712",
+        #       "isDustTrade": True
+        #     }
+        #
+        orderId = self.safe_string(trade, 'transId')
         timestamp = self.parse8601(self.safe_string(trade, 'operateTime'))
         currencyId = self.safe_string(trade, 'fromAsset')
         tradedCurrency = self.safe_currency_code(currencyId)

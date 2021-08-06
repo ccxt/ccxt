@@ -126,6 +126,7 @@ class binance extends Exchange {
                 'sapi' => array(
                     'get' => array(
                         'accountSnapshot',
+                        'system/status',
                         // these endpoints require $this->apiKey
                         'margin/asset',
                         'margin/pair',
@@ -1601,7 +1602,7 @@ class binance extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
-        $response = $this->wapiGetSystemStatus ($params);
+        $response = $this->sapiGetSystemStatus ($params);
         $status = $this->safe_string($response, 'status');
         if ($status !== null) {
             $status = ($status === '0') ? 'ok' : 'maintenance';
@@ -2552,39 +2553,41 @@ class binance extends Exchange {
             $request['startTime'] = $since;
             $request['endTime'] = $this->sum($since, 7776000000);
         }
-        $response = $this->wapiGetUserAssetDribbletLog (array_merge($request, $params));
-        //
+        $response = $this->sapiGetAssetDribblet (array_merge($request, $params));
         //     {
-        //         success => true,
-        //         $results => {
-        //             total => 1,
-        //             $rows => array(
-        //                 {
-        //                     transfered_total => "1.06468458",
-        //                     service_charge_total => "0.02172826",
-        //                     tran_id => 2701371634,
-        //                     $logs => array(
-        //                         {
-        //                             tranId =>  2701371634,
-        //                             serviceChargeAmount => "0.00012819",
-        //                             uid => "35103861",
-        //                             amount => "0.8012",
-        //                             operateTime => "2018-10-07 17:56:07",
-        //                             transferedAmount => "0.00628141",
-        //                             fromAsset => "ADA"
-        //                         }
-        //                     ),
-        //                     operate_time => "2018-10-07 17:56:06"
-        //                 }
-        //             )
-        //         }
+        //       "total" => "4",
+        //       "userAssetDribblets" => array(
+        //         {
+        //           "operateTime" => "1627575731000",
+        //           "totalServiceChargeAmount" => "0.00001453",
+        //           "totalTransferedAmount" => "0.00072693",
+        //           "transId" => "70899815863",
+        //           "userAssetDribbletDetails" => array(
+        //             array(
+        //               "fromAsset" => "LTC",
+        //               "amount" => "0.000006",
+        //               "transferedAmount" => "0.00000267",
+        //               "serviceChargeAmount" => "0.00000005",
+        //               "operateTime" => "1627575731000",
+        //               "transId" => "70899815863"
+        //             ),
+        //             array(
+        //               "fromAsset" => "GBP",
+        //               "amount" => "0.15949157",
+        //               "transferedAmount" => "0.00072426",
+        //               "serviceChargeAmount" => "0.00001448",
+        //               "operateTime" => "1627575731000",
+        //               "transId" => "70899815863"
+        //             }
+        //           )
+        //         ),
+        //       )
         //     }
-        //
-        $results = $this->safe_value($response, 'results', array());
-        $rows = $this->safe_value($results, 'rows', array());
+        $results = $this->safe_value($response, 'userAssetDribblets', array());
+        $rows = $this->safe_integer($response, 'total', 0);
         $data = array();
-        for ($i = 0; $i < count($rows); $i++) {
-            $logs = $rows[$i]['logs'];
+        for ($i = 0; $i < $rows; $i++) {
+            $logs = $this->safe_value($results[$i], 'userAssetDribbletDetails', array());
             for ($j = 0; $j < count($logs); $j++) {
                 $logs[$j]['isDustTrade'] = true;
                 $data[] = $logs[$j];
@@ -2595,14 +2598,18 @@ class binance extends Exchange {
     }
 
     public function parse_dust_trade($trade, $market = null) {
-        // array(              tranId =>  2701371634,
-        //   serviceChargeAmount => "0.00012819",
-        //                   uid => "35103861",
-        //                $amount => "0.8012",
-        //           operateTime => "2018-10-07 17:56:07",
-        //      transferedAmount => "0.00628141",
-        //             fromAsset => "ADA"                  ),
-        $orderId = $this->safe_string($trade, 'tranId');
+        //
+        //     {
+        //       "fromAsset" => "USDT",
+        //       "$amount" => "0.009669",
+        //       "transferedAmount" => "0.00002992",
+        //       "serviceChargeAmount" => "0.00000059",
+        //       "operateTime" => "1628076010000",
+        //       "transId" => "71416578712",
+        //       "isDustTrade" => true
+        //     }
+        //
+        $orderId = $this->safe_string($trade, 'transId');
         $timestamp = $this->parse8601($this->safe_string($trade, 'operateTime'));
         $currencyId = $this->safe_string($trade, 'fromAsset');
         $tradedCurrency = $this->safe_currency_code($currencyId);
