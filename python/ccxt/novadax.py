@@ -610,10 +610,7 @@ class novadax(Exchange):
                 uppercaseType = 'STOP_LIMIT'
             elif uppercaseType == 'MARKET':
                 uppercaseType = 'STOP_MARKET'
-            operatorString = self.safe_string(params, 'operator')
-            if operatorString is None:
-                raise ArgumentsRequired(self.id + " createOrder() requires an operator parameter 'GTE' or 'LTE' for " + uppercaseType + ' orders')
-            request['operator'] = operatorString
+            request['operator'] = 'LTE' if (uppercaseSide == 'BUY') else 'GTE'
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
             params = self.omit(params, 'stopPrice')
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
