@@ -28,7 +28,8 @@ class Throttler:
             cost = self.config['cost'] if cost is None else cost
             if self.config['tokens'] >= 0:
                 self.config['tokens'] -= cost
-                future.set_result(None)
+                if not future.done():
+                    future.set_result(None)
                 self.queue.popleft()
                 # context switch
                 await asyncio.sleep(0)

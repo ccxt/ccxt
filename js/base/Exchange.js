@@ -471,7 +471,7 @@ module.exports = class Exchange {
         }
     }
 
-    print (... args) {
+    log (... args) {
         console.log (... args)
     }
 
@@ -509,7 +509,7 @@ module.exports = class Exchange {
         headers = this.setHeaders (headers)
 
         if (this.verbose) {
-            this.print ("fetch:\n", this.id, method, url, "\nRequest:\n", headers, "\n", body, "\n")
+            this.log ("fetch:\n", this.id, method, url, "\nRequest:\n", headers, "\n", body, "\n")
         }
 
         return this.executeRestRequest (url, method, headers, body)
@@ -608,7 +608,7 @@ module.exports = class Exchange {
                 this.last_json_response = json
             }
             if (this.verbose) {
-                this.print ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
+                this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
             }
             this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
             this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
@@ -665,6 +665,7 @@ module.exports = class Exchange {
             this.currencies = deepExtend (indexBy (sortedCurrencies, 'code'), this.currencies)
         }
         this.currencies_by_id = indexBy (this.currencies, 'id')
+        this.codes = Object.keys (this.currencies).sort ()
         return this.markets
     }
 

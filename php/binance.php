@@ -126,6 +126,7 @@ class binance extends Exchange {
                 'sapi' => array(
                     'get' => array(
                         'accountSnapshot',
+                        'system/status',
                         // these endpoints require $this->apiKey
                         'margin/asset',
                         'margin/pair',
@@ -253,7 +254,7 @@ class binance extends Exchange {
                     'post' => array(
                         'asset/dust',
                         'asset/transfer',
-                        'get-funding-asset',
+                        'asset/get-funding-asset',
                         'account/disableFastWithdrawSwitch',
                         'account/enableFastWithdrawSwitch',
                         'capital/withdraw/apply',
@@ -770,13 +771,16 @@ class binance extends Exchange {
                     '-2015' => '\\ccxt\\AuthenticationError', // "Invalid API-key, IP, or permissions for action."
                     '-2019' => '\\ccxt\\InsufficientFunds', // array("code":-2019,"msg":"Margin is insufficient.")
                     '-3005' => '\\ccxt\\InsufficientFunds', // array("code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount.")
+                    '-3006' => '\\ccxt\\InsufficientFunds', // array("code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount.")
                     '-3008' => '\\ccxt\\InsufficientFunds', // array("code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount.")
                     '-3010' => '\\ccxt\\ExchangeError', // array("code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount.")
+                    '-3015' => '\\ccxt\\ExchangeError', // array("code":-3015,"msg":"Repay amount exceeds borrow amount.")
                     '-3022' => '\\ccxt\\AccountSuspended', // You account's trading is banned.
                     '-4028' => '\\ccxt\\BadRequest', // array("code":-4028,"msg":"Leverage 100 is not valid")
                     '-3020' => '\\ccxt\\InsufficientFunds', // array("code":-3020,"msg":"Transfer out amount exceeds max amount.")
                     '-3041' => '\\ccxt\\InsufficientFunds', // array("code":-3041,"msg":"Balance is not enough")
                     '-5013' => '\\ccxt\\InsufficientFunds', // Asset transfer failed => insufficient balance"
+                    '-11008' => '\\ccxt\\InsufficientFunds', // array("code":-11008,"msg":"Exceeding the account's maximum borrowable limit.")
                 ),
                 'broad' => array(
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
@@ -1250,6 +1254,8 @@ class binance extends Exchange {
             $method = 'sapiGetMarginAccount';
         } else if ($type === 'savings') {
             $method = 'sapiGetLendingUnionAccount';
+        } else if ($type === 'pay') {
+            $method = 'sapiPostAssetGetFundingAsset';
         }
         $query = $this->omit($params, 'type');
         $response = $this->$method ($query);
@@ -1267,7 +1273,7 @@ class binance extends Exchange {
         //         updateTime => 1575357359602,
         //         accountType => "MARGIN",
         //         $balances => array(
-        //             array( asset => "BTC", free => "0.00219821", locked => "0.00000000"  ),
+        //             array( asset => "BTC", free => "0.00219821", $locked => "0.00000000"  ),
         //         )
         //     }
         //
@@ -1282,9 +1288,9 @@ class binance extends Exchange {
         //         "tradeEnabled":true,
         //         "transferEnabled":true,
         //         "userAssets":array(
-        //             array("asset":"MATIC","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"),
-        //             array("asset":"VET","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"),
-        //             array("asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000")
+        //             array("asset":"MATIC","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","$locked":"0.00000000","netAsset":"0.00000000"),
+        //             array("asset":"VET","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","$locked":"0.00000000","netAsset":"0.00000000"),
+        //             array("asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","$locked":"0.00000000","netAsset":"0.00000000")
         //         ),
         //     }
         //
@@ -1422,6 +1428,18 @@ class binance extends Exchange {
         //       )
         //     }
         //
+        // binance pay
+        //
+        //     array(
+        //       {
+        //         "asset" => "BUSD",
+        //         "free" => "1129.83",
+        //         "$locked" => "0",
+        //         "freeze" => "0",
+        //         "$withdrawing" => "0"
+        //       }
+        //     )
+        //
         $result = array(
             'info' => $response,
         );
@@ -1448,6 +1466,19 @@ class binance extends Exchange {
                 $usedAndTotal = $this->safe_string($entry, 'amount');
                 $account['total'] = $usedAndTotal;
                 $account['used'] = $usedAndTotal;
+                $result[$code] = $account;
+            }
+        } else if ($type === 'pay') {
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $account = $this->account();
+                $currencyId = $this->safe_string($entry, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account['free'] = $this->safe_string($entry, 'free');
+                $frozen = $this->safe_string($entry, 'freeze');
+                $withdrawing = $this->safe_string($entry, 'withdrawing');
+                $locked = $this->safe_string($entry, 'locked');
+                $account['used'] = Precise::string_add($frozen, Precise::string_add($locked, $withdrawing));
                 $result[$code] = $account;
             }
         } else {
@@ -1598,7 +1629,7 @@ class binance extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
-        $response = $this->wapiGetSystemStatus ($params);
+        $response = $this->sapiGetSystemStatus ($params);
         $status = $this->safe_string($response, 'status');
         if ($status !== null) {
             $status = ($status === '0') ? 'ok' : 'maintenance';
@@ -2549,39 +2580,41 @@ class binance extends Exchange {
             $request['startTime'] = $since;
             $request['endTime'] = $this->sum($since, 7776000000);
         }
-        $response = $this->wapiGetUserAssetDribbletLog (array_merge($request, $params));
-        //
+        $response = $this->sapiGetAssetDribblet (array_merge($request, $params));
         //     {
-        //         success => true,
-        //         $results => {
-        //             total => 1,
-        //             $rows => array(
-        //                 {
-        //                     transfered_total => "1.06468458",
-        //                     service_charge_total => "0.02172826",
-        //                     tran_id => 2701371634,
-        //                     $logs => array(
-        //                         {
-        //                             tranId =>  2701371634,
-        //                             serviceChargeAmount => "0.00012819",
-        //                             uid => "35103861",
-        //                             amount => "0.8012",
-        //                             operateTime => "2018-10-07 17:56:07",
-        //                             transferedAmount => "0.00628141",
-        //                             fromAsset => "ADA"
-        //                         }
-        //                     ),
-        //                     operate_time => "2018-10-07 17:56:06"
-        //                 }
-        //             )
-        //         }
+        //       "total" => "4",
+        //       "userAssetDribblets" => array(
+        //         {
+        //           "operateTime" => "1627575731000",
+        //           "totalServiceChargeAmount" => "0.00001453",
+        //           "totalTransferedAmount" => "0.00072693",
+        //           "transId" => "70899815863",
+        //           "userAssetDribbletDetails" => array(
+        //             array(
+        //               "fromAsset" => "LTC",
+        //               "amount" => "0.000006",
+        //               "transferedAmount" => "0.00000267",
+        //               "serviceChargeAmount" => "0.00000005",
+        //               "operateTime" => "1627575731000",
+        //               "transId" => "70899815863"
+        //             ),
+        //             array(
+        //               "fromAsset" => "GBP",
+        //               "amount" => "0.15949157",
+        //               "transferedAmount" => "0.00072426",
+        //               "serviceChargeAmount" => "0.00001448",
+        //               "operateTime" => "1627575731000",
+        //               "transId" => "70899815863"
+        //             }
+        //           )
+        //         ),
+        //       )
         //     }
-        //
-        $results = $this->safe_value($response, 'results', array());
-        $rows = $this->safe_value($results, 'rows', array());
+        $results = $this->safe_value($response, 'userAssetDribblets', array());
+        $rows = $this->safe_integer($response, 'total', 0);
         $data = array();
-        for ($i = 0; $i < count($rows); $i++) {
-            $logs = $rows[$i]['logs'];
+        for ($i = 0; $i < $rows; $i++) {
+            $logs = $this->safe_value($results[$i], 'userAssetDribbletDetails', array());
             for ($j = 0; $j < count($logs); $j++) {
                 $logs[$j]['isDustTrade'] = true;
                 $data[] = $logs[$j];
@@ -2592,14 +2625,18 @@ class binance extends Exchange {
     }
 
     public function parse_dust_trade($trade, $market = null) {
-        // array(              tranId =>  2701371634,
-        //   serviceChargeAmount => "0.00012819",
-        //                   uid => "35103861",
-        //                $amount => "0.8012",
-        //           operateTime => "2018-10-07 17:56:07",
-        //      transferedAmount => "0.00628141",
-        //             fromAsset => "ADA"                  ),
-        $orderId = $this->safe_string($trade, 'tranId');
+        //
+        //     {
+        //       "fromAsset" => "USDT",
+        //       "$amount" => "0.009669",
+        //       "transferedAmount" => "0.00002992",
+        //       "serviceChargeAmount" => "0.00000059",
+        //       "operateTime" => "1628076010000",
+        //       "transId" => "71416578712",
+        //       "isDustTrade" => true
+        //     }
+        //
+        $orderId = $this->safe_string($trade, 'transId');
         $timestamp = $this->parse8601($this->safe_string($trade, 'operateTime'));
         $currencyId = $this->safe_string($trade, 'fromAsset');
         $tradedCurrency = $this->safe_currency_code($currencyId);

@@ -22,7 +22,6 @@ class xena(Exchange):
             'name': 'Xena Exchange',
             'countries': ['VC', 'UK'],
             'rateLimit': 100,
-            'certified': True,
             'has': {
                 'CORS': False,
                 'cancelAllOrders': True,

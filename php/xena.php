@@ -19,7 +19,6 @@ class xena extends Exchange {
             'name' => 'Xena Exchange',
             'countries' => array( 'VC', 'UK' ),
             'rateLimit' => 100,
-            'certified' => true,
             'has' => array(
                 'CORS' => false,
                 'cancelAllOrders' => true,
