@@ -254,7 +254,7 @@ class binance extends Exchange {
                     'post' => array(
                         'asset/dust',
                         'asset/transfer',
-                        'get-funding-asset',
+                        'asset/get-funding-asset',
                         'account/disableFastWithdrawSwitch',
                         'account/enableFastWithdrawSwitch',
                         'capital/withdraw/apply',
@@ -1254,6 +1254,8 @@ class binance extends Exchange {
             $method = 'sapiGetMarginAccount';
         } else if ($type === 'savings') {
             $method = 'sapiGetLendingUnionAccount';
+        } else if ($type === 'pay') {
+            $method = 'sapiPostAssetGetFundingAsset';
         }
         $query = $this->omit($params, 'type');
         $response = $this->$method ($query);
@@ -1271,7 +1273,7 @@ class binance extends Exchange {
         //         updateTime => 1575357359602,
         //         accountType => "MARGIN",
         //         $balances => array(
-        //             array( asset => "BTC", free => "0.00219821", locked => "0.00000000"  ),
+        //             array( asset => "BTC", free => "0.00219821", $locked => "0.00000000"  ),
         //         )
         //     }
         //
@@ -1286,9 +1288,9 @@ class binance extends Exchange {
         //         "tradeEnabled":true,
         //         "transferEnabled":true,
         //         "userAssets":array(
-        //             array("asset":"MATIC","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"),
-        //             array("asset":"VET","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"),
-        //             array("asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000")
+        //             array("asset":"MATIC","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","$locked":"0.00000000","netAsset":"0.00000000"),
+        //             array("asset":"VET","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","$locked":"0.00000000","netAsset":"0.00000000"),
+        //             array("asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","$locked":"0.00000000","netAsset":"0.00000000")
         //         ),
         //     }
         //
@@ -1426,6 +1428,18 @@ class binance extends Exchange {
         //       )
         //     }
         //
+        // binance pay
+        //
+        //     array(
+        //       {
+        //         "asset" => "BUSD",
+        //         "free" => "1129.83",
+        //         "$locked" => "0",
+        //         "freeze" => "0",
+        //         "$withdrawing" => "0"
+        //       }
+        //     )
+        //
         $result = array(
             'info' => $response,
         );
@@ -1452,6 +1466,19 @@ class binance extends Exchange {
                 $usedAndTotal = $this->safe_string($entry, 'amount');
                 $account['total'] = $usedAndTotal;
                 $account['used'] = $usedAndTotal;
+                $result[$code] = $account;
+            }
+        } else if ($type === 'pay') {
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $account = $this->account();
+                $currencyId = $this->safe_string($entry, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account['free'] = $this->safe_string($entry, 'free');
+                $frozen = $this->safe_string($entry, 'freeze');
+                $withdrawing = $this->safe_string($entry, 'withdrawing');
+                $locked = $this->safe_string($entry, 'locked');
+                $account['used'] = Precise::string_add($frozen, Precise::string_add($locked, $withdrawing));
                 $result[$code] = $account;
             }
         } else {

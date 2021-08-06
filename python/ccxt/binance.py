@@ -265,7 +265,7 @@ class binance(Exchange):
                     'post': [
                         'asset/dust',
                         'asset/transfer',
-                        'get-funding-asset',
+                        'asset/get-funding-asset',
                         'account/disableFastWithdrawSwitch',
                         'account/enableFastWithdrawSwitch',
                         'capital/withdraw/apply',
@@ -1241,6 +1241,8 @@ class binance(Exchange):
             method = 'sapiGetMarginAccount'
         elif type == 'savings':
             method = 'sapiGetLendingUnionAccount'
+        elif type == 'pay':
+            method = 'sapiPostAssetGetFundingAsset'
         query = self.omit(params, 'type')
         response = getattr(self, method)(query)
         #
@@ -1412,6 +1414,18 @@ class binance(Exchange):
         #       ]
         #     }
         #
+        # binance pay
+        #
+        #     [
+        #       {
+        #         "asset": "BUSD",
+        #         "free": "1129.83",
+        #         "locked": "0",
+        #         "freeze": "0",
+        #         "withdrawing": "0"
+        #       }
+        #     ]
+        #
         result = {
             'info': response,
         }
@@ -1437,6 +1451,18 @@ class binance(Exchange):
                 usedAndTotal = self.safe_string(entry, 'amount')
                 account['total'] = usedAndTotal
                 account['used'] = usedAndTotal
+                result[code] = account
+        elif type == 'pay':
+            for i in range(0, len(response)):
+                entry = response[i]
+                account = self.account()
+                currencyId = self.safe_string(entry, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account['free'] = self.safe_string(entry, 'free')
+                frozen = self.safe_string(entry, 'freeze')
+                withdrawing = self.safe_string(entry, 'withdrawing')
+                locked = self.safe_string(entry, 'locked')
+                account['used'] = Precise.string_add(frozen, Precise.string_add(locked, withdrawing))
                 result[code] = account
         else:
             balances = response
