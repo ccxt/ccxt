@@ -790,7 +790,7 @@ class vcc(Exchange):
         if stopPrice is not None:
             request['is_stop'] = 1
             request['stop_condition'] = 'le' if (side == 'buy') else 'ge'  # ge = greater than or equal, le = less than or equal
-            request['stop_price'] = self.price_to_precision(symbol, price)
+            request['stop_price'] = self.price_to_precision(symbol, stopPrice)
         params = self.omit(params, ['stop_price', 'stopPrice'])
         response = self.privatePostOrders(self.extend(request, params))
         #
