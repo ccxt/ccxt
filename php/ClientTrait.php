@@ -48,7 +48,7 @@ trait ClientTrait {
             $on_connected = array($this, 'on_connected');
             $ws_options = $this->safe_value($this->options, 'ws', array());
             $options = array_replace_recursive(array(
-                'print' => array($this, 'print'),
+                'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
                 'loop' => static::$loop, // reactphp-specific
             ), $this->streaming, $ws_options);
