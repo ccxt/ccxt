@@ -73,7 +73,7 @@ module.exports = class Client {
 
     resolve (result, messageHash) {
         if (this.verbose && (messageHash === undefined)) {
-            this.print (new Date (), 'resolve received undefined messageHash');
+            this.log (new Date (), 'resolve received undefined messageHash');
         }
         if (this.futures[messageHash]) {
             const promise = this.futures[messageHash]
@@ -99,7 +99,7 @@ module.exports = class Client {
         return result
     }
 
-    print (... args) {
+    log (... args) {
         console.log (... args)
     }
 
@@ -178,7 +178,7 @@ module.exports = class Client {
 
     onOpen () {
         if (this.verbose) {
-            this.print (new Date (), 'onOpen')
+            this.log (new Date (), 'onOpen')
         }
         this.connectionEstablished = milliseconds ()
         this.isConnected = true
@@ -194,20 +194,20 @@ module.exports = class Client {
     // however, some devs may want to track connection states in their app
     onPing () {
         if (this.verbose) {
-            this.print (new Date (), 'onPing')
+            this.log (new Date (), 'onPing')
         }
     }
 
     onPong () {
         this.lastPong = milliseconds ()
         if (this.verbose) {
-            this.print (new Date (), 'onPong')
+            this.log (new Date (), 'onPong')
         }
     }
 
     onError (error) {
         if (this.verbose) {
-            this.print (new Date (), 'onError', error.message)
+            this.log (new Date (), 'onError', error.message)
         }
         if (!(error instanceof ccxt.BaseError)) {
             // in case of ErrorEvent from node_modules/ws/lib/event-target.js
@@ -220,7 +220,7 @@ module.exports = class Client {
 
     onClose (event) {
         if (this.verbose) {
-            this.print (new Date (), 'onClose', event)
+            this.log (new Date (), 'onClose', event)
         }
         if (!this.error) {
             // todo: exception types for server-side disconnects
@@ -233,13 +233,13 @@ module.exports = class Client {
     // but may be used to read protocol-level data like cookies, headers, etc
     onUpgrade (message) {
         if (this.verbose) {
-            this.print (new Date (), 'onUpgrade')
+            this.log (new Date (), 'onUpgrade')
         }
     }
 
     send (message) {
         if (this.verbose) {
-            this.print (new Date (), 'sending', message)
+            this.log (new Date (), 'sending', message)
         }
         message = (typeof message === 'string') ? message : JSON.stringify (message)
         this.connection.send (message)
@@ -266,12 +266,12 @@ module.exports = class Client {
                 message = JSON.parse (message.replace (/:(\d{15,}),/g, ':"$1",'))
             }
             if (this.verbose) {
-                this.print (new Date (), 'onMessage', message)
+                this.log (new Date (), 'onMessage', message)
                 // unlimited depth
-                // this.print (new Date (), 'onMessage', util.inspect (message, false, null, true))
+                // this.log (new Date (), 'onMessage', util.inspect (message, false, null, true))
             }
         } catch (e) {
-            this.print (new Date (), 'onMessage JSON.parse', e)
+            this.log (new Date (), 'onMessage JSON.parse', e)
             // reset with a json encoding error ?
         }
         this.onMessageCallback (this, message)

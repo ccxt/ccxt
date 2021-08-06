@@ -13,7 +13,7 @@ module.exports = class WsClient extends Client {
 
     createConnection () {
         if (this.verbose) {
-            this.print (new Date (), 'connecting to', this.url)
+            this.log (new Date (), 'connecting to', this.url)
         }
         this.connectionStarted = milliseconds ()
         this.setConnectionTimeout ()

@@ -49,7 +49,7 @@ module.exports = class Exchange extends ccxt.Exchange {
             // decide client type here: ws / signalr / socketio
             const wsOptions = this.safeValue (this.options, 'ws', {})
             const options = this.extend (this.streaming, {
-                'print': this.print ? this.print.bind (this) : this.print,
+                'log': this.log ? this.log.bind (this) : this.log,
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
                 'verbose': this.verbose,
                 'throttle': ccxt.throttle (this.tokenBucket),
