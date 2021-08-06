@@ -152,7 +152,6 @@ module.exports = class latoken2 extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetPair (params);
-
         //    [
         //        {
         //             "id": "263d5e99-1413-47e4-9215-ce4f5dec3556",
