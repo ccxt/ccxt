@@ -120,6 +120,7 @@ module.exports = class binance extends Exchange {
                 'sapi': {
                     'get': [
                         'accountSnapshot',
+                        'system/status',
                         // these endpoints require this.apiKey
                         'margin/asset',
                         'margin/pair',
@@ -1595,7 +1596,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.wapiGetSystemStatus (params);
+        const response = await this.sapiGetSystemStatus (params);
         let status = this.safeString (response, 'status');
         if (status !== undefined) {
             status = (status === '0') ? 'ok' : 'maintenance';
@@ -2546,39 +2547,41 @@ module.exports = class binance extends Exchange {
             request['startTime'] = since;
             request['endTime'] = this.sum (since, 7776000000);
         }
-        const response = await this.wapiGetUserAssetDribbletLog (this.extend (request, params));
-        //
+        const response = await this.sapiGetAssetDribblet (this.extend (request, params));
         //     {
-        //         success: true,
-        //         results: {
-        //             total: 1,
-        //             rows: [
-        //                 {
-        //                     transfered_total: "1.06468458",
-        //                     service_charge_total: "0.02172826",
-        //                     tran_id: 2701371634,
-        //                     logs: [
-        //                         {
-        //                             tranId:  2701371634,
-        //                             serviceChargeAmount: "0.00012819",
-        //                             uid: "35103861",
-        //                             amount: "0.8012",
-        //                             operateTime: "2018-10-07 17:56:07",
-        //                             transferedAmount: "0.00628141",
-        //                             fromAsset: "ADA"
-        //                         }
-        //                     ],
-        //                     operate_time: "2018-10-07 17:56:06"
-        //                 }
-        //             ]
-        //         }
+        //       "total": "4",
+        //       "userAssetDribblets": [
+        //         {
+        //           "operateTime": "1627575731000",
+        //           "totalServiceChargeAmount": "0.00001453",
+        //           "totalTransferedAmount": "0.00072693",
+        //           "transId": "70899815863",
+        //           "userAssetDribbletDetails": [
+        //             {
+        //               "fromAsset": "LTC",
+        //               "amount": "0.000006",
+        //               "transferedAmount": "0.00000267",
+        //               "serviceChargeAmount": "0.00000005",
+        //               "operateTime": "1627575731000",
+        //               "transId": "70899815863"
+        //             },
+        //             {
+        //               "fromAsset": "GBP",
+        //               "amount": "0.15949157",
+        //               "transferedAmount": "0.00072426",
+        //               "serviceChargeAmount": "0.00001448",
+        //               "operateTime": "1627575731000",
+        //               "transId": "70899815863"
+        //             }
+        //           ]
+        //         },
+        //       ]
         //     }
-        //
-        const results = this.safeValue (response, 'results', {});
-        const rows = this.safeValue (results, 'rows', []);
+        const results = this.safeValue (response, 'userAssetDribblets', []);
+        const rows = this.safeInteger (response, 'total', 0);
         const data = [];
-        for (let i = 0; i < rows.length; i++) {
-            const logs = rows[i]['logs'];
+        for (let i = 0; i < rows; i++) {
+            const logs = this.safeValue (results[i], 'userAssetDribbletDetails', []);
             for (let j = 0; j < logs.length; j++) {
                 logs[j]['isDustTrade'] = true;
                 data.push (logs[j]);
@@ -2589,14 +2592,18 @@ module.exports = class binance extends Exchange {
     }
 
     parseDustTrade (trade, market = undefined) {
-        // {              tranId:  2701371634,
-        //   serviceChargeAmount: "0.00012819",
-        //                   uid: "35103861",
-        //                amount: "0.8012",
-        //           operateTime: "2018-10-07 17:56:07",
-        //      transferedAmount: "0.00628141",
-        //             fromAsset: "ADA"                  },
-        const orderId = this.safeString (trade, 'tranId');
+        //
+        //     {
+        //       "fromAsset": "USDT",
+        //       "amount": "0.009669",
+        //       "transferedAmount": "0.00002992",
+        //       "serviceChargeAmount": "0.00000059",
+        //       "operateTime": "1628076010000",
+        //       "transId": "71416578712",
+        //       "isDustTrade": true
+        //     }
+        //
+        const orderId = this.safeString (trade, 'transId');
         const timestamp = this.parse8601 (this.safeString (trade, 'operateTime'));
         const currencyId = this.safeString (trade, 'fromAsset');
         const tradedCurrency = this.safeCurrencyCode (currencyId);
