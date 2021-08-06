@@ -65,12 +65,9 @@ function throttle (config) {
         }
         return promise
     }
-    const instance = new Throttle (config)
-    const bound = inner.bind (instance)
-    // useful for inspecting the tokenBucket
-    bound.config = instance.config
-    return bound
+    return inner.bind (new Throttle (config))
 }
+
 
 module.exports = {
     throttle,

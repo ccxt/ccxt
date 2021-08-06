@@ -269,7 +269,6 @@ module.exports = class Exchange {
         this.last_http_response    = undefined
         this.last_json_response    = undefined
         this.last_response_headers = undefined
-        this.depth = -1
 
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
@@ -438,15 +437,11 @@ module.exports = class Exchange {
         }
     }
 
-    defineRestApi (api, methodName, paths = [], depth = 0) {
+    defineRestApi (api, methodName, paths = []) {
         const keys = Object.keys (api)
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i]
-            let value = api[key]
-            if (depth === this.depth) {
-                // stop searching down the tree
-                value = Object.keys (value)
-            }
+            const value = api[key]
             if (Array.isArray (value)) {
                 const uppercaseMethod = key.toUpperCase ()
                 const lowercaseMethod = key.toLowerCase ()
@@ -466,7 +461,7 @@ module.exports = class Exchange {
                     this[underscore] = partial
                 }
             } else {
-                this.defineRestApi (value, methodName, paths.concat ([ key ]), depth + 1)
+                this.defineRestApi (value, methodName, paths.concat ([ key ]))
             }
         }
     }
@@ -515,16 +510,10 @@ module.exports = class Exchange {
         return this.executeRestRequest (url, method, headers, body)
     }
 
-    // eslint-disable-next-line no-unused-vars
-    calculateCost (api, path, method, params) {
-        return 1
-    }
-
     async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
 
         if (this.enableRateLimit) {
-            const cost = this.calculateCost (type, method, path, params)
-            await this.throttle (cost)
+            await this.throttle ()
         }
 
         const request = this.sign (path, type, method, params, headers, body)
