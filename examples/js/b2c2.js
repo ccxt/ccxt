@@ -17,7 +17,7 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
     })
     exchange.setSandboxMode (true);
     await exchange.loadMarkets (true);
-    // console.info ( exchange.markets)
+    console.log ( exchange.markets)
 
     // // THESE FUNCTIONS WORK WELL AND ARE FULLY IMPLEMENTED
 
@@ -40,20 +40,20 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
 
     // THESE FUNCTIONS WORK WELL AND ARE FULLY MAPPED but you don't need to ever call these directly
 
-    // // fetch currencies from the exchange
-    // let currencies = await exchange.fetchCurrencies ()
-    // log (exchange.name.green, 'currencies', currencies)
+    // fetch currencies from the exchange
+    let currencies = await exchange.fetchCurrencies ()
+    log (exchange.name.green, 'currencies', currencies)
 
-    // // fetch markets from the exchange
-    // let markets = await exchange.fetchMarkets ()
-    // log (exchange.name.green, 'markets', markets)
+    // fetch markets from the exchange
+    let markets = await exchange.fetchMarkets ()
+    log (exchange.name.green, 'markets', markets)
 
 
     // // THESE FUNCTIONS DON'T WORK PROPERLY YET!
 
-    // create a new order on the exchange
-    let new_order = await exchange.createOrder ('ETH/USD', 'MARKET', 'BUY', 1,)
-    log (exchange.name.green, 'new_order', new_order)
+    // // create a new order on the exchange
+    // let new_order = await exchange.createOrder ('ETH/USD', 'MARKET', 'BUY', 1,)
+    // log (exchange.name.green, 'new_order', new_order)
 
     // // fetch single order from the exchange
     // let order = await exchange.fetchOrder ('dbeb3cc2-68a9-4364-9d80-91de5f1f2133')

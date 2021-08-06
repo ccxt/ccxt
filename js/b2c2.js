@@ -296,7 +296,7 @@ module.exports = class b2c2 extends Exchange {
         const amountMin = ccyBase['limits']['amount']['min'];
         const amountMax = ccyBase['limits']['amount']['max'];
         const costMin = ccyQuote['limits']['amount']['min'];
-        const costMax = ccyQuote['limits']['amount']['min'];
+        const costMax = ccyQuote['limits']['amount']['max'];
         const limits = {
             'amount': { 'min': amountMin, 'max': amountMax },
             'price': { 'min': 0.0001, 'max': undefined },
