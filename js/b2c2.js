@@ -197,23 +197,10 @@ module.exports = class b2c2 extends Exchange {
         return result;
     }
 
-    async loadMarketsHelper (reload = false, params = {}) {
-        if (!reload && this.markets) {
-            if (!this.markets_by_id) {
-                return this.setMarkets (this.markets)
-            }
-            return this.markets
-        }
-        let currencies = undefined
-        if (this.has.fetchCurrencies) {
-            currencies = await this.fetchCurrencies ()
-            this.currencies = deepExtend (currencies, this.currencies)
-        }
-        const markets = await this.fetchMarkets (params)
-        return this.setMarkets (markets, currencies)
-    }
-
     async fetchMarkets (params = {}) {
+        // hack to force reload currencies
+        let currencies = await this.fetchCurrencies ()
+        this.currencies = deepExtend (currencies, this.currencies)
         const response = await this.privateGetInstruments (params);
         //
         // [

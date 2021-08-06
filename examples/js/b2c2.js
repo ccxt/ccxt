@@ -13,10 +13,10 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
     // instantiate the exchange
     let exchange = new ccxt.b2c2  ({
         "apiKey": "",
-        "verbose": true,
+        "verbose": false,
     })
     exchange.setSandboxMode (true);
-    await exchange.loadMarkets (true);
+    await exchange.loadMarkets ();
     console.log ( exchange.markets)
 
     // // THESE FUNCTIONS WORK WELL AND ARE FULLY IMPLEMENTED
