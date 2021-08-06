@@ -248,7 +248,7 @@ module.exports = class binance extends Exchange {
                     'post': [
                         'asset/dust',
                         'asset/transfer',
-                        'get-funding-asset',
+                        'asset/get-funding-asset',
                         'account/disableFastWithdrawSwitch',
                         'account/enableFastWithdrawSwitch',
                         'capital/withdraw/apply',
@@ -1248,6 +1248,8 @@ module.exports = class binance extends Exchange {
             method = 'sapiGetMarginAccount';
         } else if (type === 'savings') {
             method = 'sapiGetLendingUnionAccount';
+        } else if (type === 'pay') {
+            method = 'sapiPostAssetGetFundingAsset';
         }
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
@@ -1420,6 +1422,18 @@ module.exports = class binance extends Exchange {
         //       ]
         //     }
         //
+        // binance pay
+        //
+        //     [
+        //       {
+        //         "asset": "BUSD",
+        //         "free": "1129.83",
+        //         "locked": "0",
+        //         "freeze": "0",
+        //         "withdrawing": "0"
+        //       }
+        //     ]
+        //
         const result = {
             'info': response,
         };
@@ -1446,6 +1460,19 @@ module.exports = class binance extends Exchange {
                 const usedAndTotal = this.safeString (entry, 'amount');
                 account['total'] = usedAndTotal;
                 account['used'] = usedAndTotal;
+                result[code] = account;
+            }
+        } else if (type === 'pay') {
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const account = this.account ();
+                const currencyId = this.safeString (entry, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                account['free'] = this.safeString (entry, 'free');
+                const frozen = this.safeString (entry, 'freeze');
+                const withdrawing = this.safeString (entry, 'withdrawing');
+                const locked = this.safeString (entry, 'locked');
+                account['used'] = Precise.stringAdd (frozen, Precise.stringAdd (locked, withdrawing));
                 result[code] = account;
             }
         } else {
