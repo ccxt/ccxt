@@ -257,7 +257,7 @@ module.exports = class binance extends Exchange {
                         'margin/transfer': { 'weight': 1 },
                         'margin/loan': { 'weight': 1 },
                         'margin/repay': { 'weight': 1 },
-                        'margin/order': { 'weight': 4 },
+                        'margin/order': { 'weight': 11 },
                         'margin/isolated/create': { 'weight': 1 },
                         'margin/isolated/transfer': { 'weight': 1 },
                         'bnbBurn': { 'weight': 1 },
@@ -400,7 +400,7 @@ module.exports = class binance extends Exchange {
                     },
                     'post': {
                         'positionSide/dual': { 'weight': 1 },
-                        'order': { 'weight': 4 },
+                        'order': { 'weight': 11 },
                         'batchOrders': { 'weight': 5 },
                         'countdownCancelAll': { 'weight': 10 },
                         'leverage': { 'weight': 1 },
@@ -488,7 +488,7 @@ module.exports = class binance extends Exchange {
                         'positionSide/dual': { 'weight': 1 },
                         'positionMargin': { 'weight': 1 },
                         'marginType': { 'weight': 1 },
-                        'order': { 'weight': 4 },
+                        'order': { 'weight': 11 },
                         'leverage': { 'weight': 1 },
                         'listenKey': { 'weight': 1 },
                         'countdownCancelAll': { 'weight': 10 },
@@ -551,7 +551,7 @@ module.exports = class binance extends Exchange {
                     },
                     'post': {
                         'order/oco': { 'weight': 1 },
-                        'order': { 'weight': 4 },
+                        'order': { 'weight': 11 },
                         'order/test': { 'weight': 1 },
                     },
                     'delete': {
