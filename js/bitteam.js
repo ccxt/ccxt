@@ -195,8 +195,8 @@ module.exports = class bitteam extends Exchange {
         const active = this.safeValue (market, 'active');
         const takerValue = this.safeNumber (market, 'takerFee').toString ();
         const makerValue = this.safeNumber (market, 'makerFee').toString ();
-        const taker = this.parseNumber (Precise.stringDiv (takerValue, '1000'));
-        const maker = this.parseNumber (Precise.stringDiv (makerValue, '1000'));
+        const taker = Precise.stringDiv (takerValue, '1000');
+        const maker = Precise.stringDiv (makerValue, '1000');
         const settings = this.safeValue (market, 'settings');
         const limits = {
             'amount': {
@@ -293,7 +293,8 @@ module.exports = class bitteam extends Exchange {
     parseTrade (trade, market = undefined) {
         const marketId = this.safeString (trade, 'pair');
         if (market === undefined) {
-            market = this.safeMarket (marketId, market, '_');
+            const mrk = this.safeMarket (marketId, market, '_');
+            market = this.market (mrk['symbol']);
         }
         const symbol = market['symbol'];
         const id = this.safeString (trade, 'tradeId');
@@ -547,7 +548,7 @@ module.exports = class bitteam extends Exchange {
             status = 'expired';
         }
         const marketId = this.safeString (order, 'pair');
-        const symbol = this.safeSymbol (marketId, undefined, '_');
+        const symbol = this.safeSymbol (marketId, market, '_');
         if (market === undefined) {
             market = this.market (symbol);
         }
