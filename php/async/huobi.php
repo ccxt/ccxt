@@ -1015,10 +1015,12 @@ class huobi extends Exchange {
 
     public function fetch_open_orders_v2($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
         }
-        $market = $this->market($symbol);
         $accountId = $this->safe_string($params, 'account-id');
         if ($accountId === null) {
             // pick the first $account
@@ -1033,10 +1035,7 @@ class huobi extends Exchange {
                 }
             }
         }
-        $request = array(
-            'symbol' => $market['id'],
-            'account-id' => $accountId,
-        );
+        $request['account-id'] = $accountId;
         if ($limit !== null) {
             $request['size'] = $limit;
         }
@@ -1121,8 +1120,10 @@ class huobi extends Exchange {
             $status = $this->parse_order_status($this->safe_string($order, 'state'));
         }
         $marketId = $this->safe_string($order, 'symbol');
+        $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($order, 'created-at');
+        $clientOrderId = $this->safe_string($order, 'client-$order-id');
         $amount = $this->safe_number($order, 'amount');
         $filled = $this->safe_number_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
         $price = $this->safe_number($order, 'price');
@@ -1145,7 +1146,7 @@ class huobi extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
