@@ -286,7 +286,6 @@ module.exports = class b2c2 extends Exchange {
         }
         const active = true;
         const ccyBase = this.currencies[base];
-        // console.info(this.currencies);
         const ccyQuote = this.currencies[quote];
         const pricePrecision = ccyQuote['limits']['amount']['min'];
         const amountPrecision = ccyBase['limits']['amount']['min'];
@@ -362,6 +361,8 @@ module.exports = class b2c2 extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         // side: 'buy' | 'sell';
         // type: 'market' | 'limit';
+        // ({'Content-Type': 'application/json', 'Authorization': 'Token blah'},) 
+        // {'client_order_id': '745bf810-07ee-483b-902b-c41edf4b119c', 'quantity': '2', 'side': 'sell', 'instrument': 'ETHUSD.SPOT', 'order_type': 'MKT', 'valid_until': '2021-08-07 12:19:41.976496'} to 'https://api.uat.b2c2.net/order/'...
         await this.loadMarkets ();
         const market = this.market (symbol);
         const lowercaseSide = side.toLowerCase ();
@@ -371,7 +372,8 @@ module.exports = class b2c2 extends Exchange {
             'quantity': this.amountToPrecision (symbol, amount),
             'side': lowercaseSide,
             'instrument': market['id'],
-            'valid_until': '2022-08-04 10:05:15.00000', // need to do properly
+            'order_type': undefined,
+            'valid_until': '2021-08-07 12:20:41.976496', // need to do properly
         };
         if (lowercaseType === 'limit') {
             request['order_type'] = 'FOK';
@@ -384,14 +386,43 @@ module.exports = class b2c2 extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        // [
+        //     {
+        //         order_id: 'dbeb3cc2-68a9-4364-9d80-91de5f1f2133',
+        //         client_order_id: 'eba0fc09-0f51-4298-ab88-42c70eb2ba39',
+        //         instrument: 'BTCUSD.SPOT',
+        //         price: '40498.00000000',
+        //         executed_price: '40477.00000000',
+        //         quantity: '1.0000000000',
+        //         side: 'buy',
+        //         order_type: 'MKT',
+        //         created: '2021-05-21T06:56:31.519896Z',
+        //         trades: [
+        //           {
+        //             trade_id: '8862acae-834c-42da-986c-b4d1618dc016',
+        //             rfq_id: null,
+        //             cfd_contract: null,
+        //             order: 'dbeb3cc2-68a9-4364-9d80-91de5f1f2133',
+        //             quantity: '1.0000000000',
+        //             side: 'buy',
+        //             instrument: 'BTCUSD.SPOT',
+        //             price: '40477.00000000',
+        //             created: '2021-05-21T06:56:31.548302Z',
+        //             origin: 'screen:mobile',
+        //             executing_unit: ''
+        //           }
+        //         ],
+        //         executing_unit: ''
+        //       }
+        // ]
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = { 'id': id };
-        const response = await this.privateGetOrderOrderidorclientorderid (request);
-        return this.parseOrder (response, market);
+        const request = { 'order_id_or_client_order_id': id };
+        const response = await this.privateGetOrderOrderIdOrClientOrderId (request);
+        return this.parseOrders (response, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 1000, params = {}) {
@@ -457,6 +488,13 @@ module.exports = class b2c2 extends Exchange {
             status = 'open';
             remaining = amount;
         }
+        const rawTrades = this.safeValue (order, 'trades', []);
+        let trades = undefined;
+        if (rawTrades !== undefined) {
+            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+                'type': type,
+            });
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -478,7 +516,7 @@ module.exports = class b2c2 extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
-            // 'trades': trades, - B2C2 doesn't return this nor get trades by order ID, need to synthesise
+            'trades': trades,
         });
     }
 
@@ -535,7 +573,8 @@ module.exports = class b2c2 extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const price = this.parseNumber (priceString);
         const datetime = this.parse8601 (this.safeString (trade, 'created'));
-        const orderId = this.safeString (trade, 'client_order_id');
+        const orderId = this.safeString (trade, 'order');
+        const clientOrderId = this.safeString (trade, 'client_order_id');
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const type = undefined; // need to link to the order, otherwise cannot tell
         const takerOrMaker = undefined; // need to link to the order, otherwise cannot tell
@@ -546,6 +585,7 @@ module.exports = class b2c2 extends Exchange {
             'datetime': this.iso8601 (datetime),
             'symbol': symbol,
             'order': orderId,
+            'clientOrderId': clientOrderId,
             'type': type,
             'side': side,
             'price': price,
@@ -778,26 +818,28 @@ module.exports = class b2c2 extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'][api] + '/' + path;
-        if ((api === 'public') || (api === 'markets')) {
-            url += this.implodeParams (path, params);
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else {
-            this.checkRequiredCredentials ();
-            headers = {
-                'Authorization': 'Token ' + this.apiKey,
-            };
+        let url = this.implodeHostname (this.urls['api'][api]) + '/';
+        url += this.implodeParams (path, params);
+        if (api === 'private') {
             if (method === 'GET') {
+                headers = {
+                    'Authorization': 'Token ' + this.apiKey,
+                };
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }
             } else if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                body = this.json (query);
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Token ' + this.apiKey,
+                };
+                if (Object.keys (params).length) {
+                    body = this.json (query);
+                    // body = query;
+                }
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const r = { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return r;
     }
 };
