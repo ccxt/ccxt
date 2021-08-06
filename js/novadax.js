@@ -621,11 +621,7 @@ module.exports = class novadax extends Exchange {
             } else if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_MARKET';
             }
-            const operatorString = this.safeString (params, 'operator');
-            if (operatorString === undefined) {
-                throw new ArgumentsRequired (this.id + " createOrder() requires an operator parameter 'GTE' or 'LTE' for " + uppercaseType + ' orders');
-            }
-            request['operator'] = operatorString;
+            request['operator'] = (uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             params = this.omit (params, 'stopPrice');
         }
