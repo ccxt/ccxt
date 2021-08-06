@@ -4,7 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError, DDoSProtection, NotSupported } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError, DDoSProtection, NotSupported, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -33,6 +34,7 @@ module.exports = class liquid extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
                 'withdraw': true,
             },
             'urls': {
@@ -43,7 +45,7 @@ module.exports = class liquid extends Exchange {
                     'https://developers.liquid.com',
                 ],
                 'fees': 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
-                'referral': 'https://www.liquid.com?affiliate=SbzC62lt30976',
+                'referral': 'https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976',
             },
             'api': {
                 'public': {
@@ -65,7 +67,7 @@ module.exports = class liquid extends Exchange {
                         'accounts/{id}',
                         'accounts/{currency}/reserved_balance_details',
                         'crypto_accounts', // add fetchAccounts
-                        'crypto_withdrawals', // add fetchWithdrawals
+                        'crypto_withdrawals',
                         'executions/me',
                         'fiat_accounts', // add fetchAccounts
                         'fund_infos', // add fetchDeposits
@@ -108,7 +110,7 @@ module.exports = class liquid extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.0015,
+                    'taker': 0.0030,
                     'maker': 0.0000,
                     'tiers': {
                         'perpetual': {
@@ -127,48 +129,52 @@ module.exports = class liquid extends Exchange {
                                 [ 300000000, -0.00025 ],
                             ],
                             'taker': [
-                                [ 0, 0.000600 ],
-                                [ 25000, 0.000575 ],
-                                [ 50000, 0.000550 ],
-                                [ 100000, 0.000525 ],
-                                [ 1000000, 0.000500 ],
-                                [ 10000000, 0.000475 ],
-                                [ 25000000, 0.000450 ],
-                                [ 50000000, 0.000425 ],
-                                [ 75000000, 0.000400 ],
-                                [ 100000000, 0.000375 ],
-                                [ 200000000, 0.000350 ],
-                                [ 300000000, 0.000325 ],
+                                [ 0, 0.00120 ],
+                                [ 25000, 0.00115 ],
+                                [ 50000, 0.00110 ],
+                                [ 100000, 0.00105 ],
+                                [ 1000000, 0.00100 ],
+                                [ 10000000, 0.00095 ],
+                                [ 25000000, 0.00090 ],
+                                [ 50000000, 0.00085 ],
+                                [ 75000000, 0.00080 ],
+                                [ 100000000, 0.00075 ],
+                                [ 200000000, 0.00070 ],
+                                [ 300000000, 0.00065 ],
                             ],
                         },
                         'spot': {
                             'taker': [
-                                [ 0, 0.0015 ],
-                                [ 10000, 0.0015 ],
-                                [ 20000, 0.0014 ],
-                                [ 50000, 0.0013 ],
-                                [ 100000, 0.0010 ],
-                                [ 1000000, 0.0008 ],
-                                [ 5000000, 0.0006 ],
-                                [ 10000000, 0.0005 ],
-                                [ 25000000, 0.0005 ],
-                                [ 50000000, 0.00045 ],
-                                [ 100000000, 0.0004 ],
-                                [ 200000000, 0.0003 ],
+                                [ 0, 0.003 ],
+                                [ 10000, 0.0029 ],
+                                [ 20000, 0.0028 ],
+                                [ 50000, 0.0026 ],
+                                [ 100000, 0.0020 ],
+                                [ 1000000, 0.0016 ],
+                                [ 5000000, 0.0012 ],
+                                [ 10000000, 0.0010 ],
+                                [ 25000000, 0.0009 ],
+                                [ 50000000, 0.0008 ],
+                                [ 100000000, 0.0007 ],
+                                [ 200000000, 0.0006 ],
+                                [ 500000000, 0.0004 ],
+                                [ 1000000000, 0.0003 ],
                             ],
                             'maker': [
                                 [ 0, 0.0000 ],
-                                [ 10000, 0.0015 ],
-                                [ 20000, 0.1400 ],
-                                [ 50000, 0.1300 ],
-                                [ 100000, 0.0800 ],
-                                [ 1000000, 0.0004 ],
-                                [ 5000000, 0.00035 ],
-                                [ 10000000, 0.00025 ],
+                                [ 10000, 0.0020 ],
+                                [ 20000, 0.0019 ],
+                                [ 50000, 0.0018 ],
+                                [ 100000, 0.0016 ],
+                                [ 1000000, 0.0008 ],
+                                [ 5000000, 0.0007 ],
+                                [ 10000000, 0.0005 ],
                                 [ 25000000, 0.0000 ],
                                 [ 50000000, 0.0000 ],
                                 [ 100000000, 0.0000 ],
                                 [ 200000000, 0.0000 ],
+                                [ 500000000, 0.0000 ],
+                                [ 1000000000, 0.0000 ],
                             ],
                         },
                     },
@@ -186,6 +192,8 @@ module.exports = class liquid extends Exchange {
                 'must_be_positive': InvalidOrder,
                 'less_than_order_size': InvalidOrder,
                 'price_too_high': InvalidOrder,
+                'price_too_small': InvalidOrder, // {"errors":{"order":["price_too_small"]}}
+                'product_disabled': BadSymbol, // {"errors":{"order":["product_disabled"]}}
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
@@ -216,6 +224,15 @@ module.exports = class liquid extends Exchange {
         //             depositable: true,
         //             withdrawable: true,
         //             discount_fee: 0.5,
+        //             credit_card_fundable: false,
+        //             lendable: false,
+        //             position_fundable: true,
+        //             has_memo: false,
+        //             stable_currency: null,
+        //             root_currency: 'USD',
+        //             minimum_loan_bid_quantity: '0.0',
+        //             maximum_order_taker_quantity: null,
+        //             name: 'United States Dollar'
         //         },
         //     ]
         //
@@ -224,33 +241,24 @@ module.exports = class liquid extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
             const active = currency['depositable'] && currency['withdrawable'];
-            const amountPrecision = this.safeInteger (currency, 'display_precision');
-            const pricePrecision = this.safeInteger (currency, 'quoting_precision');
-            const precision = Math.max (amountPrecision, pricePrecision);
+            const amountPrecision = this.safeInteger (currency, 'assets_precision');
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': code,
+                'name': name,
                 'active': active,
-                'fee': this.safeFloat (currency, 'withdrawal_fee'),
-                'precision': precision,
+                'fee': this.safeNumber (currency, 'withdrawal_fee'),
+                'precision': amountPrecision,
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -amountPrecision),
                         'max': Math.pow (10, amountPrecision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -pricePrecision),
-                        'max': Math.pow (10, pricePrecision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': this.safeFloat (currency, 'minimum_withdrawal'),
+                        'min': this.safeNumber (currency, 'minimum_withdrawal'),
                         'max': undefined,
                     },
                 },
@@ -375,19 +383,32 @@ module.exports = class liquid extends Exchange {
             let maker = this.fees['trading']['maker'];
             let taker = this.fees['trading']['taker'];
             if (type === 'swap') {
-                maker = this.safeFloat (market, 'maker_fee', this.fees['trading']['maker']);
-                taker = this.safeFloat (market, 'taker_fee', this.fees['trading']['taker']);
+                maker = this.safeNumber (market, 'maker_fee', this.fees['trading']['maker']);
+                taker = this.safeNumber (market, 'taker_fee', this.fees['trading']['taker']);
             }
             const disabled = this.safeValue (market, 'disabled', false);
             const active = !disabled;
             const baseCurrency = this.safeValue (currenciesByCode, base);
             const precision = {
                 'amount': 0.00000001,
-                'price': this.safeFloat (market, 'tick_size'),
+                'price': this.safeNumber (market, 'tick_size'),
             };
             let minAmount = undefined;
             if (baseCurrency !== undefined) {
-                minAmount = this.safeFloat (baseCurrency['info'], 'minimum_order_quantity');
+                minAmount = this.safeNumber (baseCurrency['info'], 'minimum_order_quantity');
+            }
+            const lastPrice = this.safeNumber (market, 'last_traded_price');
+            let minPrice = undefined;
+            let maxPrice = undefined;
+            if (lastPrice) {
+                const multiplierDown = this.safeNumber (market, 'multiplier_down');
+                const multiplierUp = this.safeNumber (market, 'multiplier_up');
+                if (multiplierDown !== undefined) {
+                    minPrice = lastPrice * multiplierDown;
+                }
+                if (multiplierUp !== undefined) {
+                    maxPrice = lastPrice * multiplierUp;
+                }
             }
             const limits = {
                 'amount': {
@@ -395,8 +416,8 @@ module.exports = class liquid extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': undefined,
-                    'max': undefined,
+                    'min': minPrice,
+                    'max': maxPrice,
                 },
                 'cost': {
                     'min': undefined,
@@ -461,7 +482,11 @@ module.exports = class liquid extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const crypto = this.safeValue (response, 'crypto_accounts', []);
         const fiat = this.safeValue (response, 'fiat_accounts', []);
         for (let i = 0; i < crypto.length; i++) {
@@ -469,8 +494,8 @@ module.exports = class liquid extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance');
-            account['used'] = this.safeFloat (balance, 'reserved_balance');
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'reserved_balance');
             result[code] = account;
         }
         for (let i = 0; i < fiat.length; i++) {
@@ -478,8 +503,8 @@ module.exports = class liquid extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance');
-            account['used'] = this.safeFloat (balance, 'reserved_balance');
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'reserved_balance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -491,7 +516,7 @@ module.exports = class liquid extends Exchange {
             'id': this.marketId (symbol),
         };
         const response = await this.publicGetProductsIdPriceLevels (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'buy_price_levels', 'sell_price_levels');
+        return this.parseOrderBook (response, symbol, undefined, 'buy_price_levels', 'sell_price_levels');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -501,7 +526,7 @@ module.exports = class liquid extends Exchange {
             if (ticker['last_traded_price']) {
                 const length = ticker['last_traded_price'].length;
                 if (length > 0) {
-                    last = this.safeFloat (ticker, 'last_traded_price');
+                    last = this.safeNumber (ticker, 'last_traded_price');
                 }
             }
         }
@@ -526,7 +551,7 @@ module.exports = class liquid extends Exchange {
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
-        const open = this.safeFloat (ticker, 'last_price_24h');
+        const open = this.safeNumber (ticker, 'last_price_24h');
         if (open !== undefined && last !== undefined) {
             change = last - open;
             average = this.sum (last, open) / 2;
@@ -538,11 +563,11 @@ module.exports = class liquid extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high_market_ask'),
-            'low': this.safeFloat (ticker, 'low_market_bid'),
-            'bid': this.safeFloat (ticker, 'market_bid'),
+            'high': this.safeNumber (ticker, 'high_market_ask'),
+            'low': this.safeNumber (ticker, 'low_market_bid'),
+            'bid': this.safeNumber (ticker, 'market_bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'market_ask'),
+            'ask': this.safeNumber (ticker, 'market_ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -552,7 +577,7 @@ module.exports = class liquid extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'volume_24h'),
+            'baseVolume': this.safeNumber (ticker, 'volume_24h'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -598,14 +623,11 @@ module.exports = class liquid extends Exchange {
         if (mySide !== undefined) {
             takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
         }
-        let cost = undefined;
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'quantity');
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (market !== undefined) {
@@ -722,7 +744,7 @@ module.exports = class liquid extends Exchange {
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (price === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder requires the price argument');
+            throw new ArgumentsRequired (this.id + ' editOrder() requires the price argument');
         }
         const request = {
             'order': {
@@ -808,9 +830,9 @@ module.exports = class liquid extends Exchange {
         const marketId = this.safeString (order, 'product_id');
         market = this.safeValue (this.markets_by_id, marketId);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const amount = this.safeFloat (order, 'quantity');
-        let filled = this.safeFloat (order, 'filled_quantity');
-        const price = this.safeFloat (order, 'price');
+        const amount = this.safeNumber (order, 'quantity');
+        let filled = this.safeNumber (order, 'filled_quantity');
+        const price = this.safeNumber (order, 'price');
         let symbol = undefined;
         let feeCurrency = undefined;
         if (market !== undefined) {
@@ -820,7 +842,7 @@ module.exports = class liquid extends Exchange {
         const type = this.safeString (order, 'order_type');
         let tradeCost = 0;
         let tradeFilled = 0;
-        let average = this.safeFloat (order, 'average_price');
+        let average = this.safeNumber (order, 'average_price');
         const trades = this.parseTrades (this.safeValue (order, 'executions', []), market, undefined, undefined, {
             'order': orderId,
             'type': type,
@@ -862,10 +884,13 @@ module.exports = class liquid extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'status': status,
             'symbol': symbol,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
             'cost': cost,
@@ -874,7 +899,7 @@ module.exports = class liquid extends Exchange {
             'trades': trades,
             'fee': {
                 'currency': feeCurrency,
-                'cost': this.safeFloat (order, 'order_fee'),
+                'cost': this.safeNumber (order, 'order_fee'),
             },
             'info': order,
         };
@@ -958,7 +983,7 @@ module.exports = class liquid extends Exchange {
             // 'auth_code': '', // optional 2fa code
             'currency': currency['id'],
             'address': address,
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': amount,
             // 'payment_id': tag, // for XRP only
             // 'memo_type': 'text', // 'text', 'id' or 'hash', for XLM only
             // 'memo_value': tag, // for XLM only
@@ -990,11 +1015,55 @@ module.exports = class liquid extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // state: 'processed', // optional: pending, filed, cancelled, processing, processed, reverted to_be_reviewed, declined, broadcasted
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const response = await this.privateGetCryptoWithdrawals (this.extend (request, params));
+        //
+        //     {
+        //         models: [
+        //             {
+        //                 id: '2',
+        //                 address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        //                 amount: '0.01',
+        //                 state: 'processed',
+        //                 currency: 'BTC',
+        //                 withdrawal_fee: '0.0005',
+        //                 created_at: '1614718276',
+        //                 updated_at: '1614720926',
+        //                 payment_id: null,
+        //                 transaction_hash: 'xxxxxxxx...',
+        //                 broadcasted_at: '1614720762',
+        //                 wallet_label: 'btc',
+        //                 chain_name: 'Bitcoin',
+        //                 network: null
+        //             },
+        //         ],
+        //         current_page: '1',
+        //         total_pages: '1'
+        //     }
+        //
+        const transactions = this.safeValue (response, 'models', []);
+        return this.parseTransactions (transactions, currency, since, limit);
+    }
+
     parseTransactionStatus (status) {
         const statuses = {
             'pending': 'pending',
             'cancelled': 'canceled',
             'approved': 'ok',
+            'processing': 'pending',
+            'processed': 'ok',
+            'reverted': 'failed',
+            'to_be_reviewed': 'pending',
+            'declined': 'failed',
+            'broadcasted': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1004,32 +1073,58 @@ module.exports = class liquid extends Exchange {
         // withdraw
         //
         //     {
-        //         "id": 1353,
-        //         "address": "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
-        //         "amount": 1.0,
-        //         "state": "pending",
-        //         "currency": "BTC",
-        //         "withdrawal_fee": 0.0,
-        //         "created_at": 1568016450,
-        //         "updated_at": 1568016450,
-        //         "payment_id": null
-        //     }
+        //         id: '1',
+        //         address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        //         amount: '0.01',
+        //         state: 'pending',
+        //         currency: 'BTC',
+        //         withdrawal_fee: '0.0007',
+        //         created_at: '1626000533',
+        //         updated_at: '1626000533',
+        //         payment_id: null,
+        //         transaction_hash: null,
+        //         broadcasted_at: null,
+        //         wallet_label: null,
+        //         chain_name: 'Bitcoin',
+        //         network: null
+        //     },
         //
-        // fetchDeposits, fetchWithdrawals
+        // fetchWithdrawals
+        //
+        //     {
+        //         id: '2',
+        //         address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        //         amount: '0.01',
+        //         state: 'processed',
+        //         currency: 'BTC',
+        //         withdrawal_fee: '0.0005',
+        //         created_at: '1614718276',
+        //         updated_at: '1614720926',
+        //         payment_id: '',
+        //         transaction_hash: 'xxxxxxxx...',
+        //         broadcasted_at: '1614720762',
+        //         wallet_label: 'btc',
+        //         chain_name: 'Bitcoin',
+        //         network: null
+        //     },
+        //
+        // fetchDeposits
         //
         //     ...
         //
         const id = this.safeString (transaction, 'id');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString2 (transaction, 'payment_id', 'memo_value');
-        const txid = undefined;
-        const currencyId = this.safeString (transaction, 'asset');
+        const txid = this.safeString (transaction, 'transaction_hash');
+        const currencyId = this.safeString2 (transaction, 'currency', 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.safeTimestamp (transaction, 'created_at');
         const updated = this.safeTimestamp (transaction, 'updated_at');
         const type = 'withdrawal';
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        const amount = this.safeFloat (transaction, 'amount');
+        const amountString = this.safeString (transaction, 'amount');
+        const feeCostString = this.safeString (transaction, 'withdrawal_fee');
+        const amount = this.parseNumber (Precise.stringSub (amountString, feeCostString));
         return {
             'info': transaction,
             'id': id,
@@ -1043,7 +1138,10 @@ module.exports = class liquid extends Exchange {
             'currency': code,
             'status': status,
             'updated': updated,
-            'fee': undefined,
+            'fee': {
+                'currency': code,
+                'cost': this.parseNumber (feeCostString),
+            },
         };
     }
 

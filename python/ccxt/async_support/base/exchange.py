@@ -2,12 +2,12 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.35.73'
+__version__ = '1.54.52'
 
 # -----------------------------------------------------------------------------
 
 import asyncio
-import concurrent
+import concurrent.futures
 import socket
 import certifi
 import aiohttp
@@ -17,7 +17,7 @@ import yarl
 
 # -----------------------------------------------------------------------------
 
-from ccxt.async_support.base.throttle import throttle
+from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
@@ -25,6 +25,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import BadSymbol
 
 # -----------------------------------------------------------------------------
 
@@ -51,14 +52,13 @@ class Exchange(BaseExchange):
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
         super(Exchange, self).__init__(config)
+        self.throttle = None
         self.init_rest_rate_limiter()
         self.markets_loading = None
         self.reloading_markets = False
 
     def init_rest_rate_limiter(self):
-        self.throttle = throttle(self.extend({
-            'loop': self.asyncio_loop,
-        }, self.tokenBucket))
+        self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
 
     def __del__(self):
         if self.session is not None:
@@ -89,7 +89,8 @@ class Exchange(BaseExchange):
     async def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
         """A better wrapper over request for deferred signing"""
         if self.enableRateLimit:
-            await self.throttle(self.rateLimit)
+            # insert cost into here...
+            await self.throttle()
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
@@ -119,10 +120,18 @@ class Exchange(BaseExchange):
                                       timeout=(self.timeout / 1000),
                                       proxy=self.aiohttp_proxy) as response:
                 http_response = await response.text()
+                # CIMultiDictProxy
+                raw_headers = response.headers
+                headers = {}
+                for header in raw_headers:
+                    if header in headers:
+                        headers[header] = headers[header] + ', ' + raw_headers[header]
+                    else:
+                        headers[header] = raw_headers[header]
                 http_status_code = response.status
                 http_status_text = response.reason
+                http_response = self.on_rest_response(http_status_code, http_status_text, url, method, headers, http_response, request_headers, request_body)
                 json_response = self.parse_json(http_response)
-                headers = response.headers
                 if self.enableLastHttpResponse:
                     self.last_http_response = http_response
                 if self.enableLastResponseHeaders:
@@ -134,19 +143,23 @@ class Exchange(BaseExchange):
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror as e:
-            raise ExchangeNotAvailable(method + ' ' + url)
+            details = ' '.join([self.id, method, url])
+            raise ExchangeNotAvailable(details) from e
 
-        except concurrent.futures._base.TimeoutError as e:
-            raise RequestTimeout(method + ' ' + url)
+        except (concurrent.futures.TimeoutError, asyncio.TimeoutError) as e:
+            details = ' '.join([self.id, method, url])
+            raise RequestTimeout(details) from e
 
-        except aiohttp.client_exceptions.ClientConnectionError as e:
-            raise ExchangeNotAvailable(method + ' ' + url)
+        except aiohttp.ClientConnectionError as e:
+            details = ' '.join([self.id, method, url])
+            raise ExchangeNotAvailable(details) from e
 
-        except aiohttp.client_exceptions.ClientError as e:  # base exception class
-            raise ExchangeError(method + ' ' + url)
+        except aiohttp.ClientError as e:  # base exception class
+            details = ' '.join([self.id, method, url])
+            raise ExchangeError(details) from e
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
-        self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
+        self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
         if json_response is not None:
             return json_response
         if self.is_text_response(headers):
@@ -305,7 +318,15 @@ class Exchange(BaseExchange):
         return self.accounts
 
     async def fetch_ticker(self, symbol, params={}):
-        raise NotSupported('fetch_ticker() not supported yet')
+        if self.has['fetchTickers']:
+            tickers = await self.fetch_tickers([symbol], params)
+            ticker = self.safe_value(tickers, symbol)
+            if ticker is None:
+                raise BadSymbol(self.id + ' fetchTickers could not find a ticker for ' + symbol)
+            else:
+                return ticker
+        else:
+            raise NotSupported(self.id + ' fetchTicker not supported yet')
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_transactions() is not supported yet')
@@ -316,8 +337,16 @@ class Exchange(BaseExchange):
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    async def fetch_deposit_address(self, code=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_deposit_address() is not supported yet')
+    async def fetch_deposit_address(self, code, params={}):
+        if self.has['fetchDepositAddresses']:
+            deposit_addresses = await self.fetch_deposit_addresses([code], params)
+            deposit_address = self.safe_value(deposit_addresses, code)
+            if deposit_address is None:
+                raise NotSupported(self.id + ' fetch_deposit_address could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
+            else:
+                return deposit_address
+        else:
+            raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
 
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)

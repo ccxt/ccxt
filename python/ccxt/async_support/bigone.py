@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -14,6 +13,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.precise import Precise
 
 
 class bigone(Exchange):
@@ -88,6 +88,7 @@ class bigone(Exchange):
                 'private': {
                     'get': [
                         'accounts',
+                        'fund/accounts',
                         'assets/{asset_symbol}/address',
                         'orders',
                         'orders/{id}',
@@ -101,31 +102,17 @@ class bigone(Exchange):
                         'orders/{id}/cancel',
                         'orders/cancel',
                         'withdrawals',
+                        'transfer',
                     ],
                 },
             },
             'fees': {
                 'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.001'),
                 },
                 'funding': {
-                    # HARDCODING IS DEPRECATED THE FEES BELOW ARE TO BE REMOVED SOON
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'ETH': 0.005,
-                        'EOS': 0.01,
-                        'ZEC': 0.003,
-                        'LTC': 0.01,
-                        'QTUM': 0.01,
-                        # 'INK': 0.01 QTUM,
-                        # 'BOT': 0.01 QTUM,
-                        'ETC': 0.01,
-                        'GAS': 0.0,
-                        'BTS': 1.0,
-                        'GXS': 0.1,
-                        'BITCNY': 19.0,
-                    },
+                    'withdraw': {},
                 },
             },
             'exceptions': {
@@ -133,6 +120,7 @@ class bigone(Exchange):
                     '10001': BadRequest,  # syntax error
                     '10005': ExchangeError,  # internal error
                     "Amount's scale must greater than AssetPair's base scale": InvalidOrder,
+                    "Price mulit with amount should larger than AssetPair's min_quote_value": InvalidOrder,
                     '10007': BadRequest,  # parameter error, {"code":10007,"message":"Amount's scale must greater than AssetPair's base scale"}
                     '10011': ExchangeError,  # system error
                     '10013': OrderNotFound,  # {"code":10013,"message":"Resource not found"}
@@ -147,6 +135,7 @@ class bigone(Exchange):
                     '40601': ExchangeError,  # resource is locked
                     '40602': ExchangeError,  # resource is depleted
                     '40603': InsufficientFunds,  # insufficient resource
+                    '40605': InvalidOrder,  # {"code":40605,"message":"Price less than the minimum order price"}
                     '40120': InvalidOrder,  # Order is in trading
                     '40121': InvalidOrder,  # Order is already cancelled or filled
                 },
@@ -154,6 +143,9 @@ class bigone(Exchange):
                 },
             },
             'commonCurrencies': {
+                'CRE': 'Cybereits',
+                'FXT': 'FXTTOKEN',
+                'MBN': 'Mobilian Coin',
                 'ONE': 'BigONE Token',
             },
         })
@@ -197,11 +189,15 @@ class bigone(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            amountPrecisionString = self.safe_string(market, 'base_scale')
+            pricePrecisionString = self.safe_string(market, 'quote_scale')
+            amountLimit = self.parse_precision(amountPrecisionString)
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
-                'amount': self.safe_integer(market, 'base_scale'),
-                'price': self.safe_integer(market, 'quote_scale'),
+                'amount': int(amountPrecisionString),
+                'price': int(pricePrecisionString),
             }
-            minCost = self.safe_integer(market, 'min_quote_value')
+            minCost = self.safe_number(market, 'min_quote_value')
             entry = {
                 'id': id,
                 'uuid': uuid,
@@ -214,11 +210,11 @@ class bigone(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': self.parse_number(amountLimit),
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': self.parse_number(priceLimit),
                         'max': None,
                     },
                     'cost': {
@@ -261,28 +257,28 @@ class bigone(Exchange):
         marketId = self.safe_string(ticker, 'asset_pair_name')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = None
-        close = self.safe_float(ticker, 'close')
+        close = self.safe_number(ticker, 'close')
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(bid, 'price'),
-            'bidVolume': self.safe_float(bid, 'quantity'),
-            'ask': self.safe_float(ask, 'price'),
-            'askVolume': self.safe_float(ask, 'quantity'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(bid, 'price'),
+            'bidVolume': self.safe_number(bid, 'quantity'),
+            'ask': self.safe_number(ask, 'price'),
+            'askVolume': self.safe_number(ask, 'quantity'),
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': self.safe_number(ticker, 'open'),
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'daily_change'),
+            'change': self.safe_number(ticker, 'daily_change'),
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -394,7 +390,7 @@ class bigone(Exchange):
         #     }
         #
         orderbook = self.safe_value(response, 'data', {})
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'quantity')
+        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'quantity')
 
     def parse_trade(self, trade, market=None):
         #
@@ -439,14 +435,13 @@ class bigone(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string_2(trade, 'created_at', 'inserted_at'))
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'asset_pair_name')
         symbol = self.safe_symbol(marketId, market, '-')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = self.cost_to_precision(symbol, price * amount)
         side = self.safe_string(trade, 'side')
         takerSide = self.safe_string(trade, 'taker_side')
         takerOrMaker = None
@@ -510,8 +505,8 @@ class bigone(Exchange):
             elif takerSide == 'ASK':
                 makerCurrencyCode = market['base']
                 takerCurrencyCode = market['quote']
-        makerFeeCost = self.safe_float(trade, 'maker_fee')
-        takerFeeCost = self.safe_float(trade, 'taker_fee')
+        makerFeeCost = self.safe_number(trade, 'maker_fee')
+        takerFeeCost = self.safe_number(trade, 'taker_fee')
         if makerFeeCost is not None:
             if takerFeeCost is not None:
                 result['fees'] = [
@@ -570,11 +565,11 @@ class bigone(Exchange):
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'time')),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -589,7 +584,8 @@ class bigone(Exchange):
         }
         if since is not None:
             # start = int(since / 1000)
-            end = self.sum(since, limit * self.parse_timeframe(timeframe) * 1000)
+            duration = self.parse_timeframe(timeframe)
+            end = self.sum(since, limit * duration * 1000)
             request['time'] = self.iso8601(end)
         response = await self.publicGetAssetPairsAssetPairNameCandles(self.extend(request, params))
         #
@@ -620,7 +616,10 @@ class bigone(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetAccounts(params)
+        type = self.safe_string(params, 'type', '')
+        params = self.omit(params, 'type')
+        method = 'privateGet' + self.capitalize(type) + 'Accounts'
+        response = await getattr(self, method)(params)
         #
         #     {
         #         "code":0,
@@ -631,15 +630,19 @@ class bigone(Exchange):
         #         ],
         #     }
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             symbol = self.safe_string(balance, 'asset_symbol')
             code = self.safe_currency_code(symbol)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'locked_balance')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'locked_balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -662,25 +665,18 @@ class bigone(Exchange):
         marketId = self.safe_string(order, 'asset_pair_name')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
-        filled = self.safe_float(order, 'filled_amount')
-        remaining = None
-        if amount is not None and filled is not None:
-            remaining = max(0, amount - filled)
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'amount')
+        filled = self.safe_number(order, 'filled_amount')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'side')
         if side == 'BID':
             side = 'buy'
         else:
             side = 'sell'
-        cost = None
-        if filled is not None:
-            if price is not None:
-                cost = filled * price
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'updated_at'))
-        average = self.safe_float(order, 'avg_deal_price')
-        return {
+        average = self.safe_number(order, 'avg_deal_price')
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -689,17 +685,20 @@ class bigone(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': None,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -722,11 +721,11 @@ class bigone(Exchange):
             isStopLimit = (uppercaseType == 'STOP_LIMIT')
             isStopMarket = (uppercaseType == 'STOP_MARKET')
             if isStopLimit or isStopMarket:
-                stopPrice = self.safe_float(params, 'stop_price')
+                stopPrice = self.safe_number_2(params, 'stop_price', 'stopPrice')
                 if stopPrice is None:
-                    raise ArgumentsRequired(self.id + ' createOrder requires a stop_price parameter')
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a stop_price parameter')
                 request['stop_price'] = self.price_to_precision(symbol, stopPrice)
-                params = self.omit(params, 'stop_price')
+                params = self.omit(params, ['stop_price', 'stopPrice'])
             if isStopLimit:
                 request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(request, params))
@@ -906,7 +905,7 @@ class bigone(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
-        baseUrl = self.implode_params(self.urls['api'][api], {'hostname': self.hostname})
+        baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.implode_params(path, params)
         if api == 'public':
             if query:
@@ -977,6 +976,8 @@ class bigone(Exchange):
             'WITHHOLD': 'ok',  # deposits
             'UNCONFIRMED': 'pending',
             'CONFIRMED': 'ok',  # withdrawals
+            'COMPLETED': 'ok',
+            'PENDING': 'pending',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1035,7 +1036,7 @@ class bigone(Exchange):
         currencyId = self.safe_string(transaction, 'asset_symbol')
         code = self.safe_currency_code(currencyId)
         id = self.safe_integer(transaction, 'id')
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         timestamp = self.parse8601(self.safe_string(transaction, 'inserted_at'))
         updated = self.parse8601(self.safe_string_2(transaction, 'updated_at', 'completed_at'))

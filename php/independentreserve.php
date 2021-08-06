@@ -53,26 +53,31 @@ class independentreserve extends Exchange {
                         'GetTradeHistorySummary',
                         'GetRecentTrades',
                         'GetFxRates',
+                        'GetOrderMinimumVolumes',
+                        'GetCryptoWithdrawalFees',
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'PlaceLimitOrder',
-                        'PlaceMarketOrder',
-                        'CancelOrder',
                         'GetOpenOrders',
                         'GetClosedOrders',
                         'GetClosedFilledOrders',
                         'GetOrderDetails',
                         'GetAccounts',
                         'GetTransactions',
+                        'GetFiatBankAccounts',
                         'GetDigitalCurrencyDepositAddress',
                         'GetDigitalCurrencyDepositAddresses',
-                        'SynchDigitalCurrencyDepositAddressWithBlockchain',
-                        'WithdrawDigitalCurrency',
-                        'RequestFiatWithdrawal',
                         'GetTrades',
                         'GetBrokerageFees',
+                        'GetDigitalCurrencyWithdrawal',
+                        'PlaceLimitOrder',
+                        'PlaceMarketOrder',
+                        'CancelOrder',
+                        'SynchDigitalCurrencyDepositAddressWithBlockchain',
+                        'RequestFiatWithdrawal',
+                        'WithdrawFiatCurrency',
+                        'WithdrawDigitalCurrency',
                     ),
                 ),
             ),
@@ -93,10 +98,22 @@ class independentreserve extends Exchange {
     public function fetch_markets($params = array ()) {
         $baseCurrencies = $this->publicGetGetValidPrimaryCurrencyCodes ($params);
         $quoteCurrencies = $this->publicGetGetValidSecondaryCurrencyCodes ($params);
+        $limits = $this->publicGetGetOrderMinimumVolumes ($params);
+        //
+        //     {
+        //         "Xbt" => 0.0001,
+        //         "Bch" => 0.001,
+        //         "Bsv" => 0.001,
+        //         "Eth" => 0.001,
+        //         "Ltc" => 0.01,
+        //         "Xrp" => 1,
+        //     }
+        //
         $result = array();
         for ($i = 0; $i < count($baseCurrencies); $i++) {
             $baseId = $baseCurrencies[$i];
             $base = $this->safe_currency_code($baseId);
+            $minAmount = $this->safe_number($limits, $baseId);
             for ($j = 0; $j < count($quoteCurrencies); $j++) {
                 $quoteId = $quoteCurrencies[$j];
                 $quote = $this->safe_currency_code($quoteId);
@@ -112,7 +129,9 @@ class independentreserve extends Exchange {
                     'info' => $id,
                     'active' => null,
                     'precision' => $this->precision,
-                    'limits' => $this->limits,
+                    'limits' => array(
+                        'amount' => array( 'min' => $minAmount, 'max' => null ),
+                    ),
                 );
             }
         }
@@ -128,8 +147,8 @@ class independentreserve extends Exchange {
             $currencyId = $this->safe_string($balance, 'CurrencyCode');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'AvailableBalance');
-            $account['total'] = $this->safe_float($balance, 'TotalBalance');
+            $account['free'] = $this->safe_string($balance, 'AvailableBalance');
+            $account['total'] = $this->safe_string($balance, 'TotalBalance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -144,7 +163,7 @@ class independentreserve extends Exchange {
         );
         $response = $this->publicGetGetOrderBook (array_merge($request, $params));
         $timestamp = $this->parse8601($this->safe_string($response, 'CreatedTimestampUtc'));
-        return $this->parse_order_book($response, $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
+        return $this->parse_order_book($response, $symbol, $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -153,16 +172,16 @@ class independentreserve extends Exchange {
         if ($market) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'LastPrice');
+        $last = $this->safe_number($ticker, 'LastPrice');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'DayHighestPrice'),
-            'low' => $this->safe_float($ticker, 'DayLowestPrice'),
-            'bid' => $this->safe_float($ticker, 'CurrentHighestBidPrice'),
+            'high' => $this->safe_number($ticker, 'DayHighestPrice'),
+            'low' => $this->safe_number($ticker, 'DayLowestPrice'),
+            'bid' => $this->safe_number($ticker, 'CurrentHighestBidPrice'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'CurrentLowestOfferPrice'),
+            'ask' => $this->safe_number($ticker, 'CurrentLowestOfferPrice'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -171,8 +190,8 @@ class independentreserve extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_float($ticker, 'DayAvgPrice'),
-            'baseVolume' => $this->safe_float($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
+            'average' => $this->safe_number($ticker, 'DayAvgPrice'),
+            'baseVolume' => $this->safe_number($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -251,20 +270,10 @@ class independentreserve extends Exchange {
             $orderType = 'limit';
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'CreatedTimestampUtc'));
-        $amount = $this->safe_float_2($order, 'VolumeOrdered', 'Volume');
-        $filled = $this->safe_float($order, 'VolumeFilled');
-        $remaining = $this->safe_float($order, 'Outstanding');
-        if ($filled === null) {
-            if (($remaining !== null) && ($amount !== null)) {
-                $filled = max (0, $amount - $remaining);
-            }
-        }
-        if ($remaining === null) {
-            if (($filled !== null) && ($amount !== null)) {
-                $remaining = max (0, $amount - $filled);
-            }
-        }
-        $feeRate = $this->safe_float($order, 'FeePercent');
+        $amount = $this->safe_number_2($order, 'VolumeOrdered', 'Volume');
+        $filled = $this->safe_number($order, 'VolumeFilled');
+        $remaining = $this->safe_number($order, 'Outstanding');
+        $feeRate = $this->safe_number($order, 'FeePercent');
         $feeCost = null;
         if ($feeRate !== null) {
             $feeCost = $feeRate * $filled;
@@ -276,10 +285,10 @@ class independentreserve extends Exchange {
         );
         $id = $this->safe_string($order, 'OrderGuid');
         $status = $this->parse_order_status($this->safe_string($order, 'Status'));
-        $cost = $this->safe_float($order, 'Value');
-        $average = $this->safe_float($order, 'AvgPrice');
-        $price = $this->safe_float($order, 'Price', $average);
-        return array(
+        $cost = $this->safe_number($order, 'Value');
+        $average = $this->safe_number($order, 'AvgPrice');
+        $price = $this->safe_number($order, 'Price');
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -288,8 +297,11 @@ class independentreserve extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'average' => $average,
             'amount' => $amount,
@@ -298,7 +310,7 @@ class independentreserve extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function parse_order_status($status) {
@@ -386,18 +398,18 @@ class independentreserve extends Exchange {
         $timestamp = $this->parse8601($trade['TradeTimestampUtc']);
         $id = $this->safe_string($trade, 'TradeGuid');
         $orderId = $this->safe_string($trade, 'OrderGuid');
-        $price = $this->safe_float_2($trade, 'Price', 'SecondaryCurrencyTradePrice');
-        $amount = $this->safe_float_2($trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
+        $priceString = $this->safe_string_2($trade, 'Price', 'SecondaryCurrencyTradePrice');
+        $amountString = $this->safe_string_2($trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $baseId = $this->safe_string($trade, 'PrimaryCurrencyCode');
+        $quoteId = $this->safe_string($trade, 'SecondaryCurrencyCode');
+        $marketId = null;
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $marketId = $baseId . '/' . $quoteId;
         }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '/');
         $side = $this->safe_string($trade, 'OrderType');
         if ($side !== null) {
             if (mb_strpos($side, 'Bid') !== false) {

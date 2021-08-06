@@ -54,6 +54,7 @@ class bitpanda(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1/MINUTES',
@@ -127,28 +128,28 @@ class bitpanda(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.15 / 100,
-                    'maker': 0.10 / 100,
+                    'taker': self.parse_number('0.0015'),
+                    'maker': self.parse_number('0.001'),
                     'tiers': [
                         # volume in BTC
                         {
                             'taker': [
-                                [0, 0.15 / 100],
-                                [100, 0.13 / 100],
-                                [250, 0.13 / 100],
-                                [1000, 0.1 / 100],
-                                [5000, 0.09 / 100],
-                                [10000, 0.075 / 100],
-                                [20000, 0.065 / 100],
+                                [self.parse_number('0'), self.parse_number('0.0015')],
+                                [self.parse_number('100'), self.parse_number('0.0013')],
+                                [self.parse_number('250'), self.parse_number('0.0013')],
+                                [self.parse_number('1000'), self.parse_number('0.001')],
+                                [self.parse_number('5000'), self.parse_number('0.0009')],
+                                [self.parse_number('10000'), self.parse_number('0.00075')],
+                                [self.parse_number('20000'), self.parse_number('0.00065')],
                             ],
                             'maker': [
-                                [0, 0.1 / 100],
-                                [100, 0.1 / 100],
-                                [250, 0.09 / 100],
-                                [1000, 0.075 / 100],
-                                [5000, 0.06 / 100],
-                                [10000, 0.05 / 100],
-                                [20000, 0.05 / 100],
+                                [self.parse_number('0'), self.parse_number('0.001')],
+                                [self.parse_number('100'), self.parse_number('0.001')],
+                                [self.parse_number('250'), self.parse_number('0.0009')],
+                                [self.parse_number('1000'), self.parse_number('0.00075')],
+                                [self.parse_number('5000'), self.parse_number('0.0006')],
+                                [self.parse_number('10000'), self.parse_number('0.0005')],
+                                [self.parse_number('20000'), self.parse_number('0.0005')],
                             ],
                         },
                     ],
@@ -157,12 +158,6 @@ class bitpanda(Exchange):
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': False,
-            },
-            # exchange-specific options
-            'options': {
-                'fetchTradingFees': {
-                    'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
-                },
             },
             'exceptions': {
                 'exact': {
@@ -250,6 +245,13 @@ class bitpanda(Exchange):
             'commonCurrencies': {
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
             },
+            # exchange-specific options
+            'options': {
+                'fetchTradingFees': {
+                    'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
+                },
+                'fiat': ['EUR', 'CHF'],
+            },
         })
 
     async def fetch_time(self, params={}):
@@ -287,8 +289,6 @@ class bitpanda(Exchange):
                 'precision': self.safe_integer(currency, 'precision'),
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
             }
@@ -333,7 +333,7 @@ class bitpanda(Exchange):
                     'max': None,
                 },
                 'cost': {
-                    'min': self.safe_float(market, 'min_size'),
+                    'min': self.safe_number(market, 'min_size'),
                     'max': None,
                 },
             }
@@ -402,9 +402,9 @@ class bitpanda(Exchange):
             makerFees = []
             for i in range(0, len(feeTiers)):
                 tier = feeTiers[i]
-                volume = self.safe_float(tier, 'volume')
-                taker = self.safe_float(tier, 'taker_fee')
-                maker = self.safe_float(tier, 'maker_fee')
+                volume = self.safe_number(tier, 'volume')
+                taker = self.safe_number(tier, 'taker_fee')
+                maker = self.safe_number(tier, 'maker_fee')
                 taker /= 100
                 maker /= 100
                 takerFees.append([volume, taker])
@@ -447,8 +447,8 @@ class bitpanda(Exchange):
         activeFeeTier = self.safe_value(response, 'active_fee_tier', {})
         result = {
             'info': response,
-            'maker': self.safe_float(activeFeeTier, 'maker_fee'),
-            'taker': self.safe_float(activeFeeTier, 'taker_fee'),
+            'maker': self.safe_number(activeFeeTier, 'maker_fee'),
+            'taker': self.safe_number(activeFeeTier, 'taker_fee'),
             'percentage': True,
             'tierBased': True,
         }
@@ -457,9 +457,9 @@ class bitpanda(Exchange):
         makerFees = []
         for i in range(0, len(feeTiers)):
             tier = feeTiers[i]
-            volume = self.safe_float(tier, 'volume')
-            taker = self.safe_float(tier, 'taker_fee')
-            maker = self.safe_float(tier, 'maker_fee')
+            volume = self.safe_number(tier, 'volume')
+            taker = self.safe_number(tier, 'taker_fee')
+            maker = self.safe_number(tier, 'maker_fee')
             taker /= 100
             maker /= 100
             takerFees.append([volume, taker])
@@ -495,26 +495,26 @@ class bitpanda(Exchange):
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
         marketId = self.safe_string(ticker, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
-        last = self.safe_float(ticker, 'last_price')
-        percentage = self.safe_float(ticker, 'price_change_percentage')
-        change = self.safe_float(ticker, 'price_change')
+        last = self.safe_number(ticker, 'last_price')
+        percentage = self.safe_number(ticker, 'price_change_percentage')
+        change = self.safe_number(ticker, 'price_change')
         open = None
         average = None
         if (last is not None) and (change is not None):
             open = last - change
             average = self.sum(last, open) / 2
-        baseVolume = self.safe_float(ticker, 'base_volume')
-        quoteVolume = self.safe_float(ticker, 'quote_volume')
+        baseVolume = self.safe_number(ticker, 'base_volume')
+        quoteVolume = self.safe_number(ticker, 'quote_volume')
         vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'best_bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'best_bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'best_ask'),
+            'ask': self.safe_number(ticker, 'best_ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': open,
@@ -656,7 +656,7 @@ class bitpanda(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(response, 'time'))
-        return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -693,11 +693,11 @@ class bitpanda(Exchange):
         volumeField = self.safe_string(options, 'volume', 'total_amount')
         return [
             alignedTimestamp,
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, volumeField),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, volumeField),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -774,22 +774,24 @@ class bitpanda(Exchange):
         #
         feeInfo = self.safe_value(trade, 'fee', {})
         trade = self.safe_value(trade, 'trade', trade)
-        timestamp = self.parse8601(self.safe_string(trade, 'time'))
+        timestamp = self.safe_integer(trade, 'trade_timestamp')
+        if timestamp is None:
+            timestamp = self.parse8601(self.safe_string(trade, 'time'))
         side = self.safe_string_lower_2(trade, 'side', 'taker_side')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = self.safe_float(trade, 'volume')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
+        cost = self.safe_number(trade, 'volume')
         if (cost is None) and (amount is not None) and (price is not None):
             cost = amount * price
         marketId = self.safe_string(trade, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
-        feeCost = self.safe_float(feeInfo, 'fee_amount')
+        feeCost = self.safe_number(feeInfo, 'fee_amount')
         takerOrMaker = None
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(feeInfo, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            feeRate = self.safe_float(feeInfo, 'fee_percentage')
+            feeRate = self.safe_number(feeInfo, 'fee_percentage')
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -868,8 +870,8 @@ class bitpanda(Exchange):
             currencyId = self.safe_string(balance, 'currency_code')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'locked')
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
 
@@ -936,7 +938,7 @@ class bitpanda(Exchange):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchDeposits requires a "to" iso8601 string param with the since argument is specified')
+                raise ArgumentsRequired(self.id + ' fetchDeposits() requires a "to" iso8601 string param with the since argument is specified')
             request['from'] = self.iso8601(since)
         response = await self.privateGetAccountDeposits(self.extend(request, params))
         #
@@ -986,7 +988,7 @@ class bitpanda(Exchange):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a "to" iso8601 string param with the since argument is specified')
+                raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a "to" iso8601 string param with the since argument is specified')
             request['from'] = self.iso8601(since)
         response = await self.privateGetAccountWithdrawals(self.extend(request, params))
         #
@@ -1023,6 +1025,51 @@ class bitpanda(Exchange):
         withdrawalHistory = self.safe_value(response, 'withdrawal_history', [])
         return self.parse_transactions(withdrawalHistory, currency, since, limit, {'type': 'withdrawal'})
 
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': code,
+            'amount': self.currency_to_precision(code, amount),
+            # 'payout_account_id': '66756a10-3e86-48f4-9678-b634c4b135b2',  # fiat only
+            # 'recipient': { # crypto only
+            #     'address': address,
+            #     # 'destination_tag': '',
+            # },
+        }
+        options = self.safe_value(self.options, 'fiat', [])
+        isFiat = self.in_array(code, options)
+        method = 'privatePostAccountWithdrawFiat' if isFiat else 'privatePostAccountWithdrawCrypto'
+        if isFiat:
+            payoutAccountId = self.safe_string(params, 'payout_account_id')
+            if payoutAccountId is None:
+                raise ArgumentsRequired(self.id + ' withdraw() requires a payout_account_id param for fiat ' + code + ' withdrawals')
+        else:
+            recipient = {'address': address}
+            if tag is not None:
+                recipient['destination_tag'] = tag
+            request['recipient'] = recipient
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # crypto
+        #
+        #     {
+        #         "amount": "1234.5678",
+        #         "fee": "1234.5678",
+        #         "recipient": "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
+        #         "destination_tag": "",
+        #         "transaction_id": "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
+        #     }
+        #
+        # fiat
+        #
+        #     {
+        #         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
+
     def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits, fetchWithdrawals
@@ -1041,16 +1088,37 @@ class bitpanda(Exchange):
         #         "related_transaction_id": "e298341a-3855-405e-bce3-92db368a3157"
         #     }
         #
+        # withdraw
+        #
+        #
+        #     crypto
+        #
+        #     {
+        #         "amount": "1234.5678",
+        #         "fee": "1234.5678",
+        #         "recipient": "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
+        #         "destination_tag": "",
+        #         "transaction_id": "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
+        #     }
+        #
+        #     fiat
+        #
+        #     {
+        #         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
+        #     }
+        #
         id = self.safe_string(transaction, 'transaction_id')
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         timestamp = self.parse8601(self.safe_string(transaction, 'time'))
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safe_currency_code(currencyId, currency)
-        status = None
-        feeCost = self.safe_float(transaction, 'fee_amount')
+        currency = self.safe_currency(currencyId, currency)
+        status = 'ok'  # the exchange returns cleared transactions only
+        feeCost = self.safe_number_2(transaction, 'fee_amount', 'fee')
         fee = None
+        addressTo = self.safe_string(transaction, 'recipient')
+        tagTo = self.safe_string(transaction, 'destination_tag')
         if feeCost is not None:
-            feeCurrencyId = self.safe_string(transaction, 'fee_currency')
+            feeCurrencyId = self.safe_string(transaction, 'fee_currency', currencyId)
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
@@ -1059,14 +1127,14 @@ class bitpanda(Exchange):
         return {
             'info': transaction,
             'id': id,
-            'currency': code,
+            'currency': currency['code'],
             'amount': amount,
-            'address': None,
+            'address': addressTo,
             'addressFrom': None,
-            'addressTo': None,
-            'tag': None,
+            'addressTo': addressTo,
+            'tag': tagTo,
             'tagFrom': None,
-            'tagTo': None,
+            'tagTo': tagTo,
             'status': status,
             'type': None,
             'updated': None,
@@ -1157,95 +1225,59 @@ class bitpanda(Exchange):
         #         ]
         #     }
         #
-        rawTrades = self.safe_value(order, 'trades', [])
-        order = self.safe_value(order, 'order', order)
-        id = self.safe_string(order, 'order_id')
-        clientOrderId = self.safe_string(order, 'client_id')
-        timestamp = self.parse8601(self.safe_string(order, 'time'))
-        status = self.parse_order_status(self.safe_string(order, 'status'))
-        marketId = self.safe_string(order, 'instrument_code')
+        rawOrder = self.safe_value(order, 'order', order)
+        id = self.safe_string(rawOrder, 'order_id')
+        clientOrderId = self.safe_string(rawOrder, 'client_id')
+        timestamp = self.parse8601(self.safe_string(rawOrder, 'time'))
+        rawStatus = self.parse_order_status(self.safe_string(rawOrder, 'status'))
+        status = self.parse_order_status(rawStatus)
+        marketId = self.safe_string(rawOrder, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
-        cost = None
-        filled = self.safe_float(order, 'filled_amount')
-        remaining = None
-        if filled is not None:
-            if amount is not None:
-                remaining = max(0, amount - filled)
-                if status is None:
-                    if remaining > 0:
-                        status = 'open'
-                    else:
-                        status = 'closed'
-        side = self.safe_string_lower(order, 'side')
-        type = self.safe_string_lower(order, 'type')
-        trades = self.parse_trades(rawTrades, market, None, None)
-        fees = []
-        numTrades = len(trades)
-        lastTradeTimestamp = None
-        tradeCost = None
-        tradeAmount = None
-        if numTrades > 0:
-            lastTradeTimestamp = trades[0]['timestamp']
-            tradeCost = 0
-            tradeAmount = 0
-            for i in range(0, len(trades)):
-                trade = trades[i]
-                fees.append(trade['fee'])
-                lastTradeTimestamp = max(lastTradeTimestamp, trade['timestamp'])
-                tradeCost = self.sum(tradeCost, trade['cost'])
-                tradeAmount = self.sum(tradeAmount, trade['amount'])
-        average = self.safe_float(order, 'average_price')
-        if average is None:
-            if (tradeCost is not None) and (tradeAmount is not None) and (tradeAmount != 0):
-                average = tradeCost / tradeAmount
-        if cost is None:
-            if (average is not None) and (filled is not None):
-                cost = average * filled
-        result = {
+        price = self.safe_number(rawOrder, 'price')
+        amount = self.safe_number(rawOrder, 'amount')
+        filledString = self.safe_string(rawOrder, 'filled_amount')
+        filled = self.parse_number(filledString)
+        side = self.safe_string_lower(rawOrder, 'side')
+        type = self.safe_string_lower(rawOrder, 'type')
+        timeInForce = self.parse_time_in_force(self.safe_string(rawOrder, 'time_in_force'))
+        stopPrice = self.safe_number(rawOrder, 'trigger_price')
+        postOnly = self.safe_value(rawOrder, 'is_post_only')
+        rawTrades = self.safe_value(order, 'trades', [])
+        trades = self.parse_trades(rawTrades, market, None, None, {
+            'type': type,
+        })
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
-            'average': average,
+            'cost': None,
+            'average': None,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             # 'fee': None,
             'trades': trades,
+        })
+
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'GOOD_TILL_CANCELLED': 'GTC',
+            'GOOD_TILL_TIME': 'GTT',
+            'IMMEDIATE_OR_CANCELLED': 'IOC',
+            'FILL_OR_KILL': 'FOK',
         }
-        numFees = len(fees)
-        if numFees > 0:
-            if numFees == 1:
-                result['fee'] = fees[0]
-            else:
-                feesByCurrency = self.group_by(fees, 'currency')
-                feeCurrencies = list(feesByCurrency.keys())
-                numFeesByCurrency = len(feeCurrencies)
-                if numFeesByCurrency == 1:
-                    feeCurrency = feeCurrencies[0]
-                    feeArray = self.safe_value(feesByCurrency, feeCurrency)
-                    feeCost = 0
-                    for i in range(0, len(feeArray)):
-                        feeCost = self.sum(feeCost, feeArray[i]['cost'])
-                    result['fee'] = {
-                        'cost': feeCost,
-                        'currency': feeCurrency,
-                    }
-                else:
-                    result['fees'] = fees
-        else:
-            result['fee'] = None
-        return result
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -1267,9 +1299,9 @@ class bitpanda(Exchange):
         if uppercaseType == 'LIMIT' or uppercaseType == 'STOP':
             priceIsRequired = True
         if uppercaseType == 'STOP':
-            triggerPrice = self.safe_float(params, 'trigger_price')
+            triggerPrice = self.safe_number(params, 'trigger_price')
             if triggerPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder requires a trigger_price param for ' + type + ' orders')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a trigger_price param for ' + type + ' orders')
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
             params = self.omit(params, 'trigger_price')
         if priceIsRequired:
@@ -1408,7 +1440,7 @@ class bitpanda(Exchange):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchOrders requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
+                raise ArgumentsRequired(self.id + ' fetchOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['max_page_size'] = limit
@@ -1563,7 +1595,7 @@ class bitpanda(Exchange):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchMyTrades requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
+                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['max_page_size'] = limit

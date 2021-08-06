@@ -66,6 +66,7 @@ class bitmart(Exchange):
                 'fetchStatus': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'fetchFundingFee': True,
                 'withdraw': True,
             },
             'hostname': 'bitmart.com',  # bitmart.info for Hong Kong users
@@ -73,7 +74,7 @@ class bitmart(Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
                 'api': 'https://api-cloud.{hostname}',  # bitmart.info for Hong Kong users
                 'www': 'https://www.bitmart.com/',
-                'doc': 'https://github.com/bitmartexchange/bitmart-official-api-docs',
+                'doc': 'https://developer-pro.bitmart.com/',
                 'referral': 'http://www.bitmart.com/?r=rQCFLh',
                 'fees': 'https://www.bitmart.com/fee/en',
             },
@@ -186,28 +187,28 @@ class bitmart(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.002,
-                    'maker': 0.001,
+                    'taker': self.parse_number('0.0025'),
+                    'maker': self.parse_number('0.0025'),
                     'tiers': {
                         'taker': [
-                            [0, 0.20 / 100],
-                            [10, 0.18 / 100],
-                            [50, 0.16 / 100],
-                            [250, 0.14 / 100],
-                            [1000, 0.12 / 100],
-                            [5000, 0.10 / 100],
-                            [25000, 0.08 / 100],
-                            [50000, 0.06 / 100],
+                            [self.parse_number('0'), self.parse_number('0.0020')],
+                            [self.parse_number('10'), self.parse_number('0.18')],
+                            [self.parse_number('50'), self.parse_number('0.0016')],
+                            [self.parse_number('250'), self.parse_number('0.0014')],
+                            [self.parse_number('1000'), self.parse_number('0.0012')],
+                            [self.parse_number('5000'), self.parse_number('0.0010')],
+                            [self.parse_number('25000'), self.parse_number('0.0008')],
+                            [self.parse_number('50000'), self.parse_number('0.0006')],
                         ],
                         'maker': [
-                            [0, 0.1 / 100],
-                            [10, 0.09 / 100],
-                            [50, 0.08 / 100],
-                            [250, 0.07 / 100],
-                            [1000, 0.06 / 100],
-                            [5000, 0.05 / 100],
-                            [25000, 0.04 / 100],
-                            [50000, 0.03 / 100],
+                            [self.parse_number('0'), self.parse_number('0.001')],
+                            [self.parse_number('10'), self.parse_number('0.0009')],
+                            [self.parse_number('50'), self.parse_number('0.0008')],
+                            [self.parse_number('250'), self.parse_number('0.0007')],
+                            [self.parse_number('1000'), self.parse_number('0.0006')],
+                            [self.parse_number('5000'), self.parse_number('0.0005')],
+                            [self.parse_number('25000'), self.parse_number('0.0004')],
+                            [self.parse_number('50000'), self.parse_number('0.0003')],
                         ],
                     },
                 },
@@ -321,6 +322,8 @@ class bitmart(Exchange):
                 'broad': {},
             },
             'commonCurrencies': {
+                'COT': 'Community Coin',
+                'CPC': 'CPCoin',
                 'ONE': 'Menlo One',
                 'PLA': 'Plair',
             },
@@ -452,16 +455,16 @@ class bitmart(Exchange):
             #
             pricePrecision = self.safe_integer(market, 'price_max_precision')
             precision = {
-                'amount': self.safe_float(market, 'quote_increment'),
-                'price': float(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 10)),
+                'amount': self.safe_number(market, 'base_min_size'),
+                'price': float(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 12)),
             }
-            minBuyCost = self.safe_float(market, 'min_buy_amount')
-            minSellCost = self.safe_float(market, 'min_sell_amount')
+            minBuyCost = self.safe_number(market, 'min_buy_amount')
+            minSellCost = self.safe_number(market, 'min_sell_amount')
             minCost = max(minBuyCost, minSellCost)
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'base_min_size'),
-                    'max': self.safe_float(market, 'base_max_size'),
+                    'min': self.safe_number(market, 'base_min_size'),
+                    'max': self.safe_number(market, 'base_max_size'),
                 },
                 'price': {
                     'min': None,
@@ -569,16 +572,16 @@ class bitmart(Exchange):
             #
             # the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
             #
-            amountPrecision = self.safe_float(contract, 'vol_unit')
-            pricePrecision = self.safe_float(contract, 'price_unit')
+            amountPrecision = self.safe_number(contract, 'vol_unit')
+            pricePrecision = self.safe_number(contract, 'price_unit')
             precision = {
                 'amount': amountPrecision,
                 'price': pricePrecision,
             }
             limits = {
                 'amount': {
-                    'min': self.safe_float(contract, 'min_vol'),
-                    'max': self.safe_float(contract, 'max_vol'),
+                    'min': self.safe_number(contract, 'min_vol'),
+                    'max': self.safe_number(contract, 'max_vol'),
                 },
                 'price': {
                     'min': None,
@@ -600,8 +603,8 @@ class bitmart(Exchange):
                 type = 'future'
                 future = True
             feeConfig = self.safe_value(market, 'fee_config', {})
-            maker = self.safe_float(feeConfig, 'maker_fee')
-            taker = self.safe_float(feeConfig, 'taker_fee')
+            maker = self.safe_number(feeConfig, 'maker_fee')
+            taker = self.safe_number(feeConfig, 'taker_fee')
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -624,10 +627,36 @@ class bitmart(Exchange):
         return result
 
     def fetch_markets(self, params={}):
-        spotMarkets = self.fetch_spot_markets()
-        contractMarkets = self.fetch_contract_markets()
-        allMarkets = self.array_concat(spotMarkets, contractMarkets)
-        return allMarkets
+        return self.fetch_spot_markets()
+
+    def fetch_funding_fee(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privateAccountGetWithdrawCharge(self.extend(request, params))
+        #
+        #     {
+        #         message: 'OK',
+        #         code: '1000',
+        #         trace: '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
+        #         data: {
+        #             today_available_withdraw_BTC: '100.0000',
+        #             min_withdraw: '0.005',
+        #             withdraw_precision: '8',
+        #             withdraw_fee: '0.000500000000000000000000000000'
+        #         }
+        #     }
+        #
+        data = response['data']
+        withdrawFees = {}
+        withdrawFees[code] = self.safe_number(data, 'withdraw_fee')
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        }
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -686,33 +715,31 @@ class bitmart(Exchange):
         timestamp = self.safe_timestamp(ticker, 'timestamp', self.milliseconds())
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_id')
         symbol = self.safe_symbol(marketId, market, '_')
-        last = self.safe_float_2(ticker, 'close_24h', 'last_price')
-        percentage = self.safe_float(ticker, 'fluctuation', 'rise_fall_rate')
+        last = self.safe_number_2(ticker, 'close_24h', 'last_price')
+        percentage = self.safe_number(ticker, 'fluctuation', 'rise_fall_rate')
         if percentage is not None:
             percentage *= 100
-        baseVolume = self.safe_float_2(ticker, 'base_volume_24h', 'base_coin_volume')
-        quoteVolume = self.safe_float_2(ticker, 'quote_volume_24h', 'quote_coin_volume')
-        vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume != 0):
-            vwap = quoteVolume / baseVolume
-        open = self.safe_float_2(ticker, 'open_24h', 'open')
+        baseVolume = self.safe_number_2(ticker, 'base_volume_24h', 'base_coin_volume')
+        quoteVolume = self.safe_number_2(ticker, 'quote_volume_24h', 'quote_coin_volume')
+        vwap = self.vwap(baseVolume, quoteVolume)
+        open = self.safe_number_2(ticker, 'open_24h', 'open')
         average = None
         if (last is not None) and (open is not None):
             average = self.sum(last, open) / 2
-        average = self.safe_float(ticker, 'avg_price', average)
+        average = self.safe_number(ticker, 'avg_price', average)
         price = self.safe_value(ticker, 'depth_price', ticker)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float_2(ticker, 'high', 'high_24h'),
-            'low': self.safe_float_2(ticker, 'low', 'low_24h'),
-            'bid': self.safe_float(price, 'best_bid', 'bid_price'),
-            'bidVolume': self.safe_float(ticker, 'best_bid_size'),
-            'ask': self.safe_float(price, 'best_ask', 'ask_price'),
-            'askVolume': self.safe_float(ticker, 'best_ask_size'),
+            'high': self.safe_number_2(ticker, 'high', 'high_24h'),
+            'low': self.safe_number_2(ticker, 'low', 'low_24h'),
+            'bid': self.safe_number(price, 'best_bid', 'bid_price'),
+            'bidVolume': self.safe_number(ticker, 'best_bid_size'),
+            'ask': self.safe_number(price, 'best_ask', 'ask_price'),
+            'askVolume': self.safe_number(ticker, 'best_ask_size'),
             'vwap': vwap,
-            'open': self.safe_float(ticker, 'open_24h'),
+            'open': self.safe_number(ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -871,8 +898,6 @@ class bitmart(Exchange):
                 'precision': None,
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
             }
@@ -937,9 +962,9 @@ class bitmart(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         if market['spot']:
-            return self.parse_order_book(data, None, 'buys', 'sells', 'price', 'amount')
+            return self.parse_order_book(data, symbol, None, 'buys', 'sells', 'price', 'amount')
         elif market['swap'] or market['future']:
-            return self.parse_order_book(data, None, 'buys', 'sells', 'price', 'vol')
+            return self.parse_order_book(data, symbol, None, 'buys', 'sells', 'price', 'vol')
 
     def parse_trade(self, trade, market=None):
         #
@@ -1000,17 +1025,17 @@ class bitmart(Exchange):
         execType = self.safe_string(trade, 'exec_type')
         if execType is not None:
             takerOrMaker = 'maker' if (execType == 'M') else 'taker'
-        price = self.safe_float_2(trade, 'price', 'deal_price')
-        price = self.safe_float(trade, 'price_avg', price)
-        amount = self.safe_float_2(trade, 'amount', 'deal_vol')
-        amount = self.safe_float(trade, 'size', amount)
-        cost = self.safe_float_2(trade, 'count', 'notional')
+        price = self.safe_number_2(trade, 'price', 'deal_price')
+        price = self.safe_number(trade, 'price_avg', price)
+        amount = self.safe_number_2(trade, 'amount', 'deal_vol')
+        amount = self.safe_number(trade, 'size', amount)
+        cost = self.safe_number_2(trade, 'count', 'notional')
         if (cost is None) and (price is not None) and (amount is not None):
             cost = amount * price
         orderId = self.safe_integer(trade, 'order_id')
         marketId = self.safe_string_2(trade, 'contract_id', 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        feeCost = self.safe_float(trade, 'fees')
+        feeCost = self.safe_number(trade, 'fees')
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_coin_name')
@@ -1133,11 +1158,11 @@ class bitmart(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 'timestamp'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -1224,14 +1249,14 @@ class bitmart(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         method = None
         request = {}
         if market['spot']:
             request['symbol'] = market['id']
-            request['offset'] = 1
+            request['offset'] = 1  # max offset * limit < 500
             if limit is None:
                 limit = 100  # max 100
             request['limit'] = limit
@@ -1300,7 +1325,7 @@ class bitmart(Exchange):
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         method = None
@@ -1444,11 +1469,11 @@ class bitmart(Exchange):
         for i in range(0, len(wallet)):
             balance = wallet[i]
             currencyId = self.safe_string_2(balance, 'id', 'currency')
-            currencyId = self.safe_string(balance, 'coind_code', currencyId)
+            currencyId = self.safe_string(balance, 'coin_code', currencyId)
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float_2(balance, 'available', 'available_vol')
-            account['used'] = self.safe_float_2(balance, 'frozen', 'freeze_vol')
+            account['free'] = self.safe_string_2(balance, 'available', 'available_vol')
+            account['used'] = self.safe_string_2(balance, 'frozen', 'freeze_vol')
             result[code] = account
         return self.parse_balance(result)
 
@@ -1511,37 +1536,15 @@ class bitmart(Exchange):
         id = self.safe_string(order, 'order_id', id)
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         timestamp = self.safe_integer(order, 'create_time', timestamp)
-        symbol = None
         marketId = self.safe_string_2(order, 'symbol', 'contract_id')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         status = None
         if market is not None:
             status = self.parse_order_status_by_type(market['type'], self.safe_string(order, 'status'))
-        price = self.safe_float(order, 'price')
-        average = self.safe_float_2(order, 'price_avg', 'done_avg_price')
-        amount = self.safe_float_2(order, 'size', 'vol')
-        cost = None
-        filled = self.safe_float_2(order, 'filled_size', 'done_vol')
-        remaining = None
-        if amount is not None:
-            if remaining is not None:
-                if filled is None:
-                    filled = max(0, amount - remaining)
-            if filled is not None:
-                if remaining is None:
-                    remaining = max(0, amount - filled)
-                if cost is None:
-                    if average is not None:
-                        cost = average * filled
+        price = self.safe_number(order, 'price')
+        average = self.safe_number_2(order, 'price_avg', 'done_avg_price')
+        amount = self.safe_number_2(order, 'size', 'vol')
+        filled = self.safe_number_2(order, 'filled_size', 'done_vol')
         side = self.safe_string(order, 'side')
         # 1 = Open long
         # 2 = Close short
@@ -1559,7 +1562,7 @@ class bitmart(Exchange):
                 price = None
             if average == 0.0:
                 average = None
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'info': order,
@@ -1568,17 +1571,20 @@ class bitmart(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def parse_order_status_by_type(self, type, status):
         statusesByType = {
@@ -1617,7 +1623,7 @@ class bitmart(Exchange):
             elif type == 'market':
                 # for market buy it requires the amount of quote currency to spend
                 if side == 'buy':
-                    notional = self.safe_float(params, 'notional')
+                    notional = self.safe_number(params, 'notional')
                     createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
                     if createMarketBuyOrderRequiresPrice:
                         if price is not None:
@@ -1662,7 +1668,7 @@ class bitmart(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {}
@@ -1688,6 +1694,15 @@ class bitmart(Exchange):
         #         }
         #     }
         #
+        # spot alternative
+        #
+        #     {
+        #         "code": 1000,
+        #         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        #         "message": "OK",
+        #         "data": True
+        #     }
+        #
         # contract
         #
         #     {
@@ -1703,28 +1718,30 @@ class bitmart(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
+        if data is True:
+            return self.parse_order(id, market)
         succeeded = self.safe_value(data, 'succeed')
         if succeeded is not None:
             id = self.safe_string(succeeded, 0)
             if id is None:
-                raise InvalidOrder(self.id + ' cancelOrder failed to cancel ' + symbol + ' order id ' + id)
+                raise InvalidOrder(self.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id)
         else:
             result = self.safe_value(data, 'result')
             if not result:
-                raise InvalidOrder(self.id + ' cancelOrder ' + symbol + ' order id ' + id + ' is filled or canceled')
+                raise InvalidOrder(self.id + ' cancelOrder() ' + symbol + ' order id ' + id + ' is filled or canceled')
         order = self.parse_order(id, market)
         return self.extend(order, {'id': id})
 
     def cancel_all_orders(self, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         side = self.safe_string(params, 'side')
         if side is None:
-            raise ArgumentsRequired(self.id + " cancelAllOrders requires a `side` parameter('buy' or 'sell')")
+            raise ArgumentsRequired(self.id + " cancelAllOrders() requires a `side` parameter('buy' or 'sell')")
         self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
-            raise NotSupported(self.id + ' cancelAllOrders does not support ' + market['type'] + ' orders, only spot orders are accepted')
+            raise NotSupported(self.id + ' cancelAllOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted')
         request = {
             'symbol': market['id'],
             'side': side,  # 'buy' or 'sell'
@@ -1742,11 +1759,11 @@ class bitmart(Exchange):
 
     def cancel_orders(self, ids, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' canelOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' canelOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
-            raise NotSupported(self.id + ' cancelOrders does not support ' + market['type'] + ' orders, only contract orders are accepted')
+            raise NotSupported(self.id + ' cancelOrders() does not support ' + market['type'] + ' orders, only contract orders are accepted')
         orders = []
         for i in range(0, len(ids)):
             orders.append(int(ids[i]))
@@ -1784,7 +1801,7 @@ class bitmart(Exchange):
 
     def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {}
@@ -1898,7 +1915,7 @@ class bitmart(Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if not (market['swap'] or market['future']):
@@ -1907,7 +1924,7 @@ class bitmart(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         request = {}
         market = self.market(symbol)
@@ -1982,7 +1999,7 @@ class bitmart(Exchange):
             orders = self.safe_value(data, 'orders', [])
             firstOrder = self.safe_value(orders, 0)
             if firstOrder is None:
-                raise OrderNotFound(self.id + ' fetchOrder could not find ' + symbol + ' order id ' + id)
+                raise OrderNotFound(self.id + ' fetchOrder() could not find ' + symbol + ' order id ' + id)
             return self.parse_order(firstOrder, market)
         else:
             return self.parse_order(data, market)
@@ -2142,12 +2159,12 @@ class bitmart(Exchange):
         elif (depositId is not None) and (depositId != ''):
             type = 'deposit'
             id = depositId
-        amount = self.safe_float(transaction, 'arrival_amount')
-        timestamp = self.safe_integer(transaction, 'tapply_timeime')
+        amount = self.safe_number(transaction, 'arrival_amount')
+        timestamp = self.safe_integer(transaction, 'apply_time')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         fee = None
         if feeCost is not None:
             fee = {
@@ -2183,7 +2200,7 @@ class bitmart(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        baseUrl = self.implode_params(self.urls['api'], {'hostname': self.hostname})
+        baseUrl = self.implode_hostname(self.urls['api'])
         access = self.safe_string(api, 0)
         type = self.safe_string(api, 1)
         url = baseUrl + '/' + type

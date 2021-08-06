@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -17,6 +18,7 @@ from ccxt.base.errors import CancelPending
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.precise import Precise
 
 
 class novadax(Exchange):
@@ -36,7 +38,10 @@ class novadax(Exchange):
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchDeposits': True,
                 'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
@@ -46,7 +51,19 @@ class novadax(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTransactions': True,
+                'fetchWithdrawals': True,
                 'withdraw': True,
+            },
+            'timeframes': {
+                '1m': 'ONE_MIN',
+                '5m': 'FIVE_MIN',
+                '15m': 'FIFTEEN_MIN',
+                '30m': 'HALF_HOU',
+                '1h': 'ONE_HOU',
+                '1d': 'ONE_DAY',
+                '1w': 'ONE_WEE',
+                '1M': 'ONE_MON',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg',
@@ -71,6 +88,7 @@ class novadax(Exchange):
                         'market/ticker',
                         'market/depth',
                         'market/trades',
+                        'market/kline/history',
                     ],
                 },
                 'private': {
@@ -78,10 +96,12 @@ class novadax(Exchange):
                         'orders/get',
                         'orders/list',
                         'orders/fill',
+                        'orders/fills',
                         'account/getBalance',
                         'account/subs',
                         'account/subs/balance',
                         'account/subs/transfer/record',
+                        'wallet/query/deposit-withdraw',
                     ],
                     'post': [
                         'orders/create',
@@ -95,8 +115,8 @@ class novadax(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'taker': 0.5 / 100,
-                    'maker': 0.3 / 100,
+                    'taker': self.parse_number('0.005'),
+                    'maker': self.parse_number('0.003'),
                 },
             },
             'requiredCredentials': {
@@ -133,7 +153,10 @@ class novadax(Exchange):
                 'broad': {
                 },
             },
-            'commonCurrencies': {
+            'options': {
+                'fetchOHLCV': {
+                    'volume': 'amount',  # 'amount' for base volume or 'vol' for quote volume
+                },
             },
         })
 
@@ -186,7 +209,7 @@ class novadax(Exchange):
             }
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'minOrderAmount'),
+                    'min': self.safe_number(market, 'minOrderAmount'),
                     'max': None,
                 },
                 'price': {
@@ -194,7 +217,7 @@ class novadax(Exchange):
                     'max': None,
                 },
                 'cost': {
-                    'min': self.safe_float(market, 'minOrderValue'),
+                    'min': self.safe_number(market, 'minOrderValue'),
                     'max': None,
                 },
             }
@@ -234,8 +257,8 @@ class novadax(Exchange):
         timestamp = self.safe_integer(ticker, 'timestamp')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        open = self.safe_float(ticker, 'open24h')
-        last = self.safe_float(ticker, 'lastPrice')
+        open = self.safe_number(ticker, 'open24h')
+        last = self.safe_number(ticker, 'lastPrice')
         percentage = None
         change = None
         average = None
@@ -243,18 +266,18 @@ class novadax(Exchange):
             change = last - open
             percentage = change / open * 100
             average = self.sum(last, open) / 2
-        baseVolume = self.safe_float(ticker, 'baseVolume24h')
-        quoteVolume = self.safe_float(ticker, 'quoteVolume24h')
+        baseVolume = self.safe_number(ticker, 'baseVolume24h')
+        quoteVolume = self.safe_number(ticker, 'quoteVolume24h')
         vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high24h'),
-            'low': self.safe_float(ticker, 'low24h'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high24h'),
+            'low': self.safe_number(ticker, 'low24h'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': open,
@@ -357,7 +380,7 @@ class novadax(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = self.safe_integer(data, 'timestamp')
-        return self.parse_order_book(data, timestamp, 'bids', 'asks')
+        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
 
     def parse_trade(self, trade, market=None):
         #
@@ -384,15 +407,33 @@ class novadax(Exchange):
         #         "timestamp": 1565171053345
         #     }
         #
+        # private fetchMyTrades
+        #
+        #     {
+        #         "id": "608717046691139584",
+        #         "orderId": "608716957545402368",
+        #         "symbol": "BTC_BRL",
+        #         "side": "BUY",
+        #         "amount": "0.0988",
+        #         "price": "45514.76",
+        #         "fee": "0.0000988 BTC",
+        #         "feeAmount": "0.0000988",
+        #         "feeCurrency": "BTC",
+        #         "role": "MAKER",
+        #         "timestamp": 1565171053345
+        #     }
+        #
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'orderId')
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string_lower(trade, 'side')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = self.safe_float(trade, 'volume')
-        if (cost is None) and (amount is not None) and (price is not None):
-            cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.safe_number(trade, 'volume')
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         takerOrMaker = self.safe_string_lower(trade, 'role')
@@ -403,7 +444,7 @@ class novadax(Exchange):
             feeCurrencyId = self.safe_string(parts, 1)
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': self.safe_float(parts, 0),
+                'cost': self.safe_number(parts, 0),
                 'currency': feeCurrencyCode,
             }
         return {
@@ -445,6 +486,72 @@ class novadax(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'unit': self.timeframes[timeframe],
+        }
+        duration = self.parse_timeframe(timeframe)
+        now = self.seconds()
+        if limit is None:
+            limit = 3000  # max
+        if since is None:
+            request['from'] = now - limit * duration
+            request['to'] = now
+        else:
+            startFrom = int(since / 1000)
+            request['from'] = startFrom
+            request['to'] = self.sum(startFrom, limit * duration)
+        response = self.publicGetMarketKlineHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": "A10000",
+        #         "data": [
+        #             {
+        #                 "amount": 8.25709100,
+        #                 "closePrice": 62553.20,
+        #                 "count": 29,
+        #                 "highPrice": 62592.87,
+        #                 "lowPrice": 62553.20,
+        #                 "openPrice": 62554.23,
+        #                 "score": 1602501480,
+        #                 "symbol": "BTC_BRL",
+        #                 "vol": 516784.2504067500
+        #             }
+        #         ],
+        #         "message": "Success"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "amount": 8.25709100,
+        #         "closePrice": 62553.20,
+        #         "count": 29,
+        #         "highPrice": 62592.87,
+        #         "lowPrice": 62553.20,
+        #         "openPrice": 62554.23,
+        #         "score": 1602501480,
+        #         "symbol": "BTC_BRL",
+        #         "vol": 516784.2504067500
+        #     }
+        #
+        options = self.safe_value(self.options, 'fetchOHLCV', {})
+        volumeField = self.safe_string(options, 'volume', 'amount')  # or vol
+        return [
+            self.safe_timestamp(ohlcv, 'score'),
+            self.safe_number(ohlcv, 'openPrice'),
+            self.safe_number(ohlcv, 'highPrice'),
+            self.safe_number(ohlcv, 'lowPrice'),
+            self.safe_number(ohlcv, 'closePrice'),
+            self.safe_number(ohlcv, volumeField),
+        ]
+
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetAccountGetBalance(params)
@@ -463,15 +570,19 @@ class novadax(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'available')
-            account['free'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'hold')
+            account['total'] = self.safe_string(balance, 'available')
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'hold')
             result[code] = account
         return self.parse_balance(result)
 
@@ -484,18 +595,35 @@ class novadax(Exchange):
             'symbol': market['id'],
             'type': uppercaseType,  # LIMIT, MARKET
             'side': uppercaseSide,  # or SELL
-            # 'accountId': '...',  # subaccount id, optional
             # 'amount': self.amount_to_precision(symbol, amount),
             # "price": "1234.5678",  # required for LIMIT and STOP orders
+            # 'operator': ''  # for stop orders, can be found in order introduction
+            # 'stopPrice': self.price_to_precision(symbol, stopPrice),
+            # 'accountId': '...',  # subaccount id, optional
         }
-        if uppercaseType == 'LIMIT':
+        stopPrice = self.safe_number(params, 'stopPrice')
+        if stopPrice is None:
+            if (uppercaseType == 'STOP_LIMIT') or (uppercaseType == 'STOP_MARKET'):
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter for ' + uppercaseType + ' orders')
+        else:
+            if uppercaseType == 'LIMIT':
+                uppercaseType = 'STOP_LIMIT'
+            elif uppercaseType == 'MARKET':
+                uppercaseType = 'STOP_MARKET'
+            operatorString = self.safe_string(params, 'operator')
+            if operatorString is None:
+                raise ArgumentsRequired(self.id + " createOrder() requires an operator parameter 'GTE' or 'LTE' for " + uppercaseType + ' orders')
+            request['operator'] = operatorString
+            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            params = self.omit(params, 'stopPrice')
+        if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
             request['amount'] = self.amount_to_precision(symbol, amount)
-        elif uppercaseType == 'MARKET':
+        elif (uppercaseType == 'MARKET') or (uppercaseType == 'STOP_MARKET'):
             if uppercaseSide == 'SELL':
                 request['amount'] = self.amount_to_precision(symbol, amount)
             elif uppercaseSide == 'BUY':
-                value = self.safe_float(params, 'value')
+                value = self.safe_number(params, 'value')
                 createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
                 if createMarketBuyOrderRequiresPrice:
                     if price is not None:
@@ -517,14 +645,16 @@ class novadax(Exchange):
         #             "filledAmount": "0",
         #             "filledFee": "0",
         #             "filledValue": "0",
-        #             "id": "633679992971251712",
-        #             "price": "35000",
+        #             "id": "870613508008464384",
+        #             "operator": "GTE",
+        #             "price": "210000",
         #             "side": "BUY",
-        #             "status": "PROCESSING",
+        #             "status": "SUBMITTED",
+        #             "stopPrice": "211000",
         #             "symbol": "BTC_BRL",
-        #             "timestamp": 1571122683535,
-        #             "type": "LIMIT",
-        #             "value": "35"
+        #             "timestamp": 1627612035528,
+        #             "type": "STOP_LIMIT",
+        #             "value": "210"
         #         },
         #         "message": "Success"
         #     }
@@ -691,14 +821,16 @@ class novadax(Exchange):
         #         "filledAmount": "0",
         #         "filledFee": "0",
         #         "filledValue": "0",
-        #         "id": "633679992971251712",
-        #         "price": "35000",
+        #         "id": "870613508008464384",
+        #         "operator": "GTE",
+        #         "price": "210000",
         #         "side": "BUY",
-        #         "status": "PROCESSING",
+        #         "status": "SUBMITTED",
+        #         "stopPrice": "211000",
         #         "symbol": "BTC_BRL",
-        #         "timestamp": 1571122683535,
-        #         "type": "LIMIT",
-        #         "value": "35"
+        #         "timestamp": 1627612035528,
+        #         "type": "STOP_LIMIT",
+        #         "value": "210"
         #     }
         #
         # cancelOrder
@@ -708,28 +840,26 @@ class novadax(Exchange):
         #     }
         #
         id = self.safe_string(order, 'id')
-        amount = self.safe_float(order, 'amount')
-        price = self.safe_float(order, 'price')
-        cost = self.safe_float(order, 'filledValue')
+        amount = self.safe_number(order, 'amount')
+        price = self.safe_number(order, 'price')
+        cost = self.safe_number(order, 'filledValue')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.safe_integer(order, 'timestamp')
-        average = self.safe_float(order, 'averagePrice')
-        filled = self.safe_float(order, 'filledAmount')
-        remaining = None
-        if (amount is not None) and (filled is not None):
-            remaining = max(0, amount - filled)
+        average = self.safe_number(order, 'averagePrice')
+        filled = self.safe_number(order, 'filledAmount')
         fee = None
-        feeCost = self.safe_float(order, 'filledFee')
+        feeCost = self.safe_number(order, 'filledFee')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
                 'currency': None,
             }
-        marketId = self.safe_string(order, 'marketId')
+        marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        return {
+        stopPrice = self.safe_number(order, 'stopPrice')
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'info': order,
@@ -738,17 +868,20 @@ class novadax(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
@@ -769,40 +902,6 @@ class novadax(Exchange):
         #     }
         #
         return self.parse_transaction(response, currency)
-
-    def parse_transaction(self, transaction, currency=None):
-        #
-        # withdraw
-        #
-        #     {
-        #         "code":"A10000",
-        #         "data": "DR123",
-        #         "message":"Success"
-        #     }
-        #
-        id = self.safe_string(transaction, 'data')
-        code = None
-        if currency is not None:
-            code = currency['code']
-        return {
-            'info': transaction,
-            'id': id,
-            'currency': code,
-            'amount': None,
-            'address': None,
-            'addressFrom': None,
-            'addressTo': None,
-            'tag': None,
-            'tagFrom': None,
-            'tagTo': None,
-            'status': None,
-            'type': None,
-            'updated': None,
-            'txid': None,
-            'timestamp': None,
-            'datetime': None,
-            'fee': None,
-        }
 
     def fetch_accounts(self, params={}):
         response = self.privateGetAccountSubs(params)
@@ -833,6 +932,192 @@ class novadax(Exchange):
                 'info': account,
             })
         return result
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        request = {
+            'type': 'coin_in',
+        }
+        return self.fetch_transactions(code, since, limit, self.extend(request, params))
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        request = {
+            'type': 'coin_out',
+        }
+        return self.fetch_transactions(code, since, limit, self.extend(request, params))
+
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # 'currency': currency['id'],
+            # 'type': 'coin_in',  # 'coin_out'
+            # 'direct': 'asc',  # 'desc'
+            # 'size': limit,  # default 100
+            # 'start': id,  # offset id
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if limit is not None:
+            request['size'] = limit
+        response = self.privateGetWalletQueryDepositWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         "code": "A10000",
+        #         "data": [
+        #             {
+        #                 "id": "DR562339304588709888",
+        #                 "type": "COIN_IN",
+        #                 "currency": "XLM",
+        #                 "chain": "XLM",
+        #                 "address": "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
+        #                 "addressTag": "1000009",
+        #                 "amount": 1.0,
+        #                 "state": "SUCCESS",
+        #                 "txHash": "39210645748822f8d4ce673c7559aa6622e6e9cdd7073bc0fcae14b1edfda5f4",
+        #                 "createdAt": 1554113737000,
+        #                 "updatedAt": 1601371273000
+        #             }
+        #         ],
+        #         "message": "Success"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_transactions(data, currency, since, limit)
+
+    def parse_transaction_status(self, status):
+        # Pending the record is wait broadcast to chain
+        # x/M confirming the comfirming state of tx, the M is total confirmings needed
+        # SUCCESS the record is success full
+        # FAIL the record failed
+        parts = status.split(' ')
+        status = self.safe_string(parts, 1, status)
+        statuses = {
+            'Pending': 'pending',
+            'confirming': 'pending',
+            'SUCCESS': 'ok',
+            'FAIL': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "code":"A10000",
+        #         "data": "DR123",
+        #         "message":"Success"
+        #     }
+        #
+        # fetchTransactions
+        #
+        #     {
+        #         "id": "DR562339304588709888",
+        #         "type": "COIN_IN",
+        #         "currency": "XLM",
+        #         "chain": "XLM",
+        #         "address": "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
+        #         "addressTag": "1000009",
+        #         "amount": 1.0,
+        #         "state": "SUCCESS",
+        #         "txHash": "39210645748822f8d4ce673c7559aa6622e6e9cdd7073bc0fcae14b1edfda5f4",
+        #         "createdAt": 1554113737000,
+        #         "updatedAt": 1601371273000
+        #     }
+        #
+        id = self.safe_string_2(transaction, 'id', 'data')
+        type = self.safe_string(transaction, 'type')
+        if type == 'COIN_IN':
+            type = 'deposit'
+        elif type == 'COIN_OUT':
+            type = 'withdraw'
+        amount = self.safe_number(transaction, 'amount')
+        address = self.safe_string(transaction, 'address')
+        tag = self.safe_string(transaction, 'addressTag')
+        txid = self.safe_string(transaction, 'txHash')
+        timestamp = self.safe_integer(transaction, 'createdAt')
+        updated = self.safe_integer(transaction, 'updatedAt')
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': None,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': None,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': None,
+        }
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            #  'orderId': id,  # Order ID, string
+            #  'symbol': market['id'],  # The trading symbol, like BTC_BRL, string
+            #  'fromId': fromId,  # Search fill id to begin with, string
+            #  'toId': toId,  # Search fill id to end up with, string
+            #  'fromTimestamp': since,  # Search order fill time to begin with, in milliseconds, string
+            #  'toTimestamp': self.milliseconds(),  # Search order fill time to end up with, in milliseconds, string
+            #  'limit': limit,  # The number of fills to return, default 100, max 100, string
+            #  'accountId': subaccountId,  # Sub account ID, if not informed, the fills will be return under master account, string
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['fromTimestamp'] = since
+        response = self.privateGetOrdersFills(self.extend(request, params))
+        #
+        #     {
+        #         "code": "A10000",
+        #         "data": [
+        #             {
+        #                 "id": "608717046691139584",
+        #                 "orderId": "608716957545402368",
+        #                 "symbol": "BTC_BRL",
+        #                 "side": "BUY",
+        #                 "amount": "0.0988",
+        #                 "price": "45514.76",
+        #                 "fee": "0.0000988 BTC",
+        #                 "feeAmount": "0.0000988",
+        #                 "feeCurrency": "BTC",
+        #                 "role": "MAKER",
+        #                 "timestamp": 1565171053345
+        #             },
+        #             {
+        #                 "id": "608717065729085441",
+        #                 "orderId": "608716957545402368",
+        #                 "symbol": "BTC_BRL",
+        #                 "side": "BUY",
+        #                 "amount": "0.0242",
+        #                 "price": "45514.76",
+        #                 "fee": "0.0000242 BTC",
+        #                 "feeAmount": "0.0000988",
+        #                 "feeCurrency": "BTC",
+        #                 "role": "MAKER",
+        #                 "timestamp": 1565171057882
+        #             }
+        #         ],
+        #         "message": "Success"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_trades(data, market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.version + '/' + self.implode_params(path, params)

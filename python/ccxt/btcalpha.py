@@ -4,12 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.precise import Precise
 
 
 class btcalpha(Exchange):
@@ -79,40 +79,11 @@ class btcalpha(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
                 },
                 'funding': {
-                    'withdraw': {
-                        'BTC': 0.00135,
-                        'LTC': 0.0035,
-                        'XMR': 0.018,
-                        'ZEC': 0.002,
-                        'ETH': 0.01,
-                        'ETC': 0.01,
-                        'SIB': 1.5,
-                        'CCRB': 4,
-                        'PZM': 0.05,
-                        'ITI': 0.05,
-                        'DCY': 5,
-                        'R': 5,
-                        'ATB': 0.05,
-                        'BRIA': 0.05,
-                        'KZC': 0.05,
-                        'HWC': 1,
-                        'SPA': 1,
-                        'SMS': 0.001,
-                        'REC': 0.01,
-                        'SUP': 1,
-                        'BQ': 100,
-                        'GDS': 0.1,
-                        'EVN': 300,
-                        'TRKC': 0.01,
-                        'UNI': 1,
-                        'STN': 1,
-                        'BCH': None,
-                        'QBIC': 0.5,
-                    },
+                    'withdraw': {},
                 },
             },
             'commonCurrencies': {
@@ -137,10 +108,13 @@ class btcalpha(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            pricePrecision = self.safe_string(market, 'price_precision')
+            priceLimit = self.parse_precision(pricePrecision)
             precision = {
                 'amount': 8,
-                'price': self.safe_integer(market, 'price_precision'),
+                'price': int(pricePrecision),
             }
+            amountLimit = self.safe_string(market, 'minimum_order_size')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -150,15 +124,15 @@ class btcalpha(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'minimum_order_size'),
-                        'max': self.safe_float(market, 'maximum_order_size'),
+                        'min': self.parse_number(amountLimit),
+                        'max': self.safe_number(market, 'maximum_order_size'),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': self.parse_number(priceLimit),
+                        'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.parse_number(Precise.string_mul(priceLimit, amountLimit)),
                         'max': None,
                     },
                 },
@@ -177,7 +151,7 @@ class btcalpha(Exchange):
             request['limit_sell'] = limit
             request['limit_buy'] = limit
         response = self.publicGetOrderbookPairName(self.extend(request, params))
-        return self.parse_order_book(response, None, 'buy', 'sell', 'price', 'amount')
+        return self.parse_order_book(response, symbol, None, 'buy', 'sell', 'price', 'amount')
 
     def parse_bids_asks(self, bidasks, priceKey=0, amountKey=1):
         result = []
@@ -190,16 +164,15 @@ class btcalpha(Exchange):
     def parse_trade(self, trade, market=None):
         symbol = None
         if market is None:
-            market = self.safe_value(self.marketsById, trade['pair'])
+            market = self.safe_value(self.markets_by_id, trade['pair'])
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_timestamp(trade, 'timestamp')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = float(self.cost_to_precision(symbol, price * amount))
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string_2(trade, 'id', 'tid')
         side = self.safe_string_2(trade, 'my_side', 'side')
         orderId = self.safe_string(trade, 'o_id')
@@ -244,11 +217,11 @@ class btcalpha(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 'time'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
@@ -281,8 +254,8 @@ class btcalpha(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_float(balance, 'reserve')
-            account['total'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'reserve')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -297,12 +270,12 @@ class btcalpha(Exchange):
     def parse_order(self, order, market=None):
         symbol = None
         if market is None:
-            market = self.safe_value(self.marketsById, order['pair'])
+            market = self.safe_value(self.markets_by_id, order['pair'])
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_timestamp(order, 'date')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'amount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string_2(order, 'oid', 'id')
         trades = self.safe_value(order, 'trades', [])
@@ -325,8 +298,11 @@ class btcalpha(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': None,
             'amount': amount,
             'filled': filled,

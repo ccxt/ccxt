@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidOrder, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -67,8 +68,8 @@ module.exports = class braziliex extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.005,
-                    'taker': 0.005,
+                    'maker': this.parseNumber ('0.005'),
+                    'taker': this.parseNumber ('0.005'),
                 },
             },
             'precision': {
@@ -184,11 +185,11 @@ module.exports = class braziliex extends Exchange {
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': this.safeFloat (currency, 'txWithdrawalFee'),
+                        'fee': this.safeNumber (currency, 'txWithdrawalFee'),
                     },
                     'deposit': {
                         'active': canDeposit,
-                        'fee': this.safeFloat (currency, 'txDepositFee'),
+                        'fee': this.safeNumber (currency, 'txDepositFee'),
                     },
                 },
                 'limits': {
@@ -196,20 +197,12 @@ module.exports = class braziliex extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': this.safeFloat (currency, 'MinWithdrawal'),
+                        'min': this.safeNumber (currency, 'MinWithdrawal'),
                         'max': Math.pow (10, precision),
                     },
                     'deposit': {
-                        'min': this.safeFloat (currency, 'minDeposit'),
+                        'min': this.safeNumber (currency, 'minDeposit'),
                         'max': undefined,
                     },
                 },
@@ -257,9 +250,9 @@ module.exports = class braziliex extends Exchange {
             const quoteIsFiat = this.safeInteger (quoteCurrency, 'is_fiat', 0);
             let minCost = undefined;
             if (quoteIsFiat) {
-                minCost = this.safeFloat (baseCurrency, 'minAmountTradeFIAT');
+                minCost = this.safeNumber (baseCurrency, 'minAmountTradeFIAT');
             } else {
-                minCost = this.safeFloat (baseCurrency, 'minAmountTrade' + uppercaseQuoteId);
+                minCost = this.safeNumber (baseCurrency, 'minAmountTrade' + uppercaseQuoteId);
             }
             const isActive = this.safeInteger (market, 'active');
             const active = (isActive === 1);
@@ -302,27 +295,27 @@ module.exports = class braziliex extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.milliseconds ();
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'highestBid24'),
-            'low': this.safeFloat (ticker, 'lowestAsk24'),
-            'bid': this.safeFloat (ticker, 'highestBid'),
+            'high': this.safeNumber (ticker, 'highestBid24'),
+            'low': this.safeNumber (ticker, 'lowestAsk24'),
+            'bid': this.safeNumber (ticker, 'highestBid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'lowestAsk'),
+            'ask': this.safeNumber (ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'percentChange'),
+            'change': this.safeNumber (ticker, 'percentChange'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'baseVolume24'),
-            'quoteVolume': this.safeFloat (ticker, 'quoteVolume24'),
+            'baseVolume': this.safeNumber (ticker, 'baseVolume24'),
+            'quoteVolume': this.safeNumber (ticker, 'quoteVolume24'),
             'info': ticker,
         };
     }
@@ -357,18 +350,23 @@ module.exports = class braziliex extends Exchange {
             'market': this.marketId (symbol),
         };
         const response = await this.publicGetOrderbookMarket (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString2 (trade, 'date_exec', 'date'));
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const cost = this.safeFloat (trade, 'total');
+        let cost = this.safeNumber (trade, 'total');
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        }
         const orderId = this.safeString (trade, 'order_number');
         const type = 'limit';
         const side = this.safeString (trade, 'type');
@@ -410,8 +408,8 @@ module.exports = class braziliex extends Exchange {
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['total'] = this.safeFloat (balance, 'total');
+            account['free'] = this.safeString (balance, 'available');
+            account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -436,20 +434,16 @@ module.exports = class braziliex extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (order, 'date'));
         }
-        const price = this.safeFloat (order, 'price');
-        const cost = this.safeFloat (order, 'total', 0.0);
-        const amount = this.safeFloat (order, 'amount');
-        const filledPercentage = this.safeFloat (order, 'progress');
+        const price = this.safeNumber (order, 'price');
+        const cost = this.safeNumber (order, 'total');
+        const amount = this.safeNumber (order, 'amount');
+        const filledPercentage = this.safeNumber (order, 'progress');
         const filled = amount * filledPercentage;
-        const remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
-        let info = order;
-        if ('info' in info) {
-            info = order['info'];
-        }
         const id = this.safeString (order, 'order_number');
         const fee = this.safeValue (order, 'fee'); // propagated from createOrder
         const status = (filledPercentage === 1.0) ? 'closed' : 'open';
-        return {
+        const side = this.safeString (order, 'type');
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -458,17 +452,20 @@ module.exports = class braziliex extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'trades': undefined,
             'fee': fee,
-            'info': info,
+            'info': order,
             'average': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -520,7 +517,7 @@ module.exports = class braziliex extends Exchange {
             'price': this.safeString (priceParts, 1),
             'total': this.safeString (totalParts, 1),
             'fee': {
-                'cost': this.safeFloat (feeParts, 1),
+                'cost': this.safeNumber (feeParts, 1),
                 'currency': this.safeString (feeParts, 2),
             },
             'progress': '0.0',

@@ -105,6 +105,7 @@ class coinmarketcap extends Exchange {
             'BlazeCoin' => 'BlazeCoin',
             'BlockCAT' => 'BlockCAT',
             'Blocktrade Token' => 'Blocktrade Token',
+            'BOX Token' => 'BOX Token', // conflict with BOX (ContentBox)
             'Catcoin' => 'Catcoin',
             'CanYaCoin' => 'CanYaCoin', // conflict with CAN (Content and AD Network)
             'CryptoBossCoin' => 'CryptoBossCoin', // conflict with CBC (CashBet Coin)
@@ -114,6 +115,7 @@ class coinmarketcap extends Exchange {
             'Cryptaur' => 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
             'Cubits' => 'Cubits', // conflict with QBT (Qbao)
             'DAO.Casino' => 'DAO.Casino', // conflict with BET (BetaCoin)
+            'DefiBox' => 'DefiBox', // conflict with BOX (ContentBox)
             'E-Dinar Coin' => 'E-Dinar Coin', // conflict with EDR Endor Protocol and EDRCoin
             'EDRcoin' => 'EDRcoin', // conflict with EDR Endor Protocol and E-Dinar Coin
             'ENTCash' => 'ENTCash', // conflict with ENT (Eternity)
@@ -130,15 +132,18 @@ class coinmarketcap extends Exchange {
             'Huncoin' => 'Huncoin', // conflict with HNC (Helleniccoin)
             'iCoin' => 'iCoin',
             'Infinity Economics' => 'Infinity Economics', // conflict with XIN (Mixin)
+            'IQ.cash' => 'IQ.cash', // conflict with IQ (Everipedia)
             'KingN Coin' => 'KingN Coin', // conflict with KNC (Kyber Network)
             'LiteBitcoin' => 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
             'Maggie' => 'Maggie',
             'Menlo One' => 'Menlo One', // conflict with Harmony (ONE)
+            'Mobilian Coin' => 'Mobilian Coin', // conflict with Membrana (MBN)
             'Monarch' => 'Monarch', // conflict with MyToken (MT)
             'MTC Mesh Network' => 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
             'IOTA' => 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin' => 'NetCoin',
             'PCHAIN' => 'PCHAIN', // conflict with PAI (Project Pai)
+            'Penta' => 'Penta', // conflict with PNT (pNetwork)
             'Plair' => 'Plair', // conflict with PLA (PLANET)
             'PlayChip' => 'PlayChip', // conflict with PLA (PLANET)
             'Polcoin' => 'Polcoin',
@@ -147,8 +152,13 @@ class coinmarketcap extends Exchange {
             // https://github.com/ccxt/ccxt/issues/6081
             // https://github.com/ccxt/ccxt/issues/3365
             // https://github.com/ccxt/ccxt/issues/2873
+            'SBTCT' => 'SiamBitcoin', // conflict with sBTC
+            'Super Bitcoin' => 'Super Bitcoin', // conflict with sBTC
             'TerraCredit' => 'TerraCredit', // conflict with CREDIT (PROXI)
             'Themis' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
+            'UNI COIN' => 'UNI COIN', // conflict with UNI (Uniswap)
+            'UNICORN Token' => 'UNICORN Token', // conflict with UNI (Uniswap)
+            'Universe' => 'Universe', // conflict with UNI (Uniswap)
         );
         return $this->safe_value($currencies, $name, $base);
     }
@@ -200,16 +210,16 @@ class coinmarketcap extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->milliseconds();
         }
-        $change = $this->safe_float($ticker, 'percent_change_24h');
+        $change = $this->safe_number($ticker, 'percent_change_24h');
         $last = null;
         $symbol = null;
         $volume = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
             $priceKey = 'price_' . $market['quoteId'];
-            $last = $this->safe_float($ticker, $priceKey);
+            $last = $this->safe_number($ticker, $priceKey);
             $volumeKey = '24h_volume_' . $market['quoteId'];
-            $volume = $this->safe_float($ticker, $volumeKey);
+            $volume = $this->safe_number($ticker, $volumeKey);
         }
         return array(
             'symbol' => $symbol,
@@ -285,7 +295,6 @@ class coinmarketcap extends Exchange {
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->currency_code($id, $name);
             $result[$code] = array(
                 'id' => $id,
@@ -293,16 +302,16 @@ class coinmarketcap extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => true,
-                'fee' => null, // todo => redesign
-                'precision' => $precision,
+                'fee' => null,
+                'precision' => null,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => null,
+                        'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => null,
+                        'max' => null,
                     ),
                     'cost' => array(
                         'min' => null,

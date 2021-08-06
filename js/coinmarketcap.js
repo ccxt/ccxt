@@ -103,6 +103,7 @@ module.exports = class coinmarketcap extends Exchange {
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
             'Blocktrade Token': 'Blocktrade Token',
+            'BOX Token': 'BOX Token', // conflict with BOX (ContentBox)
             'Catcoin': 'Catcoin',
             'CanYaCoin': 'CanYaCoin', // conflict with CAN (Content and AD Network)
             'CryptoBossCoin': 'CryptoBossCoin', // conflict with CBC (CashBet Coin)
@@ -112,6 +113,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Cryptaur': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
             'Cubits': 'Cubits', // conflict with QBT (Qbao)
             'DAO.Casino': 'DAO.Casino', // conflict with BET (BetaCoin)
+            'DefiBox': 'DefiBox', // conflict with BOX (ContentBox)
             'E-Dinar Coin': 'E-Dinar Coin', // conflict with EDR Endor Protocol and EDRCoin
             'EDRcoin': 'EDRcoin', // conflict with EDR Endor Protocol and E-Dinar Coin
             'ENTCash': 'ENTCash', // conflict with ENT (Eternity)
@@ -128,15 +130,18 @@ module.exports = class coinmarketcap extends Exchange {
             'Huncoin': 'Huncoin', // conflict with HNC (Helleniccoin)
             'iCoin': 'iCoin',
             'Infinity Economics': 'Infinity Economics', // conflict with XIN (Mixin)
+            'IQ.cash': 'IQ.cash', // conflict with IQ (Everipedia)
             'KingN Coin': 'KingN Coin', // conflict with KNC (Kyber Network)
             'LiteBitcoin': 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
             'Maggie': 'Maggie',
             'Menlo One': 'Menlo One', // conflict with Harmony (ONE)
+            'Mobilian Coin': 'Mobilian Coin', // conflict with Membrana (MBN)
             'Monarch': 'Monarch', // conflict with MyToken (MT)
             'MTC Mesh Network': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
             'IOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
             'PCHAIN': 'PCHAIN', // conflict with PAI (Project Pai)
+            'Penta': 'Penta', // conflict with PNT (pNetwork)
             'Plair': 'Plair', // conflict with PLA (PLANET)
             'PlayChip': 'PlayChip', // conflict with PLA (PLANET)
             'Polcoin': 'Polcoin',
@@ -145,8 +150,13 @@ module.exports = class coinmarketcap extends Exchange {
             // https://github.com/ccxt/ccxt/issues/6081
             // https://github.com/ccxt/ccxt/issues/3365
             // https://github.com/ccxt/ccxt/issues/2873
+            'SBTCT': 'SiamBitcoin', // conflict with sBTC
+            'Super Bitcoin': 'Super Bitcoin', // conflict with sBTC
             'TerraCredit': 'TerraCredit', // conflict with CREDIT (PROXI)
             'Themis': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
+            'UNI COIN': 'UNI COIN', // conflict with UNI (Uniswap)
+            'UNICORN Token': 'UNICORN Token', // conflict with UNI (Uniswap)
+            'Universe': 'Universe', // conflict with UNI (Uniswap)
         };
         return this.safeValue (currencies, name, base);
     }
@@ -198,16 +208,16 @@ module.exports = class coinmarketcap extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.milliseconds ();
         }
-        const change = this.safeFloat (ticker, 'percent_change_24h');
+        const change = this.safeNumber (ticker, 'percent_change_24h');
         let last = undefined;
         let symbol = undefined;
         let volume = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
             const priceKey = 'price_' + market['quoteId'];
-            last = this.safeFloat (ticker, priceKey);
+            last = this.safeNumber (ticker, priceKey);
             const volumeKey = '24h_volume_' + market['quoteId'];
-            volume = this.safeFloat (ticker, volumeKey);
+            volume = this.safeNumber (ticker, volumeKey);
         }
         return {
             'symbol': symbol,
@@ -283,7 +293,6 @@ module.exports = class coinmarketcap extends Exchange {
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            const precision = 8; // default precision, todo: fix "magic constants"
             const code = this.currencyCode (id, name);
             result[code] = {
                 'id': id,
@@ -291,16 +300,16 @@ module.exports = class coinmarketcap extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': true,
-                'fee': undefined, // todo: redesign
-                'precision': precision,
+                'fee': undefined,
+                'precision': undefined,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'cost': {
                         'min': undefined,

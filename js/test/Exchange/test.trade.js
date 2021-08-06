@@ -52,12 +52,14 @@ function testTrade (exchange, trade, symbol, now) {
     assert (trade['datetime'] === exchange.iso8601 (timestamp));
     assert (trade['symbol'] === symbol, 'trade symbol is not equal to requested symbol: trade: ' + trade['symbol'] + ' requested: ' + symbol);
     assert (trade['type'] === undefined || typeof trade['type'] === 'string');
-    assert (trade['side'] === undefined || trade['side'] === 'buy' || trade['side'] === 'sell');
+    assert (trade['side'] === undefined || trade['side'] === 'buy' || trade['side'] === 'sell', 'unexpected trade side ' + trade['side']);
     assert (trade['order'] === undefined || typeof trade['order'] === 'string');
     assert (typeof trade['price'] === 'number', 'trade.price is not a number');
     assert (trade['price'] > 0);
     assert (typeof trade['amount'] === 'number', 'trade.amount is not a number');
     assert (trade['amount'] >= 0);
+    assert (trade['cost'] === undefined || typeof trade['cost'] === 'number', 'trade.cost is not a number');
+    assert (trade['cost'] === undefined || trade['cost'] >= 0);
     const takerOrMaker = trade['takerOrMaker'];
     assert (takerOrMaker === undefined || takerOrMaker === 'taker' || takerOrMaker === 'maker');
 }

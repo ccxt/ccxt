@@ -127,7 +127,7 @@ for arg in argv.args:
 
     # unpack json objects (mostly for extra params)
     if arg[0] == '{' or arg[0] == '[':
-        args.append(exchange.unjson(arg))
+        args.append(json.loads(arg))
     elif arg == 'None':
         args.append(None)
     elif re.match(r'^[0-9+-]+$', arg):

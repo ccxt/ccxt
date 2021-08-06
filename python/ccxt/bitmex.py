@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -14,6 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class bitmex(Exchange):
@@ -176,6 +178,7 @@ class bitmex(Exchange):
                     'Account has insufficient Available Balance': InsufficientFunds,
                     'Service unavailable': ExchangeNotAvailable,  # {"error":{"message":"Service unavailable","name":"HTTPError"}}
                     'Server Error': ExchangeError,  # {"error":{"message":"Server Error","name":"HTTPError"}}
+                    'Unable to cancel order due to existing state': InvalidOrder,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -221,8 +224,8 @@ class bitmex(Exchange):
                 'amount': None,
                 'price': None,
             }
-            lotSize = self.safe_float(market, 'lotSize')
-            tickSize = self.safe_float(market, 'tickSize')
+            lotSize = self.safe_number(market, 'lotSize')
+            tickSize = self.safe_number(market, 'tickSize')
             if lotSize is not None:
                 precision['amount'] = lotSize
             if tickSize is not None:
@@ -234,7 +237,7 @@ class bitmex(Exchange):
                 },
                 'price': {
                     'min': tickSize,
-                    'max': self.safe_float(market, 'maxPrice'),
+                    'max': self.safe_number(market, 'maxPrice'),
                 },
                 'cost': {
                     'min': None,
@@ -244,7 +247,7 @@ class bitmex(Exchange):
             limitField = 'cost' if (position == quote) else 'amount'
             limits[limitField] = {
                 'min': lotSize,
-                'max': self.safe_float(market, 'maxOrderQty'),
+                'max': self.safe_number(market, 'maxOrderQty'),
             }
             result.append({
                 'id': id,
@@ -256,8 +259,8 @@ class bitmex(Exchange):
                 'active': active,
                 'precision': precision,
                 'limits': limits,
-                'taker': self.safe_float(market, 'takerFee'),
-                'maker': self.safe_float(market, 'makerFee'),
+                'taker': self.safe_number(market, 'takerFee'),
+                'maker': self.safe_number(market, 'makerFee'),
                 'type': type,
                 'spot': False,
                 'swap': swap,
@@ -321,13 +324,11 @@ class bitmex(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            free = self.safe_float(balance, 'availableMargin')
-            total = self.safe_float(balance, 'marginBalance')
+            free = self.safe_string(balance, 'availableMargin')
+            total = self.safe_string(balance, 'marginBalance')
             if code == 'BTC':
-                if free is not None:
-                    free /= 100000000
-                if total is not None:
-                    total /= 100000000
+                free = Precise.string_div(free, '1e8')
+                total = Precise.string_div(total, '1e8')
             account['free'] = free
             account['total'] = total
             result[code] = account
@@ -398,6 +399,7 @@ class bitmex(Exchange):
             request['depth'] = limit
         response = self.publicGetOrderBookL2(self.extend(request, params))
         result = {
+            'symbol': symbol,
             'bids': [],
             'asks': [],
             'timestamp': None,
@@ -407,8 +409,8 @@ class bitmex(Exchange):
         for i in range(0, len(response)):
             order = response[i]
             side = 'asks' if (order['side'] == 'Sell') else 'bids'
-            amount = self.safe_float(order, 'size')
-            price = self.safe_float(order, 'price')
+            amount = self.safe_number(order, 'size')
+            price = self.safe_number(order, 'price')
             # https://github.com/ccxt/ccxt/issues/4926
             # https://github.com/ccxt/ccxt/issues/4927
             # the exchange sometimes returns null price in the orderbook
@@ -596,7 +598,7 @@ class bitmex(Exchange):
         type = self.parse_ledger_entry_type(self.safe_string(item, 'transactType'))
         currencyId = self.safe_string(item, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        amount = self.safe_float(item, 'amount')
+        amount = self.safe_number(item, 'amount')
         if amount is not None:
             amount = amount / 100000000
         timestamp = self.parse8601(self.safe_string(item, 'transactTime'))
@@ -605,14 +607,14 @@ class bitmex(Exchange):
             # set the timestamp to zero, 1970 Jan 1 00:00:00
             # for unrealized pnl and other transactions without a timestamp
             timestamp = 0  # see comments above
-        feeCost = self.safe_float(item, 'fee', 0)
+        feeCost = self.safe_number(item, 'fee', 0)
         if feeCost is not None:
             feeCost = feeCost / 100000000
         fee = {
             'cost': feeCost,
             'currency': code,
         }
-        after = self.safe_float(item, 'walletBalance')
+        after = self.safe_number(item, 'walletBalance')
         if after is not None:
             after = after / 100000000
         before = self.sum(after, -amount)
@@ -739,14 +741,12 @@ class bitmex(Exchange):
             address = self.safe_string(transaction, 'address')
             addressFrom = self.safe_string(transaction, 'tx')
             addressTo = address
-        amount = self.safe_integer(transaction, 'amount')
-        if amount is not None:
-            amount = abs(amount) / 10000000
-        feeCost = self.safe_integer(transaction, 'fee')
-        if feeCost is not None:
-            feeCost = feeCost / 10000000
+        amountString = self.safe_string(transaction, 'amount')
+        amountString = Precise.string_div(Precise.string_abs(amountString), '1e8')
+        feeCostString = self.safe_string(transaction, 'fee')
+        feeCostString = Precise.string_div(feeCostString, '1e8')
         fee = {
-            'cost': feeCost,
+            'cost': self.parse_number(feeCostString),
             'currency': 'BTC',
         }
         status = self.safe_string(transaction, 'transactStatus')
@@ -765,7 +765,7 @@ class bitmex(Exchange):
             'tag': None,
             'tagTo': None,
             'type': type,
-            'amount': amount,
+            'amount': self.parse_number(amountString),
             # BTC is the only currency on Bitmex
             'currency': 'BTC',
             'status': status,
@@ -909,8 +909,8 @@ class bitmex(Exchange):
         if market is not None:
             symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        open = self.safe_float(ticker, 'prevPrice24h')
-        last = self.safe_float(ticker, 'lastPrice')
+        open = self.safe_number(ticker, 'prevPrice24h')
+        last = self.safe_number(ticker, 'lastPrice')
         change = None
         percentage = None
         if last is not None and open is not None:
@@ -921,13 +921,13 @@ class bitmex(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'highPrice'),
-            'low': self.safe_float(ticker, 'lowPrice'),
-            'bid': self.safe_float(ticker, 'bidPrice'),
+            'high': self.safe_number(ticker, 'highPrice'),
+            'low': self.safe_number(ticker, 'lowPrice'),
+            'bid': self.safe_number(ticker, 'bidPrice'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'askPrice'),
+            'ask': self.safe_number(ticker, 'askPrice'),
             'askVolume': None,
-            'vwap': self.safe_float(ticker, 'vwap'),
+            'vwap': self.safe_number(ticker, 'vwap'),
             'open': open,
             'close': last,
             'last': last,
@@ -935,8 +935,8 @@ class bitmex(Exchange):
             'change': change,
             'percentage': percentage,
             'average': self.sum(open, last) / 2,
-            'baseVolume': self.safe_float(ticker, 'homeNotional24h'),
-            'quoteVolume': self.safe_float(ticker, 'foreignNotional24h'),
+            'baseVolume': self.safe_number(ticker, 'homeNotional24h'),
+            'quoteVolume': self.safe_number(ticker, 'foreignNotional24h'),
             'info': ticker,
         }
 
@@ -960,11 +960,11 @@ class bitmex(Exchange):
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'timestamp')),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -1086,30 +1086,30 @@ class bitmex(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float_2(trade, 'size', 'lastQty')
+        priceString = self.safe_string_2(trade, 'avgPx', 'price')
+        amountString = self.safe_string_2(trade, 'size', 'lastQty')
         id = self.safe_string(trade, 'trdMatchID')
         order = self.safe_string(trade, 'orderID')
         side = self.safe_string_lower(trade, 'side')
         # price * amount doesn't work for all symbols(e.g. XBT, ETH)
-        cost = self.safe_float(trade, 'execCost')
-        if cost is not None:
-            cost = abs(cost) / 100000000
+        costString = self.safe_string(trade, 'execCost')
+        costString = Precise.string_div(Precise.string_abs(costString), '1e8')
         fee = None
-        if 'execComm' in trade:
-            feeCost = self.safe_float(trade, 'execComm')
-            feeCost = feeCost / 100000000
+        feeCostString = Precise.string_div(self.safe_string(trade, 'execComm'), '1e8')
+        if feeCostString is not None:
             currencyId = self.safe_string(trade, 'settlCurrency')
-            feeCurrency = self.safe_currency_code(currencyId)
-            feeRate = self.safe_float(trade, 'commission')
+            feeCurrencyCode = self.safe_currency_code(currencyId)
+            feeRateString = self.safe_string(trade, 'commission')
             fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
-                'rate': feeRate,
+                'cost': self.parse_number(feeCostString),
+                'currency': feeCurrencyCode,
+                'rate': self.parse_number(feeRateString),
             }
+        # Trade or Funding
+        execType = self.safe_string(trade, 'execType')
         takerOrMaker = None
-        if fee is not None:
-            takerOrMaker = 'maker' if (fee['cost'] < 0) else 'taker'
+        if feeCostString is not None and execType == 'Trade':
+            takerOrMaker = 'maker' if Precise.string_lt(feeCostString, '0') else 'taker'
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         type = self.safe_string_lower(trade, 'ordType')
@@ -1123,9 +1123,9 @@ class bitmex(Exchange):
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
+            'price': self.parse_number(priceString),
+            'cost': self.parse_number(costString),
+            'amount': self.parse_number(amountString),
             'fee': fee,
         }
 
@@ -1146,31 +1146,71 @@ class bitmex(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'Day': 'Day',
+            'GoodTillCancel': 'GTC',
+            'ImmediateOrCancel': 'IOC',
+            'FillOrKill': 'FOK',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
+
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
+        #         "clOrdID":"",
+        #         "clOrdLinkID":"",
+        #         "account":1455728,
+        #         "symbol":"XBTUSD",
+        #         "side":"Sell",
+        #         "simpleOrderQty":null,
+        #         "orderQty":1,
+        #         "price":40000,
+        #         "displayQty":null,
+        #         "stopPx":null,
+        #         "pegOffsetValue":null,
+        #         "pegPriceType":"",
+        #         "currency":"USD",
+        #         "settlCurrency":"XBt",
+        #         "ordType":"Limit",
+        #         "timeInForce":"GoodTillCancel",
+        #         "execInst":"",
+        #         "contingencyType":"",
+        #         "exDestination":"XBME",
+        #         "ordStatus":"New",
+        #         "triggered":"",
+        #         "workingIndicator":true,
+        #         "ordRejReason":"",
+        #         "simpleLeavesQty":null,
+        #         "leavesQty":1,
+        #         "simpleCumQty":null,
+        #         "cumQty":0,
+        #         "avgPx":null,
+        #         "multiLegReportingType":"SingleSecurity",
+        #         "text":"Submitted via API.",
+        #         "transactTime":"2021-01-02T21:38:49.246Z",
+        #         "timestamp":"2021-01-02T21:38:49.246Z"
+        #     }
+        #
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'transactTime'))
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'orderQty')
-        filled = self.safe_float(order, 'cumQty', 0.0)
-        remaining = None
-        if amount is not None:
-            if filled is not None:
-                remaining = max(amount - filled, 0.0)
-        average = self.safe_float(order, 'avgPx')
-        cost = None
-        if filled is not None:
-            if average is not None:
-                cost = average * filled
-            elif price is not None:
-                cost = price * filled
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'orderQty')
+        filled = self.safe_number(order, 'cumQty', 0.0)
+        average = self.safe_number(order, 'avgPx')
         id = self.safe_string(order, 'orderID')
         type = self.safe_string_lower(order, 'ordType')
         side = self.safe_string_lower(order, 'side')
         clientOrderId = self.safe_string(order, 'clOrdID')
-        return {
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
+        stopPrice = self.safe_number(order, 'stopPx')
+        execInst = self.safe_string(order, 'execInst')
+        postOnly = (execInst == 'ParticipateDoNotInitiate')
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1179,17 +1219,20 @@ class bitmex(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -1242,14 +1285,18 @@ class bitmex(Exchange):
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
-            'orderQty': amount,
+            'orderQty': float(self.amount_to_precision(symbol, amount)),
             'ordType': orderType,
         }
-        if price is not None:
-            if orderType == 'Stop':
-                request['stopPx'] = price
+        if (orderType == 'Stop') or (orderType == 'StopLimit') or (orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'):
+            stopPrice = self.safe_number_2(params, 'stopPx', 'stopPrice')
+            if stopPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPx or stopPrice parameter for the ' + orderType + ' order type')
             else:
-                request['price'] = price
+                request['stopPx'] = float(self.price_to_precision(symbol, stopPrice))
+                params = self.omit(params, ['stopPx', 'stopPrice'])
+        if (orderType == 'Limit') or (orderType == 'StopLimit') or (orderType == 'LimitIfTouched'):
+            request['price'] = float(self.price_to_precision(symbol, price))
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId
@@ -1342,6 +1389,108 @@ class bitmex(Exchange):
         #     ]
         #
         return self.parse_orders(response, market)
+
+    def fetch_positions(self, symbols=None, params={}):
+        self.load_markets()
+        response = self.privateGetPosition(params)
+        #     [
+        #         {
+        #             "account": 0,
+        #             "symbol": "string",
+        #             "currency": "string",
+        #             "underlying": "string",
+        #             "quoteCurrency": "string",
+        #             "commission": 0,
+        #             "initMarginReq": 0,
+        #             "maintMarginReq": 0,
+        #             "riskLimit": 0,
+        #             "leverage": 0,
+        #             "crossMargin": True,
+        #             "deleveragePercentile": 0,
+        #             "rebalancedPnl": 0,
+        #             "prevRealisedPnl": 0,
+        #             "prevUnrealisedPnl": 0,
+        #             "prevClosePrice": 0,
+        #             "openingTimestamp": "2020-11-09T06:53:59.892Z",
+        #             "openingQty": 0,
+        #             "openingCost": 0,
+        #             "openingComm": 0,
+        #             "openOrderBuyQty": 0,
+        #             "openOrderBuyCost": 0,
+        #             "openOrderBuyPremium": 0,
+        #             "openOrderSellQty": 0,
+        #             "openOrderSellCost": 0,
+        #             "openOrderSellPremium": 0,
+        #             "execBuyQty": 0,
+        #             "execBuyCost": 0,
+        #             "execSellQty": 0,
+        #             "execSellCost": 0,
+        #             "execQty": 0,
+        #             "execCost": 0,
+        #             "execComm": 0,
+        #             "currentTimestamp": "2020-11-09T06:53:59.893Z",
+        #             "currentQty": 0,
+        #             "currentCost": 0,
+        #             "currentComm": 0,
+        #             "realisedCost": 0,
+        #             "unrealisedCost": 0,
+        #             "grossOpenCost": 0,
+        #             "grossOpenPremium": 0,
+        #             "grossExecCost": 0,
+        #             "isOpen": True,
+        #             "markPrice": 0,
+        #             "markValue": 0,
+        #             "riskValue": 0,
+        #             "homeNotional": 0,
+        #             "foreignNotional": 0,
+        #             "posState": "string",
+        #             "posCost": 0,
+        #             "posCost2": 0,
+        #             "posCross": 0,
+        #             "posInit": 0,
+        #             "posComm": 0,
+        #             "posLoss": 0,
+        #             "posMargin": 0,
+        #             "posMaint": 0,
+        #             "posAllowance": 0,
+        #             "taxableMargin": 0,
+        #             "initMargin": 0,
+        #             "maintMargin": 0,
+        #             "sessionMargin": 0,
+        #             "targetExcessMargin": 0,
+        #             "varMargin": 0,
+        #             "realisedGrossPnl": 0,
+        #             "realisedTax": 0,
+        #             "realisedPnl": 0,
+        #             "unrealisedGrossPnl": 0,
+        #             "longBankrupt": 0,
+        #             "shortBankrupt": 0,
+        #             "taxBase": 0,
+        #             "indicativeTaxRate": 0,
+        #             "indicativeTax": 0,
+        #             "unrealisedTax": 0,
+        #             "unrealisedPnl": 0,
+        #             "unrealisedPnlPcnt": 0,
+        #             "unrealisedRoePcnt": 0,
+        #             "simpleQty": 0,
+        #             "simpleCost": 0,
+        #             "simpleValue": 0,
+        #             "simplePnl": 0,
+        #             "simplePnlPcnt": 0,
+        #             "avgCostPrice": 0,
+        #             "avgEntryPrice": 0,
+        #             "breakEvenPrice": 0,
+        #             "marginCallPrice": 0,
+        #             "liquidationPrice": 0,
+        #             "bankruptPrice": 0,
+        #             "timestamp": "2020-11-09T06:53:59.894Z",
+        #             "lastPrice": 0,
+        #             "lastValue": 0
+        #         }
+        #     ]
+        #
+        # todo unify parsePosition/parsePositions
+        return response
 
     def is_fiat(self, currency):
         if currency == 'EUR':
