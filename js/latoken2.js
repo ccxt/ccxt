@@ -9,7 +9,7 @@ const { ROUND } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
 module.exports = class latoken2 extends Exchange {
-    describe() {
+    describe () {
         return this.deepExtend (super.describe (), {
             'id': 'latoken2',
             'name': 'Latoken',
@@ -136,7 +136,7 @@ module.exports = class latoken2 extends Exchange {
         });
     }
 
-    nonce() {
+    nonce () {
         return this.milliseconds ();
     }
 
@@ -150,24 +150,23 @@ module.exports = class latoken2 extends Exchange {
         return this.safeInteger (response, 'unixTimeMiliseconds');
     }
 
-    async fetchMarkets(params = {}) {
+    async fetchMarkets (params = {}) {
         const response = await this.publicGetPair (params);
 
-    //    [ 
-    //        {
-    //             "id": "263d5e99-1413-47e4-9215-ce4f5dec3556",
-    //             "status": "PAIR_STATUS_ACTIVE",
-    //             "baseCurrency": "6ae140a9-8e75-4413-b157-8dd95c711b23",
-    //             "quoteCurrency": "23fa548b-f887-4f48-9b9b-7dd2c7de5ed0",
-    //             "priceTick": "0.010000000",
-    //             "priceDecimals": 2,
-    //             "quantityTick": "0.010000000",
-    //             "quantityDecimals": 2,
-    //             "costDisplayDecimals": 3,
-    //             "created": 1571333313871
-    //         }
-    //     ]
-
+        //    [ 
+        //        {
+        //             "id": "263d5e99-1413-47e4-9215-ce4f5dec3556",
+        //             "status": "PAIR_STATUS_ACTIVE",
+        //             "baseCurrency": "6ae140a9-8e75-4413-b157-8dd95c711b23",
+        //             "quoteCurrency": "23fa548b-f887-4f48-9b9b-7dd2c7de5ed0",
+        //             "priceTick": "0.010000000",
+        //             "priceDecimals": 2,
+        //             "quantityTick": "0.010000000",
+        //             "quantityDecimals": 2,
+        //             "costDisplayDecimals": 3,
+        //             "created": 1571333313871
+        //         }
+        //     ]
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -214,7 +213,6 @@ module.exports = class latoken2 extends Exchange {
         return result;
     }
 
-    
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCurrency (params);
         //
@@ -294,7 +292,6 @@ module.exports = class latoken2 extends Exchange {
         };
     }
 
-    
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetAuthAccount (params);
@@ -333,7 +330,6 @@ module.exports = class latoken2 extends Exchange {
         return this.parseBalance (result);
     }
 
-    
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -423,7 +419,6 @@ module.exports = class latoken2 extends Exchange {
         };
     }
 
-    
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -446,7 +441,6 @@ module.exports = class latoken2 extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
@@ -502,7 +496,7 @@ module.exports = class latoken2 extends Exchange {
         //     }
         //
         const type = undefined;
-        let timestamp = this.safeInteger2 (trade, 'timestamp', 'time');
+        const timestamp = this.safeInteger2 (trade, 'timestamp', 'time');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'quantity');
         const side = this.safeString (trade, 'direction');
@@ -640,7 +634,7 @@ module.exports = class latoken2 extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'id');
-        const timestamp = this.safeTimestamp (order, 'timestamp');
+        let timestamp = this.safeTimestamp (order, 'timestamp');
         if (timestamp !== undefined) {
             // 03 Jan 2009 - first block
             if (timestamp < 1230940800000) {
@@ -719,7 +713,7 @@ module.exports = class latoken2 extends Exchange {
         };
         return this.fetchOrdersWithMethod ('private_get_order_status', symbol, since, limit, this.extend (request, params));
     }
-    
+
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersWithMethod requires a symbol argument');
@@ -797,7 +791,7 @@ module.exports = class latoken2 extends Exchange {
         const method = this.safeString (this.options, 'createOrderMethod', 'private_post_order_new');
         const response = await this[method] (this.extend (request, params));
         //
-         //      {
+        //      {
         //          "id": "...",
         //          "message": "your request was successfully processed",
         //          "status": "SUCCESS",
@@ -832,7 +826,6 @@ module.exports = class latoken2 extends Exchange {
         return this.parseOrder (response);
     }
 
-    
     sign (path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
         let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
@@ -891,4 +884,4 @@ module.exports = class latoken2 extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-}
+};
