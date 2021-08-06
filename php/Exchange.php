@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.54.44';
+$version = '1.54.52';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.54.44';
+    const VERSION = '1.54.52';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1021,6 +1021,7 @@ class Exchange {
 
         $this->markets = null;
         $this->symbols = null;
+        $this->codes = null;
         $this->ids = null;
         $this->currencies = array();
         $this->base_currencies = null;
@@ -1443,16 +1444,16 @@ class Exchange {
         return json_decode($this->on_json_response($json_string), $as_associative_array);
     }
 
-    // public function print() {
-    //     $args = func_get_args();
-    //     if (is_array($args)) {
-    //         $array = array();
-    //         foreach ($args as $arg) {
-    //             $array[] = is_string($arg) ? $arg : json_encode($arg, JSON_PRETTY_PRINT);
-    //         }
-    //         echo implode(' ', $array), "\n";
-    //     }
-    // }
+    public function log() {
+        $args = func_get_args();
+        if (is_array($args)) {
+            $array = array();
+            foreach ($args as $arg) {
+                $array[] = is_string($arg) ? $arg : json_encode($arg, JSON_PRETTY_PRINT);
+            }
+            echo implode(' ', $array), "\n";
+        }
+    }
 
     public function set_headers($headers) {
         return $headers;
@@ -1721,6 +1722,8 @@ class Exchange {
             $this->currencies = array_replace_recursive($currencies, $this->currencies);
         }
         $this->currencies_by_id = static::index_by(array_values($this->currencies), 'id');
+        $this->codes = array_keys($this->currencies);
+        sort($this->codes);
         return $this->markets;
     }
 

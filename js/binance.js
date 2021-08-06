@@ -118,8 +118,9 @@ module.exports = class binance extends Exchange {
             'api': {
                 // the API structure below will need 3-layer apidefs
                 'sapi': {
-                    'get': {
+                    'get': [
                         'accountSnapshot': { 'weight': 1 },
+                        'system/status': { 'weight': 1 },
                         // these endpoints require this.apiKey
                         'margin/asset': { 'weight': 1 },
                         'margin/pair': { 'weight': 1 },
@@ -277,6 +278,38 @@ module.exports = class binance extends Exchange {
                         'account/apiRestrictions': { 'weight': 1 },
                         // subaccounts
                         'managed-subaccount/asset': { 'weight': 1 },
+                    ],
+                    'post': [
+                        'asset/dust',
+                        'asset/transfer',
+                        'asset/get-funding-asset',
+                        'account/disableFastWithdrawSwitch',
+                        'account/enableFastWithdrawSwitch',
+                        'capital/withdraw/apply',
+                        'margin/transfer',
+                        'margin/loan',
+                        'margin/repay',
+                        'margin/order',
+                        'margin/isolated/create',
+                        'margin/isolated/transfer',
+                        'bnbBurn',
+                        'sub-account/margin/transfer',
+                        'sub-account/margin/enable',
+                        'sub-account/margin/enable',
+                        'sub-account/futures/enable',
+                        'sub-account/futures/transfer',
+                        'sub-account/futures/internalTransfer',
+                        'sub-account/transfer/subToSub',
+                        'sub-account/transfer/subToMaster',
+                        'sub-account/universalTransfer',
+                        'managed-subaccount/deposit',
+                        'managed-subaccount/withdraw',
+                        'userDataStream',
+                        'userDataStream/isolated',
+                        'futures/transfer',
+                        'futures/loan/borrow',
+                        'futures/loan/repay',
+                        'futures/loan/adjustCollateral',
                         // lending
                         'lending/customizedFixed/purchase': { 'weight': 1 },
                         'lending/daily/purchase': { 'weight': 1 },
@@ -770,13 +803,16 @@ module.exports = class binance extends Exchange {
                     '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
                     '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
                     '-3005': InsufficientFunds, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
+                    '-3006': InsufficientFunds, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
                     '-3008': InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
                     '-3010': ExchangeError, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                    '-3015': ExchangeError, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
                     '-3022': AccountSuspended, // You account's trading is banned.
                     '-4028': BadRequest, // {"code":-4028,"msg":"Leverage 100 is not valid"}
                     '-3020': InsufficientFunds, // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
                     '-3041': InsufficientFunds, // {"code":-3041,"msg":"Balance is not enough"}
                     '-5013': InsufficientFunds, // Asset transfer failed: insufficient balance"
+                    '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
@@ -1250,6 +1286,8 @@ module.exports = class binance extends Exchange {
             method = 'sapiGetMarginAccount';
         } else if (type === 'savings') {
             method = 'sapiGetLendingUnionAccount';
+        } else if (type === 'pay') {
+            method = 'sapiPostAssetGetFundingAsset';
         }
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
@@ -1422,6 +1460,18 @@ module.exports = class binance extends Exchange {
         //       ]
         //     }
         //
+        // binance pay
+        //
+        //     [
+        //       {
+        //         "asset": "BUSD",
+        //         "free": "1129.83",
+        //         "locked": "0",
+        //         "freeze": "0",
+        //         "withdrawing": "0"
+        //       }
+        //     ]
+        //
         const result = {
             'info': response,
         };
@@ -1448,6 +1498,19 @@ module.exports = class binance extends Exchange {
                 const usedAndTotal = this.safeString (entry, 'amount');
                 account['total'] = usedAndTotal;
                 account['used'] = usedAndTotal;
+                result[code] = account;
+            }
+        } else if (type === 'pay') {
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const account = this.account ();
+                const currencyId = this.safeString (entry, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                account['free'] = this.safeString (entry, 'free');
+                const frozen = this.safeString (entry, 'freeze');
+                const withdrawing = this.safeString (entry, 'withdrawing');
+                const locked = this.safeString (entry, 'locked');
+                account['used'] = Precise.stringAdd (frozen, Precise.stringAdd (locked, withdrawing));
                 result[code] = account;
             }
         } else {
@@ -1598,7 +1661,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.wapiGetSystemStatus (params);
+        const response = await this.sapiGetSystemStatus (params);
         let status = this.safeString (response, 'status');
         if (status !== undefined) {
             status = (status === '0') ? 'ok' : 'maintenance';
@@ -2549,39 +2612,41 @@ module.exports = class binance extends Exchange {
             request['startTime'] = since;
             request['endTime'] = this.sum (since, 7776000000);
         }
-        const response = await this.wapiGetUserAssetDribbletLog (this.extend (request, params));
-        //
+        const response = await this.sapiGetAssetDribblet (this.extend (request, params));
         //     {
-        //         success: true,
-        //         results: {
-        //             total: 1,
-        //             rows: [
-        //                 {
-        //                     transfered_total: "1.06468458",
-        //                     service_charge_total: "0.02172826",
-        //                     tran_id: 2701371634,
-        //                     logs: [
-        //                         {
-        //                             tranId:  2701371634,
-        //                             serviceChargeAmount: "0.00012819",
-        //                             uid: "35103861",
-        //                             amount: "0.8012",
-        //                             operateTime: "2018-10-07 17:56:07",
-        //                             transferedAmount: "0.00628141",
-        //                             fromAsset: "ADA"
-        //                         }
-        //                     ],
-        //                     operate_time: "2018-10-07 17:56:06"
-        //                 }
-        //             ]
-        //         }
+        //       "total": "4",
+        //       "userAssetDribblets": [
+        //         {
+        //           "operateTime": "1627575731000",
+        //           "totalServiceChargeAmount": "0.00001453",
+        //           "totalTransferedAmount": "0.00072693",
+        //           "transId": "70899815863",
+        //           "userAssetDribbletDetails": [
+        //             {
+        //               "fromAsset": "LTC",
+        //               "amount": "0.000006",
+        //               "transferedAmount": "0.00000267",
+        //               "serviceChargeAmount": "0.00000005",
+        //               "operateTime": "1627575731000",
+        //               "transId": "70899815863"
+        //             },
+        //             {
+        //               "fromAsset": "GBP",
+        //               "amount": "0.15949157",
+        //               "transferedAmount": "0.00072426",
+        //               "serviceChargeAmount": "0.00001448",
+        //               "operateTime": "1627575731000",
+        //               "transId": "70899815863"
+        //             }
+        //           ]
+        //         },
+        //       ]
         //     }
-        //
-        const results = this.safeValue (response, 'results', {});
-        const rows = this.safeValue (results, 'rows', []);
+        const results = this.safeValue (response, 'userAssetDribblets', []);
+        const rows = this.safeInteger (response, 'total', 0);
         const data = [];
-        for (let i = 0; i < rows.length; i++) {
-            const logs = rows[i]['logs'];
+        for (let i = 0; i < rows; i++) {
+            const logs = this.safeValue (results[i], 'userAssetDribbletDetails', []);
             for (let j = 0; j < logs.length; j++) {
                 logs[j]['isDustTrade'] = true;
                 data.push (logs[j]);
@@ -2592,14 +2657,18 @@ module.exports = class binance extends Exchange {
     }
 
     parseDustTrade (trade, market = undefined) {
-        // {              tranId:  2701371634,
-        //   serviceChargeAmount: "0.00012819",
-        //                   uid: "35103861",
-        //                amount: "0.8012",
-        //           operateTime: "2018-10-07 17:56:07",
-        //      transferedAmount: "0.00628141",
-        //             fromAsset: "ADA"                  },
-        const orderId = this.safeString (trade, 'tranId');
+        //
+        //     {
+        //       "fromAsset": "USDT",
+        //       "amount": "0.009669",
+        //       "transferedAmount": "0.00002992",
+        //       "serviceChargeAmount": "0.00000059",
+        //       "operateTime": "1628076010000",
+        //       "transId": "71416578712",
+        //       "isDustTrade": true
+        //     }
+        //
+        const orderId = this.safeString (trade, 'transId');
         const timestamp = this.parse8601 (this.safeString (trade, 'operateTime'));
         const currencyId = this.safeString (trade, 'fromAsset');
         const tradedCurrency = this.safeCurrencyCode (currencyId);

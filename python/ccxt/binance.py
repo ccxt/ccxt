@@ -137,6 +137,7 @@ class binance(Exchange):
                 'sapi': {
                     'get': [
                         'accountSnapshot',
+                        'system/status',
                         # these endpoints require self.apiKey
                         'margin/asset',
                         'margin/pair',
@@ -264,7 +265,7 @@ class binance(Exchange):
                     'post': [
                         'asset/dust',
                         'asset/transfer',
-                        'get-funding-asset',
+                        'asset/get-funding-asset',
                         'account/disableFastWithdrawSwitch',
                         'account/enableFastWithdrawSwitch',
                         'capital/withdraw/apply',
@@ -781,13 +782,16 @@ class binance(Exchange):
                     '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
                     '-2019': InsufficientFunds,  # {"code":-2019,"msg":"Margin is insufficient."}
                     '-3005': InsufficientFunds,  # {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
+                    '-3006': InsufficientFunds,  # {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
                     '-3008': InsufficientFunds,  # {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
                     '-3010': ExchangeError,  # {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                    '-3015': ExchangeError,  # {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
                     '-3022': AccountSuspended,  # You account's trading is banned.
                     '-4028': BadRequest,  # {"code":-4028,"msg":"Leverage 100 is not valid"}
                     '-3020': InsufficientFunds,  # {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
                     '-3041': InsufficientFunds,  # {"code":-3041,"msg":"Balance is not enough"}
                     '-5013': InsufficientFunds,  # Asset transfer failed: insufficient balance"
+                    '-11008': InsufficientFunds,  # {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
@@ -1237,6 +1241,8 @@ class binance(Exchange):
             method = 'sapiGetMarginAccount'
         elif type == 'savings':
             method = 'sapiGetLendingUnionAccount'
+        elif type == 'pay':
+            method = 'sapiPostAssetGetFundingAsset'
         query = self.omit(params, 'type')
         response = getattr(self, method)(query)
         #
@@ -1408,6 +1414,18 @@ class binance(Exchange):
         #       ]
         #     }
         #
+        # binance pay
+        #
+        #     [
+        #       {
+        #         "asset": "BUSD",
+        #         "free": "1129.83",
+        #         "locked": "0",
+        #         "freeze": "0",
+        #         "withdrawing": "0"
+        #       }
+        #     ]
+        #
         result = {
             'info': response,
         }
@@ -1433,6 +1451,18 @@ class binance(Exchange):
                 usedAndTotal = self.safe_string(entry, 'amount')
                 account['total'] = usedAndTotal
                 account['used'] = usedAndTotal
+                result[code] = account
+        elif type == 'pay':
+            for i in range(0, len(response)):
+                entry = response[i]
+                account = self.account()
+                currencyId = self.safe_string(entry, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account['free'] = self.safe_string(entry, 'free')
+                frozen = self.safe_string(entry, 'freeze')
+                withdrawing = self.safe_string(entry, 'withdrawing')
+                locked = self.safe_string(entry, 'locked')
+                account['used'] = Precise.string_add(frozen, Precise.string_add(locked, withdrawing))
                 result[code] = account
         else:
             balances = response
@@ -1573,7 +1603,7 @@ class binance(Exchange):
         }
 
     def fetch_status(self, params={}):
-        response = self.wapiGetSystemStatus(params)
+        response = self.sapiGetSystemStatus(params)
         status = self.safe_string(response, 'status')
         if status is not None:
             status = 'ok' if (status == '0') else 'maintenance'
@@ -2442,39 +2472,41 @@ class binance(Exchange):
         if since is not None:
             request['startTime'] = since
             request['endTime'] = self.sum(since, 7776000000)
-        response = self.wapiGetUserAssetDribbletLog(self.extend(request, params))
-        #
+        response = self.sapiGetAssetDribblet(self.extend(request, params))
         #     {
-        #         success: True,
-        #         results: {
-        #             total: 1,
-        #             rows: [
-        #                 {
-        #                     transfered_total: "1.06468458",
-        #                     service_charge_total: "0.02172826",
-        #                     tran_id: 2701371634,
-        #                     logs: [
-        #                         {
-        #                             tranId:  2701371634,
-        #                             serviceChargeAmount: "0.00012819",
-        #                             uid: "35103861",
-        #                             amount: "0.8012",
-        #                             operateTime: "2018-10-07 17:56:07",
-        #                             transferedAmount: "0.00628141",
-        #                             fromAsset: "ADA"
-        #                         }
-        #                     ],
-        #                     operate_time: "2018-10-07 17:56:06"
-        #                 }
-        #             ]
-        #         }
+        #       "total": "4",
+        #       "userAssetDribblets": [
+        #         {
+        #           "operateTime": "1627575731000",
+        #           "totalServiceChargeAmount": "0.00001453",
+        #           "totalTransferedAmount": "0.00072693",
+        #           "transId": "70899815863",
+        #           "userAssetDribbletDetails": [
+        #             {
+        #               "fromAsset": "LTC",
+        #               "amount": "0.000006",
+        #               "transferedAmount": "0.00000267",
+        #               "serviceChargeAmount": "0.00000005",
+        #               "operateTime": "1627575731000",
+        #               "transId": "70899815863"
+        #             },
+        #             {
+        #               "fromAsset": "GBP",
+        #               "amount": "0.15949157",
+        #               "transferedAmount": "0.00072426",
+        #               "serviceChargeAmount": "0.00001448",
+        #               "operateTime": "1627575731000",
+        #               "transId": "70899815863"
+        #             }
+        #           ]
+        #         },
+        #       ]
         #     }
-        #
-        results = self.safe_value(response, 'results', {})
-        rows = self.safe_value(results, 'rows', [])
+        results = self.safe_value(response, 'userAssetDribblets', [])
+        rows = self.safe_integer(response, 'total', 0)
         data = []
-        for i in range(0, len(rows)):
-            logs = rows[i]['logs']
+        for i in range(0, rows):
+            logs = self.safe_value(results[i], 'userAssetDribbletDetails', [])
             for j in range(0, len(logs)):
                 logs[j]['isDustTrade'] = True
                 data.append(logs[j])
@@ -2482,14 +2514,18 @@ class binance(Exchange):
         return self.filter_by_since_limit(trades, since, limit)
 
     def parse_dust_trade(self, trade, market=None):
-        # {             tranId:  2701371634,
-        #   serviceChargeAmount: "0.00012819",
-        #                   uid: "35103861",
-        #                amount: "0.8012",
-        #           operateTime: "2018-10-07 17:56:07",
-        #      transferedAmount: "0.00628141",
-        #             fromAsset: "ADA"                  },
-        orderId = self.safe_string(trade, 'tranId')
+        #
+        #     {
+        #       "fromAsset": "USDT",
+        #       "amount": "0.009669",
+        #       "transferedAmount": "0.00002992",
+        #       "serviceChargeAmount": "0.00000059",
+        #       "operateTime": "1628076010000",
+        #       "transId": "71416578712",
+        #       "isDustTrade": True
+        #     }
+        #
+        orderId = self.safe_string(trade, 'transId')
         timestamp = self.parse8601(self.safe_string(trade, 'operateTime'))
         currencyId = self.safe_string(trade, 'fromAsset')
         tradedCurrency = self.safe_currency_code(currencyId)
