@@ -217,8 +217,8 @@ module.exports = class bitteam extends Exchange {
         const amountPrecisionData = this.safeValue (precisions, 'amount');
         const amountPrecision = this.safeValue (amountPrecisionData, 'decimals');
         const precision = {
-            'price': pricePrecision,
-            'amount': amountPrecision,
+            'price': parseInt (pricePrecision),
+            'amount': parseInt (amountPrecision),
             'cost': undefined,
         };
         const entry = {
