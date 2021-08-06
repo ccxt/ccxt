@@ -8,7 +8,7 @@ const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
-module.export = class latoken2 extends Exchange {
+module.exports = class latoken2 extends Exchange {
     describe() {
         return this.deepExtend (super.describe (), {
             'id': 'latoken2',
@@ -719,7 +719,6 @@ module.export = class latoken2 extends Exchange {
         };
         return this.fetchOrdersWithMethod ('private_get_order_status', symbol, since, limit, this.extend (request, params));
     }
-
     
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {

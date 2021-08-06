@@ -151,6 +151,7 @@ from ccxt.kraken import kraken                              # noqa: F401
 from ccxt.kucoin import kucoin                              # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.latoken import latoken                            # noqa: F401
+from ccxt.latoken2 import latoken2                          # noqa: F401
 from ccxt.lbank import lbank                                # noqa: F401
 from ccxt.liquid import liquid                              # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
@@ -267,6 +268,7 @@ exchanges = [
     'kucoin',
     'kuna',
     'latoken',
+    'latoken2',
     'lbank',
     'liquid',
     'luno',

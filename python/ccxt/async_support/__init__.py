@@ -133,6 +133,7 @@ from ccxt.async_support.kraken import kraken                              # noqa
 from ccxt.async_support.kucoin import kucoin                              # noqa: F401
 from ccxt.async_support.kuna import kuna                                  # noqa: F401
 from ccxt.async_support.latoken import latoken                            # noqa: F401
+from ccxt.async_support.latoken2 import latoken2                          # noqa: F401
 from ccxt.async_support.lbank import lbank                                # noqa: F401
 from ccxt.async_support.liquid import liquid                              # noqa: F401
 from ccxt.async_support.luno import luno                                  # noqa: F401
@@ -249,6 +250,7 @@ exchanges = [
     'kucoin',
     'kuna',
     'latoken',
+    'latoken2',
     'lbank',
     'liquid',
     'luno',
