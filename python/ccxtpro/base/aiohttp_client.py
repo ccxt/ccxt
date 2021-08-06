@@ -20,14 +20,14 @@ class AiohttpClient(Client):
     # helper method for binary and text messages
     def handle_text_or_binary_message(self, data):
         if self.verbose:
-            self.print(Exchange.iso8601(Exchange.milliseconds()), 'message', data)
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'message', data)
         if isinstance(data, bytes):
             data = data.decode()
         decoded = json.loads(data) if Exchange.is_json_encoded_object(data) else data
         self.on_message_callback(self, decoded)
 
     def handle_message(self, message):
-        # self.print(Exchange.iso8601(Exchange.milliseconds()), message)
+        # self.log(Exchange.iso8601(Exchange.milliseconds()), message)
         if message.type == WSMsgType.TEXT:
             self.handle_text_or_binary_message(message.data)
         elif message.type == WSMsgType.BINARY:
@@ -43,24 +43,24 @@ class AiohttpClient(Client):
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
         elif message.type == WSMsgType.PING:
             if self.verbose:
-                self.print(Exchange.iso8601(Exchange.milliseconds()), 'ping', message)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'ping', message)
             ensure_future(self.connection.pong(), loop=self.asyncio_loop)
         elif message.type == WSMsgType.PONG:
             self.lastPong = Exchange.milliseconds()
             if self.verbose:
-                self.print(Exchange.iso8601(Exchange.milliseconds()), 'pong', message)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'pong', message)
             pass
         elif message.type == WSMsgType.CLOSE:
             if self.verbose:
-                self.print(Exchange.iso8601(Exchange.milliseconds()), 'close', self.closed(), message)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'close', self.closed(), message)
             self.on_close(message.data)
         elif message.type == WSMsgType.CLOSED:
             if self.verbose:
-                self.print(Exchange.iso8601(Exchange.milliseconds()), 'closed', self.closed(), message)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'closed', self.closed(), message)
             self.on_close(1000)
         elif message.type == WSMsgType.ERROR:
             if self.verbose:
-                self.print(Exchange.iso8601(Exchange.milliseconds()), 'error', message)
+                self.log(Exchange.iso8601(Exchange.milliseconds()), 'error', message)
             error = NetworkError(str(message))
             self.on_error(error)
 
@@ -75,12 +75,12 @@ class AiohttpClient(Client):
 
     def send(self, message):
         if self.verbose:
-            self.print(Exchange.iso8601(Exchange.milliseconds()), 'sending', message)
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'sending', message)
         return self.connection.send_str(message if isinstance(message, str) else json.dumps(message, separators=(',', ':')))
 
     async def close(self, code=1000):
         if self.verbose:
-            self.print(Exchange.iso8601(Exchange.milliseconds()), 'closing', code)
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'closing', code)
         if not self.closed():
             await self.connection.close()
         # these will end automatically once self.closed() = True
@@ -92,7 +92,7 @@ class AiohttpClient(Client):
 
     async def ping_loop(self):
         if self.verbose:
-            self.print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
+            self.log(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
         while self.keepAlive and not self.closed():
             now = Exchange.milliseconds()
             self.lastPong = now if self.lastPong is None else self.lastPong

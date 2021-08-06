@@ -68,7 +68,7 @@ class Exchange(BaseExchange):
             # decide client type here: aiohttp ws / websockets / signalr / socketio
             ws_options = self.safe_value(self.options, 'ws', {})
             options = self.extend(self.streaming, {
-                'print': getattr(self, 'print'),
+                'log': getattr(self, 'log'),
                 'ping': getattr(self, 'ping', None),
                 'verbose': self.verbose,
                 'throttle': Throttler(self.tokenBucket, self.asyncio_loop),
