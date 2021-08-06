@@ -153,7 +153,7 @@ module.exports = class latoken2 extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetPair (params);
 
-        //    [ 
+        //    [
         //        {
         //             "id": "263d5e99-1413-47e4-9215-ce4f5dec3556",
         //             "status": "PAIR_STATUS_ACTIVE",
@@ -344,16 +344,16 @@ module.exports = class latoken2 extends Exchange {
         //
         //     {
         //         "ask": [
-        //              { 
-        //                  "price": "123.321", 
+        //              {
+        //                  "price": "123.321",
         //                  "quantity": "0.12",
         //                  "cost": "14.79852",
         //                  "accumulated": "14.79852",
         //              }
         //         ],
         //         "bid": [
-        //              { 
-        //                  "price": "123.321", 
+        //              {
+        //                  "price": "123.321",
         //                  "quantity": "0.12",
         //                  "cost": "14.79852",
         //                  "accumulated": "14.79852",
@@ -378,7 +378,7 @@ module.exports = class latoken2 extends Exchange {
         //         "change7d": "1.1491",
         //         "lastPrice": "10034.14"
         //     }
-        //       
+        //
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
         if (marketId in this.markets_by_id) {
@@ -437,7 +437,7 @@ module.exports = class latoken2 extends Exchange {
         //         "change7d": "1.1491",
         //         "lastPrice": "10034.14"
         //     }
-        //       
+        //
         return this.parseTicker (response, market);
     }
 
