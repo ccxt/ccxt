@@ -1010,10 +1010,12 @@ module.exports = class huobi extends Exchange {
 
     async fetchOpenOrdersV2 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-        const market = this.market (symbol);
         let accountId = this.safeString (params, 'account-id');
         if (accountId === undefined) {
             // pick the first account
@@ -1028,10 +1030,7 @@ module.exports = class huobi extends Exchange {
                 }
             }
         }
-        const request = {
-            'symbol': market['id'],
-            'account-id': accountId,
-        };
+        request['account-id'] = accountId;
         if (limit !== undefined) {
             request['size'] = limit;
         }
@@ -1116,8 +1115,10 @@ module.exports = class huobi extends Exchange {
             status = this.parseOrderStatus (this.safeString (order, 'state'));
         }
         const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (order, 'created-at');
+        const clientOrderId = this.safeString (order, 'client-order-id');
         const amount = this.safeNumber (order, 'amount');
         const filled = this.safeNumber2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
         let price = this.safeNumber (order, 'price');
@@ -1140,7 +1141,7 @@ module.exports = class huobi extends Exchange {
         return this.safeOrder ({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,

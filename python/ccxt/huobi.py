@@ -968,9 +968,11 @@ class huobi(Exchange):
 
     def fetch_open_orders_v2(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        market = self.market(symbol)
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
         accountId = self.safe_string(params, 'account-id')
         if accountId is None:
             # pick the first account
@@ -981,10 +983,7 @@ class huobi(Exchange):
                     accountId = self.safe_string(account, 'id')
                     if accountId is not None:
                         break
-        request = {
-            'symbol': market['id'],
-            'account-id': accountId,
-        }
+        request['account-id'] = accountId
         if limit is not None:
             request['size'] = limit
         omitted = self.omit(params, 'account-id')
@@ -1065,8 +1064,10 @@ class huobi(Exchange):
             type = orderType[1]
             status = self.parse_order_status(self.safe_string(order, 'state'))
         marketId = self.safe_string(order, 'symbol')
+        market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(order, 'created-at')
+        clientOrderId = self.safe_string(order, 'client-order-id')
         amount = self.safe_number(order, 'amount')
         filled = self.safe_number_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
         price = self.safe_number(order, 'price')
@@ -1086,7 +1087,7 @@ class huobi(Exchange):
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

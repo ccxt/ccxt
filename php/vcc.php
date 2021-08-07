@@ -821,7 +821,7 @@ class vcc extends Exchange {
         if ($stopPrice !== null) {
             $request['is_stop'] = 1;
             $request['stop_condition'] = ($side === 'buy') ? 'le' : 'ge'; // ge = greater than or equal, le = less than or equal
-            $request['stop_price'] = $this->price_to_precision($symbol, $price);
+            $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
         }
         $params = $this->omit($params, array( 'stop_price', 'stopPrice' ));
         $response = $this->privatePostOrders (array_merge($request, $params));

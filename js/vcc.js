@@ -818,7 +818,7 @@ module.exports = class vcc extends Exchange {
         if (stopPrice !== undefined) {
             request['is_stop'] = 1;
             request['stop_condition'] = (side === 'buy') ? 'le' : 'ge'; // ge = greater than or equal, le = less than or equal
-            request['stop_price'] = this.priceToPrecision (symbol, price);
+            request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
         }
         params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
