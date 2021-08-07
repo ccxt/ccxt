@@ -1370,7 +1370,8 @@ class gateio extends Exchange {
             $timestampString = (string) $timestamp;
             $signaturePath = '/api/v4' . $entirePath;
             $payloadArray = array( strtoupper($method), $signaturePath, $queryString, $bodySignature, $timestampString );
-            $payload = implode('\n', $payloadArray);
+            // eslint-disable-next-line quotes
+            $payload = implode("\n", $payloadArray);
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512');
             $headers = array(
                 'KEY' => $this->apiKey,
