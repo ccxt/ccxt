@@ -80,7 +80,7 @@ module.exports = class yobit extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'AIR': 'AirCoin',
+                'AIR': 'Air Token',
                 'ANI': 'ANICoin',
                 'ANT': 'AntsCoin',  // what is this, a coin for ants?
                 'ATMCHA': 'ATM',
