@@ -289,7 +289,8 @@ module.exports = class btctradeua extends Exchange {
         // deduplicate trades for that reason
         const trades = [];
         for (let i = 0; i < response.length; i++) {
-            if (this.safeInteger (response[i], 'id') % 2) {
+            const id = this.safeInteger (response[i], 'id');
+            if (id % 2) {
                 trades.push (response[i]);
             }
         }
