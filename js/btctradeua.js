@@ -176,7 +176,7 @@ module.exports = class btctradeua extends Exchange {
                 if (result['open'] === undefined) {
                     result['open'] = candle[1];
                 }
-                if ((result['high'] === undefined) || (Precise.stringGt (result['high'], candle[2]))) {
+                if ((result['high'] === undefined) || (Precise.stringLt (result['high'], candle[2]))) {
                     result['high'] = candle[2];
                 }
                 if ((result['low'] === undefined) || (Precise.stringGt (result['low'], candle[3]))) {
