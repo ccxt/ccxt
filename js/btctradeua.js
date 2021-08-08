@@ -196,32 +196,35 @@ module.exports = class btctradeua extends Exchange {
         return result;
     }
 
-    convertCyrillicMonthNameToString (cyrillic) {
+    convertMonthNameToString (cyrillic) {
         const months = {
-            'января': '01',
-            'февраля': '02',
-            'марта': '03',
-            'апреля': '04',
-            'мая': '05',
-            'июня': '06',
-            'июля': '07',
-            'августа': '08',
-            'сентября': '09',
-            'октября': '10',
-            'ноября': '11',
-            'декабря': '12',
+            'Jan': '01',
+            'Feb': '02',
+            'Mar': '03',
+            'Apr': '04',
+            'May': '05',
+            'Jun': '06',
+            'Jul': '07',
+            'Aug': '08',
+            'Sep': '09',
+            'Oct': '10',
+            'Nov': '11',
+            'Dec': '12',
         };
         return this.safeString (months, cyrillic);
     }
 
-    parseCyrillicDatetime (cyrillic) {
+    parseExchangeSpecificDatetime (cyrillic) {
         const parts = cyrillic.split (' ');
-        let day = parts[0];
-        const month = this.convertCyrillicMonthNameToString (parts[1]);
+        let month = parts[0];
+        let day = parts[1];
+        const year = parts[2];
+        month = month.replace (',', '');
+        month = month.replace ('.', '');
+        month = this.convertMonthNameToString (month);
         if (!month) {
             throw new ExchangeError (this.id + ' parseTrade() undefined month name: ' + cyrillic);
         }
-        const year = parts[2];
         let hms = parts[4];
         if ((hms.length === 7) || (hms.length === 4)) {
             hms = '0' + hms;
@@ -245,7 +248,7 @@ module.exports = class btctradeua extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.parseCyrillicDatetime (this.safeString (trade, 'pub_date'));
+        const timestamp = this.parseExchangeSpecificDatetime (this.safeString (trade, 'pub_date'));
         const id = this.safeString (trade, 'id');
         const type = 'limit';
         const side = this.safeString (trade, 'type');
