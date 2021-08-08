@@ -176,22 +176,22 @@ module.exports = class btctradeua extends Exchange {
                 if (result['open'] === undefined) {
                     result['open'] = candle[1];
                 }
-                if ((result['high'] === undefined) || (result['high'] < candle[2])) {
+                if ((result['high'] === undefined) || (Precise.stringGt (result['high'], candle[2]))) {
                     result['high'] = candle[2];
                 }
-                if ((result['low'] === undefined) || (result['low'] > candle[3])) {
+                if ((result['low'] === undefined) || (Precise.stringGt (result['low'], candle[3]))) {
                     result['low'] = candle[3];
                 }
                 if (result['baseVolume'] === undefined) {
-                    result['baseVolume'] = -candle[5];
+                    result['baseVolume'] = Precise.stringNeg (candle[5]);
                 } else {
-                    result['baseVolume'] -= candle[5];
+                    result['baseVolume'] = Precise.stringSub (result['baseVolume'], candle[5]);
                 }
             }
             const last = tickerLength - 1;
             result['last'] = ticker[last][4];
             result['close'] = result['last'];
-            result['baseVolume'] = -1 * result['baseVolume'];
+            result['baseVolume'] = Precise.stringNeg (result['baseVolume']);
         }
         return result;
     }
