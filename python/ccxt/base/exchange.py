@@ -1061,7 +1061,7 @@ class Exchange(object):
         dd = '([0-9]{2})(?:T|[\\s])?'
         h = '([0-9]{2}):?'
         m = '([0-9]{2}):?'
-        s = '([0-9]{2})?'
+        s = '([0-9]{2})'
         ms = '(\\.[0-9]{1,3})?'
         tz = '(?:(\\+|\\-)([0-9]{2})\\:?([0-9]{2})|Z)?'
         regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
@@ -1073,7 +1073,6 @@ class Exchange(object):
             ms = ms or '.000'
             ms = (ms + '00')[0:4]
             msint = int(ms[1:])
-            s = s or '00'
             sign = sign or ''
             sign = int(sign + '1') * -1
             hours = int(hours or 0) * sign
