@@ -217,30 +217,38 @@ module.exports = class btctradeua extends Exchange {
     parseExchangeSpecificDatetime (cyrillic) {
         const parts = cyrillic.split (' ');
         let month = parts[0];
-        let day = parts[1];
-        const year = parts[2];
+        let day = parts[1].replace (',', '');
+        if (day.length < 2) {
+            day = '0' + day;
+        }
+        const year = parts[2].replace (',', '');
         month = month.replace (',', '');
         month = month.replace ('.', '');
         month = this.convertMonthNameToString (month);
         if (!month) {
             throw new ExchangeError (this.id + ' parseTrade() undefined month name: ' + cyrillic);
         }
-        let hms = parts[4];
-        if ((hms.length === 7) || (hms.length === 4)) {
-            hms = '0' + hms;
+        const hms = parts[3];
+        const hmsParts = hms.split (':');
+        let h = this.safeString (hmsParts, 0);
+        if (h.length < 2) {
+            h = '0' + h;
         }
-        if (day.length === 1) {
-            day = '0' + day;
+        let m = this.safeString (hmsParts, 1, '00');
+        if (m.length < 2) {
+            m = '0' + m;
+        }
+        let d = this.safeString (hmsParts, 2, '00');
+        if (d.length < 2) {
+            d = '0' + d;
         }
         const ymd = [ year, month, day ].join ('-');
-        const ymdhms = ymd + 'T' + hms;
+        const ymdhms = ymd + 'T' + h + ':' + m + ':00';
         const timestamp = this.parse8601 (ymdhms);
         // server reports local time, adjust to UTC
-        let md = [ month, day ].join ('');
-        md = parseInt (md);
         // a special case for DST
         // subtract 2 hours during winter
-        if (md < 325 || md > 1028) {
+        if (m < 11 || m > 2) {
             return timestamp - 7200000;
         }
         // subtract 3 hours during summer
