@@ -6,7 +6,7 @@ The CCXT Pro stack is built upon [CCXT](https://ccxt.trade) and extends the core
 - Python multiple inheritance
 - PHP Traits
 
-The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguge support](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support).
+The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support).
 
 ```
                                  User
@@ -24,7 +24,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguge support]
     |       watchTickers           .       watchCancelOrder       |
     |       watchOrderBook         .             watchOrder       |
     |       watchOHLCV             .            watchOrders       |
-    |       watchStatus            .        wathgOpenOrders       |
+    |       watchStatus            .        watchOpenOrders       |
     |       watchTrades            .      watchClosedOrders       |
     |                              .          watchMyTrades       |
     |                              .           watchDeposit       |
