@@ -174,24 +174,26 @@ module.exports = class btctradeua extends Exchange {
             for (let i = start; i < ticker.length; i++) {
                 const candle = ticker[i];
                 if (result['open'] === undefined) {
-                    result['open'] = candle[1];
+                    result['open'] = this.safeNumber (candle, 1);
                 }
-                if ((result['high'] === undefined) || (Precise.stringLt (result['high'], candle[2]))) {
-                    result['high'] = candle[2];
+                const high = this.safeNumber (candle, 2);
+                if ((result['high'] === undefined) || ((high !== undefined) && (result['high'] < high))) {
+                    result['high'] = high;
                 }
-                if ((result['low'] === undefined) || (Precise.stringGt (result['low'], candle[3]))) {
-                    result['low'] = candle[3];
+                const low = this.safeNumber (candle, 3);
+                if ((result['low'] === undefined) || ((low !== undefined) && (result['low'] > low))) {
+                    result['low'] = low;
                 }
+                const baseVolume = this.safeNumber (candle, 5);
                 if (result['baseVolume'] === undefined) {
-                    result['baseVolume'] = Precise.stringNeg (candle[5]);
+                    result['baseVolume'] = baseVolume;
                 } else {
-                    result['baseVolume'] = Precise.stringSub (result['baseVolume'], candle[5]);
+                    result['baseVolume'] = this.sum (result['baseVolume'], baseVolume);
                 }
             }
             const last = tickerLength - 1;
-            result['last'] = ticker[last][4];
+            result['last'] = this.safeNumber (ticker[last], 4);
             result['close'] = result['last'];
-            result['baseVolume'] = Precise.stringNeg (result['baseVolume']);
         }
         return result;
     }
@@ -231,16 +233,26 @@ module.exports = class btctradeua extends Exchange {
         const hms = parts[3];
         const hmsParts = hms.split (':');
         let h = this.safeString (hmsParts, 0);
-        if (h.length < 2) {
-            h = '0' + h;
-        }
-        let m = this.safeString (hmsParts, 1, '00');
-        if (m.length < 2) {
-            m = '0' + m;
-        }
-        let d = this.safeString (hmsParts, 2, '00');
-        if (d.length < 2) {
-            d = '0' + d;
+        let m = '00';
+        const ampm = this.safeString (parts, 4);
+        if (h === 'noon') {
+            h = '12';
+        } else {
+            let intH = parseInt (h);
+            if ((ampm !== undefined) && (ampm[0] === 'p')) {
+                intH = 12 + intH;
+                if (intH > 23) {
+                    intH = 0;
+                }
+            }
+            h = intH.toString ();
+            if (h.length < 2) {
+                h = '0' + h;
+            }
+            m = this.safeString (hmsParts, 1, '00');
+            if (m.length < 2) {
+                m = '0' + m;
+            }
         }
         const ymd = [ year, month, day ].join ('-');
         const ymdhms = ymd + 'T' + h + ':' + m + ':00';
