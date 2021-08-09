@@ -230,8 +230,8 @@ module.exports = class bitteam extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'active': active,
-            'taker': taker,
-            'maker': maker,
+            'taker': this.parseNumber (taker),
+            'maker': this.parseNumber (maker),
             'precision': precision,
             'limits': limits,
             'info': market,
@@ -298,7 +298,8 @@ module.exports = class bitteam extends Exchange {
         }
         const symbol = market['symbol'];
         const id = this.safeString (trade, 'tradeId');
-        const timestamp = this.safeNumber (trade, 'timestamp');
+        const tmstp = this.safeNumber (trade, 'timestamp');
+        const timestamp = tmstp * 1000;
         const side = this.safeString (trade, 'side');
         const isMaker = this.safeValue (trade, 'isBuyerMaker');
         const takerOrMaker = isMaker ? 'maker' : 'taker';
@@ -319,8 +320,8 @@ module.exports = class bitteam extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': priceDec,
-            'amount': amountDec,
+            'price': this.parseNumber (priceDec),
+            'amount': this.parseNumber (amountDec),
             'cost': cost,
         };
     }
