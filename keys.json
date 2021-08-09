@@ -8,7 +8,6 @@
     "bitget":        { "skip": true },
     "bitmart":       { "skip": true },
     "btcmarkets":    { "skip": true },
-    "btctradeua":    { "skip": true },
     "braziliex":     { "skip":  true },
     "buda":          { "skip": true },
     "coinegg":       { "skip": true },
@@ -39,6 +38,5 @@
     "rightbtc":      { "skip": true },
     "stronghold":    { "skip": true },
     "tidebit":       { "skip": true },
-    "vaultoro":      { "skip": true },
     "xbtce":         { "skip": true }
 }

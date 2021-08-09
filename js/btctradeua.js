@@ -174,71 +174,94 @@ module.exports = class btctradeua extends Exchange {
             for (let i = start; i < ticker.length; i++) {
                 const candle = ticker[i];
                 if (result['open'] === undefined) {
-                    result['open'] = candle[1];
+                    result['open'] = this.safeNumber (candle, 1);
                 }
-                if ((result['high'] === undefined) || (result['high'] < candle[2])) {
-                    result['high'] = candle[2];
+                const high = this.safeNumber (candle, 2);
+                if ((result['high'] === undefined) || ((high !== undefined) && (result['high'] < high))) {
+                    result['high'] = high;
                 }
-                if ((result['low'] === undefined) || (result['low'] > candle[3])) {
-                    result['low'] = candle[3];
+                const low = this.safeNumber (candle, 3);
+                if ((result['low'] === undefined) || ((low !== undefined) && (result['low'] > low))) {
+                    result['low'] = low;
                 }
+                const baseVolume = this.safeNumber (candle, 5);
                 if (result['baseVolume'] === undefined) {
-                    result['baseVolume'] = -candle[5];
+                    result['baseVolume'] = baseVolume;
                 } else {
-                    result['baseVolume'] -= candle[5];
+                    result['baseVolume'] = this.sum (result['baseVolume'], baseVolume);
                 }
             }
             const last = tickerLength - 1;
-            result['last'] = ticker[last][4];
+            result['last'] = this.safeNumber (ticker[last], 4);
             result['close'] = result['last'];
-            result['baseVolume'] = -1 * result['baseVolume'];
         }
         return result;
     }
 
-    convertCyrillicMonthNameToString (cyrillic) {
+    convertMonthNameToString (cyrillic) {
         const months = {
-            'января': '01',
-            'февраля': '02',
-            'марта': '03',
-            'апреля': '04',
-            'мая': '05',
-            'июня': '06',
-            'июля': '07',
-            'августа': '08',
-            'сентября': '09',
-            'октября': '10',
-            'ноября': '11',
-            'декабря': '12',
+            'Jan': '01',
+            'Feb': '02',
+            'Mar': '03',
+            'Apr': '04',
+            'May': '05',
+            'Jun': '06',
+            'Jul': '07',
+            'Aug': '08',
+            'Sep': '09',
+            'Oct': '10',
+            'Nov': '11',
+            'Dec': '12',
         };
         return this.safeString (months, cyrillic);
     }
 
-    parseCyrillicDatetime (cyrillic) {
+    parseExchangeSpecificDatetime (cyrillic) {
         const parts = cyrillic.split (' ');
-        let day = parts[0];
-        const month = this.convertCyrillicMonthNameToString (parts[1]);
+        let month = parts[0];
+        let day = parts[1].replace (',', '');
+        if (day.length < 2) {
+            day = '0' + day;
+        }
+        const year = parts[2].replace (',', '');
+        month = month.replace (',', '');
+        month = month.replace ('.', '');
+        month = this.convertMonthNameToString (month);
         if (!month) {
             throw new ExchangeError (this.id + ' parseTrade() undefined month name: ' + cyrillic);
         }
-        const year = parts[2];
-        let hms = parts[4];
-        const hmsLength = hms.length;
-        if (hmsLength === 7) {
-            hms = '0' + hms;
-        }
-        if (day.length === 1) {
-            day = '0' + day;
+        const hms = parts[3];
+        const hmsParts = hms.split (':');
+        let h = this.safeString (hmsParts, 0);
+        let m = '00';
+        const ampm = this.safeString (parts, 4);
+        if (h === 'noon') {
+            h = '12';
+        } else {
+            let intH = parseInt (h);
+            if ((ampm !== undefined) && (ampm[0] === 'p')) {
+                intH = 12 + intH;
+                if (intH > 23) {
+                    intH = 0;
+                }
+            }
+            h = intH.toString ();
+            if (h.length < 2) {
+                h = '0' + h;
+            }
+            m = this.safeString (hmsParts, 1, '00');
+            if (m.length < 2) {
+                m = '0' + m;
+            }
         }
         const ymd = [ year, month, day ].join ('-');
-        const ymdhms = ymd + 'T' + hms;
+        const ymdhms = ymd + 'T' + h + ':' + m + ':00';
         const timestamp = this.parse8601 (ymdhms);
         // server reports local time, adjust to UTC
-        let md = [ month, day ].join ('');
-        md = parseInt (md);
         // a special case for DST
         // subtract 2 hours during winter
-        if (md < 325 || md > 1028) {
+        const intM = parseInt (m);
+        if (intM < 11 || intM > 2) {
             return timestamp - 7200000;
         }
         // subtract 3 hours during summer
@@ -246,7 +269,7 @@ module.exports = class btctradeua extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.parseCyrillicDatetime (this.safeString (trade, 'pub_date'));
+        const timestamp = this.parseExchangeSpecificDatetime (this.safeString (trade, 'pub_date'));
         const id = this.safeString (trade, 'id');
         const type = 'limit';
         const side = this.safeString (trade, 'type');
@@ -287,7 +310,8 @@ module.exports = class btctradeua extends Exchange {
         // deduplicate trades for that reason
         const trades = [];
         for (let i = 0; i < response.length; i++) {
-            if (response[i]['id'] % 2) {
+            const id = this.safeInteger (response[i], 'id');
+            if (id % 2) {
                 trades.push (response[i]);
             }
         }
