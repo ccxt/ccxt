@@ -1474,6 +1474,10 @@ class kucoin extends Exchange {
             'currency' => $currency['id'],
             'address' => $address,
             'amount' => $amount,
+            // 'memo' => $tag,
+            // 'isInner' => false, // internal transfer or external withdrawal
+            // 'remark' => 'optional',
+            // 'chain' => 'OMNI', // 'ERC20', 'TRC20', default is ERC20
         );
         if ($tag !== null) {
             $request['memo'] = $tag;
