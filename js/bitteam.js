@@ -193,10 +193,12 @@ module.exports = class bitteam extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
         const active = this.safeValue (market, 'active');
-        const takerValue = this.safeNumber (market, 'takerFee').toString ();
-        const makerValue = this.safeNumber (market, 'makerFee').toString ();
-        const taker = Precise.stringDiv (takerValue, '1000');
-        const maker = Precise.stringDiv (makerValue, '1000');
+        const takerValue = this.safeNumber (market, 'takerFee');
+        const makerValue = this.safeNumber (market, 'makerFee');
+        const taketSrt = takerValue.toString ();
+        const makerStr = makerValue.toString ();
+        const taker = Precise.stringDiv (taketSrt, '1000');
+        const maker = Precise.stringDiv (makerStr, '1000');
         const settings = this.safeValue (market, 'settings');
         const limits = {
             'amount': {
