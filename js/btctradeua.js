@@ -248,7 +248,8 @@ module.exports = class btctradeua extends Exchange {
         // server reports local time, adjust to UTC
         // a special case for DST
         // subtract 2 hours during winter
-        if (m < 11 || m > 2) {
+        const intM = parseInt (m);
+        if (intM < 11 || intM > 2) {
             return timestamp - 7200000;
         }
         // subtract 3 hours during summer
