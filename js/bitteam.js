@@ -204,8 +204,8 @@ module.exports = class bitteam extends Exchange {
                 'max': undefined,
             },
             'price': {
-                'min': parseFloat (this.safeString (settings, 'price_min')),
-                'max': parseFloat (this.safeString (settings, 'price_max')),
+                'min': this.safeString (settings, 'price_min'),
+                'max': this.safeString (settings, 'price_max'),
             },
             'cost': {
                 'min': undefined,
