@@ -593,7 +593,6 @@ class novadax(Exchange):
         uppercaseSide = side.upper()
         request = {
             'symbol': market['id'],
-            'type': uppercaseType,  # LIMIT, MARKET
             'side': uppercaseSide,  # or SELL
             # 'amount': self.amount_to_precision(symbol, amount),
             # "price": "1234.5678",  # required for LIMIT and STOP orders
@@ -632,6 +631,7 @@ class novadax(Exchange):
                     value = amount if (value is None) else value
                 precision = market['precision']['price']
                 request['value'] = self.decimal_to_precision(value, TRUNCATE, precision, self.precisionMode)
+        request['type'] = uppercaseType
         response = await self.privatePostOrdersCreate(self.extend(request, params))
         #
         #     {
