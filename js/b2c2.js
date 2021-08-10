@@ -274,11 +274,17 @@ module.exports = class b2c2 extends Exchange {
         const active = true;
         const ccyBase = this.currencies[base];
         const ccyQuote = this.currencies[quote];
-        const pricePrecision = ccyQuote['limits']['amount']['min'];
-        const amountPrecision = ccyBase['limits']['amount']['min'];
+        // const pricePrecision = ccyQuote['limits']['amount']['min'];
+        // const amountPrecision = ccyBase['limits']['amount']['min'];
+        // const precision = {
+        //     'price': pricePrecision,
+        //     'amount': amountPrecision,
+        // };
         const precision = {
-            'price': pricePrecision,
-            'amount': amountPrecision,
+            'base': 4,
+            'quote': 4,
+            'price': 4,
+            'amount': 4,
         };
         const amountMin = ccyBase['limits']['amount']['min'];
         const amountMax = ccyBase['limits']['amount']['max'];
