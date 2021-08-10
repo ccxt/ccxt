@@ -16,8 +16,9 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
         "verbose": true,
     })
     exchange.setSandboxMode (true);
-    // await exchange.loadMarkets ();
-    // console.log ( exchange.markets)
+    // await exchange.loadMarkets (true);
+    // console.log (JSON.stringify (exchange.currencies) );
+    // console.log (JSON.stringify (exchange.markets) );
 
     // THESE FUNCTIONS WORK WELL AND ARE FULLY IMPLEMENTED
 
@@ -26,8 +27,9 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
     // log (exchange.name.green, 'balance', balance)
 
     // fetch orders from the exchange
+    const userId = ''; // or whoever is logged in!
     const params = {
-        'executing_unit': 'ccxt',
+        'executing_unit': userId,
     }
     let orders = await exchange.fetchOrders (undefined, undefined, 1000, params)
     log (exchange.name.green, 'orders', orders)
@@ -55,8 +57,9 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
     // // THESE FUNCTIONS DON'T WORK PROPERLY YET!
 
     // // create a new order on the exchange
+    // const userId = 'adam'; // or whoever is logged in!
     // const params = {
-    //     'executing_unit': 'ccxt',
+    //     'executing_unit': userId,
     // }
     // let new_order = await exchange.createOrder ('BTC/USD', 'market', 'buy', 0.25, undefined, params)
     // log (exchange.name.green, 'new_order', new_order)
