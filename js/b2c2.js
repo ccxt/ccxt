@@ -62,9 +62,9 @@ module.exports = class b2c2 extends Exchange {
                         'withdrawal/{withdrawal_id}',
                     ],
                     'post': [
-                        'request_for_quote',
-                        'order',
-                        'withdrawal',
+                        'request_for_quote/',
+                        'order/',
+                        'withdrawal/',
                     ],
                     'delete': [
                         'order/{order_id_or_client_order_id}',
@@ -329,10 +329,11 @@ module.exports = class b2c2 extends Exchange {
         //     "XRP": "0",
         //     "BCH": "0"
         // }
+        const now = this.now ();
         const result = {
             'info': response,
             'timestamp': now,
-            'datetime': this.iso8601 (this.now ()),
+            'datetime': this.iso8601 (now),
         };
         const assets = response;
         const keys = Object.keys (assets);
@@ -454,6 +455,7 @@ module.exports = class b2c2 extends Exchange {
         //     },
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_order_id');
+        const clientId = this.safeString (order, 'executing_unit');
         const marketId = this.safeString (order, 'instrument');
         const symbol = this.safeSymbol (marketId, market);
         const price = this.safeNumber (order, 'price');
@@ -492,6 +494,7 @@ module.exports = class b2c2 extends Exchange {
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
+            'clientId': clientId,
             'timestamp': undefined, // convert datetime to millis
             'datetime': this.iso8601 (datetime),
             'lastTradeTimestamp': undefined,

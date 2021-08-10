@@ -19,18 +19,21 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
     // await exchange.loadMarkets ();
     // console.log ( exchange.markets)
 
-    // // THESE FUNCTIONS WORK WELL AND ARE FULLY IMPLEMENTED
+    // THESE FUNCTIONS WORK WELL AND ARE FULLY IMPLEMENTED
 
     // // fetch account balance from the exchange
     // let balance = await exchange.fetchBalance ()
     // log (exchange.name.green, 'balance', balance)
 
     // // fetch orders from the exchange
-    // let orders = await exchange.fetchOrders ()
+    // const params = {
+    //     'executing_unit': 'restproto',
+    // }
+    // let orders = await exchange.fetchOrders (undefined, undefined, 1000, params)
     // log (exchange.name.green, 'orders', orders)
 
     // // fetch ledger items from the exchange
-    // let ledger = await exchange.fetchLedger ()
+    // let ledger = await exchange.fetchLedger (undefined, undefined, 1000, params)
     // log (exchange.name.green, 'ledger', ledger)
 
     // // fetch trades from the exchange
@@ -53,7 +56,7 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
 
     // create a new order on the exchange
     const params = {
-        'executing_unit': 'client_id',
+        'executing_unit': 'ccxt',
     }
     let new_order = await exchange.createOrder ('ETH/USD', 'market', 'buy', 1, undefined, params)
     log (exchange.name.green, 'new_order', new_order)
