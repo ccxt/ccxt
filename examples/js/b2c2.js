@@ -16,8 +16,8 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
         "verbose": true,
     })
     exchange.setSandboxMode (true);
-    await exchange.loadMarkets ();
-    console.log ( exchange.markets)
+    // await exchange.loadMarkets ();
+    // console.log ( exchange.markets)
 
     // // THESE FUNCTIONS WORK WELL AND ARE FULLY IMPLEMENTED
 

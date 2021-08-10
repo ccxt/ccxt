@@ -329,11 +329,10 @@ module.exports = class b2c2 extends Exchange {
         //     "XRP": "0",
         //     "BCH": "0"
         // }
-        const now = this.nonce ();
         const result = {
             'info': response,
             'timestamp': now,
-            'datetime': this.iso8601 (now * 1000),
+            'datetime': this.iso8601 (this.now ()),
         };
         const assets = response;
         const keys = Object.keys (assets);
@@ -356,13 +355,14 @@ module.exports = class b2c2 extends Exchange {
         const market = this.market (symbol);
         const lowercaseSide = side.toLowerCase ();
         const lowercaseType = type.toLowerCase ();
+        const twentyfourhrsfromnow = this.iso8601 (this.now () + 86400000);
         const request = {
             'client_order_id': this.uuid ().toString (), // to parameterise
             'quantity': this.amountToPrecision (symbol, amount),
             'side': lowercaseSide,
             'instrument': market['id'],
             'order_type': undefined,
-            'valid_until': '2021-08-07 12:20:41.976496', // need to do properly
+            'valid_until': twentyfourhrsfromnow, // need to do properly
         };
         if (lowercaseType === 'limit') {
             request['order_type'] = 'FOK';
