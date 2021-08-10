@@ -144,7 +144,6 @@ class Exchange {
         'kucoin',
         'kuna',
         'latoken',
-        'latoken2',
         'lbank',
         'liquid',
         'luno',
