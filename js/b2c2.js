@@ -309,8 +309,10 @@ module.exports = class b2c2 extends Exchange {
             'active': active,
             'precision': precision,
             'limits': limits,
-            'taker': taker,
-            'maker': maker,
+            'tierBased': false,
+            'percentage': true,
+            'taker': 0.002,
+            'maker': 0.002,
         };
     }
 
@@ -490,6 +492,8 @@ module.exports = class b2c2 extends Exchange {
                 'type': type,
             });
         }
+        const takerOrMaker = 'taker';
+        const fee = this.calculateFee (symbol, type, side, amount, averagepx, takerOrMaker);
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -511,7 +515,7 @@ module.exports = class b2c2 extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': undefined,
+            'fee': fee,
             'trades': trades,
         });
     }
