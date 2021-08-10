@@ -690,7 +690,7 @@ module.exports = class bitfinex2 extends bitfinex {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const timestamp = this.safeTimestamp (order, 5);
+        const timestamp = this.safeInteger (order, 5);
         const remaining = Math.abs (this.safeFloat (order, 6));
         const amount = Math.abs (this.safeFloat (order, 7));
         const filled = amount - remaining;
@@ -732,6 +732,7 @@ module.exports = class bitfinex2 extends bitfinex {
         const market = this.market (symbol);
         const orderTypes = this.safeValue (this.options, 'orderTypes', {});
         const orderType = this.safeString (orderTypes, type, type);
+        amount = parseFloat (amount);
         amount = (side === 'sell') ? -amount : amount;
         const request = {
             'symbol': market['id'],
