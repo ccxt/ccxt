@@ -602,7 +602,6 @@ module.exports = class novadax extends Exchange {
         const uppercaseSide = side.toUpperCase ();
         const request = {
             'symbol': market['id'],
-            'type': uppercaseType, // LIMIT, MARKET
             'side': uppercaseSide, // or SELL
             // 'amount': this.amountToPrecision (symbol, amount),
             // "price": "1234.5678", // required for LIMIT and STOP orders
@@ -649,6 +648,7 @@ module.exports = class novadax extends Exchange {
                 request['value'] = this.decimalToPrecision (value, TRUNCATE, precision, this.precisionMode);
             }
         }
+        request['type'] = uppercaseType;
         const response = await this.privatePostOrdersCreate (this.extend (request, params));
         //
         //     {
