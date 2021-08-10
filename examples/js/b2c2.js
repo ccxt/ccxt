@@ -52,7 +52,10 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
     // // THESE FUNCTIONS DON'T WORK PROPERLY YET!
 
     // create a new order on the exchange
-    let new_order = await exchange.createOrder ('ETH/USD', 'market', 'buy', 1,)
+    const params = {
+        'executing_unit': 'client_id',
+    }
+    let new_order = await exchange.createOrder ('ETH/USD', 'market', 'buy', 1, undefined, params)
     log (exchange.name.green, 'new_order', new_order)
 
     // // fetch single order from the exchange

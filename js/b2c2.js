@@ -370,7 +370,7 @@ module.exports = class b2c2 extends Exchange {
         } else {
             request['order_type'] = 'MKT';
         }
-        const response = await this.privatePostOrder (request);
+        const response = await this.privatePostOrder (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -410,7 +410,7 @@ module.exports = class b2c2 extends Exchange {
             market = this.market (symbol);
         }
         const request = { 'order_id_or_client_order_id': id };
-        const response = await this.privateGetOrderOrderIdOrClientOrderId (request);
+        const response = await this.privateGetOrderOrderIdOrClientOrderId (this.extend (request, params));
         return this.parseOrders (response, market);
     }
 
@@ -433,7 +433,7 @@ module.exports = class b2c2 extends Exchange {
         if (since !== undefined) {
             request['created__gte'] = this.iso8601 (since);
         }
-        const response = await this.privateGetOrder (request);
+        const response = await this.privateGetOrder (this.extend (request, params));
         // return this.parseOrders (response, market, since, limit);
         return this.parseOrders (response, undefined, since, limit);
     }
@@ -531,7 +531,7 @@ module.exports = class b2c2 extends Exchange {
         if (since !== undefined) {
             request['since'] = this.iso8601 (since);
         }
-        const response = await this.privateGetTrade (request);
+        const response = await this.privateGetTrade (this.extend (request, params));
         // const trades = this.safeValue (response, 'trades', []);
         return this.parseTrades (response, market, since, limit);
     }
@@ -677,7 +677,7 @@ module.exports = class b2c2 extends Exchange {
         if (currency !== undefined) {
             request['currency'] = currency['code'];
         }
-        const response = await this.privateGetLedger (request);
+        const response = await this.privateGetLedger (this.extend (request, params));
         return this.parseLedger (response, currency, since, limit);
     }
 
@@ -832,7 +832,6 @@ module.exports = class b2c2 extends Exchange {
                 };
                 if (Object.keys (params).length) {
                     body = this.json (query);
-                    // body = query;
                 }
             }
         }
