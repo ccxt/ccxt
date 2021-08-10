@@ -1411,6 +1411,9 @@ class Exchange(object):
             'funding': funding,
         }
 
+    def fetch_balance(self, params={}):
+        raise NotSupported('fetch_balance() not supported yet')
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         raise NotSupported('create_order() not supported yet')
 
