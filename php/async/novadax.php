@@ -605,7 +605,6 @@ class novadax extends Exchange {
         $uppercaseSide = strtoupper($side);
         $request = array(
             'symbol' => $market['id'],
-            'type' => $uppercaseType, // LIMIT, MARKET
             'side' => $uppercaseSide, // or SELL
             // 'amount' => $this->amount_to_precision($symbol, $amount),
             // "$price" => "1234.5678", // required for LIMIT and STOP orders
@@ -652,6 +651,7 @@ class novadax extends Exchange {
                 $request['value'] = $this->decimal_to_precision($value, TRUNCATE, $precision, $this->precisionMode);
             }
         }
+        $request['type'] = $uppercaseType;
         $response = yield $this->privatePostOrdersCreate (array_merge($request, $params));
         //
         //     {
