@@ -2012,7 +2012,14 @@ module.exports = class phemex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        try {
+            response = await this[method] (this.extend (request, params));
+        } catch (e) {
+            if (e instanceof OrderNotFound) {
+                return [];
+            }
+        }
         const data = this.safeValue (response, 'data', {});
         if (Array.isArray (data)) {
             return this.parseOrders (data, market, since, limit);
