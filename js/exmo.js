@@ -379,6 +379,8 @@ module.exports = class exmo extends Exchange {
                                     { 'prov': 'VITAE', 'dep': '-', 'wd': '0.5 VITAE' },
                                     { 'prov': 'BTCV', 'dep': '0%', 'wd': '-' },
                                     { 'prov': 'DOT', 'dep': '-', 'wd': '0.1 DOT' },
+                                    { 'prov': 'TON', 'dep': '-', 'wd': '-' },
+                                    { 'prov': 'TONCOIN', 'dep': '-', 'wd': '-' },
                                 ],
                             },
                             {
