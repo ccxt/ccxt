@@ -4363,11 +4363,13 @@ module.exports = class binance extends Exchange {
 
     async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
         // used to modify isolated positions
-        let type = this.safeString (this.options, 'defaultType', 'future');
-        type = this.safeString (params, 'type', type);
-        const validType = (type === 'future') || (type === 'delivery');
-        if (!validType) {
-            type = 'future';
+        let defaultType = this.safeString (this.options, 'defaultType', 'future');
+        if (defaultType === 'spot') {
+            defaultType = 'future';
+        }
+        const type = this.safeString (params, 'type', defaultType);
+        if ((type === 'margin') || (type === 'spot')) {
+            throw new NotSupported (this.id + ' add / reduce margin only supported with type future or delivery');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
