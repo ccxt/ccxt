@@ -4367,7 +4367,7 @@ module.exports = class binance extends Exchange {
         type = this.safeString (params, 'type', type);
         const validType = (type === 'future') || (type === 'delivery');
         if (!validType) {
-            throw new ExchangeError (this.id + ' only future and delivery types are supported for add / reduce margin');
+            type = 'future';
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
