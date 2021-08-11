@@ -425,7 +425,7 @@ module.exports = class aofex extends Exchange {
         const last = this.safeNumber (ticker, 'close');
         let change = undefined;
         if (symbol !== undefined) {
-            change = parseFloat (this.priceToPrecision (symbol, last - open));
+            change = this.parseNumber (this.priceToPrecision (symbol, last - open));
         } else {
             change = last - open;
         }
@@ -435,7 +435,7 @@ module.exports = class aofex extends Exchange {
         const quoteVolume = this.safeNumber (ticker, 'vol');
         let vwap = this.vwap (baseVolume, quoteVolume);
         if (vwap !== undefined) {
-            vwap = parseFloat (this.priceToPrecision (symbol, vwap));
+            vwap = this.parseNumber (this.priceToPrecision (symbol, vwap));
         }
         return {
             'symbol': symbol,
