@@ -383,6 +383,8 @@ class exmo extends Exchange {
                                     array( 'prov' => 'VITAE', 'dep' => '-', 'wd' => '0.5 VITAE' ),
                                     array( 'prov' => 'BTCV', 'dep' => '0%', 'wd' => '-' ),
                                     array( 'prov' => 'DOT', 'dep' => '-', 'wd' => '0.1 DOT' ),
+                                    array( 'prov' => 'TON', 'dep' => '-', 'wd' => '-' ),
+                                    array( 'prov' => 'TONCOIN', 'dep' => '-', 'wd' => '-' ),
                                 ),
                             ),
                             array(
