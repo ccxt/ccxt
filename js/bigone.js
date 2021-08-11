@@ -488,7 +488,7 @@ module.exports = class bigone extends Exchange {
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': parseFloat (cost),
+            'cost': this.parseNumber (cost),
             'info': trade,
         };
         let makerCurrencyCode = undefined;
