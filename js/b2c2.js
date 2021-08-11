@@ -1987,7 +1987,7 @@ module.exports = class b2c2 extends Exchange {
         //     "XRP": "0",
         //     "BCH": "0"
         // }
-        const now = this.now ();
+        const now = this.milliseconds ();
         const result = {
             'info': response,
             'timestamp': now,
@@ -2014,7 +2014,7 @@ module.exports = class b2c2 extends Exchange {
         const market = this.market (symbol);
         const lowercaseSide = side.toLowerCase ();
         const lowercaseType = type.toLowerCase ();
-        const twentyfourhrsfromnow = this.iso8601 (this.now () + 86400000);
+        const twentyfourhrsfromnow = this.iso8601 (this.milliseconds () + 86400000);
         const request = {
             'client_order_id': this.uuid ().toString (), // to parameterise
             'quantity': this.amountToPrecision (symbol, amount),
