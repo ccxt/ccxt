@@ -490,7 +490,7 @@ class bigone extends Exchange {
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
-            'cost' => floatval($cost),
+            'cost' => $this->parse_number($cost),
             'info' => $trade,
         );
         $makerCurrencyCode = null;

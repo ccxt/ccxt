@@ -478,7 +478,7 @@ class bigone(Exchange):
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': float(cost),
+            'cost': self.parse_number(cost),
             'info': trade,
         }
         makerCurrencyCode = None
