@@ -456,7 +456,7 @@ class bitmart(Exchange):
             pricePrecision = self.safe_integer(market, 'price_max_precision')
             precision = {
                 'amount': self.safe_number(market, 'base_min_size'),
-                'price': float(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 12)),
+                'price': self.parse_number(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 12)),
             }
             minBuyCost = self.safe_number(market, 'min_buy_amount')
             minSellCost = self.safe_number(market, 'min_sell_amount')
