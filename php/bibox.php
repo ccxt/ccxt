@@ -240,7 +240,7 @@ class bibox extends Exchange {
         $percentage = $this->safe_string($ticker, 'percent');
         if ($percentage !== null) {
             $percentage = str_replace('%', '', $percentage);
-            $percentage = floatval($percentage);
+            $percentage = $this->parse_number($percentage);
         }
         return array(
             'symbol' => $symbol,
