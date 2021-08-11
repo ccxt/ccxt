@@ -785,7 +785,12 @@ module.exports = class binance extends Exchange {
     }
 
     currencyToPrecision (currency, fee) {
-        return this.numberToString (fee);
+        // info is available in currencies only if the user has configured his api keys
+        if ('info' in this.currencies[currency]) {
+            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
+        } else {
+            return this.numberToString (fee);
+        }
     }
 
     nonce () {
