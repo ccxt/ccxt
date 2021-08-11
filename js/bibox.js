@@ -236,7 +236,7 @@ module.exports = class bibox extends Exchange {
         let percentage = this.safeString (ticker, 'percent');
         if (percentage !== undefined) {
             percentage = percentage.replace ('%', '');
-            percentage = parseFloat (percentage);
+            percentage = this.parseNumber (percentage);
         }
         return {
             'symbol': symbol,
