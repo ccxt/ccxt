@@ -4398,6 +4398,7 @@ module.exports = class binance extends Exchange {
             'type': resultType,
             'amount': resultAmount,
             'code': code,
+            'symbol': market['symbol'],
             'status': status,
         };
     }
