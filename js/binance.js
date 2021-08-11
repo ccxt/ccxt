@@ -784,6 +784,10 @@ module.exports = class binance extends Exchange {
         });
     }
 
+    costToPrecision (symbol, cost) {
+        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol].precision.quote, this.precisionMode, this.paddingMode);
+    }
+
     currencyToPrecision (currency, fee) {
         // info is available in currencies only if the user has configured his api keys
         if ('info' in this.currencies[currency]) {
