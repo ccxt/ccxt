@@ -133,7 +133,7 @@ class coinfalcon(Exchange):
         marketId = self.safe_string(ticker, 'name')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.milliseconds()
-        last = float(ticker['last_price'])
+        last = self.safe_number(ticker, 'last_price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
