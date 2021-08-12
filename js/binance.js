@@ -784,8 +784,17 @@ module.exports = class binance extends Exchange {
         });
     }
 
+    costToPrecision (symbol, cost) {
+        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
+    }
+
     currencyToPrecision (currency, fee) {
-        return this.numberToString (fee);
+        // info is available in currencies only if the user has configured his api keys
+        if ('info' in this.currencies[currency]) {
+            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
+        } else {
+            return this.numberToString (fee);
+        }
     }
 
     nonce () {
@@ -1196,6 +1205,8 @@ module.exports = class binance extends Exchange {
             };
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+                const tickSize = this.safeString (filter, 'tickSize');
+                entry['precision']['price'] = this.precisionFromString (tickSize);
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
