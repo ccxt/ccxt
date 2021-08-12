@@ -36,7 +36,7 @@
     "mercado":       { "skip": true },
     "qtrade":        { "skip": true },
     "rightbtc":      { "skip": true },
-    "stronghold":    { "skip": true },
     "tidebit":       { "skip": true },
+    "vcc":           { "skip": true },
     "xbtce":         { "skip": true }
 }

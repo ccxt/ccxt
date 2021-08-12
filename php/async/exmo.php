@@ -384,6 +384,8 @@ class exmo extends Exchange {
                                     array( 'prov' => 'VITAE', 'dep' => '-', 'wd' => '0.5 VITAE' ),
                                     array( 'prov' => 'BTCV', 'dep' => '0%', 'wd' => '-' ),
                                     array( 'prov' => 'DOT', 'dep' => '-', 'wd' => '0.1 DOT' ),
+                                    array( 'prov' => 'TON', 'dep' => '-', 'wd' => '-' ),
+                                    array( 'prov' => 'TONCOIN', 'dep' => '-', 'wd' => '-' ),
                                 ),
                             ),
                             array(
@@ -479,6 +481,7 @@ class exmo extends Exchange {
                     '40016' => '\\ccxt\\OnMaintenance', // array("result":false,"error":"Error 40016 => Maintenance work in progress")
                     '40017' => '\\ccxt\\AuthenticationError', // Wrong API Key
                     '40032' => '\\ccxt\\PermissionDenied', // array("result":false,"error":"Error 40032 => Access is denied for this API key")
+                    '40033' => '\\ccxt\\PermissionDenied', // array("result":false,"error":"Error 40033 => Access is denied, this resources are temporarily blocked to user")
                     '40034' => '\\ccxt\\RateLimitExceeded', // array("result":false,"error":"Error 40034 => Access is denied, rate limit is exceeded")
                     '50052' => '\\ccxt\\InsufficientFunds',
                     '50054' => '\\ccxt\\InsufficientFunds',
