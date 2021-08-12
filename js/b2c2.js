@@ -2133,10 +2133,13 @@ module.exports = class b2c2 extends Exchange {
         let status = undefined;
         let cost = undefined;
         let remaining = undefined;
+        const takerOrMaker = 'taker';
+        let fee = undefined; 
         if (averagepx !== undefined) {
             status = 'closed';
             filled = amount;
             cost = this.parseNumber (Precise.stringMul (averagepxString, amountString));
+            fee = this.calculateFee (symbol, type, side, filled, averagepx, takerOrMaker);
         } else {
             status = 'open';
             remaining = amount;
@@ -2148,8 +2151,6 @@ module.exports = class b2c2 extends Exchange {
                 'type': type,
             });
         }
-        const takerOrMaker = 'taker';
-        const fee = this.calculateFee (symbol, type, side, amount, averagepx, takerOrMaker);
         return this.safeOrder ({
             'info': order,
             'id': id,

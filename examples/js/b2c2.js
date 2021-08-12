@@ -26,7 +26,7 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
     // let balance = await exchange.fetchBalance ()
     // log (exchange.name.green, 'balance', balance)
 
-    // fetch orders from the exchange
+    // // fetch orders from the exchange
     const userId = ''; // or whoever is logged in!
     const params = {
         'executing_unit': userId,
