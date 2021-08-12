@@ -331,29 +331,29 @@ class bw(Exchange):
         marketId = self.safe_string(ticker, 0)
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.milliseconds()
-        close = float(self.safe_value(ticker, 1))
+        close = self.safe_number(ticker, 1)
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(self.safe_value(ticker, 2)),
-            'low': float(self.safe_value(ticker, 3)),
-            'bid': float(self.safe_value(ticker, 7)),
+            'high': self.safe_number(ticker, 2),
+            'low': self.safe_number(ticker, 3),
+            'bid': self.safe_number(ticker, 7),
             'bidVolume': self.safe_number(bid, 'quantity'),
-            'ask': float(self.safe_value(ticker, 8)),
+            'ask': self.safe_number(ticker, 8),
             'askVolume': self.safe_number(ask, 'quantity'),
             'vwap': None,
             'open': None,
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': float(self.safe_value(ticker, 5)),
+            'change': self.safe_number(ticker, 5),
             'percentage': None,
             'average': None,
-            'baseVolume': float(self.safe_value(ticker, 4)),
-            'quoteVolume': float(self.safe_value(ticker, 9)),
+            'baseVolume': self.safe_number(ticker, 4),
+            'quoteVolume': self.safe_number(ticker, 9),
             'info': ticker,
         }
 
