@@ -394,7 +394,7 @@ module.exports = class bitstamp extends Exchange {
             }
             if (!(quote in result)) {
                 const counterDecimals = this.safeInteger (market, 'counter_decimals');
-                result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, parseFloat (cost), market);
+                result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
             }
         }
         return result;
