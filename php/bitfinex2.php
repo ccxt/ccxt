@@ -696,7 +696,7 @@ class bitfinex2 extends bitfinex {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_timestamp($order, 5);
+        $timestamp = $this->safe_integer($order, 5);
         $remaining = abs($this->safe_float($order, 6));
         $amount = abs($this->safe_float($order, 7));
         $filled = $amount - $remaining;
@@ -738,6 +738,7 @@ class bitfinex2 extends bitfinex {
         $market = $this->market ($symbol);
         $orderTypes = $this->safe_value($this->options, 'orderTypes', array());
         $orderType = $this->safe_string($orderTypes, $type, $type);
+        $amount = floatval ($amount);
         $amount = ($side === 'sell') ? -$amount : $amount;
         $request = array(
             'symbol' => $market['id'],

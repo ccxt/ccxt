@@ -660,7 +660,7 @@ class bitfinex2(bitfinex):
             market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_timestamp(order, 5)
+        timestamp = self.safe_integer(order, 5)
         remaining = abs(self.safe_float(order, 6))
         amount = abs(self.safe_float(order, 7))
         filled = amount - remaining
@@ -700,6 +700,7 @@ class bitfinex2(bitfinex):
         market = self.market(symbol)
         orderTypes = self.safe_value(self.options, 'orderTypes', {})
         orderType = self.safe_string(orderTypes, type, type)
+        amount = float(amount)
         amount = -amount if (side == 'sell') else amount
         request = {
             'symbol': market['id'],
