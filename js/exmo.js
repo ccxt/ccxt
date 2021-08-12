@@ -476,6 +476,7 @@ module.exports = class exmo extends Exchange {
                     '40016': OnMaintenance, // {"result":false,"error":"Error 40016: Maintenance work in progress"}
                     '40017': AuthenticationError, // Wrong API Key
                     '40032': PermissionDenied, // {"result":false,"error":"Error 40032: Access is denied for this API key"}
+                    '40033': PermissionDenied, // {"result":false,"error":"Error 40033: Access is denied, this resources are temporarily blocked to user"}
                     '40034': RateLimitExceeded, // {"result":false,"error":"Error 40034: Access is denied, rate limit is exceeded"}
                     '50052': InsufficientFunds,
                     '50054': InsufficientFunds,
