@@ -399,7 +399,7 @@ class bitstamp extends Exchange {
             }
             if (!(is_array($result) && array_key_exists($quote, $result))) {
                 $counterDecimals = $this->safe_integer($market, 'counter_decimals');
-                $result[$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, floatval($cost), $market);
+                $result[$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
             }
         }
         return $result;

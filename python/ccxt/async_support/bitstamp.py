@@ -406,7 +406,7 @@ class bitstamp(Exchange):
                 result[base] = self.construct_currency_object(baseId, base, baseDescription, baseDecimals, None, market)
             if not (quote in result):
                 counterDecimals = self.safe_integer(market, 'counter_decimals')
-                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, float(cost), market)
+                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, self.parse_number(cost), market)
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
