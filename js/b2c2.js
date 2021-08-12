@@ -2140,6 +2140,7 @@ module.exports = class b2c2 extends Exchange {
             filled = amount;
             cost = this.parseNumber (Precise.stringMul (averagepxString, amountString));
             fee = this.calculateFee (symbol, type, side, filled, averagepx, takerOrMaker);
+            fee.cost = this.feeToPrecision (symbol, fee.cost);
         } else {
             status = 'open';
             remaining = amount;
