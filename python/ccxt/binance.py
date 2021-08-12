@@ -800,8 +800,15 @@ class binance(Exchange):
             },
         })
 
+    def cost_to_precision(self, symbol, cost):
+        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['quote'], self.precisionMode, self.paddingMode)
+
     def currency_to_precision(self, currency, fee):
-        return self.number_to_string(fee)
+        # info is available in currencies only if the user has configured his api keys
+        if 'info' in self.currencies[currency]:
+            return self.decimal_to_precision(fee, TRUNCATE, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
+        else:
+            return self.number_to_string(fee)
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
@@ -1195,6 +1202,8 @@ class binance(Exchange):
             }
             if 'PRICE_FILTER' in filtersByType:
                 filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
+                tickSize = self.safe_string(filter, 'tickSize')
+                entry['precision']['price'] = self.precision_from_string(tickSize)
                 # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
                 # https://github.com/ccxt/ccxt/issues/4286
