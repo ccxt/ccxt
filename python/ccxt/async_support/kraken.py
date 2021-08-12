@@ -940,7 +940,7 @@ class kraken(Exchange):
             account = self.account()
             account['total'] = self.safe_string(balances, currencyId)
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -1218,9 +1218,9 @@ class kraken(Exchange):
         await self.load_markets()
         options = self.safe_value(self.options, 'fetchOrderTrades', {})
         batchSize = self.safe_integer(options, 'batchSize', 20)
-        numBatches = int(tradeIds / batchSize)
-        numBatches = self.sum(numBatches, 1)
         numTradeIds = len(tradeIds)
+        numBatches = int(numTradeIds / batchSize)
+        numBatches = self.sum(numBatches, 1)
         result = []
         for j in range(0, numBatches):
             requestIds = []
@@ -1618,9 +1618,11 @@ class kraken(Exchange):
                 # 'address': address,  # they don't allow withdrawals to direct addresses
             }
             response = await self.privatePostWithdraw(self.extend(request, params))
+            result = self.safe_value(response, 'result', {})
+            id = self.safe_string(result, 'refid')
             return {
-                'info': response,
-                'id': response['result'],
+                'info': result,
+                'id': id,
             }
         raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, as set up on your account)")
 

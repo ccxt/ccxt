@@ -21,6 +21,8 @@ class zb extends Exchange {
             'countries' => array( 'CN' ),
             'rateLimit' => 100,
             'version' => 'v1',
+            'certified' => true,
+            'pro' => true,
             'has' => array(
                 'cancelOrder' => true,
                 'CORS' => false,
@@ -147,6 +149,10 @@ class zb extends Exchange {
                 'www' => 'https://www.zb.com',
                 'doc' => 'https://www.zb.com/i/developer',
                 'fees' => 'https://www.zb.com/i/rate',
+                'referral' => array(
+                    'url' => 'https://www.zbex.club/en/register?ref=4301lera',
+                    'discount' => 0.16,
+                ),
             ),
             'api' => array(
                 'trade' => array(
@@ -221,34 +227,7 @@ class zb extends Exchange {
             ),
             'fees' => array(
                 'funding' => array(
-                    'withdraw' => array(
-                        'BTC' => 0.0001,
-                        'BCH' => 0.0006,
-                        'LTC' => 0.005,
-                        'ETH' => 0.01,
-                        'ETC' => 0.01,
-                        'BTS' => 3,
-                        'EOS' => 1,
-                        'QTUM' => 0.01,
-                        'HSR' => 0.001,
-                        'XRP' => 0.1,
-                        'USDT' => '0.1%',
-                        'QCASH' => 5,
-                        'DASH' => 0.002,
-                        'BCD' => 0,
-                        'UBTC' => 0,
-                        'SBTC' => 0,
-                        'INK' => 20,
-                        'TV' => 0.1,
-                        'BTH' => 0,
-                        'BCX' => 0,
-                        'LBTC' => 0,
-                        'CHAT' => 20,
-                        'bitCNY' => 20,
-                        'HLC' => 20,
-                        'BTP' => 0,
-                        'BCW' => 0,
-                    ),
+                    'withdraw' => array(),
                 ),
                 'trading' => array(
                     'maker' => 0.2 / 100,
@@ -256,7 +235,10 @@ class zb extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'ANG' => 'Anagram',
                 'ENT' => 'ENTCash',
+                'BCHABC' => 'BCHABC', // conflict with BCH / BCHA
+                'BCHSV' => 'BCHSV', // conflict with BCH / BSV
             ),
         ));
     }
@@ -419,7 +401,7 @@ class zb extends Exchange {
             $account['used'] = $this->safe_string($balance, 'freez');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
@@ -536,6 +518,21 @@ class zb extends Exchange {
             $request['size'] = $limit;
         }
         $response = $this->publicGetDepth (array_merge($request, $params));
+        //
+        //     {
+        //         "asks":[
+        //             [35000.0,0.2741],
+        //             [34949.0,0.0173],
+        //             [34900.0,0.5004],
+        //         ],
+        //         "bids":[
+        //             [34119.32,0.0030],
+        //             [34107.83,0.1500],
+        //             [34104.42,0.1500],
+        //         ],
+        //         "timestamp":1624536510
+        //     }
+        //
         return $this->parse_order_book($response, $symbol);
     }
 
@@ -543,15 +540,15 @@ class zb extends Exchange {
         $this->load_markets();
         $response = $this->publicGetAllTicker ($params);
         $result = array();
-        $anotherMarketsById = array();
-        $marketIds = is_array($this->marketsById) ? array_keys($this->marketsById) : array();
+        $marketsByIdWithoutUnderscore = array();
+        $marketIds = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $tickerId = str_replace('_', '', $marketIds[$i]);
-            $anotherMarketsById[$tickerId] = $this->marketsById[$marketIds[$i]];
+            $marketsByIdWithoutUnderscore[$tickerId] = $this->markets_by_id[$marketIds[$i]];
         }
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
-            $market = $anotherMarketsById[$ids[$i]];
+            $market = $marketsByIdWithoutUnderscore[$ids[$i]];
             $result[$market['symbol']] = $this->parse_ticker($response[$ids[$i]], $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
@@ -564,12 +561,43 @@ class zb extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->publicGetTicker (array_merge($request, $params));
-        $ticker = $response['ticker'];
+        //
+        //     {
+        //         "date":"1624399623587",
+        //         "$ticker":{
+        //             "high":"33298.38",
+        //             "vol":"56152.9012",
+        //             "last":"32578.55",
+        //             "low":"28808.19",
+        //             "buy":"32572.68",
+        //             "sell":"32615.37",
+        //             "turnover":"1764201303.6100",
+        //             "open":"31664.85",
+        //             "riseRate":"2.89"
+        //         }
+        //     }
+        //
+        $ticker = $this->safe_value($response, 'ticker', array());
+        $ticker['date'] = $this->safe_value($response, 'date');
         return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_ticker($ticker, $market = null) {
-        $timestamp = $this->milliseconds();
+        //
+        //     {
+        //         "date":"1624399623587", // injected from outside
+        //         "high":"33298.38",
+        //         "vol":"56152.9012",
+        //         "$last":"32578.55",
+        //         "low":"28808.19",
+        //         "buy":"32572.68",
+        //         "sell":"32615.37",
+        //         "turnover":"1764201303.6100",
+        //         "open":"31664.85",
+        //         "riseRate":"2.89"
+        //     }
+        //
+        $timestamp = $this->safe_integer($ticker, 'date', $this->milliseconds());
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -630,6 +658,16 @@ class zb extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        //     {
+        //         "date":1624537391,
+        //         "$amount":"0.0142",
+        //         "$price":"33936.42",
+        //         "trade_type":"ask",
+        //         "type":"sell",
+        //         "tid":1718869018
+        //     }
+        //
         $timestamp = $this->safe_timestamp($trade, 'date');
         $side = $this->safe_string($trade, 'trade_type');
         $side = ($side === 'bid') ? 'buy' : 'sell';
@@ -668,6 +706,13 @@ class zb extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->publicGetTrades (array_merge($request, $params));
+        //
+        //     array(
+        //         array("date":1624537391,"amount":"0.0142","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869018),
+        //         array("date":1624537391,"amount":"0.0010","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869020),
+        //         array("date":1624537391,"amount":"0.0133","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869021),
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 

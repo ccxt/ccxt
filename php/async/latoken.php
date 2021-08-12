@@ -91,8 +91,8 @@ class latoken extends Exchange {
                     'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.1 / 100,
-                    'taker' => 0.1 / 100,
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.001'),
                 ),
             ),
             'commonCurrencies' => array(
@@ -284,7 +284,7 @@ class latoken extends Exchange {
             $account['total'] = $this->safe_string($balance, 'amount');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

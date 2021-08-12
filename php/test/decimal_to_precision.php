@@ -28,61 +28,6 @@ function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = 
 function number_to_string ($x) {
     return Exchange::number_to_string ($x);
 }
-function toWei ($amount, $decimals) {
-    return Exchange::to_wei ($amount, $decimals);
-}
-function fromWei ($amount, $decimals) {
-    return Exchange::from_wei ($amount, $decimals);
-}
-
-// ----------------------------------------------------------------------------
-// toWei / fromWei
-
-assert (toWei (1, 18) === '1000000000000000000');
-assert (toWei (1, 17) === '100000000000000000');
-assert (toWei (1, 16) === '10000000000000000');
-assert (toWei ('1', 18) === '1000000000000000000');
-assert (toWei ('1', 17) === '100000000000000000');
-assert (toWei ('1', 16) === '10000000000000000');
-assert (toWei (0, 18) === '0');
-assert (toWei (1, 0) === '1');
-assert (toWei (1, 1) === '10');
-assert (toWei (1.3, 18) === '1300000000000000000');
-assert (toWei ('1.3', 18) === '1300000000000000000');
-assert (toWei (1.999, 17) === '199900000000000000');
-assert (toWei ('1.999', 17) === '199900000000000000');
-assert (toWei ('0.1', 18) === '100000000000000000');
-assert (toWei ('0.01', 18) === '10000000000000000');
-assert (toWei ('0.001', 18) === '1000000000000000');
-assert (toWei (0.1, 18) === '100000000000000000');
-assert (toWei (0.01, 18) === '10000000000000000');
-assert (toWei (0.001, 18) === '1000000000000000');
-assert (toWei ('0.3323340739', 18) === '332334073900000000');
-assert (toWei (0.3323340739, 18) === '332334073900000000');
-assert (toWei ('0.009428', 18) === '9428000000000000');
-assert (toWei (0.009428, 18) === '9428000000000000');
-
-// $us test that we get the inverse for all these test
-assert (fromWei ('1000000000000000000', 18) === 1.0);
-assert (fromWei ('100000000000000000', 17) === 1.0);
-assert (fromWei ('10000000000000000', 16) === 1.0);
-assert (fromWei (1000000000000000000, 18) === 1.0);
-assert (fromWei (100000000000000000, 17) === 1.0);
-assert (fromWei (10000000000000000, 16) === 1.0);
-assert (fromWei ('1300000000000000000', 18) === 1.3);
-assert (fromWei (1300000000000000000, 18) === 1.3);
-assert (fromWei ('199900000000000000', 17) === 1.999);
-assert (fromWei (199900000000000000, 17) === 1.999);
-assert (fromWei ('100000000000000000', 18) === 0.1);
-assert (fromWei ('10000000000000000', 18) === 0.01);
-assert (fromWei ('1000000000000000', 18) === 0.001);
-assert (fromWei (100000000000000000, 18) === 0.1);
-assert (fromWei (10000000000000000, 18) === 0.01);
-assert (fromWei (1000000000000000, 18) === 0.001);
-assert (fromWei ('332334073900000000', 18) === 0.3323340739);
-assert (fromWei (332334073900000000, 18) === 0.3323340739);
-assert (fromWei ('9428000000000000', 18) === 0.009428);
-assert (fromWei (9428000000000000, 18) === 0.009428);
 
 // ----------------------------------------------------------------------------
 // number_to_string
@@ -94,6 +39,7 @@ assert (number_to_string (17.805e-7) === '0.0000017805');
 assert (number_to_string (-7.0005e27) === '-7000500000000000000000000000');
 assert (number_to_string (7.0005e27) === '7000500000000000000000000000');
 assert (number_to_string (-7.9e27) === '-7900000000000000000000000000');
+assert (number_to_string (7e27) === '7000000000000000000000000000');
 assert (number_to_string (7.9e27) === '7900000000000000000000000000');
 assert (number_to_string (-12.345) === '-12.345');
 assert (number_to_string (12.345) === '12.345');
@@ -232,6 +178,10 @@ assert (decimal_to_precision ('165', ROUND, 110, TICK_SIZE) === '220');
 assert (decimal_to_precision ('0.000123456789', ROUND, 0.00000012, TICK_SIZE) === '0.00012348');
 assert (decimal_to_precision ('0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE) === '0.00012336');
 assert (decimal_to_precision ('0.000273398', ROUND, 1e-7, TICK_SIZE) === '0.0002734');
+
+assert (decimal_to_precision ('0.00005714', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
+// this line causes problems in JS, fix with Precise
+// assert (decimal_to_precision ('0.0000571495257361', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
 
 assert (decimal_to_precision ('0.01', ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
 assert (decimal_to_precision ('0.01', TRUNCATE, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
@@ -384,3 +334,54 @@ assert (Precise::string_neg('0') === '0');
 assert (Precise::string_neg('-0') === '0');
 assert (Precise::string_neg('-500.1') === '500.1');
 assert (Precise::string_neg('213') === '-213');
+
+assert (Precise::string_mod('57.123', '10') === '7.123');
+assert (Precise::string_mod('18', '6') === '0');
+assert (Precise::string_mod('10.1', '0.5') === '0.1');
+assert (Precise::string_mod('10000000', '5555') === '1000');
+assert (Precise::string_mod('5550', '120') === '30');
+
+assert (Precise::string_equals('1.0000', '1'));
+assert (Precise::string_equals('-0.0', '0'));
+assert (Precise::string_equals('-0.0', '0.0'));
+assert (Precise::string_equals('5.534000', '5.5340'));
+
+assert (Precise::string_min('1.0000', '2') === '1');
+assert (Precise::string_min('2', '1.2345') === '1.2345');
+assert (Precise::string_min('3.1415', '-2') === '-2');
+assert (Precise::string_min('-3.1415', '-2') === '-3.1415');
+assert (Precise::string_min('0.000', '-0.0') === '0');
+
+assert (Precise::string_max('1.0000', '2') === '2');
+assert (Precise::string_max('2', '1.2345') === '2');
+assert (Precise::string_max('3.1415', '-2') === '3.1415');
+assert (Precise::string_max('-3.1415', '-2') === '-2');
+assert (Precise::string_max('0.000', '-0.0') === '0');
+
+assert (!Precise::string_gt('1.0000', '2'));
+assert (Precise::string_gt('2', '1.2345'));
+assert (Precise::string_gt('3.1415', '-2'));
+assert (!Precise::string_gt('-3.1415', '-2'));
+assert (!Precise::string_gt('3.1415', '3.1415'));
+assert (Precise::string_gt('3.14150000000000000000001', '3.1415'));
+
+assert (!Precise::string_ge('1.0000', '2'));
+assert (Precise::string_ge('2', '1.2345'));
+assert (Precise::string_ge('3.1415', '-2'));
+assert (!Precise::string_ge('-3.1415', '-2'));
+assert (Precise::string_ge('3.1415', '3.1415'));
+assert (Precise::string_ge('3.14150000000000000000001', '3.1415'));
+
+assert (Precise::string_lt('1.0000', '2'));
+assert (!Precise::string_lt('2', '1.2345'));
+assert (!Precise::string_lt('3.1415', '-2'));
+assert (Precise::string_lt('-3.1415', '-2'));
+assert (!Precise::string_lt('3.1415', '3.1415'));
+assert (Precise::string_lt('3.1415', '3.14150000000000000000001'));
+
+assert (Precise::string_le('1.0000', '2'));
+assert (!Precise::string_le('2', '1.2345'));
+assert (!Precise::string_le('3.1415', '-2'));
+assert (Precise::string_le('-3.1415', '-2'));
+assert (Precise::string_le('3.1415', '3.1415'));
+assert (Precise::string_le('3.1415', '3.14150000000000000000001'));

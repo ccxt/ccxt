@@ -108,8 +108,8 @@ class vcc extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.2 / 100,
-                    'taker' => 0.2 / 100,
+                    'maker' => $this->parse_number('0.002'),
+                    'taker' => $this->parse_number('0.002'),
                 ),
             ),
             'exceptions' => array(
@@ -318,7 +318,7 @@ class vcc extends Exchange {
             $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -821,7 +821,7 @@ class vcc extends Exchange {
         if ($stopPrice !== null) {
             $request['is_stop'] = 1;
             $request['stop_condition'] = ($side === 'buy') ? 'le' : 'ge'; // ge = greater than or equal, le = less than or equal
-            $request['stop_price'] = $this->price_to_precision($symbol, $price);
+            $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
         }
         $params = $this->omit($params, array( 'stop_price', 'stopPrice' ));
         $response = $this->privatePostOrders (array_merge($request, $params));

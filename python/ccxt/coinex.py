@@ -58,7 +58,12 @@ class coinex(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg',
-                'api': 'https://api.coinex.com',
+                'api': {
+                    'public': 'https://api.coinex.com',
+                    'private': 'https://api.coinex.com',
+                    'perpetualPublic': 'https://api.coinex.com/perpetual',
+                    'perpetualPrivate': 'https://api.coinex.com/perpetual',
+                },
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees': 'https://www.coinex.com/fees',
@@ -121,6 +126,46 @@ class coinex(Exchange):
                         'balance/coin/withdraw',
                         'order/pending/batch',
                         'order/pending',
+                    ],
+                },
+                'perpetualPublic': {
+                    'get': [
+                        'ping',
+                        'time',
+                        'market/list',
+                        'market/limit_config',
+                        'market/ticker',
+                        'market/ticker/all',
+                        'market/depth',
+                        'market/deals',
+                        'market/funding_history',
+                        'market/user_deals',
+                        'market/kline',
+                    ],
+                },
+                'perpetualPrivate': {
+                    'get': [
+                        'asset/query',
+                        'order/pending',
+                        'order/finished',
+                        'order/stop_pending',
+                        'order/status',
+                        'position/pending',
+                        'position/funding',
+                    ],
+                    'post': [
+                        'market/adjust_leverage',
+                        'market/position_expect',
+                        'order/put_limit',
+                        'order/put_market',
+                        'order/put_stop_limit',
+                        'order/cancel',
+                        'order/cancel_all',
+                        'order/cancel_stop',
+                        'order/cancel_stop_all',
+                        'order/close_limit',
+                        'order/close_market',
+                        'position/adjust_margin',
                     ],
                 },
             },
@@ -422,7 +467,7 @@ class coinex(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'frozen')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -512,14 +557,12 @@ class coinex(Exchange):
             'market': market['id'],
             'type': side,
         }
-        amount = float(amount)
         # for market buy it requires the amount of quote currency to spend
         if (type == 'market') and (side == 'buy'):
             if self.options['createMarketBuyOrderRequiresPrice']:
                 if price is None:
                     raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
                 else:
-                    price = float(price)
                     request['amount'] = self.cost_to_precision(symbol, amount * price)
             else:
                 request['amount'] = self.cost_to_precision(symbol, amount)
@@ -853,9 +896,9 @@ class coinex(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         path = self.implode_params(path, params)
-        url = self.urls['api'] + '/' + self.version + '/' + path
+        url = self.urls['api'][api] + '/' + self.version + '/' + path
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
+        if api == 'public' or api == 'perpetualPublic':
             if query:
                 url += '?' + self.urlencode(query)
         else:

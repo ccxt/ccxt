@@ -27,6 +27,14 @@ with open(readme, encoding='utf-8') as f:
 with open(package_json, encoding='utf-8') as f:
     package = json.load(f)
 
+project_urls = {
+    'Homepage': 'https://ccxt.trade',
+    'Documentation': 'https://ccxt.readthedocs.io/en/latest/manual.html',
+    'Discord': 'https://discord.gg/dhzSKYU',
+    'Twitter': 'https://twitter.com/ccxt_official',
+    'Funding': 'https://opencollective.com/ccxt',
+}
+
 setup(
 
     name=package['name'],
@@ -80,14 +88,18 @@ setup(
     extras_require={
         ':python_version>="3.5.2"': [
             'aiohttp>=3.7.4,<3.8',
-            'aiodns>=1.1.1,<2.1',
+            'aiodns>=1.1.1',
             'yarl==1.6.3',
         ],
         'qa': [
-            'flake8==3.7.9'
+            'flake8==3.7.9',
         ],
         'doc': [
-            'Sphinx==1.7.0'
+            'Sphinx==4.0',
+            'm2r2==0.2.7',
+            'sphinx-rtd-theme==0.5.2',
+            'readthedocs-sphinx-search==0.1.0',
         ]
-    }
+    },
+    project_urls=project_urls,
 )

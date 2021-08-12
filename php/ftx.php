@@ -30,7 +30,10 @@ class ftx extends Exchange {
                 ),
                 'doc' => 'https://github.com/ftexchange/ftx',
                 'fees' => 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
-                'referral' => 'https://ftx.com/#a=1623029',
+                'referral' => array(
+                    'url' => 'https://ftx.com/#a=ccxt',
+                    'discount' => 0.05,
+                ),
             ),
             'has' => array(
                 'cancelAllOrders' => true,
@@ -71,6 +74,7 @@ class ftx extends Exchange {
                 'public' => array(
                     'get' => array(
                         'coins',
+                        // markets
                         'markets',
                         'markets/{market_name}',
                         'markets/{market_name}/orderbook', // ?depth={depth}
@@ -84,59 +88,70 @@ class ftx extends Exchange {
                         'indexes/{index_name}/weights',
                         'expired_futures',
                         'indexes/{market_name}/candles', // ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        // wallet
+                        'wallet/coins',
                         // leverage tokens
                         'lt/tokens',
                         'lt/{token_name}',
+                        // etfs
+                        'etfs/rebalance_info',
                         // options
                         'options/requests',
                         'options/trades',
-                        'stats/24h_options_volume',
                         'options/historical_volumes/BTC',
+                        'stats/24h_options_volume',
                         'options/open_interest/BTC',
                         'options/historical_open_interest/BTC',
                         // spot margin
                         'spot_margin/history',
+                        'spot_margin/borrow_summary',
+                        // nfts
+                        'nft/nfts',
+                        'nft/{nft_id}',
+                        'nft/{nft_id}/trades',
+                        'nft/all_trades',
+                        'nft/{nft_id}/account_info',
+                        'nft/collections',
+                        // ftx pay
+                        'ftxpay/apps/{user_specific_id}/details',
+                        'stats/latency_stats',
+                    ),
+                    'post' => array(
+                        'ftxpay/apps/{user_specific_id}/orders',
                     ),
                 ),
                 'private' => array(
                     'get' => array(
+                        // subaccounts
+                        'subaccounts',
+                        'subaccounts/{nickname}/balances',
+                        // account
                         'account',
                         'positions',
-                        'wallet/coins',
+                        // wallet
                         'wallet/balances',
                         'wallet/all_balances',
                         'wallet/deposit_address/{coin}', // ?method={method}
                         'wallet/deposits',
                         'wallet/withdrawals',
-                        'wallet/withdrawal_fee',
                         'wallet/airdrops',
+                        'wallet/withdrawal_fee',
                         'wallet/saved_addresses',
+                        // orders
                         'orders', // ?market={market}
                         'orders/history', // ?market={market}
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
+                        // conditional orders
                         'conditional_orders', // ?market={market}
                         'conditional_orders/{conditional_order_id}/triggers',
                         'conditional_orders/history', // ?market={market}
-                        'spot_margin/borrow_rates',
-                        'spot_margin/lending_rates',
-                        'spot_margin/borrow_summary',
-                        'spot_margin/market_info', // ?market={market}
-                        'spot_margin/borrow_history',
-                        'spot_margin/lending_history',
-                        'spot_margin/offers',
-                        'spot_margin/lending_info',
                         'fills', // ?market={market}
                         'funding_payments',
                         // leverage tokens
                         'lt/balances',
                         'lt/creations',
                         'lt/redemptions',
-                        // subaccounts
-                        'subaccounts',
-                        'subaccounts/{nickname}/balances',
-                        // otc
-                        'otc/quotes/{quoteId}',
                         // options
                         'options/my_requests',
                         'options/requests/{request_id}/quotes',
@@ -149,28 +164,44 @@ class ftx extends Exchange {
                         'staking/unstake_requests',
                         'staking/balances',
                         'staking/staking_rewards',
+                        // otc
+                        'otc/quotes/{quoteId}',
+                        // spot margin
+                        'spot_margin/borrow_rates',
+                        'spot_margin/lending_rates',
+                        'spot_margin/market_info', // ?market={market}
+                        'spot_margin/borrow_history',
+                        'spot_margin/lending_history',
+                        'spot_margin/offers',
+                        'spot_margin/lending_info',
+                        // nfts
+                        'nft/balances',
+                        'nft/bids',
+                        'nft/deposits',
+                        'nft/withdrawals',
+                        'nft/fills',
+                        'nft/gallery/{gallery_id}',
+                        'nft/gallery_settings',
                     ),
                     'post' => array(
+                        // subaccounts
+                        'subaccounts',
+                        'subaccounts/update_name',
+                        'subaccounts/transfer',
+                        // account
                         'account/leverage',
+                        // wallet
                         'wallet/withdrawals',
                         'wallet/saved_addresses',
+                        // orders
                         'orders',
                         'conditional_orders',
                         'orders/{order_id}/modify',
                         'orders/by_client_id/{client_order_id}/modify',
                         'conditional_orders/{order_id}/modify',
-                        // spot margin
-                        'spot_margin/offers',
                         // leverage tokens
                         'lt/{token_name}/create',
                         'lt/{token_name}/redeem',
-                        // subaccounts
-                        'subaccounts',
-                        'subaccounts/update_name',
-                        'subaccounts/transfer',
-                        // otc
-                        'otc/quotes/{quote_id}/accept',
-                        'otc/quotes',
                         // options
                         'options/requests',
                         'options/requests/{request_id}/quotes',
@@ -178,15 +209,33 @@ class ftx extends Exchange {
                         // staking
                         'staking/unstake_requests',
                         'srm_stakes/stakes',
+                        // otc
+                        'otc/quotes/{quote_id}/accept',
+                        'otc/quotes',
+                        // spot margin
+                        'spot_margin/offers',
+                        // nfts
+                        'nft/offer',
+                        'nft/buy',
+                        'nft/auction',
+                        'nft/edit_auction',
+                        'nft/cancel_auction',
+                        'nft/bids',
+                        'nft/redeem',
+                        'nft/gallery_settings',
+                        // ftx pay
+                        'ftxpay/apps/{user_specific_id}/orders',
                     ),
                     'delete' => array(
+                        // subaccounts
+                        'subaccounts',
+                        // wallet
                         'wallet/saved_addresses/{saved_address_id}',
+                        // orders
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
                         'conditional_orders/{order_id}',
-                        // subaccounts
-                        'subaccounts',
                         // options
                         'options/requests/{request_id}',
                         'options/quotes/{quote_id}',
@@ -199,25 +248,25 @@ class ftx extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'maker' => 0.02 / 100,
-                    'taker' => 0.07 / 100,
+                    'maker' => $this->parse_number('0.02'),
+                    'taker' => $this->parse_number('0.07'),
                     'tiers' => array(
-                        'taker' => [
-                            [0, 0.07 / 100],
-                            [1000000, 0.06 / 100],
-                            [5000000, 0.055 / 100],
-                            [10000000, 0.05 / 100],
-                            [15000000, 0.045 / 100],
-                            [35000000, 0.04 / 100],
-                        ],
-                        'maker' => [
-                            [0, 0.02 / 100],
-                            [1000000, 0.02 / 100],
-                            [5000000, 0.015 / 100],
-                            [10000000, 0.015 / 100],
-                            [15000000, 0.01 / 100],
-                            [35000000, 0.01 / 100],
-                        ],
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.0007') ),
+                            array( $this->parse_number('2000000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.00055') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0.045') ),
+                            array( $this->parse_number('50000000'), $this->parse_number('0.0004') ),
+                        ),
+                        'maker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('2000000'), $this->parse_number('0.00015') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0001') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.00005') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('50000000'), $this->parse_number('0') ),
+                        ),
                     ),
                 ),
                 'funding' => array(
@@ -239,17 +288,24 @@ class ftx extends Exchange {
                     'Trigger price too high' => '\\ccxt\\InvalidOrder', // array("error":"Trigger price too high","success":false)
                     'Trigger price too low' => '\\ccxt\\InvalidOrder', // array("error":"Trigger price too low","success":false)
                     'Order already queued for cancellation' => '\\ccxt\\CancelPending', // array("error":"Order already queued for cancellation","success":false)
+                    'Duplicate client order ID' => '\\ccxt\\DuplicateOrderId', // array("error":"Duplicate client order ID","success":false)
+                    'Spot orders cannot be reduce-only' => '\\ccxt\\InvalidOrder', // array("error":"Spot orders cannot be reduce-only","success":false)
+                    'Invalid reduce-only order' => '\\ccxt\\InvalidOrder', // array("error":"Invalid reduce-only order","success":false)
+                    'Account does not have enough balances' => '\\ccxt\\InsufficientFunds', // array("success":false,"error":"Account does not have enough balances")
                 ),
                 'broad' => array(
                     'Account does not have enough margin for order' => '\\ccxt\\InsufficientFunds',
                     'Invalid parameter' => '\\ccxt\\BadRequest', // array("error":"Invalid parameter start_time","success":false)
                     'The requested URL was not found on the server' => '\\ccxt\\BadRequest',
                     'No such coin' => '\\ccxt\\BadRequest',
+                    'No such subaccount' => '\\ccxt\\BadRequest',
+                    'No such future' => '\\ccxt\\BadSymbol',
                     'No such market' => '\\ccxt\\BadSymbol',
                     'Do not send more than' => '\\ccxt\\RateLimitExceeded',
                     'An unexpected error occurred' => '\\ccxt\\ExchangeNotAvailable', // array("error":"An unexpected error occurred, please try again later (58BC21C795).","success":false)
                     'Please retry request' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Please retry request","success":false)
                     'Please try again' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Please try again","success":false)
+                    'Try again' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Try again","success":false)
                     'Only have permissions for subaccount' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Only have permissions for subaccount *sub_name*")
                 ),
             ),
@@ -922,11 +978,11 @@ class ftx extends Exchange {
             $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
             $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'free');
+            $account['free'] = $this->safe_string_2($balance, 'availableWithoutBorrow', 'free');
             $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {
@@ -1508,9 +1564,6 @@ class ftx extends Exchange {
         if ($marketId !== null) {
             $request['market'] = $marketId;
         }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
         if ($since !== null) {
             $request['start_time'] = intval($since / 1000);
             $request['end_time'] = $this->seconds();
@@ -1582,6 +1635,40 @@ class ftx extends Exchange {
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'showAvgPrice' => false,
+        );
+        $response = $this->privateGetPositions (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "result" => array(
+        //             {
+        //                 "cost" => -31.7906,
+        //                 "entryPrice" => 138.22,
+        //                 "estimatedLiquidationPrice" => 152.1,
+        //                 "future" => "ETH-PERP",
+        //                 "initialMarginRequirement" => 0.1,
+        //                 "longOrderSize" => 1744.55,
+        //                 "maintenanceMarginRequirement" => 0.04,
+        //                 "netSize" => -0.23,
+        //                 "openSize" => 1744.32,
+        //                 "realizedPnl" => 3.39441714,
+        //                 "shortOrderSize" => 1732.09,
+        //                 "side" => "sell",
+        //                 "size" => 0.23,
+        //                 "unrealizedPnl" => 0,
+        //                 "collateralUsed" => 3.17906
+        //             }
+        //         )
+        //     }
+        //
+        // todo unify parsePosition/parsePositions
+        return $this->safe_value($response, 'result', array());
+    }
+
+    public function fetch_account_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetAccount ($params);
         //
@@ -1828,7 +1915,7 @@ class ftx extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $baseUrl = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
+        $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . $request;
         if ($method !== 'POST') {
             if ($query) {

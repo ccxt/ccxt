@@ -82,34 +82,11 @@ class lbank extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.1 / 100,
-                    'taker' => 0.1 / 100,
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.001'),
                 ),
                 'funding' => array(
-                    'withdraw' => array(
-                        'BTC' => null,
-                        'ZEC' => 0.01,
-                        'ETH' => 0.01,
-                        'ETC' => 0.01,
-                        // 'QTUM' => amount => max (0.01, amount * (0.1 / 100)),
-                        'VEN' => 10.0,
-                        'BCH' => 0.0002,
-                        'SC' => 50.0,
-                        'BTM' => 20.0,
-                        'NAS' => 1.0,
-                        'EOS' => 1.0,
-                        'XWC' => 5.0,
-                        'BTS' => 1.0,
-                        'INK' => 10.0,
-                        'BOT' => 3.0,
-                        'YOYOW' => 15.0,
-                        'TGC' => 10.0,
-                        'NEO' => 0.0,
-                        'CMT' => 20.0,
-                        'SEER' => 2000.0,
-                        'FIL' => null,
-                        'BTG' => null,
-                    ),
+                    'withdraw' => array(),
                 ),
             ),
             'commonCurrencies' => array(
@@ -181,7 +158,7 @@ class lbank extends Exchange {
         if ($market === null) {
             $marketId = $this->safe_string($ticker, 'symbol');
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->marketsById[$marketId];
+                $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
             } else {
                 $parts = explode('_', $marketId);
@@ -425,7 +402,7 @@ class lbank extends Exchange {
             $account['total'] = $this->safe_string($asset, $currencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {

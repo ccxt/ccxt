@@ -141,8 +141,8 @@ class bitbay(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0,
-                    'taker': 0.1 / 100,
+                    'maker': self.parse_number('0.0'),
+                    'taker': self.parse_number('0.001'),
                     'percentage': True,
                     'tierBased': False,
                 },
@@ -197,18 +197,7 @@ class bitbay(Exchange):
                     },
                 },
                 'funding': {
-                    'withdraw': {
-                        'BTC': 0.0009,
-                        'LTC': 0.005,
-                        'ETH': 0.00126,
-                        'LSK': 0.2,
-                        'BCH': 0.0006,
-                        'GAME': 0.005,
-                        'DASH': 0.001,
-                        'BTG': 0.0008,
-                        'PLN': 4,
-                        'EUR': 1.5,
-                    },
+                    'withdraw': {},
                 },
             },
             'options': {
@@ -429,7 +418,7 @@ class bitbay(Exchange):
             account['used'] = self.safe_string(balance, 'lockedFunds')
             account['free'] = self.safe_string(balance, 'availableFunds')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -909,8 +898,7 @@ class bitbay(Exchange):
         #     }
         #
         timestamp = self.safe_integer_2(trade, 'time', 't')
-        userAction = self.safe_string(trade, 'userAction')
-        side = 'buy' if (userAction == 'Buy') else 'sell'
+        side = self.safe_string_lower_2(trade, 'userAction', 'ty')
         wasTaker = self.safe_value(trade, 'wasTaker')
         takerOrMaker = None
         if wasTaker is not None:
@@ -1133,7 +1121,7 @@ class bitbay(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname})
+        url = self.implode_hostname(self.urls['api'][api])
         if api == 'public':
             query = self.omit(params, self.extract_params(path))
             url += '/' + self.implode_params(path, params) + '.json'

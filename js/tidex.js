@@ -87,8 +87,8 @@ module.exports = class tidex extends Exchange {
                     'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.1 / 100,
-                    'maker': 0.1 / 100,
+                    'taker': this.parseNumber ('0.001'),
+                    'maker': this.parseNumber ('0.001'),
                 },
             },
             'commonCurrencies': {
@@ -322,7 +322,7 @@ module.exports = class tidex extends Exchange {
             account['used'] = this.safeString (balance, 'inOrders');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -541,8 +541,6 @@ module.exports = class tidex extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'rate': this.priceToPrecision (symbol, price),
         };
-        price = parseFloat (price);
-        amount = parseFloat (amount);
         const response = await this.privatePostTrade (this.extend (request, params));
         let id = undefined;
         let status = 'open';

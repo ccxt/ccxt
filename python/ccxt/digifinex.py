@@ -139,8 +139,8 @@ class digifinex(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.002,
-                    'taker': 0.002,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
                 },
             },
             'exceptions': {
@@ -459,7 +459,7 @@ class digifinex(Exchange):
             account['free'] = self.safe_string(balance, 'free')
             account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

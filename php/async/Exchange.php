@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.50.69';
+$version = '1.54.86';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.50.69';
+    const VERSION = '1.54.86';
 
     public static $loop;
     public static $kernel;
@@ -43,10 +43,7 @@ class Exchange extends \ccxt\Exchange {
     public $throttle;
 
     public static function get_loop() {
-        if (!static::$loop) {
-            static::$loop = React\EventLoop\Factory::create();
-        }
-        return static::$loop;
+        return React\EventLoop\Loop::get();
     }
 
     public static function get_kernel() {
@@ -64,10 +61,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function __construct($options = array()) {
         if (!class_exists('React\\EventLoop\\Factory')) {
-            throw new ccxt\NotSupported("React is not installed\n\ncomposer require --ignore-platform-reqs react/http\n\n");
+            throw new ccxt\NotSupported("React is not installed\n\ncomposer require --ignore-platform-reqs react/http:\"^1.4.0\"\n\n");
         }
         if (!class_exists('Recoil\\React\\ReactKernel')) {
-            throw new ccxt\NotSupported("Recoil is not installed\n\ncomposer require --ignore-platform-reqs recoil/react\n\n");
+            throw new ccxt\NotSupported("Recoil is not installed\n\ncomposer require --ignore-platform-reqs recoil/react:\"1.0.2\"\n\n");
         }
         $config = $this->omit($options, array('loop', 'kernel'));
         parent::__construct($config);
@@ -76,7 +73,7 @@ class Exchange extends \ccxt\Exchange {
             if (array_key_exists('loop', $options)) {
                 static::$loop = $options['loop'];
             } else {
-                static::$loop = React\EventLoop\Factory::create();
+                static::$loop = static::get_loop();
             }
         } else if (array_key_exists('loop', $options)) {
             throw new Exception($this->id . ' cannot use two different loops');
@@ -98,7 +95,7 @@ class Exchange extends \ccxt\Exchange {
         if ($this->browser === null) {
             $this->browser = (new React\Http\Browser(static::$loop, $connector))->withRejectErrorResponse(false);
         }
-        $this->throttle = throttle($this->tokenBucket, static::$loop);
+        $this->throttle = new Throttle($this->tokenBucket, static::$kernel);
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {

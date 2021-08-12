@@ -39,6 +39,8 @@ module.exports = class ndax extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
+                'signIn': true,
             },
             'timeframes': {
                 '1m': '60',
@@ -189,6 +191,10 @@ module.exports = class ndax extends Exchange {
                 'apiKey': true,
                 'secret': true,
                 'uid': true,
+                // these credentials are required for signIn() and withdraw()
+                // 'login': true,
+                // 'password': true,
+                // 'twofa': true,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -199,6 +205,7 @@ module.exports = class ndax extends Exchange {
                 },
                 'broad': {
                     'Invalid InstrumentId': BadSymbol, // {"result":false,"errormsg":"Invalid InstrumentId: 10000","errorcode":100,"detail":null}
+                    'This endpoint requires 2FACode along with the payload': AuthenticationError,
                 },
             },
             'options': {
@@ -214,6 +221,50 @@ module.exports = class ndax extends Exchange {
                 },
             },
         });
+    }
+
+    async signIn (params = {}) {
+        this.checkRequiredCredentials ();
+        if (this.login === undefined || this.password === undefined || this.twofa === undefined) {
+            throw new AuthenticationError (this.id + ' signIn() requires exchange.login, exchange.password and exchange.twofa credentials');
+        }
+        let request = {
+            'grant_type': 'client_credentials', // the only supported value
+        };
+        const response = await this.publicGetAuthenticate (this.extend (request, params));
+        //
+        //     {
+        //         "Authenticated":true,
+        //         "Requires2FA":true,
+        //         "AuthType":"Google",
+        //         "AddtlInfo":"",
+        //         "Pending2FaToken": "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
+        //     }
+        //
+        let sessionToken = this.safeString (response, 'SessionToken');
+        if (sessionToken !== undefined) {
+            this.options['sessionToken'] = sessionToken;
+            return response;
+        }
+        const pending2faToken = this.safeString (response, 'Pending2FaToken');
+        if (pending2faToken !== undefined) {
+            this.options['pending2faToken'] = pending2faToken;
+            request = {
+                'Code': this.oath (),
+            };
+            const response = await this.publicGetAuthenticate2FA (this.extend (request, params));
+            //
+            //     {
+            //         "Authenticated": true,
+            //         "UserId":57765,
+            //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
+            //     }
+            //
+            sessionToken = this.safeString (response, 'SessionToken');
+            this.options['sessionToken'] = sessionToken;
+            return response;
+        }
+        return response;
     }
 
     async fetchCurrencies (params = {}) {
@@ -585,15 +636,15 @@ module.exports = class ndax extends Exchange {
         const now = this.milliseconds ();
         if (since === undefined) {
             if (limit !== undefined) {
-                request['FromDate'] = this.ymd (now - duration * limit * 1000);
-                request['ToDate'] = this.ymd (now);
+                request['FromDate'] = this.ymdhms (now - duration * limit * 1000);
+                request['ToDate'] = this.ymdhms (now);
             }
         } else {
-            request['FromDate'] = this.ymd (since);
+            request['FromDate'] = this.ymdhms (since);
             if (limit === undefined) {
-                request['ToDate'] = this.ymd (now);
+                request['ToDate'] = this.ymdhms (now);
             } else {
-                request['ToDate'] = this.ymd (this.sum (since, duration * limit * 1000));
+                request['ToDate'] = this.ymdhms (this.sum (since, duration * limit * 1000));
             }
         }
         const response = await this.publicGetGetTickerHistory (this.extend (request, params));
@@ -711,7 +762,7 @@ module.exports = class ndax extends Exchange {
         //         "PegPriceType":"Unknown",
         //         "PegOffset":0.0000000000000000000000000000,
         //         "PegLimitOffset":0.0000000000000000000000000000,
-        //         "IpAddress":"5.228.233.138",
+        //         "IpAddress":"x.x.x.x",
         //         "ClientOrderIdUuid":null,
         //         "OMSId":1
         //     }
@@ -803,12 +854,15 @@ module.exports = class ndax extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
+        if (!this.login) {
+            throw new AuthenticationError (this.id + ' fetchAccounts() requires exchange.login email credential');
+        }
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         this.checkRequiredCredentials ();
         const request = {
             'omsId': omsId,
             'UserId': this.uid,
-            'UserName': 'igor@ccxt.trade',
+            'UserName': this.login,
         };
         const response = await this.privateGetGetUserAccounts (this.extend (request, params));
         //
@@ -884,7 +938,7 @@ module.exports = class ndax extends Exchange {
             account['used'] = this.safeString (balance, 'Hold');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseLedgerEntryType (type) {
@@ -1509,7 +1563,7 @@ module.exports = class ndax extends Exchange {
         //             "PegPriceType":"Unknown",
         //             "PegOffset":0.0000000000000000000000000000,
         //             "PegLimitOffset":0.0000000000000000000000000000,
-        //             "IpAddress":"5.228.233.138",
+        //             "IpAddress":"x.x.x.x",
         //             "ClientOrderIdUuid":null,
         //             "OMSId":1
         //         },
@@ -1578,7 +1632,7 @@ module.exports = class ndax extends Exchange {
         //         "PegPriceType":"Unknown",
         //         "PegOffset":0.0000000000000000000000000000,
         //         "PegLimitOffset":0.0000000000000000000000000000,
-        //         "IpAddress":"5.228.233.138",
+        //         "IpAddress":"x.x.x.x",
         //         "ClientOrderIdUuid":null,
         //         "OMSId":1
         //     }
@@ -1600,7 +1654,7 @@ module.exports = class ndax extends Exchange {
         const request = {
             'OMSId': parseInt (omsId),
             // 'AccountId': accountId,
-            'OrderId': id,
+            'OrderId': parseInt (id),
         };
         const response = await this.privatePostGetOrderHistoryByOrderId (this.extend (request, params));
         //
@@ -1647,7 +1701,7 @@ module.exports = class ndax extends Exchange {
         //             "PegPriceType":"Unknown",
         //             "PegOffset":0.0000000000000000000000000000,
         //             "PegLimitOffset":0.0000000000000000000000000000,
-        //             "IpAddress":"5.228.233.138",
+        //             "IpAddress":"x.x.x.x",
         //             "ClientOrderIdUuid":null,
         //             "OMSId":1
         //         },
@@ -1957,28 +2011,136 @@ module.exports = class ndax extends Exchange {
         };
     }
 
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        // this method required login, password and twofa key
+        const sessionToken = this.safeString (this.options, 'sessionToken');
+        if (sessionToken === undefined) {
+            throw new AuthenticationError (this.id + ' call signIn() method to obtain a session token');
+        }
+        this.checkAddress (address);
+        const omsId = this.safeInteger (this.options, 'omsId', 1);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
+        const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+        params = this.omit (params, [ 'accountId', 'AccountId' ]);
+        const currency = this.currency (code);
+        const withdrawTemplateTypesRequest = {
+            'omsId': omsId,
+            'AccountId': accountId,
+            'ProductId': currency['id'],
+        };
+        const withdrawTemplateTypesResponse = await this.privateGetGetWithdrawTemplateTypes (withdrawTemplateTypesRequest);
+        //
+        //     {
+        //         result: true,
+        //         errormsg: null,
+        //         statuscode: "0",
+        //         TemplateTypes: [
+        //             { AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC" },
+        //             { AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC" },
+        //             { AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1" }
+        //         ]
+        //     }
+        //
+        const templateTypes = this.safeValue (withdrawTemplateTypesResponse, 'TemplateTypes', []);
+        const firstTemplateType = this.safeValue (templateTypes, 0);
+        if (firstTemplateType === undefined) {
+            throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template type for ' + currency['code']);
+        }
+        const templateName = this.safeString (firstTemplateType, 'TemplateName');
+        const withdrawTemplateRequest = {
+            'omsId': omsId,
+            'AccountId': accountId,
+            'ProductId': currency['id'],
+            'TemplateType': templateName,
+            'AccountProviderId': firstTemplateType['AccountProviderId'],
+        };
+        const withdrawTemplateResponse = await this.privateGetGetWithdrawTemplate (withdrawTemplateRequest);
+        //
+        //     {
+        //         result: true,
+        //         errormsg: null,
+        //         statuscode: "0",
+        //         Template: "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
+        //     }
+        //
+        const template = this.safeString (withdrawTemplateResponse, 'Template');
+        if (template === undefined) {
+            throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template for ' + currency['code']);
+        }
+        const withdrawTemplate = JSON.parse (template);
+        withdrawTemplate['ExternalAddress'] = address;
+        if (tag !== undefined) {
+            if ('Memo' in withdrawTemplate) {
+                withdrawTemplate['Memo'] = tag;
+            }
+        }
+        const withdrawPayload = {
+            'omsId': omsId,
+            'AccountId': accountId,
+            'ProductId': currency['id'],
+            'TemplateForm': this.json (withdrawTemplate),
+            'TemplateType': templateName,
+        };
+        const withdrawRequest = {
+            'TfaType': 'Google',
+            'TFaCode': this.oath (),
+            'Payload': this.json (withdrawPayload),
+        };
+        const response = await this.privatePostCreateWithdrawTicket (this.deepExtend (withdrawRequest, params));
+        return {
+            'info': response,
+            'id': this.safeString (response, 'Id'),
+        };
+    }
+
     nonce () {
         return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
+            if (path === 'Authenticate') {
+                const auth = this.login + ':' + this.password;
+                const auth64 = this.stringToBase64 (auth);
+                headers = {
+                    'Authorization': 'Basic ' + this.decode (auth64),
+                    // 'Content-Type': 'application/json',
+                };
+            } else if (path === 'Authenticate2FA') {
+                const pending2faToken = this.safeString (this.options, 'pending2faToken');
+                if (pending2faToken !== undefined) {
+                    headers = {
+                        'Pending2FaToken': pending2faToken,
+                        // 'Content-Type': 'application/json',
+                    };
+                    query = this.omit (query, 'pending2faToken');
+                }
+            }
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            const auth = nonce + this.uid + this.apiKey;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            headers = {
-                'Nonce': nonce,
-                'APIKey': this.apiKey,
-                'Signature': signature,
-                'UserId': this.uid,
-            };
+            const sessionToken = this.safeString (this.options, 'sessionToken');
+            if (sessionToken === undefined) {
+                const nonce = this.nonce ().toString ();
+                const auth = nonce + this.uid + this.apiKey;
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                headers = {
+                    'Nonce': nonce,
+                    'APIKey': this.apiKey,
+                    'Signature': signature,
+                    'UserId': this.uid,
+                };
+            } else {
+                headers = {
+                    'APToken': sessionToken,
+                };
+            }
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
                 body = this.json (query);

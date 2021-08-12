@@ -400,7 +400,7 @@ class bitbank(Exchange):
             account['used'] = self.safe_string(balance, 'locked_amount')
             account['total'] = self.safe_string(balance, 'onhand_amount')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -416,8 +416,8 @@ class bitbank(Exchange):
         id = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'pair')
         symbol = None
-        if marketId and not market and (marketId in self.marketsById):
-            market = self.marketsById[marketId]
+        if marketId and not market and (marketId in self.markets_by_id):
+            market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'ordered_at')
@@ -456,15 +456,14 @@ class bitbank(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        if price is None:
-            raise InvalidOrder(self.id + ' createOrder() requires a price argument for both market and limit orders')
         request = {
             'pair': market['id'],
             'amount': self.amount_to_precision(symbol, amount),
-            'price': self.price_to_precision(symbol, price),
             'side': side,
             'type': type,
         }
+        if type == 'limit':
+            request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostUserSpotOrder(self.extend(request, params))
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
@@ -564,7 +563,7 @@ class bitbank(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
-        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + '/'
+        url = self.implode_hostname(self.urls['api'][api]) + '/'
         if (api == 'public') or (api == 'markets'):
             url += self.implode_params(path, params)
             if query:

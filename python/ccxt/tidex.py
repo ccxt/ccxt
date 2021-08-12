@@ -107,8 +107,8 @@ class tidex(Exchange):
                     'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
-                    'taker': 0.1 / 100,
-                    'maker': 0.1 / 100,
+                    'taker': self.parse_number('0.001'),
+                    'maker': self.parse_number('0.001'),
                 },
             },
             'commonCurrencies': {
@@ -335,7 +335,7 @@ class tidex(Exchange):
             account['free'] = self.safe_string(balance, 'value')
             account['used'] = self.safe_string(balance, 'inOrders')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -526,8 +526,6 @@ class tidex(Exchange):
             'amount': self.amount_to_precision(symbol, amount),
             'rate': self.price_to_precision(symbol, price),
         }
-        price = float(price)
-        amount = float(amount)
         response = self.privatePostTrade(self.extend(request, params))
         id = None
         status = 'open'

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError, BadSymbol } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError, RateLimitExceeded, BadSymbol } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -113,6 +113,8 @@ module.exports = class qtrade extends Exchange {
                     'invalid_auth': AuthenticationError,
                     'insuff_funds': InsufficientFunds,
                     'market_not_found': BadSymbol, // {"errors":[{"code":"market_not_found","title":"Requested market does not exist"}]}
+                    'too_small': InvalidOrder,
+                    'limit_exceeded': RateLimitExceeded, // {"errors":[{"code":"limit_exceeded","title":"You have exceeded the windowed rate limit. Please see docs."}]}
                 },
             },
         });
@@ -185,7 +187,7 @@ module.exports = class qtrade extends Exchange {
                 'maker': this.safeNumber (market, 'maker_fee'),
                 'limits': {
                     'amount': {
-                        'min': this.safeNumber (market, 'minimum_buy_value'),
+                        'min': this.safeNumber (market, 'minimum_sell_value'),
                         'max': undefined,
                     },
                     'price': {
@@ -193,7 +195,7 @@ module.exports = class qtrade extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'minimum_buy_value'),
                         'max': undefined,
                     },
                 },
@@ -712,7 +714,7 @@ module.exports = class qtrade extends Exchange {
             account['used'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -42,6 +42,7 @@ class exmo extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
+                'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -120,8 +121,8 @@ class exmo extends Exchange {
                     'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.2 / 100,
-                    'taker' => 0.2 / 100,
+                    'maker' => $this->parse_number('0.002'),
+                    'taker' => $this->parse_number('0.002'),
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -366,6 +367,24 @@ class exmo extends Exchange {
                                     array( 'prov' => 'ONG', 'dep' => '0%', 'wd' => '5 ONG' ),
                                     array( 'prov' => 'ALGO', 'dep' => '0%', 'wd' => '0.01 ALGO' ),
                                     array( 'prov' => 'ATOM', 'dep' => '0%', 'wd' => '0.05 ATOM' ),
+                                    array( 'prov' => 'XTZ', 'dep' => '-', 'wd' => '0.5 XTZ' ),
+                                    array( 'prov' => 'HP', 'dep' => '0%', 'wd' => '250 HP' ),
+                                    array( 'prov' => 'WXT', 'dep' => '-', 'wd' => '50 WXT' ),
+                                    array( 'prov' => 'CHZ', 'dep' => '-', 'wd' => '30 CHZ' ),
+                                    array( 'prov' => 'ONE', 'dep' => '-', 'wd' => '1 ONE' ),
+                                    array( 'prov' => 'IQN', 'dep' => '-', 'wd' => '3 IQN' ),
+                                    array( 'prov' => 'PRQ', 'dep' => '-', 'wd' => '20 PRQ' ),
+                                    array( 'prov' => 'HAI', 'dep' => '-', 'wd' => '50 HAI' ),
+                                    array( 'prov' => 'LINK', 'dep' => '-', 'wd' => '0.3 LINK' ),
+                                    array( 'prov' => 'UNI', 'dep' => '0%', 'wd' => '0.3 UNI' ),
+                                    array( 'prov' => 'YFI', 'dep' => '0%', 'wd' => '0.0002 YFI' ),
+                                    array( 'prov' => 'GNY', 'dep' => '-', 'wd' => '10 GNY' ),
+                                    array( 'prov' => 'XYM', 'dep' => '-', 'wd' => '0.5 XYM' ),
+                                    array( 'prov' => 'VITAE', 'dep' => '-', 'wd' => '0.5 VITAE' ),
+                                    array( 'prov' => 'BTCV', 'dep' => '0%', 'wd' => '-' ),
+                                    array( 'prov' => 'DOT', 'dep' => '-', 'wd' => '0.1 DOT' ),
+                                    array( 'prov' => 'TON', 'dep' => '-', 'wd' => '-' ),
+                                    array( 'prov' => 'TONCOIN', 'dep' => '-', 'wd' => '-' ),
                                 ),
                             ),
                             array(
@@ -461,6 +480,7 @@ class exmo extends Exchange {
                     '40016' => '\\ccxt\\OnMaintenance', // array("result":false,"error":"Error 40016 => Maintenance work in progress")
                     '40017' => '\\ccxt\\AuthenticationError', // Wrong API Key
                     '40032' => '\\ccxt\\PermissionDenied', // array("result":false,"error":"Error 40032 => Access is denied for this API key")
+                    '40033' => '\\ccxt\\PermissionDenied', // array("result":false,"error":"Error 40033 => Access is denied, this resources are temporarily blocked to user")
                     '40034' => '\\ccxt\\RateLimitExceeded', // array("result":false,"error":"Error 40034 => Access is denied, rate limit is exceeded")
                     '50052' => '\\ccxt\\InsufficientFunds',
                     '50054' => '\\ccxt\\InsufficientFunds',
@@ -473,7 +493,7 @@ class exmo extends Exchange {
                 'broad' => array(
                     'range period is too long' => '\\ccxt\\BadRequest',
                     'invalid syntax' => '\\ccxt\\BadRequest',
-                    'API rate limit exceeded' => '\\ccxt\\RateLimitExceeded', // array("result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":array(),"begin":1579392000,"end":1579478400)
+                    'API rate limit exceeded' => '\\ccxt\\RateLimitExceeded', // array("result":false,"error":"API rate limit exceeded for x.x.x.x. Retry after 60 sec.","history":array(),"begin":1579392000,"end":1579478400)
                 ),
             ),
             'orders' => array(), // orders cache / emulation
@@ -527,7 +547,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_funding_fees_helper($params = array ()) {
         $response = null;
         if ($this->options['useWebapiForFetchingFees']) {
             $response = $this->webGetCtrlFeesAndLimits ($params);
@@ -569,8 +589,13 @@ class exmo extends Exchange {
         return $result;
     }
 
+    public function fetch_funding_fees($params = array ()) {
+        $this->load_markets();
+        return $this->fetch_funding_fees_helper($params);
+    }
+
     public function fetch_currencies($params = array ()) {
-        $fees = $this->fetch_funding_fees($params);
+        $fees = $this->fetch_funding_fees_helper($params);
         // todo redesign the 'fee' property in currencies
         $ids = is_array($fees['withdraw']) ? array_keys($fees['withdraw']) : array();
         $limitsByMarketId = $this->index_by($fees['info']['data']['limits'], 'pair');
@@ -774,7 +799,8 @@ class exmo extends Exchange {
         $codes = is_array($free) ? array_keys($free) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            $currencyId = $this->currency_id($code);
+            $currency = $this->currency($code);
+            $currencyId = $currency['id'];
             $account = $this->account();
             if (is_array($free) && array_key_exists($currencyId, $free)) {
                 $account['free'] = $this->safe_string($free, $currencyId);
@@ -784,7 +810,7 @@ class exmo extends Exchange {
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -1417,15 +1443,50 @@ class exmo extends Exchange {
         //            "$txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
         //          }
         //
-        $timestamp = $this->safe_timestamp($transaction, 'dt');
+        // fetchWithdrawals
+        //
+        //          array(
+        //             "operation_id" => 47412538520634344,
+        //             "created" => 1573760013,
+        //             "$updated" => 1573760013,
+        //             "$type" => "withdraw",
+        //             "$currency" => "DOGE",
+        //             "$status" => "Paid",
+        //             "$amount" => "300",
+        //             "$provider" => "DOGE",
+        //             "commission" => "0",
+        //             "$account" => "DOGE => DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id" => 69670170,
+        //             "provider_type" => "crypto",
+        //             "crypto_address" => "DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "card_number" => "",
+        //             "wallet_address" => "",
+        //             "email" => "",
+        //             "phone" => "",
+        //             "$extra" => array(
+        //                 "$txid" => "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "confirmations" => null,
+        //                 "excode" => "",
+        //                 "invoice" => ""
+        //             ),
+        //             "error" => ""
+        //          ),
+        //
+        $id = $this->safe_string($transaction, 'operation_id');
+        $timestamp = $this->safe_timestamp_2($transaction, 'dt', 'created');
+        $updated = $this->safe_timestamp($transaction, 'updated');
         $amount = $this->safe_number($transaction, 'amount');
         if ($amount !== null) {
             $amount = abs($amount);
         }
-        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+        $status = $this->parse_transaction_status($this->safe_string_lower($transaction, 'status'));
         $txid = $this->safe_string($transaction, 'txid');
+        $extra = $this->safe_value($transaction, 'extra', array());
+        if ($txid === null) {
+            $txid = $this->safe_string($extra, 'txid');
+        }
         $type = $this->safe_string($transaction, 'type');
-        $currencyId = $this->safe_string($transaction, 'curr');
+        $currencyId = $this->safe_string_2($transaction, 'curr', 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $address = null;
         $tag = null;
@@ -1448,7 +1509,10 @@ class exmo extends Exchange {
         // fixed funding fees only (for now)
         if (!$this->fees['funding']['percentage']) {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
-            $feeCost = $this->safe_number($this->options['fundingFees'][$key], $code);
+            $feeCost = $this->safe_number($transaction, 'commission');
+            if ($feeCost === null) {
+                $feeCost = $this->safe_number($this->options['fundingFees'][$key], $code);
+            }
             // users don't pay for cashbacks, no fees for that
             $provider = $this->safe_string($transaction, 'provider');
             if ($provider === 'cashback') {
@@ -1468,7 +1532,7 @@ class exmo extends Exchange {
         }
         return array(
             'info' => $transaction,
-            'id' => null,
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
@@ -1481,7 +1545,7 @@ class exmo extends Exchange {
             'tagFrom' => null,
             'status' => $status,
             'type' => $type,
-            'updated' => null,
+            'updated' => $updated,
             'comment' => $comment,
             'txid' => $txid,
             'fee' => $fee,
@@ -1530,6 +1594,49 @@ class exmo extends Exchange {
         //     }
         //
         return $this->parse_transactions($response['history'], $currency, $since, $limit);
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array(
+            'type' => 'withdraw',
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default => 100, maximum => 100
+        }
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = $this->privatePostWalletOperations (array_merge($request, $params));
+        //
+        //     {
+        //         "items" => array(
+        //         array(
+        //             "operation_id" => 47412538520634344,
+        //             "created" => 1573760013,
+        //             "updated" => 1573760013,
+        //             "type" => "withdraw",
+        //             "$currency" => "DOGE",
+        //             "status" => "Paid",
+        //             "amount" => "300",
+        //             "provider" => "DOGE",
+        //             "commission" => "0",
+        //             "account" => "DOGE => DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id" => 69670170,
+        //             "extra" => array(
+        //                 "txid" => "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "excode" => "",
+        //                 "invoice" => ""
+        //             ),
+        //             "error" => ""
+        //         ),
+        //     ),
+        //         "count" => 23
+        //     }
+        //
+        return $this->parse_transactions($response['items'], $currency, $since, $limit);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

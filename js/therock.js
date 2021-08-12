@@ -86,21 +86,13 @@ module.exports = class therock extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.002'),
                 },
                 'funding': {
                     'tierBased': false,
                     'percentage': false,
-                    'withdraw': {
-                        'BTC': 0.0005,
-                        'BCH': 0.0005,
-                        'PPC': 0.02,
-                        'ETH': 0.001,
-                        'ZEC': 0.001,
-                        'LTC': 0.002,
-                        'EUR': 2.5,  // worst-case scenario: https://therocktrading.com/en/pages/fees
-                    },
+                    'withdraw': {},
                     'deposit': {
                         'BTC': 0,
                         'BCH': 0,
@@ -226,7 +218,7 @@ module.exports = class therock extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

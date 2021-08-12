@@ -395,7 +395,7 @@ class coinbasepro extends Exchange {
             $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -662,7 +662,7 @@ class coinbasepro extends Exchange {
             } else {
                 $limit = min (300, $limit);
             }
-            $request['end'] = $this->iso8601($this->sum($limit * $granularity * 1000, $since));
+            $request['end'] = $this->iso8601($this->sum(($limit - 1) * $granularity * 1000, $since));
         }
         $response = $this->publicGetProductsIdCandles (array_merge($request, $params));
         //
@@ -1051,11 +1051,11 @@ class coinbasepro extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions($code, $since, $limit, array_merge($params, array( 'type' => 'deposit' )));
+        return $this->fetch_transactions($code, $since, $limit, array_merge(array( 'type' => 'deposit' ), $params));
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions($code, $since, $limit, array_merge($params, array( 'type' => 'withdraw' )));
+        return $this->fetch_transactions($code, $since, $limit, array_merge(array( 'type' => 'withdraw' ), $params));
     }
 
     public function parse_transaction_status($transaction) {
@@ -1157,7 +1157,7 @@ class coinbasepro extends Exchange {
                 $request .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $request;
+        $url = $this->implode_hostname($this->urls['api'][$api]) . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();

@@ -407,7 +407,7 @@ module.exports = class bitbank extends Exchange {
             account['total'] = this.safeString (balance, 'onhand_amount');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
@@ -425,8 +425,8 @@ module.exports = class bitbank extends Exchange {
         const id = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'pair');
         let symbol = undefined;
-        if (marketId && !market && (marketId in this.marketsById)) {
-            market = this.marketsById[marketId];
+        if (marketId && !market && (marketId in this.markets_by_id)) {
+            market = this.markets_by_id[marketId];
         }
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -468,16 +468,15 @@ module.exports = class bitbank extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (price === undefined) {
-            throw new InvalidOrder (this.id + ' createOrder() requires a price argument for both market and limit orders');
-        }
         const request = {
             'pair': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
             'side': side,
             'type': type,
         };
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         const response = await this.privatePostUserSpotOrder (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
@@ -592,7 +591,7 @@ module.exports = class bitbank extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
-        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + '/';
+        let url = this.implodeHostname (this.urls['api'][api]) + '/';
         if ((api === 'public') || (api === 'markets')) {
             url += this.implodeParams (path, params);
             if (Object.keys (query).length) {

@@ -148,6 +148,11 @@ class bitget extends Exchange {
                         'trace/closeTrack',
                         'trace/currentTrack',
                         'trace/historyTrack',
+                        'trace/summary',
+                        'trace/profitSettleTokenIdGroup',
+                        'trace/profitDateGroupList',
+                        'trace/profitDateList',
+                        'trace/waitProfitDateList',
                     ),
                     'post' => array(
                         'account/leverage',
@@ -160,17 +165,18 @@ class bitget extends Exchange {
                         'order/plan_order',
                         'order/cancel_plan',
                         'position/changeHoldModel',
+                        'trace/closeTrackOrder',
                     ),
                 ),
             ),
             'fees' => array(
                 'spot' => array(
-                    'taker' => 0.002,
-                    'maker' => 0.002,
+                    'taker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('0.002'),
                 ),
                 'swap' => array(
-                    'taker' => 0.0006,
-                    'maker' => 0.0004,
+                    'taker' => $this->parse_number('0.0006'),
+                    'maker' => $this->parse_number('0.0004'),
                 ),
             ),
             'requiredCredentials' => array(
@@ -1617,7 +1623,7 @@ class bitget extends Exchange {
                 $result[$code]['used'] = Precise::string_add($used, $this->safe_string($balance, 'balance'));
             }
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_swap_balance($response) {
@@ -1645,7 +1651,7 @@ class bitget extends Exchange {
             $account['free'] = $this->safe_string($balance, 'total_avail_balance');
             $result[$symbol] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_accounts($params = array ()) {
@@ -2791,7 +2797,7 @@ class bitget extends Exchange {
             $request = '/' . $api . '/v1' . $request;
         }
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $request;
+        $url = $this->implode_hostname($this->urls['api'][$api]) . $request;
         if (($api === 'data') || ($api === 'capi')) {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);

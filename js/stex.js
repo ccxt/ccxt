@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OrderNotFound, PermissionDenied, BadRequest, DDoSProtection } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OrderNotFound, PermissionDenied, BadRequest, BadSymbol, DDoSProtection } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -177,8 +177,8 @@ module.exports = class stex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
+                    'taker': this.parseNumber ('0.002'),
+                    'maker': this.parseNumber ('0.002'),
                 },
             },
             'commonCurrencies': {
@@ -202,6 +202,7 @@ module.exports = class stex extends Exchange {
                     'Server Error': ExchangeError, // { "message": "Server Error" }
                     'This feature is only enabled for users verifies by Cryptonomica': PermissionDenied, // {"success":false,"message":"This feature is only enabled for users verifies by Cryptonomica"}
                     'Too Many Attempts.': DDoSProtection, // { "message": "Too Many Attempts." }
+                    'Selected Pair is disabled': BadSymbol, // {"success":false,"message":"Selected Pair is disabled"}
                 },
                 'broad': {
                     'Not enough': InsufficientFunds, // {"success":false,"message":"Not enough  ETH"}
@@ -822,7 +823,7 @@ module.exports = class stex extends Exchange {
             account['used'] = this.safeString (balance, 'frozen_balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
@@ -1449,7 +1450,7 @@ module.exports = class stex extends Exchange {
             'hodl': 'pending',
             'amount too low': 'failed',
             'not confirmed': 'pending',
-            'cancelled by User': 'canceled',
+            'cancelled by user': 'canceled',
             'approved': 'pending',
             'finished': 'ok',
             'withdrawal error': 'failed',
@@ -1724,6 +1725,7 @@ module.exports = class stex extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.publicGetCurrencies (params);
         //
         //     {

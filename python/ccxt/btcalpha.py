@@ -79,40 +79,11 @@ class btcalpha(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
                 },
                 'funding': {
-                    'withdraw': {
-                        'BTC': 0.00135,
-                        'LTC': 0.0035,
-                        'XMR': 0.018,
-                        'ZEC': 0.002,
-                        'ETH': 0.01,
-                        'ETC': 0.01,
-                        'SIB': 1.5,
-                        'CCRB': 4,
-                        'PZM': 0.05,
-                        'ITI': 0.05,
-                        'DCY': 5,
-                        'R': 5,
-                        'ATB': 0.05,
-                        'BRIA': 0.05,
-                        'KZC': 0.05,
-                        'HWC': 1,
-                        'SPA': 1,
-                        'SMS': 0.001,
-                        'REC': 0.01,
-                        'SUP': 1,
-                        'BQ': 100,
-                        'GDS': 0.1,
-                        'EVN': 300,
-                        'TRKC': 0.01,
-                        'UNI': 1,
-                        'STN': 1,
-                        'BCH': None,
-                        'QBIC': 0.5,
-                    },
+                    'withdraw': {},
                 },
             },
             'commonCurrencies': {
@@ -193,7 +164,7 @@ class btcalpha(Exchange):
     def parse_trade(self, trade, market=None):
         symbol = None
         if market is None:
-            market = self.safe_value(self.marketsById, trade['pair'])
+            market = self.safe_value(self.markets_by_id, trade['pair'])
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_timestamp(trade, 'timestamp')
@@ -286,7 +257,7 @@ class btcalpha(Exchange):
             account['used'] = self.safe_string(balance, 'reserve')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -299,7 +270,7 @@ class btcalpha(Exchange):
     def parse_order(self, order, market=None):
         symbol = None
         if market is None:
-            market = self.safe_value(self.marketsById, order['pair'])
+            market = self.safe_value(self.markets_by_id, order['pair'])
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_timestamp(order, 'date')

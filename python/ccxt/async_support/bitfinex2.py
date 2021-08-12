@@ -156,6 +156,9 @@ class bitfinex2(bitfinex):
                         'liquidations/hist',
                         'rankings/{key}:{timeframe}:{symbol}/{section}',
                         'rankings/{key}:{timeframe}:{symbol}/hist',
+                        'pulse/hist',
+                        'pulse/profile/{nickname}',
+                        'funding/stats/{symbol}/hist',
                     ],
                     'post': [
                         'calc/trade/avg',
@@ -234,39 +237,42 @@ class bitfinex2(bitfinex):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.2 / 100,
+                    'feeSide': 'get',
+                    'percentage': True,
+                    'tierBased': True,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.002'),
+                    'tiers': {
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.002')],
+                            [self.parse_number('500000'), self.parse_number('0.002')],
+                            [self.parse_number('1000000'), self.parse_number('0.002')],
+                            [self.parse_number('2500000'), self.parse_number('0.002')],
+                            [self.parse_number('5000000'), self.parse_number('0.002')],
+                            [self.parse_number('7500000'), self.parse_number('0.002')],
+                            [self.parse_number('10000000'), self.parse_number('0.0018')],
+                            [self.parse_number('15000000'), self.parse_number('0.0016')],
+                            [self.parse_number('20000000'), self.parse_number('0.0014')],
+                            [self.parse_number('25000000'), self.parse_number('0.0012')],
+                            [self.parse_number('30000000'), self.parse_number('0.001')],
+                        ],
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.001')],
+                            [self.parse_number('500000'), self.parse_number('0.0008')],
+                            [self.parse_number('1000000'), self.parse_number('0.0006')],
+                            [self.parse_number('2500000'), self.parse_number('0.0004')],
+                            [self.parse_number('5000000'), self.parse_number('0.0002')],
+                            [self.parse_number('7500000'), self.parse_number('0')],
+                            [self.parse_number('10000000'), self.parse_number('0')],
+                            [self.parse_number('15000000'), self.parse_number('0')],
+                            [self.parse_number('20000000'), self.parse_number('0')],
+                            [self.parse_number('25000000'), self.parse_number('0')],
+                            [self.parse_number('30000000'), self.parse_number('0')],
+                        ],
+                    },
                 },
                 'funding': {
-                    'withdraw': {
-                        'BTC': 0.0004,
-                        'BCH': 0.0001,
-                        'ETH': 0.00135,
-                        'EOS': 0.0,
-                        'LTC': 0.001,
-                        'OMG': 0.15097,
-                        'IOT': 0.0,
-                        'NEO': 0.0,
-                        'ETC': 0.01,
-                        'XRP': 0.02,
-                        'ETP': 0.01,
-                        'ZEC': 0.001,
-                        'BTG': 0.0,
-                        'DASH': 0.01,
-                        'XMR': 0.0001,
-                        'QTM': 0.01,
-                        'EDO': 0.23687,
-                        'DAT': 9.8858,
-                        'AVT': 1.1251,
-                        'SAN': 0.35977,
-                        'USDT': 5.0,
-                        'SPK': 16.971,
-                        'BAT': 1.1209,
-                        'GNT': 2.8789,
-                        'SNT': 9.0848,
-                        'QASH': 1.726,
-                        'YYW': 7.9464,
-                    },
+                    'withdraw': {},
                 },
             },
             'options': {
@@ -590,7 +596,7 @@ class bitfinex2(bitfinex):
                 account['total'] = self.safe_string(balance, 2)
                 account['free'] = self.safe_string(balance, 4)
                 result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         # transferring between derivatives wallet and regular wallet is not documented in their API
@@ -900,7 +906,8 @@ class bitfinex2(bitfinex):
         if limit is None:
             limit = 100  # default 100, max 5000
         if since is None:
-            since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
+            duration = self.parse_timeframe(timeframe)
+            since = self.milliseconds() - duration * limit * 1000
         request = {
             'symbol': market['id'],
             'timeframe': self.timeframes[timeframe],

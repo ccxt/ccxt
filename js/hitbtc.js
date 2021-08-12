@@ -177,17 +177,26 @@ module.exports = class hitbtc extends Exchange {
                     'bank': 'bank',
                     'exchange': 'exchange',
                     'main': 'bank',  // alias of the above
+                    'funding': 'bank',
+                    'spot': 'exchange',
+                    'trade': 'exchange',
                     'trading': 'exchange',
                 },
                 'fetchBalanceMethod': {
                     'account': 'account',
+                    'bank': 'account',
                     'main': 'account',
+                    'funding': 'account',
+                    'exchange': 'trading',
+                    'spot': 'trading',
+                    'trade': 'trading',
                     'trading': 'trading',
                 },
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
                 'BCC': 'BCC', // initial symbol for Bitcoin Cash, now inactive
+                'BDP': 'BidiPass',
                 'BET': 'DAO.Casino',
                 'BOX': 'BOX Token',
                 'CPT': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
@@ -461,7 +470,7 @@ module.exports = class hitbtc extends Exchange {
             account['used'] = this.safeString (balance, 'reserved');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

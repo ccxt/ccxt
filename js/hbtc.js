@@ -258,6 +258,15 @@ module.exports = class hbtc extends Exchange {
                 'fetchTickers': {
                     'method': 'quoteGetTicker24hr',
                 },
+                'accountsByType': {
+                    'trade': 1,
+                    'trading': 1,
+                    'spot': 1,
+                    'option': 2,
+                    'options': 2,
+                    'futures': 3,
+                    'contract': 3,
+                },
             },
             'commonCurrencies': {
                 'MIS': 'Themis Protocol',
@@ -306,7 +315,6 @@ module.exports = class hbtc extends Exchange {
             active = false;
         }
         let amountMin = undefined;
-        let amountMax = undefined;
         let priceMin = undefined;
         let priceMax = undefined;
         let costMin = undefined;
@@ -317,7 +325,6 @@ module.exports = class hbtc extends Exchange {
             const filterType = this.safeString (filter, 'filterType');
             if (filterType === 'LOT_SIZE') {
                 amountMin = this.safeNumber (filter, 'minQty');
-                amountMax = this.safeNumber (filter, 'maxQty');
                 amountPrecision = this.safeNumber (filter, 'stepSize');
             }
             if (filterType === 'PRICE_FILTER') {
@@ -338,7 +345,7 @@ module.exports = class hbtc extends Exchange {
         const limits = {
             'amount': {
                 'min': amountMin,
-                'max': amountMax,
+                'max': undefined,
             },
             'price': {
                 'min': priceMin,
@@ -751,7 +758,7 @@ module.exports = class hbtc extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {

@@ -86,34 +86,11 @@ class lbank(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.001'),
                 },
                 'funding': {
-                    'withdraw': {
-                        'BTC': None,
-                        'ZEC': 0.01,
-                        'ETH': 0.01,
-                        'ETC': 0.01,
-                        # 'QTUM': amount => max(0.01, amount * (0.1 / 100)),
-                        'VEN': 10.0,
-                        'BCH': 0.0002,
-                        'SC': 50.0,
-                        'BTM': 20.0,
-                        'NAS': 1.0,
-                        'EOS': 1.0,
-                        'XWC': 5.0,
-                        'BTS': 1.0,
-                        'INK': 10.0,
-                        'BOT': 3.0,
-                        'YOYOW': 15.0,
-                        'TGC': 10.0,
-                        'NEO': 0.0,
-                        'CMT': 20.0,
-                        'SEER': 2000.0,
-                        'FIL': None,
-                        'BTG': None,
-                    },
+                    'withdraw': {},
                 },
             },
             'commonCurrencies': {
@@ -181,7 +158,7 @@ class lbank(Exchange):
         if market is None:
             marketId = self.safe_string(ticker, 'symbol')
             if marketId in self.markets_by_id:
-                market = self.marketsById[marketId]
+                market = self.markets_by_id[marketId]
                 symbol = market['symbol']
             else:
                 parts = marketId.split('_')
@@ -402,7 +379,7 @@ class lbank(Exchange):
             account['used'] = self.safe_string(freeze, currencyId)
             account['total'] = self.safe_string(asset, currencyId)
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order_status(self, status):
         statuses = {

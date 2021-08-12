@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
@@ -128,9 +127,6 @@ class kuna(Exchange):
 
     async def fetch_markets(self, params={}):
         quotes = ['btc', 'rub', 'uah', 'usd', 'usdt', 'usdc']
-        pricePrecisions = {
-            'UAH': 0,
-        }
         markets = []
         response = await self.publicGetTickers(params)
         ids = list(response.keys())
@@ -145,10 +141,6 @@ class kuna(Exchange):
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
-                    precision = {
-                        'amount': 6,
-                        'price': self.safe_integer(pricePrecisions, quote, 6),
-                    }
                     markets.append({
                         'id': id,
                         'symbol': symbol,
@@ -156,15 +148,18 @@ class kuna(Exchange):
                         'quote': quote,
                         'baseId': baseId,
                         'quoteId': quoteId,
-                        'precision': precision,
+                        'precision': {
+                            'amount': None,
+                            'price': None,
+                        },
                         'limits': {
                             'amount': {
-                                'min': math.pow(10, -precision['amount']),
-                                'max': math.pow(10, precision['amount']),
+                                'min': None,
+                                'max': None,
                             },
                             'price': {
-                                'min': math.pow(10, -precision['price']),
-                                'max': math.pow(10, precision['price']),
+                                'min': None,
+                                'max': None,
                             },
                             'cost': {
                                 'min': None,
@@ -330,7 +325,7 @@ class kuna(Exchange):
             account['free'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

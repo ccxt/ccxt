@@ -340,7 +340,7 @@ module.exports = class aofex extends Exchange {
             account['used'] = this.safeString (balance, 'frozen');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchTradingFee (symbol, params = {}) {
@@ -425,7 +425,7 @@ module.exports = class aofex extends Exchange {
         const last = this.safeNumber (ticker, 'close');
         let change = undefined;
         if (symbol !== undefined) {
-            change = parseFloat (this.priceToPrecision (symbol, last - open));
+            change = this.parseNumber (this.priceToPrecision (symbol, last - open));
         } else {
             change = last - open;
         }
@@ -435,7 +435,7 @@ module.exports = class aofex extends Exchange {
         const quoteVolume = this.safeNumber (ticker, 'vol');
         let vwap = this.vwap (baseVolume, quoteVolume);
         if (vwap !== undefined) {
-            vwap = parseFloat (this.priceToPrecision (symbol, vwap));
+            vwap = this.parseNumber (this.priceToPrecision (symbol, vwap));
         }
         return {
             'symbol': symbol,
@@ -994,7 +994,7 @@ module.exports = class aofex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + '/' + path;
+        let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         let keys = Object.keys (params);
         const keysLength = keys.length;
         if (api === 'public') {

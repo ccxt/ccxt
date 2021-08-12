@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -40,6 +39,7 @@ class bitstamp(Exchange):
             'pro': True,
             'has': {
                 'CORS': True,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -67,7 +67,6 @@ class bitstamp(Exchange):
                 'api': {
                     'public': 'https://www.bitstamp.net/api',
                     'private': 'https://www.bitstamp.net/api',
-                    'v1': 'https://www.bitstamp.net/api',
                 },
                 'www': 'https://www.bitstamp.net',
                 'doc': 'https://www.bitstamp.net/api',
@@ -89,7 +88,6 @@ class bitstamp(Exchange):
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': True,
-                'uid': True,
             },
             'api': {
                 'public': {
@@ -114,12 +112,18 @@ class bitstamp(Exchange):
                         'open_orders/{pair}/',
                         'order_status/',
                         'cancel_order/',
+                        'cancel_all_orders/',
+                        'cancel_all_orders/{pair}/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
                         'buy/instant/{pair}/',
                         'sell/{pair}/',
                         'sell/market/{pair}/',
                         'sell/instant/{pair}/',
+                        'btc_withdrawal/',
+                        'btc_address/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -164,6 +168,18 @@ class bitstamp(Exchange):
                         'crv_address/',
                         'algo_withdrawal/',
                         'algo_address/',
+                        'comp_withdrawal/',
+                        'comp_address/',
+                        'grt_withdrawal',
+                        'grt_address/',
+                        'usdt_withdrawal/',
+                        'usdt_address/',
+                        'eurt_withdrawal/',
+                        'eurt_address/',
+                        'matic_withdrawal/',
+                        'matic_address/',
+                        'sushi_withdrawal/',
+                        'sushi_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -172,15 +188,7 @@ class bitstamp(Exchange):
                         'withdrawal/cancel/',
                         'liquidation_address/new/',
                         'liquidation_address/info/',
-                    ],
-                },
-                'v1': {
-                    'post': [
-                        'bitcoin_deposit_address/',
-                        'unconfirmed_btc/',
-                        'bitcoin_withdrawal/',
-                        'ripple_withdrawal/',
-                        'ripple_address/',
+                        'btc_unconfirmed/',
                     ],
                 },
             },
@@ -188,63 +196,53 @@ class bitstamp(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.5 / 100,
-                    'maker': 0.5 / 100,
+                    'taker': self.parse_number('0.005'),
+                    'maker': self.parse_number('0.005'),
                     'tiers': {
                         'taker': [
-                            [0, 0.5 / 100],
-                            [20000, 0.25 / 100],
-                            [100000, 0.24 / 100],
-                            [200000, 0.22 / 100],
-                            [400000, 0.20 / 100],
-                            [600000, 0.15 / 100],
-                            [1000000, 0.14 / 100],
-                            [2000000, 0.13 / 100],
-                            [4000000, 0.12 / 100],
-                            [20000000, 0.11 / 100],
-                            [50000000, 0.10 / 100],
-                            [100000000, 0.07 / 100],
-                            [500000000, 0.05 / 100],
-                            [2000000000, 0.03 / 100],
-                            [6000000000, 0.01 / 100],
-                            [10000000000, 0.005 / 100],
-                            [10000000001, 0.0],
+                            [self.parse_number('0'), self.parse_number('0.005')],
+                            [self.parse_number('20000'), self.parse_number('0.0025')],
+                            [self.parse_number('100000'), self.parse_number('0.0024')],
+                            [self.parse_number('200000'), self.parse_number('0.0022')],
+                            [self.parse_number('400000'), self.parse_number('0.0020')],
+                            [self.parse_number('600000'), self.parse_number('0.0015')],
+                            [self.parse_number('1000000'), self.parse_number('0.0014')],
+                            [self.parse_number('2000000'), self.parse_number('0.0013')],
+                            [self.parse_number('4000000'), self.parse_number('0.0012')],
+                            [self.parse_number('20000000'), self.parse_number('0.0011')],
+                            [self.parse_number('50000000'), self.parse_number('0.0010')],
+                            [self.parse_number('100000000'), self.parse_number('0.0007')],
+                            [self.parse_number('500000000'), self.parse_number('0.0005')],
+                            [self.parse_number('2000000000'), self.parse_number('0.0003')],
+                            [self.parse_number('6000000000'), self.parse_number('0.0001')],
+                            [self.parse_number('20000000000'), self.parse_number('0.00005')],
+                            [self.parse_number('20000000001'), self.parse_number('0')],
                         ],
                         'maker': [
-                            [0, 0.5 / 100],
-                            [20000, 0.25 / 100],
-                            [100000, 0.24 / 100],
-                            [200000, 0.22 / 100],
-                            [400000, 0.20 / 100],
-                            [600000, 0.15 / 100],
-                            [1000000, 0.14 / 100],
-                            [2000000, 0.13 / 100],
-                            [4000000, 0.12 / 100],
-                            [20000000, 0.11 / 100],
-                            [50000000, 0.10 / 100],
-                            [100000000, 0.07 / 100],
-                            [500000000, 0.05 / 100],
-                            [2000000000, 0.03 / 100],
-                            [6000000000, 0.01 / 100],
-                            [10000000000, 0.005 / 100],
-                            [10000000001, 0.0],
+                            [self.parse_number('0'), self.parse_number('0.005')],
+                            [self.parse_number('20000'), self.parse_number('0.0025')],
+                            [self.parse_number('100000'), self.parse_number('0.0024')],
+                            [self.parse_number('200000'), self.parse_number('0.0022')],
+                            [self.parse_number('400000'), self.parse_number('0.0020')],
+                            [self.parse_number('600000'), self.parse_number('0.0015')],
+                            [self.parse_number('1000000'), self.parse_number('0.0014')],
+                            [self.parse_number('2000000'), self.parse_number('0.0013')],
+                            [self.parse_number('4000000'), self.parse_number('0.0012')],
+                            [self.parse_number('20000000'), self.parse_number('0.0011')],
+                            [self.parse_number('50000000'), self.parse_number('0.0010')],
+                            [self.parse_number('100000000'), self.parse_number('0.0007')],
+                            [self.parse_number('500000000'), self.parse_number('0.0005')],
+                            [self.parse_number('2000000000'), self.parse_number('0.0003')],
+                            [self.parse_number('6000000000'), self.parse_number('0.0001')],
+                            [self.parse_number('20000000000'), self.parse_number('0.00005')],
+                            [self.parse_number('20000000001'), self.parse_number('0')],
                         ],
                     },
                 },
                 'funding': {
                     'tierBased': False,
                     'percentage': False,
-                    'withdraw': {
-                        'BTC': 0.0005,
-                        'BCH': 0.0001,
-                        'LTC': 0.001,
-                        'ETH': 0.001,
-                        'XRP': 0.02,
-                        'XLM': 0.005,
-                        'PAX': 0.5,
-                        'USD': 25,
-                        'EUR': 3.0,
-                    },
+                    'withdraw': {},
                     'deposit': {
                         'BTC': 0,
                         'BCH': 0,
@@ -408,7 +406,7 @@ class bitstamp(Exchange):
                 result[base] = self.construct_currency_object(baseId, base, baseDescription, baseDecimals, None, market)
             if not (quote in result):
                 counterDecimals = self.safe_integer(market, 'counter_decimals')
-                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, float(cost), market)
+                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, self.parse_number(cost), market)
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -783,7 +781,7 @@ class bitstamp(Exchange):
             account['used'] = self.safe_string(balance, currencyId + '_reserved')
             account['total'] = self.safe_string(balance, currencyId + '_balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_trading_fee(self, symbol, params={}):
         await self.load_markets()
@@ -876,6 +874,17 @@ class bitstamp(Exchange):
             'id': id,
         }
         return await self.privatePostCancelOrder(self.extend(request, params))
+
+    async def cancel_all_orders(self, symbol=None, params={}):
+        await self.load_markets()
+        market = None
+        request = {}
+        method = 'privatePostCancelAllOrders'
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+            method = 'privatePostCancelAllOrdersPair'
+        return await getattr(self, method)(self.extend(request, params))
 
     def parse_order_status(self, status):
         statuses = {
@@ -1276,13 +1285,14 @@ class bitstamp(Exchange):
                 'fee': parsedTrade['fee'],
             }
         else:
-            parsedTransaction = self.parse_transaction(item)
+            parsedTransaction = self.parse_transaction(item, currency)
             direction = None
             if 'amount' in item:
                 amount = self.safe_number(item, 'amount')
                 direction = amount > 'in' if 0 else 'out'
             elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
-                currencyId = self.currency_id(parsedTransaction['currency'])
+                code = parsedTransaction['currency']
+                currencyId = self.safe_string(self.currencies_by_id, code, code)
                 amount = self.safe_number(item, currencyId)
                 direction = amount > 'in' if 0 else 'out'
             return {
@@ -1337,8 +1347,6 @@ class bitstamp(Exchange):
         })
 
     def get_currency_name(self, code):
-        if code == 'BTC':
-            return 'bitcoin'
         return code.lower()
 
     def is_fiat(self, code):
@@ -1348,16 +1356,10 @@ class bitstamp(Exchange):
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!')
         name = self.get_currency_name(code)
-        v1 = (code == 'BTC')
-        method = 'v1' if v1 else 'private'  # v1 or v2
-        method += 'Post' + self.capitalize(name)
-        method += 'Deposit' if v1 else ''
-        method += 'Address'
+        method = 'privatePost' + self.capitalize(name) + 'Address'
         response = await getattr(self, method)(params)
-        if v1:
-            response = json.loads(response)
-        address = response if v1 else self.safe_string(response, 'address')
-        tag = None if v1 else self.safe_string_2(response, 'memo_id', 'destination_tag')
+        address = self.safe_string(response, 'address')
+        tag = self.safe_string_2(response, 'memo_id', 'destination_tag')
         self.check_address(address)
         return {
             'currency': code,
@@ -1377,9 +1379,7 @@ class bitstamp(Exchange):
         method = None
         if not self.is_fiat(code):
             name = self.get_currency_name(code)
-            v1 = (code == 'BTC')
-            method = 'v1' if v1 else 'private'  # v1 or v2
-            method += 'Post' + self.capitalize(name) + 'Withdrawal'
+            method = 'privatePost' + self.capitalize(name) + 'Withdrawal'
             if code == 'XRP':
                 if tag is not None:
                     request['destination_tag'] = tag
@@ -1400,8 +1400,7 @@ class bitstamp(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'
-        if api != 'v1':
-            url += self.version + '/'
+        url += self.version + '/'
         url += self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -1409,49 +1408,34 @@ class bitstamp(Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            authVersion = self.safe_value(self.options, 'auth', 'v2')
-            if (authVersion == 'v1') or (api == 'v1'):
-                nonce = str(self.nonce())
-                auth = nonce + self.uid + self.apiKey
-                signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
-                query = self.extend({
-                    'key': self.apiKey,
-                    'signature': signature.upper(),
-                    'nonce': nonce,
-                }, query)
-                body = self.urlencode(query)
-                headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                }
-            else:
-                xAuth = 'BITSTAMP ' + self.apiKey
-                xAuthNonce = self.uuid()
-                xAuthTimestamp = str(self.milliseconds())
-                xAuthVersion = 'v2'
-                contentType = ''
-                headers = {
-                    'X-Auth': xAuth,
-                    'X-Auth-Nonce': xAuthNonce,
-                    'X-Auth-Timestamp': xAuthTimestamp,
-                    'X-Auth-Version': xAuthVersion,
-                }
-                if method == 'POST':
-                    if query:
-                        body = self.urlencode(query)
-                        contentType = 'application/x-www-form-urlencoded'
-                        headers['Content-Type'] = contentType
-                    else:
-                        # sending an empty POST request will trigger
-                        # an API0020 error returned by the exchange
-                        # therefore for empty requests we send a dummy object
-                        # https://github.com/ccxt/ccxt/issues/6846
-                        body = self.urlencode({'foo': 'bar'})
-                        contentType = 'application/x-www-form-urlencoded'
-                        headers['Content-Type'] = contentType
-                authBody = body if body else ''
-                auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
-                signature = self.hmac(self.encode(auth), self.encode(self.secret))
-                headers['X-Auth-Signature'] = signature
+            xAuth = 'BITSTAMP ' + self.apiKey
+            xAuthNonce = self.uuid()
+            xAuthTimestamp = str(self.milliseconds())
+            xAuthVersion = 'v2'
+            contentType = ''
+            headers = {
+                'X-Auth': xAuth,
+                'X-Auth-Nonce': xAuthNonce,
+                'X-Auth-Timestamp': xAuthTimestamp,
+                'X-Auth-Version': xAuthVersion,
+            }
+            if method == 'POST':
+                if query:
+                    body = self.urlencode(query)
+                    contentType = 'application/x-www-form-urlencoded'
+                    headers['Content-Type'] = contentType
+                else:
+                    # sending an empty POST request will trigger
+                    # an API0020 error returned by the exchange
+                    # therefore for empty requests we send a dummy object
+                    # https://github.com/ccxt/ccxt/issues/6846
+                    body = self.urlencode({'foo': 'bar'})
+                    contentType = 'application/x-www-form-urlencoded'
+                    headers['Content-Type'] = contentType
+            authBody = body if body else ''
+            auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
+            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            headers['X-Auth-Signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

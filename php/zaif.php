@@ -47,8 +47,8 @@ class zaif extends Exchange {
             'fees' => array(
                 'trading' => array(
                     'percentage' => true,
-                    'taker' => 0.1 / 100,
-                    'maker' => 0,
+                    'taker' => $this->parse_number('0.001'),
+                    'maker' => $this->parse_number('0'),
                 ),
             ),
             'api' => array(
@@ -223,7 +223,7 @@ class zaif extends Exchange {
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

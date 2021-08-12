@@ -113,8 +113,8 @@ class tidebit extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.3 / 100,
-                    'taker' => 0.3 / 100,
+                    'maker' => $this->parse_number('0.003'),
+                    'taker' => $this->parse_number('0.003'),
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -190,7 +190,7 @@ class tidebit extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

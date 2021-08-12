@@ -53,26 +53,31 @@ class independentreserve(Exchange):
                         'GetTradeHistorySummary',
                         'GetRecentTrades',
                         'GetFxRates',
+                        'GetOrderMinimumVolumes',
+                        'GetCryptoWithdrawalFees',
                     ],
                 },
                 'private': {
                     'post': [
-                        'PlaceLimitOrder',
-                        'PlaceMarketOrder',
-                        'CancelOrder',
                         'GetOpenOrders',
                         'GetClosedOrders',
                         'GetClosedFilledOrders',
                         'GetOrderDetails',
                         'GetAccounts',
                         'GetTransactions',
+                        'GetFiatBankAccounts',
                         'GetDigitalCurrencyDepositAddress',
                         'GetDigitalCurrencyDepositAddresses',
-                        'SynchDigitalCurrencyDepositAddressWithBlockchain',
-                        'WithdrawDigitalCurrency',
-                        'RequestFiatWithdrawal',
                         'GetTrades',
                         'GetBrokerageFees',
+                        'GetDigitalCurrencyWithdrawal',
+                        'PlaceLimitOrder',
+                        'PlaceMarketOrder',
+                        'CancelOrder',
+                        'SynchDigitalCurrencyDepositAddressWithBlockchain',
+                        'RequestFiatWithdrawal',
+                        'WithdrawFiatCurrency',
+                        'WithdrawDigitalCurrency',
                     ],
                 },
             },
@@ -92,10 +97,22 @@ class independentreserve(Exchange):
     async def fetch_markets(self, params={}):
         baseCurrencies = await self.publicGetGetValidPrimaryCurrencyCodes(params)
         quoteCurrencies = await self.publicGetGetValidSecondaryCurrencyCodes(params)
+        limits = await self.publicGetGetOrderMinimumVolumes(params)
+        #
+        #     {
+        #         "Xbt": 0.0001,
+        #         "Bch": 0.001,
+        #         "Bsv": 0.001,
+        #         "Eth": 0.001,
+        #         "Ltc": 0.01,
+        #         "Xrp": 1,
+        #     }
+        #
         result = []
         for i in range(0, len(baseCurrencies)):
             baseId = baseCurrencies[i]
             base = self.safe_currency_code(baseId)
+            minAmount = self.safe_number(limits, baseId)
             for j in range(0, len(quoteCurrencies)):
                 quoteId = quoteCurrencies[j]
                 quote = self.safe_currency_code(quoteId)
@@ -111,7 +128,9 @@ class independentreserve(Exchange):
                     'info': id,
                     'active': None,
                     'precision': self.precision,
-                    'limits': self.limits,
+                    'limits': {
+                        'amount': {'min': minAmount, 'max': None},
+                    },
                 })
         return result
 
@@ -127,7 +146,7 @@ class independentreserve(Exchange):
             account['free'] = self.safe_string(balance, 'AvailableBalance')
             account['total'] = self.safe_string(balance, 'TotalBalance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

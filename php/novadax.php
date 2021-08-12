@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
 
 class novadax extends Exchange {
@@ -103,8 +104,8 @@ class novadax extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => 0.5 / 100,
-                    'maker' => 0.3 / 100,
+                    'taker' => $this->parse_number('0.005'),
+                    'maker' => $this->parse_number('0.003'),
                 ),
             ),
             'requiredCredentials' => array(
@@ -593,7 +594,7 @@ class novadax extends Exchange {
             $account['used'] = $this->safe_string($balance, 'hold');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -603,16 +604,32 @@ class novadax extends Exchange {
         $uppercaseSide = strtoupper($side);
         $request = array(
             'symbol' => $market['id'],
-            'type' => $uppercaseType, // LIMIT, MARKET
             'side' => $uppercaseSide, // or SELL
-            // 'accountId' => '...', // subaccount id, optional
             // 'amount' => $this->amount_to_precision($symbol, $amount),
             // "$price" => "1234.5678", // required for LIMIT and STOP orders
+            // 'operator' => '' // for stop orders, can be found in order introduction
+            // 'stopPrice' => $this->price_to_precision($symbol, $stopPrice),
+            // 'accountId' => '...', // subaccount id, optional
         );
-        if ($uppercaseType === 'LIMIT') {
+        $stopPrice = $this->safe_number($params, 'stopPrice');
+        if ($stopPrice === null) {
+            if (($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'STOP_MARKET')) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter for ' . $uppercaseType . ' orders');
+            }
+        } else {
+            if ($uppercaseType === 'LIMIT') {
+                $uppercaseType = 'STOP_LIMIT';
+            } else if ($uppercaseType === 'MARKET') {
+                $uppercaseType = 'STOP_MARKET';
+            }
+            $request['operator'] = ($uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
+            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            $params = $this->omit($params, 'stopPrice');
+        }
+        if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
-        } else if ($uppercaseType === 'MARKET') {
+        } else if (($uppercaseType === 'MARKET') || ($uppercaseType === 'STOP_MARKET')) {
             if ($uppercaseSide === 'SELL') {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
             } else if ($uppercaseSide === 'BUY') {
@@ -633,6 +650,7 @@ class novadax extends Exchange {
                 $request['value'] = $this->decimal_to_precision($value, TRUNCATE, $precision, $this->precisionMode);
             }
         }
+        $request['type'] = $uppercaseType;
         $response = $this->privatePostOrdersCreate (array_merge($request, $params));
         //
         //     {
@@ -643,14 +661,16 @@ class novadax extends Exchange {
         //             "filledAmount" => "0",
         //             "filledFee" => "0",
         //             "filledValue" => "0",
-        //             "id" => "633679992971251712",
-        //             "$price" => "35000",
+        //             "id" => "870613508008464384",
+        //             "operator" => "GTE",
+        //             "$price" => "210000",
         //             "$side" => "BUY",
-        //             "status" => "PROCESSING",
+        //             "status" => "SUBMITTED",
+        //             "$stopPrice" => "211000",
         //             "$symbol" => "BTC_BRL",
-        //             "timestamp" => 1571122683535,
-        //             "$type" => "LIMIT",
-        //             "$value" => "35"
+        //             "timestamp" => 1627612035528,
+        //             "$type" => "STOP_LIMIT",
+        //             "$value" => "210"
         //         ),
         //         "message" => "Success"
         //     }
@@ -829,14 +849,16 @@ class novadax extends Exchange {
         //         "filledAmount" => "0",
         //         "filledFee" => "0",
         //         "filledValue" => "0",
-        //         "$id" => "633679992971251712",
-        //         "$price" => "35000",
+        //         "$id" => "870613508008464384",
+        //         "operator" => "GTE",
+        //         "$price" => "210000",
         //         "$side" => "BUY",
-        //         "$status" => "PROCESSING",
+        //         "$status" => "SUBMITTED",
+        //         "$stopPrice" => "211000",
         //         "$symbol" => "BTC_BRL",
-        //         "$timestamp" => 1571122683535,
-        //         "$type" => "LIMIT",
-        //         "value" => "35"
+        //         "$timestamp" => 1627612035528,
+        //         "$type" => "STOP_LIMIT",
+        //         "value" => "210"
         //     }
         //
         // cancelOrder
@@ -865,6 +887,7 @@ class novadax extends Exchange {
         }
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
+        $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
@@ -878,7 +901,7 @@ class novadax extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

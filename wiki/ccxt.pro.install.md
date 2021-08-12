@@ -1,12 +1,10 @@
-[&#8962; Home](ccxt.pro)
-
 # How To Install
 
 Installing CCXT Pro requires visiting the https://ccxt.pro website and obtaining a CCXT Pro license. The license gives you the access to the CCXT Pro codebase in a private GitHub repository.
 
 CCXT Pro is a tool for professionals and it requires a certain expertise in programming, cryptocurrencies and trading.
 
-**You have to configure your [GitHub authentication](https://docs.github.com/en/github/authenticating-to-github) over SSH or HTTPS.**
+**You have to configure your** [GitHub authentication](https://docs.github.com/en/github/authenticating-to-github) **over SSH or HTTPS.**
 
 ```diff
 - this part of the doc is currenty a work in progress
@@ -64,13 +62,16 @@ git clone https://github.com/kroitor/ccxt.pro.git
 cd ccxt.pro
 # ...
 
-# Step 3: Build the CCXT Pro library with Node.js and NPM
+# Step 3: Install CCXT Pro's dependencies
+npm install
+
+# Step 4: Build the CCXT Pro library with Node.js and NPM
 npm run build
 
-# Step 4: Make an NPM link to CCXT Pro
+# Step 5: Make an NPM link to CCXT Pro
 npm link
 
-# Step 5: Link your project to CCXT Pro
+# Step 6: Link your project to CCXT Pro
 cd path/to/your/project
 npm link ccxt
 ```
@@ -132,7 +133,7 @@ pip install python/
 
 # Step 5: Add to your project dependencies or import directly in Python
 #
-#     ```
+#
 #     # Python
 #
 #     import ccxtpro
@@ -141,7 +142,7 @@ pip install python/
 #     print('CCXT Pro Version:', ccxtpro.__version__)
 #     print('CCXT Pro Exchanges:', ccxtpro.exchanges)
 #
-#     ```
+#
 #
 ```
 
@@ -217,7 +218,7 @@ cd path/to/your/project
 
 # Step 6: Include into your project:
 #
-#     ```
+#
 #     <?php
 #
 #     include "vendor/autoload.php";
@@ -227,6 +228,6 @@ cd path/to/your/project
 #     echo "CCXT Pro Exchanges:\n";
 #     print_r(\ccxtpro\Exchange::$exchanges);
 #
-#     ```
+#
 #
 ```

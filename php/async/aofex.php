@@ -344,7 +344,7 @@ class aofex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'frozen');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
@@ -429,7 +429,7 @@ class aofex extends Exchange {
         $last = $this->safe_number($ticker, 'close');
         $change = null;
         if ($symbol !== null) {
-            $change = floatval($this->price_to_precision($symbol, $last - $open));
+            $change = $this->parse_number($this->price_to_precision($symbol, $last - $open));
         } else {
             $change = $last - $open;
         }
@@ -439,7 +439,7 @@ class aofex extends Exchange {
         $quoteVolume = $this->safe_number($ticker, 'vol');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         if ($vwap !== null) {
-            $vwap = floatval($this->price_to_precision($symbol, $vwap));
+            $vwap = $this->parse_number($this->price_to_precision($symbol, $vwap));
         }
         return array(
             'symbol' => $symbol,
@@ -998,7 +998,7 @@ class aofex extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . '/' . $path;
+        $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         $keys = is_array($params) ? array_keys($params) : array();
         $keysLength = is_array($keys) ? count($keys) : 0;
         if ($api === 'public') {

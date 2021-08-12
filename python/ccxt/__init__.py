@@ -22,11 +22,12 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.50.69'
+__version__ = '1.54.86'
 
 # ----------------------------------------------------------------------------
 
 from ccxt.base.exchange import Exchange                     # noqa: F401
+from ccxt.base.precise import Precise                       # noqa: F401
 
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
@@ -89,7 +90,6 @@ from ccxt.bitflyer import bitflyer                          # noqa: F401
 from ccxt.bitforex import bitforex                          # noqa: F401
 from ccxt.bitget import bitget                              # noqa: F401
 from ccxt.bithumb import bithumb                            # noqa: F401
-from ccxt.bitkk import bitkk                                # noqa: F401
 from ccxt.bitmart import bitmart                            # noqa: F401
 from ccxt.bitmex import bitmex                              # noqa: F401
 from ccxt.bitpanda import bitpanda                          # noqa: F401
@@ -109,7 +109,6 @@ from ccxt.btcturk import btcturk                            # noqa: F401
 from ccxt.buda import buda                                  # noqa: F401
 from ccxt.bw import bw                                      # noqa: F401
 from ccxt.bybit import bybit                                # noqa: F401
-from ccxt.bytetrade import bytetrade                        # noqa: F401
 from ccxt.cdax import cdax                                  # noqa: F401
 from ccxt.cex import cex                                    # noqa: F401
 from ccxt.coinbase import coinbase                          # noqa: F401
@@ -129,8 +128,8 @@ from ccxt.currencycom import currencycom                    # noqa: F401
 from ccxt.delta import delta                                # noqa: F401
 from ccxt.deribit import deribit                            # noqa: F401
 from ccxt.digifinex import digifinex                        # noqa: F401
+from ccxt.eqonex import eqonex                              # noqa: F401
 from ccxt.equos import equos                                # noqa: F401
-from ccxt.eterbase import eterbase                          # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
 from ccxt.exx import exx                                    # noqa: F401
 from ccxt.flowbtc import flowbtc                            # noqa: F401
@@ -141,6 +140,7 @@ from ccxt.gopax import gopax                                # noqa: F401
 from ccxt.hbtc import hbtc                                  # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hollaex import hollaex                            # noqa: F401
+from ccxt.huobi import huobi                                # noqa: F401
 from ccxt.huobijp import huobijp                            # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
 from ccxt.idex import idex                                  # noqa: F401
@@ -150,7 +150,6 @@ from ccxt.itbit import itbit                                # noqa: F401
 from ccxt.kraken import kraken                              # noqa: F401
 from ccxt.kucoin import kucoin                              # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
-from ccxt.lakebtc import lakebtc                            # noqa: F401
 from ccxt.latoken import latoken                            # noqa: F401
 from ccxt.lbank import lbank                                # noqa: F401
 from ccxt.liquid import liquid                              # noqa: F401
@@ -163,15 +162,14 @@ from ccxt.novadax import novadax                            # noqa: F401
 from ccxt.oceanex import oceanex                            # noqa: F401
 from ccxt.okcoin import okcoin                              # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
+from ccxt.okex3 import okex3                                # noqa: F401
 from ccxt.okex5 import okex5                                # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.phemex import phemex                              # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.probit import probit                              # noqa: F401
 from ccxt.qtrade import qtrade                              # noqa: F401
-from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.ripio import ripio                                # noqa: F401
-from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.stex import stex                                  # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
 from ccxt.tidebit import tidebit                            # noqa: F401
@@ -208,7 +206,6 @@ exchanges = [
     'bitforex',
     'bitget',
     'bithumb',
-    'bitkk',
     'bitmart',
     'bitmex',
     'bitpanda',
@@ -228,7 +225,6 @@ exchanges = [
     'buda',
     'bw',
     'bybit',
-    'bytetrade',
     'cdax',
     'cex',
     'coinbase',
@@ -248,8 +244,8 @@ exchanges = [
     'delta',
     'deribit',
     'digifinex',
+    'eqonex',
     'equos',
-    'eterbase',
     'exmo',
     'exx',
     'flowbtc',
@@ -260,6 +256,7 @@ exchanges = [
     'hbtc',
     'hitbtc',
     'hollaex',
+    'huobi',
     'huobijp',
     'huobipro',
     'idex',
@@ -269,7 +266,6 @@ exchanges = [
     'kraken',
     'kucoin',
     'kuna',
-    'lakebtc',
     'latoken',
     'lbank',
     'liquid',
@@ -282,15 +278,14 @@ exchanges = [
     'oceanex',
     'okcoin',
     'okex',
+    'okex3',
     'okex5',
     'paymium',
     'phemex',
     'poloniex',
     'probit',
     'qtrade',
-    'rightbtc',
     'ripio',
-    'southxchange',
     'stex',
     'therock',
     'tidebit',
@@ -308,6 +303,7 @@ exchanges = [
 
 base = [
     'Exchange',
+    'Precise',
     'exchanges',
     'decimal_to_precision',
 ]

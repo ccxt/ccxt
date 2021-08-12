@@ -22,6 +22,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
+from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -48,7 +49,10 @@ class ftx(Exchange):
                 },
                 'doc': 'https://github.com/ftexchange/ftx',
                 'fees': 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
-                'referral': 'https://ftx.com/#a=1623029',
+                'referral': {
+                    'url': 'https://ftx.com/#a=ccxt',
+                    'discount': 0.05,
+                },
             },
             'has': {
                 'cancelAllOrders': True,
@@ -89,6 +93,7 @@ class ftx(Exchange):
                 'public': {
                     'get': [
                         'coins',
+                        # markets
                         'markets',
                         'markets/{market_name}',
                         'markets/{market_name}/orderbook',  # ?depth={depth}
@@ -102,59 +107,70 @@ class ftx(Exchange):
                         'indexes/{index_name}/weights',
                         'expired_futures',
                         'indexes/{market_name}/candles',  # ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        # wallet
+                        'wallet/coins',
                         # leverage tokens
                         'lt/tokens',
                         'lt/{token_name}',
+                        # etfs
+                        'etfs/rebalance_info',
                         # options
                         'options/requests',
                         'options/trades',
-                        'stats/24h_options_volume',
                         'options/historical_volumes/BTC',
+                        'stats/24h_options_volume',
                         'options/open_interest/BTC',
                         'options/historical_open_interest/BTC',
                         # spot margin
                         'spot_margin/history',
+                        'spot_margin/borrow_summary',
+                        # nfts
+                        'nft/nfts',
+                        'nft/{nft_id}',
+                        'nft/{nft_id}/trades',
+                        'nft/all_trades',
+                        'nft/{nft_id}/account_info',
+                        'nft/collections',
+                        # ftx pay
+                        'ftxpay/apps/{user_specific_id}/details',
+                        'stats/latency_stats',
+                    ],
+                    'post': [
+                        'ftxpay/apps/{user_specific_id}/orders',
                     ],
                 },
                 'private': {
                     'get': [
+                        # subaccounts
+                        'subaccounts',
+                        'subaccounts/{nickname}/balances',
+                        # account
                         'account',
                         'positions',
-                        'wallet/coins',
+                        # wallet
                         'wallet/balances',
                         'wallet/all_balances',
                         'wallet/deposit_address/{coin}',  # ?method={method}
                         'wallet/deposits',
                         'wallet/withdrawals',
-                        'wallet/withdrawal_fee',
                         'wallet/airdrops',
+                        'wallet/withdrawal_fee',
                         'wallet/saved_addresses',
+                        # orders
                         'orders',  # ?market={market}
                         'orders/history',  # ?market={market}
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
+                        # conditional orders
                         'conditional_orders',  # ?market={market}
                         'conditional_orders/{conditional_order_id}/triggers',
                         'conditional_orders/history',  # ?market={market}
-                        'spot_margin/borrow_rates',
-                        'spot_margin/lending_rates',
-                        'spot_margin/borrow_summary',
-                        'spot_margin/market_info',  # ?market={market}
-                        'spot_margin/borrow_history',
-                        'spot_margin/lending_history',
-                        'spot_margin/offers',
-                        'spot_margin/lending_info',
                         'fills',  # ?market={market}
                         'funding_payments',
                         # leverage tokens
                         'lt/balances',
                         'lt/creations',
                         'lt/redemptions',
-                        # subaccounts
-                        'subaccounts',
-                        'subaccounts/{nickname}/balances',
-                        # otc
-                        'otc/quotes/{quoteId}',
                         # options
                         'options/my_requests',
                         'options/requests/{request_id}/quotes',
@@ -167,28 +183,44 @@ class ftx(Exchange):
                         'staking/unstake_requests',
                         'staking/balances',
                         'staking/staking_rewards',
+                        # otc
+                        'otc/quotes/{quoteId}',
+                        # spot margin
+                        'spot_margin/borrow_rates',
+                        'spot_margin/lending_rates',
+                        'spot_margin/market_info',  # ?market={market}
+                        'spot_margin/borrow_history',
+                        'spot_margin/lending_history',
+                        'spot_margin/offers',
+                        'spot_margin/lending_info',
+                        # nfts
+                        'nft/balances',
+                        'nft/bids',
+                        'nft/deposits',
+                        'nft/withdrawals',
+                        'nft/fills',
+                        'nft/gallery/{gallery_id}',
+                        'nft/gallery_settings',
                     ],
                     'post': [
+                        # subaccounts
+                        'subaccounts',
+                        'subaccounts/update_name',
+                        'subaccounts/transfer',
+                        # account
                         'account/leverage',
+                        # wallet
                         'wallet/withdrawals',
                         'wallet/saved_addresses',
+                        # orders
                         'orders',
                         'conditional_orders',
                         'orders/{order_id}/modify',
                         'orders/by_client_id/{client_order_id}/modify',
                         'conditional_orders/{order_id}/modify',
-                        # spot margin
-                        'spot_margin/offers',
                         # leverage tokens
                         'lt/{token_name}/create',
                         'lt/{token_name}/redeem',
-                        # subaccounts
-                        'subaccounts',
-                        'subaccounts/update_name',
-                        'subaccounts/transfer',
-                        # otc
-                        'otc/quotes/{quote_id}/accept',
-                        'otc/quotes',
                         # options
                         'options/requests',
                         'options/requests/{request_id}/quotes',
@@ -196,15 +228,33 @@ class ftx(Exchange):
                         # staking
                         'staking/unstake_requests',
                         'srm_stakes/stakes',
+                        # otc
+                        'otc/quotes/{quote_id}/accept',
+                        'otc/quotes',
+                        # spot margin
+                        'spot_margin/offers',
+                        # nfts
+                        'nft/offer',
+                        'nft/buy',
+                        'nft/auction',
+                        'nft/edit_auction',
+                        'nft/cancel_auction',
+                        'nft/bids',
+                        'nft/redeem',
+                        'nft/gallery_settings',
+                        # ftx pay
+                        'ftxpay/apps/{user_specific_id}/orders',
                     ],
                     'delete': [
+                        # subaccounts
+                        'subaccounts',
+                        # wallet
                         'wallet/saved_addresses/{saved_address_id}',
+                        # orders
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
                         'conditional_orders/{order_id}',
-                        # subaccounts
-                        'subaccounts',
                         # options
                         'options/requests/{request_id}',
                         'options/quotes/{quote_id}',
@@ -217,24 +267,24 @@ class ftx(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'maker': 0.02 / 100,
-                    'taker': 0.07 / 100,
+                    'maker': self.parse_number('0.02'),
+                    'taker': self.parse_number('0.07'),
                     'tiers': {
                         'taker': [
-                            [0, 0.07 / 100],
-                            [1000000, 0.06 / 100],
-                            [5000000, 0.055 / 100],
-                            [10000000, 0.05 / 100],
-                            [15000000, 0.045 / 100],
-                            [35000000, 0.04 / 100],
+                            [self.parse_number('0'), self.parse_number('0.0007')],
+                            [self.parse_number('2000000'), self.parse_number('0.0006')],
+                            [self.parse_number('5000000'), self.parse_number('0.00055')],
+                            [self.parse_number('10000000'), self.parse_number('0.0005')],
+                            [self.parse_number('25000000'), self.parse_number('0.045')],
+                            [self.parse_number('50000000'), self.parse_number('0.0004')],
                         ],
                         'maker': [
-                            [0, 0.02 / 100],
-                            [1000000, 0.02 / 100],
-                            [5000000, 0.015 / 100],
-                            [10000000, 0.015 / 100],
-                            [15000000, 0.01 / 100],
-                            [35000000, 0.01 / 100],
+                            [self.parse_number('0'), self.parse_number('0.0002')],
+                            [self.parse_number('2000000'), self.parse_number('0.00015')],
+                            [self.parse_number('5000000'), self.parse_number('0.0001')],
+                            [self.parse_number('10000000'), self.parse_number('0.00005')],
+                            [self.parse_number('25000000'), self.parse_number('0')],
+                            [self.parse_number('50000000'), self.parse_number('0')],
                         ],
                     },
                 },
@@ -257,17 +307,24 @@ class ftx(Exchange):
                     'Trigger price too high': InvalidOrder,  # {"error":"Trigger price too high","success":false}
                     'Trigger price too low': InvalidOrder,  # {"error":"Trigger price too low","success":false}
                     'Order already queued for cancellation': CancelPending,  # {"error":"Order already queued for cancellation","success":false}
+                    'Duplicate client order ID': DuplicateOrderId,  # {"error":"Duplicate client order ID","success":false}
+                    'Spot orders cannot be reduce-only': InvalidOrder,  # {"error":"Spot orders cannot be reduce-only","success":false}
+                    'Invalid reduce-only order': InvalidOrder,  # {"error":"Invalid reduce-only order","success":false}
+                    'Account does not have enough balances': InsufficientFunds,  # {"success":false,"error":"Account does not have enough balances"}
                 },
                 'broad': {
                     'Account does not have enough margin for order': InsufficientFunds,
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
+                    'No such subaccount': BadRequest,
+                    'No such future': BadSymbol,
                     'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,
                     'An unexpected error occurred': ExchangeNotAvailable,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
                     'Please retry request': ExchangeNotAvailable,  # {"error":"Please retry request","success":false}
                     'Please try again': ExchangeNotAvailable,  # {"error":"Please try again","success":false}
+                    'Try again': ExchangeNotAvailable,  # {"error":"Try again","success":false}
                     'Only have permissions for subaccount': PermissionDenied,  # {"success":false,"error":"Only have permissions for subaccount *sub_name*"}
                 },
             },
@@ -911,10 +968,10 @@ class ftx(Exchange):
             balance = balances[i]
             code = self.safe_currency_code(self.safe_string(balance, 'coin'))
             account = self.account()
-            account['free'] = self.safe_string(balance, 'free')
+            account['free'] = self.safe_string_2(balance, 'availableWithoutBorrow', 'free')
             account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -1458,8 +1515,6 @@ class ftx(Exchange):
         request = {}
         if marketId is not None:
             request['market'] = marketId
-        if limit is not None:
-            request['limit'] = limit
         if since is not None:
             request['start_time'] = int(since / 1000)
             request['end_time'] = self.seconds()
@@ -1526,6 +1581,39 @@ class ftx(Exchange):
         return self.parse_transaction(result, currency)
 
     def fetch_positions(self, symbols=None, params={}):
+        self.load_markets()
+        request = {
+            # 'showAvgPrice': False,
+        }
+        response = self.privateGetPositions(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "result": [
+        #             {
+        #                 "cost": -31.7906,
+        #                 "entryPrice": 138.22,
+        #                 "estimatedLiquidationPrice": 152.1,
+        #                 "future": "ETH-PERP",
+        #                 "initialMarginRequirement": 0.1,
+        #                 "longOrderSize": 1744.55,
+        #                 "maintenanceMarginRequirement": 0.04,
+        #                 "netSize": -0.23,
+        #                 "openSize": 1744.32,
+        #                 "realizedPnl": 3.39441714,
+        #                 "shortOrderSize": 1732.09,
+        #                 "side": "sell",
+        #                 "size": 0.23,
+        #                 "unrealizedPnl": 0,
+        #                 "collateralUsed": 3.17906
+        #             }
+        #         ]
+        #     }
+        #
+        # todo unify parsePosition/parsePositions
+        return self.safe_value(response, 'result', [])
+
+    def fetch_account_positions(self, symbols=None, params={}):
         self.load_markets()
         response = self.privateGetAccount(params)
         #
@@ -1761,7 +1849,7 @@ class ftx(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        baseUrl = self.implode_params(self.urls['api'][api], {'hostname': self.hostname})
+        baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + request
         if method != 'POST':
             if query:

@@ -81,8 +81,8 @@ module.exports = class bw extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.2 / 100,
-                    'maker': 0.2 / 100,
+                    'taker': this.parseNumber ('0.002'),
+                    'maker': this.parseNumber ('0.002'),
                 },
                 'funding': {
                 },
@@ -329,29 +329,29 @@ module.exports = class bw extends Exchange {
         const marketId = this.safeString (ticker, 0);
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.milliseconds ();
-        const close = parseFloat (this.safeValue (ticker, 1));
+        const close = this.safeNumber (ticker, 1);
         const bid = this.safeValue (ticker, 'bid', {});
         const ask = this.safeValue (ticker, 'ask', {});
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (this.safeValue (ticker, 2)),
-            'low': parseFloat (this.safeValue (ticker, 3)),
-            'bid': parseFloat (this.safeValue (ticker, 7)),
+            'high': this.safeNumber (ticker, 2),
+            'low': this.safeNumber (ticker, 3),
+            'bid': this.safeNumber (ticker, 7),
             'bidVolume': this.safeNumber (bid, 'quantity'),
-            'ask': parseFloat (this.safeValue (ticker, 8)),
+            'ask': this.safeNumber (ticker, 8),
             'askVolume': this.safeNumber (ask, 'quantity'),
             'vwap': undefined,
             'open': undefined,
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': parseFloat (this.safeValue (ticker, 5)),
+            'change': this.safeNumber (ticker, 5),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (this.safeValue (ticker, 4)),
-            'quoteVolume': parseFloat (this.safeValue (ticker, 9)),
+            'baseVolume': this.safeNumber (ticker, 4),
+            'quoteVolume': this.safeNumber (ticker, 9),
             'info': ticker,
         };
     }
@@ -627,7 +627,7 @@ module.exports = class bw extends Exchange {
             account['used'] = this.safeString (balance, 'freeze');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -935,7 +935,7 @@ module.exports = class bw extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname }) + '/' + path;
+        let url = this.implodeHostname (this.urls['api']) + '/' + path;
         if (method === 'GET') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);

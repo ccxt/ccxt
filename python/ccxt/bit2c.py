@@ -95,8 +95,8 @@ class bit2c(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.5 / 100,
-                    'taker': 0.5 / 100,
+                    'maker': self.parse_number('0.005'),
+                    'taker': self.parse_number('0.005'),
                 },
             },
             'options': {
@@ -169,13 +169,13 @@ class bit2c(Exchange):
         for i in range(0, len(codes)):
             code = codes[i]
             account = self.account()
-            currencyId = self.currency_id(code)
-            uppercase = currencyId.upper()
+            currency = self.currency(code)
+            uppercase = currency['id'].upper()
             if uppercase in balance:
                 account['free'] = self.safe_string(balance, 'AVAILABLE_' + uppercase)
                 account['total'] = self.safe_string(balance, uppercase)
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

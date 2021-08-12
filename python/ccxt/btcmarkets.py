@@ -129,8 +129,8 @@ class btcmarkets(Exchange):
             'fees': {
                 'percentage': True,
                 'tierBased': True,
-                'maker': -0.05 / 100,
-                'taker': 0.20 / 100,
+                'maker': self.parse_number('-0.0005'),
+                'taker': self.parse_number('0.0020'),
             },
             'options': {
                 'fees': {
@@ -360,7 +360,7 @@ class btcmarkets(Exchange):
             account['used'] = self.safe_string(balance, 'locked')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

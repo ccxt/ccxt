@@ -51,7 +51,12 @@ module.exports = class coinex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg',
-                'api': 'https://api.coinex.com',
+                'api': {
+                    'public': 'https://api.coinex.com',
+                    'private': 'https://api.coinex.com',
+                    'perpetualPublic': 'https://api.coinex.com/perpetual',
+                    'perpetualPrivate': 'https://api.coinex.com/perpetual',
+                },
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees': 'https://www.coinex.com/fees',
@@ -114,6 +119,46 @@ module.exports = class coinex extends Exchange {
                         'balance/coin/withdraw',
                         'order/pending/batch',
                         'order/pending',
+                    ],
+                },
+                'perpetualPublic': {
+                    'get': [
+                        'ping',
+                        'time',
+                        'market/list',
+                        'market/limit_config',
+                        'market/ticker',
+                        'market/ticker/all',
+                        'market/depth',
+                        'market/deals',
+                        'market/funding_history',
+                        'market/user_deals',
+                        'market/kline',
+                    ],
+                },
+                'perpetualPrivate': {
+                    'get': [
+                        'asset/query',
+                        'order/pending',
+                        'order/finished',
+                        'order/stop_pending',
+                        'order/status',
+                        'position/pending',
+                        'position/funding',
+                    ],
+                    'post': [
+                        'market/adjust_leverage',
+                        'market/position_expect',
+                        'order/put_limit',
+                        'order/put_market',
+                        'order/put_stop_limit',
+                        'order/cancel',
+                        'order/cancel_all',
+                        'order/cancel_stop',
+                        'order/cancel_stop_all',
+                        'order/close_limit',
+                        'order/close_market',
+                        'position/adjust_margin',
                     ],
                 },
             },
@@ -435,7 +480,7 @@ module.exports = class coinex extends Exchange {
             account['used'] = this.safeString (balance, 'frozen');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
@@ -530,14 +575,12 @@ module.exports = class coinex extends Exchange {
             'market': market['id'],
             'type': side,
         };
-        amount = parseFloat (amount);
         // for market buy it requires the amount of quote currency to spend
         if ((type === 'market') && (side === 'buy')) {
             if (this.options['createMarketBuyOrderRequiresPrice']) {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                 } else {
-                    price = parseFloat (price);
                     request['amount'] = this.costToPrecision (symbol, amount * price);
                 }
             } else {
@@ -906,9 +949,9 @@ module.exports = class coinex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         path = this.implodeParams (path, params);
-        let url = this.urls['api'] + '/' + this.version + '/' + path;
+        let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         let query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (api === 'public' || api === 'perpetualPublic') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }

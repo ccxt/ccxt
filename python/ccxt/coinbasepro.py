@@ -403,7 +403,7 @@ class coinbasepro(Exchange):
             account['used'] = self.safe_string(balance, 'hold')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -654,7 +654,7 @@ class coinbasepro(Exchange):
                 limit = 300  # max = 300
             else:
                 limit = min(300, limit)
-            request['end'] = self.iso8601(self.sum(limit * granularity * 1000, since))
+            request['end'] = self.iso8601(self.sum((limit - 1) * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         #
         #     [
@@ -997,10 +997,10 @@ class coinbasepro(Exchange):
         return self.parse_transactions(response, currency, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions(code, since, limit, self.extend(params, {'type': 'deposit'}))
+        return self.fetch_transactions(code, since, limit, self.extend({'type': 'deposit'}, params))
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions(code, since, limit, self.extend(params, {'type': 'withdraw'}))
+        return self.fetch_transactions(code, since, limit, self.extend({'type': 'withdraw'}, params))
 
     def parse_transaction_status(self, transaction):
         canceled = self.safe_value(transaction, 'canceled_at')
@@ -1089,7 +1089,7 @@ class coinbasepro(Exchange):
         if method == 'GET':
             if query:
                 request += '?' + self.urlencode(query)
-        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + request
+        url = self.implode_hostname(self.urls['api'][api]) + request
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())

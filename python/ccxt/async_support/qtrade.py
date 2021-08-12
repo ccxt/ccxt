@@ -16,6 +16,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.precise import Precise
 
 
@@ -125,6 +126,8 @@ class qtrade(Exchange):
                     'invalid_auth': AuthenticationError,
                     'insuff_funds': InsufficientFunds,
                     'market_not_found': BadSymbol,  # {"errors":[{"code":"market_not_found","title":"Requested market does not exist"}]}
+                    'too_small': InvalidOrder,
+                    'limit_exceeded': RateLimitExceeded,  # {"errors":[{"code":"limit_exceeded","title":"You have exceeded the windowed rate limit. Please see docs."}]}
                 },
             },
         })
@@ -196,7 +199,7 @@ class qtrade(Exchange):
                 'maker': self.safe_number(market, 'maker_fee'),
                 'limits': {
                     'amount': {
-                        'min': self.safe_number(market, 'minimum_buy_value'),
+                        'min': self.safe_number(market, 'minimum_sell_value'),
                         'max': None,
                     },
                     'price': {
@@ -204,7 +207,7 @@ class qtrade(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'minimum_buy_value'),
                         'max': None,
                     },
                 },
@@ -698,7 +701,7 @@ class qtrade(Exchange):
             account = result[code] if (code in result) else self.account()
             account['used'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':

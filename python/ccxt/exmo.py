@@ -58,6 +58,7 @@ class exmo(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
+                'fetchWithdrawals': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -136,8 +137,8 @@ class exmo(Exchange):
                     'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
                 },
                 'funding': {
                     'tierBased': False,
@@ -382,6 +383,24 @@ class exmo(Exchange):
                                     {'prov': 'ONG', 'dep': '0%', 'wd': '5 ONG'},
                                     {'prov': 'ALGO', 'dep': '0%', 'wd': '0.01 ALGO'},
                                     {'prov': 'ATOM', 'dep': '0%', 'wd': '0.05 ATOM'},
+                                    {'prov': 'XTZ', 'dep': '-', 'wd': '0.5 XTZ'},
+                                    {'prov': 'HP', 'dep': '0%', 'wd': '250 HP'},
+                                    {'prov': 'WXT', 'dep': '-', 'wd': '50 WXT'},
+                                    {'prov': 'CHZ', 'dep': '-', 'wd': '30 CHZ'},
+                                    {'prov': 'ONE', 'dep': '-', 'wd': '1 ONE'},
+                                    {'prov': 'IQN', 'dep': '-', 'wd': '3 IQN'},
+                                    {'prov': 'PRQ', 'dep': '-', 'wd': '20 PRQ'},
+                                    {'prov': 'HAI', 'dep': '-', 'wd': '50 HAI'},
+                                    {'prov': 'LINK', 'dep': '-', 'wd': '0.3 LINK'},
+                                    {'prov': 'UNI', 'dep': '0%', 'wd': '0.3 UNI'},
+                                    {'prov': 'YFI', 'dep': '0%', 'wd': '0.0002 YFI'},
+                                    {'prov': 'GNY', 'dep': '-', 'wd': '10 GNY'},
+                                    {'prov': 'XYM', 'dep': '-', 'wd': '0.5 XYM'},
+                                    {'prov': 'VITAE', 'dep': '-', 'wd': '0.5 VITAE'},
+                                    {'prov': 'BTCV', 'dep': '0%', 'wd': '-'},
+                                    {'prov': 'DOT', 'dep': '-', 'wd': '0.1 DOT'},
+                                    {'prov': 'TON', 'dep': '-', 'wd': '-'},
+                                    {'prov': 'TONCOIN', 'dep': '-', 'wd': '-'},
                                 ],
                             },
                             {
@@ -477,6 +496,7 @@ class exmo(Exchange):
                     '40016': OnMaintenance,  # {"result":false,"error":"Error 40016: Maintenance work in progress"}
                     '40017': AuthenticationError,  # Wrong API Key
                     '40032': PermissionDenied,  # {"result":false,"error":"Error 40032: Access is denied for self API key"}
+                    '40033': PermissionDenied,  # {"result":false,"error":"Error 40033: Access is denied, self resources are temporarily blocked to user"}
                     '40034': RateLimitExceeded,  # {"result":false,"error":"Error 40034: Access is denied, rate limit is exceeded"}
                     '50052': InsufficientFunds,
                     '50054': InsufficientFunds,
@@ -489,7 +509,7 @@ class exmo(Exchange):
                 'broad': {
                     'range period is too long': BadRequest,
                     'invalid syntax': BadRequest,
-                    'API rate limit exceeded': RateLimitExceeded,  # {"result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
+                    'API rate limit exceeded': RateLimitExceeded,  # {"result":false,"error":"API rate limit exceeded for x.x.x.x. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
                 },
             },
             'orders': {},  # orders cache / emulation
@@ -534,7 +554,7 @@ class exmo(Exchange):
             raise ExchangeError(self.id + ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' + input)
         return result
 
-    def fetch_funding_fees(self, params={}):
+    def fetch_funding_fees_helper(self, params={}):
         response = None
         if self.options['useWebapiForFetchingFees']:
             response = self.webGetCtrlFeesAndLimits(params)
@@ -570,8 +590,12 @@ class exmo(Exchange):
         self.options['fundingFees'] = result
         return result
 
+    def fetch_funding_fees(self, params={}):
+        self.load_markets()
+        return self.fetch_funding_fees_helper(params)
+
     def fetch_currencies(self, params={}):
-        fees = self.fetch_funding_fees(params)
+        fees = self.fetch_funding_fees_helper(params)
         # todo redesign the 'fee' property in currencies
         ids = list(fees['withdraw'].keys())
         limitsByMarketId = self.index_by(fees['info']['data']['limits'], 'pair')
@@ -763,14 +787,15 @@ class exmo(Exchange):
         codes = list(free.keys())
         for i in range(0, len(codes)):
             code = codes[i]
-            currencyId = self.currency_id(code)
+            currency = self.currency(code)
+            currencyId = currency['id']
             account = self.account()
             if currencyId in free:
                 account['free'] = self.safe_string(free, currencyId)
             if currencyId in used:
                 account['used'] = self.safe_string(used, currencyId)
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -1338,14 +1363,48 @@ class exmo(Exchange):
         #            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
         #          }
         #
-        timestamp = self.safe_timestamp(transaction, 'dt')
+        # fetchWithdrawals
+        #
+        #          {
+        #             "operation_id": 47412538520634344,
+        #             "created": 1573760013,
+        #             "updated": 1573760013,
+        #             "type": "withdraw",
+        #             "currency": "DOGE",
+        #             "status": "Paid",
+        #             "amount": "300",
+        #             "provider": "DOGE",
+        #             "commission": "0",
+        #             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #             "order_id": 69670170,
+        #             "provider_type": "crypto",
+        #             "crypto_address": "DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #             "card_number": "",
+        #             "wallet_address": "",
+        #             "email": "",
+        #             "phone": "",
+        #             "extra": {
+        #                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        #                 "confirmations": null,
+        #                 "excode": "",
+        #                 "invoice": ""
+        #             },
+        #             "error": ""
+        #          },
+        #
+        id = self.safe_string(transaction, 'operation_id')
+        timestamp = self.safe_timestamp_2(transaction, 'dt', 'created')
+        updated = self.safe_timestamp(transaction, 'updated')
         amount = self.safe_number(transaction, 'amount')
         if amount is not None:
             amount = abs(amount)
-        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        status = self.parse_transaction_status(self.safe_string_lower(transaction, 'status'))
         txid = self.safe_string(transaction, 'txid')
+        extra = self.safe_value(transaction, 'extra', {})
+        if txid is None:
+            txid = self.safe_string(extra, 'txid')
         type = self.safe_string(transaction, 'type')
-        currencyId = self.safe_string(transaction, 'curr')
+        currencyId = self.safe_string_2(transaction, 'curr', 'currency')
         code = self.safe_currency_code(currencyId, currency)
         address = None
         tag = None
@@ -1365,7 +1424,9 @@ class exmo(Exchange):
         # fixed funding fees only(for now)
         if not self.fees['funding']['percentage']:
             key = 'withdraw' if (type == 'withdrawal') else 'deposit'
-            feeCost = self.safe_number(self.options['fundingFees'][key], code)
+            feeCost = self.safe_number(transaction, 'commission')
+            if feeCost is None:
+                feeCost = self.safe_number(self.options['fundingFees'][key], code)
             # users don't pay for cashbacks, no fees for that
             provider = self.safe_string(transaction, 'provider')
             if provider == 'cashback':
@@ -1381,7 +1442,7 @@ class exmo(Exchange):
                 }
         return {
             'info': transaction,
-            'id': None,
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': code,
@@ -1394,7 +1455,7 @@ class exmo(Exchange):
             'tagFrom': None,
             'status': status,
             'type': type,
-            'updated': None,
+            'updated': updated,
             'comment': comment,
             'txid': txid,
             'fee': fee,
@@ -1440,6 +1501,46 @@ class exmo(Exchange):
         #     }
         #
         return self.parse_transactions(response['history'], currency, since, limit)
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {
+            'type': 'withdraw',
+        }
+        if limit is not None:
+            request['limit'] = limit  # default: 100, maximum: 100
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = self.privatePostWalletOperations(self.extend(request, params))
+        #
+        #     {
+        #         "items": [
+        #         {
+        #             "operation_id": 47412538520634344,
+        #             "created": 1573760013,
+        #             "updated": 1573760013,
+        #             "type": "withdraw",
+        #             "currency": "DOGE",
+        #             "status": "Paid",
+        #             "amount": "300",
+        #             "provider": "DOGE",
+        #             "commission": "0",
+        #             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #             "order_id": 69670170,
+        #             "extra": {
+        #                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        #                 "excode": "",
+        #                 "invoice": ""
+        #             },
+        #             "error": ""
+        #         },
+        #     ],
+        #         "count": 23
+        #     }
+        #
+        return self.parse_transactions(response['items'], currency, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'

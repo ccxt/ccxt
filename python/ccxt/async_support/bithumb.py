@@ -89,8 +89,8 @@ class bithumb(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.25 / 100,
-                    'taker': 0.25 / 100,
+                    'maker': self.parse_number('0.0025'),
+                    'taker': self.parse_number('0.0025'),
                 },
             },
             'precisionMode': SIGNIFICANT_DIGITS,
@@ -139,6 +139,10 @@ class bithumb(Exchange):
                         },
                     },
                 },
+            },
+            'commonCurrencies': {
+                'MIR': 'MIR COIN',
+                'SOC': 'Soda Coin',
             },
         })
 
@@ -214,7 +218,7 @@ class bithumb(Exchange):
             account['used'] = self.safe_string(balances, 'in_use_' + lowerCurrencyId)
             account['free'] = self.safe_string(balances, 'available_' + lowerCurrencyId)
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -771,9 +775,9 @@ class bithumb(Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         side_in_params = ('side' in params)
         if not side_in_params:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `symbol` argument and a `side` parameter(sell or buy)')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `side` parameter(sell or buy)')
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `symbol` argument and a `side` parameter(sell or buy)')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `symbol` argument')
         market = self.market(symbol)
         side = 'bid' if (params['side'] == 'buy') else 'ask'
         params = self.omit(params, ['side', 'currency'])
@@ -818,7 +822,7 @@ class bithumb(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)
-        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + endpoint
+        url = self.implode_hostname(self.urls['api'][api]) + endpoint
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
@@ -864,7 +868,7 @@ class bithumb(Exchange):
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
         if 'status' in response:
-            if response['status'] == '0000':
+            if response['status'] == '0000' or response['message'] == '거래 진행중인 내역이 존재하지 않습니다':
                 return response
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response

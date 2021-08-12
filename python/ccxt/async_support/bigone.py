@@ -108,26 +108,11 @@ class bigone(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.001'),
                 },
                 'funding': {
-                    # HARDCODING IS DEPRECATED THE FEES BELOW ARE TO BE REMOVED SOON
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'ETH': 0.005,
-                        'EOS': 0.01,
-                        'ZEC': 0.003,
-                        'LTC': 0.01,
-                        'QTUM': 0.01,
-                        # 'INK': 0.01 QTUM,
-                        # 'BOT': 0.01 QTUM,
-                        'ETC': 0.01,
-                        'GAS': 0.0,
-                        'BTS': 1.0,
-                        'GXS': 0.1,
-                        'BITCNY': 19.0,
-                    },
+                    'withdraw': {},
                 },
             },
             'exceptions': {
@@ -135,6 +120,7 @@ class bigone(Exchange):
                     '10001': BadRequest,  # syntax error
                     '10005': ExchangeError,  # internal error
                     "Amount's scale must greater than AssetPair's base scale": InvalidOrder,
+                    "Price mulit with amount should larger than AssetPair's min_quote_value": InvalidOrder,
                     '10007': BadRequest,  # parameter error, {"code":10007,"message":"Amount's scale must greater than AssetPair's base scale"}
                     '10011': ExchangeError,  # system error
                     '10013': OrderNotFound,  # {"code":10013,"message":"Resource not found"}
@@ -149,6 +135,7 @@ class bigone(Exchange):
                     '40601': ExchangeError,  # resource is locked
                     '40602': ExchangeError,  # resource is depleted
                     '40603': InsufficientFunds,  # insufficient resource
+                    '40605': InvalidOrder,  # {"code":40605,"message":"Price less than the minimum order price"}
                     '40120': InvalidOrder,  # Order is in trading
                     '40121': InvalidOrder,  # Order is already cancelled or filled
                 },
@@ -156,6 +143,8 @@ class bigone(Exchange):
                 },
             },
             'commonCurrencies': {
+                'CRE': 'Cybereits',
+                'FXT': 'FXTTOKEN',
                 'MBN': 'Mobilian Coin',
                 'ONE': 'BigONE Token',
             },
@@ -208,7 +197,7 @@ class bigone(Exchange):
                 'amount': int(amountPrecisionString),
                 'price': int(pricePrecisionString),
             }
-            minCost = self.safe_integer(market, 'min_quote_value')
+            minCost = self.safe_number(market, 'min_quote_value')
             entry = {
                 'id': id,
                 'uuid': uuid,
@@ -489,7 +478,7 @@ class bigone(Exchange):
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': float(cost),
+            'cost': self.parse_number(cost),
             'info': trade,
         }
         makerCurrencyCode = None
@@ -595,7 +584,8 @@ class bigone(Exchange):
         }
         if since is not None:
             # start = int(since / 1000)
-            end = self.sum(since, limit * self.parse_timeframe(timeframe) * 1000)
+            duration = self.parse_timeframe(timeframe)
+            end = self.sum(since, limit * duration * 1000)
             request['time'] = self.iso8601(end)
         response = await self.publicGetAssetPairsAssetPairNameCandles(self.extend(request, params))
         #
@@ -654,7 +644,7 @@ class bigone(Exchange):
             account['total'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'locked_balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
         #
@@ -915,7 +905,7 @@ class bigone(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
-        baseUrl = self.implode_params(self.urls['api'][api], {'hostname': self.hostname})
+        baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.implode_params(path, params)
         if api == 'public':
             if query:
@@ -986,6 +976,8 @@ class bigone(Exchange):
             'WITHHOLD': 'ok',  # deposits
             'UNCONFIRMED': 'pending',
             'CONFIRMED': 'ok',  # withdrawals
+            'COMPLETED': 'ok',
+            'PENDING': 'pending',
         }
         return self.safe_string(statuses, status, status)
 

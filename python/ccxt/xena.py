@@ -22,7 +22,6 @@ class xena(Exchange):
             'name': 'Xena Exchange',
             'countries': ['VC', 'UK'],
             'rateLimit': 100,
-            'certified': True,
             'has': {
                 'CORS': False,
                 'cancelAllOrders': True,
@@ -602,7 +601,7 @@ class xena(Exchange):
             result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_trade(self, trade, market=None):
         #

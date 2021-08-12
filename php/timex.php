@@ -465,7 +465,7 @@ class timex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'lockedBalance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -945,13 +945,13 @@ class timex extends Exchange {
             if ($dotIndex > 0) {
                 $whole = mb_substr($feeString, 0, $dotIndex - 0);
                 $fraction = mb_substr($feeString, -$dotIndex);
-                $fee = floatval($whole . '.' . $fraction);
+                $fee = $this->parse_number($whole . '.' . $fraction);
             } else {
                 $fraction = '.';
                 for ($i = 0; $i < -$dotIndex; $i++) {
                     $fraction .= '0';
                 }
-                $fee = floatval($fraction . $feeString);
+                $fee = $this->parse_number($fraction . $feeString);
             }
         }
         return array(

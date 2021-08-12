@@ -8,7 +8,6 @@
     "bitget":        { "skip": true },
     "bitmart":       { "skip": true },
     "btcmarkets":    { "skip": true },
-    "btctradeua":    { "skip": true },
     "braziliex":     { "skip":  true },
     "buda":          { "skip": true },
     "coinegg":       { "skip": true },
@@ -28,6 +27,8 @@
     "fcoinjp":       { "skip": true },
     "flowbtc":       { "skip": true },
     "gemini":        { "skip": true },
+    "huobipro":      { "skip": true },
+    "itbit":         { "skip": true },
     "kuna":          { "skip": true },
     "lbank":         { "skip": true },
     "luno":          { "skip": true },
@@ -35,8 +36,7 @@
     "mercado":       { "skip": true },
     "qtrade":        { "skip": true },
     "rightbtc":      { "skip": true },
-    "stronghold":    { "skip": true },
     "tidebit":       { "skip": true },
-    "vaultoro":      { "skip": true },
+    "vcc":           { "skip": true },
     "xbtce":         { "skip": true }
 }

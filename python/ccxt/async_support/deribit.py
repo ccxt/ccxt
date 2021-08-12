@@ -115,6 +115,8 @@ class deribit(Exchange):
                         'get_funding_rate_value',
                         'get_historical_volatility',
                         'get_index',
+                        'get_index_price',
+                        'get_index_price_names',
                         'get_instruments',
                         'get_last_settlements_by_currency',
                         'get_last_settlements_by_instrument',
@@ -346,10 +348,11 @@ class deribit(Exchange):
         #
         return self.safe_integer(response, 'result')
 
-    def code_from_options(self, methodName):
+    def code_from_options(self, methodName, params={}):
         defaultCode = self.safe_value(self.options, 'code', 'BTC')
         options = self.safe_value(self.options, methodName, {})
-        return self.safe_value(options, 'code', defaultCode)
+        code = self.safe_value(options, 'code', defaultCode)
+        return self.safe_value(params, 'code', code)
 
     async def fetch_status(self, params={}):
         request = {
@@ -485,7 +488,7 @@ class deribit(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        code = self.code_from_options('fetchBalance')
+        code = self.code_from_options('fetchBalance', params)
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -544,7 +547,7 @@ class deribit(Exchange):
         account['used'] = self.safe_string(balance, 'maintenanceMargin')
         account['total'] = self.safe_string(balance, 'equity')
         result[currencyCode] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
@@ -724,7 +727,7 @@ class deribit(Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        code = self.code_from_options('fetchTickers')
+        code = self.code_from_options('fetchTickers', params)
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -1281,7 +1284,7 @@ class deribit(Exchange):
         market = None
         method = None
         if symbol is None:
-            code = self.code_from_options('fetchOpenOrders')
+            code = self.code_from_options('fetchOpenOrders', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
             method = 'privateGetGetOpenOrdersByCurrency'
@@ -1299,7 +1302,7 @@ class deribit(Exchange):
         market = None
         method = None
         if symbol is None:
-            code = self.code_from_options('fetchClosedOrders')
+            code = self.code_from_options('fetchClosedOrders', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
             method = 'privateGetGetOrderHistoryByCurrency'
@@ -1362,7 +1365,7 @@ class deribit(Exchange):
         market = None
         method = None
         if symbol is None:
-            code = self.code_from_options('fetchMyTrades')
+            code = self.code_from_options('fetchMyTrades', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
             if since is None:
@@ -1603,7 +1606,7 @@ class deribit(Exchange):
 
     async def fetch_positions(self, symbols=None, params={}):
         await self.load_markets()
-        code = self.code_from_options('fetchPositions')
+        code = self.code_from_options('fetchPositions', params)
         currency = self.currency(code)
         request = {
             'currency': currency['id'],

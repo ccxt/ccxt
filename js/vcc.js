@@ -105,8 +105,8 @@ module.exports = class vcc extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.002'),
                 },
             },
             'exceptions': {
@@ -315,7 +315,7 @@ module.exports = class vcc extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -818,7 +818,7 @@ module.exports = class vcc extends Exchange {
         if (stopPrice !== undefined) {
             request['is_stop'] = 1;
             request['stop_condition'] = (side === 'buy') ? 'le' : 'ge'; // ge = greater than or equal, le = less than or equal
-            request['stop_price'] = this.priceToPrecision (symbol, price);
+            request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
         }
         params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
         const response = await this.privatePostOrders (this.extend (request, params));

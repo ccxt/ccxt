@@ -123,8 +123,8 @@ class btcmarkets extends Exchange {
             'fees' => array(
                 'percentage' => true,
                 'tierBased' => true,
-                'maker' => -0.05 / 100,
-                'taker' => 0.20 / 100,
+                'maker' => $this->parse_number('-0.0005'),
+                'taker' => $this->parse_number('0.0020'),
             ),
             'options' => array(
                 'fees' => array(
@@ -374,7 +374,7 @@ class btcmarkets extends Exchange {
             $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

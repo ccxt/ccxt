@@ -45,6 +45,7 @@ class liquid(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchWithdrawals': True,
                 'withdraw': True,
             },
             'urls': {
@@ -77,7 +78,7 @@ class liquid(Exchange):
                         'accounts/{id}',
                         'accounts/{currency}/reserved_balance_details',
                         'crypto_accounts',  # add fetchAccounts
-                        'crypto_withdrawals',  # add fetchWithdrawals
+                        'crypto_withdrawals',
                         'executions/me',
                         'fiat_accounts',  # add fetchAccounts
                         'fund_infos',  # add fetchDeposits
@@ -233,6 +234,15 @@ class liquid(Exchange):
         #             depositable: True,
         #             withdrawable: True,
         #             discount_fee: 0.5,
+        #             credit_card_fundable: False,
+        #             lendable: False,
+        #             position_fundable: True,
+        #             has_memo: False,
+        #             stable_currency: null,
+        #             root_currency: 'USD',
+        #             minimum_loan_bid_quantity: '0.0',
+        #             maximum_order_taker_quantity: null,
+        #             name: 'United States Dollar'
         #         },
         #     ]
         #
@@ -241,13 +251,14 @@ class liquid(Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(id)
+            name = self.safe_string(currency, 'name')
             active = currency['depositable'] and currency['withdrawable']
             amountPrecision = self.safe_integer(currency, 'assets_precision')
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': code,
+                'name': name,
                 'active': active,
                 'fee': self.safe_number(currency, 'withdrawal_fee'),
                 'precision': amountPrecision,
@@ -493,7 +504,7 @@ class liquid(Exchange):
             account['total'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'reserved_balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -923,7 +934,7 @@ class liquid(Exchange):
             # 'auth_code': '',  # optional 2fa code
             'currency': currency['id'],
             'address': address,
-            'amount': self.currency_to_precision(code, amount),
+            'amount': amount,
             # 'payment_id': tag,  # for XRP only
             # 'memo_type': 'text',  # 'text', 'id' or 'hash', for XLM only
             # 'memo_value': tag,  # for XLM only
@@ -952,11 +963,53 @@ class liquid(Exchange):
         #
         return self.parse_transaction(response, currency)
 
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # state: 'processed',  # optional: pending, filed, cancelled, processing, processed, reverted to_be_reviewed, declined, broadcasted
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        response = await self.privateGetCryptoWithdrawals(self.extend(request, params))
+        #
+        #     {
+        #         models: [
+        #             {
+        #                 id: '2',
+        #                 address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        #                 amount: '0.01',
+        #                 state: 'processed',
+        #                 currency: 'BTC',
+        #                 withdrawal_fee: '0.0005',
+        #                 created_at: '1614718276',
+        #                 updated_at: '1614720926',
+        #                 payment_id: null,
+        #                 transaction_hash: 'xxxxxxxx...',
+        #                 broadcasted_at: '1614720762',
+        #                 wallet_label: 'btc',
+        #                 chain_name: 'Bitcoin',
+        #                 network: null
+        #             },
+        #         ],
+        #         current_page: '1',
+        #         total_pages: '1'
+        #     }
+        #
+        transactions = self.safe_value(response, 'models', [])
+        return self.parse_transactions(transactions, currency, since, limit)
+
     def parse_transaction_status(self, status):
         statuses = {
             'pending': 'pending',
             'cancelled': 'canceled',
             'approved': 'ok',
+            'processing': 'pending',
+            'processed': 'ok',
+            'reverted': 'failed',
+            'to_be_reviewed': 'pending',
+            'declined': 'failed',
+            'broadcasted': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
@@ -965,32 +1018,58 @@ class liquid(Exchange):
         # withdraw
         #
         #     {
-        #         "id": 1353,
-        #         "address": "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
-        #         "amount": 1.0,
-        #         "state": "pending",
-        #         "currency": "BTC",
-        #         "withdrawal_fee": 0.0,
-        #         "created_at": 1568016450,
-        #         "updated_at": 1568016450,
-        #         "payment_id": null
-        #     }
+        #         id: '1',
+        #         address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        #         amount: '0.01',
+        #         state: 'pending',
+        #         currency: 'BTC',
+        #         withdrawal_fee: '0.0007',
+        #         created_at: '1626000533',
+        #         updated_at: '1626000533',
+        #         payment_id: null,
+        #         transaction_hash: null,
+        #         broadcasted_at: null,
+        #         wallet_label: null,
+        #         chain_name: 'Bitcoin',
+        #         network: null
+        #     },
         #
-        # fetchDeposits, fetchWithdrawals
+        # fetchWithdrawals
+        #
+        #     {
+        #         id: '2',
+        #         address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        #         amount: '0.01',
+        #         state: 'processed',
+        #         currency: 'BTC',
+        #         withdrawal_fee: '0.0005',
+        #         created_at: '1614718276',
+        #         updated_at: '1614720926',
+        #         payment_id: '',
+        #         transaction_hash: 'xxxxxxxx...',
+        #         broadcasted_at: '1614720762',
+        #         wallet_label: 'btc',
+        #         chain_name: 'Bitcoin',
+        #         network: null
+        #     },
+        #
+        # fetchDeposits
         #
         #     ...
         #
         id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string_2(transaction, 'payment_id', 'memo_value')
-        txid = None
-        currencyId = self.safe_string(transaction, 'asset')
+        txid = self.safe_string(transaction, 'transaction_hash')
+        currencyId = self.safe_string_2(transaction, 'currency', 'asset')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = self.safe_timestamp(transaction, 'created_at')
         updated = self.safe_timestamp(transaction, 'updated_at')
         type = 'withdrawal'
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        amount = self.safe_number(transaction, 'amount')
+        amountString = self.safe_string(transaction, 'amount')
+        feeCostString = self.safe_string(transaction, 'withdrawal_fee')
+        amount = self.parse_number(Precise.string_sub(amountString, feeCostString))
         return {
             'info': transaction,
             'id': id,
@@ -1004,7 +1083,10 @@ class liquid(Exchange):
             'currency': code,
             'status': status,
             'updated': updated,
-            'fee': None,
+            'fee': {
+                'currency': code,
+                'cost': self.parse_number(feeCostString),
+            },
         }
 
     def nonce(self):

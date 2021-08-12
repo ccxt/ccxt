@@ -43,7 +43,6 @@ class crex24(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -57,6 +56,7 @@ class crex24(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,  # actually, True, but will be implemented later
                 'fetchTradingFees': False,  # actually, True, but will be implemented later
+                'fetchFundingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
@@ -90,6 +90,10 @@ class crex24(Exchange):
                         'recentTrades',
                         'orderBook',
                         'ohlcv',
+                        'tradingFeeSchedules',
+                        'withdrawalFees',
+                        'currencyTransport',
+                        'currenciesWithdrawalFees',
                     ],
                 },
                 'trading': {
@@ -99,9 +103,8 @@ class crex24(Exchange):
                         'activeOrders',
                         'orderHistory',
                         'tradeHistory',
-                        'tradeFee',
-                        # self is in trading API according to their docs, but most likely a typo in their docs
-                        'moneyTransferStatus',
+                        'tradingFee',
+                        'tradeFee',  # The support of self method has been dropped on February 18, 2020. Please, use tradingFee method instead. https://docs.crex24.com/trade-api/v2/#trade-fee-and-rebate-discontinued
                     ],
                     'post': [
                         'placeOrder',
@@ -116,7 +119,6 @@ class crex24(Exchange):
                         'balance',
                         'depositAddress',
                         'moneyTransfers',
-                        # self is in trading API according to their docs, but most likely a typo in their docs
                         'moneyTransferStatus',
                         'previewWithdrawal',
                     ],
@@ -149,6 +151,7 @@ class crex24(Exchange):
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
+                'GTC': 'GastroCoin',  # conflict with Gitcoin and Game.com
                 'IQ': 'IQ.Cash',
                 'PUT': 'PutinCoin',
                 'SBTC': 'SBTCT',  # SiamBitcoin
@@ -193,24 +196,44 @@ class crex24(Exchange):
     def fetch_markets(self, params={}):
         response = self.publicGetInstruments(params)
         #
-        #     [{             symbol:   "$PAC-BTC",
-        #                baseCurrency:   "$PAC",
-        #               quoteCurrency:   "BTC",
-        #                 feeCurrency:   "BTC",
-        #                    tickSize:    1e-8,
-        #                    minPrice:    1e-8,
-        #                   minVolume:    1,
-        #         supportedOrderTypes: ["limit"],
-        #                       state:   "active"    },
-        #       {             symbol:   "ZZC-USD",
-        #                baseCurrency:   "ZZC",
-        #               quoteCurrency:   "USD",
-        #                 feeCurrency:   "USD",
-        #                    tickSize:    0.0001,
-        #                    minPrice:    0.0001,
-        #                   minVolume:    1,
-        #         supportedOrderTypes: ["limit"],
-        #                       state:   "active"   }        ]
+        #         [{
+        #             "symbol": "$PAC-BTC",
+        #             "baseCurrency": "$PAC",
+        #             "quoteCurrency": "BTC",
+        #             "feeCurrency": "BTC",
+        #             "feeSchedule": "OriginalSchedule",
+        #             "tickSize": 0.00000001,
+        #             "minPrice": 0.00000001,
+        #             "maxPrice": 10000000000.0,
+        #             "volumeIncrement": 0.00000001,
+        #             "minVolume": 1.0,
+        #             "maxVolume": 1000000000.0,
+        #             "minQuoteVolume": 0.000000000000001,
+        #             "maxQuoteVolume": 100000000000.0,
+        #             "supportedOrderTypes": [
+        #               "limit"
+        #             ],
+        #             "state": "delisted"
+        #           },
+        #           {
+        #             "symbol": "1INCH-USDT",
+        #             "baseCurrency": "1INCH",
+        #             "quoteCurrency": "USDT",
+        #             "feeCurrency": "USDT",
+        #             "feeSchedule": "FeeSchedule10",
+        #             "tickSize": 0.0001,
+        #             "minPrice": 0.0001,
+        #             "maxPrice": 10000000000.0,
+        #             "volumeIncrement": 0.00000001,
+        #             "minVolume": 0.01,
+        #             "maxVolume": 1000000000.0,
+        #             "minQuoteVolume": 0.000000000000001,
+        #             "maxQuoteVolume": 100000000000.0,
+        #             "supportedOrderTypes": [
+        #               "limit"
+        #             ],
+        #             "state": "active"
+        #           },]
         #
         result = []
         for i in range(0, len(response)):
@@ -223,7 +246,11 @@ class crex24(Exchange):
             symbol = base + '/' + quote
             tickSize = self.safe_number(market, 'tickSize')
             minPrice = self.safe_number(market, 'minPrice')
+            maxPrice = self.safe_number(market, 'maxPrice')
             minAmount = self.safe_number(market, 'minVolume')
+            maxAmount = self.safe_number(market, 'maxVolume')
+            minCost = self.safe_number(market, 'minQuoteVolume')
+            maxCost = self.safe_number(market, 'maxQuoteVolume')
             precision = {
                 'amount': minAmount,
                 'price': tickSize,
@@ -242,15 +269,15 @@ class crex24(Exchange):
                 'limits': {
                     'amount': {
                         'min': minAmount,
-                        'max': None,
+                        'max': maxAmount,
                     },
                     'price': {
                         'min': minPrice,
-                        'max': None,
+                        'max': maxPrice,
                     },
                     'cost': {
-                        'min': None,
-                        'max': None,
+                        'min': minCost,
+                        'max': maxCost,
                     },
                 },
             })
@@ -321,6 +348,46 @@ class crex24(Exchange):
             }
         return result
 
+    def fetch_funding_fees(self, codes=None, params={}):
+        self.load_markets()
+        response = self.publicGetCurrenciesWithdrawalFees(params)
+        #
+        #     [
+        #         {
+        #             currency: '1INCH',
+        #             fees: [
+        #                 {feeCurrency: 'BTC', amount: 0.00032},
+        #                 {feeCurrency: 'ETH', amount: 0.0054},
+        #                 {feeCurrency: 'DOGE', amount: 63.06669},
+        #                 {feeCurrency: 'LTC', amount: 0.0912},
+        #                 {feeCurrency: 'BCH', amount: 0.02364},
+        #                 {feeCurrency: 'USDT', amount: 12.717},
+        #                 {feeCurrency: 'USDC', amount: 12.7367},
+        #                 {feeCurrency: 'TRX', amount: 205.99108},
+        #                 {feeCurrency: 'EOS', amount: 3.30141}
+        #             ]
+        #         }
+        #     ]
+        #
+        withdrawFees = {}
+        for i in range(0, len(response)):
+            entry = response[i]
+            currencyId = self.safe_string(entry, 'currency')
+            code = self.safe_currency_code(currencyId)
+            networkList = self.safe_value(entry, 'fees')
+            withdrawFees[code] = {}
+            for j in range(0, len(networkList)):
+                networkEntry = networkList[j]
+                networkId = self.safe_string(networkEntry, 'feeCurrency')
+                networkCode = self.safe_currency_code(networkId)
+                fee = self.safe_number(networkEntry, 'amount')
+                withdrawFees[code][networkCode] = fee
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
+            'info': response,
+        }
+
     def fetch_balance(self, params={}):
         self.load_markets()
         request = {
@@ -346,7 +413,7 @@ class crex24(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'reserved')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

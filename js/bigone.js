@@ -99,26 +99,11 @@ module.exports = class bigone extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.001'),
                 },
                 'funding': {
-                    // HARDCODING IS DEPRECATED THE FEES BELOW ARE TO BE REMOVED SOON
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'ETH': 0.005,
-                        'EOS': 0.01,
-                        'ZEC': 0.003,
-                        'LTC': 0.01,
-                        'QTUM': 0.01,
-                        // 'INK': 0.01 QTUM,
-                        // 'BOT': 0.01 QTUM,
-                        'ETC': 0.01,
-                        'GAS': 0.0,
-                        'BTS': 1.0,
-                        'GXS': 0.1,
-                        'BITCNY': 19.0,
-                    },
+                    'withdraw': {},
                 },
             },
             'exceptions': {
@@ -126,6 +111,7 @@ module.exports = class bigone extends Exchange {
                     '10001': BadRequest, // syntax error
                     '10005': ExchangeError, // internal error
                     "Amount's scale must greater than AssetPair's base scale": InvalidOrder,
+                    "Price mulit with amount should larger than AssetPair's min_quote_value": InvalidOrder,
                     '10007': BadRequest, // parameter error, {"code":10007,"message":"Amount's scale must greater than AssetPair's base scale"}
                     '10011': ExchangeError, // system error
                     '10013': OrderNotFound, // {"code":10013,"message":"Resource not found"}
@@ -140,6 +126,7 @@ module.exports = class bigone extends Exchange {
                     '40601': ExchangeError, // resource is locked
                     '40602': ExchangeError, // resource is depleted
                     '40603': InsufficientFunds, // insufficient resource
+                    '40605': InvalidOrder, // {"code":40605,"message":"Price less than the minimum order price"}
                     '40120': InvalidOrder, // Order is in trading
                     '40121': InvalidOrder, // Order is already cancelled or filled
                 },
@@ -147,6 +134,8 @@ module.exports = class bigone extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'CRE': 'Cybereits',
+                'FXT': 'FXTTOKEN',
                 'MBN': 'Mobilian Coin',
                 'ONE': 'BigONE Token',
             },
@@ -200,7 +189,7 @@ module.exports = class bigone extends Exchange {
                 'amount': parseInt (amountPrecisionString),
                 'price': parseInt (pricePrecisionString),
             };
-            const minCost = this.safeInteger (market, 'min_quote_value');
+            const minCost = this.safeNumber (market, 'min_quote_value');
             const entry = {
                 'id': id,
                 'uuid': uuid,
@@ -499,7 +488,7 @@ module.exports = class bigone extends Exchange {
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': parseFloat (cost),
+            'cost': this.parseNumber (cost),
             'info': trade,
         };
         let makerCurrencyCode = undefined;
@@ -616,7 +605,8 @@ module.exports = class bigone extends Exchange {
         };
         if (since !== undefined) {
             // const start = parseInt (since / 1000);
-            const end = this.sum (since, limit * this.parseTimeframe (timeframe) * 1000);
+            const duration = this.parseTimeframe (timeframe);
+            const end = this.sum (since, limit * duration * 1000);
             request['time'] = this.iso8601 (end);
         }
         const response = await this.publicGetAssetPairsAssetPairNameCandles (this.extend (request, params));
@@ -678,7 +668,7 @@ module.exports = class bigone extends Exchange {
             account['used'] = this.safeString (balance, 'locked_balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrder (order, market = undefined) {
@@ -960,7 +950,7 @@ module.exports = class bigone extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        const baseUrl = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
+        const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         if (api === 'public') {
             if (Object.keys (query).length) {
@@ -1038,6 +1028,8 @@ module.exports = class bigone extends Exchange {
             'WITHHOLD': 'ok', // deposits
             'UNCONFIRMED': 'pending',
             'CONFIRMED': 'ok', // withdrawals
+            'COMPLETED': 'ok',
+            'PENDING': 'pending',
         };
         return this.safeString (statuses, status, status);
     }

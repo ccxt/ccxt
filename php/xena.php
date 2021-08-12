@@ -19,7 +19,6 @@ class xena extends Exchange {
             'name' => 'Xena Exchange',
             'countries' => array( 'VC', 'UK' ),
             'rateLimit' => 100,
-            'certified' => true,
             'has' => array(
                 'CORS' => false,
                 'cancelAllOrders' => true,
@@ -625,7 +624,7 @@ class xena extends Exchange {
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_trade($trade, $market = null) {

@@ -37,7 +37,6 @@ class crex24 extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -51,6 +50,7 @@ class crex24 extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false, // actually, true, but will be implemented later
                 'fetchTradingFees' => false, // actually, true, but will be implemented later
+                'fetchFundingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
@@ -84,6 +84,10 @@ class crex24 extends Exchange {
                         'recentTrades',
                         'orderBook',
                         'ohlcv',
+                        'tradingFeeSchedules',
+                        'withdrawalFees',
+                        'currencyTransport',
+                        'currenciesWithdrawalFees',
                     ),
                 ),
                 'trading' => array(
@@ -93,9 +97,8 @@ class crex24 extends Exchange {
                         'activeOrders',
                         'orderHistory',
                         'tradeHistory',
-                        'tradeFee',
-                        // this is in trading API according to their docs, but most likely a typo in their docs
-                        'moneyTransferStatus',
+                        'tradingFee',
+                        'tradeFee', // The support of this method has been dropped on February 18, 2020. Please, use tradingFee method instead. https://docs.crex24.com/trade-api/v2/#trade-fee-and-rebate-discontinued
                     ),
                     'post' => array(
                         'placeOrder',
@@ -110,7 +113,6 @@ class crex24 extends Exchange {
                         'balance',
                         'depositAddress',
                         'moneyTransfers',
-                        // this is in trading API according to their docs, but most likely a typo in their docs
                         'moneyTransferStatus',
                         'previewWithdrawal',
                     ),
@@ -143,6 +145,7 @@ class crex24 extends Exchange {
                 'EPS' => 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND' => 'FUNDChains',
                 'GHOST' => 'GHOSTPRISM',
+                'GTC' => 'GastroCoin', // conflict with Gitcoin and Game.com
                 'IQ' => 'IQ.Cash',
                 'PUT' => 'PutinCoin',
                 'SBTC' => 'SBTCT', // SiamBitcoin
@@ -189,24 +192,44 @@ class crex24 extends Exchange {
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetInstruments ($params);
         //
-        //     [ array(              $symbol =>   "$PAC-BTC",
-        //                baseCurrency =>   "$PAC",
-        //               quoteCurrency =>   "BTC",
-        //                 feeCurrency =>   "BTC",
-        //                    $tickSize =>    1e-8,
-        //                    $minPrice =>    1e-8,
-        //                   minVolume =>    1,
-        //         supportedOrderTypes => ["limit"],
-        //                       state =>   "$active"    ),
-        //       {              $symbol =>   "ZZC-USD",
-        //                baseCurrency =>   "ZZC",
-        //               quoteCurrency =>   "USD",
-        //                 feeCurrency =>   "USD",
-        //                    $tickSize =>    0.0001,
-        //                    $minPrice =>    0.0001,
-        //                   minVolume =>    1,
-        //         supportedOrderTypes => ["limit"],
-        //                       state =>   "$active"   }        ]
+        //         array( array(
+        //             "$symbol" => "$PAC-BTC",
+        //             "baseCurrency" => "$PAC",
+        //             "quoteCurrency" => "BTC",
+        //             "feeCurrency" => "BTC",
+        //             "feeSchedule" => "OriginalSchedule",
+        //             "$tickSize" => 0.00000001,
+        //             "$minPrice" => 0.00000001,
+        //             "$maxPrice" => 10000000000.0,
+        //             "volumeIncrement" => 0.00000001,
+        //             "minVolume" => 1.0,
+        //             "maxVolume" => 1000000000.0,
+        //             "minQuoteVolume" => 0.000000000000001,
+        //             "maxQuoteVolume" => 100000000000.0,
+        //             "supportedOrderTypes" => array(
+        //               "limit"
+        //             ),
+        //             "state" => "delisted"
+        //           ),
+        //           array(
+        //             "$symbol" => "1INCH-USDT",
+        //             "baseCurrency" => "1INCH",
+        //             "quoteCurrency" => "USDT",
+        //             "feeCurrency" => "USDT",
+        //             "feeSchedule" => "FeeSchedule10",
+        //             "$tickSize" => 0.0001,
+        //             "$minPrice" => 0.0001,
+        //             "$maxPrice" => 10000000000.0,
+        //             "volumeIncrement" => 0.00000001,
+        //             "minVolume" => 0.01,
+        //             "maxVolume" => 1000000000.0,
+        //             "minQuoteVolume" => 0.000000000000001,
+        //             "maxQuoteVolume" => 100000000000.0,
+        //             "supportedOrderTypes" => array(
+        //               "limit"
+        //             ),
+        //             "state" => "$active"
+        //           ), )
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -219,7 +242,11 @@ class crex24 extends Exchange {
             $symbol = $base . '/' . $quote;
             $tickSize = $this->safe_number($market, 'tickSize');
             $minPrice = $this->safe_number($market, 'minPrice');
+            $maxPrice = $this->safe_number($market, 'maxPrice');
             $minAmount = $this->safe_number($market, 'minVolume');
+            $maxAmount = $this->safe_number($market, 'maxVolume');
+            $minCost = $this->safe_number($market, 'minQuoteVolume');
+            $maxCost = $this->safe_number($market, 'maxQuoteVolume');
             $precision = array(
                 'amount' => $minAmount,
                 'price' => $tickSize,
@@ -238,15 +265,15 @@ class crex24 extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => $minAmount,
-                        'max' => null,
+                        'max' => $maxAmount,
                     ),
                     'price' => array(
                         'min' => $minPrice,
-                        'max' => null,
+                        'max' => $maxPrice,
                     ),
                     'cost' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $minCost,
+                        'max' => $maxCost,
                     ),
                 ),
             );
@@ -321,6 +348,49 @@ class crex24 extends Exchange {
         return $result;
     }
 
+    public function fetch_funding_fees($codes = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->publicGetCurrenciesWithdrawalFees ($params);
+        //
+        //     array(
+        //         {
+        //             currency => '1INCH',
+        //             fees => array(
+        //                 array( feeCurrency => 'BTC', amount => 0.00032 ),
+        //                 array( feeCurrency => 'ETH', amount => 0.0054 ),
+        //                 array( feeCurrency => 'DOGE', amount => 63.06669 ),
+        //                 array( feeCurrency => 'LTC', amount => 0.0912 ),
+        //                 array( feeCurrency => 'BCH', amount => 0.02364 ),
+        //                 array( feeCurrency => 'USDT', amount => 12.717 ),
+        //                 array( feeCurrency => 'USDC', amount => 12.7367 ),
+        //                 array( feeCurrency => 'TRX', amount => 205.99108 ),
+        //                 array( feeCurrency => 'EOS', amount => 3.30141 )
+        //             )
+        //         }
+        //     )
+        //
+        $withdrawFees = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $currencyId = $this->safe_string($entry, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $networkList = $this->safe_value($entry, 'fees');
+            $withdrawFees[$code] = array();
+            for ($j = 0; $j < count($networkList); $j++) {
+                $networkEntry = $networkList[$j];
+                $networkId = $this->safe_string($networkEntry, 'feeCurrency');
+                $networkCode = $this->safe_currency_code($networkId);
+                $fee = $this->safe_number($networkEntry, 'amount');
+                $withdrawFees[$code][$networkCode] = $fee;
+            }
+        }
+        return array(
+            'withdraw' => $withdrawFees,
+            'deposit' => array(),
+            'info' => $response,
+        );
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $request = array(
@@ -347,7 +417,7 @@ class crex24 extends Exchange {
             $account['used'] = $this->safe_string($balance, 'reserved');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

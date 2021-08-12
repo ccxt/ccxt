@@ -128,8 +128,8 @@ module.exports = class bitbay extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0,
-                    'taker': 0.1 / 100,
+                    'maker': this.parseNumber ('0.0'),
+                    'taker': this.parseNumber ('0.001'),
                     'percentage': true,
                     'tierBased': false,
                 },
@@ -184,18 +184,7 @@ module.exports = class bitbay extends Exchange {
                     },
                 },
                 'funding': {
-                    'withdraw': {
-                        'BTC': 0.0009,
-                        'LTC': 0.005,
-                        'ETH': 0.00126,
-                        'LSK': 0.2,
-                        'BCH': 0.0006,
-                        'GAME': 0.005,
-                        'DASH': 0.001,
-                        'BTG': 0.0008,
-                        'PLN': 4,
-                        'EUR': 1.5,
-                    },
+                    'withdraw': {},
                 },
             },
             'options': {
@@ -427,7 +416,7 @@ module.exports = class bitbay extends Exchange {
             account['free'] = this.safeString (balance, 'availableFunds');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -922,8 +911,7 @@ module.exports = class bitbay extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger2 (trade, 'time', 't');
-        const userAction = this.safeString (trade, 'userAction');
-        const side = (userAction === 'Buy') ? 'buy' : 'sell';
+        const side = this.safeStringLower2 (trade, 'userAction', 'ty');
         const wasTaker = this.safeValue (trade, 'wasTaker');
         let takerOrMaker = undefined;
         if (wasTaker !== undefined) {
@@ -1164,7 +1152,7 @@ module.exports = class bitbay extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
+        let url = this.implodeHostname (this.urls['api'][api]);
         if (api === 'public') {
             const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params) + '.json';

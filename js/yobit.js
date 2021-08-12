@@ -91,9 +91,11 @@ module.exports = class yobit extends Exchange {
                 'BCS': 'BitcoinStake',
                 'BITS': 'Bitstar',
                 'BLN': 'Bulleon',
+                'BNS': 'Benefit Bonus Coin',
                 'BOT': 'BOTcoin',
                 'BON': 'BONES',
                 'BPC': 'BitcoinPremium',
+                'BST': 'BitStone',
                 'BTS': 'Bitshares2',
                 'CAT': 'BitClave',
                 'CBC': 'CryptoBossCoin',
@@ -123,6 +125,7 @@ module.exports = class yobit extends Exchange {
                 'GENE': 'Genesiscoin',
                 'GOLD': 'GoldMint',
                 'GOT': 'Giotto Coin',
+                'GSX': 'GlowShares',
                 'HTML5': 'HTML',
                 'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
@@ -253,7 +256,7 @@ module.exports = class yobit extends Exchange {
             account['total'] = this.safeString (total, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchMarkets (params = {}) {
@@ -543,8 +546,6 @@ module.exports = class yobit extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'rate': this.priceToPrecision (symbol, price),
         };
-        price = parseFloat (price);
-        amount = parseFloat (amount);
         const response = await this.privatePostTrade (this.extend (request, params));
         let id = undefined;
         let status = 'open';

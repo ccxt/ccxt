@@ -38,6 +38,7 @@ module.exports = class exmo extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
+                'fetchWithdrawals': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -116,8 +117,8 @@ module.exports = class exmo extends Exchange {
                     'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.002'),
                 },
                 'funding': {
                     'tierBased': false,
@@ -362,6 +363,24 @@ module.exports = class exmo extends Exchange {
                                     { 'prov': 'ONG', 'dep': '0%', 'wd': '5 ONG' },
                                     { 'prov': 'ALGO', 'dep': '0%', 'wd': '0.01 ALGO' },
                                     { 'prov': 'ATOM', 'dep': '0%', 'wd': '0.05 ATOM' },
+                                    { 'prov': 'XTZ', 'dep': '-', 'wd': '0.5 XTZ' },
+                                    { 'prov': 'HP', 'dep': '0%', 'wd': '250 HP' },
+                                    { 'prov': 'WXT', 'dep': '-', 'wd': '50 WXT' },
+                                    { 'prov': 'CHZ', 'dep': '-', 'wd': '30 CHZ' },
+                                    { 'prov': 'ONE', 'dep': '-', 'wd': '1 ONE' },
+                                    { 'prov': 'IQN', 'dep': '-', 'wd': '3 IQN' },
+                                    { 'prov': 'PRQ', 'dep': '-', 'wd': '20 PRQ' },
+                                    { 'prov': 'HAI', 'dep': '-', 'wd': '50 HAI' },
+                                    { 'prov': 'LINK', 'dep': '-', 'wd': '0.3 LINK' },
+                                    { 'prov': 'UNI', 'dep': '0%', 'wd': '0.3 UNI' },
+                                    { 'prov': 'YFI', 'dep': '0%', 'wd': '0.0002 YFI' },
+                                    { 'prov': 'GNY', 'dep': '-', 'wd': '10 GNY' },
+                                    { 'prov': 'XYM', 'dep': '-', 'wd': '0.5 XYM' },
+                                    { 'prov': 'VITAE', 'dep': '-', 'wd': '0.5 VITAE' },
+                                    { 'prov': 'BTCV', 'dep': '0%', 'wd': '-' },
+                                    { 'prov': 'DOT', 'dep': '-', 'wd': '0.1 DOT' },
+                                    { 'prov': 'TON', 'dep': '-', 'wd': '-' },
+                                    { 'prov': 'TONCOIN', 'dep': '-', 'wd': '-' },
                                 ],
                             },
                             {
@@ -457,6 +476,7 @@ module.exports = class exmo extends Exchange {
                     '40016': OnMaintenance, // {"result":false,"error":"Error 40016: Maintenance work in progress"}
                     '40017': AuthenticationError, // Wrong API Key
                     '40032': PermissionDenied, // {"result":false,"error":"Error 40032: Access is denied for this API key"}
+                    '40033': PermissionDenied, // {"result":false,"error":"Error 40033: Access is denied, this resources are temporarily blocked to user"}
                     '40034': RateLimitExceeded, // {"result":false,"error":"Error 40034: Access is denied, rate limit is exceeded"}
                     '50052': InsufficientFunds,
                     '50054': InsufficientFunds,
@@ -469,7 +489,7 @@ module.exports = class exmo extends Exchange {
                 'broad': {
                     'range period is too long': BadRequest,
                     'invalid syntax': BadRequest,
-                    'API rate limit exceeded': RateLimitExceeded, // {"result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
+                    'API rate limit exceeded': RateLimitExceeded, // {"result":false,"error":"API rate limit exceeded for x.x.x.x. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
                 },
             },
             'orders': {}, // orders cache / emulation
@@ -523,7 +543,7 @@ module.exports = class exmo extends Exchange {
         return result;
     }
 
-    async fetchFundingFees (params = {}) {
+    async fetchFundingFeesHelper (params = {}) {
         let response = undefined;
         if (this.options['useWebapiForFetchingFees']) {
             response = await this.webGetCtrlFeesAndLimits (params);
@@ -565,8 +585,13 @@ module.exports = class exmo extends Exchange {
         return result;
     }
 
+    async fetchFundingFees (params = {}) {
+        await this.loadMarkets ();
+        return await this.fetchFundingFeesHelper (params);
+    }
+
     async fetchCurrencies (params = {}) {
-        const fees = await this.fetchFundingFees (params);
+        const fees = await this.fetchFundingFeesHelper (params);
         // todo redesign the 'fee' property in currencies
         const ids = Object.keys (fees['withdraw']);
         const limitsByMarketId = this.indexBy (fees['info']['data']['limits'], 'pair');
@@ -770,7 +795,8 @@ module.exports = class exmo extends Exchange {
         const codes = Object.keys (free);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            const currencyId = this.currencyId (code);
+            const currency = this.currency (code);
+            const currencyId = currency['id'];
             const account = this.account ();
             if (currencyId in free) {
                 account['free'] = this.safeString (free, currencyId);
@@ -780,7 +806,7 @@ module.exports = class exmo extends Exchange {
             }
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1413,15 +1439,50 @@ module.exports = class exmo extends Exchange {
         //            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
         //          }
         //
-        const timestamp = this.safeTimestamp (transaction, 'dt');
+        // fetchWithdrawals
+        //
+        //          {
+        //             "operation_id": 47412538520634344,
+        //             "created": 1573760013,
+        //             "updated": 1573760013,
+        //             "type": "withdraw",
+        //             "currency": "DOGE",
+        //             "status": "Paid",
+        //             "amount": "300",
+        //             "provider": "DOGE",
+        //             "commission": "0",
+        //             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id": 69670170,
+        //             "provider_type": "crypto",
+        //             "crypto_address": "DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "card_number": "",
+        //             "wallet_address": "",
+        //             "email": "",
+        //             "phone": "",
+        //             "extra": {
+        //                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "confirmations": null,
+        //                 "excode": "",
+        //                 "invoice": ""
+        //             },
+        //             "error": ""
+        //          },
+        //
+        const id = this.safeString (transaction, 'operation_id');
+        const timestamp = this.safeTimestamp2 (transaction, 'dt', 'created');
+        const updated = this.safeTimestamp (transaction, 'updated');
         let amount = this.safeNumber (transaction, 'amount');
         if (amount !== undefined) {
             amount = Math.abs (amount);
         }
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const txid = this.safeString (transaction, 'txid');
+        const status = this.parseTransactionStatus (this.safeStringLower (transaction, 'status'));
+        let txid = this.safeString (transaction, 'txid');
+        const extra = this.safeValue (transaction, 'extra', {});
+        if (txid === undefined) {
+            txid = this.safeString (extra, 'txid');
+        }
         const type = this.safeString (transaction, 'type');
-        const currencyId = this.safeString (transaction, 'curr');
+        const currencyId = this.safeString2 (transaction, 'curr', 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         let address = undefined;
         const tag = undefined;
@@ -1444,7 +1505,10 @@ module.exports = class exmo extends Exchange {
         // fixed funding fees only (for now)
         if (!this.fees['funding']['percentage']) {
             const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
-            let feeCost = this.safeNumber (this.options['fundingFees'][key], code);
+            let feeCost = this.safeNumber (transaction, 'commission');
+            if (feeCost === undefined) {
+                feeCost = this.safeNumber (this.options['fundingFees'][key], code);
+            }
             // users don't pay for cashbacks, no fees for that
             const provider = this.safeString (transaction, 'provider');
             if (provider === 'cashback') {
@@ -1464,7 +1528,7 @@ module.exports = class exmo extends Exchange {
         }
         return {
             'info': transaction,
-            'id': undefined,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': code,
@@ -1477,7 +1541,7 @@ module.exports = class exmo extends Exchange {
             'tagFrom': undefined,
             'status': status,
             'type': type,
-            'updated': undefined,
+            'updated': updated,
             'comment': comment,
             'txid': txid,
             'fee': fee,
@@ -1526,6 +1590,49 @@ module.exports = class exmo extends Exchange {
         //     }
         //
         return this.parseTransactions (response['history'], currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            'type': 'withdraw',
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default: 100, maximum: 100
+        }
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privatePostWalletOperations (this.extend (request, params));
+        //
+        //     {
+        //         "items": [
+        //         {
+        //             "operation_id": 47412538520634344,
+        //             "created": 1573760013,
+        //             "updated": 1573760013,
+        //             "type": "withdraw",
+        //             "currency": "DOGE",
+        //             "status": "Paid",
+        //             "amount": "300",
+        //             "provider": "DOGE",
+        //             "commission": "0",
+        //             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id": 69670170,
+        //             "extra": {
+        //                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "excode": "",
+        //                 "invoice": ""
+        //             },
+        //             "error": ""
+        //         },
+        //     ],
+        //         "count": 23
+        //     }
+        //
+        return this.parseTransactions (response['items'], currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

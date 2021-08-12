@@ -189,17 +189,26 @@ class hitbtc(Exchange):
                     'bank': 'bank',
                     'exchange': 'exchange',
                     'main': 'bank',  # alias of the above
+                    'funding': 'bank',
+                    'spot': 'exchange',
+                    'trade': 'exchange',
                     'trading': 'exchange',
                 },
                 'fetchBalanceMethod': {
                     'account': 'account',
+                    'bank': 'account',
                     'main': 'account',
+                    'funding': 'account',
+                    'exchange': 'trading',
+                    'spot': 'trading',
+                    'trade': 'trading',
                     'trading': 'trading',
                 },
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
                 'BCC': 'BCC',  # initial symbol for Bitcoin Cash, now inactive
+                'BDP': 'BidiPass',
                 'BET': 'DAO.Casino',
                 'BOX': 'BOX Token',
                 'CPT': 'Cryptaur',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
@@ -455,7 +464,7 @@ class hitbtc(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'reserved')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

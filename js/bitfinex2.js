@@ -141,6 +141,9 @@ module.exports = class bitfinex2 extends bitfinex {
                         'liquidations/hist',
                         'rankings/{key}:{timeframe}:{symbol}/{section}',
                         'rankings/{key}:{timeframe}:{symbol}/hist',
+                        'pulse/hist',
+                        'pulse/profile/{nickname}',
+                        'funding/stats/{symbol}/hist',
                     ],
                     'post': [
                         'calc/trade/avg',
@@ -219,39 +222,42 @@ module.exports = class bitfinex2 extends bitfinex {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.2 / 100,
+                    'feeSide': 'get',
+                    'percentage': true,
+                    'tierBased': true,
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.002'),
+                    'tiers': {
+                        'taker': [
+                            [this.parseNumber ('0'), this.parseNumber ('0.002')],
+                            [this.parseNumber ('500000'), this.parseNumber ('0.002')],
+                            [this.parseNumber ('1000000'), this.parseNumber ('0.002')],
+                            [this.parseNumber ('2500000'), this.parseNumber ('0.002')],
+                            [this.parseNumber ('5000000'), this.parseNumber ('0.002')],
+                            [this.parseNumber ('7500000'), this.parseNumber ('0.002')],
+                            [this.parseNumber ('10000000'), this.parseNumber ('0.0018')],
+                            [this.parseNumber ('15000000'), this.parseNumber ('0.0016')],
+                            [this.parseNumber ('20000000'), this.parseNumber ('0.0014')],
+                            [this.parseNumber ('25000000'), this.parseNumber ('0.0012')],
+                            [this.parseNumber ('30000000'), this.parseNumber ('0.001')],
+                        ],
+                        'maker': [
+                            [this.parseNumber ('0'), this.parseNumber ('0.001')],
+                            [this.parseNumber ('500000'), this.parseNumber ('0.0008')],
+                            [this.parseNumber ('1000000'), this.parseNumber ('0.0006')],
+                            [this.parseNumber ('2500000'), this.parseNumber ('0.0004')],
+                            [this.parseNumber ('5000000'), this.parseNumber ('0.0002')],
+                            [this.parseNumber ('7500000'), this.parseNumber ('0')],
+                            [this.parseNumber ('10000000'), this.parseNumber ('0')],
+                            [this.parseNumber ('15000000'), this.parseNumber ('0')],
+                            [this.parseNumber ('20000000'), this.parseNumber ('0')],
+                            [this.parseNumber ('25000000'), this.parseNumber ('0')],
+                            [this.parseNumber ('30000000'), this.parseNumber ('0')],
+                        ],
+                    },
                 },
                 'funding': {
-                    'withdraw': {
-                        'BTC': 0.0004,
-                        'BCH': 0.0001,
-                        'ETH': 0.00135,
-                        'EOS': 0.0,
-                        'LTC': 0.001,
-                        'OMG': 0.15097,
-                        'IOT': 0.0,
-                        'NEO': 0.0,
-                        'ETC': 0.01,
-                        'XRP': 0.02,
-                        'ETP': 0.01,
-                        'ZEC': 0.001,
-                        'BTG': 0.0,
-                        'DASH': 0.01,
-                        'XMR': 0.0001,
-                        'QTM': 0.01,
-                        'EDO': 0.23687,
-                        'DAT': 9.8858,
-                        'AVT': 1.1251,
-                        'SAN': 0.35977,
-                        'USDT': 5.0,
-                        'SPK': 16.971,
-                        'BAT': 1.1209,
-                        'GNT': 2.8789,
-                        'SNT': 9.0848,
-                        'QASH': 1.726,
-                        'YYW': 7.9464,
-                    },
+                    'withdraw': {},
                 },
             },
             'options': {
@@ -588,7 +594,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -930,7 +936,8 @@ module.exports = class bitfinex2 extends bitfinex {
             limit = 100; // default 100, max 5000
         }
         if (since === undefined) {
-            since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
+            const duration = this.parseTimeframe (timeframe);
+            since = this.milliseconds () - duration * limit * 1000;
         }
         const request = {
             'symbol': market['id'],

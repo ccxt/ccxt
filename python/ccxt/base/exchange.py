@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.50.69'
+__version__ = '1.54.86'
 
 # -----------------------------------------------------------------------------
 
@@ -134,6 +134,7 @@ class Exchange(object):
     verbose = False
     markets = None
     symbols = None
+    codes = None
     timeframes = None
     fees = {
         'trading': {
@@ -169,7 +170,6 @@ class Exchange(object):
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
     token = ''  # reserved for HTTP auth in some cases
     twofa = None
-    marketsById = None
     markets_by_id = None
     currencies_by_id = None
     precision = None
@@ -227,6 +227,7 @@ class Exchange(object):
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
+    positions = None
 
     status = {
         'status': 'ok',
@@ -340,6 +341,7 @@ class Exchange(object):
         self.tickers = dict() if self.tickers is None else self.tickers
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
+        self.positions = dict() if self.positions is None else self.positions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = dict() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
@@ -466,11 +468,13 @@ class Exchange(object):
             else:
                 cls.define_rest_api(value, method_name, paths + [key])
 
-    def throttle(self):
+    def throttle(self, cost=None):
         now = float(self.milliseconds())
         elapsed = now - self.lastRestRequestTimestamp
-        if elapsed < self.rateLimit:
-            delay = self.rateLimit - elapsed
+        cost = 1 if cost is None else cost
+        sleep_time = self.rateLimit * cost
+        if elapsed < sleep_time:
+            delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
 
     def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -526,7 +530,7 @@ class Exchange(object):
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         return self.set_headers(headers)
 
-    def print(self, *args):
+    def log(self, *args):
         print(*args)
 
     def set_headers(self, headers):
@@ -550,7 +554,7 @@ class Exchange(object):
         url = self.proxy + url
 
         if self.verbose:
-            self.print("\nRequest:", method, url, request_headers, body)
+            self.log("\nRequest:", method, url, request_headers, body)
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
         request_body = body
@@ -588,7 +592,7 @@ class Exchange(object):
             if self.enableLastResponseHeaders:
                 self.last_response_headers = headers
             if self.verbose:
-                self.print("\nResponse:", method, url, http_status_code, headers, http_response)
+                self.log("\nResponse:", method, url, http_status_code, headers, http_response)
             self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
             response.raise_for_status()
 
@@ -793,6 +797,10 @@ class Exchange(object):
         return format(random.getrandbits(length * 4), 'x')
 
     @staticmethod
+    def uuid16(length=16):
+        return format(random.getrandbits(length * 4), 'x')
+
+    @staticmethod
     def uuid():
         return str(uuid.uuid4())
 
@@ -898,6 +906,9 @@ class Exchange(object):
     @staticmethod
     def extract_params(string):
         return re.findall(r'{([\w-]+)}', string)
+
+    def implode_hostname(self, url):
+        return Exchange.implode_params(url, {'hostname': self.hostname})
 
     @staticmethod
     def implode_params(string, params):
@@ -1280,15 +1291,6 @@ class Exchange(object):
             return currency
         return self.safe_string(self.commonCurrencies, currency, currency)
 
-    def currency_id(self, commonCode):
-
-        if self.currencies:
-            if commonCode in self.currencies:
-                return self.currencies[commonCode]['id']
-
-        currencyIds = {v: k for k, v in self.commonCurrencies.items()}
-        return self.safe_string(currencyIds, commonCode, commonCode)
-
     def precision_from_string(self, string):
         parts = re.sub(r'0+$', '', string).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
@@ -1318,7 +1320,6 @@ class Exchange(object):
             )
         self.markets = self.index_by(values, 'symbol')
         self.markets_by_id = self.index_by(values, 'id')
-        self.marketsById = self.markets_by_id
         self.symbols = sorted(self.markets.keys())
         self.ids = sorted(self.markets_by_id.keys())
         if currencies:
@@ -1351,6 +1352,7 @@ class Exchange(object):
             currencies = self.sort_by(base_currencies + quote_currencies, 'code')
             self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
         self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
+        self.codes = sorted(self.currencies.keys())
         return self.markets
 
     def load_markets(self, reload=False, params={}):
@@ -1408,6 +1410,9 @@ class Exchange(object):
             'trading': trading,
             'funding': funding,
         }
+
+    def fetch_balance(self, params={}):
+        raise NotSupported('fetch_balance() not supported yet')
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         raise NotSupported('create_order() not supported yet')
@@ -1537,7 +1542,7 @@ class Exchange(object):
             'nonce': None,
         }
 
-    def parse_balance(self, balance, legacy=True):
+    def parse_balance(self, balance, legacy=False):
         currencies = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']).keys()
         balance['free'] = {}
         balance['used'] = {}
@@ -1909,12 +1914,12 @@ class Exchange(object):
     def market(self, symbol):
         if not self.markets:
             raise ExchangeError('Markets not loaded')
-        if isinstance(symbol, basestring) and (symbol in self.markets):
-            return self.markets[symbol]
+        if isinstance(symbol, basestring):
+            if symbol in self.markets:
+                return self.markets[symbol]
+            elif symbol in self.markets_by_id:
+                return self.markets_by_id[symbol]
         raise BadSymbol('{} does not have market symbol {}'.format(self.id, symbol))
-
-    def currency_ids(self, codes):
-        return [self.currency_id(code) for code in codes]
 
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]
@@ -2003,26 +2008,6 @@ class Exchange(object):
         if self.requiresEddsa and eddsa is None:
             raise NotSupported('Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
 
-    @staticmethod
-    def from_wei(amount, decimals=18):
-        if amount is None:
-            return None
-        amount_float = float(amount)
-        exponential = '{:.14e}'.format(amount_float)
-        n, exponent = exponential.split('e')
-        new_exponent = int(exponent) - decimals
-        return float(n + 'e' + str(new_exponent))
-
-    @staticmethod
-    def to_wei(amount, decimals=18):
-        if amount is None:
-            return None
-        amount_float = float(amount)
-        exponential = '{:.14e}'.format(amount_float)
-        n, exponent = exponential.split('e')
-        new_exponent = int(exponent) + decimals
-        return number_to_string(n + 'e' + str(new_exponent))
-
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
         public_key_bytes = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()
@@ -2094,16 +2079,6 @@ class Exchange(object):
             raise ExchangeError(self.id + ' set .twofa to use this feature')
 
     @staticmethod
-    def decimal_to_bytes(n, endian='big'):
-        """int.from_bytes and int.to_bytes don't work in python2"""
-        if n > 0:
-            next_byte = Exchange.decimal_to_bytes(n // 0x100, endian)
-            remainder = bytes([n % 0x100])
-            return next_byte + remainder if endian == 'big' else remainder + next_byte
-        else:
-            return b''
-
-    @staticmethod
     def totp(key):
         def hex_to_dec(n):
             return int(n, base=16)
@@ -2115,18 +2090,18 @@ class Exchange(object):
             return base64.b32decode(padded)  # throws an error if the key is invalid
 
         epoch = int(time.time()) // 30
-        hmac_res = Exchange.hmac(Exchange.decimal_to_bytes(epoch, 'big'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
+        hmac_res = Exchange.hmac(epoch.to_bytes(8, 'big'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
 
     @staticmethod
     def number_to_le(n, size):
-        return Exchange.decimal_to_bytes(int(n), 'little').ljust(size, b'\x00')
+        return int(n).to_bytes(size, 'little')
 
     @staticmethod
     def number_to_be(n, size):
-        return Exchange.decimal_to_bytes(int(n), 'big').rjust(size, b'\x00')
+        return int(n).to_bytes(size, 'big')
 
     @staticmethod
     def base16_to_binary(s):
@@ -2135,19 +2110,6 @@ class Exchange(object):
     @staticmethod
     def binary_to_base16(s):
         return Exchange.decode(base64.b16encode(s)).lower()
-
-    # python supports arbitrarily big integers
-    @staticmethod
-    def integer_divide(a, b):
-        return int(a) // int(b)
-
-    @staticmethod
-    def integer_pow(a, b):
-        return int(a) ** int(b)
-
-    @staticmethod
-    def integer_modulo(a, b):
-        return int(a) % int(b)
 
     def sleep(self, milliseconds):
         return time.sleep(milliseconds / 1000)
@@ -2165,7 +2127,7 @@ class Exchange(object):
         for i in range(len(s)):
             result *= 58
             result += Exchange.base58_decoder[s[i]]
-        return Exchange.decimal_to_bytes(result)
+        return result.to_bytes((result.bit_length() + 7) // 8, 'big')
 
     @staticmethod
     def binary_to_base58(b):

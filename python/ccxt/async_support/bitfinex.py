@@ -179,34 +179,34 @@ class bitfinex(Exchange):
                     'feeSide': 'get',
                     'tierBased': True,
                     'percentage': True,
-                    'maker': 0.1 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.002'),
                     'tiers': {
                         'taker': [
-                            [0, 0.2 / 100],
-                            [500000, 0.2 / 100],
-                            [1000000, 0.2 / 100],
-                            [2500000, 0.2 / 100],
-                            [5000000, 0.2 / 100],
-                            [7500000, 0.2 / 100],
-                            [10000000, 0.18 / 100],
-                            [15000000, 0.16 / 100],
-                            [20000000, 0.14 / 100],
-                            [25000000, 0.12 / 100],
-                            [30000000, 0.1 / 100],
+                            [self.parse_number('0'), self.parse_number('0.002')],
+                            [self.parse_number('500000'), self.parse_number('0.002')],
+                            [self.parse_number('1000000'), self.parse_number('0.002')],
+                            [self.parse_number('2500000'), self.parse_number('0.002')],
+                            [self.parse_number('5000000'), self.parse_number('0.002')],
+                            [self.parse_number('7500000'), self.parse_number('0.002')],
+                            [self.parse_number('10000000'), self.parse_number('0.0018')],
+                            [self.parse_number('15000000'), self.parse_number('0.0016')],
+                            [self.parse_number('20000000'), self.parse_number('0.0014')],
+                            [self.parse_number('25000000'), self.parse_number('0.0012')],
+                            [self.parse_number('30000000'), self.parse_number('0.001')],
                         ],
                         'maker': [
-                            [0, 0.1 / 100],
-                            [500000, 0.08 / 100],
-                            [1000000, 0.06 / 100],
-                            [2500000, 0.04 / 100],
-                            [5000000, 0.02 / 100],
-                            [7500000, 0],
-                            [10000000, 0],
-                            [15000000, 0],
-                            [20000000, 0],
-                            [25000000, 0],
-                            [30000000, 0],
+                            [self.parse_number('0'), self.parse_number('0.001')],
+                            [self.parse_number('500000'), self.parse_number('0.0008')],
+                            [self.parse_number('1000000'), self.parse_number('0.0006')],
+                            [self.parse_number('2500000'), self.parse_number('0.0004')],
+                            [self.parse_number('5000000'), self.parse_number('0.0002')],
+                            [self.parse_number('7500000'), self.parse_number('0')],
+                            [self.parse_number('10000000'), self.parse_number('0')],
+                            [self.parse_number('15000000'), self.parse_number('0')],
+                            [self.parse_number('20000000'), self.parse_number('0')],
+                            [self.parse_number('25000000'), self.parse_number('0')],
+                            [self.parse_number('30000000'), self.parse_number('0')],
                         ],
                     },
                 },
@@ -216,90 +216,8 @@ class bitfinex(Exchange):
                     # Actually deposit fees are free for larger deposits(> $1000 USD equivalent)
                     # these values below are deprecated, we should not hardcode fees and limits anymore
                     # to be reimplemented with bitfinex funding fees from their API or web endpoints
-                    'deposit': {
-                        'BTC': 0.0004,
-                        'IOTA': 0.5,
-                        'ETH': 0.0027,
-                        'BCH': 0.0001,
-                        'LTC': 0.001,
-                        'EOS': 0.24279,
-                        'XMR': 0.04,
-                        'SAN': 0.99269,
-                        'DASH': 0.01,
-                        'ETC': 0.01,
-                        'XRP': 0.02,
-                        'YYW': 16.915,
-                        'NEO': 0,
-                        'ZEC': 0.001,
-                        'BTG': 0,
-                        'OMG': 0.14026,
-                        'DATA': 20.773,
-                        'QASH': 1.9858,
-                        'ETP': 0.01,
-                        'QTUM': 0.01,
-                        'EDO': 0.95001,
-                        'AVT': 1.3045,
-                        'USDT': 0,
-                        'TRX': 28.184,
-                        'ZRX': 1.9947,
-                        'RCN': 10.793,
-                        'TNB': 31.915,
-                        'SNT': 14.976,
-                        'RLC': 1.414,
-                        'GNT': 5.8952,
-                        'SPK': 10.893,
-                        'REP': 0.041168,
-                        'BAT': 6.1546,
-                        'ELF': 1.8753,
-                        'FUN': 32.336,
-                        'SNG': 18.622,
-                        'AID': 8.08,
-                        'MNA': 16.617,
-                        'NEC': 1.6504,
-                        'XTZ': 0.2,
-                    },
-                    'withdraw': {
-                        'BTC': 0.0004,
-                        'IOTA': 0.5,
-                        'ETH': 0.0027,
-                        'BCH': 0.0001,
-                        'LTC': 0.001,
-                        'EOS': 0.24279,
-                        'XMR': 0.04,
-                        'SAN': 0.99269,
-                        'DASH': 0.01,
-                        'ETC': 0.01,
-                        'XRP': 0.02,
-                        'YYW': 16.915,
-                        'NEO': 0,
-                        'ZEC': 0.001,
-                        'BTG': 0,
-                        'OMG': 0.14026,
-                        'DATA': 20.773,
-                        'QASH': 1.9858,
-                        'ETP': 0.01,
-                        'QTUM': 0.01,
-                        'EDO': 0.95001,
-                        'AVT': 1.3045,
-                        'USDT': 20,
-                        'TRX': 28.184,
-                        'ZRX': 1.9947,
-                        'RCN': 10.793,
-                        'TNB': 31.915,
-                        'SNT': 14.976,
-                        'RLC': 1.414,
-                        'GNT': 5.8952,
-                        'SPK': 10.893,
-                        'REP': 0.041168,
-                        'BAT': 6.1546,
-                        'ELF': 1.8753,
-                        'FUN': 32.336,
-                        'SNG': 18.622,
-                        'AID': 8.08,
-                        'MNA': 16.617,
-                        'NEC': 1.6504,
-                        'XTZ': 0.2,
-                    },
+                    'deposit': {},
+                    'withdraw': {},
                 },
             },
             # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
@@ -328,6 +246,7 @@ class bitfinex(Exchange):
                 'RBT': 'RBTC',
                 'SNG': 'SNGLS',
                 'STJ': 'STORJ',
+                'TERRAUST': 'UST',
                 'TSD': 'TUSD',
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
@@ -647,7 +566,7 @@ class bitfinex(Exchange):
                     account['free'] = self.safe_string(balance, 'available')
                     account['total'] = self.safe_string(balance, 'amount')
                     result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         # transferring between derivatives wallet and regular wallet is not documented in their API
@@ -662,9 +581,9 @@ class bitfinex(Exchange):
         if toId is None:
             keys = list(accountsByType.keys())
             raise ExchangeError(self.id + ' transfer toAccount must be one of ' + ', '.join(keys))
-        currencyId = self.currency_id(code)
-        fromCurrencyId = self.convert_derivatives_id(currencyId, fromAccount)
-        toCurrencyId = self.convert_derivatives_id(currencyId, toAccount)
+        currency = self.currency(code)
+        fromCurrencyId = self.convert_derivatives_id(currency['id'], fromAccount)
+        toCurrencyId = self.convert_derivatives_id(currency['id'], toAccount)
         requestedAmount = self.currency_to_precision(code, amount)
         request = {
             'amount': requestedAmount,
@@ -785,9 +704,7 @@ class bitfinex(Exchange):
 
     def parse_trade(self, trade, market):
         id = self.safe_string(trade, 'tid')
-        timestamp = self.safe_number(trade, 'timestamp')
-        if timestamp is not None:
-            timestamp = int(timestamp) * 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         type = None
         side = self.safe_string_lower(trade, 'type')
         orderId = self.safe_string(trade, 'order_id')
@@ -1145,12 +1062,8 @@ class bitfinex(Exchange):
         #         "timestamp_created": "1561716066.0"
         #     }
         #
-        timestamp = self.safe_number(transaction, 'timestamp_created')
-        if timestamp is not None:
-            timestamp = int(timestamp * 1000)
-        updated = self.safe_number(transaction, 'timestamp')
-        if updated is not None:
-            updated = int(updated * 1000)
+        timestamp = self.safe_timestamp(transaction, 'timestamp_created')
+        updated = self.safe_timestamp(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         type = self.safe_string_lower(transaction, 'type')  # DEPOSIT or WITHDRAWAL

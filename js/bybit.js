@@ -62,9 +62,19 @@ module.exports = class bybit extends Exchange {
                 '1y': 'Y',
             },
             'urls': {
-                'test': 'https://api-testnet.{hostname}',
+                'test': {
+                    'futures': 'https://api-testnet.{hostname}',
+                    'v2': 'https://api-testnet.{hostname}',
+                    'public': 'https://api-testnet.{hostname}',
+                    'private': 'https://api-testnet.{hostname}',
+                },
                 'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'futures': 'https://api.{hostname}',
+                    'v2': 'https://api.{hostname}',
+                    'public': 'https://api.{hostname}',
+                    'private': 'https://api.{hostname}',
+                },
                 'www': 'https://www.bybit.com',
                 'doc': [
                     'https://bybit-exchange.github.io/docs/inverse/',
@@ -312,17 +322,24 @@ module.exports = class bybit extends Exchange {
             'options': {
                 'marketTypes': {
                     'BTC/USDT': 'linear',
-                    'BCH/USDT': 'linear',
                     'ETH/USDT': 'linear',
-                    'LTC/USDT': 'linear',
-                    'XTZ/USDT': 'linear',
-                    'LINK/USDT': 'linear',
+                    'BNB/USDT': 'linear',
                     'ADA/USDT': 'linear',
+                    'DOGE/USDT': 'linear',
+                    'XRP/USDT': 'linear',
                     'DOT/USDT': 'linear',
                     'UNI/USDT': 'linear',
+                    'BCH/USDT': 'linear',
+                    'LTC/USDT': 'linear',
+                    'SOL/USDT': 'linear',
+                    'LINK/USDT': 'linear',
+                    'MATIC/USDT': 'linear',
+                    'ETC/USDT': 'linear',
+                    'FIL/USDT': 'linear',
+                    'EOS/USDT': 'linear',
                     'AAVE/USDT': 'linear',
+                    'XTZ/USDT': 'linear',
                     'SUSHI/USDT': 'linear',
-                    'XRP/USDT': 'linear',
                     'XEM/USDT': 'linear',
                     'BTC/USD': 'inverse',
                     'ETH/USD': 'inverse',
@@ -1013,7 +1030,7 @@ module.exports = class bybit extends Exchange {
             account['total'] = this.safeString (balance, 'equity');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
@@ -1125,7 +1142,7 @@ module.exports = class bybit extends Exchange {
         //             "trigger_price":12400,
         //             "close_on_trigger":true,
         //             "op_from":"api",
-        //             "remark":"145.53.159.48",
+        //             "remark":"x.x.x.x",
         //             "o_req_num":0
         //         },
         //         "leaves_qty":10,
@@ -1134,7 +1151,7 @@ module.exports = class bybit extends Exchange {
         //         "cross_seq":-1,
         //         "created_at":"2020-08-21T09:18:48.000Z",
         //         "updated_at":"2020-08-21T09:18:48.000Z",
-        //         "stop_px":12400,
+        //         "trigger_price":12400,
         //         "stop_order_id":"3f3b54b1-3379-42c7-8510-44f4d9915be0"
         //     }
         //
@@ -1183,7 +1200,7 @@ module.exports = class bybit extends Exchange {
             clientOrderId = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
-        const stopPrice = this.safeNumber (order, 'stop_px');
+        const stopPrice = this.safeNumber2 (order, 'trigger_price', 'stop_px');
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'info': order,
@@ -1688,7 +1705,7 @@ module.exports = class bybit extends Exchange {
         }
         let query = params;
         if (('stop_order_id' in params) || ('stop_order_status' in params)) {
-            let stopOrderStatus = this.safeValue (params, 'stopOrderStatus');
+            let stopOrderStatus = this.safeValue (params, 'stop_order_status');
             if (stopOrderStatus !== undefined) {
                 if (Array.isArray (stopOrderStatus)) {
                     stopOrderStatus = stopOrderStatus.join (',');
@@ -2334,9 +2351,9 @@ module.exports = class bybit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
         const type = this.safeString (api, 0);
         const section = this.safeString (api, 1);
+        let url = this.implodeHostname (this.urls['api'][type]);
         let request = '/' + type + '/' + section + '/' + path;
         // public v2
         if (section === 'public') {

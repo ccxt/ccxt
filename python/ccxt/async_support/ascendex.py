@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -24,8 +23,9 @@ class ascendex(Exchange):
         return self.deep_extend(super(ascendex, self).describe(), {
             'id': 'ascendex',
             'name': 'AscendEX',
-            'countries': ['SG', 'CN'],  # Singapore, China
+            'countries': ['SG'],  # Singapore
             'rateLimit': 500,
+            'certified': True,
             # new metainfo interface
             'has': {
                 'CORS': False,
@@ -74,7 +74,10 @@ class ascendex(Exchange):
                     'https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation',
                 ],
                 'fees': 'https://ascendex.com/en/feerate/transactionfee-traderate',
-                'referral': 'https://bitmax.io/#/register?inviteCode=EL6BXBQM',
+                'referral': {
+                    'url': 'https://ascendex.com/en-us/register?inviteCode=EL6BXBQM',
+                    'discount': 0.25,
+                },
             },
             'api': {
                 'public': {
@@ -145,8 +148,8 @@ class ascendex(Exchange):
                     'feeSide': 'get',
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.002,
-                    'maker': 0.002,
+                    'taker': self.parse_number('0.002'),
+                    'maker': self.parse_number('0.002'),
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -304,7 +307,8 @@ class ascendex(Exchange):
             id = ids[i]
             currency = dataById[id]
             code = self.safe_currency_code(id)
-            precision = self.safe_integer_2(currency, 'precisionScale', 'nativeScale')
+            precision = self.safe_string_2(currency, 'precisionScale', 'nativeScale')
+            minAmount = self.parse_precision(precision)
             # why would the exchange API have different names for the same field
             fee = self.safe_number_2(currency, 'withdrawFee', 'withdrawalFee')
             status = self.safe_string_2(currency, 'status', 'statusCode')
@@ -319,10 +323,10 @@ class ascendex(Exchange):
                 'name': self.safe_string(currency, 'assetName'),
                 'active': active,
                 'fee': fee,
-                'precision': precision,
+                'precision': int(precision),
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
+                        'min': self.parse_number(minAmount),
                         'max': None,
                     },
                     'withdraw': {
@@ -433,9 +437,11 @@ class ascendex(Exchange):
             type = 'spot' if ('useLot' in market) else 'future'
             spot = (type == 'spot')
             future = (type == 'future')
+            margin = self.safe_value(market, 'marginTradable', False)
             symbol = id
             if not future:
                 symbol = base + '/' + quote
+            fee = self.safe_number(market, 'commissionReserveRate')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -446,9 +452,12 @@ class ascendex(Exchange):
                 'info': market,
                 'type': type,
                 'spot': spot,
+                'margin': margin,
                 'future': future,
                 'active': active,
                 'precision': precision,
+                'taker': fee,
+                'maker': fee,
                 'limits': {
                     'amount': {
                         'min': self.safe_number(market, 'minQty'),
@@ -574,7 +583,7 @@ class ascendex(Exchange):
             account['free'] = self.safe_string(balance, 'availableBalance')
             account['total'] = self.safe_string(balance, 'totalBalance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

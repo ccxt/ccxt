@@ -71,10 +71,13 @@ class kucoin(Exchange):
                     'public': 'https://openapi-v2.kucoin.com',
                     'private': 'https://openapi-v2.kucoin.com',
                     'futuresPrivate': 'https://api-futures.kucoin.com',
+                    'futuresPublic': 'https://api-futures.kucoin.com',
                 },
                 'test': {
                     'public': 'https://openapi-sandbox.kucoin.com',
                     'private': 'https://openapi-sandbox.kucoin.com',
+                    'futuresPrivate': 'https://api-sandbox-futures.kucoin.com',
+                    'futuresPublic': 'https://api-sandbox-futures.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -95,11 +98,8 @@ class kucoin(Exchange):
                         'markets',
                         'market/allTickers',
                         'market/orderbook/level{level}_{limit}',
-                        'market/orderbook/level{level}',
-                        'market/orderbook/level2',
                         'market/orderbook/level2_20',
                         'market/orderbook/level2_100',
-                        'market/orderbook/level3',
                         'market/histories',
                         'market/candles',
                         'market/stats',
@@ -115,6 +115,9 @@ class kucoin(Exchange):
                 },
                 'private': {
                     'get': [
+                        'market/orderbook/level{level}',
+                        'market/orderbook/level2',
+                        'market/orderbook/level3',
                         'accounts',
                         'accounts/{accountId}',
                         'accounts/{accountId}/ledgers',
@@ -179,13 +182,66 @@ class kucoin(Exchange):
                         'stop-order/cancel',
                     ],
                 },
+                'futuresPublic': {
+                    'get': [
+                        'contracts/active',
+                        'contracts/{symbol}',
+                        'ticker',
+                        'level2/snapshot',
+                        'level2/depth20',
+                        'level2/depth100',
+                        'level2/message/query',
+                        'level3/message/query',  # deprecated，level3/snapshot is suggested
+                        'level3/snapshot',  # v2
+                        'trade/history',
+                        'interest/query',
+                        'index/query',
+                        'mark-price/{symbol}/current',
+                        'premium/query',
+                        'funding-rate/{symbol}/current',
+                        'timestamp',
+                        'status',
+                        'kline/query',
+                    ],
+                    'post': [
+                        'bullet-public',
+                    ],
+                },
                 'futuresPrivate': {
                     'get': [
                         'account-overview',
+                        'transaction-history',
+                        'deposit-address',
+                        'deposit-list',
+                        'withdrawals/quotas',
+                        'withdrawal-list',
+                        'transfer-list',
+                        'orders',
+                        'stopOrders',
+                        'recentDoneOrders',
+                        'orders/{order-id}',  # ?clientOid={client-order-id}  # get order by orderId
+                        'orders/byClientOid',  # ?clientOid=eresc138b21023a909e5ad59  # get order by clientOid
+                        'fills',
+                        'recentFills',
+                        'openOrderStatistics',
+                        'position',
                         'positions',
+                        'funding-history',
                     ],
                     'post': [
-                        'transfer-out',
+                        'withdrawals',
+                        'transfer-out',  # v2
+                        'orders',
+                        'position/margin/auto-deposit-status',
+                        'position/margin/deposit-margin',
+                        'bullet-private',
+                    ],
+                    'delete': [
+                        'withdrawals/{withdrawalId}',
+                        'cancel/transfer-out',
+                        'orders/{order-id}',
+                        'orders',
+                        'stopOrders',
                     ],
                 },
             },
@@ -276,15 +332,17 @@ class kucoin(Exchange):
                     'public': {
                         'GET': {
                             'status': 'v1',
-                            'market/orderbook/level2': 'v2',
-                            'market/orderbook/level3': 'v2',
                             'market/orderbook/level2_20': 'v1',
                             'market/orderbook/level2_100': 'v1',
-                            'market/orderbook/level{level}': 'v2',
                             'market/orderbook/level{level}_{limit}': 'v1',
                         },
                     },
                     'private': {
+                        'GET': {
+                            'market/orderbook/level2': 'v3',
+                            'market/orderbook/level3': 'v3',
+                            'market/orderbook/level{level}': 'v3',
+                        },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
@@ -299,12 +357,19 @@ class kucoin(Exchange):
                             'transfer-out': 'v2',
                         },
                     },
+                    'futuresPublic': {
+                        'GET': {
+                            'level3/snapshot': 'v2',
+                        },
+                    },
                 },
                 'accountsByType': {
                     'trade': 'trade',
                     'trading': 'trade',
+                    'spot': 'trade',
                     'margin': 'margin',
                     'main': 'main',
+                    'funding': 'main',
                     'futures': 'contract',
                     'contract': 'contract',
                     'pool': 'pool',
@@ -505,9 +570,10 @@ class kucoin(Exchange):
         return result
 
     def fetch_funding_fee(self, code, params={}):
-        currencyId = self.currency_id(code)
+        self.load_markets()
+        currency = self.currency(code)
         request = {
-            'currency': currencyId,
+            'currency': currency['id'],
         }
         response = self.privateGetWithdrawalsQuotas(self.extend(request, params))
         data = response['data']
@@ -710,8 +776,8 @@ class kucoin(Exchange):
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()
-        currencyId = self.currency_id(code)
-        request = {'currency': currencyId}
+        currency = self.currency(code)
+        request = {'currency': currency['id']}
         response = self.privatePostDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
@@ -733,8 +799,8 @@ class kucoin(Exchange):
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
-        currencyId = self.currency_id(code)
-        request = {'currency': currencyId}
+        currency = self.currency(code)
+        request = {'currency': currency['id']}
         response = self.privateGetDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
@@ -759,7 +825,7 @@ class kucoin(Exchange):
         marketId = self.market_id(symbol)
         level = self.safe_integer(params, 'level', 2)
         request = {'symbol': marketId, 'level': level}
-        method = 'publicGetMarketOrderbookLevelLevel'
+        method = 'privateGetMarketOrderbookLevelLevel'
         if level == 2:
             if limit is not None:
                 if (limit == 20) or (limit == 100):
@@ -1345,11 +1411,15 @@ class kucoin(Exchange):
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
         self.check_address(address)
-        currency = self.currency_id(code)
+        currency = self.currency(code)
         request = {
-            'currency': currency,
+            'currency': currency['id'],
             'address': address,
             'amount': amount,
+            # 'memo': tag,
+            # 'isInner': False,  # internal transfer or external withdrawal
+            # 'remark': 'optional',
+            # 'chain': 'OMNI',  # 'ERC20', 'TRC20', default is ERC20
         }
         if tag is not None:
             request['memo'] = tag
@@ -1637,7 +1707,7 @@ class kucoin(Exchange):
             account['free'] = self.safe_string(data, 'availableBalance')
             account['total'] = self.safe_string(data, 'accountEquity')
             result[code] = account
-            return self.parse_balance(result, False)
+            return self.parse_balance(result)
         else:
             request = {
                 'type': type,
@@ -1670,7 +1740,7 @@ class kucoin(Exchange):
                     account['free'] = self.safe_string(balance, 'available')
                     account['used'] = self.safe_string(balance, 'holds')
                     result[code] = account
-            return self.parse_balance(result, False)
+            return self.parse_balance(result)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         self.load_markets()

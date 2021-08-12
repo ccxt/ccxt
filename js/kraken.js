@@ -977,7 +977,7 @@ module.exports = class kraken extends Exchange {
             account['total'] = this.safeString (balances, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1285,9 +1285,9 @@ module.exports = class kraken extends Exchange {
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchOrderTrades', {});
         const batchSize = this.safeInteger (options, 'batchSize', 20);
-        let numBatches = parseInt (tradeIds / batchSize);
-        numBatches = this.sum (numBatches, 1);
         const numTradeIds = tradeIds.length;
+        let numBatches = parseInt (numTradeIds / batchSize);
+        numBatches = this.sum (numBatches, 1);
         let result = [];
         for (let j = 0; j < numBatches; j++) {
             const requestIds = [];
@@ -1725,9 +1725,11 @@ module.exports = class kraken extends Exchange {
                 // 'address': address, // they don't allow withdrawals to direct addresses
             };
             const response = await this.privatePostWithdraw (this.extend (request, params));
+            const result = this.safeValue (response, 'result', {});
+            const id = this.safeString (result, 'refid');
             return {
-                'info': response,
-                'id': response['result'],
+                'info': result,
+                'id': id,
             };
         }
         throw new ExchangeError (this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");

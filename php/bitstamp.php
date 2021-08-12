@@ -24,6 +24,7 @@ class bitstamp extends Exchange {
             'pro' => true,
             'has' => array(
                 'CORS' => true,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -51,7 +52,6 @@ class bitstamp extends Exchange {
                 'api' => array(
                     'public' => 'https://www.bitstamp.net/api',
                     'private' => 'https://www.bitstamp.net/api',
-                    'v1' => 'https://www.bitstamp.net/api',
                 ),
                 'www' => 'https://www.bitstamp.net',
                 'doc' => 'https://www.bitstamp.net/api',
@@ -73,7 +73,6 @@ class bitstamp extends Exchange {
             'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,
-                'uid' => true,
             ),
             'api' => array(
                 'public' => array(
@@ -98,12 +97,18 @@ class bitstamp extends Exchange {
                         'open_orders/{pair}/',
                         'order_status/',
                         'cancel_order/',
+                        'cancel_all_orders/',
+                        'cancel_all_orders/{pair}/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
                         'buy/instant/{pair}/',
                         'sell/{pair}/',
                         'sell/market/{pair}/',
                         'sell/instant/{pair}/',
+                        'btc_withdrawal/',
+                        'btc_address/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -148,6 +153,18 @@ class bitstamp extends Exchange {
                         'crv_address/',
                         'algo_withdrawal/',
                         'algo_address/',
+                        'comp_withdrawal/',
+                        'comp_address/',
+                        'grt_withdrawal',
+                        'grt_address/',
+                        'usdt_withdrawal/',
+                        'usdt_address/',
+                        'eurt_withdrawal/',
+                        'eurt_address/',
+                        'matic_withdrawal/',
+                        'matic_address/',
+                        'sushi_withdrawal/',
+                        'sushi_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -156,15 +173,7 @@ class bitstamp extends Exchange {
                         'withdrawal/cancel/',
                         'liquidation_address/new/',
                         'liquidation_address/info/',
-                    ),
-                ),
-                'v1' => array(
-                    'post' => array(
-                        'bitcoin_deposit_address/',
-                        'unconfirmed_btc/',
-                        'bitcoin_withdrawal/',
-                        'ripple_withdrawal/',
-                        'ripple_address/',
+                        'btc_unconfirmed/',
                     ),
                 ),
             ),
@@ -172,63 +181,53 @@ class bitstamp extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.5 / 100,
-                    'maker' => 0.5 / 100,
+                    'taker' => $this->parse_number('0.005'),
+                    'maker' => $this->parse_number('0.005'),
                     'tiers' => array(
-                        'taker' => [
-                            [0, 0.5 / 100],
-                            [20000, 0.25 / 100],
-                            [100000, 0.24 / 100],
-                            [200000, 0.22 / 100],
-                            [400000, 0.20 / 100],
-                            [600000, 0.15 / 100],
-                            [1000000, 0.14 / 100],
-                            [2000000, 0.13 / 100],
-                            [4000000, 0.12 / 100],
-                            [20000000, 0.11 / 100],
-                            [50000000, 0.10 / 100],
-                            [100000000, 0.07 / 100],
-                            [500000000, 0.05 / 100],
-                            [2000000000, 0.03 / 100],
-                            [6000000000, 0.01 / 100],
-                            [10000000000, 0.005 / 100],
-                            [10000000001, 0.0],
-                        ],
-                        'maker' => [
-                            [0, 0.5 / 100],
-                            [20000, 0.25 / 100],
-                            [100000, 0.24 / 100],
-                            [200000, 0.22 / 100],
-                            [400000, 0.20 / 100],
-                            [600000, 0.15 / 100],
-                            [1000000, 0.14 / 100],
-                            [2000000, 0.13 / 100],
-                            [4000000, 0.12 / 100],
-                            [20000000, 0.11 / 100],
-                            [50000000, 0.10 / 100],
-                            [100000000, 0.07 / 100],
-                            [500000000, 0.05 / 100],
-                            [2000000000, 0.03 / 100],
-                            [6000000000, 0.01 / 100],
-                            [10000000000, 0.005 / 100],
-                            [10000000001, 0.0],
-                        ],
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.005') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.0025') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0024') ),
+                            array( $this->parse_number('200000'), $this->parse_number('0.0022') ),
+                            array( $this->parse_number('400000'), $this->parse_number('0.0020') ),
+                            array( $this->parse_number('600000'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('2000000'), $this->parse_number('0.0013') ),
+                            array( $this->parse_number('4000000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('20000000'), $this->parse_number('0.0011') ),
+                            array( $this->parse_number('50000000'), $this->parse_number('0.0010') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0.0007') ),
+                            array( $this->parse_number('500000000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('2000000000'), $this->parse_number('0.0003') ),
+                            array( $this->parse_number('6000000000'), $this->parse_number('0.0001') ),
+                            array( $this->parse_number('20000000000'), $this->parse_number('0.00005') ),
+                            array( $this->parse_number('20000000001'), $this->parse_number('0') ),
+                        ),
+                        'maker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.005') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.0025') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0024') ),
+                            array( $this->parse_number('200000'), $this->parse_number('0.0022') ),
+                            array( $this->parse_number('400000'), $this->parse_number('0.0020') ),
+                            array( $this->parse_number('600000'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('2000000'), $this->parse_number('0.0013') ),
+                            array( $this->parse_number('4000000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('20000000'), $this->parse_number('0.0011') ),
+                            array( $this->parse_number('50000000'), $this->parse_number('0.0010') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0.0007') ),
+                            array( $this->parse_number('500000000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('2000000000'), $this->parse_number('0.0003') ),
+                            array( $this->parse_number('6000000000'), $this->parse_number('0.0001') ),
+                            array( $this->parse_number('20000000000'), $this->parse_number('0.00005') ),
+                            array( $this->parse_number('20000000001'), $this->parse_number('0') ),
+                        ),
                     ),
                 ),
                 'funding' => array(
                     'tierBased' => false,
                     'percentage' => false,
-                    'withdraw' => array(
-                        'BTC' => 0.0005,
-                        'BCH' => 0.0001,
-                        'LTC' => 0.001,
-                        'ETH' => 0.001,
-                        'XRP' => 0.02,
-                        'XLM' => 0.005,
-                        'PAX' => 0.5,
-                        'USD' => 25,
-                        'EUR' => 3.0,
-                    ),
+                    'withdraw' => array(),
                     'deposit' => array(
                         'BTC' => 0,
                         'BCH' => 0,
@@ -400,7 +399,7 @@ class bitstamp extends Exchange {
             }
             if (!(is_array($result) && array_key_exists($quote, $result))) {
                 $counterDecimals = $this->safe_integer($market, 'counter_decimals');
-                $result[$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, floatval($cost), $market);
+                $result[$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
             }
         }
         return $result;
@@ -819,7 +818,7 @@ class bitstamp extends Exchange {
             $account['total'] = $this->safe_string($balance, $currencyId . '_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
@@ -925,6 +924,19 @@ class bitstamp extends Exchange {
             'id' => $id,
         );
         return $this->privatePostCancelOrder (array_merge($request, $params));
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        $request = array();
+        $method = 'privatePostCancelAllOrders';
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['pair'] = $market['id'];
+            $method = 'privatePostCancelAllOrdersPair';
+        }
+        return $this->$method (array_merge($request, $params));
     }
 
     public function parse_order_status($status) {
@@ -1356,13 +1368,14 @@ class bitstamp extends Exchange {
                 'fee' => $parsedTrade['fee'],
             );
         } else {
-            $parsedTransaction = $this->parse_transaction($item);
+            $parsedTransaction = $this->parse_transaction($item, $currency);
             $direction = null;
             if (is_array($item) && array_key_exists('amount', $item)) {
                 $amount = $this->safe_number($item, 'amount');
                 $direction = $amount > 0 ? 'in' : 'out';
             } else if ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
-                $currencyId = $this->currency_id($parsedTransaction['currency']);
+                $code = $parsedTransaction['currency'];
+                $currencyId = $this->safe_string($this->currencies_by_id, $code, $code);
                 $amount = $this->safe_number($item, $currencyId);
                 $direction = $amount > 0 ? 'in' : 'out';
             }
@@ -1425,9 +1438,6 @@ class bitstamp extends Exchange {
     }
 
     public function get_currency_name($code) {
-        if ($code === 'BTC') {
-            return 'bitcoin';
-        }
         return strtolower($code);
     }
 
@@ -1440,17 +1450,10 @@ class bitstamp extends Exchange {
             throw new NotSupported($this->id . ' fiat fetchDepositAddress() for ' . $code . ' is not supported!');
         }
         $name = $this->get_currency_name($code);
-        $v1 = ($code === 'BTC');
-        $method = $v1 ? 'v1' : 'private'; // $v1 or v2
-        $method .= 'Post' . $this->capitalize($name);
-        $method .= $v1 ? 'Deposit' : '';
-        $method .= 'Address';
+        $method = 'privatePost' . $this->capitalize($name) . 'Address';
         $response = $this->$method ($params);
-        if ($v1) {
-            $response = json_decode($response, $as_associative_array = true);
-        }
-        $address = $v1 ? $response : $this->safe_string($response, 'address');
-        $tag = $v1 ? null : $this->safe_string_2($response, 'memo_id', 'destination_tag');
+        $address = $this->safe_string($response, 'address');
+        $tag = $this->safe_string_2($response, 'memo_id', 'destination_tag');
         $this->check_address($address);
         return array(
             'currency' => $code,
@@ -1471,9 +1474,7 @@ class bitstamp extends Exchange {
         $method = null;
         if (!$this->is_fiat($code)) {
             $name = $this->get_currency_name($code);
-            $v1 = ($code === 'BTC');
-            $method = $v1 ? 'v1' : 'private'; // $v1 or v2
-            $method .= 'Post' . $this->capitalize($name) . 'Withdrawal';
+            $method = 'privatePost' . $this->capitalize($name) . 'Withdrawal';
             if ($code === 'XRP') {
                 if ($tag !== null) {
                     $request['destination_tag'] = $tag;
@@ -1499,9 +1500,7 @@ class bitstamp extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/';
-        if ($api !== 'v1') {
-            $url .= $this->version . '/';
-        }
+        $url .= $this->version . '/';
         $url .= $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
@@ -1510,52 +1509,36 @@ class bitstamp extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $authVersion = $this->safe_value($this->options, 'auth', 'v2');
-            if (($authVersion === 'v1') || ($api === 'v1')) {
-                $nonce = (string) $this->nonce();
-                $auth = $nonce . $this->uid . $this->apiKey;
-                $signature = $this->encode($this->hmac($this->encode($auth), $this->encode($this->secret)));
-                $query = array_merge(array(
-                    'key' => $this->apiKey,
-                    'signature' => strtoupper($signature),
-                    'nonce' => $nonce,
-                ), $query);
-                $body = $this->urlencode($query);
-                $headers = array(
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                );
-            } else {
-                $xAuth = 'BITSTAMP ' . $this->apiKey;
-                $xAuthNonce = $this->uuid();
-                $xAuthTimestamp = (string) $this->milliseconds();
-                $xAuthVersion = 'v2';
-                $contentType = '';
-                $headers = array(
-                    'X-Auth' => $xAuth,
-                    'X-Auth-Nonce' => $xAuthNonce,
-                    'X-Auth-Timestamp' => $xAuthTimestamp,
-                    'X-Auth-Version' => $xAuthVersion,
-                );
-                if ($method === 'POST') {
-                    if ($query) {
-                        $body = $this->urlencode($query);
-                        $contentType = 'application/x-www-form-urlencoded';
-                        $headers['Content-Type'] = $contentType;
-                    } else {
-                        // sending an empty POST request will trigger
-                        // an API0020 error returned by the exchange
-                        // therefore for empty requests we send a dummy object
-                        // https://github.com/ccxt/ccxt/issues/6846
-                        $body = $this->urlencode(array( 'foo' => 'bar' ));
-                        $contentType = 'application/x-www-form-urlencoded';
-                        $headers['Content-Type'] = $contentType;
-                    }
+            $xAuth = 'BITSTAMP ' . $this->apiKey;
+            $xAuthNonce = $this->uuid();
+            $xAuthTimestamp = (string) $this->milliseconds();
+            $xAuthVersion = 'v2';
+            $contentType = '';
+            $headers = array(
+                'X-Auth' => $xAuth,
+                'X-Auth-Nonce' => $xAuthNonce,
+                'X-Auth-Timestamp' => $xAuthTimestamp,
+                'X-Auth-Version' => $xAuthVersion,
+            );
+            if ($method === 'POST') {
+                if ($query) {
+                    $body = $this->urlencode($query);
+                    $contentType = 'application/x-www-form-urlencoded';
+                    $headers['Content-Type'] = $contentType;
+                } else {
+                    // sending an empty POST request will trigger
+                    // an API0020 error returned by the exchange
+                    // therefore for empty requests we send a dummy object
+                    // https://github.com/ccxt/ccxt/issues/6846
+                    $body = $this->urlencode(array( 'foo' => 'bar' ));
+                    $contentType = 'application/x-www-form-urlencoded';
+                    $headers['Content-Type'] = $contentType;
                 }
-                $authBody = $body ? $body : '';
-                $auth = $xAuth . $method . str_replace('https://', '', $url) . $contentType . $xAuthNonce . $xAuthTimestamp . $xAuthVersion . $authBody;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
-                $headers['X-Auth-Signature'] = $signature;
             }
+            $authBody = $body ? $body : '';
+            $auth = $xAuth . $method . str_replace('https://', '', $url) . $contentType . $xAuthNonce . $xAuthTimestamp . $xAuthVersion . $authBody;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $headers['X-Auth-Signature'] = $signature;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

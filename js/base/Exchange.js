@@ -257,6 +257,7 @@ module.exports = class Exchange {
         this.transactions = {}
         this.ohlcvs       = {}
         this.myTrades     = undefined
+        this.positions    = {}
 
         this.requiresWeb3 = false
         this.requiresEddsa = false
@@ -370,10 +371,11 @@ module.exports = class Exchange {
         }
 
         this.tokenBucket = this.extend ({
-            delay:       1,
+            delay:       0.001,
             capacity:    1,
-            defaultCost: 1,
+            cost: 1,
             maxCapacity: 1000,
+            refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE
         }, this.tokenBucket)
 
         this.throttle = throttle (this.tokenBucket)
@@ -464,7 +466,7 @@ module.exports = class Exchange {
         }
     }
 
-    print (... args) {
+    log (... args) {
         console.log (... args)
     }
 
@@ -502,7 +504,7 @@ module.exports = class Exchange {
         headers = this.setHeaders (headers)
 
         if (this.verbose) {
-            this.print ("fetch:\n", this.id, method, url, "\nRequest:\n", headers, "\n", body, "\n")
+            this.log ("fetch:\n", this.id, method, url, "\nRequest:\n", headers, "\n", body, "\n")
         }
 
         return this.executeRestRequest (url, method, headers, body)
@@ -511,7 +513,7 @@ module.exports = class Exchange {
     async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
 
         if (this.enableRateLimit) {
-            await this.throttle (this.rateLimit)
+            await this.throttle ()
         }
 
         const request = this.sign (path, type, method, params, headers, body)
@@ -595,7 +597,7 @@ module.exports = class Exchange {
                 this.last_json_response = json
             }
             if (this.verbose) {
-                this.print ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
+                this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
             }
             this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
             this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
@@ -617,8 +619,7 @@ module.exports = class Exchange {
             'precision': this.precision,
         }, this.fees['trading'], market))
         this.markets = indexBy (values, 'symbol')
-        this.marketsById = indexBy (markets, 'id')
-        this.markets_by_id = this.marketsById
+        this.markets_by_id = indexBy (markets, 'id')
         this.symbols = Object.keys (this.markets).sort ()
         this.ids = Object.keys (this.markets_by_id).sort ()
         if (currencies) {
@@ -653,6 +654,7 @@ module.exports = class Exchange {
             this.currencies = deepExtend (indexBy (sortedCurrencies, 'code'), this.currencies)
         }
         this.currencies_by_id = indexBy (this.currencies, 'id')
+        this.codes = Object.keys (this.currencies).sort ()
         return this.markets
     }
 
@@ -879,26 +881,6 @@ module.exports = class Exchange {
         return this.safeString (this.commonCurrencies, currency, currency)
     }
 
-    currencyId (commonCode) {
-
-        if (this.currencies === undefined) {
-            throw new ExchangeError (this.id + ' currencies not loaded')
-        }
-
-        if (commonCode in this.currencies) {
-            return this.currencies[commonCode]['id'];
-        }
-
-        const currencyIds = {}
-        const distinct = Object.keys (this.commonCurrencies)
-        for (let i = 0; i < distinct.length; i++) {
-            const k = distinct[i]
-            currencyIds[this.commonCurrencies[k]] = k
-        }
-
-        return this.safeString (currencyIds, commonCode, commonCode)
-    }
-
     currency (code) {
 
         if (this.currencies === undefined) {
@@ -918,8 +900,12 @@ module.exports = class Exchange {
             throw new ExchangeError (this.id + ' markets not loaded')
         }
 
-        if ((typeof symbol === 'string') && (symbol in this.markets)) {
-            return this.markets[symbol]
+        if (typeof symbol === 'string') {
+            if (symbol in this.markets) {
+                return this.markets[symbol]
+            } else if (symbol in this.markets_by_id) {
+                return this.markets_by_id[symbol]
+            }
         }
 
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol)
@@ -934,21 +920,12 @@ module.exports = class Exchange {
         return symbols.map ((symbol) => this.marketId (symbol))
     }
 
-    currencyIds (codes) {
-        return codes.map ((code) => this.currencyId (code))
-    }
-
     symbol (symbol) {
         return this.market (symbol).symbol || symbol
     }
 
-    url (path, params = {}) {
-        let result = this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path))
-        if (Object.keys (query).length) {
-            result += '?' + this.urlencode (query)
-        }
-        return result
+    implodeHostname (url) {
+        return this.implodeParams (url, { 'hostname': this.hostname })
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
@@ -980,7 +957,7 @@ module.exports = class Exchange {
         }
     }
 
-    parseBalance (balance, legacy = true) {
+    parseBalance (balance, legacy = false) {
 
         const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));
 
@@ -1485,20 +1462,6 @@ module.exports = class Exchange {
         } else {
             throw new ExchangeError (this.id + ' this.twofa has not been set')
         }
-    }
-
-    // the following functions take and return numbers represented as strings
-    // this is useful for arbitrary precision maths that floats lack
-    integerDivide (a, b) {
-        return new BN (a).div (new BN (b))
-    }
-
-    integerModulo (a, b) {
-        return new BN (a).mod (new BN (b))
-    }
-
-    integerPow (a, b) {
-        return new BN (a).pow (new BN (b))
     }
 
     reduceFeesByCurrency (fees) {

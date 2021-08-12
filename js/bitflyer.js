@@ -87,12 +87,8 @@ module.exports = class bitflyer extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
-                },
-                'BTC/JPY': {
-                    'maker': 0.15 / 100,
-                    'taker': 0.15 / 100,
+                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.002'),
                 },
             },
         });
@@ -190,7 +186,7 @@ module.exports = class bitflyer extends Exchange {
             account['free'] = this.safeString (balance, 'available');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -497,7 +493,7 @@ module.exports = class bitflyer extends Exchange {
                 request += '?' + this.urlencode (params);
             }
         }
-        const baseUrl = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
+        const baseUrl = this.implodeHostname (this.urls['api']);
         const url = baseUrl + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();

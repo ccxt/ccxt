@@ -392,7 +392,7 @@ module.exports = class coinbasepro extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -659,7 +659,7 @@ module.exports = class coinbasepro extends Exchange {
             } else {
                 limit = Math.min (300, limit);
             }
-            request['end'] = this.iso8601 (this.sum (limit * granularity * 1000, since));
+            request['end'] = this.iso8601 (this.sum ((limit - 1) * granularity * 1000, since));
         }
         const response = await this.publicGetProductsIdCandles (this.extend (request, params));
         //
@@ -1048,11 +1048,11 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchTransactions (code, since, limit, this.extend (params, { 'type': 'deposit' }));
+        return this.fetchTransactions (code, since, limit, this.extend ({ 'type': 'deposit' }, params));
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchTransactions (code, since, limit, this.extend (params, { 'type': 'withdraw' }));
+        return this.fetchTransactions (code, since, limit, this.extend ({ 'type': 'withdraw' }, params));
     }
 
     parseTransactionStatus (transaction) {
@@ -1154,7 +1154,7 @@ module.exports = class coinbasepro extends Exchange {
                 request += '?' + this.urlencode (query);
             }
         }
-        const url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + request;
+        const url = this.implodeHostname (this.urls['api'][api]) + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

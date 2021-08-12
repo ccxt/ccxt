@@ -117,8 +117,8 @@ module.exports = class upbit extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0025,
-                    'taker': 0.0025,
+                    'maker': this.parseNumber ('0.0025'),
+                    'taker': this.parseNumber ('0.0025'),
                 },
                 'funding': {
                     'tierBased': false,
@@ -442,7 +442,7 @@ module.exports = class upbit extends Exchange {
             account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
@@ -882,6 +882,11 @@ module.exports = class upbit extends Exchange {
                 request['volume'] = this.amountToPrecision (symbol, amount);
             }
         }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'identifier');
+        if (clientOrderId !== undefined) {
+            request['identifier'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'clientOrderId', 'identifier' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {

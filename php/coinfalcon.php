@@ -42,6 +42,7 @@ class coinfalcon extends Exchange {
                 'public' => array(
                     'get' => array(
                         'markets',
+                        'markets/{market}',
                         'markets/{market}/orders',
                         'markets/{market}/trades',
                     ),
@@ -51,13 +52,22 @@ class coinfalcon extends Exchange {
                         'user/accounts',
                         'user/orders',
                         'user/orders/{id}',
+                        'user/orders/{id}/trades',
                         'user/trades',
+                        'user/fees',
+                        'account/withdrawals/{id}',
+                        'account/withdrawals',
+                        'account/deposit/{id}',
+                        'account/deposits',
+                        'account/deposit_address',
                     ),
                     'post' => array(
                         'user/orders',
+                        'account/withdraw',
                     ),
                     'delete' => array(
                         'user/orders/{id}',
+                        'account/withdrawals/{id}',
                     ),
                 ),
             ),
@@ -122,7 +132,7 @@ class coinfalcon extends Exchange {
         $marketId = $this->safe_string($ticker, 'name');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->milliseconds();
-        $last = floatval($ticker['last_price']);
+        $last = $this->safe_number($ticker, 'last_price');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -263,7 +273,7 @@ class coinfalcon extends Exchange {
             $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {

@@ -64,6 +64,8 @@ function test_trade($exchange, $trade, $symbol, $now) {
     assert ($trade['price'] > 0);
     assert ((is_float($trade['amount']) || is_int($trade['amount'])), 'trade.amount is not a number');
     assert ($trade['amount'] >= 0);
+    assert ($trade['cost'] === null || (is_float($trade['cost']) || is_int($trade['cost'])), 'trade.cost is not a number');
+    assert ($trade['cost'] === null || $trade['cost'] >= 0);
     $takerOrMaker = $trade['takerOrMaker'];
     assert ($takerOrMaker === null || $takerOrMaker === 'taker' || $takerOrMaker === 'maker');
 }

@@ -133,65 +133,11 @@ class bitz(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.002,
-                    'taker': 0.002,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
                 },
                 'funding': {
-                    'withdraw': {
-                        'BTC': '0.5%',
-                        'DKKT': '0.5%',
-                        'ETH': 0.01,
-                        'USDT': '0.5%',
-                        'LTC': '0.5%',
-                        'FCT': '0.5%',
-                        'LSK': '0.5%',
-                        'HXI': '0.8%',
-                        'ZEC': '0.5%',
-                        'DOGE': '0.5%',
-                        'MZC': '0.5%',
-                        'ETC': '0.5%',
-                        'GXS': '0.5%',
-                        'XPM': '0.5%',
-                        'PPC': '0.5%',
-                        'BLK': '0.5%',
-                        'XAS': '0.5%',
-                        'HSR': '0.5%',
-                        'NULS': 5.0,
-                        'VOISE': 350.0,
-                        'PAY': 1.5,
-                        'EOS': 0.6,
-                        'YBCT': 35.0,
-                        'OMG': 0.3,
-                        'OTN': 0.4,
-                        'BTX': '0.5%',
-                        'QTUM': '0.5%',
-                        'DASH': '0.5%',
-                        'GAME': '0.5%',
-                        'BCH': '0.5%',
-                        'GNT': 9.0,
-                        'SSS': 1500.0,
-                        'ARK': '0.5%',
-                        'PART': '0.5%',
-                        'LEO': '0.5%',
-                        'DGB': '0.5%',
-                        'ZSC': 130.0,
-                        'VIU': 350.0,
-                        'BTG': '0.5%',
-                        'ARN': 10.0,
-                        'VTC': '0.5%',
-                        'BCD': '0.5%',
-                        'TRX': 200.0,
-                        'HWC': '0.5%',
-                        'UNIT': '0.5%',
-                        'OXY': '0.5%',
-                        'MCO': 0.3500,
-                        'SBTC': '0.5%',
-                        'BCX': '0.5%',
-                        'ETF': '0.5%',
-                        'PYLNT': 0.4000,
-                        'XRB': '0.5%',
-                        'ETP': '0.5%',
-                    },
+                    'withdraw': {},
                 },
             },
             'precision': {
@@ -375,7 +321,7 @@ class bitz(Exchange):
             account['total'] = self.safe_string(balance, 'num')
             account['free'] = self.safe_string(balance, 'over')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -679,7 +625,7 @@ class bitz(Exchange):
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
-        duration = self.parse_timeframe(timeframe) * 1000
+        duration = self.parse_timeframe(timeframe)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1206,7 +1152,7 @@ class bitz(Exchange):
         return self.options['lastNonce']
 
     def sign(self, path, api='market', method='GET', params={}, headers=None, body=None):
-        baseUrl = self.implode_params(self.urls['api'][api], {'hostname': self.hostname})
+        baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.capitalize(api) + '/' + path
         query = None
         if api == 'market':

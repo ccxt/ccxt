@@ -704,7 +704,7 @@ class coinbase(Exchange):
                         account['free'] = Precise.string_add(account['free'], total)
                         account['total'] = Precise.string_add(account['total'], total)
                     result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1086,21 +1086,33 @@ class coinbase(Exchange):
                 fullPath += '?' + self.urlencode(query)
         url = self.urls['api'] + fullPath
         if api == 'private':
-            self.check_required_credentials()
-            nonce = str(self.nonce())
-            payload = ''
-            if method != 'GET':
-                if query:
-                    body = self.json(query)
-                    payload = body
-            auth = nonce + method + fullPath + payload
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
-            headers = {
-                'CB-ACCESS-KEY': self.apiKey,
-                'CB-ACCESS-SIGN': signature,
-                'CB-ACCESS-TIMESTAMP': nonce,
-                'Content-Type': 'application/json',
-            }
+            authorization = self.safe_string(self.headers, 'Authorization')
+            if authorization is not None:
+                headers = {
+                    'Authorization': authorization,
+                    'Content-Type': 'application/json',
+                }
+            elif self.token:
+                headers = {
+                    'Authorization': 'Bearer ' + self.token,
+                    'Content-Type': 'application/json',
+                }
+            else:
+                self.check_required_credentials()
+                nonce = str(self.nonce())
+                payload = ''
+                if method != 'GET':
+                    if query:
+                        body = self.json(query)
+                        payload = body
+                auth = nonce + method + fullPath + payload
+                signature = self.hmac(self.encode(auth), self.encode(self.secret))
+                headers = {
+                    'CB-ACCESS-KEY': self.apiKey,
+                    'CB-ACCESS-SIGN': signature,
+                    'CB-ACCESS-TIMESTAMP': nonce,
+                    'Content-Type': 'application/json',
+                }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

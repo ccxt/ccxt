@@ -50,8 +50,8 @@ class zaif(Exchange):
             'fees': {
                 'trading': {
                     'percentage': True,
-                    'taker': 0.1 / 100,
-                    'maker': 0,
+                    'taker': self.parse_number('0.001'),
+                    'maker': self.parse_number('0'),
                 },
             },
             'api': {
@@ -220,7 +220,7 @@ class zaif(Exchange):
                 if currencyId in deposit:
                     account['total'] = self.safe_string(deposit, currencyId)
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

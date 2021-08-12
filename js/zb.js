@@ -16,6 +16,8 @@ module.exports = class zb extends Exchange {
             'countries': [ 'CN' ],
             'rateLimit': 100,
             'version': 'v1',
+            'certified': true,
+            'pro': true,
             'has': {
                 'cancelOrder': true,
                 'CORS': false,
@@ -142,6 +144,10 @@ module.exports = class zb extends Exchange {
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
+                'referral': {
+                    'url': 'https://www.zbex.club/en/register?ref=4301lera',
+                    'discount': 0.16,
+                },
             },
             'api': {
                 'trade': {
@@ -216,34 +222,7 @@ module.exports = class zb extends Exchange {
             },
             'fees': {
                 'funding': {
-                    'withdraw': {
-                        'BTC': 0.0001,
-                        'BCH': 0.0006,
-                        'LTC': 0.005,
-                        'ETH': 0.01,
-                        'ETC': 0.01,
-                        'BTS': 3,
-                        'EOS': 1,
-                        'QTUM': 0.01,
-                        'HSR': 0.001,
-                        'XRP': 0.1,
-                        'USDT': '0.1%',
-                        'QCASH': 5,
-                        'DASH': 0.002,
-                        'BCD': 0,
-                        'UBTC': 0,
-                        'SBTC': 0,
-                        'INK': 20,
-                        'TV': 0.1,
-                        'BTH': 0,
-                        'BCX': 0,
-                        'LBTC': 0,
-                        'CHAT': 20,
-                        'bitCNY': 20,
-                        'HLC': 20,
-                        'BTP': 0,
-                        'BCW': 0,
-                    },
+                    'withdraw': {},
                 },
                 'trading': {
                     'maker': 0.2 / 100,
@@ -251,7 +230,10 @@ module.exports = class zb extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'ANG': 'Anagram',
                 'ENT': 'ENTCash',
+                'BCHABC': 'BCHABC', // conflict with BCH / BCHA
+                'BCHSV': 'BCHSV', // conflict with BCH / BSV
             },
         });
     }
@@ -414,7 +396,7 @@ module.exports = class zb extends Exchange {
             account['used'] = this.safeString (balance, 'freez');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
@@ -531,6 +513,21 @@ module.exports = class zb extends Exchange {
             request['size'] = limit;
         }
         const response = await this.publicGetDepth (this.extend (request, params));
+        //
+        //     {
+        //         "asks":[
+        //             [35000.0,0.2741],
+        //             [34949.0,0.0173],
+        //             [34900.0,0.5004],
+        //         ],
+        //         "bids":[
+        //             [34119.32,0.0030],
+        //             [34107.83,0.1500],
+        //             [34104.42,0.1500],
+        //         ],
+        //         "timestamp":1624536510
+        //     }
+        //
         return this.parseOrderBook (response, symbol);
     }
 
@@ -538,15 +535,15 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetAllTicker (params);
         const result = {};
-        const anotherMarketsById = {};
-        const marketIds = Object.keys (this.marketsById);
+        const marketsByIdWithoutUnderscore = {};
+        const marketIds = Object.keys (this.markets_by_id);
         for (let i = 0; i < marketIds.length; i++) {
             const tickerId = marketIds[i].replace ('_', '');
-            anotherMarketsById[tickerId] = this.marketsById[marketIds[i]];
+            marketsByIdWithoutUnderscore[tickerId] = this.markets_by_id[marketIds[i]];
         }
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
-            const market = anotherMarketsById[ids[i]];
+            const market = marketsByIdWithoutUnderscore[ids[i]];
             result[market['symbol']] = this.parseTicker (response[ids[i]], market);
         }
         return this.filterByArray (result, 'symbol', symbols);
@@ -559,12 +556,43 @@ module.exports = class zb extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
-        const ticker = response['ticker'];
+        //
+        //     {
+        //         "date":"1624399623587",
+        //         "ticker":{
+        //             "high":"33298.38",
+        //             "vol":"56152.9012",
+        //             "last":"32578.55",
+        //             "low":"28808.19",
+        //             "buy":"32572.68",
+        //             "sell":"32615.37",
+        //             "turnover":"1764201303.6100",
+        //             "open":"31664.85",
+        //             "riseRate":"2.89"
+        //         }
+        //     }
+        //
+        const ticker = this.safeValue (response, 'ticker', {});
+        ticker['date'] = this.safeValue (response, 'date');
         return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.milliseconds ();
+        //
+        //     {
+        //         "date":"1624399623587", // injected from outside
+        //         "high":"33298.38",
+        //         "vol":"56152.9012",
+        //         "last":"32578.55",
+        //         "low":"28808.19",
+        //         "buy":"32572.68",
+        //         "sell":"32615.37",
+        //         "turnover":"1764201303.6100",
+        //         "open":"31664.85",
+        //         "riseRate":"2.89"
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 'date', this.milliseconds ());
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -625,6 +653,16 @@ module.exports = class zb extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        //     {
+        //         "date":1624537391,
+        //         "amount":"0.0142",
+        //         "price":"33936.42",
+        //         "trade_type":"ask",
+        //         "type":"sell",
+        //         "tid":1718869018
+        //     }
+        //
         const timestamp = this.safeTimestamp (trade, 'date');
         let side = this.safeString (trade, 'trade_type');
         side = (side === 'bid') ? 'buy' : 'sell';
@@ -663,6 +701,13 @@ module.exports = class zb extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //     [
+        //         {"date":1624537391,"amount":"0.0142","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869018},
+        //         {"date":1624537391,"amount":"0.0010","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869020},
+        //         {"date":1624537391,"amount":"0.0133","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869021},
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 

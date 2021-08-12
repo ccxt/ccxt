@@ -61,33 +61,11 @@ module.exports = class exx extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.001'),
                 },
                 'funding': {
-                    'withdraw': {
-                        'BCC': 0.0003,
-                        'BCD': 0.0,
-                        'BOT': 10.0,
-                        'BTC': 0.001,
-                        'BTG': 0.0,
-                        'BTM': 25.0,
-                        'BTS': 3.0,
-                        'EOS': 1.0,
-                        'ETC': 0.01,
-                        'ETH': 0.01,
-                        'ETP': 0.012,
-                        'HPY': 0.0,
-                        'HSR': 0.001,
-                        'INK': 20.0,
-                        'LTC': 0.005,
-                        'MCO': 0.6,
-                        'MONA': 0.01,
-                        'QASH': 5.0,
-                        'QCASH': 5.0,
-                        'QTUM': 0.01,
-                        'USDT': 5.0,
-                    },
+                    'withdraw': {},
                 },
             },
             'commonCurrencies': {
@@ -196,10 +174,10 @@ module.exports = class exx extends Exchange {
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            if (!(id in this.marketsById)) {
+            if (!(id in this.markets_by_id)) {
                 continue;
             }
-            const market = this.marketsById[id];
+            const market = this.markets_by_id[id];
             const symbol = market['symbol'];
             const ticker = {
                 'date': timestamp,
@@ -277,7 +255,7 @@ module.exports = class exx extends Exchange {
             account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrder (order, market = undefined) {

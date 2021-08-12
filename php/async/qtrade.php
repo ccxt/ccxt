@@ -116,6 +116,8 @@ class qtrade extends Exchange {
                     'invalid_auth' => '\\ccxt\\AuthenticationError',
                     'insuff_funds' => '\\ccxt\\InsufficientFunds',
                     'market_not_found' => '\\ccxt\\BadSymbol', // array("errors":[array("code":"market_not_found","title":"Requested market does not exist")])
+                    'too_small' => '\\ccxt\\InvalidOrder',
+                    'limit_exceeded' => '\\ccxt\\RateLimitExceeded', // array("errors":[array("code":"limit_exceeded","title":"You have exceeded the windowed rate limit. Please see docs.")])
                 ),
             ),
         ));
@@ -188,7 +190,7 @@ class qtrade extends Exchange {
                 'maker' => $this->safe_number($market, 'maker_fee'),
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_number($market, 'minimum_buy_value'),
+                        'min' => $this->safe_number($market, 'minimum_sell_value'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -196,7 +198,7 @@ class qtrade extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'minimum_buy_value'),
                         'max' => null,
                     ),
                 ),
@@ -715,7 +717,7 @@ class qtrade extends Exchange {
             $account['used'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

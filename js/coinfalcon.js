@@ -41,6 +41,7 @@ module.exports = class coinfalcon extends Exchange {
                 'public': {
                     'get': [
                         'markets',
+                        'markets/{market}',
                         'markets/{market}/orders',
                         'markets/{market}/trades',
                     ],
@@ -50,13 +51,22 @@ module.exports = class coinfalcon extends Exchange {
                         'user/accounts',
                         'user/orders',
                         'user/orders/{id}',
+                        'user/orders/{id}/trades',
                         'user/trades',
+                        'user/fees',
+                        'account/withdrawals/{id}',
+                        'account/withdrawals',
+                        'account/deposit/{id}',
+                        'account/deposits',
+                        'account/deposit_address',
                     ],
                     'post': [
                         'user/orders',
+                        'account/withdraw',
                     ],
                     'delete': [
                         'user/orders/{id}',
+                        'account/withdrawals/{id}',
                     ],
                 },
             },
@@ -121,7 +131,7 @@ module.exports = class coinfalcon extends Exchange {
         const marketId = this.safeString (ticker, 'name');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.milliseconds ();
-        const last = parseFloat (ticker['last_price']);
+        const last = this.safeNumber (ticker, 'last_price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -262,7 +272,7 @@ module.exports = class coinfalcon extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {

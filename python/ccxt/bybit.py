@@ -72,9 +72,19 @@ class bybit(Exchange):
                 '1y': 'Y',
             },
             'urls': {
-                'test': 'https://api-testnet.{hostname}',
+                'test': {
+                    'futures': 'https://api-testnet.{hostname}',
+                    'v2': 'https://api-testnet.{hostname}',
+                    'public': 'https://api-testnet.{hostname}',
+                    'private': 'https://api-testnet.{hostname}',
+                },
                 'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'futures': 'https://api.{hostname}',
+                    'v2': 'https://api.{hostname}',
+                    'public': 'https://api.{hostname}',
+                    'private': 'https://api.{hostname}',
+                },
                 'www': 'https://www.bybit.com',
                 'doc': [
                     'https://bybit-exchange.github.io/docs/inverse/',
@@ -322,17 +332,24 @@ class bybit(Exchange):
             'options': {
                 'marketTypes': {
                     'BTC/USDT': 'linear',
-                    'BCH/USDT': 'linear',
                     'ETH/USDT': 'linear',
-                    'LTC/USDT': 'linear',
-                    'XTZ/USDT': 'linear',
-                    'LINK/USDT': 'linear',
+                    'BNB/USDT': 'linear',
                     'ADA/USDT': 'linear',
+                    'DOGE/USDT': 'linear',
+                    'XRP/USDT': 'linear',
                     'DOT/USDT': 'linear',
                     'UNI/USDT': 'linear',
+                    'BCH/USDT': 'linear',
+                    'LTC/USDT': 'linear',
+                    'SOL/USDT': 'linear',
+                    'LINK/USDT': 'linear',
+                    'MATIC/USDT': 'linear',
+                    'ETC/USDT': 'linear',
+                    'FIL/USDT': 'linear',
+                    'EOS/USDT': 'linear',
                     'AAVE/USDT': 'linear',
+                    'XTZ/USDT': 'linear',
                     'SUSHI/USDT': 'linear',
-                    'XRP/USDT': 'linear',
                     'XEM/USDT': 'linear',
                     'BTC/USD': 'inverse',
                     'ETH/USD': 'inverse',
@@ -991,7 +1008,7 @@ class bybit(Exchange):
             account['used'] = self.safe_string(balance, 'used_margin')
             account['total'] = self.safe_string(balance, 'equity')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -1100,7 +1117,7 @@ class bybit(Exchange):
         #             "trigger_price":12400,
         #             "close_on_trigger":true,
         #             "op_from":"api",
-        #             "remark":"145.53.159.48",
+        #             "remark":"x.x.x.x",
         #             "o_req_num":0
         #         },
         #         "leaves_qty":10,
@@ -1109,7 +1126,7 @@ class bybit(Exchange):
         #         "cross_seq":-1,
         #         "created_at":"2020-08-21T09:18:48.000Z",
         #         "updated_at":"2020-08-21T09:18:48.000Z",
-        #         "stop_px":12400,
+        #         "trigger_price":12400,
         #         "stop_order_id":"3f3b54b1-3379-42c7-8510-44f4d9915be0"
         #     }
         #
@@ -1152,7 +1169,7 @@ class bybit(Exchange):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
-        stopPrice = self.safe_number(order, 'stop_px')
+        stopPrice = self.safe_number_2(order, 'trigger_price', 'stop_px')
         postOnly = (timeInForce == 'PO')
         return self.safe_order({
             'info': order,
@@ -1611,7 +1628,7 @@ class bybit(Exchange):
             defaultMethod = 'futuresPrivateGetOrderList'
         query = params
         if ('stop_order_id' in params) or ('stop_order_status' in params):
-            stopOrderStatus = self.safe_value(params, 'stopOrderStatus')
+            stopOrderStatus = self.safe_value(params, 'stop_order_status')
             if stopOrderStatus is not None:
                 if isinstance(stopOrderStatus, list):
                     stopOrderStatus = ','.join(stopOrderStatus)
@@ -2217,9 +2234,9 @@ class bybit(Exchange):
         return self.safe_value(response, 'result')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_params(self.urls['api'], {'hostname': self.hostname})
         type = self.safe_string(api, 0)
         section = self.safe_string(api, 1)
+        url = self.implode_hostname(self.urls['api'][type])
         request = '/' + type + '/' + section + '/' + path
         # public v2
         if section == 'public':

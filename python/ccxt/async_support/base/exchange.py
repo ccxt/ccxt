@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.50.69'
+__version__ = '1.54.86'
 
 # -----------------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ import yarl
 
 # -----------------------------------------------------------------------------
 
-from ccxt.async_support.base.throttle import throttle
+from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
@@ -52,14 +52,13 @@ class Exchange(BaseExchange):
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
         super(Exchange, self).__init__(config)
+        self.throttle = None
         self.init_rest_rate_limiter()
         self.markets_loading = None
         self.reloading_markets = False
 
     def init_rest_rate_limiter(self):
-        self.throttle = throttle(self.extend({
-            'loop': self.asyncio_loop,
-        }, self.tokenBucket))
+        self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
 
     def __del__(self):
         if self.session is not None:
@@ -90,7 +89,8 @@ class Exchange(BaseExchange):
     async def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
         """A better wrapper over request for deferred signing"""
         if self.enableRateLimit:
-            await self.throttle(self.rateLimit)
+            # insert cost into here...
+            await self.throttle()
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
@@ -101,7 +101,7 @@ class Exchange(BaseExchange):
         url = self.proxy + url
 
         if self.verbose:
-            self.print("\nRequest:", method, url, headers, body)
+            self.log("\nRequest:", method, url, headers, body)
         self.logger.debug("%s %s, Request: %s %s", method, url, headers, body)
 
         request_body = body
@@ -139,7 +139,7 @@ class Exchange(BaseExchange):
                 if self.enableLastJsonResponse:
                     self.last_json_response = json_response
                 if self.verbose:
-                    self.print("\nResponse:", method, url, http_status_code, headers, http_response)
+                    self.log("\nResponse:", method, url, http_status_code, headers, http_response)
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror as e:
@@ -281,6 +281,9 @@ class Exchange(BaseExchange):
             raise ExchangeError('updateOrder() requires enableRateLimit = true')
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, *args)
+
+    async def fetch_balance(self, params={}):
+        raise NotSupported('fetch_balance() not supported yet')
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         raise NotSupported('create_order() not supported yet')

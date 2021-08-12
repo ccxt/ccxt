@@ -68,8 +68,8 @@ module.exports = class braziliex extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.005,
-                    'taker': 0.005,
+                    'maker': this.parseNumber ('0.005'),
+                    'taker': this.parseNumber ('0.005'),
                 },
             },
             'precision': {
@@ -412,7 +412,7 @@ module.exports = class braziliex extends Exchange {
             account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrder (order, market = undefined) {

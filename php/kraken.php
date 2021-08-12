@@ -986,7 +986,7 @@ class kraken extends Exchange {
             $account['total'] = $this->safe_string($balances, $currencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1294,9 +1294,9 @@ class kraken extends Exchange {
         $this->load_markets();
         $options = $this->safe_value($this->options, 'fetchOrderTrades', array());
         $batchSize = $this->safe_integer($options, 'batchSize', 20);
-        $numBatches = intval($tradeIds / $batchSize);
-        $numBatches = $this->sum($numBatches, 1);
         $numTradeIds = is_array($tradeIds) ? count($tradeIds) : 0;
+        $numBatches = intval($numTradeIds / $batchSize);
+        $numBatches = $this->sum($numBatches, 1);
         $result = array();
         for ($j = 0; $j < $numBatches; $j++) {
             $requestIds = array();
@@ -1734,9 +1734,11 @@ class kraken extends Exchange {
                 // 'address' => $address, // they don't allow withdrawals to direct addresses
             );
             $response = $this->privatePostWithdraw (array_merge($request, $params));
+            $result = $this->safe_value($response, 'result', array());
+            $id = $this->safe_string($result, 'refid');
             return array(
-                'info' => $response,
-                'id' => $response['result'],
+                'info' => $result,
+                'id' => $id,
             );
         }
         throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");

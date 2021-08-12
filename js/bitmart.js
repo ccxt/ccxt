@@ -41,6 +41,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchStatus': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'fetchFundingFee': true,
                 'withdraw': true,
             },
             'hostname': 'bitmart.com', // bitmart.info for Hong Kong users
@@ -161,28 +162,28 @@ module.exports = class bitmart extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.0025,
-                    'maker': 0.0025,
+                    'taker': this.parseNumber ('0.0025'),
+                    'maker': this.parseNumber ('0.0025'),
                     'tiers': {
                         'taker': [
-                            [0, 0.20 / 100],
-                            [10, 0.18 / 100],
-                            [50, 0.16 / 100],
-                            [250, 0.14 / 100],
-                            [1000, 0.12 / 100],
-                            [5000, 0.10 / 100],
-                            [25000, 0.08 / 100],
-                            [50000, 0.06 / 100],
+                            [this.parseNumber ('0'), this.parseNumber ('0.0020')],
+                            [this.parseNumber ('10'), this.parseNumber ('0.18')],
+                            [this.parseNumber ('50'), this.parseNumber ('0.0016')],
+                            [this.parseNumber ('250'), this.parseNumber ('0.0014')],
+                            [this.parseNumber ('1000'), this.parseNumber ('0.0012')],
+                            [this.parseNumber ('5000'), this.parseNumber ('0.0010')],
+                            [this.parseNumber ('25000'), this.parseNumber ('0.0008')],
+                            [this.parseNumber ('50000'), this.parseNumber ('0.0006')],
                         ],
                         'maker': [
-                            [0, 0.1 / 100],
-                            [10, 0.09 / 100],
-                            [50, 0.08 / 100],
-                            [250, 0.07 / 100],
-                            [1000, 0.06 / 100],
-                            [5000, 0.05 / 100],
-                            [25000, 0.04 / 100],
-                            [50000, 0.03 / 100],
+                            [this.parseNumber ('0'), this.parseNumber ('0.001')],
+                            [this.parseNumber ('10'), this.parseNumber ('0.0009')],
+                            [this.parseNumber ('50'), this.parseNumber ('0.0008')],
+                            [this.parseNumber ('250'), this.parseNumber ('0.0007')],
+                            [this.parseNumber ('1000'), this.parseNumber ('0.0006')],
+                            [this.parseNumber ('5000'), this.parseNumber ('0.0005')],
+                            [this.parseNumber ('25000'), this.parseNumber ('0.0004')],
+                            [this.parseNumber ('50000'), this.parseNumber ('0.0003')],
                         ],
                     },
                 },
@@ -436,7 +437,7 @@ module.exports = class bitmart extends Exchange {
             const pricePrecision = this.safeInteger (market, 'price_max_precision');
             const precision = {
                 'amount': this.safeNumber (market, 'base_min_size'),
-                'price': parseFloat (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 10)),
+                'price': this.parseNumber (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 12)),
             };
             const minBuyCost = this.safeNumber (market, 'min_buy_amount');
             const minSellCost = this.safeNumber (market, 'min_sell_amount');
@@ -612,10 +613,37 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const spotMarkets = await this.fetchSpotMarkets ();
-        const contractMarkets = await this.fetchContractMarkets ();
-        const allMarkets = this.arrayConcat (spotMarkets, contractMarkets);
-        return allMarkets;
+        return await this.fetchSpotMarkets ();
+    }
+
+    async fetchFundingFee (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateAccountGetWithdrawCharge (this.extend (request, params));
+        //
+        //     {
+        //         message: 'OK',
+        //         code: '1000',
+        //         trace: '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
+        //         data: {
+        //             today_available_withdraw_BTC: '100.0000',
+        //             min_withdraw: '0.005',
+        //             withdraw_precision: '8',
+        //             withdraw_fee: '0.000500000000000000000000000000'
+        //         }
+        //     }
+        //
+        const data = response['data'];
+        const withdrawFees = {};
+        withdrawFees[code] = this.safeNumber (data, 'withdraw_fee');
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        };
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1477,7 +1505,7 @@ module.exports = class bitmart extends Exchange {
             account['used'] = this.safeString2 (balance, 'frozen', 'freeze_vol');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrder (order, market = undefined) {
@@ -2221,7 +2249,7 @@ module.exports = class bitmart extends Exchange {
             id = depositId;
         }
         const amount = this.safeNumber (transaction, 'arrival_amount');
-        const timestamp = this.safeInteger (transaction, 'tapply_timeime');
+        const timestamp = this.safeInteger (transaction, 'apply_time');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
@@ -2265,7 +2293,7 @@ module.exports = class bitmart extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseUrl = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
+        const baseUrl = this.implodeHostname (this.urls['api']);
         const access = this.safeString (api, 0);
         const type = this.safeString (api, 1);
         let url = baseUrl + '/' + type;

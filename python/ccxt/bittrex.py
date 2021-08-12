@@ -164,8 +164,8 @@ class bittrex(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'maker': 0.0035,
-                    'taker': 0.0035,
+                    'maker': self.parse_number('0.0075'),
+                    'taker': self.parse_number('0.0075'),
                 },
                 'funding': {
                     'tierBased': False,
@@ -330,7 +330,7 @@ class bittrex(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

@@ -114,8 +114,8 @@ class tidebit(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.3 / 100,
-                    'taker': 0.3 / 100,
+                    'maker': self.parse_number('0.003'),
+                    'taker': self.parse_number('0.003'),
                 },
                 'funding': {
                     'tierBased': False,
@@ -184,7 +184,7 @@ class tidebit(Exchange):
             account['free'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

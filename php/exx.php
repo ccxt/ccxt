@@ -64,33 +64,11 @@ class exx extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.1 / 100,
-                    'taker' => 0.1 / 100,
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.001'),
                 ),
                 'funding' => array(
-                    'withdraw' => array(
-                        'BCC' => 0.0003,
-                        'BCD' => 0.0,
-                        'BOT' => 10.0,
-                        'BTC' => 0.001,
-                        'BTG' => 0.0,
-                        'BTM' => 25.0,
-                        'BTS' => 3.0,
-                        'EOS' => 1.0,
-                        'ETC' => 0.01,
-                        'ETH' => 0.01,
-                        'ETP' => 0.012,
-                        'HPY' => 0.0,
-                        'HSR' => 0.001,
-                        'INK' => 20.0,
-                        'LTC' => 0.005,
-                        'MCO' => 0.6,
-                        'MONA' => 0.01,
-                        'QASH' => 5.0,
-                        'QCASH' => 5.0,
-                        'QTUM' => 0.01,
-                        'USDT' => 5.0,
-                    ),
+                    'withdraw' => array(),
                 ),
             ),
             'commonCurrencies' => array(
@@ -199,10 +177,10 @@ class exx extends Exchange {
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            if (!(is_array($this->marketsById) && array_key_exists($id, $this->marketsById))) {
+            if (!(is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id))) {
                 continue;
             }
-            $market = $this->marketsById[$id];
+            $market = $this->markets_by_id[$id];
             $symbol = $market['symbol'];
             $ticker = array(
                 'date' => $timestamp,
@@ -280,7 +258,7 @@ class exx extends Exchange {
             $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order($order, $market = null) {

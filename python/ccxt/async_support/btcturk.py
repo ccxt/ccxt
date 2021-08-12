@@ -80,8 +80,8 @@ class btcturk(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.002 * 1.18,
-                    'taker': 0.003 * 1.18,
+                    'maker': self.parse_number('0.0005'),
+                    'taker': self.parse_number('0.0009'),
                 },
             },
             'exceptions': {
@@ -231,7 +231,7 @@ class btcturk(Exchange):
             account['free'] = self.safe_string(entry, 'free')
             account['used'] = self.safe_string(entry, 'locked')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

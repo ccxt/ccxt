@@ -130,8 +130,8 @@ class bitbay extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.0,
-                    'taker' => 0.1 / 100,
+                    'maker' => $this->parse_number('0.0'),
+                    'taker' => $this->parse_number('0.001'),
                     'percentage' => true,
                     'tierBased' => false,
                 ),
@@ -186,18 +186,7 @@ class bitbay extends Exchange {
                     ),
                 ),
                 'funding' => array(
-                    'withdraw' => array(
-                        'BTC' => 0.0009,
-                        'LTC' => 0.005,
-                        'ETH' => 0.00126,
-                        'LSK' => 0.2,
-                        'BCH' => 0.0006,
-                        'GAME' => 0.005,
-                        'DASH' => 0.001,
-                        'BTG' => 0.0008,
-                        'PLN' => 4,
-                        'EUR' => 1.5,
-                    ),
+                    'withdraw' => array(),
                 ),
             ),
             'options' => array(
@@ -429,7 +418,7 @@ class bitbay extends Exchange {
             $account['free'] = $this->safe_string($balance, 'availableFunds');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -909,7 +898,7 @@ class bitbay extends Exchange {
         //         offerId => "11c82038-a267-11e9-b698-0242ac110007",
         //         rate => "277",
         //         time => "1562689917517",
-        //         $userAction => "Buy",
+        //         userAction => "Buy",
         //         $wasTaker => true,
         //     }
         //
@@ -924,8 +913,7 @@ class bitbay extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer_2($trade, 'time', 't');
-        $userAction = $this->safe_string($trade, 'userAction');
-        $side = ($userAction === 'Buy') ? 'buy' : 'sell';
+        $side = $this->safe_string_lower_2($trade, 'userAction', 'ty');
         $wasTaker = $this->safe_value($trade, 'wasTaker');
         $takerOrMaker = null;
         if ($wasTaker !== null) {
@@ -1166,7 +1154,7 @@ class bitbay extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
+        $url = $this->implode_hostname($this->urls['api'][$api]);
         if ($api === 'public') {
             $query = $this->omit($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params) . '.json';

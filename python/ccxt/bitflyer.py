@@ -90,12 +90,8 @@ class bitflyer(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
-                },
-                'BTC/JPY': {
-                    'maker': 0.15 / 100,
-                    'taker': 0.15 / 100,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
                 },
             },
         })
@@ -187,7 +183,7 @@ class bitflyer(Exchange):
             account['total'] = self.safe_string(balance, 'amount')
             account['free'] = self.safe_string(balance, 'available')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -459,7 +455,7 @@ class bitflyer(Exchange):
         if method == 'GET':
             if params:
                 request += '?' + self.urlencode(params)
-        baseUrl = self.implode_params(self.urls['api'], {'hostname': self.hostname})
+        baseUrl = self.implode_hostname(self.urls['api'])
         url = baseUrl + request
         if api == 'private':
             self.check_required_credentials()

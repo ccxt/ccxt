@@ -101,8 +101,8 @@ module.exports = class bitbns extends Exchange {
                     'feeSide': 'quote',
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.0025,
-                    'maker': 0.0025,
+                    'taker': this.parseNumber ('0.0025'),
+                    'maker': this.parseNumber ('0.0025'),
                 },
             },
             'exceptions': {
@@ -387,7 +387,7 @@ module.exports = class bitbns extends Exchange {
                 }
             }
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
@@ -910,36 +910,13 @@ module.exports = class bitbns extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'coin': currency['id'],
-            'address': address,
-            'amount': amount,
-            // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
-            // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
-            // 'network': 'ETH', // 'BTC', 'TRX', etc, optional
-        };
-        if (tag !== undefined) {
-            request['addressTag'] = tag;
-        }
-        const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
-        //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
-        };
-    }
-
     nonce () {
         return this.milliseconds ();
     }
 
     sign (path, api = 'v1', method = 'GET', params = {}, headers = undefined, body = undefined) {
         this.checkRequiredCredentials ();
-        const baseUrl = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
+        const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const nonce = this.nonce ().toString ();

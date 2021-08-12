@@ -30,7 +30,6 @@ module.exports = class crex24 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -44,6 +43,7 @@ module.exports = class crex24 extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false, // actually, true, but will be implemented later
                 'fetchTradingFees': false, // actually, true, but will be implemented later
+                'fetchFundingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -77,6 +77,10 @@ module.exports = class crex24 extends Exchange {
                         'recentTrades',
                         'orderBook',
                         'ohlcv',
+                        'tradingFeeSchedules',
+                        'withdrawalFees',
+                        'currencyTransport',
+                        'currenciesWithdrawalFees',
                     ],
                 },
                 'trading': {
@@ -86,9 +90,8 @@ module.exports = class crex24 extends Exchange {
                         'activeOrders',
                         'orderHistory',
                         'tradeHistory',
-                        'tradeFee',
-                        // this is in trading API according to their docs, but most likely a typo in their docs
-                        'moneyTransferStatus',
+                        'tradingFee',
+                        'tradeFee', // The support of this method has been dropped on February 18, 2020. Please, use tradingFee method instead. https://docs.crex24.com/trade-api/v2/#trade-fee-and-rebate-discontinued
                     ],
                     'post': [
                         'placeOrder',
@@ -103,7 +106,6 @@ module.exports = class crex24 extends Exchange {
                         'balance',
                         'depositAddress',
                         'moneyTransfers',
-                        // this is in trading API according to their docs, but most likely a typo in their docs
                         'moneyTransferStatus',
                         'previewWithdrawal',
                     ],
@@ -136,6 +138,7 @@ module.exports = class crex24 extends Exchange {
                 'EPS': 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
+                'GTC': 'GastroCoin', // conflict with Gitcoin and Game.com
                 'IQ': 'IQ.Cash',
                 'PUT': 'PutinCoin',
                 'SBTC': 'SBTCT', // SiamBitcoin
@@ -182,24 +185,44 @@ module.exports = class crex24 extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetInstruments (params);
         //
-        //     [ {              symbol:   "$PAC-BTC",
-        //                baseCurrency:   "$PAC",
-        //               quoteCurrency:   "BTC",
-        //                 feeCurrency:   "BTC",
-        //                    tickSize:    1e-8,
-        //                    minPrice:    1e-8,
-        //                   minVolume:    1,
-        //         supportedOrderTypes: ["limit"],
-        //                       state:   "active"    },
-        //       {              symbol:   "ZZC-USD",
-        //                baseCurrency:   "ZZC",
-        //               quoteCurrency:   "USD",
-        //                 feeCurrency:   "USD",
-        //                    tickSize:    0.0001,
-        //                    minPrice:    0.0001,
-        //                   minVolume:    1,
-        //         supportedOrderTypes: ["limit"],
-        //                       state:   "active"   }        ]
+        //         [ {
+        //             "symbol": "$PAC-BTC",
+        //             "baseCurrency": "$PAC",
+        //             "quoteCurrency": "BTC",
+        //             "feeCurrency": "BTC",
+        //             "feeSchedule": "OriginalSchedule",
+        //             "tickSize": 0.00000001,
+        //             "minPrice": 0.00000001,
+        //             "maxPrice": 10000000000.0,
+        //             "volumeIncrement": 0.00000001,
+        //             "minVolume": 1.0,
+        //             "maxVolume": 1000000000.0,
+        //             "minQuoteVolume": 0.000000000000001,
+        //             "maxQuoteVolume": 100000000000.0,
+        //             "supportedOrderTypes": [
+        //               "limit"
+        //             ],
+        //             "state": "delisted"
+        //           },
+        //           {
+        //             "symbol": "1INCH-USDT",
+        //             "baseCurrency": "1INCH",
+        //             "quoteCurrency": "USDT",
+        //             "feeCurrency": "USDT",
+        //             "feeSchedule": "FeeSchedule10",
+        //             "tickSize": 0.0001,
+        //             "minPrice": 0.0001,
+        //             "maxPrice": 10000000000.0,
+        //             "volumeIncrement": 0.00000001,
+        //             "minVolume": 0.01,
+        //             "maxVolume": 1000000000.0,
+        //             "minQuoteVolume": 0.000000000000001,
+        //             "maxQuoteVolume": 100000000000.0,
+        //             "supportedOrderTypes": [
+        //               "limit"
+        //             ],
+        //             "state": "active"
+        //           }, ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -212,7 +235,11 @@ module.exports = class crex24 extends Exchange {
             const symbol = base + '/' + quote;
             const tickSize = this.safeNumber (market, 'tickSize');
             const minPrice = this.safeNumber (market, 'minPrice');
+            const maxPrice = this.safeNumber (market, 'maxPrice');
             const minAmount = this.safeNumber (market, 'minVolume');
+            const maxAmount = this.safeNumber (market, 'maxVolume');
+            const minCost = this.safeNumber (market, 'minQuoteVolume');
+            const maxCost = this.safeNumber (market, 'maxQuoteVolume');
             const precision = {
                 'amount': minAmount,
                 'price': tickSize,
@@ -231,15 +258,15 @@ module.exports = class crex24 extends Exchange {
                 'limits': {
                     'amount': {
                         'min': minAmount,
-                        'max': undefined,
+                        'max': maxAmount,
                     },
                     'price': {
                         'min': minPrice,
-                        'max': undefined,
+                        'max': maxPrice,
                     },
                     'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': minCost,
+                        'max': maxCost,
                     },
                 },
             });
@@ -314,6 +341,49 @@ module.exports = class crex24 extends Exchange {
         return result;
     }
 
+    async fetchFundingFees (codes = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetCurrenciesWithdrawalFees (params);
+        //
+        //     [
+        //         {
+        //             currency: '1INCH',
+        //             fees: [
+        //                 { feeCurrency: 'BTC', amount: 0.00032 },
+        //                 { feeCurrency: 'ETH', amount: 0.0054 },
+        //                 { feeCurrency: 'DOGE', amount: 63.06669 },
+        //                 { feeCurrency: 'LTC', amount: 0.0912 },
+        //                 { feeCurrency: 'BCH', amount: 0.02364 },
+        //                 { feeCurrency: 'USDT', amount: 12.717 },
+        //                 { feeCurrency: 'USDC', amount: 12.7367 },
+        //                 { feeCurrency: 'TRX', amount: 205.99108 },
+        //                 { feeCurrency: 'EOS', amount: 3.30141 }
+        //             ]
+        //         }
+        //     ]
+        //
+        const withdrawFees = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencyId = this.safeString (entry, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const networkList = this.safeValue (entry, 'fees');
+            withdrawFees[code] = {};
+            for (let j = 0; j < networkList.length; j++) {
+                const networkEntry = networkList[j];
+                const networkId = this.safeString (networkEntry, 'feeCurrency');
+                const networkCode = this.safeCurrencyCode (networkId);
+                const fee = this.safeNumber (networkEntry, 'amount');
+                withdrawFees[code][networkCode] = fee;
+            }
+        }
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
+            'info': response,
+        };
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -340,7 +410,7 @@ module.exports = class crex24 extends Exchange {
             account['used'] = this.safeString (balance, 'reserved');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

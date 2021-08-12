@@ -144,6 +144,11 @@ module.exports = class bitget extends Exchange {
                         'trace/closeTrack',
                         'trace/currentTrack',
                         'trace/historyTrack',
+                        'trace/summary',
+                        'trace/profitSettleTokenIdGroup',
+                        'trace/profitDateGroupList',
+                        'trace/profitDateList',
+                        'trace/waitProfitDateList',
                     ],
                     'post': [
                         'account/leverage',
@@ -156,17 +161,18 @@ module.exports = class bitget extends Exchange {
                         'order/plan_order',
                         'order/cancel_plan',
                         'position/changeHoldModel',
+                        'trace/closeTrackOrder',
                     ],
                 },
             },
             'fees': {
                 'spot': {
-                    'taker': 0.002,
-                    'maker': 0.002,
+                    'taker': this.parseNumber ('0.002'),
+                    'maker': this.parseNumber ('0.002'),
                 },
                 'swap': {
-                    'taker': 0.0006,
-                    'maker': 0.0004,
+                    'taker': this.parseNumber ('0.0006'),
+                    'maker': this.parseNumber ('0.0004'),
                 },
             },
             'requiredCredentials': {
@@ -1613,7 +1619,7 @@ module.exports = class bitget extends Exchange {
                 result[code]['used'] = Precise.stringAdd (used, this.safeString (balance, 'balance'));
             }
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseSwapBalance (response) {
@@ -1641,7 +1647,7 @@ module.exports = class bitget extends Exchange {
             account['free'] = this.safeString (balance, 'total_avail_balance');
             result[symbol] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchAccounts (params = {}) {
@@ -2787,7 +2793,7 @@ module.exports = class bitget extends Exchange {
             request = '/' + api + '/v1' + request;
         }
         let query = this.omit (params, this.extractParams (path));
-        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + request;
+        let url = this.implodeHostname (this.urls['api'][api]) + request;
         if ((api === 'data') || (api === 'capi')) {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);

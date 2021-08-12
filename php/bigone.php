@@ -101,26 +101,11 @@ class bigone extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.1 / 100,
-                    'taker' => 0.1 / 100,
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.001'),
                 ),
                 'funding' => array(
-                    // HARDCODING IS DEPRECATED THE FEES BELOW ARE TO BE REMOVED SOON
-                    'withdraw' => array(
-                        'BTC' => 0.001,
-                        'ETH' => 0.005,
-                        'EOS' => 0.01,
-                        'ZEC' => 0.003,
-                        'LTC' => 0.01,
-                        'QTUM' => 0.01,
-                        // 'INK' => 0.01 QTUM,
-                        // 'BOT' => 0.01 QTUM,
-                        'ETC' => 0.01,
-                        'GAS' => 0.0,
-                        'BTS' => 1.0,
-                        'GXS' => 0.1,
-                        'BITCNY' => 19.0,
-                    ),
+                    'withdraw' => array(),
                 ),
             ),
             'exceptions' => array(
@@ -128,6 +113,7 @@ class bigone extends Exchange {
                     '10001' => '\\ccxt\\BadRequest', // syntax error
                     '10005' => '\\ccxt\\ExchangeError', // internal error
                     "Amount's scale must greater than AssetPair's base scale" => '\\ccxt\\InvalidOrder',
+                    "Price mulit with amount should larger than AssetPair's min_quote_value" => '\\ccxt\\InvalidOrder',
                     '10007' => '\\ccxt\\BadRequest', // parameter error, array("code":10007,"message":"Amount's scale must greater than AssetPair's base scale")
                     '10011' => '\\ccxt\\ExchangeError', // system error
                     '10013' => '\\ccxt\\OrderNotFound', // array("code":10013,"message":"Resource not found")
@@ -142,6 +128,7 @@ class bigone extends Exchange {
                     '40601' => '\\ccxt\\ExchangeError', // resource is locked
                     '40602' => '\\ccxt\\ExchangeError', // resource is depleted
                     '40603' => '\\ccxt\\InsufficientFunds', // insufficient resource
+                    '40605' => '\\ccxt\\InvalidOrder', // array("code":40605,"message":"Price less than the minimum order price")
                     '40120' => '\\ccxt\\InvalidOrder', // Order is in trading
                     '40121' => '\\ccxt\\InvalidOrder', // Order is already cancelled or filled
                 ),
@@ -149,6 +136,8 @@ class bigone extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'CRE' => 'Cybereits',
+                'FXT' => 'FXTTOKEN',
                 'MBN' => 'Mobilian Coin',
                 'ONE' => 'BigONE Token',
             ),
@@ -202,7 +191,7 @@ class bigone extends Exchange {
                 'amount' => intval($amountPrecisionString),
                 'price' => intval($pricePrecisionString),
             );
-            $minCost = $this->safe_integer($market, 'min_quote_value');
+            $minCost = $this->safe_number($market, 'min_quote_value');
             $entry = array(
                 'id' => $id,
                 'uuid' => $uuid,
@@ -501,7 +490,7 @@ class bigone extends Exchange {
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
-            'cost' => floatval($cost),
+            'cost' => $this->parse_number($cost),
             'info' => $trade,
         );
         $makerCurrencyCode = null;
@@ -618,7 +607,8 @@ class bigone extends Exchange {
         );
         if ($since !== null) {
             // $start = intval($since / 1000);
-            $end = $this->sum($since, $limit * $this->parse_timeframe($timeframe) * 1000);
+            $duration = $this->parse_timeframe($timeframe);
+            $end = $this->sum($since, $limit * $duration * 1000);
             $request['time'] = $this->iso8601($end);
         }
         $response = $this->publicGetAssetPairsAssetPairNameCandles (array_merge($request, $params));
@@ -680,7 +670,7 @@ class bigone extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order($order, $market = null) {
@@ -962,7 +952,7 @@ class bigone extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
-        $baseUrl = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
+        $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
             if ($query) {
@@ -1040,6 +1030,8 @@ class bigone extends Exchange {
             'WITHHOLD' => 'ok', // deposits
             'UNCONFIRMED' => 'pending',
             'CONFIRMED' => 'ok', // withdrawals
+            'COMPLETED' => 'ok',
+            'PENDING' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
     }

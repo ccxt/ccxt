@@ -74,40 +74,11 @@ module.exports = class btcalpha extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.002'),
                 },
                 'funding': {
-                    'withdraw': {
-                        'BTC': 0.00135,
-                        'LTC': 0.0035,
-                        'XMR': 0.018,
-                        'ZEC': 0.002,
-                        'ETH': 0.01,
-                        'ETC': 0.01,
-                        'SIB': 1.5,
-                        'CCRB': 4,
-                        'PZM': 0.05,
-                        'ITI': 0.05,
-                        'DCY': 5,
-                        'R': 5,
-                        'ATB': 0.05,
-                        'BRIA': 0.05,
-                        'KZC': 0.05,
-                        'HWC': 1,
-                        'SPA': 1,
-                        'SMS': 0.001,
-                        'REC': 0.01,
-                        'SUP': 1,
-                        'BQ': 100,
-                        'GDS': 0.1,
-                        'EVN': 300,
-                        'TRKC': 0.01,
-                        'UNI': 1,
-                        'STN': 1,
-                        'BCH': undefined,
-                        'QBIC': 0.5,
-                    },
+                    'withdraw': {},
                 },
             },
             'commonCurrencies': {
@@ -196,7 +167,7 @@ module.exports = class btcalpha extends Exchange {
     parseTrade (trade, market = undefined) {
         let symbol = undefined;
         if (market === undefined) {
-            market = this.safeValue (this.marketsById, trade['pair']);
+            market = this.safeValue (this.markets_by_id, trade['pair']);
         }
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -300,7 +271,7 @@ module.exports = class btcalpha extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
@@ -315,7 +286,7 @@ module.exports = class btcalpha extends Exchange {
     parseOrder (order, market = undefined) {
         let symbol = undefined;
         if (market === undefined) {
-            market = this.safeValue (this.marketsById, order['pair']);
+            market = this.safeValue (this.markets_by_id, order['pair']);
         }
         if (market !== undefined) {
             symbol = market['symbol'];

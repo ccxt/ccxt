@@ -148,8 +148,8 @@ class bittrex extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'maker' => 0.0035,
-                    'taker' => 0.0035,
+                    'maker' => $this->parse_number('0.0075'),
+                    'taker' => $this->parse_number('0.0075'),
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -320,7 +320,7 @@ class bittrex extends Exchange {
             $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

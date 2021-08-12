@@ -63,9 +63,19 @@ class bybit extends Exchange {
                 '1y' => 'Y',
             ),
             'urls' => array(
-                'test' => 'https://api-testnet.{hostname}',
+                'test' => array(
+                    'futures' => 'https://api-testnet.{hostname}',
+                    'v2' => 'https://api-testnet.{hostname}',
+                    'public' => 'https://api-testnet.{hostname}',
+                    'private' => 'https://api-testnet.{hostname}',
+                ),
                 'logo' => 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
-                'api' => 'https://api.{hostname}',
+                'api' => array(
+                    'futures' => 'https://api.{hostname}',
+                    'v2' => 'https://api.{hostname}',
+                    'public' => 'https://api.{hostname}',
+                    'private' => 'https://api.{hostname}',
+                ),
                 'www' => 'https://www.bybit.com',
                 'doc' => array(
                     'https://bybit-exchange.github.io/docs/inverse/',
@@ -313,17 +323,24 @@ class bybit extends Exchange {
             'options' => array(
                 'marketTypes' => array(
                     'BTC/USDT' => 'linear',
-                    'BCH/USDT' => 'linear',
                     'ETH/USDT' => 'linear',
-                    'LTC/USDT' => 'linear',
-                    'XTZ/USDT' => 'linear',
-                    'LINK/USDT' => 'linear',
+                    'BNB/USDT' => 'linear',
                     'ADA/USDT' => 'linear',
+                    'DOGE/USDT' => 'linear',
+                    'XRP/USDT' => 'linear',
                     'DOT/USDT' => 'linear',
                     'UNI/USDT' => 'linear',
+                    'BCH/USDT' => 'linear',
+                    'LTC/USDT' => 'linear',
+                    'SOL/USDT' => 'linear',
+                    'LINK/USDT' => 'linear',
+                    'MATIC/USDT' => 'linear',
+                    'ETC/USDT' => 'linear',
+                    'FIL/USDT' => 'linear',
+                    'EOS/USDT' => 'linear',
                     'AAVE/USDT' => 'linear',
+                    'XTZ/USDT' => 'linear',
                     'SUSHI/USDT' => 'linear',
-                    'XRP/USDT' => 'linear',
                     'XEM/USDT' => 'linear',
                     'BTC/USD' => 'inverse',
                     'ETH/USD' => 'inverse',
@@ -1014,7 +1031,7 @@ class bybit extends Exchange {
             $account['total'] = $this->safe_string($balance, 'equity');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {
@@ -1126,7 +1143,7 @@ class bybit extends Exchange {
         //             "trigger_price":12400,
         //             "close_on_trigger":true,
         //             "op_from":"api",
-        //             "remark":"145.53.159.48",
+        //             "remark":"x.x.x.x",
         //             "o_req_num":0
         //         ),
         //         "leaves_qty":10,
@@ -1135,7 +1152,7 @@ class bybit extends Exchange {
         //         "cross_seq":-1,
         //         "created_at":"2020-08-21T09:18:48.000Z",
         //         "updated_at":"2020-08-21T09:18:48.000Z",
-        //         "stop_px":12400,
+        //         "trigger_price":12400,
         //         "stop_order_id":"3f3b54b1-3379-42c7-8510-44f4d9915be0"
         //     }
         //
@@ -1184,7 +1201,7 @@ class bybit extends Exchange {
             $clientOrderId = null;
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
-        $stopPrice = $this->safe_number($order, 'stop_px');
+        $stopPrice = $this->safe_number_2($order, 'trigger_price', 'stop_px');
         $postOnly = ($timeInForce === 'PO');
         return $this->safe_order(array(
             'info' => $order,
@@ -1689,7 +1706,7 @@ class bybit extends Exchange {
         }
         $query = $params;
         if ((is_array($params) && array_key_exists('stop_order_id', $params)) || (is_array($params) && array_key_exists('stop_order_status', $params))) {
-            $stopOrderStatus = $this->safe_value($params, 'stopOrderStatus');
+            $stopOrderStatus = $this->safe_value($params, 'stop_order_status');
             if ($stopOrderStatus !== null) {
                 if (gettype($stopOrderStatus) === 'array' && count(array_filter(array_keys($stopOrderStatus), 'is_string')) == 0) {
                     $stopOrderStatus = implode(',', $stopOrderStatus);
@@ -2335,9 +2352,9 @@ class bybit extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname ));
         $type = $this->safe_string($api, 0);
         $section = $this->safe_string($api, 1);
+        $url = $this->implode_hostname($this->urls['api'][$type]);
         $request = '/' . $type . '/' . $section . '/' . $path;
         // public v2
         if ($section === 'public') {

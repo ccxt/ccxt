@@ -265,7 +265,7 @@ class coinmate(Exchange):
             account['used'] = self.safe_string(balance, 'reserved')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -320,7 +320,8 @@ class coinmate(Exchange):
         if since is not None:
             request['timestampFrom'] = since
         if code is not None:
-            request['currency'] = self.currency_id(code)
+            currency = self.currency(code)
+            request['currency'] = currency['id']
         response = self.privatePostTransferHistory(self.extend(request, params))
         items = response['data']
         return self.parse_transactions(items, None, since, limit)

@@ -120,8 +120,8 @@ class upbit extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.0025,
-                    'taker' => 0.0025,
+                    'maker' => $this->parse_number('0.0025'),
+                    'taker' => $this->parse_number('0.0025'),
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -445,7 +445,7 @@ class upbit extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
@@ -885,6 +885,11 @@ class upbit extends Exchange {
                 $request['volume'] = $this->amount_to_precision($symbol, $amount);
             }
         }
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'identifier');
+        if ($clientOrderId !== null) {
+            $request['identifier'] = $clientOrderId;
+        }
+        $params = $this->omit($params, array( 'clientOrderId', 'identifier' ));
         $response = $this->privatePostOrders (array_merge($request, $params));
         //
         //     {

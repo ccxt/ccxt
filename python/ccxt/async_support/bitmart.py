@@ -66,6 +66,7 @@ class bitmart(Exchange):
                 'fetchStatus': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'fetchFundingFee': True,
                 'withdraw': True,
             },
             'hostname': 'bitmart.com',  # bitmart.info for Hong Kong users
@@ -186,28 +187,28 @@ class bitmart(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.0025,
-                    'maker': 0.0025,
+                    'taker': self.parse_number('0.0025'),
+                    'maker': self.parse_number('0.0025'),
                     'tiers': {
                         'taker': [
-                            [0, 0.20 / 100],
-                            [10, 0.18 / 100],
-                            [50, 0.16 / 100],
-                            [250, 0.14 / 100],
-                            [1000, 0.12 / 100],
-                            [5000, 0.10 / 100],
-                            [25000, 0.08 / 100],
-                            [50000, 0.06 / 100],
+                            [self.parse_number('0'), self.parse_number('0.0020')],
+                            [self.parse_number('10'), self.parse_number('0.18')],
+                            [self.parse_number('50'), self.parse_number('0.0016')],
+                            [self.parse_number('250'), self.parse_number('0.0014')],
+                            [self.parse_number('1000'), self.parse_number('0.0012')],
+                            [self.parse_number('5000'), self.parse_number('0.0010')],
+                            [self.parse_number('25000'), self.parse_number('0.0008')],
+                            [self.parse_number('50000'), self.parse_number('0.0006')],
                         ],
                         'maker': [
-                            [0, 0.1 / 100],
-                            [10, 0.09 / 100],
-                            [50, 0.08 / 100],
-                            [250, 0.07 / 100],
-                            [1000, 0.06 / 100],
-                            [5000, 0.05 / 100],
-                            [25000, 0.04 / 100],
-                            [50000, 0.03 / 100],
+                            [self.parse_number('0'), self.parse_number('0.001')],
+                            [self.parse_number('10'), self.parse_number('0.0009')],
+                            [self.parse_number('50'), self.parse_number('0.0008')],
+                            [self.parse_number('250'), self.parse_number('0.0007')],
+                            [self.parse_number('1000'), self.parse_number('0.0006')],
+                            [self.parse_number('5000'), self.parse_number('0.0005')],
+                            [self.parse_number('25000'), self.parse_number('0.0004')],
+                            [self.parse_number('50000'), self.parse_number('0.0003')],
                         ],
                     },
                 },
@@ -455,7 +456,7 @@ class bitmart(Exchange):
             pricePrecision = self.safe_integer(market, 'price_max_precision')
             precision = {
                 'amount': self.safe_number(market, 'base_min_size'),
-                'price': float(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 10)),
+                'price': self.parse_number(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 12)),
             }
             minBuyCost = self.safe_number(market, 'min_buy_amount')
             minSellCost = self.safe_number(market, 'min_sell_amount')
@@ -626,10 +627,36 @@ class bitmart(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
-        spotMarkets = await self.fetch_spot_markets()
-        contractMarkets = await self.fetch_contract_markets()
-        allMarkets = self.array_concat(spotMarkets, contractMarkets)
-        return allMarkets
+        return await self.fetch_spot_markets()
+
+    async def fetch_funding_fee(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.privateAccountGetWithdrawCharge(self.extend(request, params))
+        #
+        #     {
+        #         message: 'OK',
+        #         code: '1000',
+        #         trace: '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
+        #         data: {
+        #             today_available_withdraw_BTC: '100.0000',
+        #             min_withdraw: '0.005',
+        #             withdraw_precision: '8',
+        #             withdraw_fee: '0.000500000000000000000000000000'
+        #         }
+        #     }
+        #
+        data = response['data']
+        withdrawFees = {}
+        withdrawFees[code] = self.safe_number(data, 'withdraw_fee')
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        }
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -1448,7 +1475,7 @@ class bitmart(Exchange):
             account['free'] = self.safe_string_2(balance, 'available', 'available_vol')
             account['used'] = self.safe_string_2(balance, 'frozen', 'freeze_vol')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
         #
@@ -2133,7 +2160,7 @@ class bitmart(Exchange):
             type = 'deposit'
             id = depositId
         amount = self.safe_number(transaction, 'arrival_amount')
-        timestamp = self.safe_integer(transaction, 'tapply_timeime')
+        timestamp = self.safe_integer(transaction, 'apply_time')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
@@ -2173,7 +2200,7 @@ class bitmart(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        baseUrl = self.implode_params(self.urls['api'], {'hostname': self.hostname})
+        baseUrl = self.implode_hostname(self.urls['api'])
         access = self.safe_string(api, 0)
         type = self.safe_string(api, 1)
         url = baseUrl + '/' + type

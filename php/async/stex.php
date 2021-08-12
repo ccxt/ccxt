@@ -181,8 +181,8 @@ class stex extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => 0.002,
-                    'maker' => 0.002,
+                    'taker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('0.002'),
                 ),
             ),
             'commonCurrencies' => array(
@@ -206,6 +206,7 @@ class stex extends Exchange {
                     'Server Error' => '\\ccxt\\ExchangeError', // array( "message" => "Server Error" )
                     'This feature is only enabled for users verifies by Cryptonomica' => '\\ccxt\\PermissionDenied', // array("success":false,"message":"This feature is only enabled for users verifies by Cryptonomica")
                     'Too Many Attempts.' => '\\ccxt\\DDoSProtection', // array( "message" => "Too Many Attempts." )
+                    'Selected Pair is disabled' => '\\ccxt\\BadSymbol', // array("success":false,"message":"Selected Pair is disabled")
                 ),
                 'broad' => array(
                     'Not enough' => '\\ccxt\\InsufficientFunds', // array("success":false,"message":"Not enough  ETH")
@@ -826,7 +827,7 @@ class stex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'frozen_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {
@@ -1453,7 +1454,7 @@ class stex extends Exchange {
             'hodl' => 'pending',
             'amount too low' => 'failed',
             'not confirmed' => 'pending',
-            'cancelled by User' => 'canceled',
+            'cancelled by user' => 'canceled',
             'approved' => 'pending',
             'finished' => 'ok',
             'withdrawal error' => 'failed',
@@ -1728,6 +1729,7 @@ class stex extends Exchange {
     }
 
     public function fetch_funding_fees($codes = null, $params = array ()) {
+        yield $this->load_markets();
         $response = yield $this->publicGetCurrencies ($params);
         //
         //     {

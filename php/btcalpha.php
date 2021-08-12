@@ -78,40 +78,11 @@ class btcalpha extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.2 / 100,
-                    'taker' => 0.2 / 100,
+                    'maker' => $this->parse_number('0.002'),
+                    'taker' => $this->parse_number('0.002'),
                 ),
                 'funding' => array(
-                    'withdraw' => array(
-                        'BTC' => 0.00135,
-                        'LTC' => 0.0035,
-                        'XMR' => 0.018,
-                        'ZEC' => 0.002,
-                        'ETH' => 0.01,
-                        'ETC' => 0.01,
-                        'SIB' => 1.5,
-                        'CCRB' => 4,
-                        'PZM' => 0.05,
-                        'ITI' => 0.05,
-                        'DCY' => 5,
-                        'R' => 5,
-                        'ATB' => 0.05,
-                        'BRIA' => 0.05,
-                        'KZC' => 0.05,
-                        'HWC' => 1,
-                        'SPA' => 1,
-                        'SMS' => 0.001,
-                        'REC' => 0.01,
-                        'SUP' => 1,
-                        'BQ' => 100,
-                        'GDS' => 0.1,
-                        'EVN' => 300,
-                        'TRKC' => 0.01,
-                        'UNI' => 1,
-                        'STN' => 1,
-                        'BCH' => null,
-                        'QBIC' => 0.5,
-                    ),
+                    'withdraw' => array(),
                 ),
             ),
             'commonCurrencies' => array(
@@ -200,7 +171,7 @@ class btcalpha extends Exchange {
     public function parse_trade($trade, $market = null) {
         $symbol = null;
         if ($market === null) {
-            $market = $this->safe_value($this->marketsById, $trade['pair']);
+            $market = $this->safe_value($this->markets_by_id, $trade['pair']);
         }
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -304,7 +275,7 @@ class btcalpha extends Exchange {
             $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->parse_balance($result);
     }
 
     public function parse_order_status($status) {
@@ -319,7 +290,7 @@ class btcalpha extends Exchange {
     public function parse_order($order, $market = null) {
         $symbol = null;
         if ($market === null) {
-            $market = $this->safe_value($this->marketsById, $order['pair']);
+            $market = $this->safe_value($this->markets_by_id, $order['pair']);
         }
         if ($market !== null) {
             $symbol = $market['symbol'];

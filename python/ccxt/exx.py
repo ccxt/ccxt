@@ -66,33 +66,11 @@ class exx(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.001'),
                 },
                 'funding': {
-                    'withdraw': {
-                        'BCC': 0.0003,
-                        'BCD': 0.0,
-                        'BOT': 10.0,
-                        'BTC': 0.001,
-                        'BTG': 0.0,
-                        'BTM': 25.0,
-                        'BTS': 3.0,
-                        'EOS': 1.0,
-                        'ETC': 0.01,
-                        'ETH': 0.01,
-                        'ETP': 0.012,
-                        'HPY': 0.0,
-                        'HSR': 0.001,
-                        'INK': 20.0,
-                        'LTC': 0.005,
-                        'MCO': 0.6,
-                        'MONA': 0.01,
-                        'QASH': 5.0,
-                        'QCASH': 5.0,
-                        'QTUM': 0.01,
-                        'USDT': 5.0,
-                    },
+                    'withdraw': {},
                 },
             },
             'commonCurrencies': {
@@ -196,9 +174,9 @@ class exx(Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            if not (id in self.marketsById):
+            if not (id in self.markets_by_id):
                 continue
-            market = self.marketsById[id]
+            market = self.markets_by_id[id]
             symbol = market['symbol']
             ticker = {
                 'date': timestamp,
@@ -269,7 +247,7 @@ class exx(Exchange):
             account['used'] = self.safe_string(balance, 'freeze')
             account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
         #

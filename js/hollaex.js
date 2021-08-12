@@ -607,7 +607,7 @@ module.exports = class hollaex extends Exchange {
             account['total'] = this.safeString (response, currencyId + '_balance');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {

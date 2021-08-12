@@ -88,8 +88,8 @@ module.exports = class latoken extends Exchange {
                     'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.001'),
                 },
             },
             'commonCurrencies': {
@@ -281,7 +281,7 @@ module.exports = class latoken extends Exchange {
             account['total'] = this.safeString (balance, 'amount');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

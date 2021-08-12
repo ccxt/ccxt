@@ -82,8 +82,8 @@ module.exports = class bit2c extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.5 / 100,
-                    'taker': 0.5 / 100,
+                    'maker': this.parseNumber ('0.005'),
+                    'taker': this.parseNumber ('0.005'),
                 },
             },
             'options': {
@@ -157,15 +157,15 @@ module.exports = class bit2c extends Exchange {
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const account = this.account ();
-            const currencyId = this.currencyId (code);
-            const uppercase = currencyId.toUpperCase ();
+            const currency = this.currency (code);
+            const uppercase = currency['id'].toUpperCase ();
             if (uppercase in balance) {
                 account['free'] = this.safeString (balance, 'AVAILABLE_' + uppercase);
                 account['total'] = this.safeString (balance, uppercase);
             }
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

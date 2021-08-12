@@ -1,21 +1,12 @@
 'use strict'
 
-const BN = require ('../static_dependencies/BN/bn')
+const zero = BigInt (0)
+const minusOne = BigInt (-1)
+const base = BigInt (10)
 
 class Precise {
-    constructor (number, decimals = 0) {
-        const isBN = number instanceof BN
-        const isString = typeof number === 'string'
-        if (!(isBN || isString)) {
-            throw new Error ('Precise initiated with something other than a string or BN')
-        }
-        if (isBN) {
-            this.integer = number
-            this.decimals = decimals
-        } else {
-            if (decimals) {
-                throw new Error ('Cannot set decimals when initializing with a string')
-            }
+    constructor (number, decimals = undefined) {
+        if (decimals === undefined) {
             let modifier = 0
             number = number.toLowerCase ()
             if (number.indexOf ('e') > -1) {
@@ -25,16 +16,17 @@ class Precise {
             const decimalIndex = number.indexOf ('.')
             this.decimals = (decimalIndex > -1) ? number.length - decimalIndex - 1 : 0
             const integerString = number.replace ('.', '')
-            this.integer = new BN (integerString)
+            this.integer = BigInt (integerString)
             this.decimals = this.decimals - modifier
+        } else {
+            this.integer = number
+            this.decimals = decimals
         }
-        this.base = 10
-        this.reduce ()
     }
 
     mul (other) {
         // other must be another instance of Precise
-        const integerResult = this.integer.mul (other.integer)
+        const integerResult = this.integer * other.integer
         return new Precise (integerResult, this.decimals + other.decimals)
     }
 
@@ -44,62 +36,119 @@ class Precise {
         if (distance === 0) {
             numerator = this.integer
         } else if (distance < 0) {
-            const exponent = new BN (this.base).pow (new BN (-distance))
-            numerator = this.integer.div (exponent)
+            const exponent = base ** BigInt (-distance)
+            numerator = this.integer / exponent
         } else {
-            const exponent = new BN (this.base).pow (new BN (distance))
-            numerator = this.integer.mul (exponent)
+            const exponent = base ** BigInt (distance)
+            numerator = this.integer * exponent
         }
-        const result = numerator.div (other.integer)
+        const result = numerator / other.integer
         return new Precise (result, precision)
     }
 
     add (other) {
         if (this.decimals === other.decimals) {
-            const integerResult = this.integer.add (other.integer)
+            const integerResult = this.integer + other.integer
             return new Precise (integerResult, this.decimals)
         } else {
             const [ smaller, bigger ] =
                 (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
-            const exponent = new BN (bigger.decimals - smaller.decimals)
-            const normalised = smaller.integer.mul (new BN (this.base).pow (exponent))
-            const result = normalised.add (bigger.integer)
+            const exponent = bigger.decimals - smaller.decimals
+            const normalised = smaller.integer * (base ** BigInt (exponent))
+            const result = normalised + bigger.integer
             return new Precise (result, bigger.decimals)
         }
     }
 
+    mod (other) {
+        const rationizerNumerator = Math.max (-this.decimals + other.decimals, 0)
+        const numerator = this.integer * (base ** BigInt (rationizerNumerator))
+        const rationizerDenominator = Math.max (-other.decimals + this.decimals, 0)
+        const denominator = other.integer * (base ** BigInt (rationizerDenominator))
+        const result = numerator % denominator
+        return new Precise (result, rationizerDenominator + other.decimals)
+    }
+
     sub (other) {
-        const negative = new Precise (other.integer.neg (), other.decimals)
+        const negative = new Precise (-other.integer, other.decimals)
         return this.add (negative)
     }
 
     abs () {
-        return new Precise (this.integer.abs (), this.decimals)
+        return new Precise (this.integer < 0 ? this.integer * minusOne : this.integer, this.decimals)
     }
 
     neg () {
-        return new Precise (this.integer.neg (), this.decimals)
+        return new Precise (-this.integer, this.decimals)
+    }
+
+    min (other) {
+        return this.lt (other) ? this : other
+    }
+
+    max (other) {
+        return this.gt (other) ? this : other
+    }
+
+    gt (other) {
+        const sum = this.sub (other)
+        return sum.integer > 0
+    }
+
+    ge (other) {
+        const sum = this.sub (other)
+        return sum.integer >= 0
+    }
+
+    lt (other) {
+        return other.gt (this)
+    }
+
+    le (other) {
+        return other.ge (this)
     }
 
     reduce () {
-        const zero = new BN (0)
-        if (this.integer.eq (zero)) {
-            this.decimals = 0
+        const string = this.integer.toString ()
+        const start = string.length - 1
+        if (start === 0) {
+            if (string === '0') {
+                this.decimals = 0
+            }
             return this
         }
-        const base = new BN (this.base)
-        let divmod = this.integer.divmod (base)
-        while (divmod.mod.eq (zero)) {
-            this.integer = divmod.div
-            this.decimals--
-            divmod = this.integer.divmod (base)
+        let i
+        for (i = start; i >= 0; i--) {
+            if (string.charAt (i) !== '0') {
+                break
+            }
         }
-        return this
+        const difference = start - i
+        if (difference === 0) {
+            return this
+        }
+        this.decimals -= difference
+        this.integer = BigInt (string.slice (0, i + 1))
+    }
+
+    equals (other) {
+        this.reduce ()
+        other.reduce ()
+        return (this.decimals === other.decimals) && (this.integer === other.integer)
     }
 
     toString () {
-        const sign = this.integer.negative ? '-' : ''
-        const integerArray = Array.from (this.integer.abs ().toString (this.base).padStart (this.decimals, '0'))
+        this.reduce ()
+        let sign
+        let abs
+        if (this.integer < 0) {
+            sign = '-'
+            abs = -this.integer
+        } else {
+            sign = ''
+            abs = this.integer
+        }
+        const integerArray = Array.from (abs.toString (this.base).padStart (this.decimals, '0'))
         const index = integerArray.length - this.decimals
         let item
         if (index === 0) {
@@ -161,6 +210,62 @@ class Precise {
             return undefined
         }
         return (new Precise (string)).neg ().toString ()
+    }
+
+    static stringMod (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).mod (new Precise (string2)).toString ()
+    }
+
+    static stringEquals (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).equals (new Precise (string2))
+    }
+
+    static stringMin (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).min (new Precise (string2)).toString ()
+    }
+
+    static stringMax (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).max (new Precise (string2)).toString ()
+    }
+
+    static stringGt (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).gt (new Precise (string2))
+    }
+
+    static stringGe (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).ge (new Precise (string2))
+    }
+
+    static stringLt (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).lt (new Precise (string2))
+    }
+
+    static stringLe (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).le (new Precise (string2))
     }
 }
 
