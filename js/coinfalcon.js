@@ -131,7 +131,7 @@ module.exports = class coinfalcon extends Exchange {
         const marketId = this.safeString (ticker, 'name');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.milliseconds ();
-        const last = parseFloat (ticker['last_price']);
+        const last = this.safeNumber (ticker, 'last_price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
