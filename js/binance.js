@@ -785,7 +785,7 @@ module.exports = class binance extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol].precision.quote, this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
 
     currencyToPrecision (currency, fee) {
