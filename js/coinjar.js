@@ -374,7 +374,7 @@ module.exports = class coinjar extends Exchange {
         return response;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
         let fullPath = '/' + this.implodeParams (path, params);
         if (api === 'private') {
             this.checkRequiredCredentials ();
