@@ -806,11 +806,15 @@ class gateio extends Exchange {
             'currency_pair' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
         );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        if ($since !== null) {
-            $request['start'] = (int) floor($since / 1000);
+        if ($since === null) {
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+        } else {
+            $request['from'] = (int) floor($since / 1000);
+            if ($limit !== null) {
+                $request['to'] = $this->sum($request['from'], $limit * $this->parse_timeframe($timeframe) - 1);
+            }
         }
         $response = yield $this->publicSpotGetCandlesticks (array_merge($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);

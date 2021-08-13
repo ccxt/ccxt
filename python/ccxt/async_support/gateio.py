@@ -794,10 +794,13 @@ class gateio(Exchange):
             'currency_pair': market['id'],
             'interval': self.timeframes[timeframe],
         }
-        if limit is not None:
-            request['limit'] = limit
-        if since is not None:
-            request['start'] = int(math.floor(since / 1000))
+        if since is None:
+            if limit is not None:
+                request['limit'] = limit
+        else:
+            request['from'] = int(math.floor(since / 1000))
+            if limit is not None:
+                request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe) - 1)
         response = await self.publicSpotGetCandlesticks(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
