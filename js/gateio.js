@@ -801,10 +801,11 @@ module.exports = class gateio extends Exchange {
             'currency_pair': market['id'],
             'interval': this.timeframes[timeframe],
         };
-        if (limit !== undefined && since === undefined) {
-            request['limit'] = limit;
-        }
-        if (since !== undefined) {
+        if (since === undefined) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
             request['from'] = Math.floor (since / 1000);
             if (limit !== undefined) {
                 request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe) - 1);
