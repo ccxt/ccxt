@@ -29,6 +29,7 @@ module.exports = class coinjar extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': false,
+                'fetchTrades': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'createOrder': true,
@@ -345,11 +346,13 @@ module.exports = class coinjar extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const after = parseInt (since / 1000);
+        const before = parseInt (this.now () / 1000);
         const request = {
             'productId': market['id'],
             'interval': timeframe,
-            'after': since,
-            'before': limit,
+            'after': after,
+            'before': before,
         };
         const response = await this.publicGetProductsProductIdCandles (this.extend (request, params));
         // Sample response from publicGetProductsProductIdCandles()
@@ -371,24 +374,62 @@ module.exports = class coinjar extends Exchange {
         //         "10.57200000"
         //     ],
         // ]
-        return response;
+        const data = this.parseCandles (response);
+        // Converts them into ccxt friendly format
+        // [
+        //     [
+        //         1520294400000,
+        //         15010,
+        //         15010,
+        //         14540,
+        //         14550,
+        //         8.953
+        //     ],
+        //     [
+        //         1520308800000
+        //         14590,
+        //         14700,
+        //         14000,
+        //         14590,
+        //         10.572
+        //     ],
+        // ]
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
+    parseCandles (response) {
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            const timestamp = this.parse8601 (this.safeString (row, 0));
+            const open = this.safeNumber (row, 1);
+            const high = this.safeNumber (row, 2);
+            const low = this.safeNumber (row, 3);
+            const close = this.safeNumber (row, 4);
+            const volume = this.safeNumber (row, 5);
+            result[i] = [timestamp, open, high, low, close, volume];
+        }
+        return result;
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let fullPath = '/' + this.implodeParams (path, params);
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            headers['Authorization'] = 'Token token="' + this.token + '"';
+            const authorization = 'Token token="' + this.token + '"';
+            headers = {
+                'Authorization': authorization,
+                'Content-Type': 'application/json',
+            };
+            if (method === 'POST') {
+                body = this.json (params);
+            }
         }
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (query).length) {
                 fullPath += '?' + this.urlencode (query);
             }
-        }
-        if (method === 'POST') {
-            headers['Content-Type'] = 'application/json';
-            body = this.json (params);
         }
         const url = this.urls['api'][api] + fullPath;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
