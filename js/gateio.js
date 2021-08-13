@@ -801,11 +801,14 @@ module.exports = class gateio extends Exchange {
             'currency_pair': market['id'],
             'interval': this.timeframes[timeframe],
         };
-        if (limit !== undefined) {
+        if (limit !== undefined && since === undefined) {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['start'] = Math.floor (since / 1000);
+            request['from'] = Math.floor (since / 1000);
+            if (limit !== undefined) {
+                request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe) - 1);
+            }
         }
         const response = await this.publicSpotGetCandlesticks (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
