@@ -485,6 +485,7 @@ module.exports = class exmo extends Exchange {
                     '50277': InvalidOrder,
                     '50319': InvalidOrder, // Price by order is less than permissible minimum for this pair
                     '50321': InvalidOrder, // Price by order is more than permissible maximum for this pair
+                    '50381': InvalidOrder, // {"result":false,"error":"Error 50381: More than 2 decimal places are not permitted for pair BTC_USD"}
                 },
                 'broad': {
                     'range period is too long': BadRequest,
