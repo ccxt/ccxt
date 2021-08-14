@@ -792,6 +792,7 @@ class binance(Exchange):
                     '-3041': InsufficientFunds,  # {"code":-3041,"msg":"Balance is not enough"}
                     '-5013': InsufficientFunds,  # Asset transfer failed: insufficient balance"
                     '-11008': InsufficientFunds,  # {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}
+                    '-4051': InsufficientFunds,  # {"code":-4051,"msg":"Isolated balance insufficient."}
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
@@ -4121,3 +4122,47 @@ class binance(Exchange):
         if (api == 'private') or (api == 'wapi'):
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
+
+    def modify_margin_helper(self, symbol, amount, addOrReduce, params={}):
+        # used to modify isolated positions
+        defaultType = self.safe_string(self.options, 'defaultType', 'future')
+        if defaultType == 'spot':
+            defaultType = 'future'
+        type = self.safe_string(params, 'type', defaultType)
+        if (type == 'margin') or (type == 'spot'):
+            raise NotSupported(self.id + ' add / reduce margin only supported with type future or delivery')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'type': addOrReduce,
+            'symbol': market['id'],
+            'amount': amount,
+        }
+        method = None
+        code = None
+        if type == 'future':
+            method = 'fapiPrivatePostPositionMargin'
+            code = market['quote']
+        else:
+            method = 'dapiPrivatePostPositionMargin'
+            code = market['base']
+        response = getattr(self, method)(self.extend(request, params))
+        rawType = self.safe_integer(response, 'type')
+        resultType = 'add' if (rawType == 1) else 'reduce'
+        resultAmount = self.safe_number(response, 'amount')
+        errorCode = self.safe_string(response, 'code')
+        status = 'ok' if (errorCode == '200') else 'failed'
+        return {
+            'info': response,
+            'type': resultType,
+            'amount': resultAmount,
+            'code': code,
+            'symbol': market['symbol'],
+            'status': status,
+        }
+
+    def reduce_margin(self, symbol, amount, params={}):
+        return self.modify_margin_helper(symbol, amount, 2, params)
+
+    def add_margin(self, symbol, amount, params={}):
+        return self.modify_margin_helper(symbol, amount, 1, params)

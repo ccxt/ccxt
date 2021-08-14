@@ -782,6 +782,7 @@ class binance extends Exchange {
                     '-3041' => '\\ccxt\\InsufficientFunds', // array("code":-3041,"msg":"Balance is not enough")
                     '-5013' => '\\ccxt\\InsufficientFunds', // Asset transfer failed => insufficient balance"
                     '-11008' => '\\ccxt\\InsufficientFunds', // array("code":-11008,"msg":"Exceeding the account's maximum borrowable limit.")
+                    '-4051' => '\\ccxt\\InsufficientFunds', // array("code":-4051,"msg":"Isolated balance insufficient.")
                 ),
                 'broad' => array(
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
@@ -4376,5 +4377,55 @@ class binance extends Exchange {
             $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return $response;
+    }
+
+    public function modify_margin_helper($symbol, $amount, $addOrReduce, $params = array ()) {
+        // used to modify isolated positions
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
+        if ($defaultType === 'spot') {
+            $defaultType = 'future';
+        }
+        $type = $this->safe_string($params, 'type', $defaultType);
+        if (($type === 'margin') || ($type === 'spot')) {
+            throw new NotSupported($this->id . ' add / reduce margin only supported with $type future or delivery');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'type' => $addOrReduce,
+            'symbol' => $market['id'],
+            'amount' => $amount,
+        );
+        $method = null;
+        $code = null;
+        if ($type === 'future') {
+            $method = 'fapiPrivatePostPositionMargin';
+            $code = $market['quote'];
+        } else {
+            $method = 'dapiPrivatePostPositionMargin';
+            $code = $market['base'];
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        $rawType = $this->safe_integer($response, 'type');
+        $resultType = ($rawType === 1) ? 'add' : 'reduce';
+        $resultAmount = $this->safe_number($response, 'amount');
+        $errorCode = $this->safe_string($response, 'code');
+        $status = ($errorCode === '200') ? 'ok' : 'failed';
+        return array(
+            'info' => $response,
+            'type' => $resultType,
+            'amount' => $resultAmount,
+            'code' => $code,
+            'symbol' => $market['symbol'],
+            'status' => $status,
+        );
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 2, $params);
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 }

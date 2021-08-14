@@ -118,7 +118,7 @@ class bitforex(Exchange):
                 'UOS': 'UOS Network',
             },
             'exceptions': {
-                '4004': OrderNotFound,
+                '1003': BadSymbol,  # {"success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error"}
                 '1013': AuthenticationError,
                 '1016': AuthenticationError,
                 '1017': PermissionDenied,  # {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
@@ -126,6 +126,7 @@ class bitforex(Exchange):
                 '3002': InsufficientFunds,
                 '4002': InvalidOrder,  # {"success":false,"code":"4002","message":"Price unreasonable"}
                 '4003': InvalidOrder,  # {"success":false,"code":"4003","message":"amount too small"}
+                '4004': OrderNotFound,
                 '10204': DDoSProtection,
             },
         })

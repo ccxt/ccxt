@@ -104,7 +104,7 @@ class bitforex extends Exchange {
                 'UOS' => 'UOS Network',
             ),
             'exceptions' => array(
-                '4004' => '\\ccxt\\OrderNotFound',
+                '1003' => '\\ccxt\\BadSymbol', // array("success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error")
                 '1013' => '\\ccxt\\AuthenticationError',
                 '1016' => '\\ccxt\\AuthenticationError',
                 '1017' => '\\ccxt\\PermissionDenied', // array("code":"1017","success":false,"time":1602670594367,"message":"IP not allow")
@@ -112,6 +112,7 @@ class bitforex extends Exchange {
                 '3002' => '\\ccxt\\InsufficientFunds',
                 '4002' => '\\ccxt\\InvalidOrder', // array("success":false,"code":"4002","message":"Price unreasonable")
                 '4003' => '\\ccxt\\InvalidOrder', // array("success":false,"code":"4003","message":"amount too small")
+                '4004' => '\\ccxt\\OrderNotFound',
                 '10204' => '\\ccxt\\DDoSProtection',
             ),
         ));
