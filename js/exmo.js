@@ -1420,6 +1420,7 @@ module.exports = class exmo extends Exchange {
             'paid': 'ok',
             'pending': 'pending',
             'processing': 'pending',
+            'verifying': 'pending',
         };
         return this.safeString (statuses, status, status);
     }
