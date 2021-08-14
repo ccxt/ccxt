@@ -444,6 +444,8 @@ class binance extends Exchange {
                         'ticker/bookTicker',
                         'openInterest',
                         'indexInfo',
+                        'apiTradingStatus',
+                        'lvtKlines',
                     ),
                 ),
                 'fapiData' => array(
@@ -482,6 +484,7 @@ class binance extends Exchange {
                         'apiReferral/tradeVol',
                         'apiReferral/rebateVol',
                         'apiReferral/traderSummary',
+                        'adlQuantile',
                     ),
                     'post' => array(
                         'batchOrders',

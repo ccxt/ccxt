@@ -490,6 +490,7 @@ class exmo extends Exchange {
                     '50277' => '\\ccxt\\InvalidOrder',
                     '50319' => '\\ccxt\\InvalidOrder', // Price by order is less than permissible minimum for this pair
                     '50321' => '\\ccxt\\InvalidOrder', // Price by order is more than permissible maximum for this pair
+                    '50381' => '\\ccxt\\InvalidOrder', // array("result":false,"error":"Error 50381 => More than 2 decimal places are not permitted for pair BTC_USD")
                 ),
                 'broad' => array(
                     'range period is too long' => '\\ccxt\\BadRequest',
@@ -1425,6 +1426,7 @@ class exmo extends Exchange {
             'paid' => 'ok',
             'pending' => 'pending',
             'processing' => 'pending',
+            'verifying' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
     }

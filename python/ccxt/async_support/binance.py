@@ -455,6 +455,8 @@ class binance(Exchange):
                         'ticker/bookTicker',
                         'openInterest',
                         'indexInfo',
+                        'apiTradingStatus',
+                        'lvtKlines',
                     ],
                 },
                 'fapiData': {
@@ -493,6 +495,7 @@ class binance(Exchange):
                         'apiReferral/tradeVol',
                         'apiReferral/rebateVol',
                         'apiReferral/traderSummary',
+                        'adlQuantile',
                     ],
                     'post': [
                         'batchOrders',
