@@ -28,14 +28,14 @@ response = exchange.sapi_post_lending_customizedfixed_purchase({
 
 pprint(response)
 
-response = exchange.sapi_post_lending_customizedfixed_purchase({
+response = exchange.sapi_post_lending_daily_purchase({
     # YOUR PARAMS HERE
     # https://binance-docs.github.io/apidocs/spot/en/#purchase-flexible-product-user_data
 })
 
 pprint(response)
 
-response = exchange.sapi_post_lending_customizedfixed_purchase({
+response = exchange.sapi_post_lending_daily_redeem({
     # YOUR PARAMS HERE
     # https://binance-docs.github.io/apidocs/spot/en/#redeem-flexible-product-user_data
 })
