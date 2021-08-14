@@ -476,6 +476,7 @@ module.exports = class binance extends Exchange {
                         'apiReferral/tradeVol',
                         'apiReferral/rebateVol',
                         'apiReferral/traderSummary',
+                        'adlQuantile',
                     ],
                     'post': [
                         'batchOrders',
