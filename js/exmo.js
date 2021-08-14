@@ -1105,7 +1105,7 @@ module.exports = class exmo extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        const orderType = type + '_' + side
+        const orderType = type + '_' + side;
         const market = this.market (symbol);
         if ((type === 'market') && (price === undefined)) {
             price = 0;
