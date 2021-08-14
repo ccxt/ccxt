@@ -1105,17 +1105,42 @@ module.exports = class exmo extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        const prefix = (type === 'market') ? (type + '_') : '';
+        const orderType = type + '_' + side
         const market = this.market (symbol);
         if ((type === 'market') && (price === undefined)) {
             price = 0;
         }
         const request = {
             'pair': market['id'],
+            // 'leverage': 2,
             'quantity': this.amountToPrecision (symbol, amount),
-            'type': prefix + side,
+            'type': orderType, // limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             'price': this.priceToPrecision (symbol, price),
+            // 'stop_price': this.priceToPrecision (symbol, stopPrice),
+            // 'distance': 0, // distance for trailing stop orders
+            // 'expire': 0, // expiration timestamp in UTC timezone for the order, unless expire is 0
+            // 'client_id': 123, // optional, must be a positive integer
+            // 'comment': '', // up to 50 latin symbols, whitespaces, underscores
         };
+        let clientOrderId = this.safeValue2 (params, 'client_id', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            clientOrderId = this.safeInteger2 (params, 'client_id', 'clientOrderId');
+            if (clientOrderId === undefined) {
+                throw new BadRequest (this.id + ' createOrder client order id must be an integer / numeric literal');
+            } else {
+                request['client_id'] = clientOrderId;
+            }
+            params = this.omit (params, [ 'client_id', 'clientOrderId' ]);
+        }
+        if ((type === 'stop') || (type === 'stop_limit') || (type === 'trailing_stop')) {
+            const stopPrice = this.safeNumber2 (params, 'stop_price', 'stopPrice');
+            if (stopPrice === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+            } else {
+                params = this.omit (params, [ 'stopPrice', 'stop_price' ]);
+                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+            }
+        }
         const response = await this.privatePostOrderCreate (this.extend (request, params));
         const id = this.safeString (response, 'order_id');
         const timestamp = this.milliseconds ();
@@ -1139,7 +1164,7 @@ module.exports = class exmo extends Exchange {
             'filled': 0.0,
             'fee': undefined,
             'trades': undefined,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'average': undefined,
         };
     }
@@ -1362,9 +1387,10 @@ module.exports = class exmo extends Exchange {
             'cost': feeCost,
             'currency': feeCurrency,
         };
+        const clientOrderId = this.safeInteger (order, 'client_id');
         return {
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,
