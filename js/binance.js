@@ -438,6 +438,8 @@ module.exports = class binance extends Exchange {
                         'ticker/bookTicker',
                         'openInterest',
                         'indexInfo',
+                        'apiTradingStatus',
+                        'lvtKlines',
                     ],
                 },
                 'fapiData': {
