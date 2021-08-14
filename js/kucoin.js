@@ -1752,7 +1752,7 @@ module.exports = class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' type must be one of ' + keys.join (', '));
         }
         params = this.omit (params, 'type');
-        if (type === 'contract') {
+        if ((type === 'contract') || (type === 'futures')) {
             // futures api requires a futures apiKey
             // only fetches one balance at a time
             // by default it will only fetch the BTC balance of the futures account
