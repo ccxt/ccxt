@@ -1066,16 +1066,37 @@ class exmo(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        prefix = (type + '_') if (type == 'market') else ''
+        orderType = type + '_' + side
         market = self.market(symbol)
         if (type == 'market') and (price is None):
             price = 0
         request = {
             'pair': market['id'],
+            # 'leverage': 2,
             'quantity': self.amount_to_precision(symbol, amount),
-            'type': prefix + side,
+            'type': orderType,  # limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             'price': self.price_to_precision(symbol, price),
+            # 'stop_price': self.price_to_precision(symbol, stopPrice),
+            # 'distance': 0,  # distance for trailing stop orders
+            # 'expire': 0,  # expiration timestamp in UTC timezone for the order, unless expire is 0
+            # 'client_id': 123,  # optional, must be a positive integer
+            # 'comment': '',  # up to 50 latin symbols, whitespaces, underscores
         }
+        clientOrderId = self.safe_value_2(params, 'client_id', 'clientOrderId')
+        if clientOrderId is not None:
+            clientOrderId = self.safe_integer_2(params, 'client_id', 'clientOrderId')
+            if clientOrderId is None:
+                raise BadRequest(self.id + ' createOrder client order id must be an integer / numeric literal')
+            else:
+                request['client_id'] = clientOrderId
+            params = self.omit(params, ['client_id', 'clientOrderId'])
+        if (type == 'stop') or (type == 'stop_limit') or (type == 'trailing_stop'):
+            stopPrice = self.safe_number_2(params, 'stop_price', 'stopPrice')
+            if stopPrice is None:
+                raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
+            else:
+                params = self.omit(params, ['stopPrice', 'stop_price'])
+                request['stop_price'] = self.price_to_precision(symbol, stopPrice)
         response = self.privatePostOrderCreate(self.extend(request, params))
         id = self.safe_string(response, 'order_id')
         timestamp = self.milliseconds()
@@ -1099,7 +1120,7 @@ class exmo(Exchange):
             'filled': 0.0,
             'fee': None,
             'trades': None,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'average': None,
         }
 
@@ -1295,9 +1316,10 @@ class exmo(Exchange):
             'cost': feeCost,
             'currency': feeCurrency,
         }
+        clientOrderId = self.safe_integer(order, 'client_id')
         return {
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,

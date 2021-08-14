@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
 use \ccxt\Precise;
 
@@ -1110,17 +1111,42 @@ class exmo extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         yield $this->load_markets();
-        $prefix = ($type === 'market') ? ($type . '_') : '';
+        $orderType = $type . '_' . $side;
         $market = $this->market($symbol);
         if (($type === 'market') && ($price === null)) {
             $price = 0;
         }
         $request = array(
             'pair' => $market['id'],
+            // 'leverage' => 2,
             'quantity' => $this->amount_to_precision($symbol, $amount),
-            'type' => $prefix . $side,
+            'type' => $orderType, // limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             'price' => $this->price_to_precision($symbol, $price),
+            // 'stop_price' => $this->price_to_precision($symbol, $stopPrice),
+            // 'distance' => 0, // distance for trailing stop orders
+            // 'expire' => 0, // expiration $timestamp in UTC timezone for the order, unless expire is 0
+            // 'client_id' => 123, // optional, must be a positive integer
+            // 'comment' => '', // up to 50 latin symbols, whitespaces, underscores
         );
+        $clientOrderId = $this->safe_value_2($params, 'client_id', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $clientOrderId = $this->safe_integer_2($params, 'client_id', 'clientOrderId');
+            if ($clientOrderId === null) {
+                throw new BadRequest($this->id . ' createOrder client order $id must be an integer / numeric literal');
+            } else {
+                $request['client_id'] = $clientOrderId;
+            }
+            $params = $this->omit($params, array( 'client_id', 'clientOrderId' ));
+        }
+        if (($type === 'stop') || ($type === 'stop_limit') || ($type === 'trailing_stop')) {
+            $stopPrice = $this->safe_number_2($params, 'stop_price', 'stopPrice');
+            if ($stopPrice === null) {
+                throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice extra param for a ' . $type . ' order');
+            } else {
+                $params = $this->omit($params, array( 'stopPrice', 'stop_price' ));
+                $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+            }
+        }
         $response = yield $this->privatePostOrderCreate (array_merge($request, $params));
         $id = $this->safe_string($response, 'order_id');
         $timestamp = $this->milliseconds();
@@ -1144,7 +1170,7 @@ class exmo extends Exchange {
             'filled' => 0.0,
             'fee' => null,
             'trades' => null,
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'average' => null,
         );
     }
@@ -1367,9 +1393,10 @@ class exmo extends Exchange {
             'cost' => $feeCost,
             'currency' => $feeCurrency,
         );
+        $clientOrderId = $this->safe_integer($order, 'client_id');
         return array(
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => $lastTradeTimestamp,
