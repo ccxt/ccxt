@@ -1178,7 +1178,7 @@ class exmo(Exchange):
         #             "error": ""
         #          },
         #
-        id = self.safe_string(transaction, 'operation_id')
+        id = self.safe_string(transaction, 'order_id')
         timestamp = self.safe_timestamp_2(transaction, 'dt', 'created')
         updated = self.safe_timestamp(transaction, 'updated')
         amount = self.safe_number(transaction, 'amount')
@@ -1186,9 +1186,11 @@ class exmo(Exchange):
             amount = abs(amount)
         status = self.parse_transaction_status(self.safe_string_lower(transaction, 'status'))
         txid = self.safe_string(transaction, 'txid')
-        extra = self.safe_value(transaction, 'extra', {})
         if txid is None:
-            txid = self.safe_string(extra, 'txid')
+            extra = self.safe_value(transaction, 'extra', {})
+            extraTxid = self.safe_string(extra, 'txid')
+            if extraTxid != '':
+                txid = extraTxid
         type = self.safe_string(transaction, 'type')
         currencyId = self.safe_string_2(transaction, 'curr', 'currency')
         code = self.safe_currency_code(currencyId, currency)

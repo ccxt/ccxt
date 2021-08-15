@@ -1266,7 +1266,7 @@ class exmo extends Exchange {
         //             "error" => ""
         //          ),
         //
-        $id = $this->safe_string($transaction, 'operation_id');
+        $id = $this->safe_string($transaction, 'order_id');
         $timestamp = $this->safe_timestamp_2($transaction, 'dt', 'created');
         $updated = $this->safe_timestamp($transaction, 'updated');
         $amount = $this->safe_number($transaction, 'amount');
@@ -1275,9 +1275,12 @@ class exmo extends Exchange {
         }
         $status = $this->parse_transaction_status($this->safe_string_lower($transaction, 'status'));
         $txid = $this->safe_string($transaction, 'txid');
-        $extra = $this->safe_value($transaction, 'extra', array());
         if ($txid === null) {
-            $txid = $this->safe_string($extra, 'txid');
+            $extra = $this->safe_value($transaction, 'extra', array());
+            $extraTxid = $this->safe_string($extra, 'txid');
+            if ($extraTxid !== '') {
+                $txid = $extraTxid;
+            }
         }
         $type = $this->safe_string($transaction, 'type');
         $currencyId = $this->safe_string_2($transaction, 'curr', 'currency');
