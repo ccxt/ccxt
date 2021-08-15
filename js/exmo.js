@@ -851,7 +851,9 @@ module.exports = class exmo extends Exchange {
             'pair': market['id'],
             // 'leverage': 2,
             'quantity': this.amountToPrecision (symbol, amount),
-            'type': orderType, // limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
+            // spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
+            // margin - limit_buy, limit_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
+            'type': orderType,
             'price': this.priceToPrecision (symbol, price),
             // 'stop_price': this.priceToPrecision (symbol, stopPrice),
             // 'distance': 0, // distance for trailing stop orders
@@ -859,6 +861,7 @@ module.exports = class exmo extends Exchange {
             // 'client_id': 123, // optional, must be a positive integer
             // 'comment': '', // up to 50 latin symbols, whitespaces, underscores
         };
+        let method = 'privatePostOrderCreate';
         let clientOrderId = this.safeValue2 (params, 'client_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             clientOrderId = this.safeInteger2 (params, 'client_id', 'clientOrderId');
@@ -876,9 +879,10 @@ module.exports = class exmo extends Exchange {
             } else {
                 params = this.omit (params, [ 'stopPrice', 'stop_price' ]);
                 request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+                method = 'privatePostMarginOrderCreate';
             }
         }
-        const response = await this.privatePostOrderCreate (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'order_id');
         const timestamp = this.milliseconds ();
         amount = parseFloat (amount);
