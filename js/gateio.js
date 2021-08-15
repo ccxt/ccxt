@@ -445,7 +445,7 @@ module.exports = class gateio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const taker = this.safeNumber (entry, 'fee');
-            const maker = undefined;
+            const maker = taker;
             const tradeStatus = this.safeString (entry, 'trade_status');
             const active = tradeStatus === 'tradable';
             const amountPrecision = this.safeString (entry, 'amount_precision');
