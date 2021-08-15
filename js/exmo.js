@@ -1260,7 +1260,7 @@ module.exports = class exmo extends Exchange {
         //             "error": ""
         //          },
         //
-        const id = this.safeString (transaction, 'operation_id');
+        const id = this.safeString (transaction, 'order_id');
         const timestamp = this.safeTimestamp2 (transaction, 'dt', 'created');
         const updated = this.safeTimestamp (transaction, 'updated');
         let amount = this.safeNumber (transaction, 'amount');
@@ -1269,9 +1269,12 @@ module.exports = class exmo extends Exchange {
         }
         const status = this.parseTransactionStatus (this.safeStringLower (transaction, 'status'));
         let txid = this.safeString (transaction, 'txid');
-        const extra = this.safeValue (transaction, 'extra', {});
         if (txid === undefined) {
-            txid = this.safeString (extra, 'txid');
+            const extra = this.safeValue (transaction, 'extra', {});
+            const extraTxid = this.safeString (extra, 'txid');
+            if (extraTxid !== '') {
+                txid = extraTxid;
+            }
         }
         const type = this.safeString (transaction, 'type');
         const currencyId = this.safeString2 (transaction, 'curr', 'currency');
