@@ -1931,7 +1931,12 @@ class phemex(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        try:
+            response = getattr(self, method)(self.extend(request, params))
+        except Exception as e:
+            if isinstance(e, OrderNotFound):
+                return []
         data = self.safe_value(response, 'data', {})
         if isinstance(data, list):
             return self.parse_orders(data, market, since, limit)

@@ -534,8 +534,6 @@ class yobit(Exchange):
             'amount': self.amount_to_precision(symbol, amount),
             'rate': self.price_to_precision(symbol, price),
         }
-        price = float(price)
-        amount = float(amount)
         response = await self.privatePostTrade(self.extend(request, params))
         id = None
         status = 'open'

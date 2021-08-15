@@ -557,14 +557,12 @@ class coinex(Exchange):
             'market': market['id'],
             'type': side,
         }
-        amount = float(amount)
         # for market buy it requires the amount of quote currency to spend
         if (type == 'market') and (side == 'buy'):
             if self.options['createMarketBuyOrderRequiresPrice']:
                 if price is None:
                     raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
                 else:
-                    price = float(price)
                     request['amount'] = self.cost_to_precision(symbol, amount * price)
             else:
                 request['amount'] = self.cost_to_precision(symbol, amount)

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.54.53'
+__version__ = '1.55.3'
 
 # -----------------------------------------------------------------------------
 
@@ -1418,6 +1418,9 @@ class Exchange(object):
             'trading': trading,
             'funding': funding,
         }
+
+    def fetch_balance(self, params={}):
+        raise NotSupported('fetch_balance() not supported yet')
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         raise NotSupported('create_order() not supported yet')

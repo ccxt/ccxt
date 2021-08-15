@@ -602,7 +602,6 @@ module.exports = class novadax extends Exchange {
         const uppercaseSide = side.toUpperCase ();
         const request = {
             'symbol': market['id'],
-            'type': uppercaseType, // LIMIT, MARKET
             'side': uppercaseSide, // or SELL
             // 'amount': this.amountToPrecision (symbol, amount),
             // "price": "1234.5678", // required for LIMIT and STOP orders
@@ -621,11 +620,7 @@ module.exports = class novadax extends Exchange {
             } else if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_MARKET';
             }
-            const operatorString = this.safeString (params, 'operator');
-            if (operatorString === undefined) {
-                throw new ArgumentsRequired (this.id + " createOrder() requires an operator parameter 'GTE' or 'LTE' for " + uppercaseType + ' orders');
-            }
-            request['operator'] = operatorString;
+            request['operator'] = (uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             params = this.omit (params, 'stopPrice');
         }
@@ -653,6 +648,7 @@ module.exports = class novadax extends Exchange {
                 request['value'] = this.decimalToPrecision (value, TRUNCATE, precision, this.precisionMode);
             }
         }
+        request['type'] = uppercaseType;
         const response = await this.privatePostOrdersCreate (this.extend (request, params));
         //
         //     {

@@ -443,6 +443,8 @@ module.exports = class binance extends Exchange {
                         'ticker/bookTicker': { 'weight': 1, 'noSymbol': 2 },
                         'openInterest': { 'weight': 1 },
                         'indexInfo': { 'weight': 1 },
+                        'apiTradingStatus': { 'weight': 1 },
+                        'lvtKlines': { 'weight': 1 },
                     },
                 },
                 'fapiData': {
@@ -473,6 +475,7 @@ module.exports = class binance extends Exchange {
                         'apiTradingStatus': { 'weight': 1, 'noSymbol': 10 },
                         'multiAssetsMargin': { 'weight': 30 },
                         // broker endpoints
+<<<<<<< HEAD
                         'apiReferral/ifNewUser': { 'weight': 1 },
                         'apiReferral/customization': { 'weight': 1 },
                         'apiReferral/userCustomization': { 'weight': 1 },
@@ -493,6 +496,28 @@ module.exports = class binance extends Exchange {
                         'listenKey': { 'weight': 1 },
                         'countdownCancelAll': { 'weight': 10 },
                         'multiAssetsMargin': { 'weight': 1 },
+=======
+                        'apiReferral/ifNewUser',
+                        'apiReferral/customization',
+                        'apiReferral/userCustomization',
+                        'apiReferral/traderNum',
+                        'apiReferral/overview',
+                        'apiReferral/tradeVol',
+                        'apiReferral/rebateVol',
+                        'apiReferral/traderSummary',
+                        'adlQuantile',
+                    ],
+                    'post': [
+                        'batchOrders',
+                        'positionSide/dual',
+                        'positionMargin',
+                        'marginType',
+                        'order',
+                        'leverage',
+                        'listenKey',
+                        'countdownCancelAll',
+                        'multiAssetsMargin',
+>>>>>>> master
                         // broker endpoints
                         'apiReferral/customization': { 'weight': 1 },
                         'apiReferral/userCustomization': { 'weight': 1 },
@@ -781,6 +806,7 @@ module.exports = class binance extends Exchange {
                     '-3041': InsufficientFunds, // {"code":-3041,"msg":"Balance is not enough"}
                     '-5013': InsufficientFunds, // Asset transfer failed: insufficient balance"
                     '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}
+                    '-4051': InsufficientFunds, // {"code":-4051,"msg":"Isolated balance insufficient."}
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
@@ -790,8 +816,17 @@ module.exports = class binance extends Exchange {
         });
     }
 
+    costToPrecision (symbol, cost) {
+        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
+    }
+
     currencyToPrecision (currency, fee) {
-        return this.numberToString (fee);
+        // info is available in currencies only if the user has configured his api keys
+        if ('info' in this.currencies[currency]) {
+            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
+        } else {
+            return this.numberToString (fee);
+        }
     }
 
     nonce () {
@@ -1202,6 +1237,8 @@ module.exports = class binance extends Exchange {
             };
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+                const tickSize = this.safeString (filter, 'tickSize');
+                entry['precision']['price'] = this.precisionFromString (tickSize);
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -4384,5 +4421,55 @@ module.exports = class binance extends Exchange {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return response;
+    }
+
+    async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
+        // used to modify isolated positions
+        let defaultType = this.safeString (this.options, 'defaultType', 'future');
+        if (defaultType === 'spot') {
+            defaultType = 'future';
+        }
+        const type = this.safeString (params, 'type', defaultType);
+        if ((type === 'margin') || (type === 'spot')) {
+            throw new NotSupported (this.id + ' add / reduce margin only supported with type future or delivery');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'type': addOrReduce,
+            'symbol': market['id'],
+            'amount': amount,
+        };
+        let method = undefined;
+        let code = undefined;
+        if (type === 'future') {
+            method = 'fapiPrivatePostPositionMargin';
+            code = market['quote'];
+        } else {
+            method = 'dapiPrivatePostPositionMargin';
+            code = market['base'];
+        }
+        const response = await this[method] (this.extend (request, params));
+        const rawType = this.safeInteger (response, 'type');
+        const resultType = (rawType === 1) ? 'add' : 'reduce';
+        const resultAmount = this.safeNumber (response, 'amount');
+        const errorCode = this.safeString (response, 'code');
+        const status = (errorCode === '200') ? 'ok' : 'failed';
+        return {
+            'info': response,
+            'type': resultType,
+            'amount': resultAmount,
+            'code': code,
+            'symbol': market['symbol'],
+            'status': status,
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 2, params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 };

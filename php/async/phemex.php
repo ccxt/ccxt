@@ -2016,7 +2016,14 @@ class phemex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = null;
+        try {
+            $response = yield $this->$method (array_merge($request, $params));
+        } catch (Exception $e) {
+            if ($e instanceof OrderNotFound) {
+                return array();
+            }
+        }
         $data = $this->safe_value($response, 'data', array());
         if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
             return $this->parse_orders($data, $market, $since, $limit);

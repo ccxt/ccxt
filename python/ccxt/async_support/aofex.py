@@ -425,7 +425,7 @@ class aofex(Exchange):
         last = self.safe_number(ticker, 'close')
         change = None
         if symbol is not None:
-            change = float(self.price_to_precision(symbol, last - open))
+            change = self.parse_number(self.price_to_precision(symbol, last - open))
         else:
             change = last - open
         average = self.sum(last, open) / 2
@@ -434,7 +434,7 @@ class aofex(Exchange):
         quoteVolume = self.safe_number(ticker, 'vol')
         vwap = self.vwap(baseVolume, quoteVolume)
         if vwap is not None:
-            vwap = float(self.price_to_precision(symbol, vwap))
+            vwap = self.parse_number(self.price_to_precision(symbol, vwap))
         return {
             'symbol': symbol,
             'timestamp': timestamp,

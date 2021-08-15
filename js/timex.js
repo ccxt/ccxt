@@ -939,13 +939,13 @@ module.exports = class timex extends Exchange {
             if (dotIndex > 0) {
                 const whole = feeString.slice (0, dotIndex);
                 const fraction = feeString.slice (-dotIndex);
-                fee = parseFloat (whole + '.' + fraction);
+                fee = this.parseNumber (whole + '.' + fraction);
             } else {
                 let fraction = '.';
                 for (let i = 0; i < -dotIndex; i++) {
                     fraction += '0';
                 }
-                fee = parseFloat (fraction + feeString);
+                fee = this.parseNumber (fraction + feeString);
             }
         }
         return {
