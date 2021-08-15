@@ -193,7 +193,6 @@ class exmo(Exchange):
                     'API rate limit exceeded': RateLimitExceeded,  # {"result":false,"error":"API rate limit exceeded for x.x.x.x. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
                 },
             },
-            'orders': {},  # orders cache / emulation
         })
 
     async def fetch_trading_fees(self, params={}):
@@ -800,19 +799,20 @@ class exmo(Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         prefix = (type + '_') if (type == 'market') else ''
         orderType = prefix + side
-        market = self.market(symbol)
+        orderPrice = price
         if (type == 'market') and (price is None):
-            price = 0
+            orderPrice = 0
         request = {
             'pair': market['id'],
             # 'leverage': 2,
             'quantity': self.amount_to_precision(symbol, amount),
             # spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
-            # margin - limit_buy, limit_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
+            # margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             'type': orderType,
-            'price': self.price_to_precision(symbol, price),
+            'price': self.price_to_precision(symbol, orderPrice),
             # 'stop_price': self.price_to_precision(symbol, stopPrice),
             # 'distance': 0,  # distance for trailing stop orders
             # 'expire': 0,  # expiration timestamp in UTC timezone for the order, unless expire is 0
@@ -839,8 +839,6 @@ class exmo(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         id = self.safe_string(response, 'order_id')
         timestamp = self.milliseconds()
-        amount = float(amount)
-        price = float(price)
         status = 'open'
         return {
             'id': id,
@@ -853,7 +851,7 @@ class exmo(Exchange):
             'type': type,
             'side': side,
             'price': price,
-            'cost': price * amount,
+            'cost': None,
             'amount': amount,
             'remaining': amount,
             'filled': 0.0,
