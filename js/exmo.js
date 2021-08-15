@@ -879,7 +879,7 @@ module.exports = class exmo extends Exchange {
             } else {
                 params = this.omit (params, [ 'stopPrice', 'stop_price' ]);
                 request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-                method = 'privatePostMarginOrderCreate';
+                method = 'privatePostMarginUserOrderCreate';
             }
         }
         const response = await this[method] (this.extend (request, params));
