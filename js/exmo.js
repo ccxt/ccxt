@@ -1272,8 +1272,8 @@ module.exports = class exmo extends Exchange {
         if (txid === undefined) {
             const extra = this.safeValue (transaction, 'extra', {});
             const extraTxid = this.safeString (extra, 'txid');
-            if (txid !== '') {
-                txid = this.safeString (extra, 'txid');
+            if (extraTxid !== '') {
+                txid = extraTxid;
             }
         }
         const type = this.safeString (transaction, 'type');
