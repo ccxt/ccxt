@@ -173,7 +173,6 @@ module.exports = class exmo extends Exchange {
                     'API rate limit exceeded': RateLimitExceeded, // {"result":false,"error":"API rate limit exceeded for x.x.x.x. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
                 },
             },
-            'orders': {}, // orders cache / emulation
         });
     }
 
@@ -841,20 +840,21 @@ module.exports = class exmo extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const prefix = (type === 'market') ? (type + '_') : '';
         const orderType = prefix + side;
-        const market = this.market (symbol);
+        let orderPrice = price;
         if ((type === 'market') && (price === undefined)) {
-            price = 0;
+            orderPrice = 0;
         }
         const request = {
             'pair': market['id'],
             // 'leverage': 2,
             'quantity': this.amountToPrecision (symbol, amount),
             // spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
-            // margin - limit_buy, limit_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
+            // margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             'type': orderType,
-            'price': this.priceToPrecision (symbol, price),
+            'price': this.priceToPrecision (symbol, orderPrice),
             // 'stop_price': this.priceToPrecision (symbol, stopPrice),
             // 'distance': 0, // distance for trailing stop orders
             // 'expire': 0, // expiration timestamp in UTC timezone for the order, unless expire is 0
@@ -885,8 +885,6 @@ module.exports = class exmo extends Exchange {
         const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'order_id');
         const timestamp = this.milliseconds ();
-        amount = parseFloat (amount);
-        price = parseFloat (price);
         const status = 'open';
         return {
             'id': id,
@@ -899,7 +897,7 @@ module.exports = class exmo extends Exchange {
             'type': type,
             'side': side,
             'price': price,
-            'cost': price * amount,
+            'cost': undefined,
             'amount': amount,
             'remaining': amount,
             'filled': 0.0,
