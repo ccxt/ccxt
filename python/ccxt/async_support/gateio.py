@@ -460,7 +460,7 @@ class gateio(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             taker = self.safe_number(entry, 'fee')
-            maker = None
+            maker = taker
             tradeStatus = self.safe_string(entry, 'trade_status')
             active = tradeStatus == 'tradable'
             amountPrecision = self.safe_string(entry, 'amount_precision')

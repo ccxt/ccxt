@@ -449,7 +449,7 @@ class gateio extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $taker = $this->safe_number($entry, 'fee');
-            $maker = null;
+            $maker = $taker;
             $tradeStatus = $this->safe_string($entry, 'trade_status');
             $active = $tradeStatus === 'tradable';
             $amountPrecision = $this->safe_string($entry, 'amount_precision');
