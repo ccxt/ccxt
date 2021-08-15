@@ -475,7 +475,6 @@ module.exports = class binance extends Exchange {
                         'apiTradingStatus': { 'weight': 1, 'noSymbol': 10 },
                         'multiAssetsMargin': { 'weight': 30 },
                         // broker endpoints
-<<<<<<< HEAD
                         'apiReferral/ifNewUser': { 'weight': 1 },
                         'apiReferral/customization': { 'weight': 1 },
                         'apiReferral/userCustomization': { 'weight': 1 },
@@ -496,28 +495,6 @@ module.exports = class binance extends Exchange {
                         'listenKey': { 'weight': 1 },
                         'countdownCancelAll': { 'weight': 10 },
                         'multiAssetsMargin': { 'weight': 1 },
-=======
-                        'apiReferral/ifNewUser',
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
-                        'apiReferral/traderNum',
-                        'apiReferral/overview',
-                        'apiReferral/tradeVol',
-                        'apiReferral/rebateVol',
-                        'apiReferral/traderSummary',
-                        'adlQuantile',
-                    ],
-                    'post': [
-                        'batchOrders',
-                        'positionSide/dual',
-                        'positionMargin',
-                        'marginType',
-                        'order',
-                        'leverage',
-                        'listenKey',
-                        'countdownCancelAll',
-                        'multiAssetsMargin',
->>>>>>> master
                         // broker endpoints
                         'apiReferral/customization': { 'weight': 1 },
                         'apiReferral/userCustomization': { 'weight': 1 },
