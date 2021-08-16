@@ -85,6 +85,7 @@ class bitforex(Exchange):
                         'api/v1/trade/placeMultiOrder',
                         'api/v1/trade/cancelOrder',
                         'api/v1/trade/cancelMultiOrder',
+                        'api/v1/trade/cancelAllOrder',
                         'api/v1/trade/orderInfo',
                         'api/v1/trade/multiOrderInfo',
                         'api/v1/trade/orderInfos',
