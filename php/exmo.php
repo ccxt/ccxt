@@ -178,7 +178,6 @@ class exmo extends Exchange {
                     'API rate limit exceeded' => '\\ccxt\\RateLimitExceeded', // array("result":false,"error":"API rate limit exceeded for x.x.x.x. Retry after 60 sec.","history":array(),"begin":1579392000,"end":1579478400)
                 ),
             ),
-            'orders' => array(), // orders cache / emulation
         ));
     }
 
@@ -846,20 +845,21 @@ class exmo extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
+        $market = $this->market($symbol);
         $prefix = ($type === 'market') ? ($type . '_') : '';
         $orderType = $prefix . $side;
-        $market = $this->market($symbol);
+        $orderPrice = $price;
         if (($type === 'market') && ($price === null)) {
-            $price = 0;
+            $orderPrice = 0;
         }
         $request = array(
             'pair' => $market['id'],
             // 'leverage' => 2,
             'quantity' => $this->amount_to_precision($symbol, $amount),
             // spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
-            // margin - limit_buy, limit_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
+            // margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             'type' => $orderType,
-            'price' => $this->price_to_precision($symbol, $price),
+            'price' => $this->price_to_precision($symbol, $orderPrice),
             // 'stop_price' => $this->price_to_precision($symbol, $stopPrice),
             // 'distance' => 0, // distance for trailing stop orders
             // 'expire' => 0, // expiration $timestamp in UTC timezone for the order, unless expire is 0
@@ -890,8 +890,6 @@ class exmo extends Exchange {
         $response = $this->$method (array_merge($request, $params));
         $id = $this->safe_string($response, 'order_id');
         $timestamp = $this->milliseconds();
-        $amount = floatval($amount);
-        $price = floatval($price);
         $status = 'open';
         return array(
             'id' => $id,
@@ -904,7 +902,7 @@ class exmo extends Exchange {
             'type' => $type,
             'side' => $side,
             'price' => $price,
-            'cost' => $price * $amount,
+            'cost' => null,
             'amount' => $amount,
             'remaining' => $amount,
             'filled' => 0.0,
