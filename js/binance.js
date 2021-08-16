@@ -702,12 +702,13 @@ module.exports = class binance extends ccxt.binance {
         const wsMarketId = this.safeStringLower (message, 's');
         const messageHash = wsMarketId + '@' + event;
         
+        let timestamp;
         if (event == 'bookTicker') {
             // Take the event timestamp, if available (for spot tickers it is not)
-            const timestamp = this.safeInteger(message, "E", this.milliseconds());
+            timestamp = this.safeInteger(message, "E", this.milliseconds());
         } else {
             // Take the timestamp of the closing price for candlestick streams
-            const timestamp = this.safeInteger(message, "C", this.milliseconds());
+            timestamp = this.safeInteger(message, "C", this.milliseconds());
         }
         const marketId = this.safeString (message, 's');
         const symbol = this.safeSymbol (marketId);
