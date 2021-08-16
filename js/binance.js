@@ -701,7 +701,14 @@ module.exports = class binance extends ccxt.binance {
         }
         const wsMarketId = this.safeStringLower (message, 's');
         const messageHash = wsMarketId + '@' + event;
-        const timestamp = this.safeInteger (message, 'C', this.milliseconds ());
+        
+        if (event == 'bookTicker') {
+            // Take the event timestamp, if available (for spot tickers it is not)
+            const timestamp = this.safeInteger(message, "E", this.milliseconds());
+        } else {
+            // Take the timestamp of the closing price for candlestick streams
+            const timestamp = this.safeInteger(message, "C", this.milliseconds());
+        }
         const marketId = this.safeString (message, 's');
         const symbol = this.safeSymbol (marketId);
         const last = this.safeFloat (message, 'c');
