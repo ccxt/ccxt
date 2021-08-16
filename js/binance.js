@@ -703,7 +703,7 @@ module.exports = class binance extends ccxt.binance {
         const messageHash = wsMarketId + '@' + event;
         let timestamp = undefined;
         const now = this.milliseconds ();
-        if (event == 'bookTicker') {
+        if (event === 'bookTicker') {
             // take the event timestamp, if available, for spot tickers it is not
             timestamp = this.safeInteger (message, 'E', now);
         } else {
