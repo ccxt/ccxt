@@ -652,7 +652,14 @@ class binance(Exchange, ccxt.binance):
             event = 'ticker'
         wsMarketId = self.safe_string_lower(message, 's')
         messageHash = wsMarketId + '@' + event
-        timestamp = self.safe_integer(message, 'C', self.milliseconds())
+        timestamp = None
+        now = self.milliseconds()
+        if event == 'bookTicker':
+            # take the event timestamp, if available, for spot tickers it is not
+            timestamp = self.safe_integer(message, 'E', now)
+        else:
+            # take the timestamp of the closing price for candlestick streams
+            timestamp = self.safe_integer(message, 'C', now)
         marketId = self.safe_string(message, 's')
         symbol = self.safe_symbol(marketId)
         last = self.safe_float(message, 'c')

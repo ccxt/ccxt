@@ -704,7 +704,15 @@ class binance extends \ccxt\async\binance {
         }
         $wsMarketId = $this->safe_string_lower($message, 's');
         $messageHash = $wsMarketId . '@' . $event;
-        $timestamp = $this->safe_integer($message, 'C', $this->milliseconds());
+        $timestamp = null;
+        $now = $this->milliseconds();
+        if ($event === 'bookTicker') {
+            // take the $event $timestamp, if available, for spot tickers it is not
+            $timestamp = $this->safe_integer($message, 'E', $now);
+        } else {
+            // take the $timestamp of the closing price for candlestick streams
+            $timestamp = $this->safe_integer($message, 'C', $now);
+        }
         $marketId = $this->safe_string($message, 's');
         $symbol = $this->safe_symbol($marketId);
         $last = $this->safe_float($message, 'c');
