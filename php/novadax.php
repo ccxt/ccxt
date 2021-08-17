@@ -870,7 +870,7 @@ class novadax extends Exchange {
         $id = $this->safe_string($order, 'id');
         $amount = $this->safe_number($order, 'amount');
         $price = $this->safe_number($order, 'price');
-        $cost = $this->safe_number($order, 'filledValue');
+        $cost = $this->safe_number_2($order, 'filledValue', 'value');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
