@@ -249,8 +249,8 @@ class ftx extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'maker' => $this->parse_number('0.02'),
-                    'taker' => $this->parse_number('0.07'),
+                    'maker' => $this->parse_number('0.0002'),
+                    'taker' => $this->parse_number('0.0007'),
                     'tiers' => array(
                         'taker' => array(
                             array( $this->parse_number('0'), $this->parse_number('0.0007') ),
