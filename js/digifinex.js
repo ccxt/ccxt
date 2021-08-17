@@ -153,7 +153,7 @@ module.exports = class digifinex extends Exchange {
                     '20014': [ BadRequest, 'Invalid date, Valid format: 2018-07-25)' ],
                     '20015': [ BadRequest, 'Date exceeds the limit' ],
                     '20018': [ PermissionDenied, 'Your trading rights have been banned by the system' ],
-                    '20019': [ BadRequest, 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front' ],
+                    '20019': [ BadSymbol, 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front' ],
                     '20020': [ DDoSProtection, "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate." ],
                     '50000': [ ExchangeError, 'Exception error' ],
                     '20021': [ BadRequest, 'Invalid currency' ],
