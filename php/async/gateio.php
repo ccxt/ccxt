@@ -20,6 +20,7 @@ class gateio extends Exchange {
             'rateLimit' => 1000,
             'version' => '4',
             'certified' => true,
+            'pro' => true,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
                 'doc' => 'https://www.gate.io/docs/apiv4/en/index.html',
