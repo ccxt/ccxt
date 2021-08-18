@@ -191,6 +191,9 @@ module.exports = class coinex extends Exchange {
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
             },
+            'commonCurrencies': {
+                'ACM': 'Actinium',
+            },
         });
     }
 
