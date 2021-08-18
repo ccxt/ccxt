@@ -1474,6 +1474,10 @@ module.exports = class bitstamp extends Exchange {
                 if (tag !== undefined) {
                     request['destination_tag'] = tag;
                 }
+            } else if (code === 'XLM') {
+                if (tag !== undefined) {
+                    request['memo_id'] = tag;
+                }          
             }
             request['address'] = address;
         } else {
