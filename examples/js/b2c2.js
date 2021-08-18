@@ -27,7 +27,7 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
     // log (exchange.name.green, 'balance', balance)
 
     // // fetch orders from the exchange
-    const userId = ''; // or whoever is logged in!
+    const userId = '2'; // or whoever is logged in!
     const params = {
         'executing_unit': userId,
     }
@@ -57,11 +57,15 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
     // // THESE FUNCTIONS DON'T WORK PROPERLY YET!
 
     // // create a new order on the exchange
-    // const userId = 'adam'; // or whoever is logged in!
+    // const userId = '2'; // or whoever is logged in!
     // const params = {
     //     'executing_unit': userId,
-    // }
-    // let new_order = await exchange.createOrder ('BTC/USD', 'market', 'buy', 0.25, undefined, params)
+    // // }
+    // let order1 = await exchange.createOrder ('BTC/USD', 'market', 'buy', 0.25, undefined, params)
+    // let order2 = await exchange.createOrder ('ETH/USD', 'market', 'buy', 15.5, undefined, params)
+    // let order3 = await exchange.createOrder ('XRP/USD', 'market', 'buy', 3500, undefined, params)
+    // let order4 = await exchange.createOrder ('ADA/USD', 'market', 'buy', 5000, undefined, params)
+    // let order5 = await exchange.createOrder ('DOT/USD', 'market', 'buy', 50, undefined, params)
     // log (exchange.name.green, 'new_order', new_order)
 
     // // fetch single order from the exchange

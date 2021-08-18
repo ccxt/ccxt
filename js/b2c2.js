@@ -2113,7 +2113,7 @@ module.exports = class b2c2 extends Exchange {
         //     },
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_order_id');
-        const clientId = this.safeString (order, 'executing_unit');
+        const customer_id = this.safeString (order, 'executing_unit');
         const marketId = this.safeString (order, 'instrument');
         const symbol = this.safeSymbol (marketId, market);
         const price = this.safeNumber (order, 'price');
@@ -2232,12 +2232,14 @@ module.exports = class b2c2 extends Exchange {
         const datetime = this.parse8601 (this.safeString (trade, 'created'));
         const orderId = this.safeString (trade, 'order');
         const clientOrderId = this.safeString (trade, 'client_order_id');
+        const customer_id = this.safeString (order, 'executing_unit');
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const type = undefined; // need to link to the order, otherwise cannot tell
         const takerOrMaker = undefined; // need to link to the order, otherwise cannot tell
         return {
             'info': trade,
             'id': id,
+            'customer_id': customer_id,
             'timestamp': undefined, // need to do millis
             'datetime': this.iso8601 (datetime),
             'symbol': symbol,
