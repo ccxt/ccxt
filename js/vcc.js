@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol, AddressPending, PermissionDenied, InsufficientFunds } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -104,8 +105,8 @@ module.exports = class vcc extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.002'),
                 },
             },
             'exceptions': {
@@ -196,15 +197,15 @@ module.exports = class vcc extends Exchange {
                 },
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (amountLimits, 'min'),
+                        'min': this.safeNumber (amountLimits, 'min'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.safeFloat (priceLimits, 'min'),
+                        'min': this.safeNumber (priceLimits, 'min'),
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeFloat (costLimits, 'min'),
+                        'min': this.safeNumber (costLimits, 'min'),
                         'max': undefined,
                     },
                 },
@@ -251,12 +252,12 @@ module.exports = class vcc extends Exchange {
                 'code': code,
                 'name': this.safeString (currency, 'name'),
                 'active': active,
-                'fee': this.safeFloat (currency, 'withdrawal_fee'),
+                'fee': this.safeNumber (currency, 'withdrawal_fee'),
                 'precision': this.safeInteger (currency, 'decimal'),
                 'limits': {
                     'withdraw': {
-                        'min': this.safeFloat (currency, 'min_withdraw'),
-                        'max': this.safeFloat (currency, 'max_withdraw'),
+                        'min': this.safeNumber (currency, 'min_withdraw'),
+                        'max': this.safeNumber (currency, 'max_withdraw'),
                     },
                 },
             };
@@ -279,8 +280,8 @@ module.exports = class vcc extends Exchange {
         //
         return {
             'info': response,
-            'maker': this.safeFloat (response, 'provideLiquidityRate'),
-            'taker': this.safeFloat (response, 'takeLiquidityRate'),
+            'maker': this.safeNumber (response, 'provideLiquidityRate'),
+            'taker': this.safeNumber (response, 'takeLiquidityRate'),
         };
     }
 
@@ -299,15 +300,19 @@ module.exports = class vcc extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const currencyIds = Object.keys (data);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const balance = this.safeValue (data, currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available_balance');
-            account['total'] = this.safeFloat (balance, 'balance');
+            account['free'] = this.safeString (balance, 'available_balance');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -328,11 +333,11 @@ module.exports = class vcc extends Exchange {
         //
         return [
             this.safeInteger (ohlcv, 'time'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -403,7 +408,7 @@ module.exports = class vcc extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeValue (data, 'timestamp');
-        return this.parseOrderBook (data, timestamp, 'bids', 'asks', 0, 1);
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -421,10 +426,10 @@ module.exports = class vcc extends Exchange {
         //     }
         //
         const timestamp = this.milliseconds ();
-        const baseVolume = this.safeFloat (ticker, 'base_volume');
-        const quoteVolume = this.safeFloat (ticker, 'quote_volume');
-        const open = this.safeFloat (ticker, 'open_price');
-        const last = this.safeFloat (ticker, 'last_price');
+        const baseVolume = this.safeNumber (ticker, 'base_volume');
+        const quoteVolume = this.safeNumber (ticker, 'quote_volume');
+        const open = this.safeNumber (ticker, 'open_price');
+        const last = this.safeNumber (ticker, 'last_price');
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
@@ -441,11 +446,11 @@ module.exports = class vcc extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'max_price'),
-            'low': this.safeFloat (ticker, 'min_price'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'max_price'),
+            'low': this.safeNumber (ticker, 'min_price'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
@@ -459,34 +464,6 @@ module.exports = class vcc extends Exchange {
             'quoteVolume': quoteVolume,
             'info': ticker,
         };
-    }
-
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const response = await this.publicGetTicker (params);
-        //
-        //     {
-        //         "message":null,
-        //         "dataVersion":"fc521161aebe506178b8588cd2adb598eaf1018e",
-        //         "data":{
-        //             "BTC_VND":{
-        //                 "base_id":1,
-        //                 "quote_id":0,
-        //                 "last_price":"411119457",
-        //                 "max_price":"419893173.0000000000",
-        //                 "min_price":"401292577.0000000000",
-        //                 "open_price":null,
-        //                 "base_volume":"10.5915050000",
-        //                 "quote_volume":"4367495977.4484430060",
-        //                 "isFrozen":0
-        //             },
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
-        const ticker = this.safeValue (data, market['id']);
-        return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -559,17 +536,17 @@ module.exports = class vcc extends Exchange {
         }
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'base_volume', 'quantity');
-        let cost = this.safeFloat2 (trade, 'quote_volume', 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString2 (trade, 'base_volume', 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        let cost = this.safeNumber2 (trade, 'quote_volume', 'amount');
         if (cost === undefined) {
-            if ((price !== undefined) && (amount !== undefined)) {
-                cost = price * amount;
-            }
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const side = this.safeString2 (trade, 'type', 'trade_type');
         const id = this.safeString2 (trade, 'trade_id', 'id');
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -754,7 +731,7 @@ module.exports = class vcc extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        let amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeNumber (transaction, 'amount');
         if (amount !== undefined) {
             amount = Math.abs (amount);
         }
@@ -762,7 +739,7 @@ module.exports = class vcc extends Exchange {
         const txid = this.safeString (transaction, 'transaction_id');
         const tag = this.safeString (transaction, 'destination_tag');
         let fee = undefined;
-        const feeCost = this.safeFloat (transaction, 'fee');
+        const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -841,7 +818,7 @@ module.exports = class vcc extends Exchange {
         if (stopPrice !== undefined) {
             request['is_stop'] = 1;
             request['stop_condition'] = (side === 'buy') ? 'le' : 'ge'; // ge = greater than or equal, le = less than or equal
-            request['stop_price'] = this.priceToPrecision (symbol, price);
+            request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
         }
         params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
@@ -1007,46 +984,27 @@ module.exports = class vcc extends Exchange {
         const marketId = baseId + '_' + quoteId;
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const amount = this.safeFloat (order, 'quantity');
-        let filled = this.safeFloat (order, 'executed_quantity');
+        const amount = this.safeNumber (order, 'quantity');
+        const filled = this.safeNumber (order, 'executed_quantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let cost = this.safeFloat (order, 'ceiling');
+        const cost = this.safeNumber (order, 'ceiling');
         const id = this.safeString (order, 'id');
-        let average = undefined;
-        let price = this.safeFloat (order, 'price');
-        // in case of market order
-        if (!price) {
-            price = this.safeFloat (order, 'executed_price');
-            average = price;
-        }
-        let remaining = this.safeFloat (order, 'remaining');
-        if ((filled === undefined) && (amount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max (0, amount - remaining);
-        }
-        if (filled !== undefined) {
-            if ((amount !== undefined) && (remaining === undefined)) {
-                remaining = Math.max (0, amount - filled);
-            }
-            if ((price !== undefined) && (cost === undefined)) {
-                cost = filled * price;
-            }
-            if ((average === undefined) && (cost !== undefined) && (filled > 0)) {
-                average = cost / filled;
-            }
-        }
+        const price = this.safeNumber (order, 'price');
+        const average = this.safeNumber (order, 'executed_price');
+        const remaining = this.safeNumber (order, 'remaining');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'trade_type');
         const fee = {
             'currency': market['quote'],
-            'cost': this.safeFloat (order, 'fee'),
-            'rate': this.safeFloat (order, 'fee_rate'),
+            'cost': this.safeNumber (order, 'fee'),
+            'rate': this.safeNumber (order, 'fee_rate'),
         };
         let lastTradeTimestamp = undefined;
         if (updated !== created) {
             lastTradeTimestamp = updated;
         }
-        const stopPrice = this.safeFloat (order, 'stopPrice');
-        return {
+        const stopPrice = this.safeNumber (order, 'stopPrice');
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': id,
             'timestamp': created,
@@ -1068,7 +1026,7 @@ module.exports = class vcc extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

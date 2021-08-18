@@ -5,11 +5,11 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class exx(Exchange):
@@ -66,33 +66,11 @@ class exx(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.001'),
                 },
                 'funding': {
-                    'withdraw': {
-                        'BCC': 0.0003,
-                        'BCD': 0.0,
-                        'BOT': 10.0,
-                        'BTC': 0.001,
-                        'BTG': 0.0,
-                        'BTM': 25.0,
-                        'BTS': 3.0,
-                        'EOS': 1.0,
-                        'ETC': 0.01,
-                        'ETH': 0.01,
-                        'ETP': 0.012,
-                        'HPY': 0.0,
-                        'HSR': 0.001,
-                        'INK': 20.0,
-                        'LTC': 0.005,
-                        'MCO': 0.6,
-                        'MONA': 0.01,
-                        'QASH': 5.0,
-                        'QCASH': 5.0,
-                        'QTUM': 0.01,
-                        'USDT': 5.0,
-                    },
+                    'withdraw': {},
                 },
             },
             'commonCurrencies': {
@@ -116,9 +94,13 @@ class exx(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = market['isOpen'] is True
+            amountPrecisionString = self.safe_string(market, 'amountScale')
+            pricePrecisionString = self.safe_string(market, 'priceScale')
+            amountLimit = self.parse_precision(amountPrecisionString)
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
-                'amount': int(market['amountScale']),
-                'price': int(market['priceScale']),
+                'amount': int(amountPrecisionString),
+                'price': int(pricePrecisionString),
             }
             result.append({
                 'id': id,
@@ -131,15 +113,15 @@ class exx(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'min': self.parse_number(amountLimit),
+                        'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': self.parse_number(priceLimit),
+                        'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'minAmount'),
                         'max': None,
                     },
                 },
@@ -151,26 +133,26 @@ class exx(Exchange):
         symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'date')
         ticker = ticker['ticker']
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'riseRate'),
+            'change': self.safe_number(ticker, 'riseRate'),
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -192,9 +174,9 @@ class exx(Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            if not (id in self.marketsById):
+            if not (id in self.markets_by_id):
                 continue
-            market = self.marketsById[id]
+            market = self.markets_by_id[id]
             symbol = market['symbol']
             ticker = {
                 'date': timestamp,
@@ -210,16 +192,15 @@ class exx(Exchange):
         }
         response = self.publicGetDepth(self.extend(request, params))
         timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -261,11 +242,10 @@ class exx(Exchange):
             currencyId = currencies[i]
             balance = balances[currencyId]
             code = self.safe_currency_code(currencyId)
-            account = {
-                'free': self.safe_float(balance, 'balance'),
-                'used': self.safe_float(balance, 'freeze'),
-                'total': self.safe_float(balance, 'total'),
-            }
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'freeze')
+            account['total'] = self.safe_string(balance, 'total')
             result[code] = account
         return self.parse_balance(result)
 
@@ -286,11 +266,10 @@ class exx(Exchange):
         #
         symbol = market['symbol']
         timestamp = int(order['trade_date'])
-        price = self.safe_float(order, 'price')
-        cost = self.safe_float(order, 'trade_money')
-        amount = self.safe_float(order, 'total_amount')
-        filled = self.safe_float(order, 'trade_amount', 0.0)
-        remaining = float(self.amount_to_precision(symbol, amount - filled))
+        price = self.safe_number(order, 'price')
+        cost = self.safe_number(order, 'trade_money')
+        amount = self.safe_number(order, 'total_amount')
+        filled = self.safe_number(order, 'trade_amount', 0.0)
         status = self.safe_integer(order, 'status')
         if status == 1:
             status = 'canceled'
@@ -301,10 +280,10 @@ class exx(Exchange):
         fee = None
         if 'fees' in order:
             fee = {
-                'cost': self.safe_float(order, 'fees'),
+                'cost': self.safe_number(order, 'fees'),
                 'currency': market['quote'],
             }
-        return {
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -321,12 +300,12 @@ class exx(Exchange):
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'trades': None,
             'fee': fee,
             'info': order,
             'average': None,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

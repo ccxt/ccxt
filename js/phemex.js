@@ -4,7 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, NotSupported } = require ('./base/errors');
-const { TICK_SIZE, ROUND, DECIMAL_PLACES } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
 
@@ -18,6 +19,7 @@ module.exports = class phemex extends Exchange {
             'version': 'v1',
             'certified': false,
             'pro': true,
+            'hostname': 'api.phemex.com',
             'has': {
                 'cancelAllOrders': true, // swap contracts only
                 'cancelOrder': true,
@@ -46,14 +48,17 @@ module.exports = class phemex extends Exchange {
                     'private': 'https://testnet-api.phemex.com',
                 },
                 'api': {
-                    'v1': 'https://api.phemex.com/v1',
-                    'public': 'https://api.phemex.com/exchange/public',
-                    'private': 'https://api.phemex.com',
+                    'v1': 'https://{hostname}/v1',
+                    'public': 'https://{hostname}/exchange/public',
+                    'private': 'https://{hostname}',
                 },
                 'www': 'https://phemex.com',
                 'doc': 'https://github.com/phemex/phemex-api-docs',
                 'fees': 'https://phemex.com/fees-conditions',
-                'referral': 'https://phemex.com/register?referralCode=EDNVJ',
+                'referral': {
+                    'url': 'https://phemex.com/register?referralCode=EDNVJ',
+                    'discount': 0.1,
+                },
             },
             'timeframes': {
                 '1m': '60',
@@ -102,6 +107,7 @@ module.exports = class phemex extends Exchange {
                         'exchange/spot/order/trades', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         // swap
                         'accounts/accountPositions', // ?currency=<currency>
+                        'accounts/positions', // ?currency=<currency>
                         'orders/activeList', // ?symbol=<symbol>
                         'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
@@ -152,8 +158,8 @@ module.exports = class phemex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.1 / 100,
-                    'maker': 0.1 / 100,
+                    'taker': this.parseNumber ('0.001'),
+                    'maker': this.parseNumber ('0.001'),
                 },
             },
             'requiredCredentials': {
@@ -304,13 +310,13 @@ module.exports = class phemex extends Exchange {
         });
     }
 
-    parseSafeFloat (value = undefined) {
+    parseSafeNumber (value = undefined) {
         if (value === undefined) {
             return value;
         }
         value = value.replace (',', '');
         const parts = value.split (' ');
-        return this.safeFloat (parts, 0);
+        return this.safeNumber (parts, 0);
     }
 
     parseSwapMarket (market) {
@@ -334,7 +340,9 @@ module.exports = class phemex extends Exchange {
         //         "minPriceEp":5000,
         //         "maxPriceEp":10000000000,
         //         "maxOrderQty":1000000,
-        //         "type":"Perpetual"
+        //         "type":"Perpetual",
+        //         "status":"Listed",
+        //         "tipOrderQty":1000000,
         //         "steps":"50",
         //         "riskLimits":[
         //             {"limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000},
@@ -359,14 +367,12 @@ module.exports = class phemex extends Exchange {
         //     }
         //
         const id = this.safeString (market, 'symbol');
-        const baseId = this.safeString (market, 'baseCurrency', 'contractUnderlyingAssets');
+        const baseId = this.safeString2 (market, 'baseCurrency', 'contractUnderlyingAssets');
         const quoteId = this.safeString (market, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
         const type = this.safeStringLower (market, 'type');
-        let taker = undefined;
-        let maker = undefined;
         let inverse = false;
         const spot = false;
         const swap = true;
@@ -376,37 +382,34 @@ module.exports = class phemex extends Exchange {
         }
         const linear = !inverse;
         const precision = {
-            'amount': this.safeFloat (market, 'lotSize'),
-            'price': this.safeFloat (market, 'tickSize'),
+            'amount': this.safeNumber (market, 'lotSize'),
+            'price': this.safeNumber (market, 'tickSize'),
         };
         const priceScale = this.safeInteger (market, 'priceScale');
         const ratioScale = this.safeInteger (market, 'ratioScale');
         const valueScale = this.safeInteger (market, 'valueScale');
-        const minPriceEp = this.safeFloat (market, 'minPriceEp');
-        const maxPriceEp = this.safeFloat (market, 'maxPriceEp');
-        const makerFeeRateEr = this.safeFloat (market, 'makerFeeRateEr');
-        const takerFeeRateEr = this.safeFloat (market, 'takerFeeRateEr');
-        if (makerFeeRateEr !== undefined) {
-            maker = this.fromEn (makerFeeRateEr, ratioScale, 0.00000001);
-        }
-        if (takerFeeRateEr !== undefined) {
-            taker = this.fromEn (takerFeeRateEr, ratioScale, 0.00000001);
-        }
+        const minPriceEp = this.safeString (market, 'minPriceEp');
+        const maxPriceEp = this.safeString (market, 'maxPriceEp');
+        const makerFeeRateEr = this.safeString (market, 'makerFeeRateEr');
+        const takerFeeRateEr = this.safeString (market, 'takerFeeRateEr');
+        const maker = this.parseNumber (this.fromEn (makerFeeRateEr, ratioScale));
+        const taker = this.parseNumber (this.fromEn (takerFeeRateEr, ratioScale));
         const limits = {
             'amount': {
                 'min': precision['amount'],
                 'max': undefined,
             },
             'price': {
-                'min': this.fromEn (minPriceEp, priceScale, precision['price']),
-                'max': this.fromEn (maxPriceEp, priceScale, precision['price']),
+                'min': this.parseNumber (this.fromEn (minPriceEp, priceScale)),
+                'max': this.parseNumber (this.fromEn (maxPriceEp, priceScale)),
             },
             'cost': {
                 'min': undefined,
-                'max': this.parseSafeFloat (this.safeString (market, 'maxOrderQty')),
+                'max': this.parseNumber (this.safeString (market, 'maxOrderQty')),
             },
         };
-        const active = undefined;
+        const status = this.safeString (market, 'status');
+        const active = status === 'Listed';
         return {
             'id': id,
             'symbol': symbol,
@@ -455,7 +458,9 @@ module.exports = class phemex extends Exchange {
         //         "defaultMakerFee":"0.001",
         //         "defaultMakerFeeEr":100000,
         //         "baseQtyPrecision":6,
-        //         "quoteQtyPrecision":2
+        //         "quoteQtyPrecision":2,
+        //         "status":"Listed",
+        //         "tipOrderQty":20
         //     }
         //
         const type = this.safeStringLower (market, 'type');
@@ -466,30 +471,31 @@ module.exports = class phemex extends Exchange {
         const inverse = undefined;
         const spot = true;
         const swap = false;
-        const taker = this.safeFloat (market, 'defaultTakerFee');
-        const maker = this.safeFloat (market, 'defaultMakerFee');
+        const taker = this.safeNumber (market, 'defaultTakerFee');
+        const maker = this.safeNumber (market, 'defaultMakerFee');
         const precision = {
-            'amount': this.parseSafeFloat (this.safeString (market, 'baseTickSize')),
-            'price': this.parseSafeFloat (this.safeString (market, 'quoteTickSize')),
+            'amount': this.parseSafeNumber (this.safeString (market, 'baseTickSize')),
+            'price': this.parseSafeNumber (this.safeString (market, 'quoteTickSize')),
         };
         const limits = {
             'amount': {
                 'min': precision['amount'],
-                'max': this.parseSafeFloat (this.safeString (market, 'maxBaseOrderSize')),
+                'max': this.parseSafeNumber (this.safeString (market, 'maxBaseOrderSize')),
             },
             'price': {
                 'min': precision['price'],
                 'max': undefined,
             },
             'cost': {
-                'min': this.parseSafeFloat (this.safeString (market, 'minOrderValue')),
-                'max': this.parseSafeFloat (this.safeString (market, 'maxOrderValue')),
+                'min': this.parseSafeNumber (this.safeString (market, 'minOrderValue')),
+                'max': this.parseSafeNumber (this.safeString (market, 'maxOrderValue')),
             },
         };
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        const active = undefined;
+        const status = this.safeString (market, 'status');
+        const active = status === 'Listed';
         return {
             'id': id,
             'symbol': symbol,
@@ -678,21 +684,18 @@ module.exports = class phemex extends Exchange {
             const id = this.safeString (currency, 'currency');
             const name = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (id);
-            const valueScale = this.safeInteger (currency, 'valueScale');
-            const minValueEv = this.safeFloat (currency, 'minValueEv');
-            const maxValueEv = this.safeFloat (currency, 'maxValueEv');
+            const valueScaleString = this.safeString (currency, 'valueScale');
+            const valueScale = parseInt (valueScaleString);
+            const minValueEv = this.safeString (currency, 'minValueEv');
+            const maxValueEv = this.safeString (currency, 'maxValueEv');
             let minAmount = undefined;
             let maxAmount = undefined;
             let precision = undefined;
             if (valueScale !== undefined) {
-                precision = Math.pow (10, -valueScale);
-                precision = parseFloat (this.decimalToPrecision (precision, ROUND, 0.00000001, this.precisionMode));
-                if (minValueEv !== undefined) {
-                    minAmount = parseFloat (this.decimalToPrecision (minValueEv * precision, ROUND, 0.00000001, this.precisionMode));
-                }
-                if (maxValueEv !== undefined) {
-                    maxAmount = parseFloat (this.decimalToPrecision (maxValueEv * precision, ROUND, 0.00000001, this.precisionMode));
-                }
+                const precisionString = this.parsePrecision (valueScaleString);
+                precision = this.parseNumber (precisionString);
+                minAmount = this.parseNumber (Precise.stringMul (minValueEv, precisionString));
+                maxAmount = this.parseNumber (Precise.stringMul (maxValueEv, precisionString));
             }
             result[code] = {
                 'id': id,
@@ -706,14 +709,6 @@ module.exports = class phemex extends Exchange {
                     'amount': {
                         'min': minAmount,
                         'max': maxAmount,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
                     },
                     'withdraw': {
                         'min': undefined,
@@ -730,18 +725,19 @@ module.exports = class phemex extends Exchange {
         if (market === undefined) {
             throw new ArgumentsRequired (this.id + ' parseBidAsk() requires a market argument');
         }
-        let amount = this.safeFloat (bidask, amountKey);
+        let amount = this.safeString (bidask, amountKey);
         if (market['spot']) {
             amount = this.fromEv (amount, market);
         }
         return [
-            this.fromEp (this.safeFloat (bidask, priceKey), market),
-            amount,
+            this.parseNumber (this.fromEp (this.safeString (bidask, priceKey), market)),
+            this.parseNumber (amount),
         ];
     }
 
-    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
         const result = {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
@@ -797,60 +793,63 @@ module.exports = class phemex extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const book = this.safeValue (result, 'book', {});
         const timestamp = this.safeIntegerProduct (result, 'timestamp', 0.000001);
-        const orderbook = this.parseOrderBook (book, timestamp, 'bids', 'asks', 0, 1, market);
+        const orderbook = this.parseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
         orderbook['nonce'] = this.safeInteger (result, 'sequence');
         return orderbook;
     }
 
-    toEn (n, scale, precision) {
-        return parseInt (this.decimalToPrecision (n * Math.pow (10, scale), ROUND, precision, DECIMAL_PLACES));
+    toEn (n, scale) {
+        const stringN = n.toString ();
+        const precise = new Precise (stringN);
+        precise.decimals = precise.decimals - scale;
+        precise.reduce ();
+        const stringValue = precise.toString ();
+        return parseInt (parseFloat (stringValue));
     }
 
     toEv (amount, market = undefined) {
         if ((amount === undefined) || (market === undefined)) {
             return amount;
         }
-        return this.toEn (amount, market['valueScale'], 0);
+        return this.toEn (amount, market['valueScale']);
     }
 
     toEp (price, market = undefined) {
         if ((price === undefined) || (market === undefined)) {
             return price;
         }
-        return this.toEn (price, market['priceScale'], 0);
+        return this.toEn (price, market['priceScale']);
     }
 
-    fromEn (en, scale, precision, precisionMode = undefined) {
+    fromEn (en, scale) {
         if (en === undefined) {
-            return en;
+            return undefined;
         }
-        precisionMode = (precisionMode === undefined) ? this.precisionMode : precisionMode;
-        return parseFloat (this.decimalToPrecision (en * Math.pow (10, -scale), ROUND, precision, precisionMode));
+        const precise = new Precise (en);
+        precise.decimals = this.sum (precise.decimals, scale);
+        precise.reduce ();
+        return precise.toString ();
     }
 
     fromEp (ep, market = undefined) {
         if ((ep === undefined) || (market === undefined)) {
             return ep;
         }
-        return this.fromEn (ep, market['priceScale'], market['precision']['price']);
+        return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
     }
 
     fromEv (ev, market = undefined) {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
-        if (market['spot']) {
-            return this.fromEn (ev, market['valueScale'], market['precision']['amount']);
-        } else {
-            return this.fromEn (ev, market['valueScale'], 1 / Math.pow (10, market['valueScale']));
-        }
+        return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
     }
 
     fromEr (er, market = undefined) {
         if ((er === undefined) || (market === undefined)) {
             return er;
         }
-        return this.fromEn (er, market['ratioScale'], 0.00000001);
+        return this.fromEn (er, this.safeInteger (market, 'ratioScale'));
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -869,16 +868,16 @@ module.exports = class phemex extends Exchange {
         //
         let baseVolume = undefined;
         if ((market !== undefined) && market['spot']) {
-            baseVolume = this.fromEv (this.safeFloat (ohlcv, 7), market);
+            baseVolume = this.parseNumber (this.fromEv (this.safeString (ohlcv, 7), market));
         } else {
-            baseVolume = this.safeInteger (ohlcv, 7);
+            baseVolume = this.safeNumber (ohlcv, 7);
         }
         return [
             this.safeTimestamp (ohlcv, 0),
-            this.fromEp (this.safeFloat (ohlcv, 3), market),
-            this.fromEp (this.safeFloat (ohlcv, 4), market),
-            this.fromEp (this.safeFloat (ohlcv, 5), market),
-            this.fromEp (this.safeFloat (ohlcv, 6), market),
+            this.parseNumber (this.fromEp (this.safeString (ohlcv, 3), market)),
+            this.parseNumber (this.fromEp (this.safeString (ohlcv, 4), market)),
+            this.parseNumber (this.fromEp (this.safeString (ohlcv, 5), market)),
+            this.parseNumber (this.fromEp (this.safeString (ohlcv, 6), market)),
             baseVolume,
         ];
     }
@@ -969,13 +968,15 @@ module.exports = class phemex extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
-        const last = this.fromEp (this.safeFloat (ticker, 'lastEp'), market);
-        const quoteVolume = this.fromEp (this.safeFloat (ticker, 'turnoverEv'), market);
-        let baseVolume = this.safeFloat (ticker, 'volume');
+        const lastString = this.fromEp (this.safeString (ticker, 'lastEp'), market);
+        const last = this.parseNumber (lastString);
+        const quoteVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 'turnoverEv'), market));
+        let baseVolume = this.safeNumber (ticker, 'volume');
         if (baseVolume === undefined) {
-            baseVolume = this.fromEv (this.safeFloat (ticker, 'volumeEv'));
+            baseVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 'volumeEv'), market));
         }
         let vwap = undefined;
         if ((market !== undefined) && (market['spot'])) {
@@ -984,23 +985,22 @@ module.exports = class phemex extends Exchange {
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
-        const open = this.fromEp (this.safeFloat (ticker, 'openEp'), market);
-        if ((open !== undefined) && (last !== undefined)) {
-            change = last - open;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-            average = this.sum (open, last) / 2;
+        const openString = this.fromEp (this.safeString (ticker, 'openEp'), market);
+        const open = this.parseNumber (openString);
+        if ((openString !== undefined) && (lastString !== undefined)) {
+            change = this.parseNumber (Precise.stringSub (lastString, openString));
+            average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (lastString, openString), '2'));
+            percentage = this.parseNumber (Precise.stringMul (Precise.stringSub (Precise.stringDiv (lastString, openString), '1'), '100'));
         }
         const result = {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.fromEp (this.safeFloat (ticker, 'highEp'), market),
-            'low': this.fromEp (this.safeFloat (ticker, 'lowEp'), market),
-            'bid': this.fromEp (this.safeFloat (ticker, 'bidEp'), market),
+            'high': this.parseNumber (this.fromEp (this.safeString (ticker, 'highEp'), market)),
+            'low': this.parseNumber (this.fromEp (this.safeString (ticker, 'lowEp'), market)),
+            'bid': this.parseNumber (this.fromEp (this.safeString (ticker, 'bidEp'), market)),
             'bidVolume': undefined,
-            'ask': this.fromEp (this.safeFloat (ticker, 'askEp'), market),
+            'ask': this.parseNumber (this.fromEp (this.safeString (ticker, 'askEp'), market)),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
@@ -1171,12 +1171,12 @@ module.exports = class phemex extends Exchange {
         //         "execStatus": "MakerFill"
         //     }
         //
-        let price = undefined;
-        let amount = undefined;
+        let priceString = undefined;
+        let amountString = undefined;
         let timestamp = undefined;
         let id = undefined;
         let side = undefined;
-        let cost = undefined;
+        let costString = undefined;
         let type = undefined;
         let fee = undefined;
         const marketId = this.safeString (trade, 'symbol');
@@ -1191,13 +1191,8 @@ module.exports = class phemex extends Exchange {
                 id = this.safeString (trade, tradeLength - 4);
             }
             side = this.safeStringLower (trade, tradeLength - 3);
-            price = this.fromEp (this.safeFloat (trade, tradeLength - 2), market);
-            amount = this.fromEv (this.safeFloat (trade, tradeLength - 1), market);
-            if (market['spot']) {
-                if ((price !== undefined) && (amount !== undefined)) {
-                    cost = price * amount;
-                }
-            }
+            priceString = this.fromEp (this.safeString (trade, tradeLength - 2), market);
+            amountString = this.fromEv (this.safeString (trade, tradeLength - 1), market);
         } else {
             timestamp = this.safeIntegerProduct (trade, 'transactTimeNs', 0.000001);
             id = this.safeString2 (trade, 'execId', 'execID');
@@ -1208,21 +1203,13 @@ module.exports = class phemex extends Exchange {
             if (execStatus === 'MakerFill') {
                 takerOrMaker = 'maker';
             }
-            price = this.fromEp (this.safeFloat (trade, 'execPriceEp'), market);
-            amount = this.fromEv (this.safeFloat (trade, 'execBaseQtyEv'), market);
-            amount = this.safeFloat (trade, 'execQty', amount);
-            cost = this.fromEv (this.safeFloat2 (trade, 'execQuoteQtyEv', 'execValueEv'), market);
-            const feeCost = this.fromEv (this.safeFloat (trade, 'execFeeEv'), market);
-            if (feeCost !== undefined) {
-                let feeRate = undefined;
-                let feeRateEr = this.safeFloat (trade, 'feeRateEr');
-                if (feeRateEr < 0) {
-                    feeRateEr = Math.abs (feeRateEr);
-                    feeRate = this.fromEr (feeRateEr, market);
-                    feeRate = -feeRate;
-                } else {
-                    feeRate = this.fromEr (feeRateEr, market);
-                }
+            priceString = this.fromEp (this.safeString (trade, 'execPriceEp'), market);
+            amountString = this.fromEv (this.safeString (trade, 'execBaseQtyEv'), market);
+            amountString = this.safeString (trade, 'execQty', amountString);
+            costString = this.fromEv (this.safeString2 (trade, 'execQuoteQtyEv', 'execValueEv'), market);
+            const feeCostString = this.fromEv (this.safeString (trade, 'execFeeEv'), market);
+            if (feeCostString !== undefined) {
+                const feeRateString = this.fromEr (this.safeString (trade, 'feeRateEr'), market);
                 let feeCurrencyCode = undefined;
                 if (market['spot']) {
                     feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
@@ -1234,12 +1221,18 @@ module.exports = class phemex extends Exchange {
                     }
                 }
                 fee = {
-                    'cost': feeCost,
-                    'rate': feeRate,
+                    'cost': this.parseNumber (feeCostString),
+                    'rate': this.parseNumber (feeRateString),
                     'currency': feeCurrencyCode,
                 };
             }
         }
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        if (costString === undefined) {
+            costString = Precise.stringMul (priceString, amountString);
+        }
+        const cost = this.parseNumber (costString);
         return {
             'info': trade,
             'id': id,
@@ -1282,6 +1275,7 @@ module.exports = class phemex extends Exchange {
         //         ]
         //     }
         //
+        let timestamp = undefined;
         const result = { 'info': response };
         const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
@@ -1291,17 +1285,21 @@ module.exports = class phemex extends Exchange {
             const currency = this.safeValue (this.currencies, code, {});
             const scale = this.safeInteger (currency, 'valueScale', 8);
             const account = this.account ();
-            const balanceEv = this.safeFloat (balance, 'balanceEv');
-            const lockedTradingBalanceEv = this.safeFloat (balance, 'lockedTradingBalanceEv');
-            const lockedWithdrawEv = this.safeFloat (balance, 'lockedWithdrawEv');
-            const total = this.fromEn (balanceEv, scale, scale, DECIMAL_PLACES);
-            const lockedTradingBalance = this.fromEn (lockedTradingBalanceEv, scale, scale, DECIMAL_PLACES);
-            const lockedWithdraw = this.fromEn (lockedWithdrawEv, scale, scale, DECIMAL_PLACES);
-            const used = this.sum (lockedTradingBalance, lockedWithdraw);
+            const balanceEv = this.safeString (balance, 'balanceEv');
+            const lockedTradingBalanceEv = this.safeString (balance, 'lockedTradingBalanceEv');
+            const lockedWithdrawEv = this.safeString (balance, 'lockedWithdrawEv');
+            const total = this.fromEn (balanceEv, scale);
+            const lockedTradingBalance = this.fromEn (lockedTradingBalanceEv, scale);
+            const lockedWithdraw = this.fromEn (lockedWithdrawEv, scale);
+            const used = Precise.stringAdd (lockedTradingBalance, lockedWithdraw);
+            const lastUpdateTimeNs = this.safeIntegerProduct (balance, 'lastUpdateTimeNs', 0.000001);
+            timestamp = (timestamp === undefined) ? lastUpdateTimeNs : Math.max (timestamp, lastUpdateTimeNs);
             account['total'] = total;
             account['used'] = used;
             result[code] = account;
         }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
         return this.parseBalance (result);
     }
 
@@ -1387,11 +1385,11 @@ module.exports = class phemex extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const currency = this.currency (code);
         const account = this.account ();
-        const accountBalanceEv = this.safeFloat (balance, 'accountBalanceEv');
-        const totalUsedBalanceEv = this.safeFloat (balance, 'totalUsedBalanceEv');
+        const accountBalanceEv = this.safeString (balance, 'accountBalanceEv');
+        const totalUsedBalanceEv = this.safeString (balance, 'totalUsedBalanceEv');
         const valueScale = this.safeInteger (currency, 'valueScale', 8);
-        account['total'] = this.fromEn (accountBalanceEv, valueScale, valueScale, DECIMAL_PLACES);
-        account['used'] = this.fromEn (totalUsedBalanceEv, valueScale, valueScale, DECIMAL_PLACES);
+        account['total'] = this.fromEn (accountBalanceEv, valueScale);
+        account['used'] = this.fromEn (totalUsedBalanceEv, valueScale);
         result[code] = account;
         return this.parseBalance (result);
     }
@@ -1620,36 +1618,28 @@ module.exports = class phemex extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        let price = this.fromEp (this.safeFloat (order, 'priceEp'), market);
-        if (price === 0) {
-            price = undefined;
-        }
-        const amount = this.fromEv (this.safeFloat (order, 'baseQtyEv'), market);
-        const remaining = this.fromEv (this.safeFloat (order, 'leavesBaseQtyEv'), market);
-        let filled = this.fromEv (this.safeFloat (order, 'cumBaseQtyEv'), market);
-        const cost = this.fromEv (this.safeFloat (order, 'quoteQtyEv'), market);
-        const average = this.fromEp (this.safeFloat (order, 'avgPriceEp'), market);
+        const price = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'priceEp'), market)));
+        const amount = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'baseQtyEv'), market)));
+        const remaining = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'leavesBaseQtyEv'), market)));
+        const filled = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'cumBaseQtyEv'), market)));
+        const cost = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'quoteQtyEv'), market)));
+        const average = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'avgPriceEp'), market)));
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
         const timestamp = this.safeIntegerProduct2 (order, 'actionTimeNs', 'createTimeNs', 0.000001);
         let fee = undefined;
-        const feeCost = this.fromEv (this.safeFloat (order, 'cumFeeEv'), market);
+        const feeCost = this.parseNumber (this.fromEv (this.safeString (order, 'cumFeeEv'), market));
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
                 'currency': undefined,
             };
         }
-        if (filled === undefined) {
-            if ((amount !== undefined) && (remaining !== undefined)) {
-                filled = Math.min (0, amount - remaining);
-            }
-        }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.fromEp (this.safeFloat (order, 'stopPxEp', market));
+        const stopPrice = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'stopPxEp', market))));
         const postOnly = (timeInForce === 'PO');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1671,7 +1661,7 @@ module.exports = class phemex extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     parseSwapOrder (order, market = undefined) {
@@ -1720,18 +1710,18 @@ module.exports = class phemex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'orderType'));
-        const price = this.fromEp (this.safeFloat (order, 'priceEp'), market);
-        const amount = this.safeFloat (order, 'orderQty');
-        const filled = this.safeFloat (order, 'cumQty');
-        const remaining = this.safeFloat (order, 'leavesQty');
+        const price = this.parseNumber (this.fromEp (this.safeString (order, 'priceEp'), market));
+        const amount = this.safeNumber (order, 'orderQty');
+        const filled = this.safeNumber (order, 'cumQty');
+        const remaining = this.safeNumber (order, 'leavesQty');
         const timestamp = this.safeIntegerProduct (order, 'actionTimeNs', 0.000001);
-        const cost = this.safeFloat (order, 'cumValue');
+        const cost = this.safeNumber (order, 'cumValue');
         let lastTradeTimestamp = this.safeIntegerProduct (order, 'transactTimeNs', 0.000001);
         if (lastTradeTimestamp === 0) {
             lastTradeTimestamp = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.safeFloat (order, 'stopPx');
+        const stopPrice = this.safeNumber (order, 'stopPx');
         const postOnly = (timeInForce === 'PO');
         return {
             'info': order,
@@ -1806,7 +1796,7 @@ module.exports = class phemex extends Exchange {
             }
             request['qtyType'] = qtyType;
             if (qtyType === 'ByQuote') {
-                let cost = this.safeFloat (params, 'cost');
+                let cost = this.safeNumber (params, 'cost');
                 params = this.omit (params, 'cost');
                 if (this.options['createOrderByQuoteRequiresPrice']) {
                     if (price !== undefined) {
@@ -1816,17 +1806,20 @@ module.exports = class phemex extends Exchange {
                     }
                 }
                 cost = (cost === undefined) ? amount : cost;
-                request['quoteQtyEv'] = this.toEp (cost, market);
+                const costString = cost.toString ();
+                request['quoteQtyEv'] = this.toEv (costString, market);
             } else {
-                request['baseQtyEv'] = this.toEv (amount, market);
+                const amountString = amount.toString ();
+                request['baseQtyEv'] = this.toEv (amountString, market);
             }
         } else if (market['swap']) {
             request['orderQty'] = parseInt (amount);
         }
         if (type === 'Limit') {
-            request['priceEp'] = this.toEp (price, market);
+            const priceString = price.toString ();
+            request['priceEp'] = this.toEp (priceString, market);
         }
-        const stopPrice = this.safeFloat2 (params, 'stopPx', 'stopPrice');
+        const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
         if (stopPrice !== undefined) {
             request['stopPxEp'] = this.toEp (stopPrice, market);
         }
@@ -2019,17 +2012,20 @@ module.exports = class phemex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        let response = undefined;
         try {
-            const response = await this[method] (this.extend (request, params));
-            const data = this.safeValue (response, 'data', {});
-            if (Array.isArray (data)) {
-                return this.parseOrders (data, market, since, limit);
-            } else {
-                const rows = this.safeValue (data, 'rows', []);
-                return this.parseOrders (rows, market, since, limit);
-            }
+            response = await this[method] (this.extend (request, params));
         } catch (e) {
-            return [];
+            if (e instanceof OrderNotFound) {
+                return [];
+            }
+        }
+        const data = this.safeValue (response, 'data', {});
+        if (Array.isArray (data)) {
+            return this.parseOrders (data, market, since, limit);
+        } else {
+            const rows = this.safeValue (data, 'rows', []);
+            return this.parseOrders (rows, market, since, limit);
         }
     }
 
@@ -2334,7 +2330,7 @@ module.exports = class phemex extends Exchange {
         const code = currency['code'];
         const timestamp = this.safeInteger2 (transaction, 'createdAt', 'submitedAt');
         let type = this.safeStringLower (transaction, 'type');
-        const feeCost = this.fromEn (this.safeFloat (transaction, 'feeEv'), currency['valueScale'], currency['precision']);
+        const feeCost = this.parseNumber (this.fromEn (this.safeString (transaction, 'feeEv'), currency['valueScale']));
         let fee = undefined;
         if (feeCost !== undefined) {
             type = 'withdrawal';
@@ -2344,7 +2340,7 @@ module.exports = class phemex extends Exchange {
             };
         }
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const amount = this.fromEn (this.safeFloat (transaction, 'amountEv'), currency['valueScale'], currency['precision']);
+        const amount = this.parseNumber (this.fromEn (this.safeString (transaction, 'amountEv'), currency['valueScale']));
         return {
             'info': transaction,
             'id': id,
@@ -2366,7 +2362,7 @@ module.exports = class phemex extends Exchange {
         };
     }
 
-    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const code = this.safeString (params, 'code');
         const request = {};
@@ -2493,7 +2489,7 @@ module.exports = class phemex extends Exchange {
             const auth = requestPath + queryString + expiryString + payload;
             headers['x-phemex-request-signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
         }
-        url = this.urls['api'][api] + url;
+        url = this.implodeHostname (this.urls['api'][api]) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

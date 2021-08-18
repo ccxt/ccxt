@@ -60,10 +60,12 @@ function numberToString (x) { // avoids scientific notation for too large and to
         if (parts[1]) {
             let e = parseInt (parts[1])
             const m = parts[0].split ('.')
+            let part = ''
             if (m[1]) {
                 e -= m[1].length
+                part = m[1]
             }
-            return m[0] + m[1] + (new Array (e + 1)).join ('0')
+            return m[0] + part + (new Array (e + 1)).join ('0')
         }
     }
     return s
@@ -292,38 +294,25 @@ const decimalToPrecision = (x, roundingMode
     return String.fromCharCode (...out)
 }
 
-// toWei / fromWei
-
-function fromWei (amount, decimals = 18) {
-    if (amount === undefined) {
-        return amount
+function omitZero (stringNumber) {
+    if (stringNumber === undefined) {
+        return undefined
     }
-    const exponential = Math.floor (amount).toExponential () // wei must be whole numbers
-    const [ n, exponent ] = exponential.split ('e')
-    const newExponent = parseInt (exponent) - decimals
-    return parseFloat (n + 'e' + newExponent)
-}
-
-function toWei (amount, decimals = 18) {
-    if (amount === undefined) {
-        return amount
+    if (parseFloat (stringNumber) === 0) {
+        return undefined
     }
-    const exponential = parseFloat (amount).toExponential ()
-    const [ n, exponent ] = exponential.split ('e')
-    const newExponent = parseInt (exponent) + decimals
-    return numberToString (Math.floor (parseFloat (n + 'e' + newExponent))) // wei must be whole numbers
+    return stringNumber
 }
 
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
-    toWei,
-    fromWei,
     numberToString,
     precisionFromString,
     decimalToPrecision,
     truncate_to_string,
     truncate,
+    omitZero,
     precisionConstants,
     ROUND,
     TRUNCATE,

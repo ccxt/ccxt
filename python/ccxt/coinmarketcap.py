@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 
 
@@ -201,16 +200,16 @@ class coinmarketcap(Exchange):
         timestamp = self.safe_timestamp(ticker, 'last_updated')
         if timestamp is None:
             timestamp = self.milliseconds()
-        change = self.safe_float(ticker, 'percent_change_24h')
+        change = self.safe_number(ticker, 'percent_change_24h')
         last = None
         symbol = None
         volume = None
         if market is not None:
             symbol = market['symbol']
             priceKey = 'price_' + market['quoteId']
-            last = self.safe_float(ticker, priceKey)
+            last = self.safe_number(ticker, priceKey)
             volumeKey = '24h_volume_' + market['quoteId']
-            volume = self.safe_float(ticker, volumeKey)
+            volume = self.safe_number(ticker, volumeKey)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -279,7 +278,6 @@ class coinmarketcap(Exchange):
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            precision = 8  # default precision, todo: fix "magic constants"
             code = self.currency_code(id, name)
             result[code] = {
                 'id': id,
@@ -287,16 +285,16 @@ class coinmarketcap(Exchange):
                 'info': currency,
                 'name': name,
                 'active': True,
-                'fee': None,  # todo: redesign
-                'precision': precision,
+                'fee': None,
+                'precision': None,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': None,
+                        'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': None,
+                        'max': None,
                     },
                     'cost': {
                         'min': None,

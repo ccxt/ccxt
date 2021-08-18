@@ -11,6 +11,7 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\NullResponse;
 use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
+use \ccxt\Precise;
 
 class cex extends Exchange {
 
@@ -94,28 +95,17 @@ class cex extends Exchange {
                         'open_position/{pair}/',
                         'open_positions/{pair}/',
                         'place_order/{pair}/',
+                        'raw_tx_history',
                     ),
                 ),
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.16 / 100,
-                    'taker' => 0.25 / 100,
+                    'maker' => $this->parse_number('0.0016'),
+                    'taker' => $this->parse_number('0.0025'),
                 ),
                 'funding' => array(
-                    'withdraw' => array(
-                        // 'USD' => null,
-                        // 'EUR' => null,
-                        // 'RUB' => null,
-                        // 'GBP' => null,
-                        'BTC' => 0.001,
-                        'ETH' => 0.01,
-                        'BCH' => 0.001,
-                        'DASH' => 0.01,
-                        'BTG' => 0.001,
-                        'ZEC' => 0.001,
-                        'XRP' => 0.02,
-                    ),
+                    'withdraw' => array(),
                     'deposit' => array(
                         // 'USD' => amount => amount * 0.035 + 0.25,
                         // 'EUR' => amount => amount * 0.035 + 0.24,
@@ -262,19 +252,11 @@ class cex extends Exchange {
                 'fee' => null,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($currency, 'minimumCurrencyAmount'),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($currency, 'minimumCurrencyAmount'),
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $this->safe_float($currency, 'minimalWithdrawalAmount'),
+                        'min' => $this->safe_number($currency, 'minimalWithdrawalAmount'),
                         'max' => null,
                     ),
                 ),
@@ -357,15 +339,15 @@ class cex extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'minLotSize'),
-                        'max' => $this->safe_float($market, 'maxLotSize'),
+                        'min' => $this->safe_number($market, 'minLotSize'),
+                        'max' => $this->safe_number($market, 'maxLotSize'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($market, 'minPrice'),
-                        'max' => $this->safe_float($market, 'maxPrice'),
+                        'min' => $this->safe_number($market, 'minPrice'),
+                        'max' => $this->safe_number($market, 'maxPrice'),
                     ),
                     'cost' => array(
-                        'min' => $this->safe_float($market, 'minLotSizeS2'),
+                        'min' => $this->safe_number($market, 'minLotSizeS2'),
                         'max' => null,
                     ),
                 ),
@@ -386,9 +368,9 @@ class cex extends Exchange {
             $currencyId = $currencyIds[$i];
             $balance = $this->safe_value($balances, $currencyId, array());
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'available');
+            $account['free'] = $this->safe_string($balance, 'available');
             // https://github.com/ccxt/ccxt/issues/5484
-            $account['used'] = $this->safe_float($balance, 'orders', 0.0);
+            $account['used'] = $this->safe_string($balance, 'orders', '0');
             $code = $this->safe_currency_code($currencyId);
             $result[$code] = $account;
         }
@@ -405,7 +387,7 @@ class cex extends Exchange {
         }
         $response = yield $this->publicGetOrderBookPair (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -421,11 +403,11 @@ class cex extends Exchange {
         //
         return array(
             $this->safe_timestamp($ohlcv, 0),
-            $this->safe_float($ohlcv, 1),
-            $this->safe_float($ohlcv, 2),
-            $this->safe_float($ohlcv, 3),
-            $this->safe_float($ohlcv, 4),
-            $this->safe_float($ohlcv, 5),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -467,12 +449,12 @@ class cex extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $volume = $this->safe_float($ticker, 'volume');
-        $high = $this->safe_float($ticker, 'high');
-        $low = $this->safe_float($ticker, 'low');
-        $bid = $this->safe_float($ticker, 'bid');
-        $ask = $this->safe_float($ticker, 'ask');
-        $last = $this->safe_float($ticker, 'last');
+        $volume = $this->safe_number($ticker, 'volume');
+        $high = $this->safe_number($ticker, 'high');
+        $low = $this->safe_number($ticker, 'low');
+        $bid = $this->safe_number($ticker, 'bid');
+        $ask = $this->safe_number($ticker, 'ask');
+        $last = $this->safe_number($ticker, 'last');
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
@@ -534,14 +516,11 @@ class cex extends Exchange {
         $id = $this->safe_string($trade, 'tid');
         $type = null;
         $side = $this->safe_string($trade, 'type');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -607,8 +586,8 @@ class cex extends Exchange {
         //         "$complete" => false
         //     }
         //
-        $placedAmount = $this->safe_float($response, 'amount');
-        $remaining = $this->safe_float($response, 'pending');
+        $placedAmount = $this->safe_number($response, 'amount');
+        $remaining = $this->safe_number($response, 'pending');
         $timestamp = $this->safe_value($response, 'time');
         $complete = $this->safe_value($response, 'complete');
         $status = $complete ? 'closed' : 'open';
@@ -627,7 +606,7 @@ class cex extends Exchange {
             'side' => $this->safe_string($response, 'type'),
             'symbol' => $symbol,
             'status' => $status,
-            'price' => $this->safe_float($response, 'price'),
+            'price' => $this->safe_number($response, 'price'),
             'amount' => $placedAmount,
             'cost' => null,
             'average' => null,
@@ -669,42 +648,42 @@ class cex extends Exchange {
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'amount');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'amount');
         // sell orders can have a negative $amount
         // https://github.com/ccxt/ccxt/issues/5338
         if ($amount !== null) {
             $amount = abs($amount);
         }
-        $remaining = $this->safe_float_2($order, 'pending', 'remains');
+        $remaining = $this->safe_number_2($order, 'pending', 'remains');
         $filled = $amount - $remaining;
         $fee = null;
         $cost = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
-            $taCost = $this->safe_float($order, 'ta:' . $market['quote']);
-            $ttaCost = $this->safe_float($order, 'tta:' . $market['quote']);
+            $taCost = $this->safe_number($order, 'ta:' . $market['quote']);
+            $ttaCost = $this->safe_number($order, 'tta:' . $market['quote']);
             $cost = $this->sum($taCost, $ttaCost);
             $baseFee = 'fa:' . $market['base'];
             $baseTakerFee = 'tfa:' . $market['base'];
             $quoteFee = 'fa:' . $market['quote'];
             $quoteTakerFee = 'tfa:' . $market['quote'];
-            $feeRate = $this->safe_float($order, 'tradingFeeMaker');
+            $feeRate = $this->safe_number($order, 'tradingFeeMaker');
             if (!$feeRate) {
-                $feeRate = $this->safe_float($order, 'tradingFeeTaker', $feeRate);
+                $feeRate = $this->safe_number($order, 'tradingFeeTaker', $feeRate);
             }
             if ($feeRate) {
                 $feeRate /= 100.0; // convert to mathematically-correct percentage coefficients => 1.0 = 100%
             }
             if ((is_array($order) && array_key_exists($baseFee, $order)) || (is_array($order) && array_key_exists($baseTakerFee, $order))) {
-                $baseFeeCost = $this->safe_float_2($order, $baseFee, $baseTakerFee);
+                $baseFeeCost = $this->safe_number_2($order, $baseFee, $baseTakerFee);
                 $fee = array(
                     'currency' => $market['base'],
                     'rate' => $feeRate,
                     'cost' => $baseFeeCost,
                 );
             } else if ((is_array($order) && array_key_exists($quoteFee, $order)) || (is_array($order) && array_key_exists($quoteTakerFee, $order))) {
-                $quoteFeeCost = $this->safe_float_2($order, $quoteFee, $quoteTakerFee);
+                $quoteFeeCost = $this->safe_number_2($order, $quoteFee, $quoteTakerFee);
                 $fee = array(
                     'currency' => $market['quote'],
                     'rate' => $feeRate,
@@ -744,7 +723,7 @@ class cex extends Exchange {
                     //     ds => 0 }
                     continue;
                 }
-                $tradePrice = $this->safe_float($item, 'price');
+                $tradePrice = $this->safe_number($item, 'price');
                 if ($tradePrice === null) {
                     // this represents the $order
                     //   {
@@ -848,8 +827,8 @@ class cex extends Exchange {
                 //     "fee_amount" => "0.03"
                 //   }
                 $tradeTimestamp = $this->parse8601($this->safe_string($item, 'time'));
-                $tradeAmount = $this->safe_float($item, 'amount');
-                $feeCost = $this->safe_float($item, 'fee_amount');
+                $tradeAmount = $this->safe_number($item, 'amount');
+                $feeCost = $this->safe_number($item, 'fee_amount');
                 $absTradeAmount = ($tradeAmount < 0) ? -$tradeAmount : $tradeAmount;
                 $tradeCost = null;
                 if ($tradeSide === 'sell') {
@@ -1194,12 +1173,12 @@ class cex extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $side = $this->safe_string($order, 'type');
-            $baseAmount = $this->safe_float($order, 'a:' . $baseId . ':cds');
-            $quoteAmount = $this->safe_float($order, 'a:' . $quoteId . ':cds');
-            $fee = $this->safe_float($order, 'f:' . $quoteId . ':cds');
-            $amount = $this->safe_float($order, 'amount');
-            $price = $this->safe_float($order, 'price');
-            $remaining = $this->safe_float($order, 'remains');
+            $baseAmount = $this->safe_number($order, 'a:' . $baseId . ':cds');
+            $quoteAmount = $this->safe_number($order, 'a:' . $quoteId . ':cds');
+            $fee = $this->safe_number($order, 'f:' . $quoteId . ':cds');
+            $amount = $this->safe_number($order, 'amount');
+            $price = $this->safe_number($order, 'price');
+            $remaining = $this->safe_number($order, 'remains');
             $filled = $amount - $remaining;
             $orderAmount = null;
             $cost = null;
@@ -1211,10 +1190,10 @@ class cex extends Exchange {
                 $cost = $quoteAmount;
                 $average = $orderAmount / $cost;
             } else {
-                $ta = $this->safe_float($order, 'ta:' . $quoteId, 0);
-                $tta = $this->safe_float($order, 'tta:' . $quoteId, 0);
-                $fa = $this->safe_float($order, 'fa:' . $quoteId, 0);
-                $tfa = $this->safe_float($order, 'tfa:' . $quoteId, 0);
+                $ta = $this->safe_number($order, 'ta:' . $quoteId, 0);
+                $tta = $this->safe_number($order, 'tta:' . $quoteId, 0);
+                $fa = $this->safe_number($order, 'fa:' . $quoteId, 0);
+                $tfa = $this->safe_number($order, 'tfa:' . $quoteId, 0);
                 if ($side === 'sell') {
                     $cost = $this->sum($this->sum($ta, $tta), $this->sum($fa, $tfa));
                 } else {

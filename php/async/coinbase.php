@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class coinbase extends Exchange {
 
@@ -414,10 +415,10 @@ class coinbase extends Exchange {
         $timestamp = $this->parse8601($this->safe_value($transaction, 'created_at'));
         $updated = $this->parse8601($this->safe_value($transaction, 'updated_at'));
         $type = $this->safe_string($transaction, 'resource');
-        $amount = $this->safe_float($subtotalObject, 'amount');
+        $amount = $this->safe_number($subtotalObject, 'amount');
         $currencyId = $this->safe_string($subtotalObject, 'currency');
         $currency = $this->safe_currency_code($currencyId);
-        $feeCost = $this->safe_float($feeObject, 'amount');
+        $feeCost = $this->safe_number($feeObject, 'amount');
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $fee = array(
@@ -493,15 +494,12 @@ class coinbase extends Exchange {
         $orderId = null;
         $side = $this->safe_string($trade, 'resource');
         $type = null;
-        $cost = $this->safe_float($subtotalObject, 'amount');
-        $amount = $this->safe_float($amountObject, 'amount');
-        $price = null;
-        if ($cost !== null) {
-            if (($amount !== null) && ($amount > 0)) {
-                $price = $cost / $amount;
-            }
-        }
-        $feeCost = $this->safe_float($feeObject, 'amount');
+        $costString = $this->safe_string($subtotalObject, 'amount');
+        $amountString = $this->safe_string($amountObject, 'amount');
+        $cost = $this->parse_number($costString);
+        $amount = $this->parse_number($amountString);
+        $price = $this->parse_number(Precise::string_div($costString, $amountString));
+        $feeCost = $this->safe_number($feeObject, 'amount');
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $fee = array(
@@ -569,7 +567,7 @@ class coinbase extends Exchange {
                                 'max' => null,
                             ),
                             'cost' => array(
-                                'min' => $this->safe_float($quoteCurrency, 'min_size'),
+                                'min' => $this->safe_number($quoteCurrency, 'min_size'),
                                 'max' => null,
                             ),
                         ),
@@ -651,15 +649,7 @@ class coinbase extends Exchange {
                 'precision' => null,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($currency, 'min_size'),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($currency, 'min_size'),
                         'max' => null,
                     ),
                     'withdraw' => array(
@@ -682,9 +672,9 @@ class coinbase extends Exchange {
         $buy = yield $this->publicGetPricesSymbolBuy ($request);
         $sell = yield $this->publicGetPricesSymbolSell ($request);
         $spot = yield $this->publicGetPricesSymbolSpot ($request);
-        $ask = $this->safe_float($buy['data'], 'amount');
-        $bid = $this->safe_float($sell['data'], 'amount');
-        $last = $this->safe_float($spot['data'], 'amount');
+        $ask = $this->safe_number($buy['data'], 'amount');
+        $bid = $this->safe_number($sell['data'], 'amount');
+        $last = $this->safe_number($spot['data'], 'amount');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -724,21 +714,23 @@ class coinbase extends Exchange {
         $result = array( 'info' => $response );
         for ($b = 0; $b < count($balances); $b++) {
             $balance = $balances[$b];
-            if ($this->in_array($balance['type'], $accounts)) {
-                $currencyId = $this->safe_string($balance['balance'], 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $total = $this->safe_float($balance['balance'], 'amount');
-                $free = $total;
-                $used = null;
-                if (is_array($result) && array_key_exists($code, $result)) {
-                    $result[$code]['free'] = $this->sum($result[$code]['free'], $total);
-                    $result[$code]['total'] = $this->sum($result[$code]['total'], $total);
-                } else {
-                    $account = array(
-                        'free' => $free,
-                        'used' => $used,
-                        'total' => $total,
-                    );
+            $type = $this->safe_string($balance, 'type');
+            if ($this->in_array($type, $accounts)) {
+                $value = $this->safe_value($balance, 'balance');
+                if ($value !== null) {
+                    $currencyId = $this->safe_string($value, 'currency');
+                    $code = $this->safe_currency_code($currencyId);
+                    $total = $this->safe_string($value, 'amount');
+                    $free = $total;
+                    $account = $this->safe_value($result, $code);
+                    if ($account === null) {
+                        $account = $this->account();
+                        $account['free'] = $free;
+                        $account['total'] = $total;
+                    } else {
+                        $account['free'] = Precise::string_add($account['free'], $total);
+                        $account['total'] = Precise::string_add($account['total'], $total);
+                    }
                     $result[$code] = $account;
                 }
             }
@@ -1028,7 +1020,7 @@ class coinbase extends Exchange {
         //     }
         //
         $amountInfo = $this->safe_value($item, 'amount', array());
-        $amount = $this->safe_float($amountInfo, 'amount');
+        $amount = $this->safe_number($amountInfo, 'amount');
         $direction = null;
         if ($amount < 0) {
             $direction = 'out';
@@ -1054,7 +1046,7 @@ class coinbase extends Exchange {
         if ($feeInfo !== null) {
             $feeCurrencyId = $this->safe_string($feeInfo, 'currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId, $currency);
-            $feeAmount = $this->safe_float($feeInfo, 'amount');
+            $feeAmount = $this->safe_number($feeInfo, 'amount');
             $fee = array(
                 'cost' => $feeAmount,
                 'currency' => $feeCurrencyCode,
@@ -1148,23 +1140,36 @@ class coinbase extends Exchange {
         }
         $url = $this->urls['api'] . $fullPath;
         if ($api === 'private') {
-            $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
-            $payload = '';
-            if ($method !== 'GET') {
-                if ($query) {
-                    $body = $this->json($query);
-                    $payload = $body;
+            $authorization = $this->safe_string($this->headers, 'Authorization');
+            if ($authorization !== null) {
+                $headers = array(
+                    'Authorization' => $authorization,
+                    'Content-Type' => 'application/json',
+                );
+            } else if ($this->token) {
+                $headers = array(
+                    'Authorization' => 'Bearer ' . $this->token,
+                    'Content-Type' => 'application/json',
+                );
+            } else {
+                $this->check_required_credentials();
+                $nonce = (string) $this->nonce();
+                $payload = '';
+                if ($method !== 'GET') {
+                    if ($query) {
+                        $body = $this->json($query);
+                        $payload = $body;
+                    }
                 }
+                $auth = $nonce . $method . $fullPath . $payload;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                $headers = array(
+                    'CB-ACCESS-KEY' => $this->apiKey,
+                    'CB-ACCESS-SIGN' => $signature,
+                    'CB-ACCESS-TIMESTAMP' => $nonce,
+                    'Content-Type' => 'application/json',
+                );
             }
-            $auth = $nonce . $method . $fullPath . $payload;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
-            $headers = array(
-                'CB-ACCESS-KEY' => $this->apiKey,
-                'CB-ACCESS-SIGN' => $signature,
-                'CB-ACCESS-TIMESTAMP' => $nonce,
-                'Content-Type' => 'application/json',
-            );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

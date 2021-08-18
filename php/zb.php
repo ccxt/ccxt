@@ -19,14 +19,17 @@ class zb extends Exchange {
             'id' => 'zb',
             'name' => 'ZB',
             'countries' => array( 'CN' ),
-            'rateLimit' => 1000,
+            'rateLimit' => 100,
             'version' => 'v1',
+            'certified' => true,
+            'pro' => true,
             'has' => array(
                 'cancelOrder' => true,
                 'CORS' => false,
                 'createMarketOrder' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
                 'fetchDeposits' => true,
@@ -36,6 +39,7 @@ class zb extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchClosedOrders' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -58,6 +62,43 @@ class zb extends Exchange {
                 '1w' => '1week',
             ),
             'exceptions' => array(
+                'ws' => array(
+                    //  '1000' => '\\ccxt\\ExchangeError', // The call is successful.
+                    '1001' => '\\ccxt\\ExchangeError', // General error prompt
+                    '1002' => '\\ccxt\\ExchangeError', // Internal Error
+                    '1003' => '\\ccxt\\AuthenticationError', // Fail to verify
+                    '1004' => '\\ccxt\\AuthenticationError', // The transaction password is locked
+                    '1005' => '\\ccxt\\AuthenticationError', // Wrong transaction password, please check it and re-enter。
+                    '1006' => '\\ccxt\\PermissionDenied', // Real-name authentication is pending approval or unapproved
+                    '1007' => '\\ccxt\\ExchangeError', // Channel does not exist
+                    '1009' => '\\ccxt\\OnMaintenance', // This interface is under maintenance
+                    '1010' => '\\ccxt\\ExchangeNotAvailable', // Not available now
+                    '1012' => '\\ccxt\\PermissionDenied', // Insufficient permissions
+                    '1013' => '\\ccxt\\ExchangeError', // Cannot trade, please contact email => support@zb.cn for support.
+                    '1014' => '\\ccxt\\ExchangeError', // Cannot sell during the pre-sale period
+                    '2001' => '\\ccxt\\InsufficientFunds', // Insufficient CNY account balance
+                    '2002' => '\\ccxt\\InsufficientFunds', // Insufficient BTC account balance
+                    '2003' => '\\ccxt\\InsufficientFunds', // Insufficient LTC account balance
+                    '2005' => '\\ccxt\\InsufficientFunds', // Insufficient ETH account balance
+                    '2006' => '\\ccxt\\InsufficientFunds', // ETCInsufficient account balance
+                    '2007' => '\\ccxt\\InsufficientFunds', // BTSInsufficient account balance
+                    '2008' => '\\ccxt\\InsufficientFunds', // EOSInsufficient account balance
+                    '2009' => '\\ccxt\\InsufficientFunds', // BCCInsufficient account balance
+                    '3001' => '\\ccxt\\OrderNotFound', // Order not found or is completed
+                    '3002' => '\\ccxt\\InvalidOrder', // Invalid amount
+                    '3003' => '\\ccxt\\InvalidOrder', // Invalid quantity
+                    '3004' => '\\ccxt\\AuthenticationError', // User does not exist
+                    '3005' => '\\ccxt\\BadRequest', // Invalid parameter
+                    '3006' => '\\ccxt\\PermissionDenied', // Invalid IP or not consistent with the bound IP
+                    '3007' => '\\ccxt\\RequestTimeout', // The request time has expired
+                    '3008' => '\\ccxt\\ExchangeError', // Transaction not found
+                    '3009' => '\\ccxt\\InvalidOrder', // The price exceeds the limit
+                    '3010' => '\\ccxt\\PermissionDenied', // It fails to place an order, due to you have set up to prohibit trading of this market.
+                    '3011' => '\\ccxt\\InvalidOrder', // The entrusted price is abnormal, please modify it and place order again
+                    '3012' => '\\ccxt\\InvalidOrder', // Duplicate custom customerOrderId
+                    '4001' => '\\ccxt\\AccountSuspended', // APIThe interface is locked for one hour
+                    '4002' => '\\ccxt\\RateLimitExceeded', // Request too frequently
+                ),
                 'exact' => array(
                     // '1000' => 'Successful operation',
                     '1001' => '\\ccxt\\ExchangeError', // 'General error message',
@@ -67,12 +108,17 @@ class zb extends Exchange {
                     '1005' => '\\ccxt\\AuthenticationError', // 'Funds security password is incorrect, please confirm and re-enter.',
                     '1006' => '\\ccxt\\AuthenticationError', // 'Real-name certification pending approval or audit does not pass',
                     '1009' => '\\ccxt\\ExchangeNotAvailable', // 'This interface is under maintenance',
+                    '1010' => '\\ccxt\\ExchangeNotAvailable', // Not available now
+                    '1012' => '\\ccxt\\PermissionDenied', // Insufficient permissions
+                    '1013' => '\\ccxt\\ExchangeError', // Cannot trade, please contact email => support@zb.cn for support.
+                    '1014' => '\\ccxt\\ExchangeError', // Cannot sell during the pre-sale period
                     '2001' => '\\ccxt\\InsufficientFunds', // 'Insufficient CNY Balance',
                     '2002' => '\\ccxt\\InsufficientFunds', // 'Insufficient BTC Balance',
                     '2003' => '\\ccxt\\InsufficientFunds', // 'Insufficient LTC Balance',
                     '2005' => '\\ccxt\\InsufficientFunds', // 'Insufficient ETH Balance',
                     '2006' => '\\ccxt\\InsufficientFunds', // 'Insufficient ETC Balance',
                     '2007' => '\\ccxt\\InsufficientFunds', // 'Insufficient BTS Balance',
+                    '2008' => '\\ccxt\\InsufficientFunds', // EOSInsufficient account balance
                     '2009' => '\\ccxt\\InsufficientFunds', // 'Account balance is not enough',
                     '3001' => '\\ccxt\\OrderNotFound', // 'Pending orders not found',
                     '3002' => '\\ccxt\\InvalidOrder', // 'Invalid price',
@@ -83,9 +129,11 @@ class zb extends Exchange {
                     '3007' => '\\ccxt\\AuthenticationError', // 'The request time has expired',
                     '3008' => '\\ccxt\\OrderNotFound', // 'Transaction records not found',
                     '3009' => '\\ccxt\\InvalidOrder', // 'The price exceeds the limit',
+                    '3010' => '\\ccxt\\PermissionDenied', // It fails to place an order, due to you have set up to prohibit trading of this market.
                     '3011' => '\\ccxt\\InvalidOrder', // 'The entrusted price is abnormal, please modify it and place order again',
+                    '3012' => '\\ccxt\\InvalidOrder', // Duplicate custom customerOrderId
                     '4001' => '\\ccxt\\ExchangeNotAvailable', // 'API interface is locked or not enabled',
-                    '4002' => '\\ccxt\\DDoSProtection', // 'Request too often',
+                    '4002' => '\\ccxt\\RateLimitExceeded', // 'Request too often',
                 ),
                 'broad' => array(
                     '提币地址有误，请先添加提币地址。' => '\\ccxt\\InvalidAddress', // array("code":1001,"message":"提币地址有误，请先添加提币地址。")
@@ -94,14 +142,24 @@ class zb extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api' => array(
-                    'public' => 'http://api.zb.cn/data', // no https for public API
-                    'private' => 'https://trade.zb.cn/api',
+                    'public' => 'https://api.zb.today/data',
+                    'private' => 'https://trade.zb.today/api',
+                    'trade' => 'https://trade.zb.today/api',
                 ),
                 'www' => 'https://www.zb.com',
                 'doc' => 'https://www.zb.com/i/developer',
                 'fees' => 'https://www.zb.com/i/rate',
+                'referral' => array(
+                    'url' => 'https://www.zbex.club/en/register?ref=4301lera',
+                    'discount' => 0.16,
+                ),
             ),
             'api' => array(
+                'trade' => array(
+                    'get' => array(
+                        'getFeeInfo',
+                    ),
+                ),
                 'public' => array(
                     'get' => array(
                         'markets',
@@ -110,18 +168,21 @@ class zb extends Exchange {
                         'depth',
                         'trades',
                         'kline',
+                        'getGroupMarkets',
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         // spot API
                         'order',
+                        'orderMoreV2',
                         'cancelOrder',
                         'getOrder',
                         'getOrders',
                         'getOrdersNew',
                         'getOrdersIgnoreTradeType',
                         'getUnfinishedOrdersIgnoreTradeType',
+                        'getFinishedAndPartialOrders',
                         'getAccountInfo',
                         'getUserAddress',
                         'getPayinAddress',
@@ -131,6 +192,11 @@ class zb extends Exchange {
                         'getCnyWithdrawRecord',
                         'getCnyChargeRecord',
                         'withdraw',
+                        // sub accounts
+                        'addSubUser',
+                        'getSubUserList',
+                        'doTransferFunds',
+                        'createSubUserKey', // removed on 2021-03-16 according to the update log in the API doc
                         // leverage API
                         'getLeverAssetsInfo',
                         'getLeverBills',
@@ -141,41 +207,27 @@ class zb extends Exchange {
                         'getLoans',
                         'getLoanRecords',
                         'borrow',
+                        'autoBorrow',
                         'repay',
+                        'doAllRepay',
                         'getRepayments',
+                        'getFinanceRecords',
+                        'changeInvestMark',
+                        'changeLoop',
+                        // cross API
+                        'getCrossAssets',
+                        'getCrossBills',
+                        'transferInCross',
+                        'transferOutCross',
+                        'doCrossLoan',
+                        'doCrossRepay',
+                        'getCrossRepayRecords',
                     ),
                 ),
             ),
             'fees' => array(
                 'funding' => array(
-                    'withdraw' => array(
-                        'BTC' => 0.0001,
-                        'BCH' => 0.0006,
-                        'LTC' => 0.005,
-                        'ETH' => 0.01,
-                        'ETC' => 0.01,
-                        'BTS' => 3,
-                        'EOS' => 1,
-                        'QTUM' => 0.01,
-                        'HSR' => 0.001,
-                        'XRP' => 0.1,
-                        'USDT' => '0.1%',
-                        'QCASH' => 5,
-                        'DASH' => 0.002,
-                        'BCD' => 0,
-                        'UBTC' => 0,
-                        'SBTC' => 0,
-                        'INK' => 20,
-                        'TV' => 0.1,
-                        'BTH' => 0,
-                        'BCX' => 0,
-                        'LBTC' => 0,
-                        'CHAT' => 20,
-                        'bitCNY' => 20,
-                        'HLC' => 20,
-                        'BTP' => 0,
-                        'BCW' => 0,
-                    ),
+                    'withdraw' => array(),
                 ),
                 'trading' => array(
                     'maker' => 0.2 / 100,
@@ -183,13 +235,26 @@ class zb extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'ANG' => 'Anagram',
                 'ENT' => 'ENTCash',
+                'BCHABC' => 'BCHABC', // conflict with BCH / BCHA
+                'BCHSV' => 'BCHSV', // conflict with BCH / BSV
             ),
         ));
     }
 
     public function fetch_markets($params = array ()) {
         $markets = $this->publicGetMarkets ($params);
+        //
+        //     {
+        //         "zb_qc":array(
+        //             "amountScale":2,
+        //             "minAmount":0.01,
+        //             "minSize":5,
+        //             "priceScale":4,
+        //         ),
+        //     }
+        //
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -199,9 +264,13 @@ class zb extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $amountPrecisionString = $this->safe_string($market, 'amountScale');
+            $pricePrecisionString = $this->safe_string($market, 'priceScale');
+            $amountLimit = $this->parse_precision($amountPrecisionString);
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
-                'amount' => $this->safe_integer($market, 'amountScale'),
-                'price' => $this->safe_integer($market, 'priceScale'),
+                'amount' => intval($amountPrecisionString),
+                'price' => intval($pricePrecisionString),
             );
             $result[] = array(
                 'id' => $id,
@@ -214,11 +283,11 @@ class zb extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => $this->parse_number($amountLimit),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => $this->parse_number($priceLimit),
                         'max' => null,
                     ),
                     'cost' => array(
@@ -232,13 +301,88 @@ class zb extends Exchange {
         return $result;
     }
 
+    public function fetch_currencies($params = array ()) {
+        $response = $this->tradeGetGetFeeInfo ($params);
+        //
+        //     {
+        //         "$code":1000,
+        //         "message":"success",
+        //         "$result":{
+        //             "USDT":array(
+        //                 array(
+        //                     "chainName":"TRC20",
+        //                     "canWithdraw":true,
+        //                     "fee":1.0,
+        //                     "mainChainName":"TRX",
+        //                     "canDeposit":true
+        //                 ),
+        //                 array(
+        //                     "chainName":"OMNI",
+        //                     "canWithdraw":true,
+        //                     "fee":5.0,
+        //                     "mainChainName":"BTC",
+        //                     "canDeposit":true
+        //                 ),
+        //                 {
+        //                     "chainName":"ERC20",
+        //                     "canWithdraw":true,
+        //                     "fee":15.0,
+        //                     "mainChainName":"ETH",
+        //                     "canDeposit":true
+        //                 }
+        //             ),
+        //         }
+        //     }
+        //
+        $currencies = $this->safe_value($response, 'result', array());
+        $ids = is_array($currencies) ? array_keys($currencies) : array();
+        $result = array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $ids[$i];
+            $currency = $currencies[$id];
+            $code = $this->safe_currency_code($id);
+            $precision = null;
+            $isWithdrawEnabled = true;
+            $isDepositEnabled = true;
+            $fees = array();
+            for ($j = 0; $j < count($currency); $j++) {
+                $networkItem = $currency[$j];
+                $network = $this->safe_string($networkItem, 'chainName');
+                // $name = $this->safe_string($networkItem, 'name');
+                $withdrawFee = $this->safe_number($networkItem, 'fee');
+                $depositEnable = $this->safe_value($networkItem, 'canDeposit');
+                $withdrawEnable = $this->safe_value($networkItem, 'canWithdraw');
+                $isDepositEnabled = $isDepositEnabled || $depositEnable;
+                $isWithdrawEnabled = $isWithdrawEnabled || $withdrawEnable;
+                $fees[$network] = $withdrawFee;
+            }
+            $active = ($isWithdrawEnabled && $isDepositEnabled);
+            $result[$code] = array(
+                'id' => $id,
+                'name' => null,
+                'code' => $code,
+                'precision' => $precision,
+                'info' => $currency,
+                'active' => $active,
+                'fee' => null,
+                'fees' => $fees,
+                'limits' => $this->limits,
+            );
+        }
+        return $result;
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetGetAccountInfo ($params);
         // todo => use this somehow
         // $permissions = $response['result']['base'];
         $balances = $this->safe_value($response['result'], 'coins');
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             //     {        enName => "BTC",
@@ -253,8 +397,8 @@ class zb extends Exchange {
             $account = $this->account();
             $currencyId = $this->safe_string($balance, 'key');
             $code = $this->safe_currency_code($currencyId);
-            $account['free'] = $this->safe_float($balance, 'available');
-            $account['used'] = $this->safe_float($balance, 'freez');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'freez');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -286,7 +430,7 @@ class zb extends Exchange {
         //         "canDeposit" => true
         //     }
         //
-        $address = $this->safe_string($depositAddress, 'key');
+        $address = $this->safe_string_2($depositAddress, 'key', 'address');
         $tag = null;
         $memo = $this->safe_string($depositAddress, 'memo');
         if ($memo !== null) {
@@ -304,18 +448,6 @@ class zb extends Exchange {
             'tag' => $tag,
             'info' => $depositAddress,
         );
-    }
-
-    public function parse_deposit_addresses($addresses, $codes = null) {
-        $result = array();
-        for ($i = 0; $i < count($addresses); $i++) {
-            $address = $this->parse_deposit_address($addresses[$i]);
-            $result[] = $address;
-        }
-        if ($codes) {
-            $result = $this->filter_by_array($result, 'currency', $codes);
-        }
-        return $this->index_by($result, 'currency');
     }
 
     public function fetch_deposit_addresses($codes = null, $params = array ()) {
@@ -386,22 +518,37 @@ class zb extends Exchange {
             $request['size'] = $limit;
         }
         $response = $this->publicGetDepth (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        //
+        //     {
+        //         "asks":[
+        //             [35000.0,0.2741],
+        //             [34949.0,0.0173],
+        //             [34900.0,0.5004],
+        //         ],
+        //         "bids":[
+        //             [34119.32,0.0030],
+        //             [34107.83,0.1500],
+        //             [34104.42,0.1500],
+        //         ],
+        //         "timestamp":1624536510
+        //     }
+        //
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetAllTicker ($params);
         $result = array();
-        $anotherMarketsById = array();
-        $marketIds = is_array($this->marketsById) ? array_keys($this->marketsById) : array();
+        $marketsByIdWithoutUnderscore = array();
+        $marketIds = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $tickerId = str_replace('_', '', $marketIds[$i]);
-            $anotherMarketsById[$tickerId] = $this->marketsById[$marketIds[$i]];
+            $marketsByIdWithoutUnderscore[$tickerId] = $this->markets_by_id[$marketIds[$i]];
         }
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
-            $market = $anotherMarketsById[$ids[$i]];
+            $market = $marketsByIdWithoutUnderscore[$ids[$i]];
             $result[$market['symbol']] = $this->parse_ticker($response[$ids[$i]], $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
@@ -414,26 +561,57 @@ class zb extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->publicGetTicker (array_merge($request, $params));
-        $ticker = $response['ticker'];
+        //
+        //     {
+        //         "date":"1624399623587",
+        //         "$ticker":{
+        //             "high":"33298.38",
+        //             "vol":"56152.9012",
+        //             "last":"32578.55",
+        //             "low":"28808.19",
+        //             "buy":"32572.68",
+        //             "sell":"32615.37",
+        //             "turnover":"1764201303.6100",
+        //             "open":"31664.85",
+        //             "riseRate":"2.89"
+        //         }
+        //     }
+        //
+        $ticker = $this->safe_value($response, 'ticker', array());
+        $ticker['date'] = $this->safe_value($response, 'date');
         return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_ticker($ticker, $market = null) {
-        $timestamp = $this->milliseconds();
+        //
+        //     {
+        //         "date":"1624399623587", // injected from outside
+        //         "high":"33298.38",
+        //         "vol":"56152.9012",
+        //         "$last":"32578.55",
+        //         "low":"28808.19",
+        //         "buy":"32572.68",
+        //         "sell":"32615.37",
+        //         "turnover":"1764201303.6100",
+        //         "open":"31664.85",
+        //         "riseRate":"2.89"
+        //     }
+        //
+        $timestamp = $this->safe_integer($ticker, 'date', $this->milliseconds());
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -443,9 +621,20 @@ class zb extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
+        );
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        return array(
+            $this->safe_integer($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -469,18 +658,26 @@ class zb extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        //     {
+        //         "date":1624537391,
+        //         "$amount":"0.0142",
+        //         "$price":"33936.42",
+        //         "trade_type":"ask",
+        //         "type":"sell",
+        //         "tid":1718869018
+        //     }
+        //
         $timestamp = $this->safe_timestamp($trade, 'date');
         $side = $this->safe_string($trade, 'trade_type');
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $id = $this->safe_string($trade, 'tid');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $costString = Precise::string_mul($priceString, $amountString);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number($costString);
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -509,6 +706,13 @@ class zb extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->publicGetTrades (array_merge($request, $params));
+        //
+        //     array(
+        //         array("date":1624537391,"amount":"0.0142","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869018),
+        //         array("date":1624537391,"amount":"0.0010","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869020),
+        //         array("date":1624537391,"amount":"0.0133","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869021),
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -593,9 +797,24 @@ class zb extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . 'fetchClosedOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'currency' => $market['id'],
+            'pageIndex' => 1, // default pageIndex is 1
+            'pageSize' => 10, // default pageSize is 10, doesn't work with other values now
+        );
+        $response = $this->privateGetGetFinishedAndPartialOrders (array_merge($request, $params));
+        return $this->parse_orders($response, $market, $since, $limit);
+    }
+
     public function fetch_open_orders($symbol = null, $since = null, $limit = 10, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . 'fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . 'fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -623,19 +842,20 @@ class zb extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        // fetchOrder
-        //
-        //     {
-        //         'total_amount' => 0.01,
-        //         'id' => '20180910244276459',
-        //         'price' => 180.0,
-        //         'trade_date' => 1536576744960,
-        //         'status' => 2,
-        //         'trade_money' => '1.96742',
-        //         'trade_amount' => 0.01,
-        //         'type' => 0,
-        //         'currency' => 'eth_usdt'
-        //     }
+        //     array(
+        //         acctType => 0,
+        //         currency => 'btc_usdt',
+        //         fees => 3.6e-7,
+        //         $id => '202102282829772463',
+        //         $price => 45177.5,
+        //         $status => 2,
+        //         total_amount => 0.0002,
+        //         trade_amount => 0.0002,
+        //         trade_date => 1614515104998,
+        //         trade_money => 8.983712,
+        //         $type => 1,
+        //         useZbFee => false
+        //     ),
         //
         $side = $this->safe_integer($order, 'type');
         $side = ($side === 1) ? 'buy' : 'sell';
@@ -643,23 +863,28 @@ class zb extends Exchange {
         $timestamp = $this->safe_integer($order, 'trade_date');
         $marketId = $this->safe_string($order, 'currency');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $price = $this->safe_float($order, 'price');
-        $filled = $this->safe_float($order, 'trade_amount');
-        $amount = $this->safe_float($order, 'total_amount');
-        $remaining = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $remaining = $amount - $filled;
-            }
-        }
-        $cost = $this->safe_float($order, 'trade_money');
-        $average = null;
+        $price = $this->safe_number($order, 'price');
+        $filled = $this->safe_number($order, 'trade_amount');
+        $amount = $this->safe_number($order, 'total_amount');
+        $cost = $this->safe_number($order, 'trade_money');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        if (($cost !== null) && ($filled !== null) && ($filled > 0)) {
-            $average = $cost / $filled;
-        }
         $id = $this->safe_string($order, 'id');
-        return array(
+        $feeCost = $this->safe_number($order, 'fees');
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrency = null;
+            $zbFees = $this->safe_value($order, 'useZbFee');
+            if ($zbFees === true) {
+                $feeCurrency = 'ZB';
+            } else if ($market !== null) {
+                $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
+            }
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
+        }
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -673,15 +898,15 @@ class zb extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'average' => $average,
+            'average' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
-            'fee' => null,
+            'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function parse_order_status($status) {
@@ -744,7 +969,7 @@ class zb extends Exchange {
         //
         $id = $this->safe_string($transaction, 'id');
         $txid = $this->safe_string($transaction, 'hash');
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $timestamp = $this->parse8601($this->safe_string($transaction, 'submit_time'));
         $timestamp = $this->safe_integer($transaction, 'submitTime', $timestamp);
         $address = $this->safe_string_2($transaction, 'toAddress', 'address');
@@ -764,7 +989,7 @@ class zb extends Exchange {
         }
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $fee = null;
-        $feeCost = $this->safe_float($transaction, 'fees');
+        $feeCost = $this->safe_number($transaction, 'fees');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
@@ -795,11 +1020,11 @@ class zb extends Exchange {
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $password = $this->safe_string($params, 'safePwd', $this->password);
         if ($password === null) {
-            throw new ArgumentsRequired($this->id . ' withdraw requires exchange.password or a safePwd parameter');
+            throw new ArgumentsRequired($this->id . ' withdraw() requires exchange.password or a safePwd parameter');
         }
-        $fees = $this->safe_float($params, 'fees');
+        $fees = $this->safe_number($params, 'fees');
         if ($fees === null) {
-            throw new ArgumentsRequired($this->id . ' withdraw requires a $fees parameter');
+            throw new ArgumentsRequired($this->id . ' withdraw() requires a $fees parameter');
         }
         $this->check_address($address);
         $this->load_markets();
@@ -939,6 +1164,11 @@ class zb extends Exchange {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
             $url .= '/' . $this->version . '/' . $path;
+            if ($params) {
+                $url .= '?' . $this->urlencode($params);
+            }
+        } else if ($api === 'trade') {
+            $url .= '/' . $path;
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }

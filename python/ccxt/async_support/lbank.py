@@ -10,6 +10,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.precise import Precise
 
 
 class lbank(Exchange):
@@ -85,34 +86,11 @@ class lbank(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.001'),
                 },
                 'funding': {
-                    'withdraw': {
-                        'BTC': None,
-                        'ZEC': 0.01,
-                        'ETH': 0.01,
-                        'ETC': 0.01,
-                        # 'QTUM': amount => max(0.01, amount * (0.1 / 100)),
-                        'VEN': 10.0,
-                        'BCH': 0.0002,
-                        'SC': 50.0,
-                        'BTM': 20.0,
-                        'NAS': 1.0,
-                        'EOS': 1.0,
-                        'XWC': 5.0,
-                        'BTS': 1.0,
-                        'INK': 10.0,
-                        'BOT': 3.0,
-                        'YOYOW': 15.0,
-                        'TGC': 10.0,
-                        'NEO': 0.0,
-                        'CMT': 20.0,
-                        'SEER': 2000.0,
-                        'FIL': None,
-                        'BTG': None,
-                    },
+                    'withdraw': {},
                 },
             },
             'commonCurrencies': {
@@ -180,7 +158,7 @@ class lbank(Exchange):
         if market is None:
             marketId = self.safe_string(ticker, 'symbol')
             if marketId in self.markets_by_id:
-                market = self.marketsById[marketId]
+                market = self.markets_by_id[marketId]
                 symbol = market['symbol']
             else:
                 parts = marketId.split('_')
@@ -200,8 +178,8 @@ class lbank(Exchange):
         timestamp = self.safe_integer(ticker, 'timestamp')
         info = ticker
         ticker = info['ticker']
-        last = self.safe_float(ticker, 'latest')
-        percentage = self.safe_float(ticker, 'change')
+        last = self.safe_number(ticker, 'latest')
+        percentage = self.safe_number(ticker, 'change')
         open = None
         if percentage is not None:
             relativeChange = self.sum(1, percentage / 100)
@@ -218,8 +196,8 @@ class lbank(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -232,8 +210,8 @@ class lbank(Exchange):
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'vol'),
-            'quoteVolume': self.safe_float(ticker, 'turnover'),
+            'baseVolume': self.safe_number(ticker, 'vol'),
+            'quoteVolume': self.safe_number(ticker, 'turnover'),
             'info': info,
         }
 
@@ -269,22 +247,22 @@ class lbank(Exchange):
             'size': size,
         }
         response = await self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def parse_trade(self, trade, market=None):
         symbol = None
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(trade, 'date_ms')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = float(self.cost_to_precision(symbol, price * amount))
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string(trade, 'tid')
         type = None
         side = self.safe_string(trade, 'type')
+        side = side.replace('_market', '')
         return {
             'id': id,
             'info': self.safe_value(trade, 'info', trade),
@@ -328,11 +306,11 @@ class lbank(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 0),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 5),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=1000, params={}):
@@ -383,7 +361,11 @@ class lbank(Exchange):
         #         }
         #     }
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         info = self.safe_value(response, 'info', {})
         free = self.safe_value(info, 'free', {})
         freeze = self.safe_value(info, 'freeze', {})
@@ -393,9 +375,9 @@ class lbank(Exchange):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(free, currencyId)
-            account['used'] = self.safe_float(freeze, currencyId)
-            account['total'] = self.safe_float(asset, currencyId)
+            account['free'] = self.safe_string(free, currencyId)
+            account['used'] = self.safe_string(freeze, currencyId)
+            account['total'] = self.safe_string(asset, currencyId)
             result[code] = account
         return self.parse_balance(result)
 
@@ -423,31 +405,20 @@ class lbank(Exchange):
         #         "status"：2
         #     }
         #
-        symbol = None
-        responseMarket = self.safe_value(self.marketsById, order['symbol'])
-        if responseMarket is not None:
-            symbol = responseMarket['symbol']
-        elif market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'symbol')
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_integer(order, 'create_time')
         # Limit Order Request Returns: Order Price
         # Market Order Returns: cny amount of market order
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount', 0.0)
-        filled = self.safe_float(order, 'deal_amount', 0.0)
-        av_price = self.safe_float(order, 'avg_price')
-        cost = None
-        if av_price is not None:
-            cost = filled * av_price
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'amount', 0.0)
+        filled = self.safe_number(order, 'deal_amount', 0.0)
+        average = self.safe_number(order, 'avg_price')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'order_id')
         type = self.safe_string(order, 'order_type')
         side = self.safe_string(order, 'type')
-        remaining = None
-        if amount is not None:
-            if filled is not None:
-                remaining = amount - filled
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -461,15 +432,15 @@ class lbank(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'trades': None,
             'fee': None,
             'info': self.safe_value(order, 'info', order),
-            'average': None,
-        }
+            'average': average,
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

@@ -24,6 +24,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class coinbasepro(Exchange):
@@ -72,6 +73,7 @@ class coinbasepro(Exchange):
                 '6h': 21600,
                 '1d': 86400,
             },
+            'hostname': 'pro.coinbase.com',
             'urls': {
                 'test': {
                     'public': 'https://api-public.sandbox.pro.coinbase.com',
@@ -79,8 +81,8 @@ class coinbasepro(Exchange):
                 },
                 'logo': 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
                 'api': {
-                    'public': 'https://api.pro.coinbase.com',
-                    'private': 'https://api.pro.coinbase.com',
+                    'public': 'https://api.{hostname}',
+                    'private': 'https://api.{hostname}',
                 },
                 'www': 'https://pro.coinbase.com/',
                 'doc': 'https://docs.pro.coinbase.com',
@@ -139,8 +141,9 @@ class coinbasepro(Exchange):
                         'reports/{report_id}',
                         'transfers',
                         'transfers/{transfer_id}',
-                        'users/self/trailing-volume',
                         'users/self/exchange-limits',
+                        'users/self/hold-balances',
+                        'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                     ],
                     'post': [
@@ -257,7 +260,7 @@ class coinbasepro(Exchange):
             name = self.safe_string(currency, 'name')
             code = self.safe_currency_code(id)
             details = self.safe_value(currency, 'details', {})
-            precision = self.safe_float(currency, 'max_precision')
+            precision = self.safe_number(currency, 'max_precision')
             status = self.safe_string(currency, 'status')
             active = (status == 'online')
             result[code] = {
@@ -271,19 +274,11 @@ class coinbasepro(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(details, 'min_size'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
+                        'min': self.safe_number(details, 'min_size'),
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_float(details, 'min_withdrawal_amount'),
+                        'min': self.safe_number(details, 'min_withdrawal_amount'),
                         'max': None,
                     },
                 },
@@ -325,12 +320,12 @@ class coinbasepro(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             priceLimits = {
-                'min': self.safe_float(market, 'quote_increment'),
+                'min': self.safe_number(market, 'quote_increment'),
                 'max': None,
             }
             precision = {
-                'amount': self.safe_float(market, 'base_increment'),
-                'price': self.safe_float(market, 'quote_increment'),
+                'amount': self.safe_number(market, 'base_increment'),
+                'price': self.safe_number(market, 'quote_increment'),
             }
             status = self.safe_string(market, 'status')
             active = (status == 'online')
@@ -344,13 +339,13 @@ class coinbasepro(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'base_min_size'),
-                        'max': self.safe_float(market, 'base_max_size'),
+                        'min': self.safe_number(market, 'base_min_size'),
+                        'max': self.safe_number(market, 'base_max_size'),
                     },
                     'price': priceLimits,
                     'cost': {
-                        'min': self.safe_float(market, 'min_market_funds'),
-                        'max': self.safe_float(market, 'max_market_funds'),
+                        'min': self.safe_number(market, 'min_market_funds'),
+                        'max': self.safe_number(market, 'max_market_funds'),
                     },
                 },
                 'active': active,
@@ -403,11 +398,10 @@ class coinbasepro(Exchange):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
-            account = {
-                'free': self.safe_float(balance, 'available'),
-                'used': self.safe_float(balance, 'hold'),
-                'total': self.safe_float(balance, 'balance'),
-            }
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'hold')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -436,7 +430,7 @@ class coinbasepro(Exchange):
         #         ]
         #     }
         #
-        orderbook = self.parse_order_book(response)
+        orderbook = self.parse_order_book(response, symbol)
         orderbook['nonce'] = self.safe_integer(response, 'sequence')
         return orderbook
 
@@ -464,29 +458,29 @@ class coinbasepro(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_value(ticker, 'time'))
-        bid = self.safe_float(ticker, 'bid')
-        ask = self.safe_float(ticker, 'ask')
-        last = self.safe_float(ticker, 'price')
+        bid = self.safe_number(ticker, 'bid')
+        ask = self.safe_number(ticker, 'ask')
+        last = self.safe_number(ticker, 'price')
         symbol = None if (market is None) else market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
             'bid': bid,
             'bidVolume': None,
             'ask': ask,
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': self.safe_number(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -531,12 +525,20 @@ class coinbasepro(Exchange):
         #         trade_id: 82047307,
         #         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
         #         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
+        #         order_id: 'd50ec984-77a8-460a-b958-66f114b0de9b',
         #         side: 'sell',
         #         size: '0.00513192',
         #         price: '9314.78',
         #         product_id: 'BTC-USD',
+        #         profile_id: '6244401d-c078-40d9-b305-7ad3551bc3b0',
         #         sequence: 12038915443,
         #         time: '2020-01-31T20:03:41.158814Z'
+        #         created_at: '2014-11-07T22:19:28.578544Z',
+        #         liquidity: 'T',
+        #         fee: '0.00025',
+        #         settled: True,
+        #         usd_volume: '0.0924556000000000',
+        #         user_id: '595eb864313c2b02ddf2937d'
         #     }
         #
         timestamp = self.parse8601(self.safe_string_2(trade, 'time', 'created_at'))
@@ -545,12 +547,17 @@ class coinbasepro(Exchange):
         feeRate = None
         feeCurrency = None
         takerOrMaker = None
+        cost = None
         if market is not None:
+            feeCurrencyId = self.safe_string_lower(market, 'quoteId')
+            costField = feeCurrencyId + '_value'
+            cost = self.safe_number(trade, costField)
             feeCurrency = market['quote']
-            if 'liquidity' in trade:
-                takerOrMaker = 'taker' if (trade['liquidity'] == 'T') else 'maker'
+            liquidity = self.safe_string(trade, 'liquidity')
+            if liquidity is not None:
+                takerOrMaker = 'taker' if (liquidity == 'T') else 'maker'
                 feeRate = market[takerOrMaker]
-        feeCost = self.safe_float_2(trade, 'fill_fees', 'fee')
+        feeCost = self.safe_number_2(trade, 'fill_fees', 'fee')
         fee = {
             'cost': feeCost,
             'currency': feeCurrency,
@@ -561,10 +568,16 @@ class coinbasepro(Exchange):
         side = 'sell' if (trade['side'] == 'buy') else 'buy'
         orderId = self.safe_string(trade, 'order_id')
         # Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
-        if orderId is not None:
+        makerOrderId = self.safe_string(trade, 'maker_order_id')
+        takerOrderId = self.safe_string(trade, 'taker_order_id')
+        if (orderId is not None) or ((makerOrderId is not None) and (takerOrderId is not None)):
             side = 'buy' if (trade['side'] == 'buy') else 'sell'
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'size')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'size')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'id': id,
             'order': orderId,
@@ -578,7 +591,7 @@ class coinbasepro(Exchange):
             'price': price,
             'amount': amount,
             'fee': fee,
-            'cost': price * amount,
+            'cost': cost,
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -619,11 +632,11 @@ class coinbasepro(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 0),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 5),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -639,6 +652,8 @@ class coinbasepro(Exchange):
             if limit is None:
                 # https://docs.pro.coinbase.com/#get-historic-rates
                 limit = 300  # max = 300
+            else:
+                limit = min(300, limit)
             request['end'] = self.iso8601(self.sum((limit - 1) * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         #
@@ -697,15 +712,11 @@ class coinbasepro(Exchange):
         marketId = self.safe_string(order, 'product_id')
         market = self.safe_market(marketId, market, '-')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        price = self.safe_float(order, 'price')
-        filled = self.safe_float(order, 'filled_size')
-        amount = self.safe_float(order, 'size', filled)
-        remaining = None
-        if amount is not None:
-            if filled is not None:
-                remaining = amount - filled
-        cost = self.safe_float(order, 'executed_value')
-        feeCost = self.safe_float(order, 'fill_fees')
+        price = self.safe_number(order, 'price')
+        filled = self.safe_number(order, 'filled_size')
+        amount = self.safe_number(order, 'size', filled)
+        cost = self.safe_number(order, 'executed_value')
+        feeCost = self.safe_number(order, 'fill_fees')
         fee = None
         if feeCost is not None:
             feeCurrencyCode = None
@@ -721,9 +732,9 @@ class coinbasepro(Exchange):
         side = self.safe_string(order, 'side')
         timeInForce = self.safe_string(order, 'time_in_force')
         postOnly = self.safe_value(order, 'post_only')
-        stopPrice = self.safe_float(order, 'stop_price')
+        stopPrice = self.safe_number(order, 'stop_price')
         clientOrderId = self.safe_string(order, 'client_oid')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -741,11 +752,11 @@ class coinbasepro(Exchange):
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'fee': fee,
             'average': None,
             'trades': None,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -824,7 +835,7 @@ class coinbasepro(Exchange):
         if clientOrderId is not None:
             request['client_oid'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'client_oid'])
-        stopPrice = self.safe_float_2(params, 'stopPrice', 'stop_price')
+        stopPrice = self.safe_number_2(params, 'stopPrice', 'stop_price')
         if stopPrice is not None:
             request['stop_price'] = self.price_to_precision(symbol, stopPrice)
             params = self.omit(params, ['stopPrice', 'stop_price'])
@@ -836,7 +847,7 @@ class coinbasepro(Exchange):
             request['price'] = self.price_to_precision(symbol, price)
             request['size'] = self.amount_to_precision(symbol, amount)
         elif type == 'market':
-            cost = self.safe_float_2(params, 'cost', 'funds')
+            cost = self.safe_number_2(params, 'cost', 'funds')
             if cost is None:
                 if price is not None:
                     cost = amount * price
@@ -897,18 +908,6 @@ class coinbasepro(Exchange):
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
         return self.privateDeleteOrders(self.extend(request, params))
 
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        rate = market[takerOrMaker]
-        cost = amount * price
-        currency = market['quote']
-        return {
-            'type': takerOrMaker,
-            'currency': currency,
-            'rate': rate,
-            'cost': float(self.currency_to_precision(currency, rate * cost)),
-        }
-
     def fetch_payment_methods(self, params={}):
         return self.privateGetPaymentMethods(params)
 
@@ -955,6 +954,8 @@ class coinbasepro(Exchange):
         else:
             method += 'Crypto'
             request['crypto_address'] = address
+            if tag is not None:
+                request['destination_tag'] = tag
         response = getattr(self, method)(self.extend(request, params))
         if not response:
             raise ExchangeError(self.id + ' withdraw() error: ' + self.json(response))
@@ -996,10 +997,10 @@ class coinbasepro(Exchange):
         return self.parse_transactions(response, currency, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions(code, since, limit, self.extend(params, {'type': 'deposit'}))
+        return self.fetch_transactions(code, since, limit, self.extend({'type': 'deposit'}, params))
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions(code, since, limit, self.extend(params, {'type': 'withdraw'}))
+        return self.fetch_transactions(code, since, limit, self.extend({'type': 'withdraw'}, params))
 
     def parse_transaction_status(self, transaction):
         canceled = self.safe_value(transaction, 'canceled_at')
@@ -1023,7 +1024,7 @@ class coinbasepro(Exchange):
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(transaction)
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         type = self.safe_string(transaction, 'type')
         address = self.safe_string(details, 'crypto_address')
         tag = self.safe_string(details, 'destination_tag')
@@ -1032,7 +1033,7 @@ class coinbasepro(Exchange):
         if type == 'withdraw':
             type = 'withdrawal'
             address = self.safe_string(details, 'sent_to_address', address)
-            feeCost = self.safe_float(details, 'fee')
+            feeCost = self.safe_number(details, 'fee')
             if feeCost is not None:
                 if amount is not None:
                     amount -= feeCost
@@ -1055,33 +1056,6 @@ class coinbasepro(Exchange):
             'updated': updated,
             'fee': fee,
         }
-
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/' + self.implode_params(path, params)
-        query = self.omit(params, self.extract_params(path))
-        if method == 'GET':
-            if query:
-                request += '?' + self.urlencode(query)
-        url = self.urls['api'][api] + request
-        if api == 'private':
-            self.check_required_credentials()
-            nonce = str(self.nonce())
-            payload = ''
-            if method != 'GET':
-                if query:
-                    body = self.json(query)
-                    payload = body
-            what = nonce + method + request + payload
-            secret = self.base64_to_binary(self.secret)
-            signature = self.hmac(self.encode(what), secret, hashlib.sha256, 'base64')
-            headers = {
-                'CB-ACCESS-KEY': self.apiKey,
-                'CB-ACCESS-SIGN': signature,
-                'CB-ACCESS-TIMESTAMP': nonce,
-                'CB-ACCESS-PASSPHRASE': self.password,
-                'Content-Type': 'application/json',
-            }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()
@@ -1108,6 +1082,33 @@ class coinbasepro(Exchange):
             'tag': tag,
             'info': response,
         }
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        request = '/' + self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path))
+        if method == 'GET':
+            if query:
+                request += '?' + self.urlencode(query)
+        url = self.implode_hostname(self.urls['api'][api]) + request
+        if api == 'private':
+            self.check_required_credentials()
+            nonce = str(self.nonce())
+            payload = ''
+            if method != 'GET':
+                if query:
+                    body = self.json(query)
+                    payload = body
+            what = nonce + method + request + payload
+            secret = self.base64_to_binary(self.secret)
+            signature = self.hmac(self.encode(what), secret, hashlib.sha256, 'base64')
+            headers = {
+                'CB-ACCESS-KEY': self.apiKey,
+                'CB-ACCESS-SIGN': signature,
+                'CB-ACCESS-TIMESTAMP': nonce,
+                'CB-ACCESS-PASSPHRASE': self.password,
+                'Content-Type': 'application/json',
+            }
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if (code == 400) or (code == 404):

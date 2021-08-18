@@ -109,7 +109,7 @@ class btctradeua extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -137,7 +137,7 @@ class btctradeua extends Exchange {
                 $orderbook['asks'] = $asks['list'];
             }
         }
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'currency_trade');
+        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'currency_trade');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -176,71 +176,94 @@ class btctradeua extends Exchange {
             for ($i = $start; $i < count($ticker); $i++) {
                 $candle = $ticker[$i];
                 if ($result['open'] === null) {
-                    $result['open'] = $candle[1];
+                    $result['open'] = $this->safe_number($candle, 1);
                 }
-                if (($result['high'] === null) || ($result['high'] < $candle[2])) {
-                    $result['high'] = $candle[2];
+                $high = $this->safe_number($candle, 2);
+                if (($result['high'] === null) || (($high !== null) && ($result['high'] < $high))) {
+                    $result['high'] = $high;
                 }
-                if (($result['low'] === null) || ($result['low'] > $candle[3])) {
-                    $result['low'] = $candle[3];
+                $low = $this->safe_number($candle, 3);
+                if (($result['low'] === null) || (($low !== null) && ($result['low'] > $low))) {
+                    $result['low'] = $low;
                 }
+                $baseVolume = $this->safe_number($candle, 5);
                 if ($result['baseVolume'] === null) {
-                    $result['baseVolume'] = -$candle[5];
+                    $result['baseVolume'] = $baseVolume;
                 } else {
-                    $result['baseVolume'] -= $candle[5];
+                    $result['baseVolume'] = $this->sum($result['baseVolume'], $baseVolume);
                 }
             }
             $last = $tickerLength - 1;
-            $result['last'] = $ticker[$last][4];
+            $result['last'] = $this->safe_number($ticker[$last], 4);
             $result['close'] = $result['last'];
-            $result['baseVolume'] = -1 * $result['baseVolume'];
         }
         return $result;
     }
 
-    public function convert_cyrillic_month_name_to_string($cyrillic) {
+    public function convert_month_name_to_string($cyrillic) {
         $months = array(
-            'января' => '01',
-            'февраля' => '02',
-            'марта' => '03',
-            'апреля' => '04',
-            'мая' => '05',
-            'июня' => '06',
-            'июля' => '07',
-            'августа' => '08',
-            'сентября' => '09',
-            'октября' => '10',
-            'ноября' => '11',
-            'декабря' => '12',
+            'Jan' => '01',
+            'Feb' => '02',
+            'Mar' => '03',
+            'Apr' => '04',
+            'May' => '05',
+            'Jun' => '06',
+            'Jul' => '07',
+            'Aug' => '08',
+            'Sep' => '09',
+            'Oct' => '10',
+            'Nov' => '11',
+            'Dec' => '12',
         );
         return $this->safe_string($months, $cyrillic);
     }
 
-    public function parse_cyrillic_datetime($cyrillic) {
+    public function parse_exchange_specific_datetime($cyrillic) {
         $parts = explode(' ', $cyrillic);
-        $day = $parts[0];
-        $month = $this->convert_cyrillic_month_name_to_string($parts[1]);
+        $month = $parts[0];
+        $day = str_replace(',', '', $parts[1]);
+        if (strlen($day) < 2) {
+            $day = '0' . $day;
+        }
+        $year = str_replace(',', '', $parts[2]);
+        $month = str_replace(',', '', $month);
+        $month = str_replace('.', '', $month);
+        $month = $this->convert_month_name_to_string($month);
         if (!$month) {
             throw new ExchangeError($this->id . ' parseTrade() null $month name => ' . $cyrillic);
         }
-        $year = $parts[2];
-        $hms = $parts[4];
-        $hmsLength = is_array($hms) ? count($hms) : 0;
-        if ($hmsLength === 7) {
-            $hms = '0' . $hms;
-        }
-        if (strlen($day) === 1) {
-            $day = '0' . $day;
+        $hms = $parts[3];
+        $hmsParts = explode(':', $hms);
+        $h = $this->safe_string($hmsParts, 0);
+        $m = '00';
+        $ampm = $this->safe_string($parts, 4);
+        if ($h === 'noon') {
+            $h = '12';
+        } else {
+            $intH = intval($h);
+            if (($ampm !== null) && ($ampm[0] === 'p')) {
+                $intH = 12 . $intH;
+                if ($intH > 23) {
+                    $intH = 0;
+                }
+            }
+            $h = (string) $intH;
+            if (strlen($h) < 2) {
+                $h = '0' . $h;
+            }
+            $m = $this->safe_string($hmsParts, 1, '00');
+            if (strlen($m) < 2) {
+                $m = '0' . $m;
+            }
         }
         $ymd = implode('-', array($year, $month, $day));
-        $ymdhms = $ymd . 'T' . $hms;
+        $ymdhms = $ymd . 'T' . $h . ':' . $m . ':00';
         $timestamp = $this->parse8601($ymdhms);
         // server reports local time, adjust to UTC
-        $md = implode('', array($month, $day));
-        $md = intval($md);
         // a special case for DST
         // subtract 2 hours during winter
-        if ($md < 325 || $md > 1028) {
+        $intM = intval($m);
+        if ($intM < 11 || $intM > 2) {
             return $timestamp - 7200000;
         }
         // subtract 3 hours during summer
@@ -248,18 +271,15 @@ class btctradeua extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
-        $timestamp = $this->parse_cyrillic_datetime($this->safe_string($trade, 'pub_date'));
+        $timestamp = $this->parse_exchange_specific_datetime($this->safe_string($trade, 'pub_date'));
         $id = $this->safe_string($trade, 'id');
         $type = 'limit';
         $side = $this->safe_string($trade, 'type');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amnt_trade');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amnt_trade');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -292,7 +312,8 @@ class btctradeua extends Exchange {
         // deduplicate $trades for that reason
         $trades = array();
         for ($i = 0; $i < count($response); $i++) {
-            if (fmod($response[$i]['id'], 2)) {
+            $id = $this->safe_integer($response[$i], 'id');
+            if (fmod($id, 2)) {
                 $trades[] = $response[$i];
             }
         }
@@ -340,11 +361,11 @@ class btctradeua extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $this->safe_string($order, 'type'),
-            'price' => $this->safe_float($order, 'price'),
+            'price' => $this->safe_number($order, 'price'),
             'stopPrice' => null,
-            'amount' => $this->safe_float($order, 'amnt_trade'),
+            'amount' => $this->safe_number($order, 'amnt_trade'),
             'filled' => 0,
-            'remaining' => $this->safe_float($order, 'amnt_trade'),
+            'remaining' => $this->safe_number($order, 'amnt_trade'),
             'trades' => null,
             'info' => $order,
             'cost' => null,

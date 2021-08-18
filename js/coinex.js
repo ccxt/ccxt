@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -50,7 +51,12 @@ module.exports = class coinex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg',
-                'api': 'https://api.coinex.com',
+                'api': {
+                    'public': 'https://api.coinex.com',
+                    'private': 'https://api.coinex.com',
+                    'perpetualPublic': 'https://api.coinex.com/perpetual',
+                    'perpetualPrivate': 'https://api.coinex.com/perpetual',
+                },
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees': 'https://www.coinex.com/fees',
@@ -92,6 +98,8 @@ module.exports = class coinex extends Exchange {
                         'order/status',
                         'order/status/batch',
                         'order/user/deals',
+                        'sub_account/balance',
+                        'sub_account/transfer/history',
                     ],
                     'post': [
                         'balance/coin/withdraw',
@@ -111,6 +119,46 @@ module.exports = class coinex extends Exchange {
                         'balance/coin/withdraw',
                         'order/pending/batch',
                         'order/pending',
+                    ],
+                },
+                'perpetualPublic': {
+                    'get': [
+                        'ping',
+                        'time',
+                        'market/list',
+                        'market/limit_config',
+                        'market/ticker',
+                        'market/ticker/all',
+                        'market/depth',
+                        'market/deals',
+                        'market/funding_history',
+                        'market/user_deals',
+                        'market/kline',
+                    ],
+                },
+                'perpetualPrivate': {
+                    'get': [
+                        'asset/query',
+                        'order/pending',
+                        'order/finished',
+                        'order/stop_pending',
+                        'order/status',
+                        'position/pending',
+                        'position/funding',
+                    ],
+                    'post': [
+                        'market/adjust_leverage',
+                        'market/position_expect',
+                        'order/put_limit',
+                        'order/put_market',
+                        'order/put_stop_limit',
+                        'order/cancel',
+                        'order/cancel_all',
+                        'order/cancel_stop',
+                        'order/cancel_stop_all',
+                        'order/close_limit',
+                        'order/close_market',
+                        'position/adjust_margin',
                     ],
                 },
             },
@@ -194,13 +242,13 @@ module.exports = class coinex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': this.safeFloat (market, 'taker_fee_rate'),
-                'maker': this.safeFloat (market, 'maker_fee_rate'),
+                'taker': this.safeNumber (market, 'taker_fee_rate'),
+                'maker': this.safeNumber (market, 'maker_fee_rate'),
                 'info': market,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'min_amount'),
+                        'min': this.safeNumber (market, 'min_amount'),
                         'max': undefined,
                     },
                     'price': {
@@ -220,16 +268,16 @@ module.exports = class coinex extends Exchange {
             symbol = market['symbol'];
         }
         ticker = this.safeValue (ticker, 'ticker', {});
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -239,7 +287,7 @@ module.exports = class coinex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat2 (ticker, 'vol', 'volume'),
+            'baseVolume': this.safeNumber2 (ticker, 'vol', 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -288,7 +336,7 @@ module.exports = class coinex extends Exchange {
             'limit': limit.toString (),
         };
         const response = await this.publicGetMarketDepth (this.extend (request, params));
-        return this.parseOrderBook (response['data']);
+        return this.parseOrderBook (response['data'], symbol);
     }
 
     parseTrade (trade, market = undefined) {
@@ -299,16 +347,18 @@ module.exports = class coinex extends Exchange {
         }
         const tradeId = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order_id');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market);
-        let cost = this.safeFloat (trade, 'deal_money');
-        if (!cost) {
-            cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        let cost = this.safeNumber (trade, 'deal_money');
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_asset');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -361,11 +411,11 @@ module.exports = class coinex extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 5),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -419,15 +469,15 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'data');
+        const balances = this.safeValue (response, 'data', {});
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const balance = this.safeValue (balances, currencyId, {});
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'frozen');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'frozen');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -469,11 +519,11 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp (order, 'create_time');
-        const price = this.safeFloat (order, 'price');
-        const cost = this.safeFloat (order, 'deal_money');
-        const amount = this.safeFloat (order, 'amount');
-        const filled = this.safeFloat (order, 'deal_amount');
-        const average = this.safeFloat (order, 'avg_price');
+        const price = this.safeNumber (order, 'price');
+        const cost = this.safeNumber (order, 'deal_money');
+        const amount = this.safeNumber (order, 'amount');
+        const filled = this.safeNumber (order, 'deal_amount');
+        const average = this.safeNumber (order, 'avg_price');
         let symbol = undefined;
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
@@ -485,11 +535,11 @@ module.exports = class coinex extends Exchange {
                 feeCurrency = market['quote'];
             }
         }
-        const remaining = this.safeFloat (order, 'left');
+        const remaining = this.safeNumber (order, 'left');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.safeString (order, 'order_type');
         const side = this.safeString (order, 'type');
-        return {
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -511,10 +561,10 @@ module.exports = class coinex extends Exchange {
             'trades': undefined,
             'fee': {
                 'currency': feeCurrency,
-                'cost': this.safeFloat (order, 'deal_fee'),
+                'cost': this.safeNumber (order, 'deal_fee'),
             },
             'info': order,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -525,14 +575,12 @@ module.exports = class coinex extends Exchange {
             'market': market['id'],
             'type': side,
         };
-        amount = parseFloat (amount);
         // for market buy it requires the amount of quote currency to spend
         if ((type === 'market') && (side === 'buy')) {
             if (this.options['createMarketBuyOrderRequiresPrice']) {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                 } else {
-                    price = parseFloat (price);
                     request['amount'] = this.costToPrecision (symbol, amount * price);
                 }
             } else {
@@ -760,8 +808,8 @@ module.exports = class coinex extends Exchange {
         const timestamp = this.safeTimestamp (transaction, 'create_time');
         const type = ('coin_withdraw_id' in transaction) ? 'withdraw' : 'deposit';
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        let amount = this.safeFloat (transaction, 'amount');
-        let feeCost = this.safeFloat (transaction, 'tx_fee');
+        let amount = this.safeNumber (transaction, 'amount');
+        let feeCost = this.safeNumber (transaction, 'tx_fee');
         if (type === 'deposit') {
             feeCost = 0;
         }
@@ -901,9 +949,9 @@ module.exports = class coinex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         path = this.implodeParams (path, params);
-        let url = this.urls['api'] + '/' + this.version + '/' + path;
+        let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         let query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (api === 'public' || api === 'perpetualPublic') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -915,7 +963,7 @@ module.exports = class coinex extends Exchange {
                 'tonce': nonce.toString (),
             }, query);
             query = this.keysort (query);
-            const urlencoded = this.urlencode (query);
+            const urlencoded = this.rawencode (query);
             const signature = this.hash (this.encode (urlencoded + '&secret_key=' + this.secret));
             headers = {
                 'Authorization': signature.toUpperCase (),
@@ -935,7 +983,7 @@ module.exports = class coinex extends Exchange {
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
         const message = this.safeString (response, 'message');
-        if ((code !== '0') || (data === undefined) || ((message !== 'Ok') && !data)) {
+        if ((code !== '0') || (data === undefined) || ((message !== 'Success') && (message !== 'Ok') && !data)) {
             const responseCodes = {
                 '24': AuthenticationError,
                 '25': AuthenticationError,

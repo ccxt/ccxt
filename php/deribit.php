@@ -102,6 +102,8 @@ class deribit extends Exchange {
                         'get_funding_rate_value',
                         'get_historical_volatility',
                         'get_index',
+                        'get_index_price',
+                        'get_index_price_names',
                         'get_instruments',
                         'get_last_settlements_by_currency',
                         'get_last_settlements_by_instrument',
@@ -335,10 +337,11 @@ class deribit extends Exchange {
         return $this->safe_integer($response, 'result');
     }
 
-    public function code_from_options($methodName) {
+    public function code_from_options($methodName, $params = array ()) {
         $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
         $options = $this->safe_value($this->options, $methodName, array());
-        return $this->safe_value($options, 'code', $defaultCode);
+        $code = $this->safe_value($options, 'code', $defaultCode);
+        return $this->safe_value($params, 'code', $code);
     }
 
     public function fetch_status($params = array ()) {
@@ -437,8 +440,8 @@ class deribit extends Exchange {
                 $future = ($type === 'future');
                 $option = ($type === 'option');
                 $active = $this->safe_value($market, 'is_active');
-                $minTradeAmount = $this->safe_float($market, 'min_trade_amount');
-                $tickSize = $this->safe_float($market, 'tick_size');
+                $minTradeAmount = $this->safe_number($market, 'min_trade_amount');
+                $tickSize = $this->safe_number($market, 'tick_size');
                 $precision = array(
                     'amount' => $minTradeAmount,
                     'price' => $tickSize,
@@ -450,8 +453,8 @@ class deribit extends Exchange {
                     'quote' => $quote,
                     'active' => $active,
                     'precision' => $precision,
-                    'taker' => $this->safe_float($market, 'taker_commission'),
-                    'maker' => $this->safe_float($market, 'maker_commission'),
+                    'taker' => $this->safe_number($market, 'taker_commission'),
+                    'maker' => $this->safe_number($market, 'maker_commission'),
                     'limits' => array(
                         'amount' => array(
                             'min' => $minTradeAmount,
@@ -479,7 +482,7 @@ class deribit extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $code = $this->code_from_options('fetchBalance');
+        $code = $this->code_from_options('fetchBalance', $params);
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -534,9 +537,9 @@ class deribit extends Exchange {
         $currencyId = $this->safe_string($balance, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId);
         $account = $this->account();
-        $account['free'] = $this->safe_float($balance, 'availableFunds');
-        $account['used'] = $this->safe_float($balance, 'maintenanceMargin');
-        $account['total'] = $this->safe_float($balance, 'equity');
+        $account['free'] = $this->safe_string($balance, 'availableFunds');
+        $account['used'] = $this->safe_string($balance, 'maintenanceMargin');
+        $account['total'] = $this->safe_string($balance, 'equity');
         $result[$currencyCode] = $account;
         return $this->parse_balance($result);
     }
@@ -656,18 +659,18 @@ class deribit extends Exchange {
         $timestamp = $this->safe_integer_2($ticker, 'timestamp', 'creation_timestamp');
         $marketId = $this->safe_string($ticker, 'instrument_name');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_float_2($ticker, 'last_price', 'last');
+        $last = $this->safe_number_2($ticker, 'last_price', 'last');
         $stats = $this->safe_value($ticker, 'stats', $ticker);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float_2($stats, 'high', 'max_price'),
-            'low' => $this->safe_float_2($stats, 'low', 'min_price'),
-            'bid' => $this->safe_float_2($ticker, 'best_bid_price', 'bid_price'),
-            'bidVolume' => $this->safe_float($ticker, 'best_bid_amount'),
-            'ask' => $this->safe_float_2($ticker, 'best_ask_price', 'ask_price'),
-            'askVolume' => $this->safe_float($ticker, 'best_ask_amount'),
+            'high' => $this->safe_number_2($stats, 'high', 'max_price'),
+            'low' => $this->safe_number_2($stats, 'low', 'min_price'),
+            'bid' => $this->safe_number_2($ticker, 'best_bid_price', 'bid_price'),
+            'bidVolume' => $this->safe_number($ticker, 'best_bid_amount'),
+            'ask' => $this->safe_number_2($ticker, 'best_ask_price', 'ask_price'),
+            'askVolume' => $this->safe_number($ticker, 'best_ask_amount'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -677,7 +680,7 @@ class deribit extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($stats, 'volume'),
+            'quoteVolume' => $this->safe_number($stats, 'volume'),
             'info' => $ticker,
         );
     }
@@ -723,7 +726,7 @@ class deribit extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $code = $this->code_from_options('fetchTickers');
+        $code = $this->code_from_options('fetchTickers', $params);
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -864,21 +867,18 @@ class deribit extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $side = $this->safe_string($trade, 'direction');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $liquidity = $this->safe_string($trade, 'liquidity');
         $takerOrMaker = null;
         if ($liquidity !== null) {
             // M = maker, T = taker, MT = both
             $takerOrMaker = ($liquidity === 'M') ? 'maker' : 'taker';
         }
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
@@ -1002,7 +1002,7 @@ class deribit extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $timestamp = $this->safe_integer($result, 'timestamp');
         $nonce = $this->safe_integer($result, 'change_id');
-        $orderbook = $this->parse_order_book($result, $timestamp);
+        $orderbook = $this->parse_order_book($result, $symbol, $timestamp);
         $orderbook['nonce'] = $nonce;
         return $orderbook;
     }
@@ -1058,31 +1058,21 @@ class deribit extends Exchange {
         $timestamp = $this->safe_integer($order, 'creation_timestamp');
         $lastUpdate = $this->safe_integer($order, 'last_update_timestamp');
         $id = $this->safe_string($order, 'order_id');
-        $price = $this->safe_float($order, 'price');
-        $average = $this->safe_float($order, 'average_price');
-        $amount = $this->safe_float($order, 'amount');
-        $filled = $this->safe_float($order, 'filled_amount');
+        $price = $this->safe_number($order, 'price');
+        $average = $this->safe_number($order, 'average_price');
+        $amount = $this->safe_number($order, 'amount');
+        $filled = $this->safe_number($order, 'filled_amount');
         $lastTradeTimestamp = null;
         if ($filled !== null) {
             if ($filled > 0) {
                 $lastTradeTimestamp = $lastUpdate;
             }
         }
-        $remaining = null;
-        $cost = null;
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-            }
-            if ($price !== null) {
-                $cost = $price * $filled;
-            }
-        }
         $status = $this->parse_order_status($this->safe_string($order, 'order_state'));
         $marketId = $this->safe_string($order, 'instrument_name');
         $market = $this->safe_market($marketId, $market);
         $side = $this->safe_string_lower($order, 'direction');
-        $feeCost = $this->safe_float($order, 'commission');
+        $feeCost = $this->safe_number($order, 'commission');
         $fee = null;
         if ($feeCost !== null) {
             $feeCost = abs($feeCost);
@@ -1100,7 +1090,7 @@ class deribit extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = $this->safe_value($order, 'stop_price');
         $postOnly = $this->safe_value($order, 'post_only');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -1115,14 +1105,14 @@ class deribit extends Exchange {
             'price' => $price,
             'stopPrice' => $stopPrice,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -1199,7 +1189,7 @@ class deribit extends Exchange {
             }
         }
         if ($stopPriceIsRequired) {
-            $stopPrice = $this->safe_float_2($params, 'stop_price', 'stopPrice');
+            $stopPrice = $this->safe_number_2($params, 'stop_price', 'stopPrice');
             if ($stopPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a stop_price or $stopPrice param for a ' . $type . ' order');
             } else {
@@ -1327,7 +1317,7 @@ class deribit extends Exchange {
         $market = null;
         $method = null;
         if ($symbol === null) {
-            $code = $this->code_from_options('fetchOpenOrders');
+            $code = $this->code_from_options('fetchOpenOrders', $params);
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
             $method = 'privateGetGetOpenOrdersByCurrency';
@@ -1347,7 +1337,7 @@ class deribit extends Exchange {
         $market = null;
         $method = null;
         if ($symbol === null) {
-            $code = $this->code_from_options('fetchClosedOrders');
+            $code = $this->code_from_options('fetchClosedOrders', $params);
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
             $method = 'privateGetGetOrderHistoryByCurrency';
@@ -1413,7 +1403,7 @@ class deribit extends Exchange {
         $market = null;
         $method = null;
         if ($symbol === null) {
-            $code = $this->code_from_options('fetchMyTrades');
+            $code = $this->code_from_options('fetchMyTrades', $params);
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
             if ($since === null) {
@@ -1598,7 +1588,7 @@ class deribit extends Exchange {
         $updated = $this->safe_integer($transaction, 'updated_timestamp');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $address = $this->safe_string($transaction, 'address');
-        $feeCost = $this->safe_float($transaction, 'fee');
+        $feeCost = $this->safe_number($transaction, 'fee');
         $type = 'deposit';
         $fee = null;
         if ($feeCost !== null) {
@@ -1621,7 +1611,7 @@ class deribit extends Exchange {
             'tagTo' => null,
             'tagFrom' => null,
             'type' => $type,
-            'amount' => $this->safe_float($transaction, 'amount'),
+            'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
@@ -1667,9 +1657,9 @@ class deribit extends Exchange {
         return $result;
     }
 
-    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
-        $code = $this->code_from_options('fetchPositions');
+        $code = $this->code_from_options('fetchPositions', $params);
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],

@@ -58,6 +58,8 @@ function testTrade (exchange, trade, symbol, now) {
     assert (trade['price'] > 0);
     assert (typeof trade['amount'] === 'number', 'trade.amount is not a number');
     assert (trade['amount'] >= 0);
+    assert (trade['cost'] === undefined || typeof trade['cost'] === 'number', 'trade.cost is not a number');
+    assert (trade['cost'] === undefined || trade['cost'] >= 0);
     const takerOrMaker = trade['takerOrMaker'];
     assert (takerOrMaker === undefined || takerOrMaker === 'taker' || takerOrMaker === 'maker');
 }

@@ -8,7 +8,6 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import BadResponse
@@ -20,6 +19,7 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class digifinex(Exchange):
@@ -77,11 +77,6 @@ class digifinex(Exchange):
                 'referral': 'https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp',
             },
             'api': {
-                'v2': {
-                    'get': [
-                        'ticker',
-                    ],
-                },
                 'public': {
                     'get': [
                         '{market}/symbols',
@@ -144,8 +139,8 @@ class digifinex(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.002,
-                    'taker': 0.002,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
                 },
             },
             'exceptions': {
@@ -207,6 +202,7 @@ class digifinex(Exchange):
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
+                'EPS': 'Epanus',
                 'MBN': 'Mobilian Coin',
                 'TEL': 'TEL666',
             },
@@ -260,7 +256,7 @@ class digifinex(Exchange):
             depositStatus = self.safe_value(currency, 'deposit_status', 1)
             withdrawStatus = self.safe_value(currency, 'withdraw_status', 1)
             active = depositStatus and withdrawStatus
-            fee = self.safe_float(currency, 'withdraw_fee_rate')
+            fee = self.safe_number(currency, 'withdraw_fee_rate')
             if code in result:
                 if isinstance(result[code]['info'], list):
                     result[code]['info'].append(currency)
@@ -281,16 +277,8 @@ class digifinex(Exchange):
                             'min': None,
                             'max': None,
                         },
-                        'price': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'cost': {
-                            'min': None,
-                            'max': None,
-                        },
                         'withdraw': {
-                            'min': self.safe_float(currency, 'min_withdraw_amount'),
+                            'min': self.safe_number(currency, 'min_withdraw_amount'),
                             'max': None,
                         },
                     },
@@ -340,7 +328,7 @@ class digifinex(Exchange):
             }
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'minimum_amount'),
+                    'min': self.safe_number(market, 'minimum_amount'),
                     'max': None,
                 },
                 'price': {
@@ -348,7 +336,7 @@ class digifinex(Exchange):
                     'max': None,
                 },
                 'cost': {
-                    'min': self.safe_float(market, 'minimum_value'),
+                    'min': self.safe_number(market, 'minimum_value'),
                     'max': None,
                 },
             }
@@ -362,7 +350,7 @@ class digifinex(Exchange):
             # status = self.safe_string(market, 'status')
             # active = (status == 'TRADING')
             #
-            isAllowed = self.safe_value(market, 'is_allow', 1)
+            isAllowed = self.safe_integer(market, 'is_allow', 1)
             active = True if isAllowed else False
             type = 'spot'
             spot = (type == 'spot')
@@ -416,7 +404,7 @@ class digifinex(Exchange):
             }
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'min_volume'),
+                    'min': self.safe_number(market, 'min_volume'),
                     'max': None,
                 },
                 'price': {
@@ -424,7 +412,7 @@ class digifinex(Exchange):
                     'max': None,
                 },
                 'cost': {
-                    'min': self.safe_float(market, 'min_amount'),
+                    'min': self.safe_number(market, 'min_amount'),
                     'max': None,
                 },
             }
@@ -467,9 +455,9 @@ class digifinex(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_float(balance, 'frozen')
-            account['free'] = self.safe_float(balance, 'free')
-            account['total'] = self.safe_float(balance, 'total')
+            account['used'] = self.safe_string(balance, 'frozen')
+            account['free'] = self.safe_string(balance, 'free')
+            account['total'] = self.safe_string(balance, 'total')
             result[code] = account
         return self.parse_balance(result)
 
@@ -499,86 +487,68 @@ class digifinex(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(response, 'date')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     async def fetch_tickers(self, symbols=None, params={}):
-        apiKey = self.safe_value(params, 'apiKey', self.apiKey)
-        if not apiKey:
-            raise ArgumentsRequired(self.id + ' fetchTickers() is a private v2 endpoint that requires an `exchange.apiKey` credential or an `apiKey` extra parameter')
         await self.load_markets()
-        request = {
-            'apiKey': apiKey,
-        }
-        response = await self.v2GetTicker(self.extend(request, params))
+        response = await self.publicGetTicker(params)
         #
-        #     {
-        #         "ticker":{
-        #             "btc_eth":{
-        #                 "last":0.021957,
-        #                 "base_vol":2249.3521732227,
-        #                 "change":-0.6,
-        #                 "vol":102443.5111,
-        #                 "sell":0.021978,
-        #                 "low":0.021791,
-        #                 "buy":0.021946,
-        #                 "high":0.022266
-        #             }
-        #         },
-        #         "date":1564518452,
-        #         "code":0
-        #     }
+        #    {
+        #        "ticker": [{
+        #            "vol": 40717.4461,
+        #            "change": -1.91,
+        #            "base_vol": 392447999.65374,
+        #            "sell": 9592.23,
+        #            "last": 9592.22,
+        #            "symbol": "btc_usdt",
+        #            "low": 9476.24,
+        #            "buy": 9592.03,
+        #            "high": 9793.87
+        #        }],
+        #        "date": 1589874294,
+        #        "code": 0
+        #    }
         #
         result = {}
-        tickers = self.safe_value(response, 'ticker', {})
+        tickers = self.safe_value(response, 'ticker', [])
         date = self.safe_integer(response, 'date')
-        reversedMarketIds = list(tickers.keys())
-        for i in range(0, len(reversedMarketIds)):
-            reversedMarketId = reversedMarketIds[i]
-            ticker = self.extend({
+        for i in range(0, len(tickers)):
+            rawTicker = self.extend({
                 'date': date,
-            }, tickers[reversedMarketId])
-            quoteId, baseId = reversedMarketId.split('_')
-            marketId = baseId.upper() + '_' + quoteId.upper()
-            market = self.safe_market(marketId, None, '_')
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
+            }, tickers[i])
+            ticker = self.parse_ticker(rawTicker)
+            symbol = ticker['symbol']
+            result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
-        apiKey = self.safe_value(params, 'apiKey', self.apiKey)
-        if not apiKey:
-            raise ArgumentsRequired(self.id + ' fetchTicker() is a private v2 endpoint that requires an `exchange.apiKey` credential or an `apiKey` extra parameter')
         await self.load_markets()
         market = self.market(symbol)
-        # reversed base/quote in v2
-        marketId = market['quoteId'].lower() + '_' + market['baseId'].lower()
         request = {
-            'symbol': marketId,
-            'apiKey': apiKey,
+            'symbol': market['id'],
         }
-        response = await self.v2GetTicker(self.extend(request, params))
+        response = await self.publicGetTicker(self.extend(request, params))
         #
-        #     {
-        #         "ticker":{
-        #             "btc_eth":{
-        #                 "last":0.021957,
-        #                 "base_vol":2249.3521732227,
-        #                 "change":-0.6,
-        #                 "vol":102443.5111,
-        #                 "sell":0.021978,
-        #                 "low":0.021791,
-        #                 "buy":0.021946,
-        #                 "high":0.022266
-        #             }
-        #         },
-        #         "date":1564518452,
-        #         "code":0
-        #     }
+        #    {
+        #        "ticker": [{
+        #            "vol": 40717.4461,
+        #            "change": -1.91,
+        #            "base_vol": 392447999.65374,
+        #            "sell": 9592.23,
+        #            "last": 9592.22,
+        #            "symbol": "btc_usdt",
+        #            "low": 9476.24,
+        #            "buy": 9592.03,
+        #            "high": 9793.87
+        #        }],
+        #        "date": 1589874294,
+        #        "code": 0
+        #    }
         #
         date = self.safe_integer(response, 'date')
-        ticker = self.safe_value(response, 'ticker', {})
-        result = self.safe_value(ticker, marketId, {})
-        result = self.extend({'date': date}, result)
+        tickers = self.safe_value(response, 'ticker', [])
+        firstTicker = self.safe_value(tickers, 0, {})
+        result = self.extend({'date': date}, firstTicker)
         return self.parse_ticker(result, market)
 
     def parse_ticker(self, ticker, market=None):
@@ -587,6 +557,7 @@ class digifinex(Exchange):
         #
         #     {
         #         "last":0.021957,
+        #         "symbol": "btc_usdt",
         #         "base_vol":2249.3521732227,
         #         "change":-0.6,
         #         "vol":102443.5111,
@@ -597,21 +568,20 @@ class digifinex(Exchange):
         #         "date"1564518452,  # injected from fetchTicker/fetchTickers
         #     }
         #
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string_upper(ticker, 'symbol')
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_timestamp(ticker, 'date')
-        last = self.safe_float(ticker, 'last')
-        percentage = self.safe_float(ticker, 'change')
+        last = self.safe_number(ticker, 'last')
+        percentage = self.safe_number(ticker, 'change')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -621,8 +591,8 @@ class digifinex(Exchange):
             'change': None,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
-            'quoteVolume': self.safe_float(ticker, 'base_vol'),
+            'baseVolume': self.safe_number(ticker, 'vol'),
+            'quoteVolume': self.safe_number(ticker, 'base_vol'),
             'info': ticker,
         }
 
@@ -657,16 +627,15 @@ class digifinex(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         timestamp = self.safe_timestamp_2(trade, 'date', 'timestamp')
         side = self.safe_string_2(trade, 'type', 'side')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         takerOrMaker = self.safe_value(trade, 'is_maker')
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
@@ -762,11 +731,11 @@ class digifinex(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 0),
-            self.safe_float(ohlcv, 5),  # open
-            self.safe_float(ohlcv, 3),  # high
-            self.safe_float(ohlcv, 4),  # low
-            self.safe_float(ohlcv, 2),  # close
-            self.safe_float(ohlcv, 1),  # volume
+            self.safe_number(ohlcv, 5),  # open
+            self.safe_number(ohlcv, 3),  # high
+            self.safe_number(ohlcv, 4),  # low
+            self.safe_number(ohlcv, 2),  # close
+            self.safe_number(ohlcv, 1),  # volume
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -944,18 +913,11 @@ class digifinex(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        amount = self.safe_float(order, 'amount')
-        filled = self.safe_float(order, 'executed_amount')
-        price = self.safe_float(order, 'price')
-        average = self.safe_float(order, 'avg_price')
-        remaining = None
-        cost = None
-        if filled is not None:
-            if average is not None:
-                cost = filled * average
-            if amount is not None:
-                remaining = max(0, amount - filled)
-        return {
+        amount = self.safe_number(order, 'amount')
+        filled = self.safe_number(order, 'executed_amount')
+        price = self.safe_number(order, 'price')
+        average = self.safe_number(order, 'avg_price')
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -971,13 +933,13 @@ class digifinex(Exchange):
             'stopPrice': None,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
-            'cost': cost,
+            'remaining': None,
+            'cost': None,
             'average': average,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
@@ -1156,7 +1118,7 @@ class digifinex(Exchange):
         code = self.safe_currency_code(self.safe_string(item, 'currency_mark'), currency)
         timestamp = self.safe_timestamp(item, 'time')
         before = None
-        after = self.safe_float(item, 'balance')
+        after = self.safe_number(item, 'balance')
         status = 'ok'
         return {
             'info': item,
@@ -1213,14 +1175,6 @@ class digifinex(Exchange):
         data = self.safe_value(response, 'data', {})
         items = self.safe_value(data, 'finance', [])
         return self.parse_ledger(items, currency, since, limit)
-
-    def parse_deposit_addresses(self, addresses):
-        result = {}
-        for i in range(0, len(addresses)):
-            address = self.parse_deposit_address(addresses[i])
-            code = address['currency']
-            result[code] = address
-        return result
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #
@@ -1363,8 +1317,8 @@ class digifinex(Exchange):
         timestamp = self.parse8601(self.safe_string(transaction, 'created_date'))
         updated = self.parse8601(self.safe_string(transaction, 'finished_date'))
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        amount = self.safe_float(transaction, 'amount')
-        feeCost = self.safe_float(transaction, 'fee')
+        amount = self.safe_number(transaction, 'amount')
+        feeCost = self.safe_number(transaction, 'fee')
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
@@ -1410,7 +1364,7 @@ class digifinex(Exchange):
         return self.parse_transaction(response, currency)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        version = api if (api == 'v2') else self.version
+        version = self.version
         url = self.urls['api'] + '/' + version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         urlencoded = self.urlencode(self.keysort(query))

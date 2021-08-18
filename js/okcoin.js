@@ -2,11 +2,11 @@
 
 // ---------------------------------------------------------------------------
 
-const okex = require ('./okex.js');
+const okex3 = require ('./okex3.js');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class okcoin extends okex {
+module.exports = class okcoin extends okex3 {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okcoin',

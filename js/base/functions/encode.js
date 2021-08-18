@@ -19,7 +19,6 @@ let base58Encoder = null
 module.exports =
 
     { json:   (data, params = undefined) => JSON.stringify (data)
-    , unjson: JSON.parse
 
     , isJsonEncodedObject: object => (
         (typeof object === 'string') &&

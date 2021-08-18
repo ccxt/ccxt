@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { RateLimitExceeded, BadSymbol, OrderNotFound, ExchangeError, AuthenticationError, ArgumentsRequired, ExchangeNotAvailable } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -80,8 +81,8 @@ module.exports = class bw extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.2 / 100,
-                    'maker': 0.2 / 100,
+                    'taker': this.parseNumber ('0.002'),
+                    'maker': this.parseNumber ('0.002'),
                 },
                 'funding': {
                 },
@@ -185,7 +186,7 @@ module.exports = class bw extends Exchange {
             const symbol = base + '/' + quote;
             const state = this.safeInteger (market, 'state');
             const active = (state === 1);
-            const fee = this.safeFloat (market, 'defaultFee');
+            const fee = this.safeNumber (market, 'defaultFee');
             result.push ({
                 'id': id,
                 'active': active,
@@ -206,7 +207,7 @@ module.exports = class bw extends Exchange {
                 },
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'minAmount'),
+                        'min': this.safeNumber (market, 'minAmount'),
                         'max': undefined,
                     },
                     'price': {
@@ -292,24 +293,16 @@ module.exports = class bw extends Exchange {
                 'info': currency,
                 'name': code,
                 'active': active,
-                'fee': this.safeFloat (currency, 'drawFee'),
+                'fee': this.safeNumber (currency, 'drawFee'),
                 'precision': undefined,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (currency, 'limitAmount', 0),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (currency, 'limitAmount', 0),
                         'max': undefined,
                     },
                     'withdraw': {
                         'min': undefined,
-                        'max': this.safeFloat (currency, 'onceDrawLimit'),
+                        'max': this.safeNumber (currency, 'onceDrawLimit'),
                     },
                 },
             };
@@ -336,29 +329,29 @@ module.exports = class bw extends Exchange {
         const marketId = this.safeString (ticker, 0);
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.milliseconds ();
-        const close = parseFloat (this.safeValue (ticker, 1));
+        const close = this.safeNumber (ticker, 1);
         const bid = this.safeValue (ticker, 'bid', {});
         const ask = this.safeValue (ticker, 'ask', {});
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (this.safeValue (ticker, 2)),
-            'low': parseFloat (this.safeValue (ticker, 3)),
-            'bid': parseFloat (this.safeValue (ticker, 7)),
-            'bidVolume': this.safeFloat (bid, 'quantity'),
-            'ask': parseFloat (this.safeValue (ticker, 8)),
-            'askVolume': this.safeFloat (ask, 'quantity'),
+            'high': this.safeNumber (ticker, 2),
+            'low': this.safeNumber (ticker, 3),
+            'bid': this.safeNumber (ticker, 7),
+            'bidVolume': this.safeNumber (bid, 'quantity'),
+            'ask': this.safeNumber (ticker, 8),
+            'askVolume': this.safeNumber (ask, 'quantity'),
             'vwap': undefined,
             'open': undefined,
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': parseFloat (this.safeValue (ticker, 5)),
+            'change': this.safeNumber (ticker, 5),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (this.safeValue (ticker, 4)),
-            'quoteVolume': parseFloat (this.safeValue (ticker, 9)),
+            'baseVolume': this.safeNumber (ticker, 4),
+            'quoteVolume': this.safeNumber (ticker, 9),
             'info': ticker,
         };
     }
@@ -455,7 +448,7 @@ module.exports = class bw extends Exchange {
         //
         const orderbook = this.safeValue (response, 'datas', []);
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {
@@ -477,8 +470,11 @@ module.exports = class bw extends Exchange {
         //     ...
         //
         const timestamp = this.safeTimestamp (trade, 2);
-        const price = this.safeFloat (trade, 5);
-        const amount = this.safeFloat (trade, 6);
+        const priceString = this.safeString (trade, 5);
+        const amountString = this.safeString (trade, 6);
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 1);
         let symbol = undefined;
         if (marketId !== undefined) {
@@ -495,12 +491,6 @@ module.exports = class bw extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = this.costToPrecision (symbol, price * amount);
-            }
-        }
         const sideString = this.safeString (trade, 4);
         const side = (sideString === 'ask') ? 'sell' : 'buy';
         return {
@@ -514,7 +504,7 @@ module.exports = class bw extends Exchange {
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': parseFloat (cost),
+            'cost': cost,
             'fee': undefined,
             'info': trade,
         };
@@ -571,11 +561,11 @@ module.exports = class bw extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 5),
-            this.safeFloat (ohlcv, 6),
-            this.safeFloat (ohlcv, 7),
-            this.safeFloat (ohlcv, 8),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+            this.safeNumber (ohlcv, 6),
+            this.safeNumber (ohlcv, 7),
+            this.safeNumber (ohlcv, 8),
         ];
     }
 
@@ -633,8 +623,8 @@ module.exports = class bw extends Exchange {
             const currencyId = this.safeString (balance, 'currencyTypeId');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'amount');
-            account['used'] = this.safeFloat (balance, 'freeze');
+            account['free'] = this.safeString (balance, 'amount');
+            account['used'] = this.safeString (balance, 'freeze');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -733,25 +723,13 @@ module.exports = class bw extends Exchange {
         } else if (side === '1') {
             side = 'buy';
         }
-        const amount = this.safeFloat (order, 'amount');
-        const price = this.safeFloat (order, 'price');
-        const filled = this.safeFloat (order, 'completeAmount');
-        let remaining = this.safeFloat2 (order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
-        let cost = this.safeFloat (order, 'totalMoney');
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                if (remaining === undefined) {
-                    remaining = amount - filled;
-                }
-            }
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = filled * cost;
-                }
-            }
-        }
+        const amount = this.safeNumber (order, 'amount');
+        const price = this.safeNumber (order, 'price');
+        const filled = this.safeNumber (order, 'completeAmount');
+        const remaining = this.safeNumber2 (order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
+        const cost = this.safeNumber (order, 'totalMoney');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'entrustId'),
             'clientOrderId': undefined,
@@ -773,7 +751,7 @@ module.exports = class bw extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -957,7 +935,7 @@ module.exports = class bw extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname }) + '/' + path;
+        let url = this.implodeHostname (this.urls['api']) + '/' + path;
         if (method === 'GET') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
@@ -1069,12 +1047,12 @@ module.exports = class bw extends Exchange {
             code = currency['code'];
         }
         const type = ('depositId' in transaction) ? 'deposit' : 'withdrawal';
-        const amount = this.safeFloat2 (transaction, 'actuallyAmount', 'amount');
+        const amount = this.safeNumber2 (transaction, 'actuallyAmount', 'amount');
         const status = this.parseTransactionStatus (this.safeString2 (transaction, 'verifyStatus', 'state'));
         const timestamp = this.safeInteger (transaction, 'createTime');
         const txid = this.safeString (transaction, 'txId');
         let fee = undefined;
-        const feeCost = this.safeFloat (transaction, 'fees');
+        const feeCost = this.safeNumber (transaction, 'fees');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,

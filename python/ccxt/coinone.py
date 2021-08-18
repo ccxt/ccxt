@@ -11,6 +11,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.precise import Precise
 
 
 class coinone(Exchange):
@@ -101,6 +102,9 @@ class coinone(Exchange):
                 '108': BadSymbol,  # {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
                 '107': BadRequest,  # {"errorCode":"107","errorMsg":"Parameter error","result":"error"}
             },
+            'commonCurrencies': {
+                'SOC': 'Soda Coin',
+            },
         })
 
     def fetch_markets(self, params={}):
@@ -120,6 +124,7 @@ class coinone(Exchange):
                 continue
             base = self.safe_currency_code(baseId)
             result.append({
+                'info': ticker,
                 'id': baseId,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -145,8 +150,8 @@ class coinone(Exchange):
             balance = balances[currencyId]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'avail')
-            account['total'] = self.safe_float(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'avail')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -159,7 +164,7 @@ class coinone(Exchange):
         }
         response = self.publicGetOrderbook(self.extend(request, params))
         timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, timestamp, 'bid', 'ask', 'price', 'qty')
+        return self.parse_order_book(response, symbol, timestamp, 'bid', 'ask', 'price', 'qty')
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -195,12 +200,12 @@ class coinone(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        first = self.safe_float(ticker, 'first')
-        last = self.safe_float(ticker, 'last')
+        first = self.safe_number(ticker, 'first')
+        last = self.safe_number(ticker, 'last')
         average = None
         if first is not None and last is not None:
             average = self.sum(first, last) / 2
-        previousClose = self.safe_float(ticker, 'yesterday_last')
+        previousClose = self.safe_number(ticker, 'yesterday_last')
         change = None
         percentage = None
         if last is not None and previousClose is not None:
@@ -212,8 +217,8 @@ class coinone(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -226,7 +231,7 @@ class coinone(Exchange):
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -268,18 +273,17 @@ class coinone(Exchange):
                 side = 'sell'
             elif side == 'bid':
                 side = 'buy'
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'qty')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'qty')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = self.safe_string(trade, 'orderId')
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
             feeCost = abs(feeCost)
-            feeRate = self.safe_float(trade, 'feeRate')
+            feeRate = self.safe_number(trade, 'feeRate')
             feeRate = abs(feeRate)
             feeCurrencyCode = None
             if market is not None:
@@ -430,28 +434,22 @@ class coinone(Exchange):
         #     }
         #
         id = self.safe_string(order, 'orderId')
-        price = self.safe_float(order, 'price')
+        price = self.safe_number(order, 'price')
         timestamp = self.safe_timestamp(order, 'timestamp')
         side = self.safe_string(order, 'type')
         if side == 'ask':
             side = 'sell'
         elif side == 'bid':
             side = 'buy'
-        remaining = self.safe_float(order, 'remainQty')
-        filled = None
-        amount = self.safe_float(order, 'qty')
+        remaining = self.safe_number(order, 'remainQty')
+        amount = self.safe_number(order, 'qty')
         status = self.safe_string(order, 'status')
         # https://github.com/ccxt/ccxt/pull/7067
         if status == 'live':
             if (remaining is not None) and (amount is not None):
                 if remaining < amount:
                     status = 'canceled'
-        if (remaining is not None) and (amount is not None):
-            filled = max(amount - remaining)
         status = self.parse_order_status(status)
-        cost = None
-        if (price is not None) and (filled is not None):
-            cost = price * filled
         symbol = None
         base = None
         quote = None
@@ -468,15 +466,15 @@ class coinone(Exchange):
             base = market['base']
             quote = market['quote']
         fee = None
-        feeCost = self.safe_float(order, 'fee')
+        feeCost = self.safe_number(order, 'fee')
         if feeCost is not None:
             feeCurrencyCode = quote if (side == 'sell') else base
             fee = {
                 'cost': feeCost,
-                'rate': self.safe_float(order, 'feeRate'),
+                'rate': self.safe_number(order, 'feeRate'),
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -490,15 +488,15 @@ class coinone(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'average': None,
             'amount': amount,
-            'filled': filled,
-            'remaining': amount,
+            'filled': None,
+            'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         # The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
@@ -567,8 +565,8 @@ class coinone(Exchange):
         if symbol is None:
             # eslint-disable-next-line quotes
             raise ArgumentsRequired(self.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
-        price = self.safe_float(params, 'price')
-        qty = self.safe_float(params, 'qty')
+        price = self.safe_number(params, 'price')
+        qty = self.safe_number(params, 'qty')
         isAsk = self.safe_integer(params, 'is_ask')
         if (price is None) or (qty is None) or (isAsk is None):
             # eslint-disable-next-line quotes

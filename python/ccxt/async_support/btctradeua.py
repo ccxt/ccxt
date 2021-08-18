@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class btctradeua(Exchange):
@@ -106,7 +107,7 @@ class btctradeua(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'balance')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -128,7 +129,7 @@ class btctradeua(Exchange):
         if asks:
             if 'list' in asks:
                 orderbook['asks'] = asks['list']
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'currency_trade')
+        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'currency_trade')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -166,75 +167,93 @@ class btctradeua(Exchange):
             for i in range(start, len(ticker)):
                 candle = ticker[i]
                 if result['open'] is None:
-                    result['open'] = candle[1]
-                if (result['high'] is None) or (result['high'] < candle[2]):
-                    result['high'] = candle[2]
-                if (result['low'] is None) or (result['low'] > candle[3]):
-                    result['low'] = candle[3]
+                    result['open'] = self.safe_number(candle, 1)
+                high = self.safe_number(candle, 2)
+                if (result['high'] is None) or ((high is not None) and (result['high'] < high)):
+                    result['high'] = high
+                low = self.safe_number(candle, 3)
+                if (result['low'] is None) or ((low is not None) and (result['low'] > low)):
+                    result['low'] = low
+                baseVolume = self.safe_number(candle, 5)
                 if result['baseVolume'] is None:
-                    result['baseVolume'] = -candle[5]
+                    result['baseVolume'] = baseVolume
                 else:
-                    result['baseVolume'] -= candle[5]
+                    result['baseVolume'] = self.sum(result['baseVolume'], baseVolume)
             last = tickerLength - 1
-            result['last'] = ticker[last][4]
+            result['last'] = self.safe_number(ticker[last], 4)
             result['close'] = result['last']
-            result['baseVolume'] = -1 * result['baseVolume']
         return result
 
-    def convert_cyrillic_month_name_to_string(self, cyrillic):
+    def convert_month_name_to_string(self, cyrillic):
         months = {
-            u'января': '01',
-            u'февраля': '02',
-            u'марта': '03',
-            u'апреля': '04',
-            u'мая': '05',
-            u'июня': '06',
-            u'июля': '07',
-            u'августа': '08',
-            u'сентября': '09',
-            u'октября': '10',
-            u'ноября': '11',
-            u'декабря': '12',
+            'Jan': '01',
+            'Feb': '02',
+            'Mar': '03',
+            'Apr': '04',
+            'May': '05',
+            'Jun': '06',
+            'Jul': '07',
+            'Aug': '08',
+            'Sep': '09',
+            'Oct': '10',
+            'Nov': '11',
+            'Dec': '12',
         }
         return self.safe_string(months, cyrillic)
 
-    def parse_cyrillic_datetime(self, cyrillic):
+    def parse_exchange_specific_datetime(self, cyrillic):
         parts = cyrillic.split(' ')
-        day = parts[0]
-        month = self.convert_cyrillic_month_name_to_string(parts[1])
+        month = parts[0]
+        day = parts[1].replace(',', '')
+        if len(day) < 2:
+            day = '0' + day
+        year = parts[2].replace(',', '')
+        month = month.replace(',', '')
+        month = month.replace('.', '')
+        month = self.convert_month_name_to_string(month)
         if not month:
             raise ExchangeError(self.id + ' parseTrade() None month name: ' + cyrillic)
-        year = parts[2]
-        hms = parts[4]
-        hmsLength = len(hms)
-        if hmsLength == 7:
-            hms = '0' + hms
-        if len(day) == 1:
-            day = '0' + day
+        hms = parts[3]
+        hmsParts = hms.split(':')
+        h = self.safe_string(hmsParts, 0)
+        m = '00'
+        ampm = self.safe_string(parts, 4)
+        if h == 'noon':
+            h = '12'
+        else:
+            intH = int(h)
+            if (ampm is not None) and (ampm[0] == 'p'):
+                intH = 12 + intH
+                if intH > 23:
+                    intH = 0
+            h = str(intH)
+            if len(h) < 2:
+                h = '0' + h
+            m = self.safe_string(hmsParts, 1, '00')
+            if len(m) < 2:
+                m = '0' + m
         ymd = '-'.join([year, month, day])
-        ymdhms = ymd + 'T' + hms
+        ymdhms = ymd + 'T' + h + ':' + m + ':00'
         timestamp = self.parse8601(ymdhms)
         # server reports local time, adjust to UTC
-        md = ''.join([month, day])
-        md = int(md)
         # a special case for DST
         # subtract 2 hours during winter
-        if md < 325 or md > 1028:
+        intM = int(m)
+        if intM < 11 or intM > 2:
             return timestamp - 7200000
         # subtract 3 hours during summer
         return timestamp - 10800000
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse_cyrillic_datetime(self.safe_string(trade, 'pub_date'))
+        timestamp = self.parse_exchange_specific_datetime(self.safe_string(trade, 'pub_date'))
         id = self.safe_string(trade, 'id')
         type = 'limit'
         side = self.safe_string(trade, 'type')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amnt_trade')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amnt_trade')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -265,7 +284,8 @@ class btctradeua(Exchange):
         # deduplicate trades for that reason
         trades = []
         for i in range(0, len(response)):
-            if response[i]['id'] % 2:
+            id = self.safe_integer(response[i], 'id')
+            if id % 2:
                 trades.append(response[i])
         return self.parse_trades(trades, market, since, limit)
 
@@ -306,11 +326,11 @@ class btctradeua(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': self.safe_string(order, 'type'),
-            'price': self.safe_float(order, 'price'),
+            'price': self.safe_number(order, 'price'),
             'stopPrice': None,
-            'amount': self.safe_float(order, 'amnt_trade'),
+            'amount': self.safe_number(order, 'amnt_trade'),
             'filled': 0,
-            'remaining': self.safe_float(order, 'amnt_trade'),
+            'remaining': self.safe_number(order, 'amnt_trade'),
             'trades': None,
             'info': order,
             'cost': None,

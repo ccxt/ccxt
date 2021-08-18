@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.precise import Precise
 
 
 class paymium(Exchange):
@@ -78,8 +79,8 @@ class paymium(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.002,
-                    'taker': 0.002,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
                 },
             },
         })
@@ -91,13 +92,14 @@ class paymium(Exchange):
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
             code = currencies[i]
-            currencyId = self.currency_id(code)
+            currency = self.currency(code)
+            currencyId = currency['id']
             free = 'balance_' + currencyId
             if free in response:
                 account = self.account()
                 used = 'locked_' + currencyId
-                account['free'] = self.safe_float(response, free)
-                account['used'] = self.safe_float(response, used)
+                account['free'] = self.safe_string(response, free)
+                account['used'] = self.safe_string(response, used)
                 result[code] = account
         return self.parse_balance(result)
 
@@ -107,7 +109,7 @@ class paymium(Exchange):
             'currency': self.market_id(symbol),
         }
         response = self.publicGetDataCurrencyDepth(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -116,29 +118,29 @@ class paymium(Exchange):
         }
         ticker = self.publicGetDataCurrencyTicker(self.extend(request, params))
         timestamp = self.safe_timestamp(ticker, 'at')
-        vwap = self.safe_float(ticker, 'vwap')
-        baseVolume = self.safe_float(ticker, 'volume')
+        vwap = self.safe_number(ticker, 'vwap')
+        baseVolume = self.safe_number(ticker, 'volume')
         quoteVolume = None
         if baseVolume is not None and vwap is not None:
             quoteVolume = baseVolume * vwap
-        last = self.safe_float(ticker, 'price')
+        last = self.safe_number(ticker, 'price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
-            'open': self.safe_float(ticker, 'open'),
+            'open': self.safe_number(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_float(ticker, 'variation'),
+            'percentage': self.safe_number(ticker, 'variation'),
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -152,13 +154,12 @@ class paymium(Exchange):
         if market is not None:
             symbol = market['symbol']
         side = self.safe_string(trade, 'side')
-        price = self.safe_float(trade, 'price')
+        priceString = self.safe_string(trade, 'price')
         amountField = 'traded_' + market['base'].lower()
-        amount = self.safe_float(trade, amountField)
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        amountString = self.safe_string(trade, amountField)
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'info': trade,
             'id': id,

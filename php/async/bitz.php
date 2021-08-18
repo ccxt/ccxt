@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class bitz extends Exchange {
 
@@ -62,7 +63,7 @@ class bitz extends Exchange {
                     'assets' => 'https://{hostname}',
                 ),
                 'www' => 'https://www.bitz.com',
-                'doc' => 'https://apidoc.bitz.com/en/',
+                'doc' => 'https://apidocv2.bitz.plus/en/',
                 'fees' => 'https://www.bitz.com/fee?type=1',
                 'referral' => 'https://u.bitz.com/register?invite_code=1429193',
             ),
@@ -79,6 +80,11 @@ class bitz extends Exchange {
                         'currencyRate',
                         'currencyCoinRate',
                         'coinRate',
+                        'getContractCoin',
+                        'getContractKline',
+                        'getContractOrderBook',
+                        'getContractTradesHistory',
+                        'getContractTickers',
                     ),
                 ),
                 'trade' => array(
@@ -91,6 +97,10 @@ class bitz extends Exchange {
                         'getUserNowEntrustSheet', // open orders
                         'getEntrustSheetInfo', // order
                         'depositOrWithdraw', // transactions
+                        'getCoinAddress',
+                        'getCoinAddressList',
+                        'marketTrade',
+                        'addEntrustSheetBatch',
                     ),
                 ),
                 'assets' => array(
@@ -98,68 +108,28 @@ class bitz extends Exchange {
                         'getUserAssets',
                     ),
                 ),
+                'contract' => array(
+                    'post' => array(
+                        'addContractTrade',
+                        'cancelContractTrade',
+                        'getContractActivePositions',
+                        'getContractAccountInfo',
+                        'getContractMyPositions',
+                        'getContractOrderResult',
+                        'getContractTradeResult',
+                        'getContractOrder',
+                        'getContractMyHistoryTrade',
+                        'getContractMyTrades',
+                    ),
+                ),
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.002,
-                    'taker' => 0.002,
+                    'maker' => $this->parse_number('0.002'),
+                    'taker' => $this->parse_number('0.002'),
                 ),
                 'funding' => array(
-                    'withdraw' => array(
-                        'BTC' => '0.5%',
-                        'DKKT' => '0.5%',
-                        'ETH' => 0.01,
-                        'USDT' => '0.5%',
-                        'LTC' => '0.5%',
-                        'FCT' => '0.5%',
-                        'LSK' => '0.5%',
-                        'HXI' => '0.8%',
-                        'ZEC' => '0.5%',
-                        'DOGE' => '0.5%',
-                        'MZC' => '0.5%',
-                        'ETC' => '0.5%',
-                        'GXS' => '0.5%',
-                        'XPM' => '0.5%',
-                        'PPC' => '0.5%',
-                        'BLK' => '0.5%',
-                        'XAS' => '0.5%',
-                        'HSR' => '0.5%',
-                        'NULS' => 5.0,
-                        'VOISE' => 350.0,
-                        'PAY' => 1.5,
-                        'EOS' => 0.6,
-                        'YBCT' => 35.0,
-                        'OMG' => 0.3,
-                        'OTN' => 0.4,
-                        'BTX' => '0.5%',
-                        'QTUM' => '0.5%',
-                        'DASH' => '0.5%',
-                        'GAME' => '0.5%',
-                        'BCH' => '0.5%',
-                        'GNT' => 9.0,
-                        'SSS' => 1500.0,
-                        'ARK' => '0.5%',
-                        'PART' => '0.5%',
-                        'LEO' => '0.5%',
-                        'DGB' => '0.5%',
-                        'ZSC' => 130.0,
-                        'VIU' => 350.0,
-                        'BTG' => '0.5%',
-                        'ARN' => 10.0,
-                        'VTC' => '0.5%',
-                        'BCD' => '0.5%',
-                        'TRX' => 200.0,
-                        'HWC' => '0.5%',
-                        'UNIT' => '0.5%',
-                        'OXY' => '0.5%',
-                        'MCO' => 0.3500,
-                        'SBTC' => '0.5%',
-                        'BCX' => '0.5%',
-                        'ETF' => '0.5%',
-                        'PYLNT' => 0.4000,
-                        'XRB' => '0.5%',
-                        'ETP' => '0.5%',
-                    ),
+                    'withdraw' => array(),
                 ),
             ),
             'precision' => array(
@@ -267,10 +237,13 @@ class bitz extends Exchange {
             $base = $this->safe_currency_code($base);
             $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
+            $pricePrecisionString = $this->safe_string($market, 'priceFloat');
+            $minPrice = $this->parse_precision($pricePrecisionString);
             $precision = array(
                 'amount' => $this->safe_integer($market, 'numberFloat'),
-                'price' => $this->safe_integer($market, 'priceFloat'),
+                'price' => intval($pricePrecisionString),
             );
+            $minAmount = $this->safe_string($market, 'minTrade');
             $result[] = array(
                 'info' => $market,
                 'id' => $id,
@@ -284,15 +257,15 @@ class bitz extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'minTrade'),
-                        'max' => $this->safe_float($market, 'maxTrade'),
+                        'min' => $this->parse_number($minAmount),
+                        'max' => $this->safe_number($market, 'maxTrade'),
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => $this->parse_number($minPrice),
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->parse_number(Precise::string_mul($minPrice, $minAmount)),
                         'max' => null,
                     ),
                 ),
@@ -328,15 +301,20 @@ class bitz extends Exchange {
         //     }
         //
         $balances = $this->safe_value($response['data'], 'info');
-        $result = array( 'info' => $response );
+        $timestamp = $this->parse_microtime($this->safe_string($response, 'microtime'));
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'name');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['used'] = $this->safe_float($balance, 'lock');
-            $account['total'] = $this->safe_float($balance, 'num');
-            $account['free'] = $this->safe_float($balance, 'over');
+            $account['used'] = $this->safe_string($balance, 'lock');
+            $account['total'] = $this->safe_string($balance, 'num');
+            $account['free'] = $this->safe_string($balance, 'over');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -369,8 +347,8 @@ class bitz extends Exchange {
         $timestamp = null;
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $last = $this->safe_float($ticker, 'now');
-        $open = $this->safe_float($ticker, 'open');
+        $last = $this->safe_number($ticker, 'now');
+        $open = $this->safe_number($ticker, 'open');
         $change = null;
         $average = null;
         if ($last !== null && $open !== null) {
@@ -381,22 +359,22 @@ class bitz extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bidPrice'),
-            'bidVolume' => $this->safe_float($ticker, 'bidQty'),
-            'ask' => $this->safe_float($ticker, 'askPrice'),
-            'askVolume' => $this->safe_float($ticker, 'askQty'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bidPrice'),
+            'bidVolume' => $this->safe_number($ticker, 'bidQty'),
+            'ask' => $this->safe_number($ticker, 'askPrice'),
+            'askVolume' => $this->safe_number($ticker, 'askQty'),
             'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => $change,
-            'percentage' => $this->safe_float($ticker, 'priceChange24h'),
+            'percentage' => $this->safe_number($ticker, 'priceChange24h'),
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
-            'quoteVolume' => $this->safe_float($ticker, 'quoteVolume'),
+            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
             'info' => $ticker,
         );
     }
@@ -566,7 +544,7 @@ class bitz extends Exchange {
         //
         $orderbook = $this->safe_value($response, 'data');
         $timestamp = $this->parse_microtime($this->safe_string($response, 'microtime'));
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -586,14 +564,11 @@ class bitz extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $price = $this->safe_float($trade, 'p');
-        $amount = $this->safe_float($trade, 'n');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $this->price_to_precision($symbol, $amount * $price);
-            }
-        }
+        $priceString = $this->safe_string($trade, 'p');
+        $amountString = $this->safe_string($trade, 'n');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $side = $this->safe_string($trade, 's');
         return array(
             'timestamp' => $timestamp,
@@ -655,17 +630,17 @@ class bitz extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 'time'),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'volume'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
         );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $duration = $this->parse_timeframe($timeframe) * 1000;
+        $duration = $this->parse_timeframe($timeframe);
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -757,22 +732,17 @@ class bitz extends Exchange {
         if ($side !== null) {
             $side = ($side === 'sale') ? 'sell' : 'buy';
         }
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'number');
-        $remaining = $this->safe_float($order, 'numberOver');
-        $filled = $this->safe_float($order, 'numberDeal');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'number');
+        $remaining = $this->safe_number($order, 'numberOver');
+        $filled = $this->safe_number($order, 'numberDeal');
         $timestamp = $this->safe_integer($order, 'timestamp');
         if ($timestamp === null) {
             $timestamp = $this->safe_timestamp($order, 'created');
         }
-        $cost = $this->safe_float($order, 'orderTotalPrice');
-        if ($price !== null) {
-            if ($filled !== null) {
-                $cost = $filled * $price;
-            }
-        }
+        $cost = $this->safe_number($order, 'orderTotalPrice');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -794,7 +764,7 @@ class bitz extends Exchange {
             'fee' => null,
             'info' => $order,
             'average' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1121,7 +1091,7 @@ class bitz extends Exchange {
         $type = $this->safe_string_lower($transaction, 'type');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $fee = null;
-        $feeCost = $this->safe_float($transaction, 'network_fee');
+        $feeCost = $this->safe_number($transaction, 'network_fee');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
@@ -1136,7 +1106,7 @@ class bitz extends Exchange {
             'address' => $this->safe_string($transaction, 'wallet'),
             'tag' => $this->safe_string($transaction, 'memo'),
             'type' => $type,
-            'amount' => $this->safe_float($transaction, 'number'),
+            'amount' => $this->safe_number($transaction, 'number'),
             'currency' => $code,
             'status' => $status,
             'updated' => $timestamp,
@@ -1239,7 +1209,7 @@ class bitz extends Exchange {
     }
 
     public function sign($path, $api = 'market', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $baseUrl = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
+        $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->capitalize($api) . '/' . $path;
         $query = null;
         if ($api === 'market') {

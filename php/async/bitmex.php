@@ -11,6 +11,7 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\OrderNotFound;
 use \ccxt\DDoSProtection;
+use \ccxt\Precise;
 
 class bitmex extends Exchange {
 
@@ -172,6 +173,7 @@ class bitmex extends Exchange {
                     'Account has insufficient Available Balance' => '\\ccxt\\InsufficientFunds',
                     'Service unavailable' => '\\ccxt\\ExchangeNotAvailable', // array("error":array("message":"Service unavailable","name":"HTTPError"))
                     'Server Error' => '\\ccxt\\ExchangeError', // array("error":array("message":"Server Error","name":"HTTPError"))
+                    'Unable to cancel order due to existing state' => '\\ccxt\\InvalidOrder',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -219,8 +221,8 @@ class bitmex extends Exchange {
                 'amount' => null,
                 'price' => null,
             );
-            $lotSize = $this->safe_float($market, 'lotSize');
-            $tickSize = $this->safe_float($market, 'tickSize');
+            $lotSize = $this->safe_number($market, 'lotSize');
+            $tickSize = $this->safe_number($market, 'tickSize');
             if ($lotSize !== null) {
                 $precision['amount'] = $lotSize;
             }
@@ -234,7 +236,7 @@ class bitmex extends Exchange {
                 ),
                 'price' => array(
                     'min' => $tickSize,
-                    'max' => $this->safe_float($market, 'maxPrice'),
+                    'max' => $this->safe_number($market, 'maxPrice'),
                 ),
                 'cost' => array(
                     'min' => null,
@@ -244,7 +246,7 @@ class bitmex extends Exchange {
             $limitField = ($position === $quote) ? 'cost' : 'amount';
             $limits[$limitField] = array(
                 'min' => $lotSize,
-                'max' => $this->safe_float($market, 'maxOrderQty'),
+                'max' => $this->safe_number($market, 'maxOrderQty'),
             );
             $result[] = array(
                 'id' => $id,
@@ -256,8 +258,8 @@ class bitmex extends Exchange {
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => $limits,
-                'taker' => $this->safe_float($market, 'takerFee'),
-                'maker' => $this->safe_float($market, 'makerFee'),
+                'taker' => $this->safe_number($market, 'takerFee'),
+                'maker' => $this->safe_number($market, 'makerFee'),
                 'type' => $type,
                 'spot' => false,
                 'swap' => $swap,
@@ -323,15 +325,11 @@ class bitmex extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $free = $this->safe_float($balance, 'availableMargin');
-            $total = $this->safe_float($balance, 'marginBalance');
+            $free = $this->safe_string($balance, 'availableMargin');
+            $total = $this->safe_string($balance, 'marginBalance');
             if ($code === 'BTC') {
-                if ($free !== null) {
-                    $free /= 100000000;
-                }
-                if ($total !== null) {
-                    $total /= 100000000;
-                }
+                $free = Precise::string_div($free, '1e8');
+                $total = Precise::string_div($total, '1e8');
             }
             $account['free'] = $free;
             $account['total'] = $total;
@@ -407,6 +405,7 @@ class bitmex extends Exchange {
         }
         $response = yield $this->publicGetOrderBookL2 (array_merge($request, $params));
         $result = array(
+            'symbol' => $symbol,
             'bids' => array(),
             'asks' => array(),
             'timestamp' => null,
@@ -416,8 +415,8 @@ class bitmex extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $order = $response[$i];
             $side = ($order['side'] === 'Sell') ? 'asks' : 'bids';
-            $amount = $this->safe_float($order, 'size');
-            $price = $this->safe_float($order, 'price');
+            $amount = $this->safe_number($order, 'size');
+            $price = $this->safe_number($order, 'price');
             // https://github.com/ccxt/ccxt/issues/4926
             // https://github.com/ccxt/ccxt/issues/4927
             // the exchange sometimes returns null $price in the orderbook
@@ -623,7 +622,7 @@ class bitmex extends Exchange {
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'transactType'));
         $currencyId = $this->safe_string($item, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $amount = $this->safe_float($item, 'amount');
+        $amount = $this->safe_number($item, 'amount');
         if ($amount !== null) {
             $amount = $amount / 100000000;
         }
@@ -634,7 +633,7 @@ class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a $timestamp
             $timestamp = 0; // see comments above
         }
-        $feeCost = $this->safe_float($item, 'fee', 0);
+        $feeCost = $this->safe_number($item, 'fee', 0);
         if ($feeCost !== null) {
             $feeCost = $feeCost / 100000000;
         }
@@ -642,7 +641,7 @@ class bitmex extends Exchange {
             'cost' => $feeCost,
             'currency' => $code,
         );
-        $after = $this->safe_float($item, 'walletBalance');
+        $after = $this->safe_number($item, 'walletBalance');
         if ($after !== null) {
             $after = $after / 100000000;
         }
@@ -780,16 +779,12 @@ class bitmex extends Exchange {
             $addressFrom = $this->safe_string($transaction, 'tx');
             $addressTo = $address;
         }
-        $amount = $this->safe_integer($transaction, 'amount');
-        if ($amount !== null) {
-            $amount = abs($amount) / 10000000;
-        }
-        $feeCost = $this->safe_integer($transaction, 'fee');
-        if ($feeCost !== null) {
-            $feeCost = $feeCost / 10000000;
-        }
+        $amountString = $this->safe_string($transaction, 'amount');
+        $amountString = Precise::string_div(Precise::string_abs($amountString), '1e8');
+        $feeCostString = $this->safe_string($transaction, 'fee');
+        $feeCostString = Precise::string_div($feeCostString, '1e8');
         $fee = array(
-            'cost' => $feeCost,
+            'cost' => $this->parse_number($feeCostString),
             'currency' => 'BTC',
         );
         $status = $this->safe_string($transaction, 'transactStatus');
@@ -809,7 +804,7 @@ class bitmex extends Exchange {
             'tag' => null,
             'tagTo' => null,
             'type' => $type,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amountString),
             // BTC is the only $currency on Bitmex
             'currency' => 'BTC',
             'status' => $status,
@@ -961,8 +956,8 @@ class bitmex extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
-        $open = $this->safe_float($ticker, 'prevPrice24h');
-        $last = $this->safe_float($ticker, 'lastPrice');
+        $open = $this->safe_number($ticker, 'prevPrice24h');
+        $last = $this->safe_number($ticker, 'lastPrice');
         $change = null;
         $percentage = null;
         if ($last !== null && $open !== null) {
@@ -975,13 +970,13 @@ class bitmex extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'highPrice'),
-            'low' => $this->safe_float($ticker, 'lowPrice'),
-            'bid' => $this->safe_float($ticker, 'bidPrice'),
+            'high' => $this->safe_number($ticker, 'highPrice'),
+            'low' => $this->safe_number($ticker, 'lowPrice'),
+            'bid' => $this->safe_number($ticker, 'bidPrice'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'askPrice'),
+            'ask' => $this->safe_number($ticker, 'askPrice'),
             'askVolume' => null,
-            'vwap' => $this->safe_float($ticker, 'vwap'),
+            'vwap' => $this->safe_number($ticker, 'vwap'),
             'open' => $open,
             'close' => $last,
             'last' => $last,
@@ -989,8 +984,8 @@ class bitmex extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => $this->sum($open, $last) / 2,
-            'baseVolume' => $this->safe_float($ticker, 'homeNotional24h'),
-            'quoteVolume' => $this->safe_float($ticker, 'foreignNotional24h'),
+            'baseVolume' => $this->safe_number($ticker, 'homeNotional24h'),
+            'quoteVolume' => $this->safe_number($ticker, 'foreignNotional24h'),
             'info' => $ticker,
         );
     }
@@ -1015,11 +1010,11 @@ class bitmex extends Exchange {
         //
         return array(
             $this->parse8601($this->safe_string($ohlcv, 'timestamp')),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'volume'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
         );
     }
 
@@ -1087,7 +1082,7 @@ class bitmex extends Exchange {
         //         $symbol => 'XBTUSD',
         //         $side => 'Buy',
         //         size => 2000,
-        //         $price => 6906.5,
+        //         price => 6906.5,
         //         tickDirection => 'PlusTick',
         //         trdMatchID => 'b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8',
         //         grossValue => 28958000,
@@ -1112,14 +1107,14 @@ class bitmex extends Exchange {
         //         "lastLiquidityInd" => "string",
         //         "simpleOrderQty" => 0,
         //         "orderQty" => 0,
-        //         "$price" => 0,
+        //         "price" => 0,
         //         "displayQty" => 0,
         //         "stopPx" => 0,
         //         "pegOffsetValue" => 0,
         //         "pegPriceType" => "string",
         //         "currency" => "string",
         //         "settlCurrency" => "string",
-        //         "execType" => "string",
+        //         "$execType" => "string",
         //         "ordType" => "string",
         //         "timeInForce" => "string",
         //         "execInst" => "string",
@@ -1148,32 +1143,31 @@ class bitmex extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
-        $price = $this->safe_float_2($trade, 'avgPx', 'price');
-        $amount = $this->safe_float_2($trade, 'size', 'lastQty');
+        $priceString = $this->safe_string_2($trade, 'avgPx', 'price');
+        $amountString = $this->safe_string_2($trade, 'size', 'lastQty');
         $id = $this->safe_string($trade, 'trdMatchID');
         $order = $this->safe_string($trade, 'orderID');
         $side = $this->safe_string_lower($trade, 'side');
-        // $price * $amount doesn't work for all symbols (e.g. XBT, ETH)
-        $cost = $this->safe_float($trade, 'execCost');
-        if ($cost !== null) {
-            $cost = abs($cost) / 100000000;
-        }
+        // price * amount doesn't work for all symbols (e.g. XBT, ETH)
+        $costString = $this->safe_string($trade, 'execCost');
+        $costString = Precise::string_div(Precise::string_abs($costString), '1e8');
         $fee = null;
-        if (is_array($trade) && array_key_exists('execComm', $trade)) {
-            $feeCost = $this->safe_float($trade, 'execComm');
-            $feeCost = $feeCost / 100000000;
+        $feeCostString = Precise::string_div($this->safe_string($trade, 'execComm'), '1e8');
+        if ($feeCostString !== null) {
             $currencyId = $this->safe_string($trade, 'settlCurrency');
-            $feeCurrency = $this->safe_currency_code($currencyId);
-            $feeRate = $this->safe_float($trade, 'commission');
+            $feeCurrencyCode = $this->safe_currency_code($currencyId);
+            $feeRateString = $this->safe_string($trade, 'commission');
             $fee = array(
-                'cost' => $feeCost,
-                'currency' => $feeCurrency,
-                'rate' => $feeRate,
+                'cost' => $this->parse_number($feeCostString),
+                'currency' => $feeCurrencyCode,
+                'rate' => $this->parse_number($feeRateString),
             );
         }
+        // Trade or Funding
+        $execType = $this->safe_string($trade, 'execType');
         $takerOrMaker = null;
-        if ($fee !== null) {
-            $takerOrMaker = ($fee['cost'] < 0) ? 'maker' : 'taker';
+        if ($feeCostString !== null && $execType === 'Trade') {
+            $takerOrMaker = Precise::string_lt($feeCostString, '0') ? 'maker' : 'taker';
         }
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1188,9 +1182,9 @@ class bitmex extends Exchange {
             'type' => $type,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
-            'price' => $price,
-            'cost' => $cost,
-            'amount' => $amount,
+            'price' => $this->parse_number($priceString),
+            'cost' => $this->parse_number($costString),
+            'amount' => $this->parse_number($amountString),
             'fee' => $fee,
         );
     }
@@ -1266,33 +1260,19 @@ class bitmex extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string($order, 'timestamp'));
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'transactTime'));
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'orderQty');
-        $filled = $this->safe_float($order, 'cumQty', 0.0);
-        $remaining = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $remaining = max ($amount - $filled, 0.0);
-            }
-        }
-        $average = $this->safe_float($order, 'avgPx');
-        $cost = null;
-        if ($filled !== null) {
-            if ($average !== null) {
-                $cost = $average * $filled;
-            } else if ($price !== null) {
-                $cost = $price * $filled;
-            }
-        }
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'orderQty');
+        $filled = $this->safe_number($order, 'cumQty', 0.0);
+        $average = $this->safe_number($order, 'avgPx');
         $id = $this->safe_string($order, 'orderID');
         $type = $this->safe_string_lower($order, 'ordType');
         $side = $this->safe_string_lower($order, 'side');
         $clientOrderId = $this->safe_string($order, 'clOrdID');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $stopPrice = $this->safe_float($order, 'stopPx');
+        $stopPrice = $this->safe_number($order, 'stopPx');
         $execInst = $this->safe_string($order, 'execInst');
         $postOnly = ($execInst === 'ParticipateDoNotInitiate');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1307,14 +1287,14 @@ class bitmex extends Exchange {
             'price' => $price,
             'stopPrice' => $stopPrice,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1375,7 +1355,7 @@ class bitmex extends Exchange {
             'ordType' => $orderType,
         );
         if (($orderType === 'Stop') || ($orderType === 'StopLimit') || ($orderType === 'MarketIfTouched') || ($orderType === 'LimitIfTouched')) {
-            $stopPrice = $this->safe_float_2($params, 'stopPx', 'stopPrice');
+            $stopPrice = $this->safe_number_2($params, 'stopPx', 'stopPrice');
             if ($stopPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $stopPrice parameter for the ' . $orderType . ' order type');
             } else {
@@ -1492,7 +1472,7 @@ class bitmex extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetPosition ($params);
         //     array(

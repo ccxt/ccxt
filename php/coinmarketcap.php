@@ -210,16 +210,16 @@ class coinmarketcap extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->milliseconds();
         }
-        $change = $this->safe_float($ticker, 'percent_change_24h');
+        $change = $this->safe_number($ticker, 'percent_change_24h');
         $last = null;
         $symbol = null;
         $volume = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
             $priceKey = 'price_' . $market['quoteId'];
-            $last = $this->safe_float($ticker, $priceKey);
+            $last = $this->safe_number($ticker, $priceKey);
             $volumeKey = '24h_volume_' . $market['quoteId'];
-            $volume = $this->safe_float($ticker, $volumeKey);
+            $volume = $this->safe_number($ticker, $volumeKey);
         }
         return array(
             'symbol' => $symbol,
@@ -295,7 +295,6 @@ class coinmarketcap extends Exchange {
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->currency_code($id, $name);
             $result[$code] = array(
                 'id' => $id,
@@ -303,16 +302,16 @@ class coinmarketcap extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => true,
-                'fee' => null, // todo => redesign
-                'precision' => $precision,
+                'fee' => null,
+                'precision' => null,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => null,
+                        'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => null,
+                        'max' => null,
                     ),
                     'cost' => array(
                         'min' => null,

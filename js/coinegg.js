@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -214,8 +215,8 @@ module.exports = class coinegg extends Exchange {
     parseTicker (ticker, market = undefined) {
         const symbol = market['symbol'];
         const timestamp = this.milliseconds ();
-        const last = this.safeFloat (ticker, 'last');
-        const percentage = this.safeFloat (ticker, 'change');
+        const last = this.safeNumber (ticker, 'last');
+        const percentage = this.safeNumber (ticker, 'change');
         let open = undefined;
         let change = undefined;
         let average = undefined;
@@ -229,11 +230,11 @@ module.exports = class coinegg extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -243,8 +244,8 @@ module.exports = class coinegg extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'quoteVol'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
+            'quoteVolume': this.safeNumber (ticker, 'quoteVol'),
             'info': ticker,
         };
     }
@@ -268,20 +269,17 @@ module.exports = class coinegg extends Exchange {
             'quote': market['quoteId'],
         };
         const response = await this.publicGetDepthRegionQuote (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeTimestamp (trade, 'date');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const symbol = market['symbol'];
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = this.costToPrecision (symbol, price * amount);
-            }
-        }
         const type = 'limit';
         const side = this.safeString (trade, 'type');
         const id = this.safeString (trade, 'tid');
@@ -328,7 +326,7 @@ module.exports = class coinegg extends Exchange {
                 result[code] = this.account ();
             }
             const type = (accountType === 'lock') ? 'used' : 'free';
-            result[code][type] = this.safeFloat (balances, key);
+            result[code][type] = this.safeString (balances, key);
         }
         return this.parseBalance (result);
     }
@@ -339,15 +337,9 @@ module.exports = class coinegg extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount_original');
-        const remaining = this.safeFloat (order, 'amount_outstanding');
-        let filled = undefined;
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = amount - remaining;
-            }
-        }
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'amount_original');
+        const remaining = this.safeNumber (order, 'amount_outstanding');
         let status = this.safeString (order, 'status');
         if (status === 'cancelled') {
             status = 'canceled';
@@ -358,7 +350,7 @@ module.exports = class coinegg extends Exchange {
         const type = 'limit';
         const side = this.safeString (order, 'type');
         const id = this.safeString (order, 'id');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -374,13 +366,13 @@ module.exports = class coinegg extends Exchange {
             'stopPrice': undefined,
             'cost': undefined,
             'amount': amount,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'trades': undefined,
             'fee': undefined,
             'info': info,
             'average': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

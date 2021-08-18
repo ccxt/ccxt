@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\BadRequest;
 use \ccxt\AddressPending;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class vcc extends Exchange {
 
@@ -108,8 +109,8 @@ class vcc extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.2 / 100,
-                    'taker' => 0.2 / 100,
+                    'maker' => $this->parse_number('0.002'),
+                    'taker' => $this->parse_number('0.002'),
                 ),
             ),
             'exceptions' => array(
@@ -200,15 +201,15 @@ class vcc extends Exchange {
                 ),
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($amountLimits, 'min'),
+                        'min' => $this->safe_number($amountLimits, 'min'),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($priceLimits, 'min'),
+                        'min' => $this->safe_number($priceLimits, 'min'),
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $this->safe_float($costLimits, 'min'),
+                        'min' => $this->safe_number($costLimits, 'min'),
                         'max' => null,
                     ),
                 ),
@@ -255,12 +256,12 @@ class vcc extends Exchange {
                 'code' => $code,
                 'name' => $this->safe_string($currency, 'name'),
                 'active' => $active,
-                'fee' => $this->safe_float($currency, 'withdrawal_fee'),
+                'fee' => $this->safe_number($currency, 'withdrawal_fee'),
                 'precision' => $this->safe_integer($currency, 'decimal'),
                 'limits' => array(
                     'withdraw' => array(
-                        'min' => $this->safe_float($currency, 'min_withdraw'),
-                        'max' => $this->safe_float($currency, 'max_withdraw'),
+                        'min' => $this->safe_number($currency, 'min_withdraw'),
+                        'max' => $this->safe_number($currency, 'max_withdraw'),
                     ),
                 ),
             );
@@ -283,8 +284,8 @@ class vcc extends Exchange {
         //
         return array(
             'info' => $response,
-            'maker' => $this->safe_float($response, 'provideLiquidityRate'),
-            'taker' => $this->safe_float($response, 'takeLiquidityRate'),
+            'maker' => $this->safe_number($response, 'provideLiquidityRate'),
+            'taker' => $this->safe_number($response, 'takeLiquidityRate'),
         );
     }
 
@@ -303,15 +304,19 @@ class vcc extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $currencyIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($data, $currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'available_balance');
-            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['free'] = $this->safe_string($balance, 'available_balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -332,11 +337,11 @@ class vcc extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 'time'),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'volume'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
         );
     }
 
@@ -407,7 +412,7 @@ class vcc extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         $timestamp = $this->safe_value($data, 'timestamp');
-        return $this->parse_order_book($data, $timestamp, 'bids', 'asks', 0, 1);
+        return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 0, 1);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -425,10 +430,10 @@ class vcc extends Exchange {
         //     }
         //
         $timestamp = $this->milliseconds();
-        $baseVolume = $this->safe_float($ticker, 'base_volume');
-        $quoteVolume = $this->safe_float($ticker, 'quote_volume');
-        $open = $this->safe_float($ticker, 'open_price');
-        $last = $this->safe_float($ticker, 'last_price');
+        $baseVolume = $this->safe_number($ticker, 'base_volume');
+        $quoteVolume = $this->safe_number($ticker, 'quote_volume');
+        $open = $this->safe_number($ticker, 'open_price');
+        $last = $this->safe_number($ticker, 'last_price');
         $change = null;
         $percentage = null;
         $average = null;
@@ -445,11 +450,11 @@ class vcc extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'max_price'),
-            'low' => $this->safe_float($ticker, 'min_price'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'max_price'),
+            'low' => $this->safe_number($ticker, 'min_price'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => $open,
@@ -463,34 +468,6 @@ class vcc extends Exchange {
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
-    }
-
-    public function fetch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $response = yield $this->publicGetTicker ($params);
-        //
-        //     {
-        //         "message":null,
-        //         "dataVersion":"fc521161aebe506178b8588cd2adb598eaf1018e",
-        //         "$data":{
-        //             "BTC_VND":array(
-        //                 "base_id":1,
-        //                 "quote_id":0,
-        //                 "last_price":"411119457",
-        //                 "max_price":"419893173.0000000000",
-        //                 "min_price":"401292577.0000000000",
-        //                 "open_price":null,
-        //                 "base_volume":"10.5915050000",
-        //                 "quote_volume":"4367495977.4484430060",
-        //                 "isFrozen":0
-        //             ),
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        $ticker = $this->safe_value($data, $market['id']);
-        return $this->parse_ticker($ticker, $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -563,17 +540,17 @@ class vcc extends Exchange {
         }
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float_2($trade, 'base_volume', 'quantity');
-        $cost = $this->safe_float_2($trade, 'quote_volume', 'amount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'base_volume', 'quantity');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->safe_number_2($trade, 'quote_volume', 'amount');
         if ($cost === null) {
-            if (($price !== null) && ($amount !== null)) {
-                $cost = $price * $amount;
-            }
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $side = $this->safe_string_2($trade, 'type', 'trade_type');
         $id = $this->safe_string_2($trade, 'trade_id', 'id');
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
@@ -758,7 +735,7 @@ class vcc extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         if ($amount !== null) {
             $amount = abs($amount);
         }
@@ -766,7 +743,7 @@ class vcc extends Exchange {
         $txid = $this->safe_string($transaction, 'transaction_id');
         $tag = $this->safe_string($transaction, 'destination_tag');
         $fee = null;
-        $feeCost = $this->safe_float($transaction, 'fee');
+        $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
@@ -845,7 +822,7 @@ class vcc extends Exchange {
         if ($stopPrice !== null) {
             $request['is_stop'] = 1;
             $request['stop_condition'] = ($side === 'buy') ? 'le' : 'ge'; // ge = greater than or equal, le = less than or equal
-            $request['stop_price'] = $this->price_to_precision($symbol, $price);
+            $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
         }
         $params = $this->omit($params, array( 'stop_price', 'stopPrice' ));
         $response = yield $this->privatePostOrders (array_merge($request, $params));
@@ -1011,46 +988,27 @@ class vcc extends Exchange {
         $marketId = $baseId . '_' . $quoteId;
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $amount = $this->safe_float($order, 'quantity');
-        $filled = $this->safe_float($order, 'executed_quantity');
+        $amount = $this->safe_number($order, 'quantity');
+        $filled = $this->safe_number($order, 'executed_quantity');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $cost = $this->safe_float($order, 'ceiling');
+        $cost = $this->safe_number($order, 'ceiling');
         $id = $this->safe_string($order, 'id');
-        $average = null;
-        $price = $this->safe_float($order, 'price');
-        // in case of $market $order
-        if (!$price) {
-            $price = $this->safe_float($order, 'executed_price');
-            $average = $price;
-        }
-        $remaining = $this->safe_float($order, 'remaining');
-        if (($filled === null) && ($amount !== null) && ($remaining !== null)) {
-            $filled = max (0, $amount - $remaining);
-        }
-        if ($filled !== null) {
-            if (($amount !== null) && ($remaining === null)) {
-                $remaining = max (0, $amount - $filled);
-            }
-            if (($price !== null) && ($cost === null)) {
-                $cost = $filled * $price;
-            }
-            if (($average === null) && ($cost !== null) && ($filled > 0)) {
-                $average = $cost / $filled;
-            }
-        }
+        $price = $this->safe_number($order, 'price');
+        $average = $this->safe_number($order, 'executed_price');
+        $remaining = $this->safe_number($order, 'remaining');
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'trade_type');
         $fee = array(
             'currency' => $market['quote'],
-            'cost' => $this->safe_float($order, 'fee'),
-            'rate' => $this->safe_float($order, 'fee_rate'),
+            'cost' => $this->safe_number($order, 'fee'),
+            'rate' => $this->safe_number($order, 'fee_rate'),
         );
         $lastTradeTimestamp = null;
         if ($updated !== $created) {
             $lastTradeTimestamp = $updated;
         }
-        $stopPrice = $this->safe_float($order, 'stopPrice');
-        return array(
+        $stopPrice = $this->safe_number($order, 'stopPrice');
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $id,
             'timestamp' => $created,
@@ -1072,7 +1030,7 @@ class vcc extends Exchange {
             'fee' => $fee,
             'trades' => null,
             'info' => $order,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

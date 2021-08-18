@@ -8,8 +8,8 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
 use \ccxt\OrderNotFound;
+use \ccxt\Precise;
 
 class aax extends Exchange {
 
@@ -21,8 +21,9 @@ class aax extends Exchange {
             'enableRateLimit' => true,
             'rateLimit' => 500,
             'version' => 'v2',
-            'hostname' => 'aax.com',
+            'hostname' => 'aaxpro.com', // aax.com
             'certified' => true,
+            'pro' => true,
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -31,6 +32,7 @@ class aax extends Exchange {
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -39,6 +41,7 @@ class aax extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -68,10 +71,10 @@ class aax extends Exchange {
                     'public' => 'https://api.{hostname}',
                     'private' => 'https://api.{hostname}',
                 ),
-                'www' => 'https://www.aax.com', // string website URL
-                'doc' => 'https://www.aax.com/apidoc/index.html',
-                'fees' => 'https://www.aax.com/en-US/fees/',
-                'referral' => 'https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
+                'www' => 'https://www.aaxpro.com', // string website URL
+                'doc' => 'https://www.aaxpro.com/apidoc/index.html',
+                'fees' => 'https://www.aaxpro.com/en-US/fees/',
+                'referral' => 'https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
             ),
             'api' => array(
                 'v1' => array(
@@ -90,6 +93,7 @@ class aax extends Exchange {
                     //     'tickers/{market}', // Get ticker of specific market
                     // ),
                     'get' => array(
+                        'currencies',
                         'announcement/maintenance', // System Maintenance Notice
                         'instruments', // Retrieve all trading pairs information
                         'market/orderbook', // Order Book
@@ -146,8 +150,8 @@ class aax extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.06 / 100,
-                    'taker' => 0.10 / 100,
+                    'maker' => $this->parse_number('0.0006'),
+                    'taker' => $this->parse_number('0.001'),
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -233,8 +237,51 @@ class aax extends Exchange {
             'precisionMode' => TICK_SIZE,
             'options' => array(
                 'defaultType' => 'spot', // 'spot', 'future'
+                'types' => array(
+                    'spot' => 'SPTP',
+                    'future' => 'FUTP',
+                    'otc' => 'F2CP',
+                    'saving' => 'VLTP',
+                ),
+                'accounts' => array(
+                    'SPTP' => 'spot',
+                    'FUTP' => 'future',
+                    'F2CP' => 'otc',
+                    'VLTP' => 'saving',
+                ),
             ),
         ));
+    }
+
+    public function fetch_status($params = array ()) {
+        $response = yield $this->publicGetAnnouncementMaintenance ($params);
+        //
+        //     {
+        //         "code" => 1,
+        //         "$data" => array(
+        //             "$startTime":"2020-06-25T02:15:00.000Z",
+        //             "$endTime":"2020-06-25T02:45:00.000Z"，
+        //             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45),Futures Trading => UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com."
+        //         ),
+        //         "message":"success",
+        //         "ts":1593043237000
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $timestamp = $this->milliseconds();
+        $startTime = $this->parse8601($this->safe_string($data, 'startTime'));
+        $endTime = $this->parse8601($this->safe_string($data, 'endTime'));
+        $update = array(
+            'updated' => $this->safe_integer($response, 'ts', $timestamp),
+        );
+        if ($endTime !== null) {
+            $startTimeIsOk = ($startTime === null) ? true : ($timestamp < $startTime);
+            $isOk = ($timestamp > $endTime) || $startTimeIsOk;
+            $update['eta'] = $endTime;
+            $update['status'] = $isOk ? 'ok' : 'maintenance';
+        }
+        $this->status = array_merge($this->status, $update);
+        return $this->status;
     }
 
     public function fetch_markets($params = array ()) {
@@ -322,8 +369,8 @@ class aax extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'enable');
-            $taker = $this->safe_float($market, 'takerFee');
-            $maker = $this->safe_float($market, 'makerFee');
+            $taker = $this->safe_number($market, 'takerFee');
+            $maker = $this->safe_number($market, 'makerFee');
             $type = $this->safe_string($market, 'type');
             $inverse = null;
             $linear = null;
@@ -341,8 +388,8 @@ class aax extends Exchange {
                 $symbol = $base . '/' . $quote;
             }
             $precision = array(
-                'amount' => $this->safe_float($market, 'lotSize'),
-                'price' => $this->safe_float($market, 'tickSize'),
+                'amount' => $this->safe_number($market, 'lotSize'),
+                'price' => $this->safe_number($market, 'tickSize'),
             );
             $result[] = array(
                 'id' => $id,
@@ -383,6 +430,74 @@ class aax extends Exchange {
         return $result;
     }
 
+    public function fetch_currencies($params = array ()) {
+        $response = yield $this->publicGetCurrencies ($params);
+        //
+        //     {
+        //         "$code":1,
+        //         "$data":array(
+        //             array(
+        //                 "chain":"BTC",
+        //                 "displayName":"Bitcoin",
+        //                 "withdrawFee":"0.0004",
+        //                 "withdrawMin":"0.001",
+        //                 "otcFee":"0",
+        //                 "enableOTC":true,
+        //                 "$visible":true,
+        //                 "enableTransfer":true,
+        //                 "transferMin":"0.00001",
+        //                 "depositMin":"0.0005",
+        //                 "$enableWithdraw":true,
+        //                 "$enableDeposit":true,
+        //                 "addrWithMemo":false,
+        //                 "withdrawPrecision":"0.00000001",
+        //                 "$currency":"BTC",
+        //                 "$network":"BTC", // ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
+        //                 "minConfirm":"2"
+        //             ),
+        //         ),
+        //         "message":"success",
+        //         "ts":1624330530697
+        //     }
+        //
+        $result = array();
+        $data = $this->safe_value($response, 'data', array());
+        for ($i = 0; $i < count($data); $i++) {
+            $currency = $data[$i];
+            $id = $this->safe_string($currency, 'chain');
+            $name = $this->safe_string($currency, 'displayName');
+            $code = $this->safe_currency_code($id);
+            $precision = $this->safe_number($currency, 'withdrawPrecision');
+            $enableWithdraw = $this->safe_value($currency, 'enableWithdraw');
+            $enableDeposit = $this->safe_value($currency, 'enableDeposit');
+            $fee = $this->safe_number($currency, 'withdrawFee');
+            $visible = $this->safe_value($currency, 'visible');
+            $active = ($enableWithdraw && $enableDeposit && $visible);
+            $network = $this->safe_string($currency, 'network');
+            $result[$code] = array(
+                'id' => $id,
+                'name' => $name,
+                'code' => $code,
+                'precision' => $precision,
+                'info' => $currency,
+                'active' => $active,
+                'fee' => $fee,
+                'network' => $network,
+                'limits' => array(
+                    'deposit' => array(
+                        'min' => $this->safe_number($currency, 'depositMin'),
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $this->safe_number($currency, 'withdrawMin'),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
+    }
+
     public function parse_ticker($ticker, $market = null) {
         //
         //     {
@@ -400,8 +515,8 @@ class aax extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 's');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_float($ticker, 'c');
-        $open = $this->safe_float($ticker, 'o');
+        $last = $this->safe_number($ticker, 'c');
+        $open = $this->safe_number($ticker, 'o');
         $change = null;
         $percentage = null;
         $average = null;
@@ -412,13 +527,13 @@ class aax extends Exchange {
             }
             $average = $this->sum($last, $open) / 2;
         }
-        $quoteVolume = $this->safe_float($ticker, 'v');
+        $quoteVolume = $this->safe_number($ticker, 'v');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'h'),
-            'low' => $this->safe_float($ticker, 'l'),
+            'high' => $this->safe_number($ticker, 'h'),
+            'low' => $this->safe_number($ticker, 'l'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
@@ -435,14 +550,6 @@ class aax extends Exchange {
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
-    }
-
-    public function fetch_ticker($symbol, $params = array ()) {
-        $tickers = yield $this->fetch_tickers(null, $params);
-        if (is_array($tickers) && array_key_exists($symbol, $tickers)) {
-            return $tickers[$symbol];
-        }
-        throw new BadSymbol($this->id . ' fetchTicker() $symbol ' . $symbol . ' ticker not found');
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -509,7 +616,7 @@ class aax extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($response, 't'); // need unix type
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -565,8 +672,8 @@ class aax extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $price = $this->safe_float_2($trade, 'p', 'filledPrice');
-        $amount = $this->safe_float_2($trade, 'q', 'filledQty');
+        $priceString = $this->safe_string_2($trade, 'p', 'filledPrice');
+        $amountString = $this->safe_string_2($trade, 'q', 'filledQty');
         $orderId = $this->safe_string($trade, 'orderID');
         $isTaker = $this->safe_value($trade, 'taker');
         $takerOrMaker = null;
@@ -580,17 +687,15 @@ class aax extends Exchange {
             $side = 'sell';
         }
         if ($side === null) {
-            $side = ($price > 0) ? 'buy' : 'sell';
+            $side = ($priceString[0] === '-') ? 'sell' : 'buy';
         }
-        $side = ($price > 0) ? 'buy' : 'sell';
-        $price = abs($price);
-        $cost = null;
-        if (($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
-        }
+        $priceString = Precise::string_abs($priceString);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $orderType = $this->parse_order_type($this->safe_string($trade, 'orderType'));
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'commission');
+        $feeCost = $this->safe_number($trade, 'commission');
         if ($feeCost !== null) {
             $feeCurrency = null;
             if ($market !== null) {
@@ -658,11 +763,11 @@ class aax extends Exchange {
         //
         return array(
             $this->safe_timestamp($ohlcv, 5),
-            $this->safe_float($ohlcv, 0),
-            $this->safe_float($ohlcv, 1),
-            $this->safe_float($ohlcv, 2),
-            $this->safe_float($ohlcv, 3),
-            $this->safe_float($ohlcv, 4),
+            $this->safe_number($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
         );
     }
 
@@ -705,12 +810,7 @@ class aax extends Exchange {
         yield $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $types = array(
-            'spot' => 'SPTP',
-            'future' => 'FUTP',
-            'otc' => 'F2CP',
-            'saving' => 'VLTP',
-        );
+        $types = $this->safe_value($this->options, 'types', array());
         $purseType = $this->safe_string($types, $type, $type);
         $request = array(
             'purseType' => $purseType,
@@ -739,7 +839,12 @@ class aax extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $result = array( 'info' => $response );
+        $timestamp = $this->safe_integer($response, 'ts');
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $balanceType = $this->safe_string($balance, 'purseType');
@@ -747,8 +852,8 @@ class aax extends Exchange {
                 $currencyId = $this->safe_string($balance, 'currency');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                $account['free'] = $this->safe_float($balance, 'available');
-                $account['used'] = $this->safe_float($balance, 'unavailable');
+                $account['free'] = $this->safe_string($balance, 'available');
+                $account['used'] = $this->safe_string($balance, 'unavailable');
                 $result[$code] = $account;
             }
         }
@@ -780,7 +885,7 @@ class aax extends Exchange {
             $request['clOrdID'] = $clientOrderId;
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
-        $stopPrice = $this->safe_float($params, 'stopPrice');
+        $stopPrice = $this->safe_number($params, 'stopPrice');
         if ($stopPrice === null) {
             if (($orderType === 'STOP-LIMIT') || ($orderType === 'STOP')) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter for ' . $orderType . ' orders');
@@ -898,7 +1003,7 @@ class aax extends Exchange {
             // 'price' => $this->price_to_precision($symbol, $price),
             // 'stopPrice' => $this->price_to_precision($symbol, $stopPrice),
         );
-        $stopPrice = $this->safe_float($params, 'stopPrice');
+        $stopPrice = $this->safe_number($params, 'stopPrice');
         if ($stopPrice !== null) {
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             $params = $this->omit($params, 'stopPrice');
@@ -1535,30 +1640,24 @@ class aax extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $price = $this->safe_float($order, 'price');
-        $stopPrice = $this->safe_float($order, 'stopPrice');
+        $price = $this->safe_number($order, 'price');
+        $stopPrice = $this->safe_number($order, 'stopPrice');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $execInst = $this->safe_string($order, 'execInst');
         $postOnly = ($execInst === 'Post-Only');
-        $average = $this->safe_float($order, 'avgPrice');
-        $amount = $this->safe_float($order, 'orderQty');
-        $filled = $this->safe_float($order, 'cumQty');
-        $remaining = $this->safe_string($order, 'leavesQty');
-        $cost = null;
-        $lastTradeTimestamp = null;
-        if ($filled !== null) {
-            if ($price !== null) {
-                $cost = $filled * $price;
-            }
-            if ($filled > 0) {
-                $lastTradeTimestamp = $this->safe_value($order, 'transactTime');
-                if (gettype($lastTradeTimestamp) === 'string') {
-                    $lastTradeTimestamp = $this->parse8601($lastTradeTimestamp);
-                }
-            }
+        $average = $this->safe_number($order, 'avgPrice');
+        $amount = $this->safe_number($order, 'orderQty');
+        $filled = $this->safe_number($order, 'cumQty');
+        $remaining = $this->safe_number($order, 'leavesQty');
+        if (($filled === 0) && ($remaining === 0)) {
+            $remaining = null;
+        }
+        $lastTradeTimestamp = $this->safe_value($order, 'transactTime');
+        if (gettype($lastTradeTimestamp) === 'string') {
+            $lastTradeTimestamp = $this->parse8601($lastTradeTimestamp);
         }
         $fee = null;
-        $feeCost = $this->safe_float($order, 'commission');
+        $feeCost = $this->safe_number($order, 'commission');
         if ($feeCost !== null) {
             $feeCurrency = null;
             if ($market !== null) {
@@ -1573,7 +1672,7 @@ class aax extends Exchange {
                 'cost' => $feeCost,
             );
         }
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'info' => $order,
             'clientOrderId' => $clientOrderId,
@@ -1592,10 +1691,10 @@ class aax extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
-            'cost' => $cost,
+            'cost' => null,
             'trades' => null,
             'fee' => $fee,
-        );
+        ));
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1767,7 +1866,7 @@ class aax extends Exchange {
                 $headers['X-ACCESS-SIGN'] = $signature;
             }
         }
-        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $url;
+        $url = $this->implode_hostname($this->urls['api'][$api]) . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

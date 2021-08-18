@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -79,6 +80,10 @@ module.exports = class luno extends Exchange {
                         'quotes/{id}',
                         'withdrawals',
                         'withdrawals/{id}',
+                        'transfers',
+                        // GET /api/exchange/2/listorders
+                        // GET /api/exchange/2/orders/{id}
+                        // GET /api/exchange/3/order
                     ],
                     'post': [
                         'accounts',
@@ -153,12 +158,12 @@ module.exports = class luno extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'min_volume'),
-                        'max': this.safeFloat (market, 'max_volume'),
+                        'min': this.safeNumber (market, 'min_volume'),
+                        'max': this.safeNumber (market, 'max_volume'),
                     },
                     'price': {
-                        'min': this.safeFloat (market, 'min_price'),
-                        'max': this.safeFloat (market, 'max_price'),
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': {
                         'min': undefined,
@@ -204,21 +209,27 @@ module.exports = class luno extends Exchange {
         //     }
         //
         const wallets = this.safeValue (response, 'balance', []);
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < wallets.length; i++) {
             const wallet = wallets[i];
             const currencyId = this.safeString (wallet, 'asset');
             const code = this.safeCurrencyCode (currencyId);
-            const reserved = this.safeFloat (wallet, 'reserved');
-            const unconfirmed = this.safeFloat (wallet, 'unconfirmed');
-            const balance = this.safeFloat (wallet, 'balance');
+            const reserved = this.safeString (wallet, 'reserved');
+            const unconfirmed = this.safeString (wallet, 'unconfirmed');
+            const balance = this.safeString (wallet, 'balance');
+            const reservedUnconfirmed = Precise.stringAdd (reserved, unconfirmed);
+            const balanceUnconfirmed = Precise.stringAdd (balance, unconfirmed);
             if (code in result) {
-                result[code]['used'] = this.sum (result[code]['used'], reserved, unconfirmed);
-                result[code]['total'] = this.sum (result[code]['total'], balance, unconfirmed);
+                result[code]['used'] = Precise.stringAdd (result[code]['used'], reservedUnconfirmed);
+                result[code]['total'] = Precise.stringAdd (result[code]['total'], balanceUnconfirmed);
             } else {
                 const account = this.account ();
-                account['used'] = this.sum (reserved, unconfirmed);
-                account['total'] = this.sum (balance, unconfirmed);
+                account['used'] = reservedUnconfirmed;
+                account['total'] = balanceUnconfirmed;
                 result[code] = account;
             }
         }
@@ -238,7 +249,7 @@ module.exports = class luno extends Exchange {
         };
         const response = await this[method] (this.extend (request, params));
         const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp, 'bids', 'asks', 'price', 'volume');
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
     parseOrderStatus (status) {
@@ -270,21 +281,21 @@ module.exports = class luno extends Exchange {
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         let status = this.parseOrderStatus (this.safeString (order, 'state'));
         status = (status === 'open') ? status : status;
-        const side = (order['type'] === 'ASK') ? 'sell' : 'buy';
+        let side = undefined;
+        const orderType = this.safeString (order, 'type');
+        if ((orderType === 'ASK') || (orderType === 'SELL')) {
+            side = 'sell';
+        } else if ((orderType === 'BID') || (orderType === 'BUY')) {
+            side = 'buy';
+        }
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const price = this.safeFloat (order, 'limit_price');
-        const amount = this.safeFloat (order, 'limit_volume');
-        const quoteFee = this.safeFloat (order, 'fee_counter');
-        const baseFee = this.safeFloat (order, 'fee_base');
-        const filled = this.safeFloat (order, 'base');
-        const cost = this.safeFloat (order, 'counter');
-        let remaining = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = Math.max (0, amount - filled);
-            }
-        }
+        const price = this.safeNumber (order, 'limit_price');
+        const amount = this.safeNumber (order, 'limit_volume');
+        const quoteFee = this.safeNumber (order, 'fee_counter');
+        const baseFee = this.safeNumber (order, 'fee_base');
+        const filled = this.safeNumber (order, 'base');
+        const cost = this.safeNumber (order, 'counter');
         const fee = { 'currency': undefined };
         if (quoteFee) {
             fee['cost'] = quoteFee;
@@ -298,7 +309,7 @@ module.exports = class luno extends Exchange {
             }
         }
         const id = this.safeString (order, 'order_id');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -315,12 +326,12 @@ module.exports = class luno extends Exchange {
             'amount': amount,
             'filled': filled,
             'cost': cost,
-            'remaining': remaining,
+            'remaining': undefined,
             'trades': undefined,
             'fee': fee,
             'info': order,
             'average': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -366,16 +377,16 @@ module.exports = class luno extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last_trade');
+        const last = this.safeNumber (ticker, 'last_trade');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeFloat (ticker, 'bid'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -385,7 +396,7 @@ module.exports = class luno extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'rolling_24_hour_volume'),
+            'baseVolume': this.safeNumber (ticker, 'rolling_24_hour_volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -425,7 +436,12 @@ module.exports = class luno extends Exchange {
         let takerOrMaker = undefined;
         let side = undefined;
         if (orderId !== undefined) {
-            side = (trade['type'] === 'ASK') ? 'sell' : 'buy';
+            const type = this.safeString (trade, 'type');
+            if ((type === 'ASK') || (type === 'SELL')) {
+                side = 'sell';
+            } else if ((type === 'BID') || (type === 'BUY')) {
+                side = 'buy';
+            }
             if (side === 'sell' && trade['is_buy']) {
                 takerOrMaker = 'maker';
             } else if (side === 'buy' && !trade['is_buy']) {
@@ -436,8 +452,8 @@ module.exports = class luno extends Exchange {
         } else {
             side = trade['is_buy'] ? 'buy' : 'sell';
         }
-        const feeBase = this.safeFloat (trade, 'fee_base');
-        const feeCounter = this.safeFloat (trade, 'fee_counter');
+        const feeBase = this.safeNumber (trade, 'fee_base');
+        const feeCounter = this.safeNumber (trade, 'fee_counter');
         let feeCurrency = undefined;
         let feeCost = undefined;
         if (feeBase !== undefined) {
@@ -462,10 +478,10 @@ module.exports = class luno extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'volume'),
+            'price': this.safeNumber (trade, 'price'),
+            'amount': this.safeNumber (trade, 'volume'),
             // Does not include potential fee costs
-            'cost': this.safeFloat (trade, 'counter'),
+            'cost': this.safeNumber (trade, 'counter'),
             'fee': {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -512,8 +528,8 @@ module.exports = class luno extends Exchange {
         const response = await this.privateGetFeeInfo (params);
         return {
             'info': response,
-            'maker': this.safeFloat (response, 'maker_fee'),
-            'taker': this.safeFloat (response, 'taker_fee'),
+            'maker': this.safeNumber (response, 'maker_fee'),
+            'taker': this.safeNumber (response, 'taker_fee'),
         };
     }
 
@@ -526,15 +542,16 @@ module.exports = class luno extends Exchange {
         if (type === 'market') {
             method += 'Marketorder';
             request['type'] = side.toUpperCase ();
+            // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side === 'buy') {
-                request['counter_volume'] = amount;
+                request['counter_volume'] = parseFloat (this.amountToPrecision (symbol, amount));
             } else {
-                request['base_volume'] = amount;
+                request['base_volume'] = parseFloat (this.amountToPrecision (symbol, amount));
             }
         } else {
             method += 'Postorder';
-            request['volume'] = amount;
-            request['price'] = price;
+            request['volume'] = parseFloat (this.amountToPrecision (symbol, amount));
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
             request['type'] = (side === 'buy') ? 'BID' : 'ASK';
         }
         const response = await this[method] (this.extend (request, params));
@@ -646,9 +663,9 @@ module.exports = class luno extends Exchange {
         const timestamp = this.safeValue (entry, 'timestamp');
         const currencyId = this.safeString (entry, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const available_delta = this.safeFloat (entry, 'available_delta');
-        const balance_delta = this.safeFloat (entry, 'balance_delta');
-        const after = this.safeFloat (entry, 'balance');
+        const available_delta = this.safeNumber (entry, 'available_delta');
+        const balance_delta = this.safeNumber (entry, 'balance_delta');
+        const after = this.safeNumber (entry, 'balance');
         const comment = this.safeString (entry, 'description');
         let before = after;
         let amount = 0.0;
