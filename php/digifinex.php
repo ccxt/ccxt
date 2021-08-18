@@ -156,7 +156,7 @@ class digifinex extends Exchange {
                     '20014' => array( '\\ccxt\\BadRequest', 'Invalid date, Valid format => 2018-07-25)' ),
                     '20015' => array( '\\ccxt\\BadRequest', 'Date exceeds the limit' ),
                     '20018' => array( '\\ccxt\\PermissionDenied', 'Your trading rights have been banned by the system' ),
-                    '20019' => array( '\\ccxt\\BadRequest', 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front' ),
+                    '20019' => array( '\\ccxt\\BadSymbol', 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front' ),
                     '20020' => array( '\\ccxt\\DDoSProtection', "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate." ),
                     '50000' => array( '\\ccxt\\ExchangeError', 'Exception error' ),
                     '20021' => array( '\\ccxt\\BadRequest', 'Invalid currency' ),

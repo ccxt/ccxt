@@ -547,8 +547,6 @@ class tidex extends Exchange {
             'amount' => $this->amount_to_precision($symbol, $amount),
             'rate' => $this->price_to_precision($symbol, $price),
         );
-        $price = floatval($price);
-        $amount = floatval($amount);
         $response = $this->privatePostTrade (array_merge($request, $params));
         $id = null;
         $status = 'open';

@@ -246,8 +246,8 @@ module.exports = class ftx extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'maker': this.parseNumber ('0.02'),
-                    'taker': this.parseNumber ('0.07'),
+                    'maker': this.parseNumber ('0.0002'),
+                    'taker': this.parseNumber ('0.0007'),
                     'tiers': {
                         'taker': [
                             [ this.parseNumber ('0'), this.parseNumber ('0.0007') ],

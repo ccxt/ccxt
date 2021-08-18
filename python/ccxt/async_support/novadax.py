@@ -839,7 +839,7 @@ class novadax(Exchange):
         id = self.safe_string(order, 'id')
         amount = self.safe_number(order, 'amount')
         price = self.safe_number(order, 'price')
-        cost = self.safe_number(order, 'filledValue')
+        cost = self.safe_number_2(order, 'filledValue', 'value')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))

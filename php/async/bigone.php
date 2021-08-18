@@ -132,6 +132,7 @@ class bigone extends Exchange {
                     '40605' => '\\ccxt\\InvalidOrder', // array("code":40605,"message":"Price less than the minimum order price")
                     '40120' => '\\ccxt\\InvalidOrder', // Order is in trading
                     '40121' => '\\ccxt\\InvalidOrder', // Order is already cancelled or filled
+                    '60100' => '\\ccxt\\BadSymbol', // array("code":60100,"message":"Asset pair is suspended")
                 ),
                 'broad' => array(
                 ),

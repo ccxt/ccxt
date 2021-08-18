@@ -267,8 +267,8 @@ class ftx(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'maker': self.parse_number('0.02'),
-                    'taker': self.parse_number('0.07'),
+                    'maker': self.parse_number('0.0002'),
+                    'taker': self.parse_number('0.0007'),
                     'tiers': {
                         'taker': [
                             [self.parse_number('0'), self.parse_number('0.0007')],

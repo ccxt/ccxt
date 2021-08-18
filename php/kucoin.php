@@ -939,17 +939,22 @@ class kucoin extends Exchange {
             // 'autoBorrow' => false, // The system will first borrow you funds at the optimal interest rate and then place an $order for you
         );
         $quoteAmount = $this->safe_number_2($params, 'cost', 'funds');
+        $amountString = null;
+        $costString = null;
         if ($type === 'market') {
             if ($quoteAmount !== null) {
                 $params = $this->omit($params, array( 'cost', 'funds' ));
                 // kucoin uses base precision even for quote values
-                $request['funds'] = $this->amount_to_precision($symbol, $quoteAmount);
+                $costString = $this->amount_to_precision($symbol, $quoteAmount);
+                $request['funds'] = $costString;
             } else {
+                $amountString = $this->amount_to_precision($symbol, $amount);
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
             }
         } else {
+            $amountString = $this->amount_to_precision($symbol, $amount);
+            $request['size'] = $amountString;
             $request['price'] = $this->price_to_precision($symbol, $price);
-            $request['size'] = $this->amount_to_precision($symbol, $amount);
         }
         $response = $this->privatePostOrders (array_merge($request, $params));
         //
@@ -974,8 +979,8 @@ class kucoin extends Exchange {
             'type' => $type,
             'side' => $side,
             'price' => $price,
-            'amount' => null,
-            'cost' => null,
+            'amount' => $this->parse_number($amountString),
+            'cost' => $this->parse_number($costString),
             'average' => null,
             'filled' => null,
             'remaining' => null,
@@ -983,11 +988,6 @@ class kucoin extends Exchange {
             'fee' => null,
             'trades' => null,
         );
-        if ($quoteAmount === null) {
-            $order['amount'] = $amount;
-        } else {
-            $order['cost'] = $quoteAmount;
-        }
         return $order;
     }
 
@@ -1755,7 +1755,7 @@ class kucoin extends Exchange {
             throw new ExchangeError($this->id . ' $type must be one of ' . implode(', ', $keys));
         }
         $params = $this->omit($params, 'type');
-        if ($type === 'contract') {
+        if (($type === 'contract') || ($type === 'futures')) {
             // futures api requires a futures apiKey
             // only fetches one $balance at a time
             // by default it will only fetch the BTC $balance of the futures $account

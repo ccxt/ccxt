@@ -47,6 +47,7 @@ class okex extends Exchange {
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -492,6 +493,26 @@ class okex extends Exchange {
                 // ),
                 'fetchLedger' => array(
                     'method' => 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
+                ),
+                // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'accountsByType' => array(
+                    'spot' => '1',
+                    'futures' => '3',
+                    'margin' => '5',
+                    'funding' => '6',
+                    'swap' => '9',
+                    'option' => '12',
+                    'trading' => '18', // unified trading account
+                    'unified' => '18',
+                ),
+                'typesByAccount' => array(
+                    '1' => 'spot',
+                    '3' => 'futures',
+                    '5' => 'margin',
+                    '6' => 'funding',
+                    '9' => 'swap',
+                    '12' => 'option',
+                    '18' => 'trading', // unified trading account
                 ),
                 'brokerId' => 'e847386590ce4dBC',
             ),
@@ -1197,10 +1218,10 @@ class okex extends Exchange {
         $type = $this->safe_string($params, 'type', $type);
         $params = $this->omit($params, 'type');
         $method = null;
-        if (($type === 'spot') || ($type === 'trading')) {
-            $method = 'privateGetAccountBalance';
-        } else if ($type === 'funding') {
+        if ($type === 'funding') {
             $method = 'privateGetAssetBalances';
+        } else {
+            $method = 'privateGetAccountBalance';
         }
         $request = array(
             // 'ccy' => 'BTC,ETH', // comma-separated list of currency ids
@@ -2679,6 +2700,87 @@ class okex extends Exchange {
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
             'leverage' => $leverage,
             'marginRatio' => $marginRatio,
+        );
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        if ($fromId === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
+        }
+        if ($toId === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
+        }
+        $request = array(
+            'ccy' => $currency['id'],
+            'amt' => $this->currency_to_precision($code, $amount),
+            'type' => '0', // 0 = transfer within account by default, 1 = master account to sub-account, 2 = sub-account to master account
+            'from' => $fromId, // remitting account, 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+            'to' => $toId, // beneficiary account, 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+            // 'subAcct' => 'sub-account-name', // optional, only required when type is 1 or 2
+            // 'instId' => market['id'], // required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred out
+            // 'toInstId' => market['id'], // required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred in
+        );
+        $response = yield $this->privatePostAssetTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "$code" => "0",
+        //         "msg" => "",
+        //         "$data" => array(
+        //             {
+        //                 "transId" => "754147",
+        //                 "ccy" => "USDT",
+        //                 "from" => "6",
+        //                 "amt" => "0.1",
+        //                 "to" => "18"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $rawTransfer = $this->safe_value($data, 0, array());
+        return $this->parse_transfer($rawTransfer, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // $transfer
+        //
+        //     {
+        //         "transId" => "754147",
+        //         "ccy" => "USDT",
+        //         "from" => "6",
+        //         "amt" => "0.1",
+        //         "to" => "18"
+        //     }
+        //
+        $id = $this->safe_string($transfer, 'transId');
+        $currencyId = $this->safe_string($transfer, 'ccy');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $amount = $this->safe_number($transfer, 'amt');
+        $fromAccountId = $this->safe_string($transfer, 'from');
+        $toAccountId = $this->safe_string($transfer, 'to');
+        $typesByAccount = $this->safe_value($this->options, 'typesByAccount', array());
+        $fromAccount = $this->safe_string($typesByAccount, $fromAccountId);
+        $toAccount = $this->safe_string($typesByAccount, $toAccountId);
+        $timestamp = null;
+        $status = null;
+        return array(
+            'info' => $transfer,
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $code,
+            'amount' => $amount,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $status,
         );
     }
 

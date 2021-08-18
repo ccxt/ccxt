@@ -913,12 +913,12 @@ class timex(Exchange):
             if dotIndex > 0:
                 whole = feeString[0:dotIndex]
                 fraction = feeString[-dotIndex:]
-                fee = float(whole + '.' + fraction)
+                fee = self.parse_number(whole + '.' + fraction)
             else:
                 fraction = '.'
                 for i in range(0, -dotIndex):
                     fraction += '0'
-                fee = float(fraction + feeString)
+                fee = self.parse_number(fraction + feeString)
         return {
             'id': code,
             'code': code,

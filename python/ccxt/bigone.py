@@ -9,6 +9,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -138,6 +139,7 @@ class bigone(Exchange):
                     '40605': InvalidOrder,  # {"code":40605,"message":"Price less than the minimum order price"}
                     '40120': InvalidOrder,  # Order is in trading
                     '40121': InvalidOrder,  # Order is already cancelled or filled
+                    '60100': BadSymbol,  # {"code":60100,"message":"Asset pair is suspended"}
                 },
                 'broad': {
                 },

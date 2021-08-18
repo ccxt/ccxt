@@ -445,6 +445,8 @@ class binance extends Exchange {
                         'ticker/bookTicker',
                         'openInterest',
                         'indexInfo',
+                        'apiTradingStatus',
+                        'lvtKlines',
                     ),
                 ),
                 'fapiData' => array(
@@ -483,6 +485,7 @@ class binance extends Exchange {
                         'apiReferral/tradeVol',
                         'apiReferral/rebateVol',
                         'apiReferral/traderSummary',
+                        'adlQuantile',
                     ),
                     'post' => array(
                         'batchOrders',
@@ -782,6 +785,7 @@ class binance extends Exchange {
                     '-3041' => '\\ccxt\\InsufficientFunds', // array("code":-3041,"msg":"Balance is not enough")
                     '-5013' => '\\ccxt\\InsufficientFunds', // Asset transfer failed => insufficient balance"
                     '-11008' => '\\ccxt\\InsufficientFunds', // array("code":-11008,"msg":"Exceeding the account's maximum borrowable limit.")
+                    '-4051' => '\\ccxt\\InsufficientFunds', // array("code":-4051,"msg":"Isolated balance insufficient.")
                 ),
                 'broad' => array(
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
@@ -791,8 +795,17 @@ class binance extends Exchange {
         ));
     }
 
+    public function cost_to_precision($symbol, $cost) {
+        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['quote'], $this->precisionMode, $this->paddingMode);
+    }
+
     public function currency_to_precision($currency, $fee) {
-        return $this->number_to_string($fee);
+        // info is available in currencies only if the user has configured his api keys
+        if (is_array($this->currencies[$currency]) && array_key_exists('info', $this->currencies[$currency])) {
+            return $this->decimal_to_precision($fee, TRUNCATE, $this->currencies[$currency]['precision'], $this->precisionMode, $this->paddingMode);
+        } else {
+            return $this->number_to_string($fee);
+        }
     }
 
     public function nonce() {
@@ -1001,7 +1014,7 @@ class binance extends Exchange {
         //                 "isSpotTradingAllowed":true,
         //                 "isMarginTradingAllowed":true,
         //                 "$filters":array(
-        //                     array("filterType":"PRICE_FILTER","minPrice":"0.00000100","maxPrice":"100000.00000000","tickSize":"0.00000100"),
+        //                     array("filterType":"PRICE_FILTER","minPrice":"0.00000100","maxPrice":"100000.00000000","$tickSize":"0.00000100"),
         //                     array("filterType":"PERCENT_PRICE","multiplierUp":"5","multiplierDown":"0.2","avgPriceMins":5),
         //                     array("filterType":"LOT_SIZE","minQty":"0.00100000","maxQty":"100000.00000000","$stepSize":"0.00100000"),
         //                     array("filterType":"MIN_NOTIONAL","minNotional":"0.00010000","applyToMarket":true,"avgPriceMins":5),
@@ -1036,7 +1049,7 @@ class binance extends Exchange {
         //                 "baseAssetPrecision":8,
         //                 "quotePrecision":8,
         //                 "$filters":[
-        //                     array("minPrice":"0.01","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.01"),
+        //                     array("minPrice":"0.01","maxPrice":"100000","filterType":"PRICE_FILTER","$tickSize":"0.01"),
         //                     array("$stepSize":"0.001","filterType":"LOT_SIZE","maxQty":"1000","minQty":"0.001"),
         //                     array("$stepSize":"0.001","filterType":"MARKET_LOT_SIZE","maxQty":"1000","minQty":"0.001"),
         //                     array("limit":200,"filterType":"MAX_NUM_ORDERS"),
@@ -1078,7 +1091,7 @@ class binance extends Exchange {
         //                 "quotePrecision" => 8,
         //                 "equalQtyPrecision" => 4,
         //                 "$filters" => [
-        //                     array("minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.1"),
+        //                     array("minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","$tickSize":"0.1"),
         //                     array("$stepSize":"1","filterType":"LOT_SIZE","maxQty":"100000","minQty":"1"),
         //                     array("$stepSize":"0","filterType":"MARKET_LOT_SIZE","maxQty":"100000","minQty":"1"),
         //                     array("limit":200,"filterType":"MAX_NUM_ORDERS"),
@@ -1106,7 +1119,7 @@ class binance extends Exchange {
         //                 "quotePrecision" => 8,
         //                 "equalQtyPrecision" => 4,
         //                 "$filters" => array(
-        //                     array("minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.1"),
+        //                     array("minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","$tickSize":"0.1"),
         //                     array("$stepSize":"1","filterType":"LOT_SIZE","maxQty":"100000","minQty":"1"),
         //                     array("$stepSize":"1","filterType":"MARKET_LOT_SIZE","maxQty":"100000","minQty":"1"),
         //                     array("limit":200,"filterType":"MAX_NUM_ORDERS"),
@@ -1203,6 +1216,8 @@ class binance extends Exchange {
             );
             if (is_array($filtersByType) && array_key_exists('PRICE_FILTER', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
+                $tickSize = $this->safe_string($filter, 'tickSize');
+                $entry['precision']['price'] = $this->precision_from_string($tickSize);
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated $filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -4365,5 +4380,55 @@ class binance extends Exchange {
             $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return $response;
+    }
+
+    public function modify_margin_helper($symbol, $amount, $addOrReduce, $params = array ()) {
+        // used to modify isolated positions
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
+        if ($defaultType === 'spot') {
+            $defaultType = 'future';
+        }
+        $type = $this->safe_string($params, 'type', $defaultType);
+        if (($type === 'margin') || ($type === 'spot')) {
+            throw new NotSupported($this->id . ' add / reduce margin only supported with $type future or delivery');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'type' => $addOrReduce,
+            'symbol' => $market['id'],
+            'amount' => $amount,
+        );
+        $method = null;
+        $code = null;
+        if ($type === 'future') {
+            $method = 'fapiPrivatePostPositionMargin';
+            $code = $market['quote'];
+        } else {
+            $method = 'dapiPrivatePostPositionMargin';
+            $code = $market['base'];
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        $rawType = $this->safe_integer($response, 'type');
+        $resultType = ($rawType === 1) ? 'add' : 'reduce';
+        $resultAmount = $this->safe_number($response, 'amount');
+        $errorCode = $this->safe_string($response, 'code');
+        $status = ($errorCode === '200') ? 'ok' : 'failed';
+        return array(
+            'info' => $response,
+            'type' => $resultType,
+            'amount' => $resultAmount,
+            'code' => $code,
+            'symbol' => $market['symbol'],
+            'status' => $status,
+        );
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 2, $params);
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 }

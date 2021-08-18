@@ -129,6 +129,7 @@ class yobit extends Exchange {
                 'GOLD' => 'GoldMint',
                 'GOT' => 'Giotto Coin',
                 'GSX' => 'GlowShares',
+                'GT' => 'GTcoin',
                 'HTML5' => 'HTML',
                 'HYPERX' => 'HYPER',
                 'ICN' => 'iCoin',
@@ -549,8 +550,6 @@ class yobit extends Exchange {
             'amount' => $this->amount_to_precision($symbol, $amount),
             'rate' => $this->price_to_precision($symbol, $price),
         );
-        $price = floatval($price);
-        $amount = floatval($amount);
         $response = yield $this->privatePostTrade (array_merge($request, $params));
         $id = null;
         $status = 'open';

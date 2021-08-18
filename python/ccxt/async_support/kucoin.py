@@ -919,16 +919,21 @@ class kucoin(Exchange):
             # 'autoBorrow': False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
         }
         quoteAmount = self.safe_number_2(params, 'cost', 'funds')
+        amountString = None
+        costString = None
         if type == 'market':
             if quoteAmount is not None:
                 params = self.omit(params, ['cost', 'funds'])
                 # kucoin uses base precision even for quote values
-                request['funds'] = self.amount_to_precision(symbol, quoteAmount)
+                costString = self.amount_to_precision(symbol, quoteAmount)
+                request['funds'] = costString
             else:
+                amountString = self.amount_to_precision(symbol, amount)
                 request['size'] = self.amount_to_precision(symbol, amount)
         else:
+            amountString = self.amount_to_precision(symbol, amount)
+            request['size'] = amountString
             request['price'] = self.price_to_precision(symbol, price)
-            request['size'] = self.amount_to_precision(symbol, amount)
         response = await self.privatePostOrders(self.extend(request, params))
         #
         #     {
@@ -952,8 +957,8 @@ class kucoin(Exchange):
             'type': type,
             'side': side,
             'price': price,
-            'amount': None,
-            'cost': None,
+            'amount': self.parse_number(amountString),
+            'cost': self.parse_number(costString),
             'average': None,
             'filled': None,
             'remaining': None,
@@ -961,10 +966,6 @@ class kucoin(Exchange):
             'fee': None,
             'trades': None,
         }
-        if quoteAmount is None:
-            order['amount'] = amount
-        else:
-            order['cost'] = quoteAmount
         return order
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -1673,7 +1674,7 @@ class kucoin(Exchange):
             keys = list(accountsByType.keys())
             raise ExchangeError(self.id + ' type must be one of ' + ', '.join(keys))
         params = self.omit(params, 'type')
-        if type == 'contract':
+        if (type == 'contract') or (type == 'futures'):
             # futures api requires a futures apiKey
             # only fetches one balance at a time
             # by default it will only fetch the BTC balance of the futures account

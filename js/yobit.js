@@ -126,6 +126,7 @@ module.exports = class yobit extends Exchange {
                 'GOLD': 'GoldMint',
                 'GOT': 'Giotto Coin',
                 'GSX': 'GlowShares',
+                'GT': 'GTcoin',
                 'HTML5': 'HTML',
                 'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
@@ -546,8 +547,6 @@ module.exports = class yobit extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'rate': this.priceToPrecision (symbol, price),
         };
-        price = parseFloat (price);
-        amount = parseFloat (amount);
         const response = await this.privatePostTrade (this.extend (request, params));
         let id = undefined;
         let status = 'open';

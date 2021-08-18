@@ -967,7 +967,7 @@ class probit(Exchange):
         # returned by the exchange on market buys
         if (type == 'market') and (side == 'buy'):
             order['amount'] = None
-            order['cost'] = float(costToPrecision)
+            order['cost'] = self.parse_number(costToPrecision)
             order['remaining'] = None
         return order
 

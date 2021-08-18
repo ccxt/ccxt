@@ -72,6 +72,7 @@ class bitforex extends Exchange {
                         'api/v1/trade/placeMultiOrder',
                         'api/v1/trade/cancelOrder',
                         'api/v1/trade/cancelMultiOrder',
+                        'api/v1/trade/cancelAllOrder',
                         'api/v1/trade/orderInfo',
                         'api/v1/trade/multiOrderInfo',
                         'api/v1/trade/orderInfos',
@@ -105,7 +106,7 @@ class bitforex extends Exchange {
                 'UOS' => 'UOS Network',
             ),
             'exceptions' => array(
-                '4004' => '\\ccxt\\OrderNotFound',
+                '1003' => '\\ccxt\\BadSymbol', // array("success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error")
                 '1013' => '\\ccxt\\AuthenticationError',
                 '1016' => '\\ccxt\\AuthenticationError',
                 '1017' => '\\ccxt\\PermissionDenied', // array("code":"1017","success":false,"time":1602670594367,"message":"IP not allow")
@@ -113,6 +114,7 @@ class bitforex extends Exchange {
                 '3002' => '\\ccxt\\InsufficientFunds',
                 '4002' => '\\ccxt\\InvalidOrder', // array("success":false,"code":"4002","message":"Price unreasonable")
                 '4003' => '\\ccxt\\InvalidOrder', // array("success":false,"code":"4003","message":"amount too small")
+                '4004' => '\\ccxt\\OrderNotFound',
                 '10204' => '\\ccxt\\DDoSProtection',
             ),
         ));

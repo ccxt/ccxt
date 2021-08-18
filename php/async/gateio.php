@@ -20,6 +20,7 @@ class gateio extends Exchange {
             'rateLimit' => 1000,
             'version' => '4',
             'certified' => true,
+            'pro' => true,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
                 'doc' => 'https://www.gate.io/docs/apiv4/en/index.html',
@@ -450,7 +451,7 @@ class gateio extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $taker = $this->safe_number($entry, 'fee');
-            $maker = null;
+            $maker = $taker;
             $tradeStatus = $this->safe_string($entry, 'trade_status');
             $active = $tradeStatus === 'tradable';
             $amountPrecision = $this->safe_string($entry, 'amount_precision');
@@ -806,11 +807,15 @@ class gateio extends Exchange {
             'currency_pair' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
         );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        if ($since !== null) {
-            $request['start'] = (int) floor($since / 1000);
+        if ($since === null) {
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+        } else {
+            $request['from'] = (int) floor($since / 1000);
+            if ($limit !== null) {
+                $request['to'] = $this->sum($request['from'], $limit * $this->parse_timeframe($timeframe) - 1);
+            }
         }
         $response = yield $this->publicSpotGetCandlesticks (array_merge($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);

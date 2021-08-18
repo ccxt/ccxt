@@ -15,6 +15,7 @@ module.exports = class gateio extends Exchange {
             'rateLimit': 1000,
             'version': '4',
             'certified': true,
+            'pro': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
                 'doc': 'https://www.gate.io/docs/apiv4/en/index.html',
@@ -445,7 +446,7 @@ module.exports = class gateio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const taker = this.safeNumber (entry, 'fee');
-            const maker = undefined;
+            const maker = taker;
             const tradeStatus = this.safeString (entry, 'trade_status');
             const active = tradeStatus === 'tradable';
             const amountPrecision = this.safeString (entry, 'amount_precision');
@@ -801,11 +802,15 @@ module.exports = class gateio extends Exchange {
             'currency_pair': market['id'],
             'interval': this.timeframes[timeframe],
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        if (since !== undefined) {
-            request['start'] = Math.floor (since / 1000);
+        if (since === undefined) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['from'] = Math.floor (since / 1000);
+            if (limit !== undefined) {
+                request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe) - 1);
+            }
         }
         const response = await this.publicSpotGetCandlesticks (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
