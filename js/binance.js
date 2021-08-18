@@ -117,15 +117,18 @@ module.exports = class binance extends Exchange {
             },
             'depth': 1,
             'api': {
+                // the API structure below will need 3-layer apidefs
                 'sapi': {
                     'get': {
                         'accountSnapshot': { 'weight': 1 },
                         'system/status': { 'weight': 1 },
+                        // these endpoints require this.apiKey
                         'margin/asset': { 'weight': 1 },
                         'margin/pair': { 'weight': 1 },
                         'margin/allAssets': { 'weight': 1 },
                         'margin/allPairs': { 'weight': 1 },
                         'margin/priceIndex': { 'weight': 1 },
+                        // these endpoints require this.apiKey + this.secret
                         'asset/assetDividend': { 'weight': 1 },
                         'asset/dribblet': { 'weight': 1 },
                         'asset/transfer': { 'weight': 1 },
@@ -160,7 +163,8 @@ module.exports = class binance extends Exchange {
                         'futures/loan/calcMaxAdjustAmount': { 'weight': 1 },
                         'futures/loan/adjustCollateral/history': { 'weight': 1 },
                         'futures/loan/liquidationHistory': { 'weight': 1 },
-                        'capital/config/getall': { 'weight': 1 },
+                        // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
+                        'capital/config/getall': { 'weight': 1 }, // get networks for withdrawing USDT ERC20 vs USDT Omni
                         'capital/deposit/address': { 'weight': 1 },
                         'capital/deposit/hisrec': { 'weight': 1 },
                         'capital/deposit/subAddress': { 'weight': 1 },
@@ -180,6 +184,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/sub/transfer/history': { 'weight': 1 },
                         'sub-account/transfer/subUserHistory': { 'weight': 1 },
                         'sub-account/universalTransfer': { 'weight': 1 },
+                        // lending endpoints
                         'lending/daily/product/list': { 'weight': 1 },
                         'lending/daily/userLeftQuota': { 'weight': 1 },
                         'lending/daily/userRedemptionQuota': { 'weight': 1 },
@@ -190,6 +195,7 @@ module.exports = class binance extends Exchange {
                         'lending/union/interestHistory': { 'weight': 1 },
                         'lending/project/list': { 'weight': 1 },
                         'lending/project/position/list': { 'weight': 1 },
+                        // mining endpoints
                         'mining/pub/algoList': { 'weight': 1 },
                         'mining/pub/coinList': { 'weight': 1 },
                         'mining/worker/detail': { 'weight': 5 },
@@ -197,15 +203,18 @@ module.exports = class binance extends Exchange {
                         'mining/payment/list': { 'weight': 5 },
                         'mining/statistics/user/status': { 'weight': 5 },
                         'mining/statistics/user/list': { 'weight': 5 },
+                        // liquid swap endpoints
                         'bswap/pools': { 'weight': 1 },
                         'bswap/liquidity': { 'weight': 1, 'noPoolId': 10 },
                         'bswap/liquidityOps': { 'weight': 2 },
                         'bswap/quote': { 'weight': 2 },
                         'bswap/swap': { 'weight': 1 },
+                        // leveraged token endpoints
                         'blvt/tokenInfo': { 'weight': 1 },
                         'blvt/subscribe/record': { 'weight': 1 },
                         'blvt/redeem/record': { 'weight': 1 },
                         'blvt/userLimit': { 'weight': 1 },
+                        // broker api
                         'apiReferral/ifNewUser': { 'weight': 1 },
                         'apiReferral/customization': { 'weight': 1 },
                         'apiReferral/userCustomization': { 'weight': 1 },
@@ -213,6 +222,7 @@ module.exports = class binance extends Exchange {
                         'apiReferral/rebate/historicalRecord': { 'weight': 1 },
                         'apiReferral/kickback/recentRecord': { 'weight': 1 },
                         'apiReferral/kickback/historicalRecord': { 'weight': 1 },
+                        // brokerage API
                         'broker/subAccountApi': { 'weight': 1 },
                         'broker/subAccount': { 'weight': 1 },
                         'broker/subAccountApi/commission/futures': { 'weight': 1 },
@@ -230,7 +240,10 @@ module.exports = class binance extends Exchange {
                         'broker/rebate/futures/recentRecord': { 'weight': 1 },
                         'broker/subAccountApi/ipRestriction': { 'weight': 1 },
                         'broker/universalTransfer': { 'weight': 1 },
+                        // v2 not supported yet
+                        // GET /sapi/v2/broker/subAccount/futuresSummary
                         'account/apiRestrictions': { 'weight': 1 },
+                        // subaccounts
                         'managed-subaccount/asset': { 'weight': 1 },
                     },
                     'post': {
@@ -264,14 +277,18 @@ module.exports = class binance extends Exchange {
                         'futures/loan/borrow': { 'weight': 20 },
                         'futures/loan/repay': { 'weight': 20 },
                         'futures/loan/adjustCollateral': { 'weight': 20 },
+                        // lending
                         'lending/customizedFixed/purchase': { 'weight': 1 },
                         'lending/daily/purchase': { 'weight': 1 },
                         'lending/daily/redeem': { 'weight': 1 },
+                        // liquid swap endpoints
                         'bswap/liquidityAdd': { 'weight': 2 },
                         'bswap/liquidityRemove': { 'weight': 2 },
                         'bswap/swap': { 'weight': 2 },
+                        // leveraged token endpoints
                         'blvt/subscribe': { 'weight': 1 },
                         'blvt/redeem': { 'weight': 1 },
+                        // brokerage API
                         'apiReferral/customization': { 'weight': 1 },
                         'apiReferral/userCustomization': { 'weight': 1 },
                         'apiReferral/rebate/historicalRecord': { 'weight': 1 },
@@ -305,10 +322,12 @@ module.exports = class binance extends Exchange {
                         'margin/order': { 'weight': 1 },
                         'userDataStream': { 'weight': 1 },
                         'userDataStream/isolated': { 'weight': 1 },
+                        // brokerage API
                         'broker/subAccountApi': { 'weight': 1 },
                         'broker/subAccountApi/ipRestriction/ipList': { 'weight': 1 },
                     },
                 },
+                // deprecated
                 'wapi': {
                     'post': {
                         'withdraw': { 'weight': 1 },
@@ -451,6 +470,7 @@ module.exports = class binance extends Exchange {
                         'commissionRate': { 'weight': 20 },
                         'apiTradingStatus': { 'weight': 1 },
                         'multiAssetsMargin': { 'weight': 30 },
+                        // broker endpoints
                         'apiReferral/ifNewUser': { 'weight': 1 },
                         'apiReferral/customization': { 'weight': 1 },
                         'apiReferral/userCustomization': { 'weight': 1 },
@@ -471,6 +491,7 @@ module.exports = class binance extends Exchange {
                         'listenKey': { 'weight': 1 },
                         'countdownCancelAll': { 'weight': 10 },
                         'multiAssetsMargin': { 'weight': 1 },
+                        // broker endpoints
                         'apiReferral/customization': { 'weight': 1 },
                         'apiReferral/userCustomization': { 'weight': 1 },
                     },
@@ -523,9 +544,9 @@ module.exports = class binance extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'allOrderList': { 'weight': 10 },
-                        'openOrderList': { 'weight': 3 },
-                        'orderList': { 'weight': 2 },
+                        'allOrderList': { 'weight': 10 }, // oco
+                        'openOrderList': { 'weight': 3 }, // oco
+                        'orderList': { 'weight': 2 }, // oco
                         'order': { 'weight': 2 },
                         'openOrders': { 'weight': 3, 'noSymbol': 40 },
                         'allOrders': { 'weight': 10 },
@@ -538,8 +559,8 @@ module.exports = class binance extends Exchange {
                         'order/test': { 'weight': 1 },
                     },
                     'delete': {
-                        'openOrders': { 'weight': 1 },
-                        'orderList': { 'weight': 1 },
+                        'openOrders': { 'weight': 1 }, // added on 2020-04-25 for canceling all open orders per symbol
+                        'orderList': { 'weight': 1 }, // oco
                         'order': { 'weight': 1 },
                     },
                 },
