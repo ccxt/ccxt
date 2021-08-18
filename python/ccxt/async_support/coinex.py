@@ -198,6 +198,9 @@ class coinex(Exchange):
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
             },
+            'commonCurrencies': {
+                'ACM': 'Actinium',
+            },
         })
 
     async def fetch_markets(self, params={}):
