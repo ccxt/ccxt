@@ -587,8 +587,8 @@ module.exports = class novadax extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeString (balance, 'available');
-            account['free'] = this.safeString (balance, 'balance');
+            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'hold');
             result[code] = account;
         }
