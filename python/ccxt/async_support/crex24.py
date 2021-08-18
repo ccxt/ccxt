@@ -144,6 +144,7 @@ class crex24(Exchange):
                 },
             },
             'commonCurrencies': {
+                'ACM': 'Actinium',
                 'BCC': 'BCH',
                 'BIT': 'BitMoney',
                 'BULL': 'BuySell',

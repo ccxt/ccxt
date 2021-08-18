@@ -580,8 +580,8 @@ class novadax(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_string(balance, 'available')
-            account['free'] = self.safe_string(balance, 'balance')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'hold')
             result[code] = account
         return self.parse_balance(result)
