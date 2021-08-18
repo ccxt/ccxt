@@ -41,6 +41,7 @@ class bitmart(Exchange):
             'countries': ['US', 'CN', 'HK', 'KR'],
             'rateLimit': 1000,
             'version': 'v1',
+            'certified': True,
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,

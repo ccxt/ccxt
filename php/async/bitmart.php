@@ -21,6 +21,7 @@ class bitmart extends Exchange {
             'countries' => array( 'US', 'CN', 'HK', 'KR' ),
             'rateLimit' => 1000,
             'version' => 'v1',
+            'certified' => true,
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
