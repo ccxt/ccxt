@@ -1383,6 +1383,9 @@ class bitstamp(Exchange):
             if code == 'XRP':
                 if tag is not None:
                     request['destination_tag'] = tag
+            elif code == 'XLM':
+                if tag is not None:
+                    request['memo_id'] = tag
             request['address'] = address
         else:
             method = 'privatePostWithdrawalOpen'
