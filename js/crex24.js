@@ -131,6 +131,7 @@ module.exports = class crex24 extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'ACM': 'Actinium',
                 'BCC': 'BCH',
                 'BIT': 'BitMoney',
                 'BULL': 'BuySell',
