@@ -38,7 +38,7 @@ module.exports = class bitrue extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'fetchClosedOrders': false,
                 'fetchBalance': true,
                 'createMarketOrder': true,
                 'createOrder': true,
@@ -315,12 +315,6 @@ module.exports = class bitrue extends Exchange {
         };
     }
 
-    async loadTimeDiff () {
-        if (this.defMillis === undefined) {
-            await this.fetchTime ();
-        }
-    }
-
     async fetchTime (params = {}) {
         const response = await this.publicGetTime (params);
         const serverMillis = this.safeInteger (response, 'serverTime');
@@ -360,7 +354,7 @@ module.exports = class bitrue extends Exchange {
         if (type.toUpperCase () === 'LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = this.privatePostOrder (this.extend (request, params));
+        const response = await this.privatePostOrder (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -374,7 +368,7 @@ module.exports = class bitrue extends Exchange {
             'orderId': id,
             'symbol': market['id'],
         };
-        const response = this.privateGetOrder (this.extend (request, params));
+        const response = await this.privateGetOrder (this.extend (request, params));
         const orderId = this.safeString (response, 'orderId');
         if (orderId === undefined) {
             throw new OrderNotFound (this.id + ' could not find matching order');
@@ -383,41 +377,21 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchOpenOrders (symbol, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = this.privateGetOpenOrders (this.extend (request, params));
+        const response = await this.privateGetOpenOrders (this.extend (request, params));
         const orders = Array.isArray (response) ? response : [];
-        const result = this.parseOrders (orders, market, undefined, undefined, params = {});
+        const result = this.parseOrders (orders, market, undefined, undefined, params);
         return result;
     }
 
-    async fetchClosedOrders (symbol = undefined, start_id = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        if (start_id !== undefined) {
-            request['fromId'] = start_id;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = this.privateGetMyTrades (this.extend (request, params));
-        const trades = Array.isArray (response) ? response : [];
-        const result = [];
-        for (let i = 0; i < trades.length; i++) {
-            const trade = this.parseTrade (trades[i], undefined);
-            result.push (trade);
-        }
-        return result;
-    }
-
-    async fetchOrders (symbol = undefined, orderId = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
@@ -427,36 +401,15 @@ module.exports = class bitrue extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        if (orderId !== undefined) {
-            request['orderId'] = orderId;
-        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = this.privateGetAllOrders (this.extend (request, query));
+        const response = await this.privateGetAllOrders (this.extend (request, query));
         const orders = Array.isArray (response) ? response : [];
-        return this.parseOrders (orders, market, orderId, limit, {});
+        return this.parseOrders (orders, market, undefined, undefined, params);
     }
 
-    async parseOrder (order, market = undefined) {
-        // {
-        //   "symbol": "BATBTC",
-        //   "orderId": "194601105",
-        //   "clientOrderId": "",
-        //   "price": "0.0000216600000000",
-        //   "origQty": "155.0000000000000000",
-        //   "executedQty": "0.0000000000000000",
-        //   "cummulativeQuoteQty": "0.0000000000000000",
-        //   "status": "NEW",
-        //   "timeInForce": "",
-        //   "type": "LIMIT",
-        //   "side": "BUY",
-        //   "stopPrice": "",
-        //   "icebergQty": "",
-        //   "time": 1590637046000,
-        //   "updateTime": 1590637046000,
-        //   "isWorking": "False"
-        // }
+    parseOrder (order, market = undefined) {
         const status = this.parseOrderStatus (this.safeValue (order, 'status'));
         let symbol = undefined;
         if (market !== undefined) {
@@ -472,37 +425,36 @@ module.exports = class bitrue extends Exchange {
         } else if ('transactTime' in order) {
             timestamp = this.safeInteger (order, 'transactTime');
         }
-        const executeQty = this.safeFloat (order, 'executedQty');
+        const executedQty = this.safeFloat (order, 'executedQty');
         const cummulativeQuoteQty = this.safeFloat (order, 'cummulativeQuoteQty');
         let average = undefined;
-        if (executeQty !== undefined && cummulativeQuoteQty !== undefined) {
-            average = (executeQty > 0) ? cummulativeQuoteQty / executeQty : 0.0;
+        if (executedQty !== undefined && cummulativeQuoteQty !== undefined) {
+            average = (executedQty > 0) ? cummulativeQuoteQty / executedQty : 0.0;
         }
         const amount = this.safeFloat (order, 'origQty');
-        const remaining = (amount !== undefined && executeQty !== undefined) ? amount - executeQty : undefined;
-        return {
+        const remaining = (amount !== undefined && executedQty !== undefined) ? (amount - executedQty) : undefined;
+        return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'orderId'),
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': this.safeValue (order, 'type'),
-            'side': this.safeValue (order, 'side'),
+            'type': this.safeStringLower (order, 'type'),
+            'side': this.safeStringLower (order, 'side'),
             'price': this.safeFloat (order, 'price'),
-            'average': average,
             'amount': amount,
+            'average': average,
+            'filled': executedQty,
             'remaining': remaining,
-            'filled': executeQty,
             'status': status,
-            'cost': undefined,
-            'trades': undefined,
+            'cost': cummulativeQuoteQty,
             'fee': undefined,
-        };
+            'trades': undefined,
+        });
     }
 
-    async parseOrderStatus (status) {
+    parseOrderStatus (status) {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -510,7 +462,7 @@ module.exports = class bitrue extends Exchange {
             'CANCELED': 'canceled',
             'PENDING_CANCEL': 'canceled',
             'REJECTED': 'failed',
-            'EXPIRED': 'canceled',
+            'EXPIRED': 'expired',
         };
         return this.safeString (statuses, status, status);
     }
