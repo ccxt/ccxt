@@ -2320,7 +2320,7 @@ module.exports = class b2c2 extends Exchange {
             'amount': amount,
             'before': undefined,
             'after': undefined,
-            'status': 'ok',
+            'status': 'settled',
             'fee': undefined,
         };
     }
@@ -2454,7 +2454,7 @@ module.exports = class b2c2 extends Exchange {
         }
         let status = 'pending';
         if (transaction['settled'] === true) {
-            status = 'ok';
+            status = 'settled';
         }
         const datetime = this.parse8601 (this.safeString (transaction, 'applyTime'));
         const id = this.safeString (transaction, 'withdrawal_id');
