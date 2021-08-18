@@ -1477,7 +1477,7 @@ module.exports = class bitstamp extends Exchange {
             } else if (code === 'XLM') {
                 if (tag !== undefined) {
                     request['memo_id'] = tag;
-                }          
+                }
             }
             request['address'] = address;
         } else {
