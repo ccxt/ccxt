@@ -3,9 +3,9 @@
 // ----------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const Precise = require ('ccxt').Precise;
 const { ExchangeError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
-const Precise = require ('ccxt').Precise;
 
 // ----------------------------------------------------------------------------
 
