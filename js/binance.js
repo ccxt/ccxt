@@ -55,8 +55,10 @@ module.exports = class binance extends ccxt.binance {
                 'watchTicker': {
                     'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': false, // or true
+                },
                 'wallet': 'wb', // wb = wallet balance, cw = cross balance
-                'futureBalance': {},
                 'listenKeyRefreshRate': 1200000, // 20 mins
             },
         });
@@ -826,13 +828,19 @@ module.exports = class binance extends ccxt.binance {
     async watchBalance (params = {}) {
         await this.loadMarkets ();
         await this.authenticate (params);
-        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         if (!(type in client.subscriptions)) {
             // reset this.balances after a disconnect
-            this.spawn (this.loadBalanceSnapshot, type);
+            const options = this.safeValue (this.options, 'watchBalance');
+            const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
+            if (fetchBalanceSnapshot) {
+                this.spawn (this.loadBalanceSnapshot, type);
+            } else {
+                this.balance[type] = {};
+            }
         }
         const messageHash = type + ':balance';
         const message = undefined;
