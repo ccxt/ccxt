@@ -21,6 +21,7 @@ class bitmart extends Exchange {
             'countries' => array( 'US', 'CN', 'HK', 'KR' ),
             'rateLimit' => 1000,
             'version' => 'v1',
+            'certified' => true,
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -51,7 +52,7 @@ class bitmart extends Exchange {
             ),
             'hostname' => 'bitmart.com', // bitmart.info for Hong Kong users
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
                 'api' => 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
                 'www' => 'https://www.bitmart.com/',
                 'doc' => 'https://developer-pro.bitmart.com/',

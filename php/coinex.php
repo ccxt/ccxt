@@ -193,6 +193,9 @@ class coinex extends Exchange {
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
             ),
+            'commonCurrencies' => array(
+                'ACM' => 'Actinium',
+            ),
         ));
     }
 

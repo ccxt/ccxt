@@ -210,6 +210,22 @@ Certified Cryptocurrency Exchanges
           :target: https://www.binance.com/en/register?ref=BLEJC98C
           :alt: Sign up with Binance USDⓈ-M using CCXT's referral link for a 20% discount!
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg
+          :target: http://www.bitmart.com/?r=rQCFLh
+          :alt: bitmart
+     
+     - bitmart
+     - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://developer-pro.bitmart.com/
+          :alt: API Version 1
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
           :target: https://bitvavo.com/?a=24F34952F7
           :alt: bitvavo
@@ -693,7 +709,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg
           :target: http://www.bitmart.com/?r=rQCFLh
           :alt: bitmart
      
@@ -703,7 +719,10 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://developer-pro.bitmart.com/
           :alt: API Version 1
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg
           :target: https://www.bitmex.com/register/upZpOX
@@ -1960,14 +1979,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.55.13/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.55.13/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.55.19/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.55.19/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.55.13/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.55.19/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

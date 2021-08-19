@@ -590,8 +590,8 @@ class novadax extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_string($balance, 'available');
-            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'hold');
             $result[$code] = $account;
         }

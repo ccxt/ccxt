@@ -1479,6 +1479,10 @@ class bitstamp extends Exchange {
                 if ($tag !== null) {
                     $request['destination_tag'] = $tag;
                 }
+            } else if ($code === 'XLM') {
+                if ($tag !== null) {
+                    $request['memo_id'] = $tag;
+                }
             }
             $request['address'] = $address;
         } else {
