@@ -589,8 +589,8 @@ class novadax extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_string($balance, 'available');
-            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'hold');
             $result[$code] = $account;
         }
@@ -604,7 +604,6 @@ class novadax extends Exchange {
         $uppercaseSide = strtoupper($side);
         $request = array(
             'symbol' => $market['id'],
-            'type' => $uppercaseType, // LIMIT, MARKET
             'side' => $uppercaseSide, // or SELL
             // 'amount' => $this->amount_to_precision($symbol, $amount),
             // "$price" => "1234.5678", // required for LIMIT and STOP orders
@@ -651,6 +650,7 @@ class novadax extends Exchange {
                 $request['value'] = $this->decimal_to_precision($value, TRUNCATE, $precision, $this->precisionMode);
             }
         }
+        $request['type'] = $uppercaseType;
         $response = $this->privatePostOrdersCreate (array_merge($request, $params));
         //
         //     {
@@ -870,7 +870,7 @@ class novadax extends Exchange {
         $id = $this->safe_string($order, 'id');
         $amount = $this->safe_number($order, 'amount');
         $price = $this->safe_number($order, 'price');
-        $cost = $this->safe_number($order, 'filledValue');
+        $cost = $this->safe_number_2($order, 'filledValue', 'value');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));

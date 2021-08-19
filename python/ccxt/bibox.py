@@ -253,7 +253,7 @@ class bibox(Exchange):
         percentage = self.safe_string(ticker, 'percent')
         if percentage is not None:
             percentage = percentage.replace('%', '')
-            percentage = float(percentage)
+            percentage = self.parse_number(percentage)
         return {
             'symbol': symbol,
             'timestamp': timestamp,

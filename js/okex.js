@@ -43,6 +43,7 @@ module.exports = class okex extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -488,6 +489,26 @@ module.exports = class okex extends Exchange {
                 // },
                 'fetchLedger': {
                     'method': 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
+                },
+                // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'accountsByType': {
+                    'spot': '1',
+                    'futures': '3',
+                    'margin': '5',
+                    'funding': '6',
+                    'swap': '9',
+                    'option': '12',
+                    'trading': '18', // unified trading account
+                    'unified': '18',
+                },
+                'typesByAccount': {
+                    '1': 'spot',
+                    '3': 'futures',
+                    '5': 'margin',
+                    '6': 'funding',
+                    '9': 'swap',
+                    '12': 'option',
+                    '18': 'trading', // unified trading account
                 },
                 'brokerId': 'e847386590ce4dBC',
             },
@@ -1193,10 +1214,10 @@ module.exports = class okex extends Exchange {
         type = this.safeString (params, 'type', type);
         params = this.omit (params, 'type');
         let method = undefined;
-        if ((type === 'spot') || (type === 'trading')) {
-            method = 'privateGetAccountBalance';
-        } else if (type === 'funding') {
+        if (type === 'funding') {
             method = 'privateGetAssetBalances';
+        } else {
+            method = 'privateGetAccountBalance';
         }
         const request = {
             // 'ccy': 'BTC,ETH', // comma-separated list of currency ids
@@ -2675,6 +2696,87 @@ module.exports = class okex extends Exchange {
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'leverage': leverage,
             'marginRatio': marginRatio,
+        };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        if (fromId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+        }
+        if (toId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+        }
+        const request = {
+            'ccy': currency['id'],
+            'amt': this.currencyToPrecision (code, amount),
+            'type': '0', // 0 = transfer within account by default, 1 = master account to sub-account, 2 = sub-account to master account
+            'from': fromId, // remitting account, 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+            'to': toId, // beneficiary account, 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+            // 'subAcct': 'sub-account-name', // optional, only required when type is 1 or 2
+            // 'instId': market['id'], // required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred out
+            // 'toInstId': market['id'], // required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred in
+        };
+        const response = await this.privatePostAssetTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "transId": "754147",
+        //                 "ccy": "USDT",
+        //                 "from": "6",
+        //                 "amt": "0.1",
+        //                 "to": "18"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const rawTransfer = this.safeValue (data, 0, {});
+        return this.parseTransfer (rawTransfer, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // transfer
+        //
+        //     {
+        //         "transId": "754147",
+        //         "ccy": "USDT",
+        //         "from": "6",
+        //         "amt": "0.1",
+        //         "to": "18"
+        //     }
+        //
+        const id = this.safeString (transfer, 'transId');
+        const currencyId = this.safeString (transfer, 'ccy');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const amount = this.safeNumber (transfer, 'amt');
+        const fromAccountId = this.safeString (transfer, 'from');
+        const toAccountId = this.safeString (transfer, 'to');
+        const typesByAccount = this.safeValue (this.options, 'typesByAccount', {});
+        const fromAccount = this.safeString (typesByAccount, fromAccountId);
+        const toAccount = this.safeString (typesByAccount, toAccountId);
+        const timestamp = undefined;
+        const status = undefined;
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
         };
     }
 

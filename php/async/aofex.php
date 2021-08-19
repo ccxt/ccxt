@@ -429,7 +429,7 @@ class aofex extends Exchange {
         $last = $this->safe_number($ticker, 'close');
         $change = null;
         if ($symbol !== null) {
-            $change = floatval($this->price_to_precision($symbol, $last - $open));
+            $change = $this->parse_number($this->price_to_precision($symbol, $last - $open));
         } else {
             $change = $last - $open;
         }
@@ -439,7 +439,7 @@ class aofex extends Exchange {
         $quoteVolume = $this->safe_number($ticker, 'vol');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         if ($vwap !== null) {
-            $vwap = floatval($this->price_to_precision($symbol, $vwap));
+            $vwap = $this->parse_number($this->price_to_precision($symbol, $vwap));
         }
         return array(
             'symbol' => $symbol,

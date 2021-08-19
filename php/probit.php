@@ -1018,7 +1018,7 @@ class probit extends Exchange {
         // returned by the exchange on $market buys
         if (($type === 'market') && ($side === 'buy')) {
             $order['amount'] = null;
-            $order['cost'] = floatval($costToPrecision);
+            $order['cost'] = $this->parse_number($costToPrecision);
             $order['remaining'] = null;
         }
         return $order;

@@ -62,6 +62,7 @@ class okex(Exchange):
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -507,6 +508,26 @@ class okex(Exchange):
                 # },
                 'fetchLedger': {
                     'method': 'privateGetAccountBills',  # privateGetAccountBillsArchive, privateGetAssetBills
+                },
+                # 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'accountsByType': {
+                    'spot': '1',
+                    'futures': '3',
+                    'margin': '5',
+                    'funding': '6',
+                    'swap': '9',
+                    'option': '12',
+                    'trading': '18',  # unified trading account
+                    'unified': '18',
+                },
+                'typesByAccount': {
+                    '1': 'spot',
+                    '3': 'futures',
+                    '5': 'margin',
+                    '6': 'funding',
+                    '9': 'swap',
+                    '12': 'option',
+                    '18': 'trading',  # unified trading account
                 },
                 'brokerId': 'e847386590ce4dBC',
             },
@@ -1170,10 +1191,10 @@ class okex(Exchange):
         type = self.safe_string(params, 'type', type)
         params = self.omit(params, 'type')
         method = None
-        if (type == 'spot') or (type == 'trading'):
-            method = 'privateGetAccountBalance'
-        elif type == 'funding':
+        if type == 'funding':
             method = 'privateGetAssetBalances'
+        else:
+            method = 'privateGetAccountBalance'
         request = {
             # 'ccy': 'BTC,ETH',  # comma-separated list of currency ids
         }
@@ -2583,6 +2604,83 @@ class okex(Exchange):
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
             'leverage': leverage,
             'marginRatio': marginRatio,
+        }
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
+        if fromId is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
+        if toId is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        request = {
+            'ccy': currency['id'],
+            'amt': self.currency_to_precision(code, amount),
+            'type': '0',  # 0 = transfer within account by default, 1 = master account to sub-account, 2 = sub-account to master account
+            'from': fromId,  # remitting account, 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+            'to': toId,  # beneficiary account, 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+            # 'subAcct': 'sub-account-name',  # optional, only required when type is 1 or 2
+            # 'instId': market['id'],  # required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred out
+            # 'toInstId': market['id'],  # required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred in
+        }
+        response = await self.privatePostAssetTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "",
+        #         "data": [
+        #             {
+        #                 "transId": "754147",
+        #                 "ccy": "USDT",
+        #                 "from": "6",
+        #                 "amt": "0.1",
+        #                 "to": "18"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        rawTransfer = self.safe_value(data, 0, {})
+        return self.parse_transfer(rawTransfer, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # transfer
+        #
+        #     {
+        #         "transId": "754147",
+        #         "ccy": "USDT",
+        #         "from": "6",
+        #         "amt": "0.1",
+        #         "to": "18"
+        #     }
+        #
+        id = self.safe_string(transfer, 'transId')
+        currencyId = self.safe_string(transfer, 'ccy')
+        code = self.safe_currency_code(currencyId, currency)
+        amount = self.safe_number(transfer, 'amt')
+        fromAccountId = self.safe_string(transfer, 'from')
+        toAccountId = self.safe_string(transfer, 'to')
+        typesByAccount = self.safe_value(self.options, 'typesByAccount', {})
+        fromAccount = self.safe_string(typesByAccount, fromAccountId)
+        toAccount = self.safe_string(typesByAccount, toAccountId)
+        timestamp = None
+        status = None
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

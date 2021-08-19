@@ -41,6 +41,7 @@ class bitmart(Exchange):
             'countries': ['US', 'CN', 'HK', 'KR'],
             'rateLimit': 1000,
             'version': 'v1',
+            'certified': True,
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
@@ -71,7 +72,7 @@ class bitmart(Exchange):
             },
             'hostname': 'bitmart.com',  # bitmart.info for Hong Kong users
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
                 'api': 'https://api-cloud.{hostname}',  # bitmart.info for Hong Kong users
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://developer-pro.bitmart.com/',
@@ -324,6 +325,7 @@ class bitmart(Exchange):
             'commonCurrencies': {
                 'COT': 'Community Coin',
                 'CPC': 'CPCoin',
+                'MVP': 'MVP Coin',
                 'ONE': 'Menlo One',
                 'PLA': 'Plair',
             },
@@ -456,7 +458,7 @@ class bitmart(Exchange):
             pricePrecision = self.safe_integer(market, 'price_max_precision')
             precision = {
                 'amount': self.safe_number(market, 'base_min_size'),
-                'price': float(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 12)),
+                'price': self.parse_number(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 12)),
             }
             minBuyCost = self.safe_number(market, 'min_buy_amount')
             minSellCost = self.safe_number(market, 'min_sell_amount')

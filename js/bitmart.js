@@ -16,6 +16,7 @@ module.exports = class bitmart extends Exchange {
             'countries': [ 'US', 'CN', 'HK', 'KR' ],
             'rateLimit': 1000,
             'version': 'v1',
+            'certified': true,
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -46,7 +47,7 @@ module.exports = class bitmart extends Exchange {
             },
             'hostname': 'bitmart.com', // bitmart.info for Hong Kong users
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
                 'api': 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://developer-pro.bitmart.com/',
@@ -299,6 +300,7 @@ module.exports = class bitmart extends Exchange {
             'commonCurrencies': {
                 'COT': 'Community Coin',
                 'CPC': 'CPCoin',
+                'MVP': 'MVP Coin',
                 'ONE': 'Menlo One',
                 'PLA': 'Plair',
             },
@@ -437,7 +439,7 @@ module.exports = class bitmart extends Exchange {
             const pricePrecision = this.safeInteger (market, 'price_max_precision');
             const precision = {
                 'amount': this.safeNumber (market, 'base_min_size'),
-                'price': parseFloat (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 12)),
+                'price': this.parseNumber (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 12)),
             };
             const minBuyCost = this.safeNumber (market, 'min_buy_amount');
             const minSellCost = this.safeNumber (market, 'min_sell_amount');

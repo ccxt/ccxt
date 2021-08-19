@@ -136,6 +136,8 @@ class idex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        $response = yield $this->publicGetMarkets ($params);
+        //
         // array(
         //   array(
         //     market => 'DIL-ETH',
@@ -146,7 +148,28 @@ class idex extends Exchange {
         //     quoteAssetPrecision => 8
         //   ), ...
         // )
-        $response = yield $this->publicGetMarkets ($params);
+        //
+        $response2 = yield $this->publicGetExchange ();
+        //
+        // {
+        //     "timeZone" => "UTC",
+        //     "serverTime" => 1590408000000,
+        //     "ethereumDepositContractAddress" => "0x...",
+        //     "ethUsdPrice" => "206.46",
+        //     "gasPrice" => 7,
+        //     "volume24hUsd" => "10416227.98",
+        //     "makerFeeRate" => "0.001",
+        //     "takerFeeRate" => "0.002",
+        //     "makerTradeMinimum" => "0.15000000",
+        //     "takerTradeMinimum" => "0.05000000",
+        //     "withdrawalMinimum" => "0.04000000"
+        // }
+        //
+        $maker = $this->safe_number($response2, 'makerFeeRate');
+        $taker = $this->safe_number($response2, 'takerFeeRate');
+        $makerMin = $this->safe_number($response2, 'makerTradeMinimum');
+        $takerMin = $this->safe_number($response2, 'takerTradeMinimum');
+        $minCostETH = min ($makerMin, $takerMin);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -162,6 +185,10 @@ class idex extends Exchange {
             $quotePrecision = $this->parse_precision($quotePrecisionString);
             $status = $this->safe_string($entry, 'status');
             $active = $status === 'active';
+            $minCost = null;
+            if ($quote === 'ETH') {
+                $minCost = $minCostETH;
+            }
             $precision = array(
                 'amount' => intval($basePrecisionString),
                 'price' => intval($quotePrecisionString),
@@ -176,6 +203,8 @@ class idex extends Exchange {
                 'active' => $active,
                 'info' => $entry,
                 'precision' => $precision,
+                'taker' => $taker,
+                'maker' => $maker,
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->parse_number($basePrecision),
@@ -186,7 +215,7 @@ class idex extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $minCost,
                         'max' => null,
                     ),
                 ),

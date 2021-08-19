@@ -30,6 +30,8 @@ class gateio(Exchange):
             'country': ['KR'],
             'rateLimit': 1000,
             'version': '4',
+            'certified': True,
+            'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
                 'doc': 'https://www.gate.io/docs/apiv4/en/index.html',
@@ -44,22 +46,23 @@ class gateio(Exchange):
                 },
             },
             'has': {
-                'fetchMarkets': True,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposits': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchMyTrades': True,
-                'fetchBalance': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchOrder': True,
-                'createOrder': True,
-                'cancelOrder': True,
-                'withdraw': True,
-                'fetchDeposits': True,
                 'fetchWithdrawals': True,
                 'transfer': True,
+                'withdraw': True,
             },
             'api': {
                 'public': {
@@ -457,8 +460,9 @@ class gateio(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            taker = self.safe_number(entry, 'fee')
-            maker = None
+            # Fee is in %, so divide by 100
+            taker = self.safe_number(entry, 'fee') / 100
+            maker = taker
             tradeStatus = self.safe_string(entry, 'trade_status')
             active = tradeStatus == 'tradable'
             amountPrecision = self.safe_string(entry, 'amount_precision')
@@ -792,10 +796,13 @@ class gateio(Exchange):
             'currency_pair': market['id'],
             'interval': self.timeframes[timeframe],
         }
-        if limit is not None:
-            request['limit'] = limit
-        if since is not None:
-            request['start'] = int(math.floor(since / 1000))
+        if since is None:
+            if limit is not None:
+                request['limit'] = limit
+        else:
+            request['from'] = int(math.floor(since / 1000))
+            if limit is not None:
+                request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe) - 1)
         response = self.publicSpotGetCandlesticks(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -1311,7 +1318,8 @@ class gateio(Exchange):
             timestampString = str(timestamp)
             signaturePath = '/api/v4' + entirePath
             payloadArray = [method.upper(), signaturePath, queryString, bodySignature, timestampString]
-            payload = '\n'.join(payloadArray)
+            # eslint-disable-next-line quotes
+            payload = "\n".join(payloadArray)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
             headers = {
                 'KEY': self.apiKey,

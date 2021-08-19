@@ -144,6 +144,7 @@ class yobit(Exchange):
                 'GOLD': 'GoldMint',
                 'GOT': 'Giotto Coin',
                 'GSX': 'GlowShares',
+                'GT': 'GTcoin',
                 'HTML5': 'HTML',
                 'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
@@ -534,8 +535,6 @@ class yobit(Exchange):
             'amount': self.amount_to_precision(symbol, amount),
             'rate': self.price_to_precision(symbol, price),
         }
-        price = float(price)
-        amount = float(amount)
         response = await self.privatePostTrade(self.extend(request, params))
         id = None
         status = 'open'

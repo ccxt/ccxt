@@ -580,8 +580,8 @@ class novadax(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_string(balance, 'available')
-            account['free'] = self.safe_string(balance, 'balance')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'hold')
             result[code] = account
         return self.parse_balance(result)
@@ -593,7 +593,6 @@ class novadax(Exchange):
         uppercaseSide = side.upper()
         request = {
             'symbol': market['id'],
-            'type': uppercaseType,  # LIMIT, MARKET
             'side': uppercaseSide,  # or SELL
             # 'amount': self.amount_to_precision(symbol, amount),
             # "price": "1234.5678",  # required for LIMIT and STOP orders
@@ -632,6 +631,7 @@ class novadax(Exchange):
                     value = amount if (value is None) else value
                 precision = market['precision']['price']
                 request['value'] = self.decimal_to_precision(value, TRUNCATE, precision, self.precisionMode)
+        request['type'] = uppercaseType
         response = self.privatePostOrdersCreate(self.extend(request, params))
         #
         #     {
@@ -839,7 +839,7 @@ class novadax(Exchange):
         id = self.safe_string(order, 'id')
         amount = self.safe_number(order, 'amount')
         price = self.safe_number(order, 'price')
-        cost = self.safe_number(order, 'filledValue')
+        cost = self.safe_number_2(order, 'filledValue', 'value')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))

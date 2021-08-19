@@ -132,6 +132,8 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        const response = await this.publicGetMarkets (params);
+        //
         // [
         //   {
         //     market: 'DIL-ETH',
@@ -142,7 +144,28 @@ module.exports = class idex extends Exchange {
         //     quoteAssetPrecision: 8
         //   }, ...
         // ]
-        const response = await this.publicGetMarkets (params);
+        //
+        const response2 = await this.publicGetExchange ();
+        //
+        // {
+        //     "timeZone": "UTC",
+        //     "serverTime": 1590408000000,
+        //     "ethereumDepositContractAddress": "0x...",
+        //     "ethUsdPrice": "206.46",
+        //     "gasPrice": 7,
+        //     "volume24hUsd": "10416227.98",
+        //     "makerFeeRate": "0.001",
+        //     "takerFeeRate": "0.002",
+        //     "makerTradeMinimum": "0.15000000",
+        //     "takerTradeMinimum": "0.05000000",
+        //     "withdrawalMinimum": "0.04000000"
+        // }
+        //
+        const maker = this.safeNumber (response2, 'makerFeeRate');
+        const taker = this.safeNumber (response2, 'takerFeeRate');
+        const makerMin = this.safeNumber (response2, 'makerTradeMinimum');
+        const takerMin = this.safeNumber (response2, 'takerTradeMinimum');
+        const minCostETH = Math.min (makerMin, takerMin);
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -158,6 +181,10 @@ module.exports = class idex extends Exchange {
             const quotePrecision = this.parsePrecision (quotePrecisionString);
             const status = this.safeString (entry, 'status');
             const active = status === 'active';
+            let minCost = undefined;
+            if (quote === 'ETH') {
+                minCost = minCostETH;
+            }
             const precision = {
                 'amount': parseInt (basePrecisionString),
                 'price': parseInt (quotePrecisionString),
@@ -172,6 +199,8 @@ module.exports = class idex extends Exchange {
                 'active': active,
                 'info': entry,
                 'precision': precision,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
                         'min': this.parseNumber (basePrecision),
@@ -182,7 +211,7 @@ module.exports = class idex extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': minCost,
                         'max': undefined,
                     },
                 },

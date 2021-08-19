@@ -156,6 +156,10 @@ module.exports = class bitstamp extends Exchange {
                         'usdt_address/',
                         'eurt_withdrawal/',
                         'eurt_address/',
+                        'matic_withdrawal/',
+                        'matic_address/',
+                        'sushi_withdrawal/',
+                        'sushi_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -390,7 +394,7 @@ module.exports = class bitstamp extends Exchange {
             }
             if (!(quote in result)) {
                 const counterDecimals = this.safeInteger (market, 'counter_decimals');
-                result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, parseFloat (cost), market);
+                result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
             }
         }
         return result;
@@ -1469,6 +1473,10 @@ module.exports = class bitstamp extends Exchange {
             if (code === 'XRP') {
                 if (tag !== undefined) {
                     request['destination_tag'] = tag;
+                }
+            } else if (code === 'XLM') {
+                if (tag !== undefined) {
+                    request['memo_id'] = tag;
                 }
             }
             request['address'] = address;

@@ -176,6 +176,10 @@ class bitstamp(Exchange):
                         'usdt_address/',
                         'eurt_withdrawal/',
                         'eurt_address/',
+                        'matic_withdrawal/',
+                        'matic_address/',
+                        'sushi_withdrawal/',
+                        'sushi_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -402,7 +406,7 @@ class bitstamp(Exchange):
                 result[base] = self.construct_currency_object(baseId, base, baseDescription, baseDecimals, None, market)
             if not (quote in result):
                 counterDecimals = self.safe_integer(market, 'counter_decimals')
-                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, float(cost), market)
+                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, self.parse_number(cost), market)
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -1379,6 +1383,9 @@ class bitstamp(Exchange):
             if code == 'XRP':
                 if tag is not None:
                     request['destination_tag'] = tag
+            elif code == 'XLM':
+                if tag is not None:
+                    request['memo_id'] = tag
             request['address'] = address
         else:
             method = 'privatePostWithdrawalOpen'

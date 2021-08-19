@@ -161,6 +161,10 @@ class bitstamp extends Exchange {
                         'usdt_address/',
                         'eurt_withdrawal/',
                         'eurt_address/',
+                        'matic_withdrawal/',
+                        'matic_address/',
+                        'sushi_withdrawal/',
+                        'sushi_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -395,7 +399,7 @@ class bitstamp extends Exchange {
             }
             if (!(is_array($result) && array_key_exists($quote, $result))) {
                 $counterDecimals = $this->safe_integer($market, 'counter_decimals');
-                $result[$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, floatval($cost), $market);
+                $result[$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
             }
         }
         return $result;
@@ -1474,6 +1478,10 @@ class bitstamp extends Exchange {
             if ($code === 'XRP') {
                 if ($tag !== null) {
                     $request['destination_tag'] = $tag;
+                }
+            } else if ($code === 'XLM') {
+                if ($tag !== null) {
+                    $request['memo_id'] = $tag;
                 }
             }
             $request['address'] = $address;

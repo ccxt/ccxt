@@ -1013,7 +1013,7 @@ module.exports = class probit extends Exchange {
         // returned by the exchange on market buys
         if ((type === 'market') && (side === 'buy')) {
             order['amount'] = undefined;
-            order['cost'] = parseFloat (costToPrecision);
+            order['cost'] = this.parseNumber (costToPrecision);
             order['remaining'] = undefined;
         }
         return order;
