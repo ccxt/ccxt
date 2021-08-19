@@ -478,7 +478,8 @@ module.exports = class bitrue extends Exchange {
             'symbol': market['id'],
             'orderId': id,
         };
-        return this.privateDeleteOrder (this.extend (request, params));
+        const response = await this.privateDeleteOrder (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async loadTimeDifference (params = {}) {
