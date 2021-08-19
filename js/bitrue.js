@@ -388,7 +388,7 @@ module.exports = class bitrue extends Exchange {
         };
         const response = await this.privateGetOpenOrders (this.extend (request, params));
         const orders = Array.isArray (response) ? response : [];
-        const result = this.parseOrders (orders, market, undefined, undefined, params);
+        const result = this.parseOrders (orders, market);
         return result;
     }
 
@@ -407,7 +407,7 @@ module.exports = class bitrue extends Exchange {
         }
         const response = await this.privateGetAllOrders (this.extend (request, query));
         const orders = Array.isArray (response) ? response : [];
-        return this.parseOrders (orders, market, undefined, undefined, params);
+        return this.parseOrders (orders, market);
     }
 
     parseOrder (order, market = undefined) {
