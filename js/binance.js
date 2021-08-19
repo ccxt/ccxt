@@ -835,7 +835,8 @@ module.exports = class binance extends ccxt.binance {
     }
 
     async loadBalanceSnapshot (client, type) {
-        this.balance[type] = await this.fetchBalance ({ 'type': type });
+        const response = await this.fetchBalance ({ 'type': type });
+        this.balance[type] = this.extend (response, this.balance[type]);
         const messageHash = type + ':balance';
         client.resolve (this.balance[type], messageHash);
     }
