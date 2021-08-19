@@ -355,15 +355,16 @@ module.exports = class bitrue extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostOrder (this.extend (request, params));
+        // Note: Bitrue's API response for order creation does not include information such as type and side
         return this.parseOrder (response, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'orderId': id,
             'symbol': market['id'],
@@ -468,6 +469,9 @@ module.exports = class bitrue extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
