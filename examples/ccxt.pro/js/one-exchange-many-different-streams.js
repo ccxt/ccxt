@@ -2,7 +2,7 @@
 
 const ccxtpro = require ('ccxt.pro')
 
-console.log ('CCXT Pro Version:', ccxtpro.__version__)
+console.log ('CCXT Pro Version:', ccxtpro.version)
 
 async function watchOrders(exchange) {
     while (true) {
