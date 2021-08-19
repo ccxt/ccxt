@@ -57,6 +57,7 @@ module.exports = class binance extends ccxt.binance {
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': false, // or true
+                    'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
                 },
                 'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate': 1200000, // 20 mins
@@ -854,7 +855,8 @@ module.exports = class binance extends ccxt.binance {
         this.setBalanceCache (client, type);
         const options = this.safeValue (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot) {
+        const awaitBalanceSnapshot = this.safeValue (options, 'awaitBalanceSnapshot', false);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
         const messageHash = type + ':balance';
