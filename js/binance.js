@@ -55,8 +55,11 @@ module.exports = class binance extends ccxt.binance {
                 'watchTicker': {
                     'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': false, // or true
+                    'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
+                },
                 'wallet': 'wb', // wb = wallet balance, cw = cross balance
-                'futureBalance': {},
                 'listenKeyRefreshRate': 1200000, // 20 mins
             },
         });
@@ -819,16 +822,42 @@ module.exports = class binance extends ccxt.binance {
         }
     }
 
+    setBalanceCache (client, type) {
+        if (type in client.subscriptions) {
+            return undefined;
+        }
+        const options = this.safeValue (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
+        if (fetchBalanceSnapshot) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
+            }
+        } else {
+            this.balance[type] = {};
+        }
+    }
+
+    async loadBalanceSnapshot (client, messageHash, type) {
+        const response = await this.fetchBalance ({ 'type': type });
+        this.balance[type] = this.extend (response, this.balance[type]);
+        this.resolve (this.balance[type], messageHash);
+    }
+
     async watchBalance (params = {}) {
         await this.loadMarkets ();
         await this.authenticate (params);
-        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
-        if (!(type in client.subscriptions)) {
-            // reset this.balances after a disconnect
-            this.balance[type] = {};
+        this.setBalanceCache (client, type);
+        const options = this.safeValue (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
+        const awaitBalanceSnapshot = this.safeValue (options, 'awaitBalanceSnapshot', false);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future (type + ':fetchBalanceSnapshot');
         }
         const messageHash = type + ':balance';
         const message = undefined;
@@ -902,7 +931,7 @@ module.exports = class binance extends ccxt.binance {
             account['total'] = this.safeString (entry, wallet);
             this.balance[accountType][code] = account;
         }
-        this.balance[accountType] = this.parseBalance (this.balance[accountType], false);
+        this.balance[accountType] = this.parseBalance (this.balance[accountType]);
         client.resolve (this.balance[accountType], messageHash);
     }
 
@@ -917,10 +946,7 @@ module.exports = class binance extends ccxt.binance {
             messageHash += ':' + symbol;
         }
         const client = this.client (url);
-        if (!(type in client.subscriptions)) {
-            // reset this.balances after a disconnect
-            this.balance[type] = {};
-        }
+        this.setBalanceCache (client, type);
         const message = undefined;
         const orders = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
@@ -1187,10 +1213,7 @@ module.exports = class binance extends ccxt.binance {
             messageHash += ':' + symbol;
         }
         const client = this.client (url);
-        if (!(type in client.subscriptions)) {
-            // reset this.balances after a disconnect
-            this.balance[type] = {};
-        }
+        this.setBalanceCache (client, type);
         const message = undefined;
         const trades = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
