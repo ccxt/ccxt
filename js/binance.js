@@ -843,7 +843,9 @@ module.exports = class binance extends ccxt.binance {
     async loadBalanceSnapshot (client, messageHash, type) {
         const response = await this.fetchBalance ({ 'type': type });
         this.balance[type] = this.extend (response, this.balance[type]);
-        client.resolve (this.balance[type], messageHash);
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve ();
         client.resolve (this.balance[type], type + ':balance');
     }
 
@@ -931,8 +933,8 @@ module.exports = class binance extends ccxt.binance {
         const accountType = subscriptions[0];
         const messageHash = accountType + ':balance';
         this.balance[accountType]['info'] = message;
-        const B = this.safeValue (message, 'B');
-        if (B === undefined) {
+        const event = this.safeString (message, 'e');
+        if (event === 'balanceUpdate') {
             const currencyId = this.safeString (message, 'a');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -949,6 +951,7 @@ module.exports = class binance extends ccxt.binance {
             this.balance[accountType][code] = account;
         } else {
             message = this.safeValue (message, 'a', message);
+            const B = this.safeValue (message, 'B');
             for (let i = 0; i < B.length; i++) {
                 const entry = B[i];
                 const currencyId = this.safeString (entry, 'a');
