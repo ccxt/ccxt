@@ -785,7 +785,9 @@ class binance(Exchange, ccxt.binance):
     async def load_balance_snapshot(self, client, messageHash, type):
         response = await self.fetch_balance({'type': type})
         self.balance[type] = self.extend(response, self.balance[type])
-        client.resolve(self.balance[type], messageHash)
+        # don't remove the future from the .futures cache
+        future = client.futures[messageHash]
+        future.resolve()
         client.resolve(self.balance[type], type + ':balance')
 
     async def watch_balance(self, params={}):
@@ -870,8 +872,8 @@ class binance(Exchange, ccxt.binance):
         accountType = subscriptions[0]
         messageHash = accountType + ':balance'
         self.balance[accountType]['info'] = message
-        B = self.safe_value(message, 'B')
-        if B is None:
+        event = self.safe_string(message, 'e')
+        if event == 'balanceUpdate':
             currencyId = self.safe_string(message, 'a')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -886,6 +888,7 @@ class binance(Exchange, ccxt.binance):
             self.balance[accountType][code] = account
         else:
             message = self.safe_value(message, 'a', message)
+            B = self.safe_value(message, 'B')
             for i in range(0, len(B)):
                 entry = B[i]
                 currencyId = self.safe_string(entry, 'a')

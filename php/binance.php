@@ -846,7 +846,9 @@ class binance extends \ccxt\async\binance {
     public function load_balance_snapshot($client, $messageHash, $type) {
         $response = yield $this->fetch_balance(array( 'type' => $type ));
         $this->balance[$type] = array_merge($response, $this->balance[$type]);
-        $client->resolve ($this->balance[$type], $messageHash);
+        // don't remove the $future from the .futures cache
+        $future = $client->futures[$messageHash];
+        $future->resolve ();
         $client->resolve ($this->balance[$type], $type . ':balance');
     }
 
@@ -934,8 +936,8 @@ class binance extends \ccxt\async\binance {
         $accountType = $subscriptions[0];
         $messageHash = $accountType . ':balance';
         $this->balance[$accountType]['info'] = $message;
-        $B = $this->safe_value($message, 'B');
-        if ($B === null) {
+        $event = $this->safe_string($message, 'e');
+        if ($event === 'balanceUpdate') {
             $currencyId = $this->safe_string($message, 'a');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -952,6 +954,7 @@ class binance extends \ccxt\async\binance {
             $this->balance[$accountType][$code] = $account;
         } else {
             $message = $this->safe_value($message, 'a', $message);
+            $B = $this->safe_value($message, 'B');
             for ($i = 0; $i < count($B); $i++) {
                 $entry = $B[$i];
                 $currencyId = $this->safe_string($entry, 'a');
