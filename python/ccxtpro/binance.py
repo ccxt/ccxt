@@ -57,8 +57,11 @@ class binance(Exchange, ccxt.binance):
                 'watchTicker': {
                     'name': 'ticker',  # ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': False,  # or True
+                    'awaitBalanceSnapshot': True,  # whether to wait for the balance snapshot before providing updates
+                },
                 'wallet': 'wb',  # wb = wallet balance, cw = cross balance
-                'futureBalance': {},
                 'listenKeyRefreshRate': 1200000,  # 20 mins
             },
         })
@@ -758,16 +761,37 @@ class binance(Exchange, ccxt.binance):
                 if subscribeType == type:
                     return self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
 
+    def set_balance_cache(self, client, type):
+        if type in client.subscriptions:
+            return None
+        options = self.safe_value(self.options, 'watchBalance')
+        fetchBalanceSnapshot = self.safe_value(options, 'fetchBalanceSnapshot', False)
+        if fetchBalanceSnapshot:
+            messageHash = type + ':fetchBalanceSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_balance_snapshot, client, messageHash, type)
+        else:
+            self.balance[type] = {}
+
+    async def load_balance_snapshot(self, client, messageHash, type):
+        response = await self.fetch_balance({'type': type})
+        self.balance[type] = self.extend(response, self.balance[type])
+        self.resolve(self.balance[type], messageHash)
+
     async def watch_balance(self, params={}):
         await self.load_markets()
         await self.authenticate(params)
-        defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
+        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         client = self.client(url)
-        if not (type in client.subscriptions):
-            # reset self.balances after a disconnect
-            self.balance[type] = {}
+        self.set_balance_cache(client, type)
+        options = self.safe_value(self.options, 'watchBalance')
+        fetchBalanceSnapshot = self.safe_value(options, 'fetchBalanceSnapshot', False)
+        awaitBalanceSnapshot = self.safe_value(options, 'awaitBalanceSnapshot', False)
+        if fetchBalanceSnapshot and awaitBalanceSnapshot:
+            await client.future(type + ':fetchBalanceSnapshot')
         messageHash = type + ':balance'
         message = None
         return await self.watch(url, messageHash, message, type)
@@ -838,7 +862,7 @@ class binance(Exchange, ccxt.binance):
             account['used'] = self.safe_string(entry, 'l')
             account['total'] = self.safe_string(entry, wallet)
             self.balance[accountType][code] = account
-        self.balance[accountType] = self.parse_balance(self.balance[accountType], False)
+        self.balance[accountType] = self.parse_balance(self.balance[accountType])
         client.resolve(self.balance[accountType], messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -851,9 +875,7 @@ class binance(Exchange, ccxt.binance):
         if symbol is not None:
             messageHash += ':' + symbol
         client = self.client(url)
-        if not (type in client.subscriptions):
-            # reset self.balances after a disconnect
-            self.balance[type] = {}
+        self.set_balance_cache(client, type)
         message = None
         orders = await self.watch(url, messageHash, message, type)
         if self.newUpdates:
@@ -1105,9 +1127,7 @@ class binance(Exchange, ccxt.binance):
         if symbol is not None:
             messageHash += ':' + symbol
         client = self.client(url)
-        if not (type in client.subscriptions):
-            # reset self.balances after a disconnect
-            self.balance[type] = {}
+        self.set_balance_cache(client, type)
         message = None
         trades = await self.watch(url, messageHash, message, type)
         if self.newUpdates:
