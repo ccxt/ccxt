@@ -6,7 +6,15 @@
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
 from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
+from ccxt.base.precise import Precise
 
 
 class binance(Exchange, ccxt.binance):
@@ -778,6 +786,7 @@ class binance(Exchange, ccxt.binance):
         response = await self.fetch_balance({'type': type})
         self.balance[type] = self.extend(response, self.balance[type])
         client.resolve(self.balance[type], messageHash)
+        client.resolve(self.balance[type], type + ':balance')
 
     async def watch_balance(self, params={}):
         await self.load_markets()
@@ -789,7 +798,7 @@ class binance(Exchange, ccxt.binance):
         self.set_balance_cache(client, type)
         options = self.safe_value(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_value(options, 'fetchBalanceSnapshot', False)
-        awaitBalanceSnapshot = self.safe_value(options, 'awaitBalanceSnapshot', False)
+        awaitBalanceSnapshot = self.safe_value(options, 'awaitBalanceSnapshot', True)
         if fetchBalanceSnapshot and awaitBalanceSnapshot:
             await client.future(type + ':fetchBalanceSnapshot')
         messageHash = type + ':balance'
@@ -797,6 +806,16 @@ class binance(Exchange, ccxt.binance):
         return await self.watch(url, messageHash, message, type)
 
     def handle_balance(self, client, message):
+        #
+        # sent upon a balance update not related to orders
+        #
+        #     {
+        #         e: 'balanceUpdate',
+        #         E: 1629352505586,
+        #         a: 'IOTX',
+        #         d: '0.43750000',
+        #         T: 1629352505585
+        #     }
         #
         # sent upon creating or filling an order
         #
@@ -850,18 +869,35 @@ class binance(Exchange, ccxt.binance):
         subscriptions = list(client.subscriptions.keys())
         accountType = subscriptions[0]
         messageHash = accountType + ':balance'
-        message = self.safe_value(message, 'a', message)
         self.balance[accountType]['info'] = message
-        balances = self.safe_value(message, 'B', [])
-        for i in range(0, len(balances)):
-            entry = balances[i]
-            currencyId = self.safe_string(entry, 'a')
+        B = self.safe_value(message, 'B')
+        if B is None:
+            currencyId = self.safe_string(message, 'a')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_string(entry, 'f')
-            account['used'] = self.safe_string(entry, 'l')
-            account['total'] = self.safe_string(entry, wallet)
+            delta = self.safe_string(message, 'd')
+            if code in self.balance[accountType]:
+                previousValue = self.balance[accountType][code]['free']
+                if not isinstance(previousValue, basestring):
+                    previousValue = self.number_to_string(previousValue)
+                account['free'] = Precise.string_add(previousValue, delta)
+            else:
+                account['free'] = delta
             self.balance[accountType][code] = account
+        else:
+            message = self.safe_value(message, 'a', message)
+            for i in range(0, len(B)):
+                entry = B[i]
+                currencyId = self.safe_string(entry, 'a')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(entry, 'f')
+                account['used'] = self.safe_string(entry, 'l')
+                account['total'] = self.safe_string(entry, wallet)
+                self.balance[accountType][code] = account
+        timestamp = self.safe_integer(message, 'E')
+        self.balance[accountType]['timestamp'] = timestamp
+        self.balance[accountType]['datetime'] = self.iso8601(timestamp)
         self.balance[accountType] = self.parse_balance(self.balance[accountType])
         client.resolve(self.balance[accountType], messageHash)
 
@@ -1224,6 +1260,7 @@ class binance(Exchange, ccxt.binance):
             '24hrTicker': self.handle_ticker,
             'bookTicker': self.handle_ticker,
             'outboundAccountPosition': self.handle_balance,
+            'balanceUpdate': self.handle_balance,
             'ACCOUNT_UPDATE': self.handle_balance,
             'executionReport': self.handle_order_update,
             'ORDER_TRADE_UPDATE': self.handle_order_update,

@@ -7,6 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\Precise;
 
 class binance extends \ccxt\async\binance {
 
@@ -846,6 +847,7 @@ class binance extends \ccxt\async\binance {
         $response = yield $this->fetch_balance(array( 'type' => $type ));
         $this->balance[$type] = array_merge($response, $this->balance[$type]);
         $client->resolve ($this->balance[$type], $messageHash);
+        $client->resolve ($this->balance[$type], $type . ':balance');
     }
 
     public function watch_balance($params = array ()) {
@@ -858,7 +860,7 @@ class binance extends \ccxt\async\binance {
         $this->set_balance_cache($client, $type);
         $options = $this->safe_value($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_value($options, 'fetchBalanceSnapshot', false);
-        $awaitBalanceSnapshot = $this->safe_value($options, 'awaitBalanceSnapshot', false);
+        $awaitBalanceSnapshot = $this->safe_value($options, 'awaitBalanceSnapshot', true);
         if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
             yield $client->future ($type . ':fetchBalanceSnapshot');
         }
@@ -869,13 +871,23 @@ class binance extends \ccxt\async\binance {
 
     public function handle_balance($client, $message) {
         //
+        // sent upon a balance update not related to orders
+        //
+        //     {
+        //         e => 'balanceUpdate',
+        //         E => 1629352505586,
+        //         a => 'IOTX',
+        //         d => '0.43750000',
+        //         T => 1629352505585
+        //     }
+        //
         // sent upon creating or filling an order
         //
         //     {
         //         "e" => "outboundAccountPosition", // Event type
         //         "E" => 1564034571105,             // Event Time
         //         "u" => 1564034571073,             // Time of last $account update
-        //         "B" => array(                          // Balances Array
+        //         "$B" => array(                          // Balances Array
         //             {
         //                 "a" => "ETH",                 // Asset
         //                 "f" => "10000.000000",        // Free
@@ -893,7 +905,7 @@ class binance extends \ccxt\async\binance {
         //         "$i" => "SfsR",                      // Account Alias
         //         "a" => {                            // Update Data
         //             "m":"ORDER",                  // Event reason type
-        //             "B":array(                         // Balances
+        //             "$B":array(                         // Balances
         //                 array(
         //                     "a":"BTC",                // Asset
         //                     "wb":"122624.12345678",   // Wallet Balance
@@ -921,19 +933,39 @@ class binance extends \ccxt\async\binance {
         $subscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
         $accountType = $subscriptions[0];
         $messageHash = $accountType . ':balance';
-        $message = $this->safe_value($message, 'a', $message);
         $this->balance[$accountType]['info'] = $message;
-        $balances = $this->safe_value($message, 'B', array());
-        for ($i = 0; $i < count($balances); $i++) {
-            $entry = $balances[$i];
-            $currencyId = $this->safe_string($entry, 'a');
+        $B = $this->safe_value($message, 'B');
+        if ($B === null) {
+            $currencyId = $this->safe_string($message, 'a');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_string($entry, 'f');
-            $account['used'] = $this->safe_string($entry, 'l');
-            $account['total'] = $this->safe_string($entry, $wallet);
+            $delta = $this->safe_string($message, 'd');
+            if (is_array($this->balance[$accountType]) && array_key_exists($code, $this->balance[$accountType])) {
+                $previousValue = $this->balance[$accountType][$code]['free'];
+                if (gettype($previousValue) !== 'string') {
+                    $previousValue = $this->number_to_string($previousValue);
+                }
+                $account['free'] = Precise::string_add($previousValue, $delta);
+            } else {
+                $account['free'] = $delta;
+            }
             $this->balance[$accountType][$code] = $account;
+        } else {
+            $message = $this->safe_value($message, 'a', $message);
+            for ($i = 0; $i < count($B); $i++) {
+                $entry = $B[$i];
+                $currencyId = $this->safe_string($entry, 'a');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($entry, 'f');
+                $account['used'] = $this->safe_string($entry, 'l');
+                $account['total'] = $this->safe_string($entry, $wallet);
+                $this->balance[$accountType][$code] = $account;
+            }
         }
+        $timestamp = $this->safe_integer($message, 'E');
+        $this->balance[$accountType]['timestamp'] = $timestamp;
+        $this->balance[$accountType]['datetime'] = $this->iso8601($timestamp);
         $this->balance[$accountType] = $this->parse_balance($this->balance[$accountType]);
         $client->resolve ($this->balance[$accountType], $messageHash);
     }
@@ -1332,6 +1364,7 @@ class binance extends \ccxt\async\binance {
             '24hrTicker' => array($this, 'handle_ticker'),
             'bookTicker' => array($this, 'handle_ticker'),
             'outboundAccountPosition' => array($this, 'handle_balance'),
+            'balanceUpdate' => array($this, 'handle_balance'),
             'ACCOUNT_UPDATE' => array($this, 'handle_balance'),
             'executionReport' => array($this, 'handle_order_update'),
             'ORDER_TRADE_UPDATE' => array($this, 'handle_order_update'),
