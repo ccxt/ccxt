@@ -829,8 +829,10 @@ module.exports = class binance extends ccxt.binance {
         const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
-            client.future (messageHash);
-            this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
+            if (!(messageHash in client.subscriptions)) {
+                client.future (messageHash);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
+            }
         } else {
             this.balance[type] = {};
         }
