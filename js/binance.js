@@ -819,6 +819,10 @@ module.exports = class binance extends ccxt.binance {
         }
     }
 
+    async loadBalanceSnapshot (type) {
+        this.balance[type] = await this.fetchBalance ();
+    }
+
     async watchBalance (params = {}) {
         await this.loadMarkets ();
         await this.authenticate (params);
@@ -828,7 +832,7 @@ module.exports = class binance extends ccxt.binance {
         const client = this.client (url);
         if (!(type in client.subscriptions)) {
             // reset this.balances after a disconnect
-            this.balance[type] = {};
+            this.spawn (this.loadBalanceSnapshot, type);
         }
         const messageHash = type + ':balance';
         const message = undefined;
@@ -902,7 +906,7 @@ module.exports = class binance extends ccxt.binance {
             account['total'] = this.safeString (entry, wallet);
             this.balance[accountType][code] = account;
         }
-        this.balance[accountType] = this.parseBalance (this.balance[accountType], false);
+        this.balance[accountType] = this.parseBalance (this.balance[accountType]);
         client.resolve (this.balance[accountType], messageHash);
     }
 
