@@ -5,6 +5,7 @@
 const ccxt = require ('ccxt');
 const { ExchangeError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+const Precise = require ('ccxt').Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -843,6 +844,7 @@ module.exports = class binance extends ccxt.binance {
         const response = await this.fetchBalance ({ 'type': type });
         this.balance[type] = this.extend (response, this.balance[type]);
         client.resolve (this.balance[type], messageHash);
+        client.resolve (this.balance[type], type + ':balance');
     }
 
     async watchBalance (params = {}) {
@@ -855,7 +857,7 @@ module.exports = class binance extends ccxt.binance {
         this.setBalanceCache (client, type);
         const options = this.safeValue (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
-        const awaitBalanceSnapshot = this.safeValue (options, 'awaitBalanceSnapshot', false);
+        const awaitBalanceSnapshot = this.safeValue (options, 'awaitBalanceSnapshot', true);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
@@ -865,6 +867,16 @@ module.exports = class binance extends ccxt.binance {
     }
 
     handleBalance (client, message) {
+        //
+        // sent upon a balance update not related to orders
+        //
+        //     {
+        //         e: 'balanceUpdate',
+        //         E: 1629352505586,
+        //         a: 'IOTX',
+        //         d: '0.43750000',
+        //         T: 1629352505585
+        //     }
         //
         // sent upon creating or filling an order
         //
@@ -918,19 +930,39 @@ module.exports = class binance extends ccxt.binance {
         const subscriptions = Object.keys (client.subscriptions);
         const accountType = subscriptions[0];
         const messageHash = accountType + ':balance';
-        message = this.safeValue (message, 'a', message);
         this.balance[accountType]['info'] = message;
-        const balances = this.safeValue (message, 'B', []);
-        for (let i = 0; i < balances.length; i++) {
-            const entry = balances[i];
-            const currencyId = this.safeString (entry, 'a');
+        const B = this.safeValue (message, 'B');
+        if (B === undefined) {
+            const currencyId = this.safeString (message, 'a');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (entry, 'f');
-            account['used'] = this.safeString (entry, 'l');
-            account['total'] = this.safeString (entry, wallet);
+            const delta = this.safeString (message, 'd');
+            if (code in this.balance[accountType]) {
+                let previousValue = this.balance[accountType][code]['free'];
+                if (typeof previousValue !== 'string') {
+                    previousValue = this.numberToString (previousValue);
+                }
+                account['free'] = Precise.stringAdd (previousValue, delta);
+            } else {
+                account['free'] = delta;
+            }
             this.balance[accountType][code] = account;
+        } else {
+            message = this.safeValue (message, 'a', message);
+            for (let i = 0; i < B.length; i++) {
+                const entry = B[i];
+                const currencyId = this.safeString (entry, 'a');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (entry, 'f');
+                account['used'] = this.safeString (entry, 'l');
+                account['total'] = this.safeString (entry, wallet);
+                this.balance[accountType][code] = account;
+            }
         }
+        const timestamp = this.safeInteger (message, 'E');
+        this.balance[accountType]['timestamp'] = timestamp;
+        this.balance[accountType]['datetime'] = this.iso8601 (timestamp);
         this.balance[accountType] = this.parseBalance (this.balance[accountType]);
         client.resolve (this.balance[accountType], messageHash);
     }
@@ -1329,6 +1361,7 @@ module.exports = class binance extends ccxt.binance {
             '24hrTicker': this.handleTicker,
             'bookTicker': this.handleTicker,
             'outboundAccountPosition': this.handleBalance,
+            'balanceUpdate': this.handleBalance,
             'ACCOUNT_UPDATE': this.handleBalance,
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
