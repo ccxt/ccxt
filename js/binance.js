@@ -828,17 +828,19 @@ module.exports = class binance extends ccxt.binance {
         const options = this.safeValue (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
         if (fetchBalanceSnapshot) {
-            this.spawn (this.loadBalanceSnapshot, client, type);
+            const messageHash = type + ':fetchBalanceSnapshot';
+            client.future (messageHash);
+            this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
         } else {
             this.balance[type] = {};
         }
     }
 
-    async loadBalanceSnapshot (client, type) {
+    async loadBalanceSnapshot (client, messageHash, type) {
         const response = await this.fetchBalance ({ 'type': type });
         this.balance[type] = this.extend (response, this.balance[type]);
-        const messageHash = type + ':balance';
-        client.resolve (this.balance[type], messageHash);
+        const future = client.futures[messageHash];
+        future.resolve ();
     }
 
     async watchBalance (params = {}) {
@@ -849,6 +851,11 @@ module.exports = class binance extends ccxt.binance {
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
+        const options = this.safeValue (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
+        if (fetchBalanceSnapshot) {
+            await client.future (type + ':fetchBalanceSnapshot');
+        }
         const messageHash = type + ':balance';
         const message = undefined;
         return await this.watch (url, messageHash, message, type);
