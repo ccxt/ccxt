@@ -821,6 +821,16 @@ module.exports = class binance extends ccxt.binance {
         }
     }
 
+    setBalanceCache (type) {
+        const options = this.safeValue (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
+        if (fetchBalanceSnapshot) {
+            this.spawn (this.loadBalanceSnapshot, type);
+        } else {
+            this.balance[type] = {};
+        }
+    }
+
     async loadBalanceSnapshot (type) {
         this.balance[type] = await this.fetchBalance ();
     }
@@ -834,13 +844,7 @@ module.exports = class binance extends ccxt.binance {
         const client = this.client (url);
         if (!(type in client.subscriptions)) {
             // reset this.balances after a disconnect
-            const options = this.safeValue (this.options, 'watchBalance');
-            const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
-            if (fetchBalanceSnapshot) {
-                this.spawn (this.loadBalanceSnapshot, type);
-            } else {
-                this.balance[type] = {};
-            }
+            this.setBalanceCache (type);
         }
         const messageHash = type + ':balance';
         const message = undefined;
@@ -931,7 +935,7 @@ module.exports = class binance extends ccxt.binance {
         const client = this.client (url);
         if (!(type in client.subscriptions)) {
             // reset this.balances after a disconnect
-            this.balance[type] = {};
+            this.setBalanceCache (type);
         }
         const message = undefined;
         const orders = await this.watch (url, messageHash, message, type);
@@ -1201,7 +1205,7 @@ module.exports = class binance extends ccxt.binance {
         const client = this.client (url);
         if (!(type in client.subscriptions)) {
             // reset this.balances after a disconnect
-            this.balance[type] = {};
+            this.setBalanceCache (type);
         }
         const message = undefined;
         const trades = await this.watch (url, messageHash, message, type);
