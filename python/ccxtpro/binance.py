@@ -777,7 +777,7 @@ class binance(Exchange, ccxt.binance):
     async def load_balance_snapshot(self, client, messageHash, type):
         response = await self.fetch_balance({'type': type})
         self.balance[type] = self.extend(response, self.balance[type])
-        self.resolve(self.balance[type], messageHash)
+        client.resolve(self.balance[type], messageHash)
 
     async def watch_balance(self, params={}):
         await self.load_markets()

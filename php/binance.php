@@ -845,7 +845,7 @@ class binance extends \ccxt\async\binance {
     public function load_balance_snapshot($client, $messageHash, $type) {
         $response = yield $this->fetch_balance(array( 'type' => $type ));
         $this->balance[$type] = array_merge($response, $this->balance[$type]);
-        $this->resolve ($this->balance[$type], $messageHash);
+        $client->resolve ($this->balance[$type], $messageHash);
     }
 
     public function watch_balance($params = array ()) {
