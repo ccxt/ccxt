@@ -821,18 +821,23 @@ module.exports = class binance extends ccxt.binance {
         }
     }
 
-    setBalanceCache (type) {
+    setBalanceCache (client, type) {
+        if (type in client.subscriptions) {
+            return undefined;
+        }
         const options = this.safeValue (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
         if (fetchBalanceSnapshot) {
-            this.spawn (this.loadBalanceSnapshot, type);
+            this.spawn (this.loadBalanceSnapshot, client, type);
         } else {
             this.balance[type] = {};
         }
     }
 
-    async loadBalanceSnapshot (type) {
+    async loadBalanceSnapshot (client, type) {
         this.balance[type] = await this.fetchBalance ();
+        const messageHash = type + ':balance';
+        client.resolve (this.balance[type], messageHash);
     }
 
     async watchBalance (params = {}) {
@@ -842,10 +847,7 @@ module.exports = class binance extends ccxt.binance {
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
-        if (!(type in client.subscriptions)) {
-            // reset this.balances after a disconnect
-            this.setBalanceCache (type);
-        }
+        this.setBalanceCache (client, type);
         const messageHash = type + ':balance';
         const message = undefined;
         return await this.watch (url, messageHash, message, type);
@@ -933,10 +935,7 @@ module.exports = class binance extends ccxt.binance {
             messageHash += ':' + symbol;
         }
         const client = this.client (url);
-        if (!(type in client.subscriptions)) {
-            // reset this.balances after a disconnect
-            this.setBalanceCache (type);
-        }
+        this.setBalanceCache (client, type);
         const message = undefined;
         const orders = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
@@ -1203,10 +1202,7 @@ module.exports = class binance extends ccxt.binance {
             messageHash += ':' + symbol;
         }
         const client = this.client (url);
-        if (!(type in client.subscriptions)) {
-            // reset this.balances after a disconnect
-            this.setBalanceCache (type);
-        }
+        this.setBalanceCache (client, type);
         const message = undefined;
         const trades = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
