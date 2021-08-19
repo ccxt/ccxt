@@ -339,7 +339,7 @@ module.exports = class bitrue extends Exchange {
             account['used'] = this.safeFloat (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, true);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
