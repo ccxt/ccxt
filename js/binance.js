@@ -57,7 +57,7 @@ module.exports = class binance extends ccxt.binance {
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': false, // or true
-                    'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
+                    'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate': 1200000, // 20 mins
