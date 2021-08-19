@@ -368,7 +368,7 @@ module.exports = class bitrue extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOpenOrders (symbol, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -377,26 +377,33 @@ module.exports = class bitrue extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
         const response = await this.privateGetOpenOrders (this.extend (request, params));
         const orders = Array.isArray (response) ? response : [];
-        const result = this.parseOrders (orders, market);
-        return result;
+        return this.parseOrders (orders, market);
     }
 
-    async fetchOrders (symbol = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const query = this.omit (params, 'states');
         const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAllOrders (this.extend (request, query));
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.privateGetAllOrders (this.extend (request, params));
         const orders = Array.isArray (response) ? response : [];
         return this.parseOrders (orders, market);
     }
