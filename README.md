@@ -21,8 +21,6 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![TokenBot – An an automated copy trading platform for crypto traders](https://user-images.githubusercontent.com/1294454/126532774-77b2c4ce-71c1-4c9f-8653-ab3fc6d55c92.png)](https://tokenbot.com/?utm_source=ccxt)
-
 [![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png)](https://ccxt.pro)
 
 ## See Also
