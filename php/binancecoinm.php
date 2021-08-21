@@ -24,14 +24,6 @@ class binancecoinm extends binance {
                 'defaultType' => 'delivery',
                 'leverageBrackets' => null,
             ),
-            'has' => array(
-                'fetchPositions' => true,
-                'fetchIsolatedPositions' => true,
-                'fetchFundingRate' => true,
-                'fetchFundingHistory' => true,
-                'setLeverage' => true,
-                'setMode' => true,
-            ),
         ));
     }
 
