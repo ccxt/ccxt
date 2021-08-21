@@ -60,6 +60,7 @@ class ftx extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
+                'setLeverage' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -1965,4 +1966,18 @@ class ftx extends Exchange {
             throw new ExchangeError($feedback); // unknown message
         }
     }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (($leverage < 1) || ($leverage > 20)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 125');
+        }
+        $method = 'private_post_account_leverage';
+        $request = array(
+            'leverage' => $leverage,
+        );
+        return yield $this->$method (array_merge($request, $params));
+    }
+
 }
