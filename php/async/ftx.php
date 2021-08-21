@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\InvalidOrder;
 use \ccxt\Precise;
 
@@ -1971,13 +1972,11 @@ class ftx extends Exchange {
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 1) || ($leverage > 20)) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 125');
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 20');
         }
-        $method = 'private_post_account_leverage';
         $request = array(
             'leverage' => $leverage,
         );
-        return yield $this->$method (array_merge($request, $params));
+        return yield $this->privatePostAccountLeverage (array_merge($request, $params));
     }
-
 }

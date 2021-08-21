@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\InvalidOrder;
 
 class ftx extends Exchange {
@@ -1972,11 +1973,9 @@ class ftx extends Exchange {
         if (($leverage < 1) || ($leverage > 20)) {
             throw new BadRequest($this->id . ' $leverage should be between 1 and 20');
         }
-        $method = 'private_post_account_leverage';
         $request = array(
             'leverage' => $leverage,
         );
-        return $this->$method (array_merge($request, $params));
+        return $this->privatePostAccountLeverage (array_merge($request, $params));
     }
-
 }

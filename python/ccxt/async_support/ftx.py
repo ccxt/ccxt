@@ -1897,8 +1897,7 @@ class ftx(Exchange):
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 1) or (leverage > 20):
             raise BadRequest(self.id + ' leverage should be between 1 and 20')
-        method = 'private_post_account_leverage'
         request = {
             'leverage': leverage,
         }
-        return await getattr(self, method)(self.extend(request, params))
+        return await self.privatePostAccountLeverage(self.extend(request, params))
