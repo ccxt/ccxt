@@ -59,6 +59,7 @@ class ftx extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
+                'setLeverage' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(

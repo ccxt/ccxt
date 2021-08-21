@@ -78,6 +78,7 @@ class ftx(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
+                'setLeverage': True,
                 'withdraw': True,
             },
             'timeframes': {
