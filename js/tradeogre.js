@@ -72,18 +72,18 @@ module.exports = class tradeogre extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-        let response = await this.publicGetMarkets ();
-        let result = [];
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetMarkets (params);
+        const result = [];
         for (let i = 0; i < response.length; i++) {
-            let market = response[i];
-            let keys = Object.keys (market);
-            let id = keys[0];
-            let [ baseId, quoteId ] = id.split ('-');
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let entry = {
+            const market = response[i];
+            const keys = Object.keys (market);
+            const id = keys[0];
+            const [ baseId, quoteId ] = id.split ('-');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const entry = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -119,32 +119,24 @@ module.exports = class tradeogre extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetAccountBalances (params);
-        if (!response['success'] && response['error'] === 'Must be authorized') {
-            throw new AuthenticationError ('fetchBalance could not be authorized');
-        }
-        let result = { 'info': response };
-        let balances = response['balances'];
-        let currencies = Object.keys (balances);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let balance = balances[currency];
-            if (currency in this.currencies_by_id)
-                currency = this.currencies_by_id[currency]['code'];
-            let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': balance,
-            };
-            result[currency] = account;
+        const response = await this.privateGetAccountBalances (params);
+        const result = { 'info': response };
+        const balances = response['balances'];
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account();
+            account['total'] = this.safeString (balances, currencyId);
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTicker (this.extend ({
+        const market = this.market (symbol);
+        const response = await this.publicGetTicker (this.extend ({
             'symbol': market['id'],
         }, params));
         response['symbol'] = symbol;
