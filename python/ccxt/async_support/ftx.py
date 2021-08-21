@@ -1890,3 +1890,14 @@ class ftx(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message
+
+    async def set_leverage(self, symbol, leverage, params={}):
+        # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (leverage < 1) or (leverage > 20):
+            raise BadRequest(self.id + ' leverage should be between 1 and 20')
+        method = 'private_post_account_leverage'
+        request = {
+            'leverage': leverage,
+        }
+        return await getattr(self, method)(self.extend(request, params))
