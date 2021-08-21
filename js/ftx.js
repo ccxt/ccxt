@@ -1975,5 +1975,4 @@ module.exports = class ftx extends Exchange {
         };
         return await this.privatePostAccountLeverage (this.extend (request, params));
     }
-
 };
