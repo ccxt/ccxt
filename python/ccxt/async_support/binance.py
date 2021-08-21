@@ -3970,7 +3970,9 @@ class binance(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_incomes(response, market, since, limit)
 
-    async def set_leverage(self, symbol, leverage, params={}):
+    async def set_leverage(self, leverage, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 1) or (leverage > 125):
