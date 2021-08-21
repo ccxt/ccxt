@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const AuthenticationError = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -126,7 +125,7 @@ module.exports = class tradeogre extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            const account = this.account();
+            const account = this.account ();
             account['total'] = this.safeString (balances, currencyId);
             result[code] = account;
         }
