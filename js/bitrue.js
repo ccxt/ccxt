@@ -30,6 +30,7 @@ module.exports = class bitrue extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchTrades': true,
+                'fetchMyTrades': true,
                 'fetchTradingLimits': false,
                 'fetchTradingFees': false,
                 'fetchAllTradingFees': false,
@@ -265,6 +266,24 @@ module.exports = class bitrue extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetTrades (this.extend (request, params));
+        const data = Array.isArray (response) ? response : [];
+        return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const market = symbol ? this.market (symbol) : undefined;
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.privateGetMyTrades (this.extend (request, params));
         const data = Array.isArray (response) ? response : [];
         return this.parseTrades (data, market, since, limit);
     }
