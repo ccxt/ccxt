@@ -1964,7 +1964,7 @@ module.exports = class ftx extends Exchange {
         }
     }
 
-    async setLeverage (symbol, leverage, params = {}) {
+    async setLeverage (leverage, symbol = undefined, params = {}) {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 20)) {

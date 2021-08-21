@@ -1967,7 +1967,7 @@ class ftx extends Exchange {
         }
     }
 
-    public function set_leverage($symbol, $leverage, $params = array ()) {
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 1) || ($leverage > 20)) {
