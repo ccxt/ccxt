@@ -538,12 +538,12 @@ module.exports = class bitrue extends Exchange {
             return;
         }
         const errorCode = this.safeString (response, 'code');
-        const message = this.safeString (response, 'message');
+        const message = this.safeString (response, 'msg');
         if ((errorCode !== undefined) && (errorCode !== '0')) {
             const feedback = this.id + ' ' + body;
             this.throw_exactly_matched_exception (this.exceptions['codes'], errorCode, feedback);
             this.throw_exactly_matched_exception (this.exceptions['exact'], message, feedback);
-            throw new ExchangeError (response);
+            throw new ExchangeError (message);
         }
     }
 };
