@@ -439,6 +439,7 @@ class Exchange(object):
                 api_argument = paths[0]
         camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
         underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
+
         def partialer():
             outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method, 'config': config}
             @functools.wraps(entry)
@@ -475,7 +476,7 @@ class Exchange(object):
                     elif isinstance(config, Number):
                         self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, {'cost': config})
                     else:
-                        raise NotSupported (self.id + ' define_rest_api() API format not supported, API leafs must strings, objects or numbers')
+                        raise NotSupported(self.id + ' define_rest_api() API format not supported, API leafs must strings, objects or numbers')
             else:
                 self.define_rest_api(value, method_name, paths + [key])
 
