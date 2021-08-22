@@ -269,7 +269,6 @@ module.exports = class Exchange {
         this.last_http_response    = undefined
         this.last_json_response    = undefined
         this.last_response_headers = undefined
-        this.depth = -1
 
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
