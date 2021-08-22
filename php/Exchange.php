@@ -1412,13 +1412,13 @@ class Exchange {
         throw new NotSupported($this->id . ' sign() not supported yet');
     }
 
-    public function calculate_cost($api, $method, $path, $params, $config = array(), $context = array()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array(), $context = array()) {
         return 1;
     }
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
         if ($this->enableRateLimit) {
-            $cost = $this->calculate_cost($api, $method, $path, $params, $config, $context);
+            $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
             $this->throttle($cost);
         }
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
