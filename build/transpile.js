@@ -946,7 +946,7 @@ class Transpiler {
             let variables = args.map (arg => arg.split ('=').map (x => x.trim ()) [0])
 
             // add $ to each argument name in PHP method signature
-            let phpArgs = args.join (', $').trim ().replace (/undefined/g, 'null').replace ('{}', 'array ()')
+            let phpArgs = args.join (', $').trim ().replace (/undefined/g, 'null').replace (/\{\}/g, 'array ()')
             phpArgs = phpArgs.length ? ('$' + phpArgs) : ''
 
             // remove excessive spacing from argument defaults in Python method signature
