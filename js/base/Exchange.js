@@ -475,7 +475,7 @@ module.exports = class Exchange {
                     if (typeof config === 'object') {
                         this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config)
                     } else if (typeof config === 'number') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: value[endpoint] })
+                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: config })
                     } else {
                         throw new NotSupported (this.id + ' defineRestApi() api format not supported, API leafs must strings, objects or numbers');
                     }
