@@ -1628,11 +1628,13 @@ module.exports = class bitfinex2 extends bitfinex {
 
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (response !== undefined) {
-            const message = this.safeString (response, 'message');
-            if ((message !== undefined) && (message.indexOf ('not enough exchange balance') >= 0)) {
-                throw new InsufficientFunds (this.id + ' ' + this.json (response));
+            if (!Array.isArray (response)) {
+                const message = this.safeString (response, 'message');
+                if ((message !== undefined) && (message.indexOf ('not enough exchange balance') >= 0)) {
+                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                }
+                throw new ExchangeError (this.id + ' ' + this.json (response));
             }
-            throw new ExchangeError (this.id + ' ' + this.json (response));
         } else if (response === '') {
             throw new ExchangeError (this.id + ' returned empty response');
         }
