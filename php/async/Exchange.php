@@ -180,9 +180,9 @@ class Exchange extends \ccxt\Exchange {
         return isset($json_response) ? $json_response : $response_body;
     }
 
-    public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
+    public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
         if ($this->enableRateLimit) {
-            $cost = $this->calculate_cost($api, $method, $path, $params);
+            $cost = $this->calculate_cost($api, $method, $path, $params, $config, $context);
             yield call_user_func($this->throttle, $cost);
         }
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
