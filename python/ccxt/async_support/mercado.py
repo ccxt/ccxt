@@ -583,8 +583,8 @@ class mercado(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, context={}, config={}):
+        response = await self.fetch2(path, api, method, params, headers, body, config, context)
         if 'error_message' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response

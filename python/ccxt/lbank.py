@@ -571,8 +571,8 @@ class lbank(Exchange):
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, context={}, config={}):
+        response = self.fetch2(path, api, method, params, headers, body, config, context)
         success = self.safe_string(response, 'result')
         if success == 'false':
             errorCode = self.safe_string(response, 'error_code')

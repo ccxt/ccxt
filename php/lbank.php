@@ -613,8 +613,8 @@ class lbank extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $context = array (), $config = array ()) {
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context);
         $success = $this->safe_string($response, 'result');
         if ($success === 'false') {
             $errorCode = $this->safe_string($response, 'error_code');

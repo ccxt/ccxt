@@ -211,8 +211,8 @@ class mixcoins extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $context = array (), $config = array ()) {
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context);
         if (is_array($response) && array_key_exists('status', $response)) {
             //
             // todo add a unified standard handleErrors with $this->exceptions in describe()

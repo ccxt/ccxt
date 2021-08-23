@@ -383,8 +383,8 @@ class coincheck(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+        response = self.fetch2(path, api, method, params, headers, body, config, context)
         if api == 'public':
             return response
         if 'success' in response:

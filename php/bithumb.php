@@ -920,15 +920,4 @@ class bithumb extends Exchange {
             }
         }
     }
-
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('status', $response)) {
-            if ($response['status'] === '0000' || $response['message'] === '거래 진행중인 내역이 존재하지 않습니다') {
-                return $response;
-            }
-            throw new ExchangeError($this->id . ' ' . $this->json($response));
-        }
-        return $response;
-    }
 }
