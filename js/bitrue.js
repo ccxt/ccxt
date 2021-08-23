@@ -428,12 +428,12 @@ module.exports = class bitrue extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const status = this.parseOrderStatus (this.safeValue (order, 'status'));
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         } else {
-            market = this.marketsById[this.safeString (order, 'symbol').lower ()];
+            symbol = this.safeSymbol (this.safeString (order, 'symbol'));
         }
         let timestamp = undefined;
         if ('time' in order) {
