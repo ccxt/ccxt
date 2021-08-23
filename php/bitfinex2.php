@@ -1632,23 +1632,18 @@ class bitfinex2 extends bitfinex {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
-        if ($response) {
-            if (is_array($response) && array_key_exists('message', $response)) {
-                if (mb_strpos($response['message'], 'not enough exchange balance') !== false) {
+    public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
+        if ($response !== null) {
+            if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
+                $message = $this->safe_string($response, 'message');
+                if (($message !== null) && (mb_strpos($message, 'not enough exchange balance') !== false)) {
                     throw new InsufficientFunds($this->id . ' ' . $this->json($response));
                 }
                 throw new ExchangeError($this->id . ' ' . $this->json($response));
             }
-            return $response;
         } else if ($response === '') {
             throw new ExchangeError($this->id . ' returned empty response');
         }
-        return $response;
-    }
-
-    public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
         if ($statusCode === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             $errorCode = $this->number_to_string($response[1]);
@@ -1659,5 +1654,6 @@ class bitfinex2 extends bitfinex {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorText, $feedback);
             throw new ExchangeError($this->id . ' ' . $errorText . ' (#' . $errorCode . ')');
         }
+        return $response;
     }
 }

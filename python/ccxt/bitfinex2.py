@@ -1536,19 +1536,15 @@ class bitfinex2(bitfinex):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if response:
-            if 'message' in response:
-                if response['message'].find('not enough exchange balance') >= 0:
+    def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
+        if response is not None:
+            if not isinstance(response, list):
+                message = self.safe_string(response, 'message')
+                if (message is not None) and (message.find('not enough exchange balance') >= 0):
                     raise InsufficientFunds(self.id + ' ' + self.json(response))
                 raise ExchangeError(self.id + ' ' + self.json(response))
-            return response
         elif response == '':
             raise ExchangeError(self.id + ' returned empty response')
-        return response
-
-    def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
         if statusCode == 500:
             # See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             errorCode = self.number_to_string(response[1])
@@ -1558,3 +1554,4 @@ class bitfinex2(bitfinex):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorText, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorText, feedback)
             raise ExchangeError(self.id + ' ' + errorText + '(#' + errorCode + ')')
+        return response
