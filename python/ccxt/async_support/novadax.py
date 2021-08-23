@@ -609,7 +609,8 @@ class novadax(Exchange):
                 uppercaseType = 'STOP_LIMIT'
             elif uppercaseType == 'MARKET':
                 uppercaseType = 'STOP_MARKET'
-            request['operator'] = 'LTE' if (uppercaseSide == 'BUY') else 'GTE'
+            defaultOperator = 'LTE' if (uppercaseSide == 'BUY') else 'GTE'
+            request['operator'] = self.safe_string(params, 'operator', defaultOperator)
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
             params = self.omit(params, 'stopPrice')
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
