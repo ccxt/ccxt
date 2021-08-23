@@ -623,7 +623,8 @@ class novadax extends Exchange {
             } else if ($uppercaseType === 'MARKET') {
                 $uppercaseType = 'STOP_MARKET';
             }
-            $request['operator'] = ($uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
+            $defaultOperator = ($uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
+            $request['operator'] = $this->safe_string($params, 'operator', $defaultOperator);
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             $params = $this->omit($params, 'stopPrice');
         }
