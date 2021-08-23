@@ -631,8 +631,8 @@ module.exports = class itbit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
         if ('code' in response) {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
