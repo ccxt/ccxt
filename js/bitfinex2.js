@@ -1626,23 +1626,18 @@ module.exports = class bitfinex2 extends bitfinex {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if (response) {
-            if ('message' in response) {
-                if (response['message'].indexOf ('not enough exchange balance') >= 0) {
+    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+        if (response !== undefined) {
+            if (!Array.isArray (response)) {
+                const message = this.safeString (response, 'message');
+                if ((message !== undefined) && (message.indexOf ('not enough exchange balance') >= 0)) {
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
                 }
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }
-            return response;
         } else if (response === '') {
             throw new ExchangeError (this.id + ' returned empty response');
         }
-        return response;
-    }
-
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (statusCode === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             const errorCode = this.numberToString (response[1]);
@@ -1653,5 +1648,6 @@ module.exports = class bitfinex2 extends bitfinex {
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorText, feedback);
             throw new ExchangeError (this.id + ' ' + errorText + ' (#' + errorCode + ')');
         }
+        return response;
     }
 };
