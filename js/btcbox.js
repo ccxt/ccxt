@@ -397,8 +397,8 @@ module.exports = class btcbox extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+        let response = await this.fetch2 (path, api, method, params, headers, body, config, context);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json
             response = this.strip (response);
