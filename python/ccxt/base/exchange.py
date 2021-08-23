@@ -418,55 +418,67 @@ class Exchange(object):
             self.urls['api'] = self.urls['apiBackup']
             del self.urls['apiBackup']
 
-    @classmethod
-    def define_rest_api(cls, api, method_name, paths=[]):
-        delimiters = re.compile('[^a-zA-Z0-9]')
+    def define_rest_api_endpoint(self, method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, config={}):
+        cls = type(self)
         entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
-        for key, value in api.items():
-            if isinstance(value, list):
-                uppercase_method = key.upper()
-                lowercase_method = key.lower()
-                camelcase_method = lowercase_method.capitalize()
-                for path in value:
-                    path = path.strip()
-                    split_path = delimiters.split(path)
-                    lowercase_path = [x.strip().lower() for x in split_path]
-                    camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
-                    underscore_suffix = '_'.join([x for x in lowercase_path if len(x)])
-                    camelcase_prefix = ''
-                    underscore_prefix = ''
-                    if len(paths):
-                        camelcase_prefix = paths[0]
-                        underscore_prefix = paths[0]
-                        if len(paths) > 1:
-                            camelcase_prefix += ''.join([Exchange.capitalize(x) for x in paths[1:]])
-                            underscore_prefix += '_' + '_'.join([x.strip() for p in paths[1:] for x in delimiters.split(p)])
-                            api_argument = paths
-                        else:
-                            api_argument = paths[0]
-                    camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
-                    underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
-
-                    def partialer():
-                        outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method}
-
-                        @functools.wraps(entry)
-                        def inner(_self, params=None):
-                            """
-                            Inner is called when a generated method (publicGetX) is called.
-                            _self is a reference to self created by function.__get__(exchange, type(exchange))
-                            https://en.wikipedia.org/wiki/Closure_(computer_programming) equivalent to functools.partial
-                            """
-                            inner_kwargs = dict(outer_kwargs)  # avoid mutation
-                            if params is not None:
-                                inner_kwargs['params'] = params
-                            return entry(_self, **inner_kwargs)
-                        return inner
-                    to_bind = partialer()
-                    setattr(cls, camelcase, to_bind)
-                    setattr(cls, underscore, to_bind)
+        delimiters = re.compile('[^a-zA-Z0-9]')
+        split_path = delimiters.split(path)
+        lowercase_path = [x.strip().lower() for x in split_path]
+        camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
+        underscore_suffix = '_'.join([x for x in lowercase_path if len(x)])
+        camelcase_prefix = ''
+        underscore_prefix = ''
+        if len(paths):
+            camelcase_prefix = paths[0]
+            underscore_prefix = paths[0]
+            if len(paths) > 1:
+                camelcase_prefix += ''.join([Exchange.capitalize(x) for x in paths[1:]])
+                underscore_prefix += '_' + '_'.join([x.strip() for p in paths[1:] for x in delimiters.split(p)])
+                api_argument = paths
             else:
-                cls.define_rest_api(value, method_name, paths + [key])
+                api_argument = paths[0]
+        camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
+        underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
+
+        def partialer():
+            outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method, 'config': config}
+            @functools.wraps(entry)
+            def inner(_self, params=None, context=None):
+                """
+                Inner is called when a generated method (publicGetX) is called.
+                _self is a reference to self created by function.__get__(exchange, type(exchange))
+                https://en.wikipedia.org/wiki/Closure_(computer_programming) equivalent to functools.partial
+                """
+                inner_kwargs = dict(outer_kwargs)  # avoid mutation
+                if params is not None:
+                    inner_kwargs['params'] = params
+                if context is not None:
+                    inner_kwargs['context'] = params
+                return entry(_self, **inner_kwargs)
+            return inner
+        to_bind = partialer()
+        setattr(cls, camelcase, to_bind)
+        setattr(cls, underscore, to_bind)
+
+    def define_rest_api(self, api, method_name, paths=[]):
+        for key, value in api.items():
+            uppercase_method = key.upper()
+            lowercase_method = key.lower()
+            camelcase_method = lowercase_method.capitalize()
+            if isinstance(value, list):
+                for path in value:
+                    self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths)
+            elif re.search(r'^(?:get|post|put|delete|options|head)$', key, re.IGNORECASE) is not None:
+                for [endpoint, config] in value.items():
+                    path = endpoint.strip()
+                    if isinstance(config, dict):
+                        self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, config)
+                    elif isinstance(config, Number):
+                        self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, {'cost': config})
+                    else:
+                        raise NotSupported(self.id + ' define_rest_api() API format not supported, API leafs must strings, objects or numbers')
+            else:
+                self.define_rest_api(value, method_name, paths + [key])
 
     def throttle(self, cost=None):
         now = float(self.milliseconds())
@@ -477,17 +489,21 @@ class Exchange(object):
             delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
 
-    def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+        return 1
+
+    def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         """A better wrapper over request for deferred signing"""
         if self.enableRateLimit:
-            self.throttle()
+            cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
+            self.throttle(cost)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         """Exchange.request is the entry point for all generated methods"""
-        return self.fetch2(path, api, method, params, headers, body)
+        return self.fetch2(path, api, method, params, headers, body, config, context)
 
     @staticmethod
     def gzip_deflate(response, text):

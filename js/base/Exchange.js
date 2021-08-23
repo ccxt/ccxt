@@ -437,28 +437,48 @@ module.exports = class Exchange {
         }
     }
 
+    defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
+        const splitPath = path.split (/[^a-zA-Z0-9]/)
+        const camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
+        const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_')
+        const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('')
+        const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ()).filter ((x) => x.length > 0)).join ('_')
+        const camelcase  = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix)
+        const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix
+        const typeArgument = (paths.length > 1) ? paths : paths[0]
+        // handle call costs here
+        const partial = async (params = {}, context = {}) => this[methodName] (path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context)
+        // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
+        this[camelcase]  = partial
+        this[underscore] = partial
+    }
+
     defineRestApi (api, methodName, paths = []) {
         const keys = Object.keys (api)
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i]
             const value = api[key]
+            const uppercaseMethod = key.toUpperCase ()
+            const lowercaseMethod = key.toLowerCase ()
+            const camelcaseMethod = this.capitalize (lowercaseMethod)
             if (Array.isArray (value)) {
-                const uppercaseMethod = key.toUpperCase ()
-                const lowercaseMethod = key.toLowerCase ()
-                const camelcaseMethod = this.capitalize (lowercaseMethod)
                 for (let k = 0; k < value.length; k++) {
                     const path = value[k].trim ()
-                    const splitPath = path.split (/[^a-zA-Z0-9]/)
-                    const camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
-                    const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_')
-                    const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('')
-                    const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ()).filter ((x) => x.length > 0)).join ('_')
-                    const camelcase  = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix)
-                    const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix
-                    const typeArgument = (paths.length > 1) ? paths : paths[0]
-                    const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
-                    this[camelcase]  = partial
-                    this[underscore] = partial
+                    this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths)
+                }
+            } else if (key.match (/^(?:get|post|put|delete|options|head)$/i)) {
+                const endpoints = Object.keys (value);
+                for (let j = 0; j < endpoints.length; j++) {
+                    const endpoint = endpoints[j]
+                    const path = endpoint.trim ()
+                    const config = value[endpoint]
+                    if (typeof config === 'object') {
+                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config)
+                    } else if (typeof config === 'number') {
+                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: config })
+                    } else {
+                        throw new NotSupported (this.id + ' defineRestApi() API format not supported, API leafs must strings, objects or numbers');
+                    }
                 }
             } else {
                 this.defineRestApi (value, methodName, paths.concat ([ key ]))
@@ -510,18 +530,22 @@ module.exports = class Exchange {
         return this.executeRestRequest (url, method, headers, body)
     }
 
-    async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    // eslint-disable-next-line no-unused-vars
+    calculateRateLimiterCost (api, path, method, params, config = {}, context = {}) {
+        return 1
+    }
 
+    async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
         if (this.enableRateLimit) {
-            await this.throttle ()
+            const cost = this.calculateRateLimiterCost (type, method, path, params, config, context)
+            await this.throttle (cost)
         }
-
         const request = this.sign (path, type, method, params, headers, body)
         return this.fetch (request.url, request.method, request.headers, request.body)
     }
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, type, method, params, headers, body)
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+        return this.fetch2 (path, type, method, params, headers, body, config, context)
     }
 
     parseJson (jsonString) {

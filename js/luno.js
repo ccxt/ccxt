@@ -725,8 +725,8 @@ module.exports = class luno extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, context = {}, config = {}) {
+        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
         if ('error' in response) {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }

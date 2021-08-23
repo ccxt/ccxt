@@ -252,8 +252,10 @@ class Exchange {
         'checkAddress' => 'check_address',
         'initRestRateLimiter' => 'init_rest_rate_limiter',
         'setSandboxMode' => 'set_sandbox_mode',
+        'defineRestApiEndpoint' => 'define_rest_api_endpoint',
         'defineRestApi' => 'define_rest_api',
         'setHeaders' => 'set_headers',
+        'calculateRateLimiterCost' => 'calculate_rate_limiter_cost',
         'parseJson' => 'parse_json',
         'throwExactlyMatchedException' => 'throw_exactly_matched_exception',
         'throwBroadlyMatchedException' => 'throw_broadly_matched_exception',
@@ -997,15 +999,6 @@ class Exchange {
 
         $this->id = null;
 
-        // rate limiter params
-        $this->rateLimit = 2000;
-        $this->tokenBucket = array(
-            'delay' => 1.0,
-            'capacity' => 1.0,
-            'defaultCost' => 1.0,
-            'maxCapacity' => 1000,
-        );
-
         $this->curlopt_interface = null;
         $this->timeout = 10000; // in milliseconds
         $this->proxy = '';
@@ -1187,6 +1180,7 @@ class Exchange {
 
         $this->requiresWeb3 = false;
         $this->requiresEddsa = false;
+        $this->rateLimit = 2000;
 
         $this->commonCurrencies = array(
             'XBT' => 'BTC',
@@ -1208,6 +1202,14 @@ class Exchange {
                         $value;
             }
         }
+
+        $this->tokenBucket = array(
+            'delay' => 0.001,
+            'capacity' => 1.0,
+            'cost' => 1.0,
+            'maxCapacity' => 1000,
+            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
+        );
 
         if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
@@ -1242,34 +1244,51 @@ class Exchange {
         }
     }
 
+    public function define_rest_api_endpoint ($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths, $config = array()) {
+        $split_path = mb_split('[^a-zA-Z0-9]', $path);
+        $camelcase_suffix = implode(array_map(get_called_class() . '::capitalize', $split_path));
+        $lowercase_path = array_map('trim', array_map('strtolower', $split_path));
+        $underscore_suffix = implode('_', array_filter($lowercase_path));
+        $camelcase_prefix = implode('', array_merge(
+            array($paths[0]),
+            array_map(get_called_class() . '::capitalize', array_slice($paths, 1))
+        ));
+        $underscore_prefix = implode('_', array_merge(
+            array($paths[0]),
+            array_filter(array_map('trim', array_slice($paths, 1)))
+        ));
+        $camelcase = $underscore_prefix . $camelcase_method . static::capitalize($camelcase_suffix);
+        $underscore = $underscore_prefix . '_' . $lowercase_method . '_' . mb_strtolower($underscore_suffix);
+        $api_argument = (count($paths) > 1) ? $paths : $paths[0];
+        $this->defined_rest_api[$camelcase] = array($path, $api_argument, $uppercase_method, $method_name, $config);
+        $this->defined_rest_api[$underscore] = array($path, $api_argument, $uppercase_method, $method_name, $config);
+    }
+
     public function define_rest_api($api, $method_name, $paths = array()) {
         foreach ($api as $key => $value) {
+            $uppercase_method = mb_strtoupper($key);
+            $lowercase_method = mb_strtolower($key);
+            $camelcase_method = static::capitalize($lowercase_method);
             if (static::is_associative($value)) {
-                $copy = $paths;
-                array_push ($copy, $key);
-                $this->define_rest_api($value, $method_name, $copy);
+                if (preg_match('/^(?:get|post|put|delete|options|head)$/i', $key)) {
+                    foreach ($value as $endpoint => $config) {
+                        $path = trim($endpoint);
+                        if (static::is_associative($config)) {
+                            $this->define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths, $config);
+                        } else if (is_numeric($config)) {
+                            $this->define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths, array('cost' => $config));
+                        } else {
+                            throw new NotSupported($this->id . ' define_rest_api() API format not supported, API leafs must strings, objects or numbers');
+                        }
+                    }
+                } else {
+                    $copy = $paths;
+                    array_push ($copy, $key);
+                    $this->define_rest_api($value, $method_name, $copy);
+                }
             } else {
-                $uppercaseMethod = mb_strtoupper($key);
-                $lowercaseMethod = mb_strtolower($key);
-                $camelcaseMethod = static::capitalize($lowercaseMethod);
                 foreach ($value as $path) {
-                    $splitPath = mb_split('[^a-zA-Z0-9]', $path);
-                    $camelcaseSuffix = implode(array_map(get_called_class() . '::capitalize', $splitPath));
-                    $lowercasePath = array_map('trim', array_map('strtolower', $splitPath));
-                    $underscoreSuffix = implode('_', array_filter($lowercasePath));
-                    $camelcasePrefix = implode('', array_merge(
-                        array($paths[0]),
-                        array_map(get_called_class() . '::capitalize', array_slice($paths, 1))
-                    ));
-                    $underscorePrefix = implode('_', array_merge(
-                        array($paths[0]),
-                        array_filter(array_map('trim', array_slice($paths, 1)))
-                    ));
-                    $camelcase = $camelcasePrefix . $camelcaseMethod . static::capitalize($camelcaseSuffix);
-                    $underscore = $underscorePrefix . '_' . $lowercaseMethod . '_' . mb_strtolower($underscoreSuffix);
-                    $apiArgument = (count($paths) > 1) ? $paths : $paths[0];
-                    $this->defined_rest_api[$camelcase] = array($path, $apiArgument, $uppercaseMethod, $method_name);
-                    $this->defined_rest_api[$underscore] = array($path, $apiArgument, $uppercaseMethod, $method_name);
+                    $this->define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths);
                 }
             }
         }
@@ -1393,16 +1412,21 @@ class Exchange {
         throw new NotSupported($this->id . ' sign() not supported yet');
     }
 
-    public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array(), $context = array()) {
+        return 1;
+    }
+
+    public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
         if ($this->enableRateLimit) {
-            $this->throttle();
+            $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
+            $this->throttle($cost);
         }
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
         return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
-        return $this->fetch2($path, $api, $method, $params, $headers, $body);
+    public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array ()) {
+        return $this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context);
     }
 
     public function throw_exactly_matched_exception($exact, $string, $message) {
@@ -2489,7 +2513,12 @@ class Exchange {
         if (array_key_exists($function, $this->defined_rest_api)) {
             $partial = $this->defined_rest_api[$function];
             $entry = $partial[3];
+            $config = $partial[4];
             $partial[3] = $params ? $params[0] : $params;
+            $partial[4] = null;
+            $partial[5] = null;
+            $partial[6] = $config;
+            $partial[7] = ($params && (count($params) > 1)) ? $params[1] : array();
             return call_user_func_array(array($this, $entry), $partial);
         } else if (array_key_exists($function, static::$camelcase_methods)) {
             $underscore = static::$camelcase_methods[$function];

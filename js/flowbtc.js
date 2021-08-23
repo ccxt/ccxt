@@ -270,8 +270,8 @@ module.exports = class flowbtc extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
         if ('isAccepted' in response) {
             if (response['isAccepted']) {
                 return response;

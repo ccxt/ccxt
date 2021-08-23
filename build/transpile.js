@@ -147,9 +147,7 @@ class Transpiler {
             [ /\.safeOrder\s/g, '.safe_order'],
             [ /\.safeTicker\s/g, '.safe_ticker'],
             [ /\.roundTimeframe/g, '.round_timeframe'],
-            [ /\.integerDivide/g, '.integer_divide'],
-            [ /\.integerModulo/g, '.integer_modulo'],
-            [ /\.integerPow/g, '.integer_pow'],
+            [ /\.calculateRateLimiterCost/g, '.calculate_rate_limiter_cost' ],
             [ /\.parseAccountPosition/g, '.parse_account_position' ],
             [ /\.parsePositionRisk/g, '.parse_position_risk' ],
             [ /\.parseIncome/g, '.parse_income' ],
@@ -948,7 +946,7 @@ class Transpiler {
             let variables = args.map (arg => arg.split ('=').map (x => x.trim ()) [0])
 
             // add $ to each argument name in PHP method signature
-            let phpArgs = args.join (', $').trim ().replace (/undefined/g, 'null').replace ('{}', 'array ()')
+            let phpArgs = args.join (', $').trim ().replace (/undefined/g, 'null').replace (/\{\}/g, 'array ()')
             phpArgs = phpArgs.length ? ('$' + phpArgs) : ''
 
             // remove excessive spacing from argument defaults in Python method signature
