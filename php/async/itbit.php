@@ -635,11 +635,13 @@ class itbit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
-        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context);
-        if (is_array($response) && array_key_exists('code', $response)) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
+        }
+        $code = $this->safe_string($response, 'code');
+        if ($code !== null) {
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
-        return $response;
     }
 }
