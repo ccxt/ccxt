@@ -182,7 +182,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
         if ($this->enableRateLimit) {
-            $cost = $this->calculate_cost($api, $method, $path, $params, $config, $context);
+            $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
             yield call_user_func($this->throttle, $cost);
         }
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
