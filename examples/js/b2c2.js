@@ -31,8 +31,14 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
     const params = {
         'executing_unit': userId,
     }
-    let orders = await exchange.fetchOrders (undefined, undefined, 1000, params)
-    log (exchange.name.green, 'orders', orders)
+    const symbol = 'ETH/USD';
+    const side = 'buy';
+    const amount = 1;
+    let quote = await exchange.createQuote (symbol, side, amount)
+    log (exchange.name.green, 'quote', quote)
+
+    // let orders = await exchange.fetchOrders (undefined, undefined, 1000, params)
+    // log (exchange.name.green, 'orders', orders)
 
     // // fetch ledger items from the exchange
     // let ledger = await exchange.fetchLedger (undefined, undefined, 1000, params)

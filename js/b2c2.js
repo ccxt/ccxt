@@ -2007,6 +2007,74 @@ module.exports = class b2c2 extends Exchange {
         return this.parseBalance (result);
     }
 
+    async createQuote (symbol, side, amount, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const lowercaseSide = side.toLowerCase ();
+        const request = {
+            'client_order_id': this.uuid ().toString (), // FIXME to parameterise
+            'quantity': this.amountToPrecision (symbol, amount),
+            'side': lowercaseSide,
+            'instrument': market['id'],
+        };
+        const response = await this.privatePostRequestForQuote (request);
+        return this.parseQuote (response, market);
+    }
+
+    parseQuote (quote, market = undefined) {
+        // {
+        //     "created": "2021-08-23T07:20:39.670767Z",
+        //     "valid_until": "2021-08-23T07:21:00.670772Z",
+        //     "rfq_id": "75fdad8c-69a3-45c2-b6a8-dba3f701c759",
+        //     "client_rfq_id": "43fa40fb-bfdd-4e1d-8978-d84ab103ab1f",
+        //     "quantity": "1.0000000000",
+        //     "side": "sell",
+        //     "instrument": "BTCUSD.SPOT",
+        //     "price": "50113.00000000"
+        //   }
+        const timestamp = this.parse8601 (this.safeString (quote, 'created'));
+        const datetime = this.iso8601 (timestamp);
+        const validUntilTimestamp = this.parse8601 (this.safeString (quote, 'valid_until'));
+        const validUntilDatetime = this.iso8601 (validUntilTimestamp);
+        const id = this.safeString (quote, 'rfq_id');
+        const clQuoteId = this.safeString (quote, 'client_rfq_id');
+        const amount = this.safeNumber (quote, 'quantity');
+        const amountString = this.safeString (quote, 'quantity');
+        const type = 'quote';
+        const side = this.safeStringLower (quote, 'side');
+        const marketId = this.safeString (quote, 'instrument');
+        const symbol = this.safeSymbol (marketId, market);
+        const price = this.safeNumber (quote, 'price');
+        const priceString = this.safeString (quote, 'price');
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        let status = undefined;
+        if (validUntilTimestamp > this.milliseconds ()) {
+            status = 'open';
+        } else {
+            status = 'closed';
+        }
+        let fee = undefined;
+        fee = this.calculateFee (symbol, undefined, side, amount, price);
+        fee.cost = this.feeToPrecision (symbol, fee.cost);
+        return this.safeOrder ({
+            'info': quote,
+            'id': id,
+            'clQuoteId': clQuoteId,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'validUntilTimestamp': timestamp,
+            'validUntilDatetime': validUntilDatetime,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'status': status,
+            'fee': fee,
+        });
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         // side: 'buy' | 'sell';
         // type: 'market' | 'limit';
@@ -2016,12 +2084,12 @@ module.exports = class b2c2 extends Exchange {
         const lowercaseType = type.toLowerCase ();
         const twentyfourhrsfromnow = this.iso8601 (this.milliseconds () + 86400000);
         const request = {
-            'client_order_id': this.uuid ().toString (), // to parameterise
+            'client_order_id': this.uuid ().toString (), // FIXME to parameterise
             'quantity': this.amountToPrecision (symbol, amount),
             'side': lowercaseSide,
             'instrument': market['id'],
             'order_type': undefined,
-            'valid_until': twentyfourhrsfromnow, // need to do properly
+            'valid_until': twentyfourhrsfromnow, // FIXME need to do properly
         };
         if (lowercaseType === 'limit') {
             request['order_type'] = 'FOK';
