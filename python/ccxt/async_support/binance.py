@@ -169,6 +169,9 @@ class binance(Exchange):
                         'margin/isolated/pair': 1,
                         'margin/isolated/allPairs': 1,
                         'margin/interestRateHistory': 1,
+                        'margin/orderList': 2,
+                        'margin/allOrderList': 10,
+                        'margin/openOrderList': 3,
                         'fiat/orders': 1,
                         'fiat/payments': 1,
                         'futures/transfer': 5,
@@ -274,6 +277,7 @@ class binance(Exchange):
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/order': 4,
+                        'margin/order/oco': 1,
                         'margin/isolated/create': 1,
                         'margin/isolated/transfer': 1,
                         'bnbBurn': 1,
@@ -337,6 +341,7 @@ class binance(Exchange):
                     'delete': {
                         'margin/openOrders': 1,
                         'margin/order': 1,
+                        'margin/orderList': 1,
                         'userDataStream': 1,
                         'userDataStream/isolated': 1,
                         # brokerage API
