@@ -274,7 +274,7 @@ module.exports = class flowbtc extends Exchange {
         if (response === undefined) {
             return;
         }
-        const isAccepted = this.safeValue (response, 'isAccepted');
+        const isAccepted = this.safeValue (response, 'isAccepted', true);
         if (!isAccepted) {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
