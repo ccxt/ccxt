@@ -10,7 +10,7 @@ module.exports = class tradeogre extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'tradeogre',
-            'name': 'Trade Ogre',
+            'name': 'TradeOgre',
             'has': {
                 'loadMarkets': true,
                 'fetchMarkets': true,
@@ -33,7 +33,7 @@ module.exports = class tradeogre extends Exchange {
                 'withdraw': false,
             },
             'urls': {
-                'logo': 'https://tradeogre.com/img/logo.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/130535425-29757c98-9218-4ab9-bac4-87873bc63aa6.jpg',
                 'api': {
                     'web': 'https://tradeogre.com',
                     'public': 'https://tradeogre.com/api/v1',
@@ -41,9 +41,7 @@ module.exports = class tradeogre extends Exchange {
                 },
                 'www': 'https://tradeogre.com',
                 'doc': 'https://tradeogre.com/help/api',
-                'fees': [
-                    'https://tradeogre.com/help/fees',
-                ],
+                'fees': 'https://tradeogre.com/help/fees',
             },
             'api': {
                 'public': {
