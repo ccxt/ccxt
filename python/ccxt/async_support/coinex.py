@@ -924,8 +924,9 @@ class coinex(Exchange):
                 body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
-        response = await self.fetch2(path, api, method, params, headers, body, config, context)
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
         message = self.safe_string(response, 'message')
@@ -941,4 +942,3 @@ class coinex(Exchange):
             }
             ErrorClass = self.safe_value(responseCodes, code, ExchangeError)
             raise ErrorClass(response['message'])
-        return response
