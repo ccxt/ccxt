@@ -343,14 +343,4 @@ module.exports = class coinmarketcap extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
     }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, context = {}, config = {}) {
-        const response = await this.fetch2 (path, api, method, params, headers, body, context, config);
-        if ('error' in response) {
-            if (response['error']) {
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-            }
-        }
-        return response;
-    }
 };
