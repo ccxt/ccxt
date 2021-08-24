@@ -259,6 +259,6 @@ class flowbtc(Exchange):
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
-        isAccepted = self.safe_value(response, 'isAccepted')
+        isAccepted = self.safe_value(response, 'isAccepted', True)
         if not isAccepted:
             raise ExchangeError(self.id + ' ' + self.json(response))

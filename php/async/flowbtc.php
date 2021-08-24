@@ -276,7 +276,7 @@ class flowbtc extends Exchange {
         if ($response === null) {
             return;
         }
-        $isAccepted = $this->safe_value($response, 'isAccepted');
+        $isAccepted = $this->safe_value($response, 'isAccepted', true);
         if (!$isAccepted) {
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
