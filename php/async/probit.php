@@ -156,6 +156,7 @@ class probit extends Exchange {
                 'BTCBULL' => 'BULL',
                 'CBC' => 'CryptoBharatCoin',
                 'EPS' => 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
+                'GRB' => 'Global Reward Bank',
                 'HBC' => 'Hybrid Bank Cash',
                 'ORC' => 'Oracle System',
                 'SOC' => 'Soda Coin',
