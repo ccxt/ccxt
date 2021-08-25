@@ -1257,7 +1257,7 @@ class Exchange {
             array($paths[0]),
             array_filter(array_map('trim', array_slice($paths, 1)))
         ));
-        $camelcase = $underscore_prefix . $camelcase_method . static::capitalize($camelcase_suffix);
+        $camelcase = $camelcase_prefix . $camelcase_method . static::capitalize($camelcase_suffix);
         $underscore = $underscore_prefix . '_' . $lowercase_method . '_' . mb_strtolower($underscore_suffix);
         $api_argument = (count($paths) > 1) ? $paths : $paths[0];
         $this->defined_rest_api[$camelcase] = array($path, $api_argument, $uppercase_method, $method_name, $config);
