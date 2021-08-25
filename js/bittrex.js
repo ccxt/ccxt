@@ -165,6 +165,7 @@ module.exports = class bittrex extends Exchange {
                     'INVALID_ORDER_TYPE': InvalidOrder,
                     'QUANTITY_NOT_PROVIDED': InvalidOrder,
                     'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
+                    'NOT_FOUND': OrderNotFound,
                     'ORDER_NOT_OPEN': OrderNotFound,
                     'INVALID_ORDER': InvalidOrder,
                     'UUID_INVALID': OrderNotFound,
