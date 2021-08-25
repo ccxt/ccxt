@@ -1327,12 +1327,12 @@ module.exports = class bittrex extends Exchange {
             let success = this.safeValue (response, 'success');
             if (success === undefined) {
                 const code = this.safeString (response, 'code');
+                if ((code === 'NOT_FOUND') && (url.indexOf ('addresses') >= 0)) {
+                    throw new InvalidAddress (feedback);
+                }
                 if (code !== undefined) {
                     this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
                     this.throwBroadlyMatchedException (this.exceptions['broad'], code, feedback);
-                }
-                if ((code === 'NOT_FOUND') && (url.indexOf ('addresses') >= 0)) {
-                    throw new InvalidAddress (feedback);
                 }
                 // throw new ExchangeError (this.id + ' malformed response ' + this.json (response));
                 return;
