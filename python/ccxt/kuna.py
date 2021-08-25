@@ -134,10 +134,15 @@ class kuna(Exchange):
             id = ids[i]
             for j in range(0, len(quotes)):
                 quoteId = quotes[j]
-                index = id.find(quoteId)
-                slice = id[index:]
+                # usd gets matched before usdt in usdtusd USDT/USD
+                # https://github.com/ccxt/ccxt/issues/9868
+                slicedId = id[1:]
+                index = slicedId.find(quoteId)
+                slice = slicedId[index:]
                 if (index > 0) and (slice == quoteId):
-                    baseId = id.replace(quoteId, '')
+                    # usd gets matched before usdt in usdtusd USDT/USD
+                    # https://github.com/ccxt/ccxt/issues/9868
+                    baseId = id[0] + slicedId.replace(quoteId, '')
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
@@ -169,7 +174,6 @@ class kuna(Exchange):
                         'active': None,
                         'info': None,
                     })
-                    break
         return markets
 
     def fetch_order_book(self, symbol, limit=None, params={}):
