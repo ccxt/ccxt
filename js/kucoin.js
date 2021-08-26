@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError, InvalidNonce } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -14,6 +14,7 @@ module.exports = class kucoin extends ccxt.kucoin {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
@@ -516,6 +517,98 @@ module.exports = class kucoin extends ccxt.kucoin {
         return message;
     }
 
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const negotiation = await this.negotiate ();
+        const topic = '/spotMarket/tradeOrders';
+        const request = {
+            'privateChannel': true,
+        };
+        const orders = await this.subscribe (negotiation, topic, topic, undefined, undefined, this.extend (request, params));
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    parseWsOrderStatus (status) {
+        const statuses = {
+            'open': 'open',
+            'filled': 'closed',
+            'match': 'closed',
+            'update': 'open',
+            'canceled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        const id = this.safeString (order, 'orderId');
+        const clientOrderId = this.safeString (order, 'clientOid');
+        const orderType = this.safeStringLower (order, 'orderType');
+        const price = this.safeString (order, 'price');
+        const filled = this.safeString (order, 'filledSize');
+        const amount = this.safeString (order, 'size');
+        const rawType = this.safeString (order, 'type');
+        const status = this.parseWsOrderStatus (rawType);
+        const timestamp = this.safeInteger (order, 'ts');
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const side = this.safeStringLower (order, 'side');
+        return this.safeOrder ({
+            'info': order,
+            'symbol': symbol,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'type': orderType,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': price,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': filled,
+            'remaining': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        });
+    }
+
+    handleOrder (client, message) {
+        const messageHash = '/spotMarket/tradeOrders';
+        const data = this.safeValue (message, 'data');
+        const parsed = this.parseWsOrder (data);
+        const symbol = this.safeString (parsed, 'symbol');
+        const orderId = this.safeString (parsed, 'id');
+        if (symbol !== undefined) {
+            if (this.orders === undefined) {
+                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const cachedOrders = this.orders;
+            const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+            const order = this.safeValue (orders, orderId);
+            if (order !== undefined) {
+                // todo add others to calculate average etc
+                const stopPrice = this.safeValue (order, 'stopPrice');
+                if (stopPrice !== undefined) {
+                    parsed['stopPrice'] = stopPrice;
+                }
+                if (order['status'] === 'closed') {
+                    parsed['status'] = 'closed';
+                }
+            }
+            cachedOrders.append (parsed);
+            client.resolve (this.orders, messageHash);
+        }
+    }
+
     handleSubject (client, message) {
         //
         //     {
@@ -539,6 +632,7 @@ module.exports = class kucoin extends ccxt.kucoin {
             'trade.snapshot': this.handleTicker,
             'trade.l3match': this.handleTrade,
             'trade.candles.update': this.handleOHLCV,
+            'orderChange': this.handleOrder,
         };
         const method = this.safeValue (methods, subject);
         if (method === undefined) {
