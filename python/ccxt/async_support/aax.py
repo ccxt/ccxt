@@ -718,7 +718,8 @@ class aax(Exchange):
         data = self.safe_value(response, 'data')
         order = await self.fetch_order(data['orderID'])
         if order['status'] == 'rejected':
-            raise InvalidOrder(' order was rejected by the exchange ' + self.safe_value(order.info, 'rejectReason'))
+            info = self.safe_value(order, 'info')
+            raise InvalidOrder(' order was rejected by the exchange ' + self.safe_value(info, 'rejectReason'))
         return order
 
     async def cancel_order(self, id, symbol=None, params={}):
