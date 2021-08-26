@@ -1998,11 +1998,11 @@ module.exports = class ftx extends Exchange {
             'symbol': symbol,
             'code': code,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': this.iso8601 (timestamp),
             'id': id,
             'amount': amount,
-            'rate': rate
-        };
+            'rate': rate,
+        }
     }
 
     parseIncomes (incomes, market = undefined, since = undefined, limit = undefined) {
@@ -2011,27 +2011,23 @@ module.exports = class ftx extends Exchange {
             const entry = incomes[i];
             const parsed = this.parseIncome (entry, market);
             result.push (parsed);
-        };
+        }
         return this.filterBySinceLimit (result, since, limit, 'timestamp');
-    };
+    }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarkets ();
         const method = 'private_get_funding_payments';
         const request = {};
         let market = undefined;
-
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['future'] = market['id'];
-        };
-
+        }
         if (since !== undefined) {
             request['startTime'] = since;
-        };
-
+        }
         const response = await this[method] (this.extend (request, params));
         return this.parseIncomes (response, market, since, limit);
-    };
-
+    }
 };
