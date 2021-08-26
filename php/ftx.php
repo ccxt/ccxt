@@ -1981,13 +1981,13 @@ class ftx extends Exchange {
 
     public function parse_income($income, $market = null) {
         //
-        //     {
-        //         "$future" => "ETH-PERP",
-        //         "$payment" => 0.0441342,
-        //         "time" => "2019-05-15T18:00:00+00:00",
-        //         "id" => 33830,
-        //         "rate" => 0.0001
-        //     }
+        //   {
+        //       "future" => "ETH-PERP",
+        //        "$id" => 33830,
+        //        "payment" => 0.0441342,
+        //        "time" => "2019-05-15T18:00:00+00:00",
+        //        "$rate" => 0.0001
+        //   }
         //
         $marketId = $this->safe_string($income, 'future');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1996,7 +1996,6 @@ class ftx extends Exchange {
         $id = $this->safe_string($income, 'id');
         $timestamp = $this->safe_integer($income, 'time');
         $rate = $this->safe_number($income, 'rate');
-
         return array(
             'info' => $income,
             'symbol' => $symbol,
@@ -2005,7 +2004,7 @@ class ftx extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'id' => $id,
             'amount' => $amount,
-            'rate' => $rate
+            'rate' => $rate,
         );
     }
 
@@ -2021,19 +2020,17 @@ class ftx extends Exchange {
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = null;
         $method = 'private_get_funding_payments';
-        $request = array(
-        );
+        $request = array();
+        $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $request['future'] = $market['id'];
         }
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         return $this->parse_incomes ($response, $market, $since, $limit);
     }
-
 }

@@ -65,7 +65,6 @@ class ftx(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': False,
-                'fetchFundingHistory': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -1903,15 +1902,15 @@ class ftx(Exchange):
         }
         return await self.privatePostAccountLeverage(self.extend(request, params))
 
-    async def parse_income(self, income, market=None):
+    def parse_income(self, income, market=None):
         #
-        #        {
-        #            "future": "ETH-PERP",
-        #            "id": 33830,
-        #            "payment": 0.0441342,
-        #            "time": "2019-05-15T18:00:00+00:00",
-        #            "rate": 0.0001
-        #        }
+        #   {
+        #       "future": "ETH-PERP",
+        #        "id": 33830,
+        #        "payment": 0.0441342,
+        #        "time": "2019-05-15T18:00:00+00:00",
+        #        "rate": 0.0001
+        #   }
         #
         marketId = self.safe_string(income, 'future')
         symbol = self.safe_symbol(marketId, market)
@@ -1931,7 +1930,7 @@ class ftx(Exchange):
             'rate': rate,
         }
 
-    async def parse_incomes(self, incomes, market=None, since=None, limit=None):
+    def parse_incomes(self, incomes, market=None, since=None, limit=None):
         result = []
         for i in range(0, len(incomes)):
             entry = incomes[i]
@@ -1940,15 +1939,14 @@ class ftx(Exchange):
         return self.filter_by_since_limit(result, since, limit, 'timestamp')
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
+        await self.load_markets()
+        method = 'private_get_funding_payments'
+        request = {}
         market = None
-        request = {
-        }
         if symbol is not None:
             market = self.market(symbol)
             request['future'] = market['id']
         if since is not None:
-            request['start_time'] = since
-        method = 'private_get_funding_payments'
-        response = getattr(self, method)(self.extend(request, params))
+            request['startTime'] = since
+        response = await getattr(self, method)(self.extend(request, params))
         return self.parse_incomes(response, market, since, limit)
