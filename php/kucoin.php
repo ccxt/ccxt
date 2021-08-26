@@ -18,6 +18,7 @@ class kucoin extends \ccxt\async\kucoin {
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
+                'watchOrders' => true,
                 'watchTickers' => false, // for now
                 'watchTicker' => true,
                 'watchTrades' => true,
@@ -520,6 +521,98 @@ class kucoin extends \ccxt\async\kucoin {
         return $message;
     }
 
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $negotiation = yield $this->negotiate();
+        $topic = '/spotMarket/tradeOrders';
+        $request = array(
+            'privateChannel' => true,
+        );
+        $orders = yield $this->subscribe($negotiation, $topic, $topic, null, null, array_merge($request, $params));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit ($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+    }
+
+    public function parse_ws_order_status($status) {
+        $statuses = array(
+            'open' => 'open',
+            'filled' => 'closed',
+            'match' => 'closed',
+            'update' => 'open',
+            'canceled' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_ws_order($order, $market = null) {
+        $id = $this->safe_string($order, 'orderId');
+        $clientOrderId = $this->safe_string($order, 'clientOid');
+        $orderType = $this->safe_string_lower($order, 'orderType');
+        $price = $this->safe_string($order, 'price');
+        $filled = $this->safe_string($order, 'filledSize');
+        $amount = $this->safe_string($order, 'size');
+        $rawType = $this->safe_string($order, 'type');
+        $status = $this->parse_ws_order_status($rawType);
+        $timestamp = $this->safe_integer($order, 'ts');
+        $marketId = $this->safe_string($order, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $side = $this->safe_string_lower($order, 'side');
+        return $this->safe_order(array(
+            'info' => $order,
+            'symbol' => $symbol,
+            'id' => $id,
+            'clientOrderId' => $clientOrderId,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
+            'type' => $orderType,
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => $side,
+            'price' => $price,
+            'stopPrice' => $price,
+            'amount' => $amount,
+            'cost' => null,
+            'average' => null,
+            'filled' => $filled,
+            'remaining' => null,
+            'status' => $status,
+            'fee' => null,
+            'trades' => null,
+        ));
+    }
+
+    public function handle_order($client, $message) {
+        $messageHash = '/spotMarket/tradeOrders';
+        $data = $this->safe_value($message, 'data');
+        $parsed = $this->parse_ws_order($data);
+        $symbol = $this->safe_string($parsed, 'symbol');
+        $orderId = $this->safe_string($parsed, 'id');
+        if ($symbol !== null) {
+            if ($this->orders === null) {
+                $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+                $this->orders = new ArrayCacheBySymbolById ($limit);
+            }
+            $cachedOrders = $this->orders;
+            $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
+            $order = $this->safe_value($orders, $orderId);
+            if ($order !== null) {
+                // todo add others to calculate average etc
+                $stopPrice = $this->safe_value($order, 'stopPrice');
+                if ($stopPrice !== null) {
+                    $parsed['stopPrice'] = $stopPrice;
+                }
+                if ($order['status'] === 'closed') {
+                    $parsed['status'] = 'closed';
+                }
+            }
+            $cachedOrders->append ($parsed);
+            $client->resolve ($this->orders, $messageHash);
+        }
+    }
+
     public function handle_subject($client, $message) {
         //
         //     {
@@ -543,6 +636,7 @@ class kucoin extends \ccxt\async\kucoin {
             'trade.snapshot' => array($this, 'handle_ticker'),
             'trade.l3match' => array($this, 'handle_trade'),
             'trade.candles.update' => array($this, 'handle_ohlcv'),
+            'orderChange' => array($this, 'handle_order'),
         );
         $method = $this->safe_value($methods, $subject);
         if ($method === null) {

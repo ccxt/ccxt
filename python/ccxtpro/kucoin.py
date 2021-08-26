@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidNonce
 
@@ -17,6 +17,7 @@ class kucoin(Exchange, ccxt.kucoin):
             'has': {
                 'ws': True,
                 'watchOrderBook': True,
+                'watchOrders': True,
                 'watchTickers': False,  # for now
                 'watchTicker': True,
                 'watchTrades': True,
@@ -477,6 +478,88 @@ class kucoin(Exchange, ccxt.kucoin):
         #
         return message
 
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        negotiation = await self.negotiate()
+        topic = '/spotMarket/tradeOrders'
+        request = {
+            'privateChannel': True,
+        }
+        orders = await self.subscribe(negotiation, topic, topic, None, None, self.extend(request, params))
+        if self.newUpdates:
+            limit = orders.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+
+    def parse_ws_order_status(self, status):
+        statuses = {
+            'open': 'open',
+            'filled': 'closed',
+            'match': 'closed',
+            'update': 'open',
+            'canceled': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_ws_order(self, order, market=None):
+        id = self.safe_string(order, 'orderId')
+        clientOrderId = self.safe_string(order, 'clientOid')
+        orderType = self.safe_string_lower(order, 'orderType')
+        price = self.safe_string(order, 'price')
+        filled = self.safe_string(order, 'filledSize')
+        amount = self.safe_string(order, 'size')
+        rawType = self.safe_string(order, 'type')
+        status = self.parse_ws_order_status(rawType)
+        timestamp = self.safe_integer(order, 'ts')
+        marketId = self.safe_string(order, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        side = self.safe_string_lower(order, 'side')
+        return self.safe_order({
+            'info': order,
+            'symbol': symbol,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'type': orderType,
+            'timeInForce': None,
+            'postOnly': None,
+            'side': side,
+            'price': price,
+            'stopPrice': price,
+            'amount': amount,
+            'cost': None,
+            'average': None,
+            'filled': filled,
+            'remaining': None,
+            'status': status,
+            'fee': None,
+            'trades': None,
+        })
+
+    def handle_order(self, client, message):
+        messageHash = '/spotMarket/tradeOrders'
+        data = self.safe_value(message, 'data')
+        parsed = self.parse_ws_order(data)
+        symbol = self.safe_string(parsed, 'symbol')
+        orderId = self.safe_string(parsed, 'id')
+        if symbol is not None:
+            if self.orders is None:
+                limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+                self.orders = ArrayCacheBySymbolById(limit)
+            cachedOrders = self.orders
+            orders = self.safe_value(cachedOrders.hashmap, symbol, {})
+            order = self.safe_value(orders, orderId)
+            if order is not None:
+                # todo add others to calculate average etc
+                stopPrice = self.safe_value(order, 'stopPrice')
+                if stopPrice is not None:
+                    parsed['stopPrice'] = stopPrice
+                if order['status'] == 'closed':
+                    parsed['status'] = 'closed'
+            cachedOrders.append(parsed)
+            client.resolve(self.orders, messageHash)
+
     def handle_subject(self, client, message):
         #
         #     {
@@ -500,6 +583,7 @@ class kucoin(Exchange, ccxt.kucoin):
             'trade.snapshot': self.handle_ticker,
             'trade.l3match': self.handle_trade,
             'trade.candles.update': self.handle_ohlcv,
+            'orderChange': self.handle_order,
         }
         method = self.safe_value(methods, subject)
         if method is None:
