@@ -1975,4 +1975,59 @@ module.exports = class ftx extends Exchange {
         };
         return await this.privatePostAccountLeverage (this.extend (request, params));
     }
+
+    parseIncome (income, market = undefined) {
+        //
+        //   {
+        //       "future": "ETH-PERP",
+        //        "id": 33830,
+        //        "payment": 0.0441342,
+        //        "time": "2019-05-15T18:00:00+00:00",
+        //        "rate": 0.0001
+        //   }
+        //
+        const marketId = this.safeString (income, 'future');
+        const symbol = this.safeSymbol (marketId, market);
+        const amount = this.safeNumber (income, 'payment');
+        const code = this.safeCurrencyCode ('USD');
+        const id = this.safeString (income, 'id');
+        const timestamp = this.safeInteger (income, 'time');
+        const rate = this.safe_number (income, 'rate');
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': id,
+            'amount': amount,
+            'rate': rate,
+        };
+    }
+
+    parseIncomes (incomes, market = undefined, since = undefined, limit = undefined) {
+        const result = [];
+        for (let i = 0; i < incomes.length; i++) {
+            const entry = incomes[i];
+            const parsed = this.parseIncome (entry, market);
+            result.push (parsed);
+        }
+        return this.filterBySinceLimit (result, since, limit, 'timestamp');
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const method = 'private_get_funding_payments';
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['future'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this[method] (this.extend (request, params));
+        return this.parseIncomes (response, market, since, limit);
+    }
 };
