@@ -770,7 +770,8 @@ class aax extends Exchange {
         $data = $this->safe_value($response, 'data');
         $order = $this->fetch_order($data['orderID']);
         if ($order['status'] === 'rejected') {
-            throw new InvalidOrder(' $order was rejected by the exchange ' . $this->safe_value($order->info, 'rejectReason'));
+            $info = $this->safe_value($order, 'info');
+            throw new InvalidOrder(' $order was rejected by the exchange ' . $this->safe_value($info, 'rejectReason'));
         }
         return $order;
     }
