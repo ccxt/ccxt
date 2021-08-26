@@ -1978,4 +1978,59 @@ class ftx extends Exchange {
         );
         return $this->privatePostAccountLeverage (array_merge($request, $params));
     }
+
+    public function parse_income($income, $market = null) {
+        //
+        //   {
+        //       "future" => "ETH-PERP",
+        //        "$id" => 33830,
+        //        "payment" => 0.0441342,
+        //        "time" => "2019-05-15T18:00:00+00:00",
+        //        "$rate" => 0.0001
+        //   }
+        //
+        $marketId = $this->safe_string($income, 'future');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $amount = $this->safe_number($income, 'payment');
+        $code = $this->safe_currency_code('USD');
+        $id = $this->safe_string($income, 'id');
+        $timestamp = $this->safe_integer($income, 'time');
+        $rate = $this->safe_number($income, 'rate');
+        return array(
+            'info' => $income,
+            'symbol' => $symbol,
+            'code' => $code,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $id,
+            'amount' => $amount,
+            'rate' => $rate,
+        );
+    }
+
+    public function parse_incomes($incomes, $market = null, $since = null, $limit = null) {
+        $result = array();
+        for ($i = 0; $i < count($incomes); $i++) {
+            $entry = $incomes[$i];
+            $parsed = $this->parse_income ($entry, $market);
+            $result[] = $parsed;
+        }
+        return $this->filter_by_since_limit($result, $since, $limit, 'timestamp');
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $method = 'private_get_funding_payments';
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['future'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        return $this->parse_incomes ($response, $market, $since, $limit);
+    }
 }
