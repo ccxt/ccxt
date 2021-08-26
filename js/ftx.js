@@ -1977,7 +1977,7 @@ module.exports = class ftx extends Exchange {
     }
 
     parseIncome (income, market = undefined) {
-        //        
+        //
         //   {
         //       "future": "ETH-PERP",
         //        "id": 33830,
@@ -1985,14 +1985,14 @@ module.exports = class ftx extends Exchange {
         //        "time": "2019-05-15T18:00:00+00:00",
         //        "rate": 0.0001
         //   }
-        // 
+        //
         const marketId = this.safeString (income, 'future');
         const symbol = this.safeSymbol (marketId, market);
         const amount = this.safeNumber (income, 'payment');
         const code = this.safeCurrencyCode ('USD');
         const id = this.safeString (income, 'id');
         const timestamp = this.safeInteger (income, 'time');
-        const rate = self.safe_number (income, 'rate')
+        const rate = this.safe_number (income, 'rate');
         return {
             'info': income,
             'symbol': symbol,
@@ -2011,10 +2011,9 @@ module.exports = class ftx extends Exchange {
             const entry = incomes[i];
             const parsed = this.parseIncome (entry, market);
             result.push (parsed);
-        }
+        };
         return this.filterBySinceLimit (result, since, limit, 'timestamp');
-
-    }
+    };
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
