@@ -192,18 +192,16 @@ const printHumanReadable = (exchange, result) => {
                     let keys = Object.keys (element)
                     delete element['info']
                     keys.forEach (key => {
-                        if (typeof element[key] === 'number') {
-                            if (!iso8601)
-                                return element[key]
-                            try {
-                                const iso8601 = exchange.iso8601 (element[key])
-                                if (iso8601.match (/^20[0-9]{2}[-]?/))
-                                    element[key] = iso8601
-                                else
-                                    throw new Error ('wrong date')
-                            } catch (e) {
-                                return element[key]
-                            }
+                        if (!iso8601)
+                            return element[key]
+                        try {
+                            const iso8601 = exchange.iso8601 (element[key])
+                            if (iso8601.match (/^20[0-9]{2}[-]?/))
+                                element[key] = iso8601
+                            else
+                                throw new Error ('wrong date')
+                        } catch (e) {
+                            return element[key]
                         }
                     })
                     return element
