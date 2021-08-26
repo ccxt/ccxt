@@ -2002,7 +2002,7 @@ module.exports = class ftx extends Exchange {
             'id': id,
             'amount': amount,
             'rate': rate,
-        }
+        };
     }
 
     parseIncomes (incomes, market = undefined, since = undefined, limit = undefined) {
