@@ -198,7 +198,7 @@ class crex24 extends Exchange {
         //             "baseCurrency" => "$PAC",
         //             "quoteCurrency" => "BTC",
         //             "feeCurrency" => "BTC",
-        //             "feeSchedule" => "OriginalSchedule",
+        //             "$feeSchedule" => "OriginalSchedule",
         //             "$tickSize" => 0.00000001,
         //             "$minPrice" => 0.00000001,
         //             "$maxPrice" => 10000000000.0,
@@ -217,7 +217,7 @@ class crex24 extends Exchange {
         //             "baseCurrency" => "1INCH",
         //             "quoteCurrency" => "USDT",
         //             "feeCurrency" => "USDT",
-        //             "feeSchedule" => "FeeSchedule10",
+        //             "$feeSchedule" => "FeeSchedule10",
         //             "$tickSize" => 0.0001,
         //             "$minPrice" => 0.0001,
         //             "$maxPrice" => 10000000000.0,
@@ -231,6 +231,41 @@ class crex24 extends Exchange {
         //             ),
         //             "state" => "$active"
         //           ), )
+        //
+        $response2 = $this->publicGetTradingFeeSchedules ($params);
+        //
+        //     array(
+        //         {
+        //             "name" => "FeeSchedule05",
+        //             "$feeRates" => array(
+        //                 array(
+        //                     "$volumeThreshold" => 0.0,
+        //                     "$maker" => 0.0005,
+        //                     "$taker" => 0.0005
+        //                 ),
+        //                 array(
+        //                     "$volumeThreshold" => 5.0,
+        //                     "$maker" => 0.0004,
+        //                     "$taker" => 0.0004
+        //                 ),
+        //                 array(
+        //                     "$volumeThreshold" => 15.0,
+        //                     "$maker" => 0.0003,
+        //                     "$taker" => 0.0003
+        //                 ),
+        //                 array(
+        //                     "$volumeThreshold" => 30.0,
+        //                     "$maker" => 0.0002,
+        //                     "$taker" => 0.0002
+        //                 ),
+        //                 array(
+        //                     "$volumeThreshold" => 50.0,
+        //                     "$maker" => 0.0001,
+        //                     "$taker" => 0.0001
+        //                 }
+        //             )
+        //         ),
+        //     )
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -252,6 +287,24 @@ class crex24 extends Exchange {
                 'amount' => $minAmount,
                 'price' => $tickSize,
             );
+            $maker = null;
+            $taker = null;
+            $feeSchedule = $this->safe_string($market, 'feeSchedule');
+            for ($j = 0; $j < count($response2); $j++) {
+                $feeScheduleName = $this->safe_string($response2[$j], 'name');
+                if ($feeScheduleName === $feeSchedule) {
+                    $feeRates = $this->safe_value($response2[$j], 'feeRates', array());
+                    for ($k = 0; $k < count($feeRates); $k++) {
+                        $volumeThreshold = $this->safe_number($feeRates[$k], 'volumeThreshold');
+                        if ($volumeThreshold === 0) {
+                            $maker = $this->safe_number($feeRates[$k], 'maker');
+                            $taker = $this->safe_number($feeRates[$k], 'taker');
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
             $active = ($market['state'] === 'active');
             $result[] = array(
                 'id' => $id,
@@ -263,6 +316,8 @@ class crex24 extends Exchange {
                 'info' => $market,
                 'active' => $active,
                 'precision' => $precision,
+                'maker' => $maker,
+                'taker' => $taker,
                 'limits' => array(
                     'amount' => array(
                         'min' => $minAmount,
