@@ -190,6 +190,7 @@ class bitbns(Exchange):
             priceLimits = self.safe_value(marketLimits, 'price', {})
             costLimits = self.safe_value(marketLimits, 'cost', {})
             usdt = (quoteId == 'USDT')
+            # INR markets don't need a _INR prefix
             uppercaseId = (baseId + '_' + quoteId) if usdt else baseId
             result.append({
                 'id': id,
@@ -492,7 +493,7 @@ class bitbns(Exchange):
         market = self.market(symbol)
         request = {
             'side': side.upper(),
-            'symbol': market['baseId'] + '_' + market['quoteId'],
+            'symbol': market['uppercaseId'],
             'quantity': self.amount_to_precision(symbol, amount),
             'rate': self.price_to_precision(symbol, price),
             # 'target_rate': self.price_to_precision(symbol, targetRate),
