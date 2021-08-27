@@ -39,7 +39,6 @@ Exchange::$exchanges = array(
     'currencycom',
     'ftx',
     'gateio',
-    'gopax',
     'hitbtc',
     'huobi',
     'huobijp',
