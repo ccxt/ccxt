@@ -303,6 +303,7 @@ module.exports = class bitmart extends Exchange {
                 'MVP': 'MVP Coin',
                 'ONE': 'Menlo One',
                 'PLA': 'Plair',
+                'TCT': 'TacoCat Token',
             },
             'options': {
                 'defaultType': 'spot', // 'spot', 'swap'
