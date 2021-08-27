@@ -48,7 +48,7 @@ setup(
         'Intended Audience :: Information Technology',
         'Topic :: Software Development :: Build Tools',
         'Topic :: Office/Business :: Financial :: Investment',
-        'License :: OSI Approved :: MIT License',
+        'License :: Other/Proprietary License',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
