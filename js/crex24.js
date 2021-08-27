@@ -283,10 +283,10 @@ module.exports = class crex24 extends Exchange {
             let maker = undefined;
             let taker = undefined;
             const feeSchedule = this.safeString (market, 'feeSchedule');
-            for (let i = 0; i < response2.length; i++) {
-                const feeScheduleName = this.safeString (response2[i], 'name');
+            for (let j = 0; j < response2.length; j++) {
+                const feeScheduleName = this.safeString (response2[j], 'name');
                 if (feeScheduleName === feeSchedule) {
-                    const feeRates = this.safeValue (response2[i], 'feeRates', []);
+                    const feeRates = this.safeValue (response2[j], 'feeRates', []);
                     for (let k = 0; k < feeRates.length; k++) {
                         const volumeThreshold = this.safeNumber (feeRates[k], 'volumeThreshold');
                         if (volumeThreshold === 0) {
