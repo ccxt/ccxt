@@ -225,6 +225,41 @@ module.exports = class crex24 extends Exchange {
         //             "state": "active"
         //           }, ]
         //
+        const response2 = await this.publicGetTradingFeeSchedules (params);
+        //
+        //     [
+        //         {
+        //             "name": "FeeSchedule05",
+        //             "feeRates": [
+        //                 {
+        //                     "volumeThreshold": 0.0,
+        //                     "maker": 0.0005,
+        //                     "taker": 0.0005
+        //                 },
+        //                 {
+        //                     "volumeThreshold": 5.0,
+        //                     "maker": 0.0004,
+        //                     "taker": 0.0004
+        //                 },
+        //                 {
+        //                     "volumeThreshold": 15.0,
+        //                     "maker": 0.0003,
+        //                     "taker": 0.0003
+        //                 },
+        //                 {
+        //                     "volumeThreshold": 30.0,
+        //                     "maker": 0.0002,
+        //                     "taker": 0.0002
+        //                 },
+        //                 {
+        //                     "volumeThreshold": 50.0,
+        //                     "maker": 0.0001,
+        //                     "taker": 0.0001
+        //                 }
+        //             ]
+        //         },
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -245,6 +280,24 @@ module.exports = class crex24 extends Exchange {
                 'amount': minAmount,
                 'price': tickSize,
             };
+            let maker = undefined;
+            let taker = undefined;
+            const feeSchedule = this.safeString (market, 'feeSchedule');
+            for (let j = 0; j < response2.length; j++) {
+                const feeScheduleName = this.safeString (response2[j], 'name');
+                if (feeScheduleName === feeSchedule) {
+                    const feeRates = this.safeValue (response2[j], 'feeRates', []);
+                    for (let k = 0; k < feeRates.length; k++) {
+                        const volumeThreshold = this.safeNumber (feeRates[k], 'volumeThreshold');
+                        if (volumeThreshold === 0) {
+                            maker = this.safeNumber (feeRates[k], 'maker');
+                            taker = this.safeNumber (feeRates[k], 'taker');
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
             const active = (market['state'] === 'active');
             result.push ({
                 'id': id,
@@ -256,6 +309,8 @@ module.exports = class crex24 extends Exchange {
                 'info': market,
                 'active': active,
                 'precision': precision,
+                'maker': maker,
+                'taker': taker,
                 'limits': {
                     'amount': {
                         'min': minAmount,
