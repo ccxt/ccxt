@@ -186,6 +186,7 @@ module.exports = class bitbns extends Exchange {
             const priceLimits = this.safeValue (marketLimits, 'price', {});
             const costLimits = this.safeValue (marketLimits, 'cost', {});
             const usdt = (quoteId === 'USDT');
+            // INR markets don't need a _INR prefix
             const uppercaseId = usdt ? (baseId + '_' + quoteId) : baseId;
             result.push ({
                 'id': id,
