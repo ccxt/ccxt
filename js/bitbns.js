@@ -501,13 +501,9 @@ module.exports = class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marketId = market['baseId'];
-        if (market['quoteId'] === 'USDT') {
-            marketId += '_' + market['quoteId'];
-        };
         const request = {
             'side': side.toUpperCase (),
-            'symbol': marketId,
+            'symbol': market['uppercaseId'],
             'quantity': this.amountToPrecision (symbol, amount),
             'rate': this.priceToPrecision (symbol, price),
             // 'target_rate': this.priceToPrecision (symbol, targetRate),
