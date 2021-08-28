@@ -219,7 +219,10 @@ Certified Cryptocurrency Exchanges
           :alt: CCXT Certified
      
      - 
-     - 
+     - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d25%25&color=orange
+          :target: http://www.bitmart.com/?r=rQCFLh
+          :alt: Sign up with BitMart using CCXT's referral link for a 25% discount!
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
           :target: https://bitvavo.com/?a=24F34952F7
           :alt: bitvavo
@@ -1973,14 +1976,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.55.54/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.55.54/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.55.55/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.55.55/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.55.54/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.55.55/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
