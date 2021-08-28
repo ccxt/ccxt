@@ -154,6 +154,7 @@ module.exports = class probit extends Exchange {
                 'HBC': 'Hybrid Bank Cash',
                 'ORC': 'Oracle System',
                 'SOC': 'Soda Coin',
+                'TCT': 'Top Coin Token',
                 'UNI': 'UNICORN Token',
                 'UNISWAP': 'UNI',
             },

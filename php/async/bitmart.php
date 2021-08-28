@@ -308,6 +308,7 @@ class bitmart extends Exchange {
                 'MVP' => 'MVP Coin',
                 'ONE' => 'Menlo One',
                 'PLA' => 'Plair',
+                'TCT' => 'TacoCat Token',
             ),
             'options' => array(
                 'defaultType' => 'spot', // 'spot', 'swap'
