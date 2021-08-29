@@ -810,7 +810,12 @@ module.exports = class kucoin extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = { 'currency': currency['id'] };
+        const request = {
+            'currency': currency['id'],
+            // for USDT - OMNI, ERC20, TRC20, default is ERC20
+            // for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
+            // 'chain': 'ERC20', // optional
+        };
         const response = await this.privateGetDepositAddresses (this.extend (request, params));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
