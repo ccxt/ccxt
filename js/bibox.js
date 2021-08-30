@@ -73,6 +73,7 @@ module.exports = class bibox extends Exchange {
                         'cquery',
                         'mdata',
                         'cdata',
+                        'orderpending',
                     ],
                 },
                 'private': {
@@ -168,6 +169,30 @@ module.exports = class bibox extends Exchange {
         //     }
         //
         const markets = this.safeValue (response, 'result');
+        const request2 = {
+            'cmd': 'tradeLimit',
+        };
+        const response2 = await this.publicGetOrderpending (this.extend (request2, params));
+        //
+        //    {
+        //         result: {
+        //             min_trade_price: { default: '0.00000001', USDT: '0.0001', DAI: '0.0001' },
+        //             min_trade_amount: { default: '0.0001' },
+        //             min_trade_money: {
+        //                 USDT: '1',
+        //                 USDC: '1',
+        //                 DAI: '1',
+        //                 GUSD: '1',
+        //                 BIX: '3',
+        //                 BTC: '0.0002',
+        //                 ETH: '0.005'
+        //             }
+        //         },
+        //         cmd: 'tradeLimit'
+        //     }
+        //
+        const result2 = this.safeValue (response2, 'result', {});
+        const minCosts = this.safeValue (result2, 'min_trade_money', {});
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -205,6 +230,10 @@ module.exports = class bibox extends Exchange {
                     },
                     'price': {
                         'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (minCosts, quoteId),
                         'max': undefined,
                     },
                 },
