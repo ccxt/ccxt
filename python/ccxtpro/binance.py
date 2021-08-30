@@ -728,6 +728,9 @@ class binance(Exchange, ccxt.binance):
         type = self.safe_string(params, 'type', type)
         options = self.safe_value(self.options, type, {})
         listenKey = self.safe_string(options, 'listenKey')
+        if listenKey is None:
+            # A network error happened: we can't renew a listen key that does not exist.
+            return
         method = 'publicPutUserDataStream'
         if type == 'future':
             method = 'fapiPrivatePutListenKey'

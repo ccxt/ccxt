@@ -778,6 +778,10 @@ class binance extends \ccxt\async\binance {
         $type = $this->safe_string($params, 'type', $type);
         $options = $this->safe_value($this->options, $type, array());
         $listenKey = $this->safe_string($options, 'listenKey');
+        if ($listenKey === null) {
+            // A network $error happened => we can't renew a listen key that does not exist.
+            return;
+        }
         $method = 'publicPutUserDataStream';
         if ($type === 'future') {
             $method = 'fapiPrivatePutListenKey';
