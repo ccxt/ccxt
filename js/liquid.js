@@ -82,6 +82,11 @@ module.exports = class liquid extends Exchange {
                         'trading_accounts/{id}',
                         'transactions',
                         'withdrawals', // add fetchWithdrawals
+                        'user/fee_tier',
+                        'user/fees',
+                        'trading_accounts/{id}',
+                        'bank_accounts',
+                        'accounts/{currency}/reserved_balance_details',
                     ],
                     'post': [
                         'crypto_withdrawals',
@@ -90,6 +95,7 @@ module.exports = class liquid extends Exchange {
                         'loan_bids',
                         'orders',
                         'withdrawals',
+                        'fees/estimate',
                     ],
                     'put': [
                         'crypto_withdrawal/{id}/cancel',
