@@ -67,7 +67,9 @@ module.exports = class liquid extends Exchange {
                         'accounts/{id}',
                         'accounts/{currency}/reserved_balance_details',
                         'crypto_accounts', // add fetchAccounts
+                        'crypto_withdrawal',
                         'crypto_withdrawals',
+                        'crypto_withdrawals/crypto_networks',
                         'executions/me',
                         'fiat_accounts', // add fetchAccounts
                         'fund_infos', // add fetchDeposits
