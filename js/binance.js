@@ -775,6 +775,10 @@ module.exports = class binance extends ccxt.binance {
         type = this.safeString (params, 'type', type);
         const options = this.safeValue (this.options, type, {});
         const listenKey = this.safeString (options, 'listenKey');
+        if (listenKey === undefined) {
+            // A network error happened: we can't renew a listen key that does not exist.
+            return;
+        }
         let method = 'publicPutUserDataStream';
         if (type === 'future') {
             method = 'fapiPrivatePutListenKey';
