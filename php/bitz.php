@@ -144,6 +144,7 @@ class bitz extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/3881
                 // https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
                 'BOX' => 'BOX Token',
+                'XBT' => 'XBT',
                 'LEO' => 'LeoCoin',
                 'XRB' => 'NANO',
                 'PXC' => 'Pixiecoin',
