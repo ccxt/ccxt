@@ -96,6 +96,7 @@ class bibox(Exchange):
                         'cquery',
                         'mdata',
                         'cdata',
+                        'orderpending',
                     ],
                 },
                 'private': {
@@ -190,6 +191,30 @@ class bibox(Exchange):
         #     }
         #
         markets = self.safe_value(response, 'result')
+        request2 = {
+            'cmd': 'tradeLimit',
+        }
+        response2 = self.publicGetOrderpending(self.extend(request2, params))
+        #
+        #    {
+        #         result: {
+        #             min_trade_price: {default: '0.00000001', USDT: '0.0001', DAI: '0.0001'},
+        #             min_trade_amount: {default: '0.0001'},
+        #             min_trade_money: {
+        #                 USDT: '1',
+        #                 USDC: '1',
+        #                 DAI: '1',
+        #                 GUSD: '1',
+        #                 BIX: '3',
+        #                 BTC: '0.0002',
+        #                 ETH: '0.005'
+        #             }
+        #         },
+        #         cmd: 'tradeLimit'
+        #     }
+        #
+        result2 = self.safe_value(response2, 'result', {})
+        minCosts = self.safe_value(result2, 'min_trade_money', {})
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -226,6 +251,10 @@ class bibox(Exchange):
                     },
                     'price': {
                         'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(minCosts, quoteId),
                         'max': None,
                     },
                 },
