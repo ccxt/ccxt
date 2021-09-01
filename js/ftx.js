@@ -508,6 +508,19 @@ module.exports = class ftx extends Exchange {
         }
         const last = this.safeNumber (ticker, 'last');
         const timestamp = this.safeTimestamp (ticker, 'time', this.milliseconds ());
+        let percentage = this.safeNumber (ticker, 'change24h');
+        if (percentage !== undefined) {
+            percentage *= 100;
+        }
+        let change = undefined;
+        let average = undefined;
+        let open = undefined;
+        if ((last !== undefined) && (percentage !== undefined)) {
+            const percentageNumberChange = percentage / 100;
+            change = percentageNumberChange * last;
+            open = last - change;
+            average = this.sum (open, last) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -519,13 +532,13 @@ module.exports = class ftx extends Exchange {
             'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': this.safeNumber (ticker, 'askSize'),
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': this.safeNumber (ticker, 'change24h'),
-            'average': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber (ticker, 'quoteVolume24h'),
             'info': ticker,
