@@ -71,6 +71,10 @@ class ftx extends Exchange {
                 '1h' => '3600',
                 '4h' => '14400',
                 '1d' => '86400',
+                '3d' => '259200',
+                '1w' => '604800',
+                '2w' => '1209600',
+                '1M' => '2592000',
             ),
             'api' => array(
                 'public' => array(
@@ -511,6 +515,19 @@ class ftx extends Exchange {
         }
         $last = $this->safe_number($ticker, 'last');
         $timestamp = $this->safe_timestamp($ticker, 'time', $this->milliseconds());
+        $percentage = $this->safe_number($ticker, 'change24h');
+        if ($percentage !== null) {
+            $percentage *= 100;
+        }
+        $change = null;
+        $average = null;
+        $open = null;
+        if (($last !== null) && ($percentage !== null)) {
+            $percentageNumberChange = $percentage / 100;
+            $change = $percentageNumberChange * $last;
+            $open = $last - $change;
+            $average = $this->sum($open, $last) / 2;
+        }
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -522,13 +539,13 @@ class ftx extends Exchange {
             'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => $this->safe_number($ticker, 'askSize'),
             'vwap' => null,
-            'open' => null,
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => null,
-            'percentage' => $this->safe_number($ticker, 'change24h'),
-            'average' => null,
+            'change' => $change,
+            'percentage' => $percentage,
+            'average' => $average,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_number($ticker, 'quoteVolume24h'),
             'info' => $ticker,

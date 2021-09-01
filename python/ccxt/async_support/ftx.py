@@ -89,6 +89,10 @@ class ftx(Exchange):
                 '1h': '3600',
                 '4h': '14400',
                 '1d': '86400',
+                '3d': '259200',
+                '1w': '604800',
+                '2w': '1209600',
+                '1M': '2592000',
             },
             'api': {
                 'public': {
@@ -520,6 +524,17 @@ class ftx(Exchange):
             symbol = market['symbol']
         last = self.safe_number(ticker, 'last')
         timestamp = self.safe_timestamp(ticker, 'time', self.milliseconds())
+        percentage = self.safe_number(ticker, 'change24h')
+        if percentage is not None:
+            percentage *= 100
+        change = None
+        average = None
+        open = None
+        if (last is not None) and (percentage is not None):
+            percentageNumberChange = percentage / 100
+            change = percentageNumberChange * last
+            open = last - change
+            average = self.sum(open, last) / 2
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -531,13 +546,13 @@ class ftx(Exchange):
             'ask': self.safe_number(ticker, 'ask'),
             'askVolume': self.safe_number(ticker, 'askSize'),
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': None,
-            'percentage': self.safe_number(ticker, 'change24h'),
-            'average': None,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': None,
             'quoteVolume': self.safe_number(ticker, 'quoteVolume24h'),
             'info': ticker,
