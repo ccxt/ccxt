@@ -152,9 +152,9 @@ class zb(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
-                    'public': 'https://api.zb.today/data',
-                    'private': 'https://trade.zb.today/api',
-                    'trade': 'https://trade.zb.today/api',
+                    'public': 'https://api.zb.work/data',
+                    'private': 'https://trade.zb.work/api',
+                    'trade': 'https://trade.zb.work/api',
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
