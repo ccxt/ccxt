@@ -367,6 +367,17 @@ module.exports = class ftx extends Exchange {
         return result;
     }
 
+    createPrecisionFromLimit (limit = undefined) {
+        if (limit >= 1) {
+            return 0;
+        }
+        if (limit > 0) {
+            const notScientificValueInString = limit.toFixed(8).replace(/0+$/, '');
+            return notScientificValueInString.toString().split('.')[1].length;
+        }
+        return limit;
+    }
+
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarkets (params);
         //
@@ -430,8 +441,8 @@ module.exports = class ftx extends Exchange {
             const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
             const priceIncrement = this.safeNumber (market, 'priceIncrement');
             const precision = {
-                'amount': createPrecisionFromLimit(sizeIncrement),
-                'price': createPrecisionFromLimit(priceIncrement),
+                'amount': this.createPrecisionFromLimit(sizeIncrement),
+                'price': this.createPrecisionFromLimit(priceIncrement),
             };
             result.push ({
                 'id': id,
@@ -2042,15 +2053,5 @@ module.exports = class ftx extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseIncomes (response, market, since, limit);
-    }
-
-    createPrecisionFromLimit (limit = undefined) {
-        if (limit >= 1) {
-            return 0;
-        }
-        if (limit > 0) {
-            return limit.toString().split(".")[1].length;
-        }
-        return limit;
     }
 };
