@@ -430,8 +430,8 @@ module.exports = class ftx extends Exchange {
             const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
             const priceIncrement = this.safeNumber (market, 'priceIncrement');
             const precision = {
-                'amount': sizeIncrement,
-                'price': priceIncrement,
+                'amount': createPrecisionFromLimit(sizeIncrement),
+                'price': createPrecisionFromLimit(priceIncrement),
             };
             result.push ({
                 'id': id,
@@ -2029,5 +2029,15 @@ module.exports = class ftx extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseIncomes (response, market, since, limit);
+    }
+
+    createPrecisionFromLimit (limit = undefined) {
+        if (limit >= 1) {
+            return 0;
+        }
+        if (limit > 0) {
+            return limit.toString().split(".")[1].length;
+        }
+        return limit;
     }
 };
