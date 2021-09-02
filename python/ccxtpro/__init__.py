@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.8.28'
+__version__ = '0.8.29'
 
 # -----------------------------------------------------------------------------
 
@@ -107,7 +107,6 @@ from ccxt.async_support.exmo import exmo                                  # noqa
 from ccxt.async_support.exx import exx                                    # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
-from ccxt.async_support.gopax import gopax                                # noqa: F401
 from ccxt.async_support.hbtc import hbtc                                  # noqa: F401
 from ccxt.async_support.hollaex import hollaex                            # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve      # noqa: F401
