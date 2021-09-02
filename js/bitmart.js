@@ -51,10 +51,7 @@ module.exports = class bitmart extends Exchange {
                 'api': 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://developer-pro.bitmart.com/',
-                'referral': {
-                    'url': 'http://www.bitmart.com/?r=rQCFLh',
-                    'discount': 0.25,
-                },
+                'referral': 'http://www.bitmart.com/?r=rQCFLh',
                 'fees': 'https://www.bitmart.com/fee/en',
             },
             'requiredCredentials': {
