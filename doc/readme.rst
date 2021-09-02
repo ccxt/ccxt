@@ -26,7 +26,7 @@ CCXT – CryptoCurrency eXchange Trading Library
      :target: https://discord.gg/dhzSKYU
      :alt: Discord
  
-.. image:: https://img.shields.io/badge/exchanges-114-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-113-blue.svg
      :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
      :alt: Supported Exchanges
  
@@ -305,25 +305,6 @@ Certified Cryptocurrency Exchanges
           :target: https://www.gate.io/ref/2436035
           :alt: Sign up with Gate.io using CCXT's referral link for a 20% discount!
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg
-          :target: https://www.gopax.co.kr
-          :alt: gopax
-     
-     - gopax
-     - `GOPAX <https://www.gopax.co.kr>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://gopax.github.io/API/index.en.html
-          :alt: API Version 1
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
-     - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg
           :target: https://idex.io
           :alt: idex
@@ -404,7 +385,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 112 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -1300,24 +1281,6 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg
-          :target: https://www.gopax.co.kr
-          :alt: gopax
-     
-     - gopax
-     - `GOPAX <https://www.gopax.co.kr>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://gopax.github.io/API/index.en.html
-          :alt: API Version 1
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
    * - .. image:: https://user-images.githubusercontent.com/51840849/80134449-70663300-85a7-11ea-8942-e204cdeaab5d.jpg
           :target: https://www.hbtc.com/register/O2S8NS
           :alt: hbtc
@@ -1976,14 +1939,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.55.63/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.55.63/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.55.64/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.55.64/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.55.63/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.55.64/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

@@ -1146,17 +1146,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - South Korea
-     - .. image:: https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg
-          :target: https://www.gopax.co.kr
-          :alt: gopax
-     
-     - gopax
-     - `GOPAX <https://www.gopax.co.kr>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://gopax.github.io/API/index.en.html
-          :alt: API Version 1
-     
-   * - South Korea
      - .. image:: https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg
           :target: https://pro.hollaex.com/signup?affiliation_code=QSWA6G
           :alt: hollaex
