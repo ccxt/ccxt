@@ -917,8 +917,14 @@ class okex5(Exchange):
             currencyId = self.safe_string(balance, 'ccy')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'availBal')
-            account['used'] = self.safe_float(balance, 'frozenBal')
+            eq = self.safe_string(balance, 'eq')
+            availEq = self.safe_string(balance, 'availEq')
+            if (len(eq) < 1) or (len(availEq) < 1):
+                account['free'] = self.safe_float(balance, 'availBal')
+                account['used'] = self.safe_float(balance, 'frozenBal')
+            else:
+                account['total'] = float(eq)
+                account['free'] = float(availEq)
             result[code] = account
         return self.parse_balance(result)
 

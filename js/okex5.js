@@ -925,8 +925,15 @@ module.exports = class okex5 extends Exchange {
             const currencyId = this.safeString (balance, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'availBal');
-            account['used'] = this.safeFloat (balance, 'frozenBal');
+            const eq = this.safeString (balance, 'eq');
+            const availEq = this.safeString (balance, 'availEq');
+            if ((eq.length < 1) || (availEq.length < 1)) {
+                account['free'] = this.safeFloat (balance, 'availBal');
+                account['used'] = this.safeFloat (balance, 'frozenBal');
+            } else {
+                account['total'] = parseFloat (eq);
+                account['free'] = parseFloat (availEq);
+            }
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -1535,7 +1542,7 @@ module.exports = class okex5 extends Exchange {
         const data = this.safeValue (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
     }
-    
+
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {

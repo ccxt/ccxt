@@ -883,12 +883,12 @@ class okex5 extends Exchange {
         //                 "$details":array(
         //                     {
         //                         "availBal":"",
-        //                         "availEq":"28.21006347",
+        //                         "$availEq":"28.21006347",
         //                         "cashBal":"28.21006347",
         //                         "ccy":"USDT",
         //                         "crossLiab":"",
         //                         "disEq":"28.2687404020176",
-        //                         "eq":"28.21006347",
+        //                         "$eq":"28.21006347",
         //                         "eqUsd":"28.2687404020176",
         //                         "frozenBal":"0",
         //                         "interest":"",
@@ -927,8 +927,15 @@ class okex5 extends Exchange {
             $currencyId = $this->safe_string($balance, 'ccy');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
-            $account['free'] = $this->safe_float($balance, 'availBal');
-            $account['used'] = $this->safe_float($balance, 'frozenBal');
+            $eq = $this->safe_string($balance, 'eq');
+            $availEq = $this->safe_string($balance, 'availEq');
+            if ((strlen($eq) < 1) || (strlen($availEq) < 1)) {
+                $account['free'] = $this->safe_float($balance, 'availBal');
+                $account['used'] = $this->safe_float($balance, 'frozenBal');
+            } else {
+                $account['total'] = floatval ($eq);
+                $account['free'] = floatval ($availEq);
+            }
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
