@@ -134,6 +134,9 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchTicker(symbol, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTicker() requires a `symbol` argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -210,6 +213,9 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchOrderBook(symbol, limit = 2000, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a `symbol` argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -247,6 +253,9 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a `symbol` argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -333,6 +342,9 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a `symbol` argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -461,9 +473,331 @@ module.exports = class mexc extends Exchange {
         return result;
     }
 
-    async getp() {
-        return this.privateGetAccountInfo();
+    async fetchBalance(params = {}) {
+        await this.loadMarkets();
+        const response = await this.privateGetAccountInfo(params);
+        const balances = this.safeValue(response, 'data', {});
+        // {
+        //     "code": 200,
+        //     "data": {
+        //         "BTC": {
+        //             "frozen": "0",
+        //             "available": "140"
+        //         },
+        //         "ETH": {
+        //             "frozen": "8471.296525048",
+        //             "available": "483280.9653659222035"
+        //         },
+        //         "USDT": {
+        //             "frozen": "0",
+        //             "available": "27.3629"
+        //         },
+        //         "MX": {
+        //             "frozen": "30.9863",
+        //             "available": "450.0137"
+        //         }
+        //     }
+        // }
+        const result = {
+            'info': balances,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const currencys = Object.keys(balances);
+        for (let i = 0, len = currencys.length; i < len; i++) {
+            // {
+            //    "frozen": "30.9863",
+            //    "available": "450.0137"
+            // }
+            const currencyId = currencys[i];
+            const balance = balances[currencyId];
+            const account = this.account();
+            account['free'] = this.safeString(balance, 'available');
+            account['used'] = this.safeString(balance, 'frozen');
+            result[currencyId] = account;
+        }
+        return this.parseBalance(result);
     }
+
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a `symbol` argument');
+        }
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a `type` argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a `side` argument');
+        }
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a `amount` argument');
+        }
+        // if (type === undefined) {
+        //     throw new InvalidOrder (this.id + ' allows limit orders only');
+        // }
+        if (type === 'limit') {
+            type = 'LIMIT_ORDER';
+        }
+        if (type === 'market') {
+            type = 'POST_ONLY'
+        }
+        await this.loadMarkets();
+        const request = {
+            'price': this.priceToPrecision(symbol, price),
+            'quantity': this.amountToPrecision(symbol, amount),
+            'trade_type': (side === 'buy') ? 'BID' : 'ASK',
+            'order_type': type,
+            'symbol': this.marketId(symbol),
+        };
+        const response = await this.privatePostOrderPlace(this.extend(request, params));
+        const data = this.safeValue(response, 'data', '');
+        return {
+            'info': data,
+            'id': data,
+        };
+    }
+
+    async cancelOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {
+            'order_ids': id.toString(),
+        };
+        const response = await this.privateDeleteOrderCancel(this.extend(request, params));
+        return this.safeValue(response, 'data', {});
+    }
+
+    async fetchOpenOrders(symbol = undefined, since = undefined, limit = 50, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + 'fetchOpenOrders() requires a symbol argument');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+
+        const request = {
+            'symbol': market['id']
+        };
+
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+
+        let orders = [];
+
+        try {
+            const response = await this.privateGetOrderOpenOrders(this.extend(request, params));
+            orders = this.safeValue(response, 'data', []);
+        } catch (e) {
+            if (e instanceof OrderNotFound) {
+                return [];
+            }
+            throw e;
+        }
+        return this.parseOrders(orders, market, since, limit);
+    }
+
+    parseOrder(order, market = undefined) {
+        // {
+        //     "id": "e5bb6963250146edb2f8677fcfcc97aa",
+        //     "symbol": "MX_ETH",
+        //     "price": "0.000907",
+        //     "quantity": "300000",
+        //     "state": "NEW",
+        //     "type": "BID",
+        //     "remain_quantity": "300000",
+        //     "remain_amount": "272.1",
+        //     "create_time": 1574338341797
+        // }
+        let side = this.safeInteger(order, 'type');
+        side = (side === "BID") ? 'buy' : 'sell';
+        const timestamp = this.safeInteger(order, 'create_time');
+        const marketId = this.safeString(order, 'symbol');
+        const symbol = this.safeSymbol(marketId, market, '_');
+        const price = this.safeNumber(order, 'price');
+        // 剩余数量
+        const remainBaseAmount = this.safeFloat(order, 'remain_quantity');
+        // 剩余金额
+        const remianQuoteAmount = this.safeFloat(order, 'remain_amount');
+        const filled = this.safeNumber(order, 'trade_amount');
+        const amount = this.safeNumber(order, 'quantity');
+        const cost = this.safeNumber(order, 'trade_money');
+        const status = this.parseOrderStatus(this.safeString(order, 'state'));
+        const id = this.safeString(order, 'id');
+        const feeCost = this.safeNumber(order, 'fees');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            let feeCurrency = undefined;
+            const zbFees = this.safeValue(order, 'useZbFee');
+            if (zbFees === true) {
+                feeCurrency = 'ZB';
+            } else if (market !== undefined) {
+                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
+        return this.safeOrder({
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'average': undefined,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remainBaseAmount,
+            'status': status,
+            'fee': fee,
+            'trades': undefined,
+        });
+    }
+
+    parseOrderStatus(status) {
+        // 'open', 'closed', 'canceled', 'expired'
+        const statuses = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'PARTIALLY_CANCELED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+        };
+        return this.safeString(statuses, status, status);
+    }
+
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a `symbol` argument');
+        }
+        
+        await this.loadMarkets ();
+
+        const market = this.market(symbol);
+
+        const request = {
+            // symbol	string	是	交易对名称	
+            // limit	string	否	返回条数	1~1000，默认值50
+            // start_time	string	否	查询起始时间
+            'symbol': market['id'],
+        };
+
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+
+        const response = await this.privateGetOrderDeals (this.extend (request, params));
+        // {
+        //     "code": 200,
+        //     "data": [
+        //         {
+        //             "symbol": "ETH_USDT",
+        //             "order_id": "a39ea6b7afcf4f5cbba1e515210ff827",
+        //             "quantity": "54.1",
+        //             "price": "182.6317377",
+        //             "amount": "9880.37700957",
+        //             "fee": "9.88037700957",
+        //             "trade_type": "BID",
+        //             "fee_currency": "USDT",
+        //             "is_taker": true,
+        //             "create_time": 1572693911000
+        //         }
+        //     ]
+        // }
+        const trades = this.safeValue (response, 'data', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        // {
+        //     "symbol": "ETH_USDT",
+        //     "order_id": "a39ea6b7afcf4f5cbba1e515210ff827",
+        //     "quantity": "54.1",
+        //     "price": "182.6317377",
+        //     "amount": "9880.37700957",
+        //     "fee": "9.88037700957",
+        //     "trade_type": "BID",
+        //     "fee_currency": "USDT",
+        //     "is_taker": true,
+        //     "create_time": 1572693911000
+        // }
+        const timestamp = this.safeInteger (trade, 'create_time');
+        let side = this.safeValue (trade, 'trade_type');
+        side = (side === 'BID') ? 'buy' : 'sell';
+        let symbol = undefined;
+        if (market === undefined) {
+            let marketId = this.safeString (trade, 'pair');
+            if (marketId === undefined) {
+                const baseId = this.safeString (trade, 'coin_symbol');
+                const quoteId = this.safeString (trade, 'currency_symbol');
+                if ((baseId !== undefined) && (quoteId !== undefined)) {
+                    marketId = baseId + '_' + quoteId;
+                }
+            }
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        let fee = undefined;
+        const feeCostString = this.safeString (trade, 'fee');
+        let feeCurrency = this.safeString (trade, 'fee_symbol');
+        if (feeCurrency !== undefined) {
+            if (feeCurrency in this.currencies_by_id) {
+                feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+            } else {
+                feeCurrency = this.safeCurrencyCode (feeCurrency);
+            }
+        }
+        const feeRate = undefined; // todo: deduce from market if market is defined
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        if (feeCostString !== undefined) {
+            fee = {
+                'cost': this.parseNumber (Precise.stringNeg (feeCostString)),
+                'currency': feeCurrency,
+                'rate': feeRate,
+            };
+        }
+        const id = this.safeString (trade, 'id');
+        return {
+            'info': trade,
+            'id': id,
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'takerOrMaker': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
+    }
+
 
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'];
@@ -475,28 +809,31 @@ module.exports = class mexc extends Exchange {
             }
         } else {
             this.checkRequiredCredentials();
+
             headers = (headers === undefined) ? {} : headers;
             const apiKey = this.apiKey;
             const secret = this.secret;
             const reqTime = this.milliseconds();
             const queryString = this.urlencode(this.keysort(params));
+
             url += '?' + queryString;
             let signString = apiKey + reqTime;
 
             headers = this.extend({
                 'ApiKey': apiKey,
                 'Request-Time': reqTime,
+                'Content-Type': 'application/json'
             }, headers);
 
-            if (method === 'GET') {
+            if (method === 'GET' || method === 'DELETE') {
                 signString += queryString;
             } else {
-                headers['Content-Type'] = 'application/json';
-                const jsonData = JSON.stringify(body);
+                const jsonData = this.json(params);
                 body = jsonData;
                 signString += jsonData;
             }
-            headers['Signature'] = this.hmac(this.encode(signString), this.encode(secret), 'sha256', 'hex');
+            const signature = this.hmac(this.encode(signString), this.encode(secret), 'sha256', 'hex');
+            headers['Signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
