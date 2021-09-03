@@ -27,7 +27,7 @@ class gateio(Exchange):
         return self.deep_extend(super(gateio, self).describe(), {
             'id': 'gateio',
             'name': 'Gate.io',
-            'country': ['KR'],
+            'countries': ['KR'],
             'rateLimit': 1000,
             'version': '4',
             'certified': True,

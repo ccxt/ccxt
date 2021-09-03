@@ -16,7 +16,7 @@ class gateio extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'gateio',
             'name' => 'Gate.io',
-            'country' => array( 'KR' ),
+            'countries' => array( 'KR' ),
             'rateLimit' => 1000,
             'version' => '4',
             'certified' => true,
