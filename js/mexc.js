@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require('./base/Exchange');
-const { BadRequest, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended } = require('./base/errors');
+const { BadRequest,BadSymbol,DDoSProtection, InvalidNonce,ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended } = require('./base/errors');
 const Precise = require('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -63,6 +63,26 @@ module.exports = class mexc extends Exchange {
                 '1h': '1h',
                 '1M': '1M',
             },
+            'exceptions': {
+                'exact': {
+                    '400': BadRequest, //	请求参数无效
+                    '401': AuthenticationError, //	签名验证失败
+                    '429': DDoSProtection, //	请求过于频繁
+                    '10072': AuthenticationError, //	无效的access key
+                    '10073': InvalidNonce, //	无效的请求时间
+                    '30000': InvalidOrder, //	当前交易对已暂停交易
+                    '30001': InvalidOrder, //	当前交易方向不允许下单
+                    '30002': InvalidOrder, //	小于最小交易金额
+                    '30003': InvalidOrder, //	大于最大交易金额
+                    '30004': InsufficientFunds, //	持仓不足
+                    '30005': InsufficientFunds, //	卖出超额
+                    '30010': InvalidOrder, //	下单价格超过范围
+                    '30016': BadSymbol, //	暂停交易
+                    '30019': BadRequest, //	订单集合超出最大允许长度
+                    '30020': BadSymbol, //	受限制的交易对，暂不支持API访问
+                    '30021': BadSymbol, //	无效的交易对
+                }
+            }
         });
     }
 
@@ -135,7 +155,7 @@ module.exports = class mexc extends Exchange {
 
     async fetchTicker(symbol, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTicker() requires a `symbol` argument');
+            throw new ArgumentsRequired(this.id + ' fetchTicker() requires a `symbol` argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -214,7 +234,7 @@ module.exports = class mexc extends Exchange {
 
     async fetchOrderBook(symbol, limit = 2000, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a `symbol` argument');
+            throw new ArgumentsRequired(this.id + ' fetchOrderBook() requires a `symbol` argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -254,7 +274,7 @@ module.exports = class mexc extends Exchange {
 
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a `symbol` argument');
+            throw new ArgumentsRequired(this.id + ' fetchTrades() requires a `symbol` argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -343,7 +363,7 @@ module.exports = class mexc extends Exchange {
 
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a `symbol` argument');
+            throw new ArgumentsRequired(this.id + ' fetchOHLCV() requires a `symbol` argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -521,16 +541,16 @@ module.exports = class mexc extends Exchange {
 
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a `symbol` argument');
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a `symbol` argument');
         }
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a `type` argument');
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a `type` argument');
         }
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a `side` argument');
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a `side` argument');
         }
         if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a `amount` argument');
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a `amount` argument');
         }
         // if (type === undefined) {
         //     throw new InvalidOrder (this.id + ' allows limit orders only');
@@ -679,12 +699,12 @@ module.exports = class mexc extends Exchange {
     }
 
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a `symbol` argument');
+            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a `symbol` argument');
         }
-        
-        await this.loadMarkets ();
+
+        await this.loadMarkets();
 
         const market = this.market(symbol);
 
@@ -702,7 +722,7 @@ module.exports = class mexc extends Exchange {
             request['start_time'] = since;
         }
 
-        const response = await this.privateGetOrderDeals (this.extend (request, params));
+        const response = await this.privateGetOrderDeals(this.extend(request, params));
         // {
         //     "code": 200,
         //     "data": [
@@ -720,11 +740,11 @@ module.exports = class mexc extends Exchange {
         //         }
         //     ]
         // }
-        const trades = this.safeValue (response, 'data', []);
-        return this.parseTrades (trades, market, since, limit);
+        const trades = this.safeValue(response, 'data', []);
+        return this.parseTrades(trades, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade(trade, market = undefined) {
         // {
         //     "symbol": "ETH_USDT",
         //     "order_id": "a39ea6b7afcf4f5cbba1e515210ff827",
@@ -737,15 +757,15 @@ module.exports = class mexc extends Exchange {
         //     "is_taker": true,
         //     "create_time": 1572693911000
         // }
-        const timestamp = this.safeInteger (trade, 'create_time');
-        let side = this.safeValue (trade, 'trade_type');
+        const timestamp = this.safeInteger(trade, 'create_time');
+        let side = this.safeValue(trade, 'trade_type');
         side = (side === 'BID') ? 'buy' : 'sell';
         let symbol = undefined;
         if (market === undefined) {
-            let marketId = this.safeString (trade, 'pair');
+            let marketId = this.safeString(trade, 'pair');
             if (marketId === undefined) {
-                const baseId = this.safeString (trade, 'coin_symbol');
-                const quoteId = this.safeString (trade, 'currency_symbol');
+                const baseId = this.safeString(trade, 'coin_symbol');
+                const quoteId = this.safeString(trade, 'currency_symbol');
                 if ((baseId !== undefined) && (quoteId !== undefined)) {
                     marketId = baseId + '_' + quoteId;
                 }
@@ -758,35 +778,35 @@ module.exports = class mexc extends Exchange {
             symbol = market['symbol'];
         }
         let fee = undefined;
-        const feeCostString = this.safeString (trade, 'fee');
-        let feeCurrency = this.safeString (trade, 'fee_symbol');
+        const feeCostString = this.safeString(trade, 'fee');
+        let feeCurrency = this.safeString(trade, 'fee_symbol');
         if (feeCurrency !== undefined) {
             if (feeCurrency in this.currencies_by_id) {
                 feeCurrency = this.currencies_by_id[feeCurrency]['code'];
             } else {
-                feeCurrency = this.safeCurrencyCode (feeCurrency);
+                feeCurrency = this.safeCurrencyCode(feeCurrency);
             }
         }
         const feeRate = undefined; // todo: deduce from market if market is defined
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const priceString = this.safeString(trade, 'price');
+        const amountString = this.safeString(trade, 'amount');
+        const price = this.parseNumber(priceString);
+        const amount = this.parseNumber(amountString);
+        const cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         if (feeCostString !== undefined) {
             fee = {
-                'cost': this.parseNumber (Precise.stringNeg (feeCostString)),
+                'cost': this.parseNumber(Precise.stringNeg(feeCostString)),
                 'currency': feeCurrency,
                 'rate': feeRate,
             };
         }
-        const id = this.safeString (trade, 'id');
+        const id = this.safeString(trade, 'id');
         return {
             'info': trade,
             'id': id,
             'order': undefined,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'type': 'limit',
             'takerOrMaker': undefined,
@@ -836,5 +856,19 @@ module.exports = class mexc extends Exchange {
             headers['Signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+    // handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
+
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        const errorCode = this.safeString(response, 'code');
+        let message = this.safeString(response, 'message');
+        if (message === undefined) {
+            message = body;
+        }
+        const exactExceptions = this.exceptions['exact'];
+        message = this.id + ' ' + message;
+        if (errorCode in exactExceptions) {
+            this.throwExactlyMatchedException(exactExceptions, errorCode, message);
+        }
     }
 };
