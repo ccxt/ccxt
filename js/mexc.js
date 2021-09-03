@@ -2,15 +2,15 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-// const { BadRequest, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+const Exchange = require('./base/Exchange');
+const { BadRequest, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended } = require('./base/errors');
+const Precise = require('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class mexc extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'mexc',
             'name': 'MEXC',
             // 'country': [ 'US', 'EU', 'CN', 'RU' ],
@@ -66,9 +66,9 @@ module.exports = class mexc extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
-        const response = await this.publicGetMarketSymbols (params);
-        const markets = this.safeValue (response, 'data', []);
+    async fetchMarkets(params = {}) {
+        const response = await this.publicGetMarketSymbols(params);
+        const markets = this.safeValue(response, 'data', []);
         // {
         //   "code": 200,
         //   "data": [
@@ -87,24 +87,24 @@ module.exports = class mexc extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeString (market, 'symbol');
-            const [baseId, quoteId] = id.split ('_');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
+            const id = this.safeString(market, 'symbol');
+            const [baseId, quoteId] = id.split('_');
+            const base = this.safeCurrencyCode(baseId);
+            const quote = this.safeCurrencyCode(quoteId);
             const symbol = base + '/' + quote;
-            const amountPrecisionString = this.safeString (market, 'quantity_scale');
-            const pricePrecisionString = this.safeString (market, 'price_scale');
-            const amountLimit = this.parsePrecision (amountPrecisionString);
-            const priceLimit = this.parsePrecision (pricePrecisionString);
-            const costLimitMin = this.safeString (market, 'min_amount');
-            const costLimitMax = this.safeString (market, 'max_amount');
-            const state = this.safeString (market, 'state');
+            const amountPrecisionString = this.safeString(market, 'quantity_scale');
+            const pricePrecisionString = this.safeString(market, 'price_scale');
+            const amountLimit = this.parsePrecision(amountPrecisionString);
+            const priceLimit = this.parsePrecision(pricePrecisionString);
+            const costLimitMin = this.safeString(market, 'min_amount');
+            const costLimitMax = this.safeString(market, 'max_amount');
+            const state = this.safeString(market, 'state');
             const active = state === 'ENABLED';
             const precision = {
-                'amount': parseInt (amountPrecisionString),
-                'price': parseInt (pricePrecisionString),
+                'amount': parseInt(amountPrecisionString),
+                'price': parseInt(pricePrecisionString),
             };
-            result.push ({
+            result.push({
                 'id': id,
                 'symbol': symbol,
                 'baseId': baseId,
@@ -115,16 +115,16 @@ module.exports = class mexc extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.parseNumber (amountLimit),
+                        'min': this.parseNumber(amountLimit),
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parseNumber (priceLimit),
+                        'min': this.parseNumber(priceLimit),
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.parseNumber (costLimitMin),
-                        'max': this.parseNumber (costLimitMax),
+                        'min': this.parseNumber(costLimitMin),
+                        'max': this.parseNumber(costLimitMax),
                     },
                 },
                 'info': market,
@@ -133,13 +133,13 @@ module.exports = class mexc extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+    async fetchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetMarketTicker (this.extend (request, params));
+        const response = await this.publicGetMarketTicker(this.extend(request, params));
         // {
         //   "code": 200,
         //   "data": [
@@ -157,12 +157,12 @@ module.exports = class mexc extends Exchange {
         //       }
         //   ]
         // }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeValue(response, 'data', []);
         const ticker = data[0];
-        return this.parseTicker (ticker, market);
+        return this.parseTicker(ticker, market);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker(ticker, market = undefined) {
         // {
         //   "symbol": "ETH_USDT",
         //   "volume": "0",
@@ -175,25 +175,25 @@ module.exports = class mexc extends Exchange {
         //   "time": 1574668200000,
         //   "change_rate": "0.00027307"
         // }
-        const timestamp = this.safeInteger (ticker, 'time', this.milliseconds ());
+        const timestamp = this.safeInteger(ticker, 'time', this.milliseconds());
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const openString = this.safeValue (ticker, 'open');
-        const closeString = this.safeValue (ticker, 'last');
-        const open = this.parseNumber (openString);
-        const last = this.parseNumber (closeString);
-        const change = Precise.stringSub (closeString, openString);
+        const openString = this.safeValue(ticker, 'open');
+        const closeString = this.safeValue(ticker, 'last');
+        const open = this.parseNumber(openString);
+        const last = this.parseNumber(closeString);
+        const change = Precise.stringSub(closeString, openString);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeNumber(ticker, 'high'),
+            'low': this.safeNumber(ticker, 'low'),
+            'bid': this.safeNumber(ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeNumber(ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -201,22 +201,22 @@ module.exports = class mexc extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': this.safeNumber (ticker, 'change_rate'),
+            'percentage': this.safeNumber(ticker, 'change_rate'),
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'baseVolume': this.safeNumber(ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
     }
 
-    async fetchOrderBook (symbol, limit = 2000, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+    async fetchOrderBook(symbol, limit = 2000, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
             'depth': limit,
         };
-        const response = await this.publicGetMarketDepth (this.extend (request, params));
+        const response = await this.publicGetMarketDepth(this.extend(request, params));
         // {
         //     "code": 200,
         //     "data": {
@@ -242,20 +242,20 @@ module.exports = class mexc extends Exchange {
         //         ]
         //     }
         // }
-        const orderBook = this.safeValue (response, 'data', {});
-        return this.parseOrderBook (orderBook, symbol, undefined, 'bids', 'asks', 'price', 'quantity');
+        const orderBook = this.safeValue(response, 'data', {});
+        return this.parseOrderBook(orderBook, symbol, undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetMarketDeals (this.extend (request, params));
+        const response = await this.publicGetMarketDeals(this.extend(request, params));
         // {
         //     "code": 200,
         //     "data": [
@@ -279,11 +279,11 @@ module.exports = class mexc extends Exchange {
         //         }
         //     ]
         // }
-        const trades = this.safeValue (response, 'data', []);
-        return this.parseTrades (trades, market, since, limit);
+        const trades = this.safeValue(response, 'data', []);
+        return this.parseTrades(trades, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade(trade, market = undefined) {
         // {
         //     "trade_time": 1573267931530,
         //     "trade_price": "183.1683154",
@@ -302,15 +302,15 @@ module.exports = class mexc extends Exchange {
         //     "trade_quantity": "128.6",
         //     "trade_type": "BID"
         // }
-        const timestamp = this.safeInteger (trade, 'trade_time');
-        let side = this.safeString (trade, 'trade_type');
+        const timestamp = this.safeInteger(trade, 'trade_time');
+        let side = this.safeString(trade, 'trade_type');
         side = (side === 'BID') ? 'buy' : 'sell';
-        const priceString = this.safeString (trade, 'trade_price');
-        const amountString = this.safeString (trade, 'trade_quantity');
-        const costString = Precise.stringMul (priceString, amountString);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (costString);
+        const priceString = this.safeString(trade, 'trade_price');
+        const amountString = this.safeString(trade, 'trade_quantity');
+        const costString = Precise.stringMul(priceString, amountString);
+        const price = this.parseNumber(priceString);
+        const amount = this.parseNumber(amountString);
+        const cost = this.parseNumber(costString);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -319,7 +319,7 @@ module.exports = class mexc extends Exchange {
             'info': trade,
             'id': undefined,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'type': undefined,
             'side': side,
@@ -332,9 +332,9 @@ module.exports = class mexc extends Exchange {
         };
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
@@ -343,9 +343,9 @@ module.exports = class mexc extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['start_time'] = Math.floor (since / 1000);
+            request['start_time'] = Math.floor(since / 1000);
         }
-        const response = await this.publicGetMarketKline (this.extend (request, params));
+        const response = await this.publicGetMarketKline(this.extend(request, params));
         // {
         //     "code": 200,
         //     "data": [
@@ -369,11 +369,11 @@ module.exports = class mexc extends Exchange {
         //         ]
         //     ]
         // }
-        const ohlcvs = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        const ohlcvs = this.safeValue(response, 'data', []);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV(ohlcv, market = undefined) {
         // [
         //     1557728040,    //timestamp in seconds
         //     "7054.7",      //open
@@ -383,12 +383,12 @@ module.exports = class mexc extends Exchange {
         //     "9.817734",    //vol
         //     "6926.521"     //amount
         // ]
-        const timestamp = this.safeTimestamp (ohlcv, 0);
-        const open = this.safeNumber (ohlcv, 1);
-        const close = this.safeNumber (ohlcv, 2);
-        const high = this.safeNumber (ohlcv, 3);
-        const low = this.safeNumber (ohlcv, 4);
-        const volume = this.safeNumber (ohlcv, 5);
+        const timestamp = this.safeTimestamp(ohlcv, 0);
+        const open = this.safeNumber(ohlcv, 1);
+        const close = this.safeNumber(ohlcv, 2);
+        const high = this.safeNumber(ohlcv, 3);
+        const low = this.safeNumber(ohlcv, 4);
+        const volume = this.safeNumber(ohlcv, 5);
         return [
             timestamp,
             open,
@@ -399,8 +399,8 @@ module.exports = class mexc extends Exchange {
         ];
     }
 
-    async fetchCurrencies (params = {}) {
-        const response = await this.publicGetMarketCoinList (params);
+    async fetchCurrencies(params = {}) {
+        const response = await this.publicGetMarketCoinList(params);
         // unified format
         // {
         //     'id':       'btc',       // string literal for referencing within an exchange
@@ -418,26 +418,26 @@ module.exports = class mexc extends Exchange {
         //     },
         //     'info': { ... }, // the original unparsed currency info from the exchange
         // }
-        const currencies = this.safeValue (response, 'data', {});
+        const currencies = this.safeValue(response, 'data', {});
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = currency['currency'];
-            const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'full_name');
+            const code = this.safeCurrencyCode(id);
+            const name = this.safeString(currency, 'full_name');
             const precision = undefined;
             let isWithdrawEnabled = false;
             let isDepositEnabled = false;
             const fees = {};
-            const networks = this.safeValue (currency, 'coins', []);
+            const networks = this.safeValue(currency, 'coins', []);
             const networkCount = networks.length;
             let fee = undefined;
             for (let j = 0; j < networkCount; j++) {
                 const networkItem = networks[j];
-                const network = this.safeString (networkItem, 'chain');
-                const withdrawFee = this.safeNumber (networkItem, 'fee');
-                const depositEnable = this.safeValue (networkItem, 'is_deposit_enabled');
-                const withdrawEnable = this.safeValue (networkItem, 'is_withdraw_enabled');
+                const network = this.safeString(networkItem, 'chain');
+                const withdrawFee = this.safeNumber(networkItem, 'fee');
+                const depositEnable = this.safeValue(networkItem, 'is_deposit_enabled');
+                const withdrawEnable = this.safeValue(networkItem, 'is_withdraw_enabled');
                 isDepositEnabled = isDepositEnabled || depositEnable;
                 isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
                 fees[network] = withdrawFee;
@@ -461,27 +461,42 @@ module.exports = class mexc extends Exchange {
         return result;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async getp() {
+        return this.privateGetAccountInfo();
+    }
+
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'];
         const version = this.version;
-        url += '/v' + version;
+        url += '/v' + version + '/' + path;
         if (api === 'public') {
-            url += '/' + path;
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+            if (Object.keys(params).length) {
+                url += '?' + this.urlencode(params);
             }
         } else {
-            let query = this.keysort (this.extend ({
-                'method': path,
-                'accesskey': this.apiKey,
-            }, params));
-            const nonce = this.nonce ();
-            query = this.keysort (query);
-            const auth = this.rawencode (query);
-            const secret = this.hash (this.encode (this.secret), 'sha1');
-            const signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
-            const suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
-            url += '/' + path + '?' + auth + '&' + suffix;
+            this.checkRequiredCredentials();
+            headers = (headers === undefined) ? {} : headers;
+            const apiKey = this.apiKey;
+            const secret = this.secret;
+            const reqTime = this.milliseconds();
+            const queryString = this.urlencode(this.keysort(params));
+            url += '?' + queryString;
+            let signString = apiKey + reqTime;
+
+            headers = this.extend({
+                'ApiKey': apiKey,
+                'Request-Time': reqTime,
+            }, headers);
+
+            if (method === 'GET') {
+                signString += queryString;
+            } else {
+                headers['Content-Type'] = 'application/json';
+                const jsonData = JSON.stringify(body);
+                body = jsonData;
+                signString += jsonData;
+            }
+            headers['Signature'] = this.hmac(this.encode(signString), this.encode(secret), 'sha256', 'hex');
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
