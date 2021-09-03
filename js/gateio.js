@@ -11,7 +11,7 @@ module.exports = class gateio extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'gateio',
             'name': 'Gate.io',
-            'country': [ 'KR' ],
+            'countries': [ 'KR' ],
             'rateLimit': 1000,
             'version': '4',
             'certified': true,
