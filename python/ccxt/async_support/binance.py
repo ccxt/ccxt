@@ -2551,7 +2551,7 @@ class binance(Exchange):
         #     }
         #
         orderId = self.safe_string(trade, 'transId')
-        timestamp = self.parse8601(self.safe_string(trade, 'operateTime'))
+        timestamp = self.safe_integer(trade, 'operateTime')
         currencyId = self.safe_string(trade, 'fromAsset')
         tradedCurrency = self.safe_currency_code(currencyId)
         bnb = self.currency('BNB')

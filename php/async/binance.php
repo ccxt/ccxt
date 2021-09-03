@@ -2665,7 +2665,7 @@ class binance extends Exchange {
         //     }
         //
         $orderId = $this->safe_string($trade, 'transId');
-        $timestamp = $this->parse8601($this->safe_string($trade, 'operateTime'));
+        $timestamp = $this->safe_integer($trade, 'operateTime');
         $currencyId = $this->safe_string($trade, 'fromAsset');
         $tradedCurrency = $this->safe_currency_code($currencyId);
         $bnb = $this->currency('BNB');
