@@ -2658,7 +2658,7 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const orderId = this.safeString (trade, 'transId');
-        const timestamp = this.parse8601 (this.safeString (trade, 'operateTime'));
+        const timestamp = this.safeInteger (trade, 'operateTime');
         const currencyId = this.safeString (trade, 'fromAsset');
         const tradedCurrency = this.safeCurrencyCode (currencyId);
         const bnb = this.currency ('BNB');
