@@ -335,6 +335,36 @@ module.exports = class Exchange {
         return encodeURIComponent (...args)
     }
 
+    checkRequiredVersion (requiredVersion, error = true) {
+        let result = true
+        const [ major1, minor1, patch1 ] = requiredVersion.split ('.')
+            , [ major2, minor2, patch2 ] = Exchange.ccxtVersion.split ('.')
+            , intMajor1 = parseInt (major1)
+            , intMinor1 = parseInt (minor1)
+            , intPatch1 = parseInt (patch1)
+            , intMajor2 = parseInt (major2)
+            , intMinor2 = parseInt (minor2)
+            , intPatch2 = parseInt (patch2)
+        if (intMajor1 > intMajor2) {
+            result = false
+        }
+        if (intMajor1 === intMajor2) {
+            if (intMinor1 > intMinor2) {
+                result = false
+            } else if (intMinor1 === intMinor2 && intPatch1 > intPatch2) {
+                result = false
+            }
+        }
+        if (!result) {
+            if (error) {
+                throw new NotSupported ('Your current version of CCXT is ' + Exchange.ccxtVersion + ', a newer version ' + requiredVersion + ' is required, please, upgrade your version of CCXT')
+            } else {
+                return error
+            }
+        }
+        return result
+    }
+
     checkRequiredCredentials (error = true) {
         const keys = Object.keys (this.requiredCredentials)
         for (let i = 0; i < keys.length; i++) {
