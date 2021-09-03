@@ -237,7 +237,6 @@ module.exports = class kraken extends Exchange {
                 'EGeneral:Permission denied': PermissionDenied,
                 'EOrder:Unknown order': InvalidOrder,
                 'EOrder:Order minimum not met': InvalidOrder,
-                'EGeneral:Temporary lockout': RateLimitExceeded,
                 'EGeneral:Invalid arguments': BadRequest,
                 'ESession:Invalid session': AuthenticationError,
             },
