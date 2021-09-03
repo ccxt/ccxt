@@ -1280,8 +1280,8 @@ class Exchange(object):
     @staticmethod
     def check_required_version(required_version, error=True):
         result = True
-        [ major1, minor1, patch1 ] = required_version.split ('.')
-        [ major2, minor2, patch2 ] = __version__.split('.')
+        [major1, minor1, patch1] = required_version.split('.')
+        [major2, minor2, patch2] = __version__.split('.')
         int_major1 = int(major1)
         int_minor1 = int(minor1)
         int_patch1 = int(patch1)
@@ -1301,7 +1301,6 @@ class Exchange(object):
             else:
                 return error
         return result
-
 
     def check_required_credentials(self, error=True):
         keys = list(self.requiredCredentials.keys())
