@@ -12,9 +12,8 @@ async def main():
     markets = await exchange.load_markets()
     # exchange.verbose = True  # uncomment for debugging purposes if necessary
     try:
-        order_id = 'YOUR_ORDER_ID_HERE'
         symbol = 'UNI/USDT'
-        response = await exchange.cancel_all_orders(order_id, symbol)
+        response = await exchange.cancel_all_orders(symbol)
         pprint(response)
     except Exception as e:
         print(type(e).__name__, str(e))
