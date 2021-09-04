@@ -13,7 +13,7 @@ import ccxt  # noqa: E402
 print('CCXT Version:', ccxt.__version__)
 
 
-exchange = ccxt.binanceusdm({
+exchange = ccxt.binance({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
 })
@@ -25,7 +25,7 @@ markets = exchange.load_markets()
 previous_timestamp = exchange.milliseconds()
 while True:
     try:
-        balance = exchange.fetch_balance ()
+        balance = exchange.fetch_balance()
         print('--------------------------------------------------------------')
         current_timestamp = exchange.milliseconds()
         print(exchange.iso8601(current_timestamp), 'balance:')
