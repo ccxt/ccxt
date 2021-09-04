@@ -153,6 +153,7 @@ module.exports = class poloniex extends Exchange {
                 'HOT': 'Hotcoin',
                 'ITC': 'Information Coin',
                 'KEY': 'KEYCoin',
+                'MASK': 'NFTX Hashmasks Index', // conflict with Mask Network
                 'PLX': 'ParallaxCoin',
                 'REPV2': 'REP',
                 'STR': 'XLM',
