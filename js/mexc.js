@@ -644,8 +644,8 @@ module.exports = class mexc extends Exchange {
         }
         if (type === 'limit') {
             type = 'LIMIT_ORDER';
-        } else if (type === 'market') {
-            throw new NotSupported(this.id + ' createOrder() does not support market orders');
+        } else {
+            throw new InvalidOrder(this.id + ' allows limit orders only');
         }
         await this.loadMarkets();
         const request = {
