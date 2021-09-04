@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require('./base/Exchange');
-const { BadRequest,BadSymbol,DDoSProtection, InvalidNonce,ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended } = require('./base/errors');
+const { BadRequest, BadSymbol, DDoSProtection, InvalidNonce, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended } = require('./base/errors');
 const Precise = require('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -82,11 +82,26 @@ module.exports = class mexc extends Exchange {
                     '30020': BadSymbol, //	受限制的交易对，暂不支持API访问
                     '30021': BadSymbol, //	无效的交易对
                 }
+            },
+            'options':{
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
             }
         });
     }
 
+    async loadTimeDifference (params = {}) {
+        const response = await this.publicGetCommonTimestamp (params);
+        const serverTime = this.safeInteger(response, 'data');
+        const after = this.milliseconds ();
+        this.options['timeDifference'] = after - serverTime;
+        return this.options['timeDifference'];
+    }
+
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         const response = await this.publicGetMarketSymbols(params);
         const markets = this.safeValue(response, 'data', []);
         // {
@@ -552,9 +567,7 @@ module.exports = class mexc extends Exchange {
         if (amount === undefined) {
             throw new ArgumentsRequired(this.id + ' createOrder() requires a `amount` argument');
         }
-        // if (type === undefined) {
-        //     throw new InvalidOrder (this.id + ' allows limit orders only');
-        // }
+
         if (type === 'limit') {
             type = 'LIMIT_ORDER';
         }
@@ -578,12 +591,52 @@ module.exports = class mexc extends Exchange {
     }
 
     async cancelOrder(id, symbol = undefined, params = {}) {
+        if (id === undefined) {
+            throw new ArgumentsRequired(this.id + 'cancelOrder() requires an id argument');
+        }
         await this.loadMarkets();
         const request = {
             'order_ids': id.toString(),
         };
         const response = await this.privateDeleteOrderCancel(this.extend(request, params));
         return this.safeValue(response, 'data', {});
+    }
+
+
+    // 未验证
+    async fetchOrder(id, symbol = undefined, params = {}) {
+        if (id === undefined) {
+            throw new ArgumentsRequired(this.id + 'fetchOrder() requires an id argument');
+        }
+        await this.loadMarkets();
+        const request = {
+            'order_ids': [id]
+        };
+        const response = await this.privateGetOrderQuery(this.extend(request, params));
+        const orders = this.safeValue(response, 'data', []);
+
+        return this.parseOrder(orders[0], undefined);
+
+    }
+
+    async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // if (id === undefined) {
+        //     throw new ArgumentsRequired(this.id + 'fetchOrder() requires an id argument');
+        // }
+        await this.loadMarkets();
+        let request = {};
+        let market;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request = {
+                'symbol': market['id'],
+                'states':'NEW',
+                // 'trade_type':'BID'
+            };
+        }
+        const response = await this.privateGetOrderList(this.extend(request, params));
+        const orders = this.safeValue(response, 'data', []);
+        return orders;
     }
 
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = 50, params = {}) {
@@ -605,18 +658,14 @@ module.exports = class mexc extends Exchange {
             request['start_time'] = since;
         }
 
-        let orders = [];
+        const response = await this.privateGetOrderOpenOrders(this.extend(request, params));
+        const orders = this.safeValue(response, 'data', []);
 
-        try {
-            const response = await this.privateGetOrderOpenOrders(this.extend(request, params));
-            orders = this.safeValue(response, 'data', []);
-        } catch (e) {
-            if (e instanceof OrderNotFound) {
-                return [];
-            }
-            throw e;
-        }
         return this.parseOrders(orders, market, since, limit);
+    }
+
+    fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+
     }
 
     parseOrder(order, market = undefined) {
@@ -818,6 +867,9 @@ module.exports = class mexc extends Exchange {
         };
     }
 
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
+    }
 
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'];
@@ -833,7 +885,7 @@ module.exports = class mexc extends Exchange {
             headers = (headers === undefined) ? {} : headers;
             const apiKey = this.apiKey;
             const secret = this.secret;
-            const reqTime = this.milliseconds();
+            const reqTime = this.nonce();
             const queryString = this.urlencode(this.keysort(params));
 
             url += '?' + queryString;
@@ -857,18 +909,14 @@ module.exports = class mexc extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-    // handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
 
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString(response, 'code');
-        let message = this.safeString(response, 'message');
+        let message = this.safeString2(response, 'message', 'msg');
         if (message === undefined) {
             message = body;
         }
-        const exactExceptions = this.exceptions['exact'];
         message = this.id + ' ' + message;
-        if (errorCode in exactExceptions) {
-            this.throwExactlyMatchedException(exactExceptions, errorCode, message);
-        }
+        this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, message);
     }
 };
