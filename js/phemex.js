@@ -21,7 +21,7 @@ module.exports = class phemex extends Exchange {
             'pro': true,
             'hostname': 'api.phemex.com',
             'has': {
-                'cancelAllOrders': true, // swap contracts only
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -145,6 +145,7 @@ module.exports = class phemex extends Exchange {
                     'delete': [
                         // spot
                         'spot/orders', // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/all', // ?symbol=<symbol>&untriggered=<untriggered>
                         // 'spot/orders', // ?symbol=<symbol>&clOrdID=<clOrdID>
                         // swap
                         'orders/cancel', // ?symbol=<symbol>&orderID=<orderID>
@@ -1936,14 +1937,15 @@ module.exports = class phemex extends Exchange {
             // 'text': 'up to 40 characters max',
         };
         let market = undefined;
+        let method = 'privateDeleteSpotOrdersAll';
         if (symbol !== undefined) {
             market = this.market (symbol);
-            if (!market['swap']) {
-                throw new NotSupported (this.id + ' cancelAllOrders() supports swap market type orders only');
+            if (market['swap']) {
+                method = 'privateDeleteOrdersAll';
             }
             request['symbol'] = market['id'];
         }
-        return await this.privateDeleteOrdersAll (this.extend (request, params));
+        return await this[method] (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
