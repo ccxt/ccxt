@@ -2515,7 +2515,7 @@ module.exports = class binance extends Exchange {
         }
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, orderId = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -2542,9 +2542,6 @@ module.exports = class binance extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
-        }
-        if (orderId !== undefined) {
-            request['orderId'] = orderId;
         }
         const response = await this[method] (this.extend (request, params));
         //
