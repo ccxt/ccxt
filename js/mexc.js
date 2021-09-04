@@ -684,7 +684,7 @@ module.exports = class mexc extends Exchange {
         }
         await this.loadMarkets();
         const request = {
-            'order_ids': [id]
+            'order_ids': id
         };
         const response = await this.privateGetOrderQuery(this.extend(request, params));
         const orders = this.safeValue(response, 'data', []);
@@ -795,6 +795,7 @@ module.exports = class mexc extends Exchange {
         let side = this.safeInteger(order, 'type');
         side = (side === 'BID') ? 'buy' : 'sell';
         const id = this.safeString(order, 'id');
+        const clientOrderId = this.safeString(order, 'client_order_id');
         const timestamp = this.safeInteger(order, 'create_time');
         const marketId = this.safeString(order, 'symbol');
         const symbol = this.safeSymbol(marketId, market, '_');
@@ -827,12 +828,14 @@ module.exports = class mexc extends Exchange {
             cost = this.parseNumber(remainingString);
         }
 
+
+
         // const type = this.safeString(order, 'order_type');
 
         return this.safeOrder({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp, // order placing/opening Unix timestamp in milliseconds
             'datetime': this.iso8601(timestamp), // ISO8601 datetime of 'timestamp' with milliseconds
             'lastTradeTimestamp': undefined, // Unix timestamp of the most recent trade on this order
