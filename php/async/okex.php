@@ -168,6 +168,7 @@ class okex extends Exchange {
                         'trade/close-position',
                         'trade/order-algo',
                         'trade/cancel-algos',
+                        'trade/cancel-advance-algos',
                         'users/subaccount/delete-apikey',
                         'users/subaccount/modify-apikey',
                         'users/subaccount/apikey',
