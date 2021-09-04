@@ -1930,21 +1930,21 @@ module.exports = class phemex extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
             // 'untriggerred': false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text': 'up to 40 characters max',
         };
-        let market = undefined;
+        const market = this.market (symbol);
         let method = 'privateDeleteSpotOrdersAll';
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            if (market['swap']) {
-                method = 'privateDeleteOrdersAll';
-            }
-            request['symbol'] = market['id'];
+        if (market['swap']) {
+            method = 'privateDeleteOrdersAll';
         }
+        request['symbol'] = market['id'];
         return await this[method] (this.extend (request, params));
     }
 
