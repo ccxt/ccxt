@@ -2138,7 +2138,8 @@ module.exports = class binance extends Exchange {
         if (type === 'limit_maker') {
             type = 'limit';
         }
-        const stopPrice = this.omitZero (this.safeString (order, 'stopPrice'));
+        const stopPriceString = this.safeString (order, 'stopPrice');
+        const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
         return this.safeOrder2 ({
             'info': order,
             'id': id,
