@@ -239,6 +239,7 @@ module.exports = class kraken extends Exchange {
                 'EOrder:Order minimum not met': InvalidOrder,
                 'EGeneral:Invalid arguments': BadRequest,
                 'ESession:Invalid session': AuthenticationError,
+                'EAPI:Invalid nonce': InvalidNonce,
             },
         });
     }
