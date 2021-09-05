@@ -1870,6 +1870,16 @@ module.exports = class binance extends Exchange {
         //       "buyer": false
         //     }
         //
+        // { respType: FULL }
+        //
+        //     {
+        //       "price": "4000.00000000",
+        //       "qty": "1.00000000",
+        //       "commission": "4.00000000",
+        //       "commissionAsset": "USDT",
+        //       "tradeId": "1234",
+        //     }
+        //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
         const priceString = this.safeString2 (trade, 'p', 'price');
         const amountString = this.safeString2 (trade, 'q', 'qty');
@@ -1880,7 +1890,7 @@ module.exports = class binance extends Exchange {
         const costString = Precise.stringMul (priceString, amountString);
         const cost = this.parseNumber (costString);
         let id = this.safeString2 (trade, 't', 'a');
-        id = this.safeString (trade, 'id', id);
+        id = this.safeString2 (trade, 'id', 'tradeId', id);
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
         if ('m' in trade) {
@@ -2095,9 +2105,7 @@ module.exports = class binance extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const filledString = this.safeString (order, 'executedQty', '0');
-        const filled = this.parseNumber (filledString);
-        const filledFloat = parseFloat (filledString);
+        const filled = this.safeString (order, 'executedQty', '0');
         let timestamp = undefined;
         let lastTradeTimestamp = undefined;
         if ('time' in order) {
@@ -2106,36 +2114,32 @@ module.exports = class binance extends Exchange {
             timestamp = this.safeInteger (order, 'transactTime');
         } else if ('updateTime' in order) {
             if (status === 'open') {
-                if (filledFloat > 0) {
+                if (Precise.stringGt (filled, '0')) {
                     lastTradeTimestamp = this.safeInteger (order, 'updateTime');
                 } else {
                     timestamp = this.safeInteger (order, 'updateTime');
                 }
             }
         }
-        const averageString = this.safeString (order, 'avgPrice');
-        const average = this.parseNumber (this.omitZero (averageString));
-        const priceString = this.safeString (order, 'price');
-        const price = this.parseNumber (this.omitZero (priceString));
-        const amount = this.safeNumber (order, 'origQty');
+        const average = this.safeString (order, 'avgPrice');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'origQty');
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
-        const cost = this.safeNumber2 (order, 'cummulativeQuoteQty', 'cumQuote');
+        const cost = this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote');
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
         const fills = this.safeValue (order, 'fills', []);
-        const trades = this.parseTrades (fills, market);
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
         if (type === 'limit_maker') {
             type = 'limit';
         }
-        const stopPriceString = this.safeString (order, 'stopPrice');
-        const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
-        return this.safeOrder ({
+        const stopPrice = this.omitZero (this.safeString (order, 'stopPrice'));
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -2156,8 +2160,8 @@ module.exports = class binance extends Exchange {
             'remaining': undefined,
             'status': status,
             'fee': undefined,
-            'trades': trades,
-        });
+            'trades': fills,
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -4456,6 +4460,151 @@ module.exports = class binance extends Exchange {
             'symbol': market['symbol'],
             'status': status,
         };
+    }
+
+    safeOrder2 (order, market) {
+        // parses numbers as strings
+        // it is important pass the trades as unparsed rawTrades
+        let amount = this.omitZero (this.safeString (order, 'amount'));
+        let remaining = this.safeString (order, 'remaining');
+        let filled = this.safeString (order, 'filled');
+        let cost = this.safeString (order, 'cost');
+        let average = this.omitZero (this.safeString (order, 'average'));
+        let price = this.omitZero (this.safeString (order, 'price'));
+        let lastTradeTimeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
+        const parseFilled = (filled === undefined);
+        const parseCost = (cost === undefined);
+        const parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp === undefined);
+        const parseFee = this.safeValue (order, 'fee') === undefined;
+        const parseFees = this.safeValue (order, 'fees') === undefined;
+        const shouldParseFees = parseFee || parseFees;
+        const fees = this.safeValue (order, 'fees', []);
+        let trades = [];
+        if (parseFilled || parseCost || shouldParseFees) {
+            const rawTrades = this.safeValue (order, 'trades', trades);
+            const oldNumber = this.number;
+            // we parse trades as strings here!
+            // this.number = String;
+            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+                'symbol': order['symbol'],
+                'side': order['side'],
+                'type': order['type'],
+                'order': order['id'],
+            });
+            this.number = oldNumber;
+            if (Array.isArray (trades)) {
+                if (parseFilled) {
+                    filled = '0';
+                }
+                if (parseCost) {
+                    cost = '0';
+                }
+                for (let i = 0; i < trades.length; i++) {
+                    const trade = trades[i];
+                    const tradeAmount = this.safeString (trade, 'amount');
+                    if (parseFilled && (tradeAmount !== undefined)) {
+                        filled = Precise.stringAdd (filled, tradeAmount);
+                    }
+                    const tradeCost = this.safeString (trade, 'cost');
+                    if (parseCost && (tradeCost !== undefined)) {
+                        cost = Precise.stringAdd (cost, tradeCost);
+                    }
+                    const tradeTimestamp = this.safeValue (trade, 'timestamp');
+                    if (parseLastTradeTimeTimestamp && (tradeTimestamp !== undefined)) {
+                        if (lastTradeTimeTimestamp === undefined) {
+                            lastTradeTimeTimestamp = tradeTimestamp;
+                        } else {
+                            lastTradeTimeTimestamp = Math.max (lastTradeTimeTimestamp, tradeTimestamp);
+                        }
+                    }
+                    if (shouldParseFees) {
+                        const tradeFees = this.safeValue (trade, 'fees');
+                        if (tradeFees !== undefined) {
+                            for (let j = 0; j < tradeFees.length; j++) {
+                                const tradeFee = tradeFees[j];
+                                fees.push (this.extend ({}, tradeFee));
+                            }
+                        } else {
+                            const tradeFee = this.safeValue (trade, 'fee');
+                            if (tradeFee !== undefined) {
+                                fees.push (this.extend ({}, tradeFee));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (shouldParseFees) {
+            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees, true) : fees;
+            const reducedLength = reducedFees.length;
+            if (!parseFee && (reducedLength === 0)) {
+                reducedFees.push (order['fee']);
+            }
+            if (parseFees) {
+                order['fees'] = reducedFees;
+            }
+            if (parseFee && (reducedLength === 1)) {
+                order['fee'] = reducedFees[0];
+            }
+        }
+        if (amount === undefined) {
+            // ensure amount = filled + remaining
+            if (filled !== undefined && remaining !== undefined) {
+                amount = Precise.stringAdd (filled, remaining);
+            } else if (this.safeString (order, 'status') === 'closed') {
+                amount = filled;
+            }
+        }
+        if (filled === undefined) {
+            if (amount !== undefined && remaining !== undefined) {
+                filled = Precise.stringSub (amount, remaining);
+            }
+        }
+        if (remaining === undefined) {
+            if (amount !== undefined && filled !== undefined) {
+                remaining = Precise.stringSub (amount, filled);
+            }
+        }
+        // ensure that the average field is calculated correctly
+        if (average === undefined) {
+            if ((filled !== undefined) && (cost !== undefined) && Precise.stringGt (filled, '0')) {
+                average = Precise.stringDiv (cost, filled);
+            }
+        }
+        // also ensure the cost field is calculated correctly
+        const costPriceExists = (average !== undefined) || (price !== undefined);
+        if (parseCost && (filled !== undefined) && costPriceExists) {
+            if (average === undefined) {
+                cost = Precise.stringMul (price, filled);
+            } else {
+                cost = Precise.stringMul (average, filled);
+            }
+        }
+        // support for market orders
+        const orderType = this.safeValue (order, 'type');
+        const emptyPrice = (price === undefined) || Precise.stringEquals (price, '0');
+        if (emptyPrice && (orderType === 'market')) {
+            price = average;
+        }
+        // we have trades with string values at this point so we will mutate them
+        for (let i = 0; i < trades.length; i++) {
+            const entry = trades[i];
+            entry['amount'] = this.safeNumber (entry, 'amount');
+            entry['price'] = this.safeNumber (entry, 'price');
+            entry['cost'] = this.safeNumber (entry, 'cost');
+            const fee = this.safeValue (entry, 'fee', {});
+            fee['cost'] = this.safeNumber (fee, 'cost');
+        }
+        return this.extend (order, {
+            'lastTradeTimestamp': lastTradeTimeTimestamp,
+            'price': this.parseNumber (price),
+            'amount': this.parseNumber (amount),
+            'cost': this.parseNumber (cost),
+            'average': this.parseNumber (average),
+            'filled': this.parseNumber (filled),
+            'remaining': this.parseNumber (remaining),
+            'trades': trades,
+        });
     }
 
     async reduceMargin (symbol, amount, params = {}) {
