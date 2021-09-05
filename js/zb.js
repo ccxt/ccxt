@@ -278,7 +278,7 @@ module.exports = class zb extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.parseNumber (amountLimit),
+                        'min': this.safeNumber (market, 'minAmount'),
                         'max': undefined,
                     },
                     'price': {
@@ -286,7 +286,7 @@ module.exports = class zb extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': 0,
+                        'min': this.safeNumber (market, 'minSize'),
                         'max': undefined,
                     },
                 },
