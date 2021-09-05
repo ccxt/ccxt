@@ -161,6 +161,7 @@ class bibox(Exchange):
                 'MTC': 'MTC Mesh Network',  # conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'NFT': 'NFT Protocol',
                 'PAI': 'PCHAIN',
+                'REVO': 'Revo Network',
                 'TERN': 'Ternio-ERC20',
             },
             'options': {
