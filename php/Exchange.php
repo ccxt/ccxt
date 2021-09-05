@@ -3205,7 +3205,7 @@ class Exchange {
         }
         // we have $trades with string values at this point so we will mutate them
         for ($i = 0; $i < count($trades); $i++) {
-            $entry = $trades[$i];
+            $entry =& $trades[$i];
             $entry['amount'] = $this->safe_number($entry, 'amount');
             $entry['price'] = $this->safe_number($entry, 'price');
             $entry['cost'] = $this->safe_number($entry, 'cost');
