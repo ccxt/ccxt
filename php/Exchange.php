@@ -3101,7 +3101,7 @@ class Exchange {
             $rawTrades = $this->safe_value($order, 'trades', $trades);
             $oldNumber = $this->number;
             // we parse $trades as strings here!
-            $this->number = 'string';
+            $this->number = 'strval';
             $trades = $this->parse_trades($rawTrades, $market, null, null, array(
                 'symbol' => $order['symbol'],
                 'side' => $order['side'],
