@@ -618,7 +618,7 @@ class exmo extends Exchange {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
             }
-            $result[$symbol] = $this->parse_order_book($response[$marketId], null, 'bid', 'ask');
+            $result[$symbol] = $this->parse_order_book($response[$marketId], $symbol, null, 'bid', 'ask');
         }
         return $result;
     }
