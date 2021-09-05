@@ -67,7 +67,6 @@ module.exports = class mexc extends Exchange {
                         'order/open_orders', // 当前挂单
                         'order/deals', // 个人成交记录
                         'order/deal_detail', // 成交明细
-
                         // assets
                         'asset/deposit/address/list', // 获取充币地址
                         'asset/deposit/list', // 充值记录查询
@@ -149,11 +148,6 @@ module.exports = class mexc extends Exchange {
         return this.options['timeDifference'];
     }
 
-    //  ---------------------------------------------------------------------------
-    //                                     public
-    //  ---------------------------------------------------------------------------
-
-    // ok
     async fetchMarkets (params = {}) {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
@@ -224,7 +218,6 @@ module.exports = class mexc extends Exchange {
         return result;
     }
 
-    // ok
     async fetchTicker (symbol, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTicker() requires a `symbol` argument');
@@ -257,7 +250,6 @@ module.exports = class mexc extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    // ok
     parseTicker (ticker, market = undefined) {
         // {
         //   "symbol": "ETH_USDT",
@@ -306,7 +298,6 @@ module.exports = class mexc extends Exchange {
         };
     }
 
-    // ok
     async fetchOrderBook (symbol, limit = 2000, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a `symbol` argument');
@@ -347,7 +338,6 @@ module.exports = class mexc extends Exchange {
         return this.parseOrderBook (orderBook, symbol, undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
-    // ok
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires a `symbol` argument');
@@ -388,7 +378,6 @@ module.exports = class mexc extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    // ok
     parseTrade (trade, market = undefined) {
         // ------------ Recent Trades ------------
         // {
@@ -475,7 +464,6 @@ module.exports = class mexc extends Exchange {
         };
     }
 
-    // ok
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a `symbol` argument');
@@ -520,7 +508,6 @@ module.exports = class mexc extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    // ok
     parseOHLCV (ohlcv, market = undefined) {
         // [
         //     1557728040,    //timestamp in seconds
@@ -547,7 +534,6 @@ module.exports = class mexc extends Exchange {
         ];
     }
 
-    // ok
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetMarketCoinList (params);
         // unified format
@@ -627,11 +613,6 @@ module.exports = class mexc extends Exchange {
         return result;
     }
 
-    //  ---------------------------------------------------------------------------
-    //                                     private
-    //  ---------------------------------------------------------------------------
-
-    // ok
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetAccountInfo (params);
@@ -678,7 +659,6 @@ module.exports = class mexc extends Exchange {
         return this.parseBalance (result);
     }
 
-    // ok
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a `symbol` argument');
@@ -714,7 +694,6 @@ module.exports = class mexc extends Exchange {
         };
     }
 
-    // ok
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + 'cancelOrder() requires an id argument');
@@ -727,8 +706,6 @@ module.exports = class mexc extends Exchange {
         return this.safeValue (response, 'data', {});
     }
 
-    // 未验证
-    // 无效 id 验证
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + 'fetchOrder() requires an `id` argument');
@@ -746,8 +723,8 @@ module.exports = class mexc extends Exchange {
         return this.parseOrder (orders[0], undefined);
     }
 
-    // Unable to get all status orders from one request due to the MEXC Exchange
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // Unable to get all status orders at once due to the MEXC Exchange
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + 'fetchOrders() requires a `symbol` argument');
         }
@@ -909,7 +886,6 @@ module.exports = class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    // ok
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a `symbol` argument');
@@ -984,21 +960,6 @@ module.exports = class mexc extends Exchange {
         return formattedAddress;
     }
 
-    // async fetchDepositAddresses(codes = undefined, params = {}) {
-    //     if (codes === undefined) {
-    //         throw new ArgumentsRequired(this.id + ' fetchDepositAddresses() requires a `codes` argument');
-    //     }
-    //     const codeCount = codes.length;
-    //     if (codeCount < 1) {
-    //         throw new ArgumentsRequired(this.id + ' fetchDepositAddresses() requires one code');
-    //     } else if (codeCount > 1) {
-    //         throw new BadRequest(this.id + ' fetchDepositAddresses() does not support more than one code');
-    //     }
-    //     const code = codes[0];
-    //     const addresses = await this.privateGetDepositAddresses(code, params);
-    //     return this.parseDepositAddresses(addresses, codes);
-    // }
-
     async fetchDepositAddress (code, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a `code` argument');
@@ -1014,7 +975,6 @@ module.exports = class mexc extends Exchange {
         //    "chain": "TRC-20",
         //    "address": "TEPNhuMWFVYi4Tt5vi6C13ReVEokKRGmES"
         // }
-
         return {
             'currency': (currency === undefined) ? this.safeString (depositAddress, 'currency') : currency,
             'address': this.safeString (depositAddress, 'address'),
@@ -1024,112 +984,6 @@ module.exports = class mexc extends Exchange {
             'network': this.safeString (depositAddress, 'chain'),
         };
     }
-
-    // mexc api document has not been updated yet
-    // async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-    //     await this.loadMarkets();
-    //     const request = {
-    //         // currency  string  false  Crypto currency
-    //         // state  string  false  Status
-    //         // start_time  long  false  The start time, unit:ms, defult:1 day.
-    //         // end_time  long  false  The ending time, unit:ms
-    //         // page_num  number  false  Number of pages, default 1
-    //         // page_size  number  false  Size of pages, default 20, maximum 50
-    //     };
-    //     let currency = undefined;
-
-    //     if (code !== undefined) {
-    //         currency = this.currency(code);
-    //         request['currency'] = currency['id'];
-    //     }
-
-    //     if (limit !== undefined) {
-    //         request['page_size'] = limit;
-    //     }
-
-    //     if (since !== undefined) {
-    //         request['start_time'] = Math.floor(since / 1000);
-    //     }
-
-    //     const response = await this.privateGetAssetDepositList(this.extend(request, params));
-    //     // {
-    //     //     "code": "200",
-    //     //     "data": {
-    //     //         "page_size": "20",
-    //     //         "total_page": "0",
-    //     //         "total_size": "0",
-    //     //         "page_num": "1",
-    //     //         "result_list": []
-    //     //     }
-    //     // }
-    //     const data = this.safeValue(response, 'data', {});
-    //     const deposits = this.safeValue(data, 'result_list', []);
-    //     return this.parseTransactions(deposits, currency, since, limit);
-    // }
-
-    // parseTransaction (transaction, currency = undefined) {
-    //     // ccxt unified format
-    //     // {
-    //     //     'info':      { ... },    // the JSON response from the exchange as is
-    //     //     'id':       '123456',    // exchange-specific transaction id, string
-    //     //     'txid':     '0x68bfb29821c50ca35ef3762f887fd3211e4405aba1a94e448a4f218b850358f0',
-    //     //     'timestamp': 1534081184515,             // timestamp in milliseconds
-    //     //     'datetime': '2018-08-12T13:39:44.515Z', // ISO8601 string of the timestamp
-    //     //     'addressFrom': '0x38b1F8644ED1Dbd5DcAedb3610301Bf5fa640D6f', // sender
-    //     //     'address':  '0x02b0a9b7b4cDe774af0f8e47cb4f1c2ccdEa0806', // "from" or "to"
-    //     //     'addressTo': '0x304C68D441EF7EB0E2c056E836E8293BD28F8129', // receiver
-    //     //     'tagFrom', '0xabcdef', // "tag" or "memo" or "payment_id" associated with the sender
-    //     //     'tag':      '0xabcdef' // "tag" or "memo" or "payment_id" associated with the address
-    //     //     'tagTo': '0xhijgklmn', // "tag" or "memo" or "payment_id" associated with the receiver
-    //     //     'type':     'deposit',   // or 'withdrawal', string
-    //     //     'amount':    1.2345,     // float (does not include the fee)
-    //     //     'currency': 'ETH',       // a common unified currency code, string
-    //     //     'status':   'pending',   // 'ok', 'failed', 'canceled', string
-    //     //     'updated':   undefined,  // UTC timestamp of most recent status change in ms
-    //     //     'comment':  'a comment or message defined by the user if any',
-    //     //     'fee': {                 // the entire fee structure may be undefined
-    //     //         'currency': 'ETH',   // a unified fee currency code
-    //     //         'cost': 0.1234,      // float
-    //     //         'rate': undefined,   // approximately, fee['cost'] / amount, float
-    //     //     },
-    //     // }
-
-    //     // ---------- mexc ----------
-    //     // currency string Crypto currency
-    //     // actual_amount number The actual received  amount
-    //     // address string Deposit  address
-    //     // amount number Deposit  amount
-    //     // confirmations number Confirmation of blocks
-    //     // require_confirmations number Minimum confirmation of blocks
-    //     // create_time number Initiate withdraw time
-    //     // explorer_url string Block browser address
-    //     // fee  string Fee
-    //     // member_id  string UserID
-    //     // state string Status
-    //     // txid string Trading hash
-    //     // update_time string Update time
-    //     // wallet_type string The wallet type
-
-    //     return {
-    //         'info': transaction,
-    //         'id': id,
-    //         'txid': txid,
-    //         'timestamp': timestamp,
-    //         'datetime': this.iso8601 (timestamp),
-    //         'addressFrom': undefined,
-    //         'address': address,
-    //         'addressTo': address,
-    //         'tagFrom': undefined,
-    //         'tag': tag,
-    //         'tagTo': tag,
-    //         'type': type,
-    //         'amount': amount,
-    //         'currency': code,
-    //         'status': status,
-    //         'updated': updated,
-    //         'fee': fee,
-    //     };
-    // }
 
     nonce () {
         return this.milliseconds () - this.options['timeDifference'];
