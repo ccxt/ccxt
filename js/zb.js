@@ -261,7 +261,6 @@ module.exports = class zb extends Exchange {
             const symbol = base + '/' + quote;
             const amountPrecisionString = this.safeString (market, 'amountScale');
             const pricePrecisionString = this.safeString (market, 'priceScale');
-            const amountLimit = this.parsePrecision (amountPrecisionString);
             const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
                 'amount': parseInt (amountPrecisionString),
