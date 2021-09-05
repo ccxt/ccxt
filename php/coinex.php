@@ -994,6 +994,7 @@ class coinex extends Exchange {
             $responseCodes = array(
                 '24' => '\\ccxt\\AuthenticationError',
                 '25' => '\\ccxt\\AuthenticationError',
+                '34' => '\\ccxt\\AuthenticationError', // Access id is expires
                 '107' => '\\ccxt\\InsufficientFunds',
                 '600' => '\\ccxt\\OrderNotFound',
                 '601' => '\\ccxt\\InvalidOrder',
