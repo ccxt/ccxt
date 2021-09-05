@@ -86,6 +86,11 @@ See Also
        :alt: Freqtrade
 
    `Freqtrade <https://www.freqtrade.io>`__ – leading opensource cryptocurrency algorithmic trading software!
+ * .. image:: https://user-images.githubusercontent.com/1294454/132113722-007fc092-7530-4b41-b929-b8ed380b7b2e.png
+       :target: https://www.octobot.online
+       :alt: OctoBot
+
+   `OctoBot <https://www.octobot.online>`__ – cryptocurrency trading bot with an advanced web interface.
 
 Certified Cryptocurrency Exchanges
 ----------------------------------
@@ -1936,14 +1941,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.55.75/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.55.75/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.55.76/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.55.76/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.55.75/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.55.76/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
