@@ -644,7 +644,7 @@ module.exports = class mexc extends Exchange {
             'datetime': undefined,
         };
         const currencys = Object.keys (balances);
-        for (let i = 0, len = currencys.length; i < len; i++) {
+        for (let i = 0; i < currencys.length; i++) {
             // {
             //    "frozen": "30.9863",
             //    "available": "450.0137"
