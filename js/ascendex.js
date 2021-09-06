@@ -642,39 +642,16 @@ module.exports = class ascendex extends Exchange {
         //
         const timestamp = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        } else if (marketId !== undefined) {
-            const type = this.safeString (ticker, 'type');
-            if (type === 'spot') {
-                const [ baseId, quoteId ] = marketId.split ('/');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const type = this.safeString (ticker, 'type');
+        const symbol = this.safeSymbol (marketId, market, (type === 'spot') ? '/' : undefined);
         const close = this.safeNumber (ticker, 'close');
         const bid = this.safeValue (ticker, 'bid', []);
         const ask = this.safeValue (ticker, 'ask', []);
         const open = this.safeNumber (ticker, 'open');
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
-        if ((open !== undefined) && (close !== undefined)) {
-            change = close - open;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-            average = this.sum (open, close) / 2;
-        }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': undefined,
             'high': this.safeNumber (ticker, 'high'),
             'low': this.safeNumber (ticker, 'low'),
             'bid': this.safeNumber (bid, 0),
@@ -686,13 +663,13 @@ module.exports = class ascendex extends Exchange {
             'close': close,
             'last': close,
             'previousClose': undefined, // previous day close
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
