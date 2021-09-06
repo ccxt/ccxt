@@ -16,6 +16,7 @@ class huobijp(huobipro):
             'countries': ['JP'],
             'hostname': 'api-cloud.huobi.co.jp',
             'pro': True,
+            'certified': False,
             'has': {
                 'fetchDepositAddress': False,
             },
