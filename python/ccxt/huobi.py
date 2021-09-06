@@ -32,6 +32,7 @@ class huobi(Exchange):
             'countries': ['CN'],
             'rateLimit': 2000,
             'userAgent': self.userAgents['chrome39'],
+            'certified': True,
             'version': 'v1',
             'accounts': None,
             'accountsById': None,
