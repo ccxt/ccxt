@@ -1773,22 +1773,43 @@ class Exchange(object):
     def safe_ticker(self, ticker, market=None):
         symbol = self.safe_value(ticker, 'symbol')
         if symbol is None:
-            ticker['symbol'] = self.safe_symbol(None, market)
+            symbol = self.safe_symbol(None, market)
         timestamp = self.safe_integer(ticker, 'timestamp')
-        if timestamp is not None:
-            ticker['timestamp'] = timestamp
-            ticker['datetime'] = self.iso8601(timestamp)
         baseVolume = self.safe_value(ticker, 'baseVolume')
         quoteVolume = self.safe_value(ticker, 'quoteVolume')
         vwap = self.safe_value(ticker, 'vwap')
         if vwap is None:
-            ticker['vwap'] = self.vwap(baseVolume, quoteVolume)
+            vwap = self.vwap(baseVolume, quoteVolume)
+        open = self.safe_value(ticker, 'open')
         close = self.safe_value(ticker, 'close')
         last = self.safe_value(ticker, 'last')
-        if (close is None) and (last is not None):
-            ticker['close'] = last
+        change = self.safe_value(ticker, 'change')
+        percentage = self.safe_value(ticker, 'percentage')
+        average = self.safe_value(ticker, 'average')
+        if last is not None:
+            if close is None:
+                close = last
+            if change is None:
+                if open is not None:
+                    change = last - open
         elif (last is None) and (close is not None):
-            ticker['last'] = close
+            last = close
+        if last is not None and open is not None:
+            change = last - open
+            if percentage is None:
+                if open > 0:
+                    percentage = change / open * 100
+            if average is None:
+                average = self.sum(last, open) / 2
+        ticker['symbol'] = symbol
+        ticker['timestamp'] = timestamp
+        ticker['datetime'] = self.iso8601(timestamp)
+        ticker['close'] = close
+        ticker['last'] = last
+        ticker['vwap'] = vwap
+        ticker['change'] = change
+        ticker['percentage'] = percentage
+        ticker['average'] = average
         return ticker
 
     def parse_tickers(self, tickers, symbols=None, params={}):
