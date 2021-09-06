@@ -22,6 +22,7 @@ class huobi extends Exchange {
             'countries' => array( 'CN' ),
             'rateLimit' => 2000,
             'userAgent' => $this->userAgents['chrome39'],
+            'certified' => true,
             'version' => 'v1',
             'accounts' => null,
             'accountsById' => null,
