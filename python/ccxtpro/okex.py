@@ -72,10 +72,10 @@ class okex(Exchange, ccxt.okex):
         request = {
             'op': 'subscribe',
             'args': [
-                firstArgument,
+                self.deep_extend(firstArgument, params),
             ],
         }
-        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        return await self.watch(url, messageHash, request, messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         trades = await self.subscribe('public', 'trades', symbol, params)
@@ -454,6 +454,37 @@ class okex(Exchange, ccxt.okex):
         newBalance = self.deep_extend(oldBalance, balance)
         self.balance[type] = self.parse_balance(newBalance)
         client.resolve(self.balance[type], channel)
+
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        await self.authenticate()
+        #
+        #     {
+        #         "op": "subscribe",
+        #         "args": [
+        #             {
+        #                 "channel": "orders",
+        #                 "instType": "FUTURES",
+        #                 "uly": "BTC-USD",
+        #                 "instId": "BTC-USD-200329"
+        #             }
+        #         ]
+        #     }
+        #
+        defaultType = self.safe_string(self.options, 'defaultType')
+        options = self.safe_string(self.options, 'watchOrders', {})
+        type = self.safe_string(options, 'type', defaultType)
+        type = self.safe_string(params, 'type', type)
+        params = self.omit(params, 'type')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            type = market['type']
+        uppercaseType = type.upper()
+        request = {
+            'instType': uppercaseType,
+        }
+        return await self.subscribe('private', 'orders', symbol, self.extend(request, params))
 
     def handle_subscription_status(self, client, message):
         #

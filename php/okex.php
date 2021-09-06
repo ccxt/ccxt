@@ -74,10 +74,10 @@ class okex extends \ccxt\async\okex {
         $request = array(
             'op' => 'subscribe',
             'args' => array(
-                $firstArgument,
+                $this->deep_extend($firstArgument, $params),
             ),
         );
-        return yield $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
+        return yield $this->watch($url, $messageHash, $request, $messageHash);
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -485,6 +485,39 @@ class okex extends \ccxt\async\okex {
         $newBalance = $this->deep_extend($oldBalance, $balance);
         $this->balance[$type] = $this->parse_balance($newBalance);
         $client->resolve ($this->balance[$type], $channel);
+    }
+
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        yield $this->authenticate();
+        //
+        //     {
+        //         "op" => "subscribe",
+        //         "args" => array(
+        //             {
+        //                 "channel" => "orders",
+        //                 "instType" => "FUTURES",
+        //                 "uly" => "BTC-USD",
+        //                 "instId" => "BTC-USD-200329"
+        //             }
+        //         )
+        //     }
+        //
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $options = $this->safe_string($this->options, 'watchOrders', array());
+        $type = $this->safe_string($options, 'type', $defaultType);
+        $type = $this->safe_string($params, 'type', $type);
+        $params = $this->omit($params, 'type');
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $type = $market['type'];
+        }
+        $uppercaseType = strtoupper($type);
+        $request = array(
+            'instType' => $uppercaseType,
+        );
+        return yield $this->subscribe('private', 'orders', $symbol, array_merge($request, $params));
     }
 
     public function handle_subscription_status($client, $message) {
