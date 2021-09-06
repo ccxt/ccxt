@@ -1337,16 +1337,20 @@ class Exchange(object):
         return len(parts[1]) if len(parts) > 1 else 0
 
     def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
+        market = self.market(symbol)
+        return self.decimal_to_precision(cost, TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
 
     def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
+        market = self.market(symbol)
+        return self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
 
     def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode, self.paddingMode)
+        market = self.market(symbol)
+        return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
 
     def fee_to_precision(self, symbol, fee):
-        return self.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
+        market = self.market(symbol)
+        return self.decimal_to_precision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
 
     def currency_to_precision(self, currency, fee):
         return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
