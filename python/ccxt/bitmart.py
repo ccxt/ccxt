@@ -73,7 +73,9 @@ class bitmart(Exchange):
             'hostname': 'bitmart.com',  # bitmart.info for Hong Kong users
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
-                'api': 'https://api-cloud.{hostname}',  # bitmart.info for Hong Kong users
+                'api': {
+                    'rest': 'https://api-cloud.{hostname}',  # bitmart.info for Hong Kong users
+                },
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://developer-pro.bitmart.com/',
                 'referral': 'http://www.bitmart.com/?r=rQCFLh',
@@ -2203,9 +2205,9 @@ class bitmart(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        baseUrl = self.implode_hostname(self.urls['api'])
         access = self.safe_string(api, 0)
         type = self.safe_string(api, 1)
+        baseUrl = self.implode_hostname(self.urls['api']['rest'])
         url = baseUrl + '/' + type
         if type != 'system':
             url += '/' + self.version

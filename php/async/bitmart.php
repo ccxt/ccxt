@@ -53,7 +53,9 @@ class bitmart extends Exchange {
             'hostname' => 'bitmart.com', // bitmart.info for Hong Kong users
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
-                'api' => 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
+                'api' => array(
+                    'rest' => 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
+                ),
                 'www' => 'https://www.bitmart.com/',
                 'doc' => 'https://developer-pro.bitmart.com/',
                 'referral' => 'http://www.bitmart.com/?r=rQCFLh',
@@ -2301,9 +2303,9 @@ class bitmart extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $baseUrl = $this->implode_hostname($this->urls['api']);
         $access = $this->safe_string($api, 0);
         $type = $this->safe_string($api, 1);
+        $baseUrl = $this->implode_hostname($this->urls['api']['rest']);
         $url = $baseUrl . '/' . $type;
         if ($type !== 'system') {
             $url .= '/' . $this->version;
