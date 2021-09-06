@@ -644,39 +644,17 @@ class ascendex extends Exchange {
         //
         $timestamp = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        } else if ($marketId !== null) {
-            $type = $this->safe_string($ticker, 'type');
-            if ($type === 'spot') {
-                list($baseId, $quoteId) = explode('/', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $type = $this->safe_string($ticker, 'type');
+        $delimiter = ($type === 'spot') ? '/' : null;
+        $symbol = $this->safe_symbol($marketId, $market, $delimiter);
         $close = $this->safe_number($ticker, 'close');
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
         $open = $this->safe_number($ticker, 'open');
-        $change = null;
-        $percentage = null;
-        $average = null;
-        if (($open !== null) && ($close !== null)) {
-            $change = $close - $open;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-            $average = $this->sum($open, $close) / 2;
-        }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'datetime' => null,
             'high' => $this->safe_number($ticker, 'high'),
             'low' => $this->safe_number($ticker, 'low'),
             'bid' => $this->safe_number($bid, 0),
@@ -688,13 +666,13 @@ class ascendex extends Exchange {
             'close' => $close,
             'last' => $close,
             'previousClose' => null, // previous day $close
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
