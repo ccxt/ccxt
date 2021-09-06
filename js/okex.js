@@ -71,10 +71,10 @@ module.exports = class okex extends ccxt.okex {
         const request = {
             'op': 'subscribe',
             'args': [
-                firstArgument,
+                this.deepExtend (firstArgument, params),
             ],
         };
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -482,6 +482,39 @@ module.exports = class okex extends ccxt.okex {
         const newBalance = this.deepExtend (oldBalance, balance);
         this.balance[type] = this.parseBalance (newBalance);
         client.resolve (this.balance[type], channel);
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        //
+        //     {
+        //         "op": "subscribe",
+        //         "args": [
+        //             {
+        //                 "channel": "orders",
+        //                 "instType": "FUTURES",
+        //                 "uly": "BTC-USD",
+        //                 "instId": "BTC-USD-200329"
+        //             }
+        //         ]
+        //     }
+        //
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const options = this.safeString (this.options, 'watchOrders', {});
+        let type = this.safeString (options, 'type', defaultType);
+        type = this.safeString (params, 'type', type);
+        params = this.omit (params, 'type');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            type = market['type'];
+        }
+        const uppercaseType = type.toUpperCase ();
+        const request = {
+            'instType': uppercaseType,
+        };
+        return await this.subscribe ('private', 'orders', symbol, this.extend (request, params));
     }
 
     handleSubscriptionStatus (client, message) {
