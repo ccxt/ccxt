@@ -1953,26 +1953,53 @@ class Exchange {
     public function safe_ticker($ticker, $market = null) {
         $symbol = $this->safe_value($ticker, 'symbol');
         if ($symbol === null) {
-            $ticker['symbol'] = $this->safe_symbol(null, $market);
+            $symbol = $this->safe_symbol(null, $market);
         }
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        if ($timestamp !== null) {
-            $ticker['timestamp'] = $timestamp;
-            $ticker['datetime'] = $this->iso8601($timestamp);
-        }
         $baseVolume = $this->safe_value($ticker, 'baseVolume');
         $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
         $vwap = $this->safe_value($ticker, 'vwap');
         if ($vwap === null) {
-            $ticker['vwap'] = $this->vwap($baseVolume, $quoteVolume);
+            $vwap = $this->vwap($baseVolume, $quoteVolume);
         }
+        $open = $this->safe_value($ticker, 'open');
         $close = $this->safe_value($ticker, 'close');
         $last = $this->safe_value($ticker, 'last');
-        if (($close === null) && ($last !== null)) {
-            $ticker['close'] = $last;
+        $change = $this->safe_value($ticker, 'change');
+        $percentage = $this->safe_value($ticker, 'percentage');
+        $average = $this->safe_value($ticker, 'average');
+        if ($last !== null) {
+            if ($close === null) {
+                $close = $last;
+            }
+            if ($change === null) {
+                if ($open !== null) {
+                    $change = $last - $open;
+                }
+            }
         } else if (($last === null) && ($close !== null)) {
-            $ticker['last'] = $close;
+            $last = $close;
         }
+        if ($last !== null && $open !== null) {
+            $change = $last - $open;
+            if ($percentage === null) {
+                if ($open > 0) {
+                    $percentage = $change / $open * 100;
+                }
+            }
+            if ($average === null) {
+                $average = $this->sum($last, $open) / 2;
+            }
+        }
+        $ticker['symbol'] = $symbol;
+        $ticker['timestamp'] = $timestamp;
+        $ticker['datetime'] = $this->iso8601($timestamp);
+        $ticker['close'] = $close;
+        $ticker['last'] = $last;
+        $ticker['vwap'] = $vwap;
+        $ticker['change'] = $change;
+        $ticker['percentage'] = $percentage;
+        $ticker['average'] = $average;
         return $ticker;
     }
 
