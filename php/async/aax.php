@@ -504,7 +504,7 @@ class aax extends Exchange {
         //         "t":1610162685342, // $timestamp
         //         "a":"0.00000000", // trading volume in USD in the $last 24 hours, futures only
         //         "c":"435.20000000", // close
-        //         "d":"4.22953489", // $change
+        //         "d":"4.22953489", // change
         //         "h":"455.04000000", // high
         //         "l":"412.78000000", // low
         //         "o":"417.54000000", // $open
@@ -517,21 +517,11 @@ class aax extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_number($ticker, 'c');
         $open = $this->safe_number($ticker, 'o');
-        $change = null;
-        $percentage = null;
-        $average = null;
-        if ($last !== null && $open !== null) {
-            $change = $last - $open;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-            $average = $this->sum($last, $open) / 2;
-        }
         $quoteVolume = $this->safe_number($ticker, 'v');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'datetime' => null,
             'high' => $this->safe_number($ticker, 'h'),
             'low' => $this->safe_number($ticker, 'l'),
             'bid' => null,
@@ -543,13 +533,13 @@ class aax extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
