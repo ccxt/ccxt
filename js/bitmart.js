@@ -49,8 +49,7 @@ module.exports = class bitmart extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
                 'api': {
-                    'public': 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
-                    'private': 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
+                    'rest': 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
                 },
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://developer-pro.bitmart.com/',
@@ -2301,7 +2300,7 @@ module.exports = class bitmart extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const access = this.safeString (api, 0);
         const type = this.safeString (api, 1);
-        const baseUrl = this.implodeHostname (this.urls['api'][access]);
+        const baseUrl = this.implodeHostname (this.urls['api']['rest']);
         let url = baseUrl + '/' + type;
         if (type !== 'system') {
             url += '/' + this.version;
