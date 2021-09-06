@@ -514,21 +514,11 @@ module.exports = class aax extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber (ticker, 'c');
         const open = this.safeNumber (ticker, 'o');
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
-        if (last !== undefined && open !== undefined) {
-            change = last - open;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-            average = this.sum (last, open) / 2;
-        }
         const quoteVolume = this.safeNumber (ticker, 'v');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': undefined,
             'high': this.safeNumber (ticker, 'h'),
             'low': this.safeNumber (ticker, 'l'),
             'bid': undefined,
@@ -540,13 +530,13 @@ module.exports = class aax extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
