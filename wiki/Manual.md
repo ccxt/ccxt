@@ -3314,7 +3314,7 @@ We present a unified structure for the positions returned by exchanges.
    'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
    'price': 20000,              // float, the average entry price of the position
    'markPrice': 20050,          // float, a price that is used for funding calculations
-   'notional': 100000,          // float, the number of contracts times the price
+   'notional': 100000,          // float, the value of the position in the settlement currency
    'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
    'collateral': 5300,          // float, the maximum amount of collateral that can be lost, affected by pnl
    'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position
