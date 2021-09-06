@@ -113,9 +113,9 @@ class Exchange(object):
     id = None
     name = None
     version = None
-    certified = False
-    pro = False
-
+    certified = False  # if certified by the CCXT dev team
+    pro = False  # if it is integrated with CCXT Pro for WebSocket support
+    alias = False  # whether this exchange is an alias to another exchange
     # rate limiter settings
     enableRateLimit = True
     rateLimit = 2000  # milliseconds = seconds * 1000
