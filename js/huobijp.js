@@ -15,6 +15,7 @@ module.exports = class huobijp extends huobipro {
             'countries': [ 'JP' ],
             'hostname': 'api-cloud.huobi.co.jp',
             'pro': true,
+            'certified': false,
             'has': {
                 'fetchDepositAddress': false,
             },
