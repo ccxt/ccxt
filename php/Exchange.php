@@ -1014,8 +1014,10 @@ class Exchange {
         $this->name = null;
         $this->countries = null;
         $this->version = null;
-        $this->certified = false;
-        $this->pro = false;
+        $this->certified = false; // if certified by the CCXT dev team
+        $this->pro = false; // if it is integrated with CCXT Pro for WebSocket support
+        $this->alias = false; // whether this exchange is an alias to another exchange
+
         $this->urls = array();
         $this->api = array();
         $this->comment = null;
