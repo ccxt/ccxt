@@ -643,7 +643,8 @@ module.exports = class ascendex extends Exchange {
         const timestamp = undefined;
         const marketId = this.safeString (ticker, 'symbol');
         const type = this.safeString (ticker, 'type');
-        const symbol = this.safeSymbol (marketId, market, (type === 'spot') ? '/' : undefined);
+        const delimiter = (type === 'spot') ? '/' : undefined;
+        const symbol = this.safeSymbol (marketId, market, delimiter);
         const close = this.safeNumber (ticker, 'close');
         const bid = this.safeValue (ticker, 'bid', []);
         const ask = this.safeValue (ticker, 'ask', []);
