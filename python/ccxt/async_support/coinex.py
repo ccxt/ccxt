@@ -934,6 +934,7 @@ class coinex(Exchange):
             responseCodes = {
                 '24': AuthenticationError,
                 '25': AuthenticationError,
+                '34': AuthenticationError,  # Access id is expires
                 '107': InsufficientFunds,
                 '600': OrderNotFound,
                 '601': InvalidOrder,
