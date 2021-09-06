@@ -3317,8 +3317,8 @@ We present a unified structure for the positions returned by exchanges.
    'notional': 100000,          // float, the number of contracts times the price
    'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
    'collateral': 5300,          // float, the maximum amount of collateral that can be lost, affected by pnl
-   'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position in the same currency as the notional
-   'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated in the same currency as the notional
+   'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position
+   'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated
    'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
    'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
    'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
