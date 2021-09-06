@@ -249,6 +249,7 @@ class kraken extends Exchange {
                 'EOrder:Order minimum not met' => '\\ccxt\\InvalidOrder',
                 'EGeneral:Invalid arguments' => '\\ccxt\\BadRequest',
                 'ESession:Invalid session' => '\\ccxt\\AuthenticationError',
+                'EAPI:Invalid nonce' => '\\ccxt\\InvalidNonce',
             ),
         ));
     }
