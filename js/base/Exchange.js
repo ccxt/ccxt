@@ -57,8 +57,9 @@ module.exports = class Exchange {
             'countries': undefined,
             'enableRateLimit': true,
             'rateLimit': 2000, // milliseconds = seconds * 1000
-            'certified': false,
-            'pro': false,
+            'certified': false, // if certified by the CCXT dev team
+            'pro': false, // if it is integrated with CCXT Pro for WebSocket support
+            'alias': false, // whether this exchange is an alias to another exchange
             'has': {
                 'loadMarkets': true,
                 'cancelAllOrders': false,
