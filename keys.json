@@ -1,11 +1,12 @@
 {
-    "currencycom": {"skip": true},
-    "dsx": {"skip": true},
-    "gateio": {"skip": true},
-    "idex": {"skip": true},
-    "kucoin": {"skip": true},
-    "ndax": {"skip": true},
-    "okcoin": {"skip": true},
-    "ripio": {"skip": true},
-    "upbit": {"skip": true}
+    "currencycom": { "skip": true },
+    "dsx": { "skip": true },
+    "gateio": { "skip": true },
+    "huobipro": { "skip": true },
+    "idex": { "skip": true },
+    "kucoin": { "skip": true },
+    "ndax": { "skip": true },
+    "okcoin": { "skip": true },
+    "ripio": { "skip": true },
+    "upbit": { "skip": true }
 }
