@@ -669,6 +669,7 @@ module.exports = class bitmart extends Exchange {
         //         "best_bid":"0.035983",
         //         "best_bid_size":"4.2792",
         //         "fluctuation":"-0.0143",
+        //         "s_t": "1630981727", // ws only
         //         "url":"https://www.bitmart.com/trade?symbol=ETH_BTC"
         //     }
         //
@@ -705,7 +706,7 @@ module.exports = class bitmart extends Exchange {
         //         "next_funding_at":"2020-08-17T04:00:00Z"
         //     }
         //
-        const timestamp = this.safeTimestamp (ticker, 'timestamp', this.milliseconds ());
+        const timestamp = this.safeTimestamp2 (ticker, 'timestamp', 's_t', this.milliseconds ());
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_id');
         const symbol = this.safeSymbol (marketId, market, '_');
         const last = this.safeNumber2 (ticker, 'close_24h', 'last_price');
