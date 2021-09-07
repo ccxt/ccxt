@@ -3,9 +3,8 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js');
-const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } = require ('./base/errors');
 const Precise = require ('./base/Precise');
-const { ExchangeNotAvailable } = require('ccxt');
 
 // ---------------------------------------------------------------------------
 
