@@ -25,6 +25,7 @@ orderBookInput = {
     'asks': [[16.6, 10], [15.5, 11], [14.4, 12], [13.3, 13], [12.2, 14], [11.1, 13]],
     'timestamp': 1574827239000,
     'nonce': 69,
+    'symbol': None,
 }
 
 orderBookTarget = {
@@ -33,6 +34,7 @@ orderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 storeBid = {
@@ -41,6 +43,7 @@ storeBid = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 limitedOrderBookTarget = {
@@ -49,6 +52,7 @@ limitedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 limitedDeletedOrderBookTarget = {
@@ -57,6 +61,7 @@ limitedDeletedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 indexedOrderBookInput = {
@@ -64,6 +69,7 @@ indexedOrderBookInput = {
     'asks': [[16.6, 10, '1240'], [15.5, 11, '1241'], [14.4, 12, '1242'], [13.3, 13, '1243'], [12.2, 14, '1244'], [11.1, 13, '1244']],
     'timestamp': 1574827239000,
     'nonce': 69,
+    'symbol': None,
 }
 
 indexedOrderBookTarget = {
@@ -72,6 +78,7 @@ indexedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 limitedIndexedOrderBookTarget = {
@@ -80,6 +87,7 @@ limitedIndexedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 incrementalIndexedOrderBookTarget = {
@@ -88,6 +96,7 @@ incrementalIndexedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 incrementalIndexedOrderBookDeletedTarget = {
@@ -96,6 +105,7 @@ incrementalIndexedOrderBookDeletedTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 limitedIncrementalIndexedOrderBookTarget = {
@@ -104,6 +114,7 @@ limitedIncrementalIndexedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 storedIncrementalIndexedOrderBookTarget = {
@@ -112,6 +123,7 @@ storedIncrementalIndexedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 anotherStoredIncrementalIndexedOrderBookTarget = {
@@ -120,6 +132,7 @@ anotherStoredIncrementalIndexedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 overwrite1234 = {
@@ -128,6 +141,7 @@ overwrite1234 = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 overwrite1244 = {
@@ -136,6 +150,7 @@ overwrite1244 = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 countedOrderBookInput = {
@@ -143,6 +158,7 @@ countedOrderBookInput = {
     'asks': [[16.6, 10, 1], [15.5, 11, 1], [14.4, 12, 1], [13.3, 13, 3], [12.2, 14, 3], [11.1, 13, 3], [11.1, 13, 12]],
     'timestamp': 1574827239000,
     'nonce': 69,
+    'symbol': None,
 }
 
 countedOrderBookTarget = {
@@ -151,6 +167,7 @@ countedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 storedCountedOrderbookTarget = {
@@ -159,6 +176,7 @@ storedCountedOrderbookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 limitedCountedOrderBookTarget = {
@@ -167,6 +185,7 @@ limitedCountedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 incrementalOrderBookInput = {
@@ -174,6 +193,7 @@ incrementalOrderBookInput = {
     'asks': [[11.1, 5], [11.1, -6], [11.1, 2], [12.2, 10], [12.2, -9.875], [12.2, 0], [13.3, 3], [14.4, 4], [15.5, 1], [16.6, 3]],
     'timestamp': 1574827239000,
     'nonce': 69,
+    'symbol': None,
 }
 
 incremetalOrderBookTarget = {
@@ -182,6 +202,7 @@ incremetalOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 limitedIncremetalOrderBookTarget = {
@@ -190,6 +211,7 @@ limitedIncremetalOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 storedIncremetalOrderBookTarget = {
@@ -198,6 +220,7 @@ storedIncremetalOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 doubleStoredIncremetalOrderBookTarget = {
@@ -206,6 +229,7 @@ doubleStoredIncremetalOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 negativeStoredIncremetalOrderBookTarget = {
@@ -214,6 +238,7 @@ negativeStoredIncremetalOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': None,
 }
 
 bids = None

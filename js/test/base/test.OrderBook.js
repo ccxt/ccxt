@@ -27,6 +27,7 @@ const orderBookInput = {
     'asks': [ [ 16.6, 10 ], [ 15.5, 11 ], [ 14.4, 12 ], [ 13.3, 13 ], [ 12.2, 14 ], [ 11.1, 13 ] ],
     'timestamp': 1574827239000,
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const orderBookTarget = {
@@ -35,6 +36,7 @@ const orderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const storeBid = {
@@ -43,6 +45,7 @@ const storeBid = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const limitedOrderBookTarget = {
@@ -51,6 +54,7 @@ const limitedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const limitedDeletedOrderBookTarget = {
@@ -59,6 +63,7 @@ const limitedDeletedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const indexedOrderBookInput = {
@@ -66,6 +71,7 @@ const indexedOrderBookInput = {
     'asks': [ [ 16.6, 10, '1240' ], [ 15.5, 11, '1241' ], [ 14.4, 12, '1242' ], [ 13.3, 13, '1243' ], [ 12.2, 14, '1244' ], [ 11.1, 13, '1244' ] ],
     'timestamp': 1574827239000,
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const indexedOrderBookTarget = {
@@ -74,6 +80,7 @@ const indexedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const limitedIndexedOrderBookTarget = {
@@ -82,6 +89,7 @@ const limitedIndexedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const incrementalIndexedOrderBookTarget = {
@@ -90,6 +98,7 @@ const incrementalIndexedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const incrementalIndexedOrderBookDeletedTarget = {
@@ -98,6 +107,7 @@ const incrementalIndexedOrderBookDeletedTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const limitedIncrementalIndexedOrderBookTarget = {
@@ -106,6 +116,7 @@ const limitedIncrementalIndexedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const storedIncrementalIndexedOrderBookTarget = {
@@ -114,6 +125,7 @@ const storedIncrementalIndexedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const anotherStoredIncrementalIndexedOrderBookTarget = {
@@ -122,6 +134,7 @@ const anotherStoredIncrementalIndexedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const overwrite1234 = {
@@ -130,6 +143,7 @@ const overwrite1234 = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const overwrite1244 = {
@@ -138,6 +152,7 @@ const overwrite1244 = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const countedOrderBookInput = {
@@ -145,6 +160,7 @@ const countedOrderBookInput = {
     'asks': [ [ 16.6, 10, 1 ], [ 15.5, 11, 1 ], [ 14.4, 12, 1 ], [ 13.3, 13, 3 ], [ 12.2, 14, 3 ], [ 11.1, 13, 3 ], [ 11.1, 13, 12 ] ],
     'timestamp': 1574827239000,
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const countedOrderBookTarget = {
@@ -153,6 +169,7 @@ const countedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const storedCountedOrderbookTarget = {
@@ -161,6 +178,7 @@ const storedCountedOrderbookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const limitedCountedOrderBookTarget = {
@@ -169,6 +187,7 @@ const limitedCountedOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const incrementalOrderBookInput = {
@@ -176,6 +195,7 @@ const incrementalOrderBookInput = {
     'asks': [ [ 11.1, 5 ], [ 11.1, -6 ], [ 11.1, 2 ], [ 12.2, 10 ], [ 12.2, -9.875 ], [ 12.2, 0 ], [ 13.3, 3 ], [ 14.4, 4 ], [ 15.5, 1 ], [ 16.6, 3 ] ],
     'timestamp': 1574827239000,
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const incremetalOrderBookTarget = {
@@ -184,6 +204,7 @@ const incremetalOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const limitedIncremetalOrderBookTarget = {
@@ -192,6 +213,7 @@ const limitedIncremetalOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const storedIncremetalOrderBookTarget = {
@@ -200,6 +222,7 @@ const storedIncremetalOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const doubleStoredIncremetalOrderBookTarget = {
@@ -208,6 +231,7 @@ const doubleStoredIncremetalOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 const negativeStoredIncremetalOrderBookTarget = {
@@ -216,6 +240,7 @@ const negativeStoredIncremetalOrderBookTarget = {
     'timestamp': 1574827239000,
     'datetime': '2019-11-27T04:00:39.000Z',
     'nonce': 69,
+    'symbol': undefined,
 };
 
 let bids = undefined;

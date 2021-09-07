@@ -19,6 +19,7 @@ $orderBookInput = array(
     'asks' => array( array( 16.6, 10 ), array( 15.5, 11 ), array( 14.4, 12 ), array( 13.3, 13 ), array( 12.2, 14 ), array( 11.1, 13 ) ),
     'timestamp' => 1574827239000,
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $orderBookTarget = array(
@@ -27,6 +28,7 @@ $orderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $storeBid = array(
@@ -35,6 +37,7 @@ $storeBid = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $limitedOrderBookTarget = array(
@@ -43,6 +46,7 @@ $limitedOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $limitedDeletedOrderBookTarget = array(
@@ -51,6 +55,7 @@ $limitedDeletedOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $indexedOrderBookInput = array(
@@ -58,6 +63,7 @@ $indexedOrderBookInput = array(
     'asks' => array( array( 16.6, 10, '1240' ), array( 15.5, 11, '1241' ), array( 14.4, 12, '1242' ), array( 13.3, 13, '1243' ), array( 12.2, 14, '1244' ), array( 11.1, 13, '1244' ) ),
     'timestamp' => 1574827239000,
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $indexedOrderBookTarget = array(
@@ -66,6 +72,7 @@ $indexedOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $limitedIndexedOrderBookTarget = array(
@@ -74,6 +81,7 @@ $limitedIndexedOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $incrementalIndexedOrderBookTarget = array(
@@ -82,6 +90,7 @@ $incrementalIndexedOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $incrementalIndexedOrderBookDeletedTarget = array(
@@ -90,6 +99,7 @@ $incrementalIndexedOrderBookDeletedTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $limitedIncrementalIndexedOrderBookTarget = array(
@@ -98,6 +108,7 @@ $limitedIncrementalIndexedOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $storedIncrementalIndexedOrderBookTarget = array(
@@ -106,6 +117,7 @@ $storedIncrementalIndexedOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $anotherStoredIncrementalIndexedOrderBookTarget = array(
@@ -114,6 +126,7 @@ $anotherStoredIncrementalIndexedOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $overwrite1234 = array(
@@ -122,6 +135,7 @@ $overwrite1234 = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $overwrite1244 = array(
@@ -130,6 +144,7 @@ $overwrite1244 = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $countedOrderBookInput = array(
@@ -137,6 +152,7 @@ $countedOrderBookInput = array(
     'asks' => array( array( 16.6, 10, 1 ), array( 15.5, 11, 1 ), array( 14.4, 12, 1 ), array( 13.3, 13, 3 ), array( 12.2, 14, 3 ), array( 11.1, 13, 3 ), array( 11.1, 13, 12 ) ),
     'timestamp' => 1574827239000,
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $countedOrderBookTarget = array(
@@ -145,6 +161,7 @@ $countedOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $storedCountedOrderbookTarget = array(
@@ -153,6 +170,7 @@ $storedCountedOrderbookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $limitedCountedOrderBookTarget = array(
@@ -161,6 +179,7 @@ $limitedCountedOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $incrementalOrderBookInput = array(
@@ -168,6 +187,7 @@ $incrementalOrderBookInput = array(
     'asks' => array( array( 11.1, 5 ), array( 11.1, -6 ), array( 11.1, 2 ), array( 12.2, 10 ), array( 12.2, -9.875 ), array( 12.2, 0 ), array( 13.3, 3 ), array( 14.4, 4 ), array( 15.5, 1 ), array( 16.6, 3 ) ),
     'timestamp' => 1574827239000,
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $incremetalOrderBookTarget = array(
@@ -176,6 +196,7 @@ $incremetalOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $limitedIncremetalOrderBookTarget = array(
@@ -184,6 +205,7 @@ $limitedIncremetalOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $storedIncremetalOrderBookTarget = array(
@@ -192,6 +214,7 @@ $storedIncremetalOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $doubleStoredIncremetalOrderBookTarget = array(
@@ -200,6 +223,7 @@ $doubleStoredIncremetalOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $negativeStoredIncremetalOrderBookTarget = array(
@@ -208,6 +232,7 @@ $negativeStoredIncremetalOrderBookTarget = array(
     'timestamp' => 1574827239000,
     'datetime' => '2019-11-27T04:00:39.000Z',
     'nonce' => 69,
+    'symbol' => null,
 );
 
 $bids = null;
