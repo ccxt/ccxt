@@ -312,7 +312,6 @@ module.exports = class bitfinex2 extends bitfinex {
                     '10100': AuthenticationError,
                     '10114': InvalidNonce,
                     '20060': OnMaintenance,
-                    // {"code":503,"error":"temporarily_unavailable","error_description":"Sorry, the service is temporarily unavailable. See https://www.bitfinex.com/ for more info."}
                     'temporarily_unavailable': ExchangeNotAvailable,
                 },
                 'broad': {
