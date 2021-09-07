@@ -856,9 +856,19 @@ module.exports = class gateio extends Exchange {
         const market = this.market (symbol);
         const request = {
             'currency_pair': market['id'],
+            // 'limit': limit,
+            // 'page': 0,
+            // 'order_id': 'Order ID',
+            // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
+            // 'from': since, // default to 7 days before current time
+            // 'to': this.milliseconds (), // default to current time
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+            request['to'] = since + 30 * 24 * 60 * 60 * 1000;
         }
         const response = await this.privateSpotGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
