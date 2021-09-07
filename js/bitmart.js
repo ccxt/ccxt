@@ -1020,6 +1020,9 @@ module.exports = class bitmart extends Exchange {
         const id = this.safeString2 (trade, 'trade_id', 'detail_id');
         let timestamp = this.safeInteger2 (trade, 'order_time', 'create_time');
         if (timestamp === undefined) {
+            timestamp = this.safeTimestamp (trade, 's_t');
+        }
+        if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         }
         const type = undefined;
