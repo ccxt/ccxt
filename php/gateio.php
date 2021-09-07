@@ -860,9 +860,19 @@ class gateio extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'currency_pair' => $market['id'],
+            // 'limit' => $limit,
+            // 'page' => 0,
+            // 'order_id' => 'Order ID',
+            // 'account' => 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
+            // 'from' => $since, // default to 7 days before current time
+            // 'to' => $this->milliseconds(), // default to current time
         );
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000
+        }
+        if ($since !== null) {
+            $request['from'] = (int) floor($since / 1000);
+            // $request['to'] = $since + 7 * 24 * 60 * 60;
         }
         $response = $this->privateSpotGetMyTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
@@ -959,6 +969,7 @@ class gateio extends Exchange {
         }
         if ($since !== null) {
             $request['from'] = (int) floor($since / 1000);
+            $request['to'] = $since + 30 * 24 * 60 * 60;
         }
         $response = $this->privateWalletGetDeposits (array_merge($request, $params));
         return $this->parse_transactions($response, $currency);
@@ -977,6 +988,7 @@ class gateio extends Exchange {
         }
         if ($since !== null) {
             $request['from'] = (int) floor($since / 1000);
+            $request['to'] = $since + 30 * 24 * 60 * 60;
         }
         $response = $this->privateWalletGetWithdrawals (array_merge($request, $params));
         return $this->parse_transactions($response, $currency);
