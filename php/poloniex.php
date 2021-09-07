@@ -197,6 +197,7 @@ class poloniex extends Exchange {
                     'You may only place orders that reduce your position.' => '\\ccxt\\InvalidOrder',
                     'Invalid order number, or you are not the person who placed the order.' => '\\ccxt\\OrderNotFound',
                     'Permission denied' => '\\ccxt\\PermissionDenied',
+                    'Permission denied.' => '\\ccxt\\PermissionDenied',
                     'Connection timed out. Please try again.' => '\\ccxt\\RequestTimeout',
                     'Internal error. Please try again.' => '\\ccxt\\ExchangeNotAvailable',
                     'Currently in maintenance mode.' => '\\ccxt\\OnMaintenance',
