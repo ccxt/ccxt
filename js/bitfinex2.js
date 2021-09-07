@@ -312,6 +312,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     '10100': AuthenticationError,
                     '10114': InvalidNonce,
                     '20060': OnMaintenance,
+                    // {"code":503,"error":"temporarily_unavailable","error_description":"Sorry, the service is temporarily unavailable. See https://www.bitfinex.com/ for more info."}
                     'temporarily_unavailable': ExchangeNotAvailable,
                 },
                 'broad': {
@@ -1640,7 +1641,6 @@ module.exports = class bitfinex2 extends bitfinex {
         } else if (response === '') {
             throw new ExchangeError (this.id + ' returned empty response');
         }
-        {"code":503,"error":"temporarily_unavailable","error_description":"Sorry, the service is temporarily unavailable. See https://www.bitfinex.com/ for more info."}
         if (statusCode === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             const errorCode = this.numberToString (response[1]);
