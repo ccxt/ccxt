@@ -674,6 +674,7 @@ class bitmart extends Exchange {
         //         "best_bid":"0.035983",
         //         "best_bid_size":"4.2792",
         //         "fluctuation":"-0.0143",
+        //         "s_t" => "1630981727", // ws only
         //         "url":"https://www.bitmart.com/trade?$symbol=ETH_BTC"
         //     }
         //
@@ -710,7 +711,7 @@ class bitmart extends Exchange {
         //         "next_funding_at":"2020-08-17T04:00:00Z"
         //     }
         //
-        $timestamp = $this->safe_timestamp($ticker, 'timestamp', $this->milliseconds());
+        $timestamp = $this->safe_timestamp_2($ticker, 'timestamp', 's_t', $this->milliseconds());
         $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_id');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $last = $this->safe_number_2($ticker, 'close_24h', 'last_price');
@@ -1023,6 +1024,9 @@ class bitmart extends Exchange {
         //
         $id = $this->safe_string_2($trade, 'trade_id', 'detail_id');
         $timestamp = $this->safe_integer_2($trade, 'order_time', 'create_time');
+        if ($timestamp === null) {
+            $timestamp = $this->safe_timestamp($trade, 's_t');
+        }
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         }

@@ -681,6 +681,7 @@ class bitmart(Exchange):
         #         "best_bid":"0.035983",
         #         "best_bid_size":"4.2792",
         #         "fluctuation":"-0.0143",
+        #         "s_t": "1630981727",  # ws only
         #         "url":"https://www.bitmart.com/trade?symbol=ETH_BTC"
         #     }
         #
@@ -717,7 +718,7 @@ class bitmart(Exchange):
         #         "next_funding_at":"2020-08-17T04:00:00Z"
         #     }
         #
-        timestamp = self.safe_timestamp(ticker, 'timestamp', self.milliseconds())
+        timestamp = self.safe_timestamp_2(ticker, 'timestamp', 's_t', self.milliseconds())
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_id')
         symbol = self.safe_symbol(marketId, market, '_')
         last = self.safe_number_2(ticker, 'close_24h', 'last_price')
@@ -1016,6 +1017,8 @@ class bitmart(Exchange):
         #
         id = self.safe_string_2(trade, 'trade_id', 'detail_id')
         timestamp = self.safe_integer_2(trade, 'order_time', 'create_time')
+        if timestamp is None:
+            timestamp = self.safe_timestamp(trade, 's_t')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         type = None
