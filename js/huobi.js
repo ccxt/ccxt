@@ -1583,7 +1583,6 @@ module.exports = class huobi extends Exchange {
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
-        console.log (config)
         return this.safeInteger (config, 'cost', 1);
     }
 
