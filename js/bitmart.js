@@ -77,13 +77,12 @@ module.exports = class bitmart extends ccxt.bitmart {
         //         table: 'spot/trade',
         //         data: [
         //             {
+        //                 price: '52700.50',
+        //                 s_t: 1630982050,
         //                 side: 'buy',
-        //                 trade_id: '30770973',
-        //                 price: '4665.4',
-        //                 size: '0.019',
-        //                 instrument_id: 'BTC-USDT',
-        //                 timestamp: '2020-03-16T13:41:46.526Z'
-        //             }
+        //                 size: '0.00112',
+        //                 symbol: 'BTC_USDT'
+        //             },
         //         ]
         //     }
         //
@@ -93,7 +92,7 @@ module.exports = class bitmart extends ccxt.bitmart {
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade (data[i]);
             const symbol = trade['symbol'];
-            const marketId = this.safeString (trade['info'], 'instrument_id');
+            const marketId = this.safeString (trade['info'], 'symbol');
             const messageHash = table + ':' + marketId;
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
