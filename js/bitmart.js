@@ -1177,14 +1177,36 @@ module.exports = class bitmart extends Exchange {
         //         "quote_coin_volume":"31017.48"
         //     }
         //
-        return [
-            this.safeTimestamp (ohlcv, 'timestamp'),
-            this.safeNumber (ohlcv, 'open'),
-            this.safeNumber (ohlcv, 'high'),
-            this.safeNumber (ohlcv, 'low'),
-            this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'volume'),
-        ];
+        // ws
+        //
+        //     [
+        //         1631056350, // timestamp
+        //         '46532.83', // oopen
+        //         '46555.71', // high
+        //         '46511.41', // low
+        //         '46555.71', // close
+        //         '0.25', // volume
+        //     ]
+        //
+        if (Array.isArray (ohlcv)) {
+            return [
+                this.safeTimestamp (ohlcv, 0),
+                this.safeNumber (ohlcv, 1),
+                this.safeNumber (ohlcv, 2),
+                this.safeNumber (ohlcv, 3),
+                this.safeNumber (ohlcv, 4),
+                this.safeNumber (ohlcv, 5),
+            ];
+        } else {
+            return [
+                this.safeTimestamp (ohlcv, 'timestamp'),
+                this.safeNumber (ohlcv, 'open'),
+                this.safeNumber (ohlcv, 'high'),
+                this.safeNumber (ohlcv, 'low'),
+                this.safeNumber (ohlcv, 'close'),
+                this.safeNumber (ohlcv, 'volume'),
+            ];
+        }
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
