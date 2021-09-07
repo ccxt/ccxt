@@ -523,10 +523,7 @@ class gateio extends Exchange {
                 'id' => $currencyId,
                 'name' => null,
                 'code' => $code,
-                'precision' => array(
-                    'amount' => $amountPrecision,
-                    'price' => null,
-                ),
+                'precision' => $amountPrecision,
                 'info' => $entry,
                 'active' => $active,
                 'fee' => null,

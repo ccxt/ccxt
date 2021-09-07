@@ -531,10 +531,7 @@ class gateio(Exchange):
                 'id': currencyId,
                 'name': None,
                 'code': code,
-                'precision': {
-                    'amount': amountPrecision,
-                    'price': None,
-                },
+                'precision': amountPrecision,
                 'info': entry,
                 'active': active,
                 'fee': None,
