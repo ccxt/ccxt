@@ -868,7 +868,7 @@ module.exports = class gateio extends Exchange {
         }
         if (since !== undefined) {
             request['from'] = Math.floor (since / 1000);
-            request['to'] = since + 30 * 24 * 60 * 60;
+            // request['to'] = since + 7 * 24 * 60 * 60;
         }
         const response = await this.privateSpotGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -965,6 +965,7 @@ module.exports = class gateio extends Exchange {
         }
         if (since !== undefined) {
             request['from'] = Math.floor (since / 1000);
+            request['to'] = since + 30 * 24 * 60 * 60;
         }
         const response = await this.privateWalletGetDeposits (this.extend (request, params));
         return this.parseTransactions (response, currency);
@@ -983,6 +984,7 @@ module.exports = class gateio extends Exchange {
         }
         if (since !== undefined) {
             request['from'] = Math.floor (since / 1000);
+            request['to'] = since + 30 * 24 * 60 * 60;
         }
         const response = await this.privateWalletGetWithdrawals (this.extend (request, params));
         return this.parseTransactions (response, currency);
