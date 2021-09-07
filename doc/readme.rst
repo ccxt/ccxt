@@ -345,25 +345,6 @@ Certified Cryptocurrency Exchanges
           :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
           :alt: Sign up with Huobi using CCXT's referral link for a 15% discount!
      
-   * - .. image:: https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg
-          :target: https://idex.io
-          :alt: idex
-     
-     - idex
-     - `IDEX <https://idex.io>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://docs.idex.io/
-          :alt: API Version 2
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
-     - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg
           :target: https://www.kraken.com
           :alt: kraken
@@ -1406,10 +1387,7 @@ The CCXT library currently supports the following 112 cryptocurrency exchange ma
           :target: https://docs.idex.io/
           :alt: API Version 2
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -1985,14 +1963,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.55.93/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.55.93/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.55.94/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.55.94/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.55.93/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.55.94/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
