@@ -518,10 +518,7 @@ module.exports = class gateio extends Exchange {
                 'id': currencyId,
                 'name': undefined,
                 'code': code,
-                'precision': {
-                    'amount': amountPrecision,
-                    'price': undefined,
-                },
+                'precision': amountPrecision,
                 'info': entry,
                 'active': active,
                 'fee': undefined,
