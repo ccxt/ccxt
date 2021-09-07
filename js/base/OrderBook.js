@@ -36,6 +36,7 @@ class OrderBook {
             'timestamp': undefined,
             'datetime': undefined,
             'nonce': undefined,
+            'symbol': undefined,
         }
 
         // merge to this

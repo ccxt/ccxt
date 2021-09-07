@@ -16,6 +16,7 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
             'timestamp' => null,
             'datetime' => null,
             'nonce' => null,
+            'symbol' => null,
         );
         parent::__construct(array_merge($defaults, $snapshot));
         if (!($this['asks'] instanceof OrderBookSide)) {
