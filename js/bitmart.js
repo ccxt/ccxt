@@ -34,9 +34,9 @@ module.exports = class bitmart extends ccxt.bitmart {
                 //     'depth': 'depth_l2_tbt', // depth5, depth
                 // },
                 // 'watchBalance': 'spot', // margin, futures, swap
-                // 'ws': {
-                //     'inflate': true,
-                // },
+                'ws': {
+                    'inflate': true,
+                },
             },
             'streaming': {
                 // okex does not support built-in ws protocol-level ping-pong
@@ -109,24 +109,18 @@ module.exports = class bitmart extends ccxt.bitmart {
     handleTicker (client, message) {
         //
         //     {
-        //         table: 'spot/ticker',
         //         data: [
         //             {
-        //                 last: '4634.1',
-        //                 open_24h: '5305.6',
-        //                 best_bid: '4631.6',
-        //                 high_24h: '5950',
-        //                 low_24h: '4448.8',
-        //                 base_volume_24h: '147913.11435388',
-        //                 quote_volume_24h: '756850119.99108082',
-        //                 best_ask: '4631.7',
-        //                 instrument_id: 'BTC-USDT',
-        //                 timestamp: '2020-03-16T13:16:25.677Z',
-        //                 best_bid_size: '0.12348942',
-        //                 best_ask_size: '0.00100014',
-        //                 last_qty: '0.00331822'
+        //                 base_volume_24h: '78615593.81',
+        //                 high_24h: '52756.97',
+        //                 last_price: '52638.31',
+        //                 low_24h: '50991.35',
+        //                 open_24h: '51692.03',
+        //                 s_t: 1630981727,
+        //                 symbol: 'BTC_USDT'
         //             }
-        //         ]
+        //         ],
+        //         table: 'spot/ticker'
         //     }
         //
         const table = this.safeString (message, 'table');
@@ -134,7 +128,7 @@ module.exports = class bitmart extends ccxt.bitmart {
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker (data[i]);
             const symbol = ticker['symbol'];
-            const marketId = this.safeString (ticker['info'], 'instrument_id');
+            const marketId = this.safeString (ticker['info'], 'symbol');
             const messageHash = table + ':' + marketId;
             this.tickers[symbol] = ticker;
             client.resolve (ticker, messageHash);
