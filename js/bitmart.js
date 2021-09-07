@@ -28,11 +28,9 @@ module.exports = class bitmart extends ccxt.bitmart {
                 },
             },
             'options': {
-                // 'watchOrderBook': {
-                //     'limit': 400, // max
-                //     'type': 'spot', // margin
-                //     'depth': 'depth_l2_tbt', // depth5, depth
-                // },
+                'watchOrderBook': {
+                    'depth': 'depth5', // depth5, depth400
+                },
                 // 'watchBalance': 'spot', // margin, futures, swap
                 'ws': {
                     'inflate': true,
@@ -193,7 +191,7 @@ module.exports = class bitmart extends ccxt.bitmart {
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const depth = this.safeString (options, 'depth', 'depth_l2_tbt');
+        const depth = this.safeString (options, 'depth', 'depth400');
         const orderbook = await this.subscribe (depth, symbol, params);
         return orderbook.limit (limit);
     }
@@ -213,26 +211,32 @@ module.exports = class bitmart extends ccxt.bitmart {
     handleOrderBookMessage (client, message, orderbook) {
         //
         //     {
-        //         instrument_id: "BTC-USDT",
         //         asks: [
-        //             ["4568.5", "0.49723138", "2"],
-        //             ["4568.7", "0.5013", "1"],
-        //             ["4569.1", "0.4398", "1"],
+        //             [ '46828.38', '0.21847' ],
+        //             [ '46830.68', '0.08232' ],
+        //             [ '46832.08', '0.09285' ],
+        //             [ '46837.82', '0.02028' ],
+        //             [ '46839.43', '0.15068' ]
         //         ],
         //         bids: [
-        //             ["4568.4", "0.84187666", "5"],
-        //             ["4568.3", "0.75661506", "6"],
-        //             ["4567.8", "2.01", "2"],
+        //             [ '46820.78', '0.00444' ],
+        //             [ '46814.33', '0.00234' ],
+        //             [ '46813.50', '0.05021' ],
+        //             [ '46808.14', '0.00217' ],
+        //             [ '46808.04', '0.00013' ]
         //         ],
-        //         timestamp: "2020-03-16T11:11:43.388Z",
-        //         checksum: 473370408
+        //         ms_t: 1631044962431,
+        //         symbol: 'BTC_USDT'
         //     }
         //
         const asks = this.safeValue (message, 'asks', []);
         const bids = this.safeValue (message, 'bids', []);
         this.handleDeltas (orderbook['asks'], asks);
         this.handleDeltas (orderbook['bids'], bids);
-        const timestamp = this.parse8601 (this.safeString (message, 'timestamp'));
+        const timestamp = this.safeInteger (message, 'ms_t');
+        const marketId = this.safeString (message, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        orderbook['symbol'] = symbol;
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         return orderbook;
@@ -240,85 +244,49 @@ module.exports = class bitmart extends ccxt.bitmart {
 
     handleOrderBook (client, message) {
         //
-        // first message (snapshot)
-        //
         //     {
-        //         table: "spot/depth",
-        //         action: "partial",
         //         data: [
         //             {
-        //                 instrument_id: "BTC-USDT",
         //                 asks: [
-        //                     ["4568.5", "0.49723138", "2"],
-        //                     ["4568.7", "0.5013", "1"],
-        //                     ["4569.1", "0.4398", "1"],
+        //                     [ '46828.38', '0.21847' ],
+        //                     [ '46830.68', '0.08232' ],
+        //                     [ '46832.08', '0.09285' ],
+        //                     [ '46837.82', '0.02028' ],
+        //                     [ '46839.43', '0.15068' ]
         //                 ],
         //                 bids: [
-        //                     ["4568.4", "0.84187666", "5"],
-        //                     ["4568.3", "0.75661506", "6"],
-        //                     ["4567.8", "2.01", "2"],
+        //                     [ '46820.78', '0.00444' ],
+        //                     [ '46814.33', '0.00234' ],
+        //                     [ '46813.50', '0.05021' ],
+        //                     [ '46808.14', '0.00217' ],
+        //                     [ '46808.04', '0.00013' ]
         //                 ],
-        //                 timestamp: "2020-03-16T11:11:43.388Z",
-        //                 checksum: 473370408
+        //                 ms_t: 1631044962431,
+        //                 symbol: 'BTC_USDT'
         //             }
-        //         ]
+        //         ],
+        //         table: 'spot/depth5'
         //     }
         //
-        // subsequent updates
-        //
-        //     {
-        //         table: "spot/depth",
-        //         action: "update",
-        //         data: [
-        //             {
-        //                 instrument_id:   "BTC-USDT",
-        //                 asks: [
-        //                     ["4598.8", "0", "0"],
-        //                     ["4599.1", "0", "0"],
-        //                     ["4600.3", "0", "0"],
-        //                 ],
-        //                 bids: [
-        //                     ["4598.5", "0.08", "1"],
-        //                     ["4598.2", "0.0337323", "1"],
-        //                     ["4598.1", "0.12681801", "3"],
-        //                 ],
-        //                 timestamp: "2020-03-16T11:20:35.139Z",
-        //                 checksum: 740786981
-        //             }
-        //         ]
-        //     }
-        //
-        const action = this.safeString (message, 'action');
         const data = this.safeValue (message, 'data', []);
         const table = this.safeString (message, 'table');
-        if (action === 'partial') {
-            for (let i = 0; i < data.length; i++) {
-                const update = data[i];
-                const marketId = this.safeString (update, 'instrument_id');
-                const market = this.safeMarket (marketId);
-                const symbol = market['symbol'];
-                const options = this.safeValue (this.options, 'watchOrderBook', {});
-                // default limit is 400 bidasks
-                const limit = this.safeInteger (options, 'limit', 400);
-                const orderbook = this.orderBook ({}, limit);
+        const parts = table.split ('/');
+        const lastPart = this.safeString (parts, 1);
+        const limitString = lastPart.replace ('depth');
+        const limit = parseInt (limitString);
+        for (let i = 0; i < data.length; i++) {
+            const update = data[i];
+            const marketId = this.safeString (update, 'symbol');
+            const symbol = this.safeSymbol (marketId);
+            let orderbook = this.safeValue (this.orderbooks, symbol);
+            if (orderbook === undefined) {
+                orderbook = this.orderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
-                this.handleOrderBookMessage (client, update, orderbook);
-                const messageHash = table + ':' + marketId;
-                client.resolve (orderbook, messageHash);
             }
-        } else {
-            for (let i = 0; i < data.length; i++) {
-                const update = data[i];
-                const marketId = this.safeString (update, 'instrument_id');
-                const market = this.safeMarket (marketId);
-                const symbol = market['symbol'];
-                if (symbol in this.orderbooks) {
-                    const orderbook = this.orderbooks[symbol];
-                    this.handleOrderBookMessage (client, update, orderbook);
-                    const messageHash = table + ':' + marketId;
-                    client.resolve (orderbook, messageHash);
-                }
-            }
+            orderbook.reset ({});
+            this.handleOrderBookMessage (client, update, orderbook);
+            const messageHash = table + ':' + marketId;
+            client.resolve (orderbook, messageHash);
         }
         return message;
     }
@@ -579,7 +547,8 @@ module.exports = class bitmart extends ccxt.bitmart {
             const methods = {
                 'depth': this.handleOrderBook,
                 'depth5': this.handleOrderBook,
-                'depth_l2_tbt': this.handleOrderBook,
+                'depth400': this.handleOrderBook,
+                // 'depth_l2_tbt': this.handleOrderBook,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,
                 'account': this.handleBalance,
