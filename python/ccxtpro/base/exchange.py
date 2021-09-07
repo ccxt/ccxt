@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.8.37'
+__version__ = '0.8.40'
 
 # -----------------------------------------------------------------------------
 
@@ -167,3 +167,24 @@ class Exchange(BaseExchange):
             if value == timeframe:
                 return key
         return None
+
+    async def watch_ticker(self, symbol, params={}):
+        raise NotSupported(self.id + '.watch_ticker() not implemented yet')
+
+    async def watch_order_book(self, symbol, limit=None, params={}):
+        raise NotSupported(self.id + '.watch_order_book() not implemented yet')
+
+    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        raise NotSupported(self.id + '.watch_trades() not implemented yet')
+
+    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        raise NotSupported(self.id + '.watch_ohlcv() not implemented yet')
+
+    async def watch_balance(self, params={}):
+        raise NotSupported(self.id + '.watch_balance() not implemented yet')
+
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported(self.id + '.watch_orders() not implemented yet')
+
+    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported(self.id + '.watch_my_trades() not implemented yet')
