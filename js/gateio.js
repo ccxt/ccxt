@@ -867,8 +867,8 @@ module.exports = class gateio extends Exchange {
             request['limit'] = limit; // default 100, max 1000
         }
         if (since !== undefined) {
-            request['from'] = since;
-            request['to'] = since + 30 * 24 * 60 * 60 * 1000;
+            request['from'] = Math.floor (since / 1000);
+            request['to'] = since + 30 * 24 * 60 * 60;
         }
         const response = await this.privateSpotGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
