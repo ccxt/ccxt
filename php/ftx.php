@@ -298,6 +298,7 @@ class ftx extends Exchange {
                     'Spot orders cannot be reduce-only' => '\\ccxt\\InvalidOrder', // array("error":"Spot orders cannot be reduce-only","success":false)
                     'Invalid reduce-only order' => '\\ccxt\\InvalidOrder', // array("error":"Invalid reduce-only order","success":false)
                     'Account does not have enough balances' => '\\ccxt\\InsufficientFunds', // array("success":false,"error":"Account does not have enough balances")
+                    'Not authorized for subaccount-specific access' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not authorized for subaccount-specific access")
                 ),
                 'broad' => array(
                     'Account does not have enough margin for order' => '\\ccxt\\InsufficientFunds',

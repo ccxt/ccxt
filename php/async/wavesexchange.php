@@ -580,17 +580,7 @@ class wavesexchange extends Exchange {
         $baseVolume = $this->safe_number($data, 'volume');
         $quoteVolume = $this->safe_number($data, 'quoteVolume');
         $open = $this->safe_number($data, 'firstPrice');
-        $change = null;
-        $average = null;
-        $percentage = null;
-        if ($last !== null && $open !== null) {
-            $change = $last - $open;
-            $average = $this->sum($last, $open) / 2;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-        }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -605,13 +595,13 @@ class wavesexchange extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

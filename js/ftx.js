@@ -295,6 +295,7 @@ module.exports = class ftx extends Exchange {
                     'Spot orders cannot be reduce-only': InvalidOrder, // {"error":"Spot orders cannot be reduce-only","success":false}
                     'Invalid reduce-only order': InvalidOrder, // {"error":"Invalid reduce-only order","success":false}
                     'Account does not have enough balances': InsufficientFunds, // {"success":false,"error":"Account does not have enough balances"}
+                    'Not authorized for subaccount-specific access': PermissionDenied, // {"success":false,"error":"Not authorized for subaccount-specific access"}
                 },
                 'broad': {
                     'Account does not have enough margin for order': InsufficientFunds,

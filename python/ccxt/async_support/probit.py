@@ -488,16 +488,10 @@ class probit(Exchange):
         symbol = self.safe_symbol(marketId, market, '-')
         close = self.safe_number(ticker, 'last')
         change = self.safe_number(ticker, 'change')
-        percentage = None
-        open = None
-        if change is not None:
-            if close is not None:
-                open = close - change
-                percentage = (change / open) * 100
         baseVolume = self.safe_number(ticker, 'base_volume')
         quoteVolume = self.safe_number(ticker, 'quote_volume')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -508,17 +502,17 @@ class probit(Exchange):
             'ask': None,
             'askVolume': None,
             'vwap': vwap,
-            'open': open,
+            'open': None,
             'close': close,
             'last': close,
             'previousClose': None,  # previous day close
             'change': change,
-            'percentage': percentage,
+            'percentage': None,
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

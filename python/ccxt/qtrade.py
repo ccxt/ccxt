@@ -412,12 +412,10 @@ class qtrade(Exchange):
             percentage = day_change * 100
             if previous is not None:
                 change = day_change * previous
-        if (average is None) and (last is not None) and (previous is not None):
-            average = self.sum(last, previous) / 2
         baseVolume = self.safe_number(ticker, 'day_volume_market')
         quoteVolume = self.safe_number(ticker, 'day_volume_base')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -438,7 +436,7 @@ class qtrade(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
