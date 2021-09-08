@@ -482,7 +482,7 @@ class bitmart extends Exchange {
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
-                'active' => null,
+                'active' => true,
             );
         }
         return $result;
