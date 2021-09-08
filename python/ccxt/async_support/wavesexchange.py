@@ -555,15 +555,7 @@ class wavesexchange(Exchange):
         baseVolume = self.safe_number(data, 'volume')
         quoteVolume = self.safe_number(data, 'quoteVolume')
         open = self.safe_number(data, 'firstPrice')
-        change = None
-        average = None
-        percentage = None
-        if last is not None and open is not None:
-            change = last - open
-            average = self.sum(last, open) / 2
-            if open > 0:
-                percentage = change / open * 100
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -578,13 +570,13 @@ class wavesexchange(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
