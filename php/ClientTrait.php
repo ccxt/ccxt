@@ -135,7 +135,7 @@ trait ClientTrait {
         $keys = array_keys($timeframes);
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if ($this->timeframes[$key] === $timeframe) {
+            if ($timeframes[$key] === $timeframe) {
                 return $key;
             }
         }
