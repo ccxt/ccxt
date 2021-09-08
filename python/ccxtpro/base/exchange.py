@@ -162,8 +162,9 @@ class Exchange(BaseExchange):
                 del self.clients[url]
         await super(Exchange, self).close()
 
-    def find_timeframe(self, timeframe):
-        for key, value in self.timeframes.items():
+    def find_timeframe(self, timeframe, timeframes=None):
+        timeframes = timeframes if timeframes else self.timeframes
+        for key, value in timeframes.items():
             if value == timeframe:
                 return key
         return None
