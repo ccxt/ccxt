@@ -179,23 +179,18 @@ module.exports = class bitmart extends ccxt.bitmart {
         const parts = table.split ('/');
         const part1 = this.safeString (parts, 1);
         const interval = part1.replace ('kline', '');
-        console.dir (interval, { depth: null });
         // use a reverse lookup in a static map instead
         const timeframes = this.safeValue (this.options, 'timeframes', {});
-        console.log (timeframes);
-        process.exit ();
         const timeframe = this.findTimeframe (interval, timeframes);
-        console.dir (message, { depth: null });
-        console.log (timeframe);
         const duration = this.parseTimeframe (timeframe);
-        console.log (duration);
-        process.exit ();
+        const durationInMs = duration * 1000;
         for (let i = 0; i < data.length; i++) {
             const marketId = this.safeString (data[i], 'symbol');
             const candle = this.safeValue (data[i], 'candle');
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV (candle, market);
+            parsed[0] = parseInt (parsed[0] / durationInMs) * durationInMs;
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
