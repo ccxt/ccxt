@@ -1164,14 +1164,35 @@ class bitmart(Exchange):
         #         "quote_coin_volume":"31017.48"
         #     }
         #
-        return [
-            self.safe_timestamp(ohlcv, 'timestamp'),
-            self.safe_number(ohlcv, 'open'),
-            self.safe_number(ohlcv, 'high'),
-            self.safe_number(ohlcv, 'low'),
-            self.safe_number(ohlcv, 'close'),
-            self.safe_number(ohlcv, 'volume'),
-        ]
+        # ws
+        #
+        #     [
+        #         1631056350,  # timestamp
+        #         '46532.83',  # oopen
+        #         '46555.71',  # high
+        #         '46511.41',  # low
+        #         '46555.71',  # close
+        #         '0.25',  # volume
+        #     ]
+        #
+        if isinstance(ohlcv, list):
+            return [
+                self.safe_timestamp(ohlcv, 0),
+                self.safe_number(ohlcv, 1),
+                self.safe_number(ohlcv, 2),
+                self.safe_number(ohlcv, 3),
+                self.safe_number(ohlcv, 4),
+                self.safe_number(ohlcv, 5),
+            ]
+        else:
+            return [
+                self.safe_timestamp(ohlcv, 'timestamp'),
+                self.safe_number(ohlcv, 'open'),
+                self.safe_number(ohlcv, 'high'),
+                self.safe_number(ohlcv, 'low'),
+                self.safe_number(ohlcv, 'close'),
+                self.safe_number(ohlcv, 'volume'),
+            ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()

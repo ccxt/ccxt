@@ -1182,14 +1182,36 @@ class bitmart extends Exchange {
         //         "quote_coin_volume":"31017.48"
         //     }
         //
-        return array(
-            $this->safe_timestamp($ohlcv, 'timestamp'),
-            $this->safe_number($ohlcv, 'open'),
-            $this->safe_number($ohlcv, 'high'),
-            $this->safe_number($ohlcv, 'low'),
-            $this->safe_number($ohlcv, 'close'),
-            $this->safe_number($ohlcv, 'volume'),
-        );
+        // ws
+        //
+        //     array(
+        //         1631056350, // timestamp
+        //         '46532.83', // oopen
+        //         '46555.71', // high
+        //         '46511.41', // low
+        //         '46555.71', // close
+        //         '0.25', // volume
+        //     )
+        //
+        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+            return array(
+                $this->safe_timestamp($ohlcv, 0),
+                $this->safe_number($ohlcv, 1),
+                $this->safe_number($ohlcv, 2),
+                $this->safe_number($ohlcv, 3),
+                $this->safe_number($ohlcv, 4),
+                $this->safe_number($ohlcv, 5),
+            );
+        } else {
+            return array(
+                $this->safe_timestamp($ohlcv, 'timestamp'),
+                $this->safe_number($ohlcv, 'open'),
+                $this->safe_number($ohlcv, 'high'),
+                $this->safe_number($ohlcv, 'low'),
+                $this->safe_number($ohlcv, 'close'),
+                $this->safe_number($ohlcv, 'volume'),
+            );
+        }
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
