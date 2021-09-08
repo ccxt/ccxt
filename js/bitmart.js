@@ -14,7 +14,6 @@ module.exports = class bitmart extends ccxt.bitmart {
             'has': {
                 'ws': true,
                 'watchTicker': true,
-                'watchTickers': false, // for now
                 'watchOrderBook': true,
                 'watchTrades': true,
                 'watchBalance': true,
@@ -34,6 +33,21 @@ module.exports = class bitmart extends ccxt.bitmart {
                 // 'watchBalance': 'spot', // margin, futures, swap
                 'ws': {
                     'inflate': true,
+                },
+                'timeframes': {
+                    '1m': '1m',
+                    '3m': '3m',
+                    '5m': '5m',
+                    '15m': '15m',
+                    '30m': '30m',
+                    '45m': '45m',
+                    '1h': '1H',
+                    '2h': '2H',
+                    '3h': '3H',
+                    '4h': '4H',
+                    '1d': '1D',
+                    '1w': '1W',
+                    '1M': '1M',
                 },
             },
             'streaming': {
@@ -134,8 +148,9 @@ module.exports = class bitmart extends ccxt.bitmart {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const interval = this.timeframes[timeframe];
-        const name = 'candle' + interval + 's';
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const interval = this.safeString (timeframes, timeframe);
+        const name = 'kline' + interval;
         const ohlcv = await this.subscribe (name, symbol, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
@@ -146,32 +161,31 @@ module.exports = class bitmart extends ccxt.bitmart {
     handleOHLCV (client, message) {
         //
         //     {
-        //         table: "spot/candle60s",
         //         data: [
         //             {
         //                 candle: [
-        //                     "2020-03-16T14:29:00.000Z",
-        //                     "4948.3",
-        //                     "4966.7",
-        //                     "4939.1",
-        //                     "4945.3",
-        //                     "238.36021657"
+        //                     1631056350,
+        //                     '46532.83',
+        //                     '46555.71',
+        //                     '46511.41',
+        //                     '46555.71',
+        //                     '0.25'
         //                 ],
-        //                 instrument_id: "BTC-USDT"
+        //                 symbol: 'BTC_USDT'
         //             }
-        //         ]
+        //         ],
+        //         table: 'spot/kline1m'
         //     }
         //
         const table = this.safeString (message, 'table');
         const data = this.safeValue (message, 'data', []);
         const parts = table.split ('/');
         const part1 = this.safeString (parts, 1);
-        let interval = part1.replace ('candle', '');
-        interval = interval.replace ('s', '');
+        const interval = part1.replace ('kline', '');
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
         for (let i = 0; i < data.length; i++) {
-            const marketId = this.safeString (data[i], 'instrument_id');
+            const marketId = this.safeString (data[i], 'symbol');
             const candle = this.safeValue (data[i], 'candle');
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
@@ -548,7 +562,6 @@ module.exports = class bitmart extends ccxt.bitmart {
                 'depth': this.handleOrderBook,
                 'depth5': this.handleOrderBook,
                 'depth400': this.handleOrderBook,
-                // 'depth_l2_tbt': this.handleOrderBook,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,
                 'account': this.handleBalance,
@@ -556,7 +569,7 @@ module.exports = class bitmart extends ccxt.bitmart {
                 // ...
             };
             let method = this.safeValue (methods, name);
-            if (name.indexOf ('candle') >= 0) {
+            if (name.indexOf ('kline') >= 0) {
                 method = this.handleOHLCV;
             }
             if (method === undefined) {
