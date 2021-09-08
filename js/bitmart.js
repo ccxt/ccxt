@@ -284,7 +284,7 @@ module.exports = class bitmart extends ccxt.bitmart {
         const table = this.safeString (message, 'table');
         const parts = table.split ('/');
         const lastPart = this.safeString (parts, 1);
-        const limitString = lastPart.replace ('depth');
+        const limitString = lastPart.replace ('depth', '');
         const limit = parseInt (limitString);
         for (let i = 0; i < data.length; i++) {
             const update = data[i];
@@ -485,8 +485,6 @@ module.exports = class bitmart extends ccxt.bitmart {
                 'depth400': this.handleOrderBook,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,
-                'account': this.handleBalance,
-                'margin_account': this.handleBalance,
                 // ...
             };
             let method = this.safeValue (methods, name);
