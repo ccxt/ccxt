@@ -93,6 +93,7 @@ class gemini extends Exchange {
                 ),
                 'private' => array(
                     'post' => array(
+                        'v1/account/list',
                         'v1/order/new',
                         'v1/order/cancel',
                         'v1/order/cancel/session',
