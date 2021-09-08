@@ -432,7 +432,7 @@ module.exports = class vcc extends Exchange {
         const last = this.safeNumber (ticker, 'last_price');
         const vwap = this.vwap (baseVolume, quoteVolume);
         const symbol = this.safeSymbol (undefined, market);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -453,7 +453,7 @@ module.exports = class vcc extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
