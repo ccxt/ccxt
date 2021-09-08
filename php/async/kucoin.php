@@ -23,6 +23,7 @@ class kucoin extends Exchange {
             'certified' => false,
             'pro' => true,
             'comment' => 'Platform 2.0',
+            'quoteJsonNumbers' => false,
             'has' => array(
                 'CORS' => false,
                 'cancelAllOrders' => true,

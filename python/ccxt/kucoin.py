@@ -35,6 +35,7 @@ class kucoin(Exchange):
             'certified': False,
             'pro': True,
             'comment': 'Platform 2.0',
+            'quoteJsonNumbers': False,
             'has': {
                 'CORS': False,
                 'cancelAllOrders': True,
