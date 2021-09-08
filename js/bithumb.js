@@ -274,26 +274,13 @@ module.exports = class bithumb extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'date');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const open = this.safeNumber (ticker, 'opening_price');
         const close = this.safeNumber (ticker, 'closing_price');
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
-        if ((close !== undefined) && (open !== undefined)) {
-            change = close - open;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-            average = this.sum (open, close) / 2;
-        }
         const baseVolume = this.safeNumber (ticker, 'units_traded_24H');
         const quoteVolume = this.safeNumber (ticker, 'acc_trade_value_24H');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -308,13 +295,13 @@ module.exports = class bithumb extends Exchange {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
