@@ -502,7 +502,7 @@ module.exports = class probit extends Exchange {
             'ask': undefined,
             'askVolume': undefined,
             'vwap': vwap,
-            'open': open,
+            'open': undefined,
             'close': close,
             'last': close,
             'previousClose': undefined, // previous day close
