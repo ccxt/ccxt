@@ -534,10 +534,7 @@ module.exports = class hitbtc extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.parse8601 (ticker['timestamp']);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const baseVolume = this.safeNumber (ticker, 'volume');
         const quoteVolume = this.safeNumber (ticker, 'volumeQuote');
         const open = this.safeNumber (ticker, 'open');
