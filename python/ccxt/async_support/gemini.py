@@ -111,6 +111,7 @@ class gemini(Exchange):
                 },
                 'private': {
                     'post': [
+                        'v1/account/list',
                         'v1/order/new',
                         'v1/order/cancel',
                         'v1/order/cancel/session',
