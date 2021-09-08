@@ -249,10 +249,10 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         let feeRate = undefined;
         if ('maker_fee_rate' in trade) {
             parsed['takerOrMaker'] = 'maker';
-            feeRate = this.safeFloat (trade, 'maker_fee_rate');
+            feeRate = this.safeNumber (trade, 'maker_fee_rate');
         } else {
             parsed['takerOrMaker'] = 'taker';
-            feeRate = this.safeFloat (trade, 'taker_fee_rate');
+            feeRate = this.safeNumber (trade, 'taker_fee_rate');
         }
         const market = this.market (parsed['symbol']);
         const feeCurrency = market['quote'];
@@ -447,14 +447,14 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         const marketId = this.safeString (order, 'product_id');
         const symbol = this.safeSymbol (marketId);
         const side = this.safeString (order, 'side');
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat2 (order, 'size', 'funds');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber2 (order, 'size', 'funds');
         const time = this.safeString (order, 'time');
         const timestamp = this.parse8601 (time);
         const reason = this.safeString (order, 'reason');
         const status = this.parseWsOrderStatus (reason);
         const orderType = this.safeString (order, 'order_type');
-        let remaining = this.safeFloat (order, 'remaining_size');
+        let remaining = this.safeNumber (order, 'remaining_size');
         const type = this.safeString (order, 'type');
         let filled = undefined;
         if ((amount !== undefined) && (remaining !== undefined)) {
@@ -553,34 +553,34 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         const marketId = this.safeString (ticker, 'product_id');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
-        const last = this.safeFloat (ticker, 'price');
+        const last = this.safeNumber (ticker, 'price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high_24h'),
-            'low': this.safeFloat (ticker, 'low_24h'),
-            'bid': this.safeFloat (ticker, 'best_bid'),
+            'high': this.safeNumber (ticker, 'high_24h'),
+            'low': this.safeNumber (ticker, 'low_24h'),
+            'bid': this.safeNumber (ticker, 'best_bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'best_ask'),
+            'ask': this.safeNumber (ticker, 'best_ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open_24h'),
+            'open': this.safeNumber (ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume_24h'),
+            'baseVolume': this.safeNumber (ticker, 'volume_24h'),
             'quoteVolume': undefined,
             'info': ticker,
         };
     }
 
     handleDelta (bookside, delta) {
-        const price = this.safeFloat (delta, 0);
-        const amount = this.safeFloat (delta, 1);
+        const price = this.safeNumber (delta, 0);
+        const amount = this.safeNumber (delta, 1);
         bookside.store (price, amount);
     }
 
@@ -644,8 +644,8 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
                 const change = changes[i];
                 const key = this.safeString (change, 0);
                 const side = this.safeString (sides, key);
-                const price = this.safeFloat (change, 1);
-                const amount = this.safeFloat (change, 2);
+                const price = this.safeNumber (change, 1);
+                const amount = this.safeNumber (change, 2);
                 const bookside = orderbook[side];
                 bookside.store (price, amount);
             }
