@@ -171,11 +171,12 @@ module.exports = class Exchange extends ccxt.Exchange {
         }
     }
 
-    findTimeframe (timeframe) {
-        const keys = Object.keys (this.timeframes);
+    findTimeframe (timeframe, timeframes = undefined) {
+        timeframes = timeframes || this.timeframes
+        const keys = Object.keys (timeframes);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (this.timeframes[key] === timeframe) {
+            if (timeframes[key] === timeframe) {
                 return key;
             }
         }

@@ -130,11 +130,12 @@ trait ClientTrait {
         // }
     }
 
-    public function find_timeframe($timeframe) {
-        $keys = array_keys($this->timeframes);
+    public function find_timeframe($timeframe, $timeframes = null) {
+        $timeframes = $timeframes ? $timeframes : $this->timeframes;
+        $keys = array_keys($timeframes);
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if ($this->timeframes[$key] === $timeframe) {
+            if ($timeframes[$key] === $timeframe) {
                 return $key;
             }
         }

@@ -15,6 +15,7 @@ class OrderBook(dict):
             'timestamp': None,
             'datetime': None,
             'nonce': None,
+            'symbol': None,
         }
         # do not mutate snapshot
         defaults.update(snapshot)
