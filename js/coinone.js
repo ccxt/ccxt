@@ -204,23 +204,11 @@ module.exports = class coinone extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const first = this.safeNumber (ticker, 'first');
+        const open = this.safeNumber (ticker, 'first');
         const last = this.safeNumber (ticker, 'last');
-        let average = undefined;
-        if (first !== undefined && last !== undefined) {
-            average = this.sum (first, last) / 2;
-        }
         const previousClose = this.safeNumber (ticker, 'yesterday_last');
-        let change = undefined;
-        let percentage = undefined;
-        if (last !== undefined && previousClose !== undefined) {
-            change = last - previousClose;
-            if (previousClose !== 0) {
-                percentage = change / previousClose * 100;
-            }
-        }
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
-        return {
+        const symbol = this.safeMarket (undefined, market);
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -231,17 +219,17 @@ module.exports = class coinone extends Exchange {
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': first,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': previousClose,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     parseTrade (trade, market = undefined) {
