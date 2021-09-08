@@ -45,7 +45,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchFundingFee': true,
                 'withdraw': true,
             },
-            'hostname': 'bitmart.com', // bitmart.info for Hong Kong users
+            'hostname': 'bitmart.com', // bitmart.info, bitmart.news for Hong Kong users
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
                 'api': {
