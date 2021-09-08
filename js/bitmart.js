@@ -51,10 +51,7 @@ module.exports = class bitmart extends ccxt.bitmart {
                 },
             },
             'streaming': {
-                // okex does not support built-in ws protocol-level ping-pong
-                // instead it requires a custom text-based ping-pong
-                'ping': this.ping,
-                'keepAlive': 20000,
+                'keepAlive': 15000,
             },
         });
     }
@@ -184,6 +181,11 @@ module.exports = class bitmart extends ccxt.bitmart {
         const interval = part1.replace ('kline', '');
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
+        console.dir (message, { depth: null });
+        console.log (timeframe);
+        const duration = this.parseTimeframe (timeframe);
+        console.log (duration);
+        process.exit ();
         for (let i = 0; i < data.length; i++) {
             const marketId = this.safeString (data[i], 'symbol');
             const candle = this.safeValue (data[i], 'candle');
@@ -469,17 +471,6 @@ module.exports = class bitmart extends ccxt.bitmart {
         return message;
     }
 
-    ping (client) {
-        // okex does not support built-in ws protocol-level ping-pong
-        // instead it requires custom text-based ping-pong
-        return 'ping';
-    }
-
-    handlePong (client, message) {
-        client.lastPong = this.milliseconds ();
-        return message;
-    }
-
     handleErrorMessage (client, message) {
         //
         //     { event: 'error', message: 'Invalid sign', errorCode: 30013 }
@@ -535,9 +526,6 @@ module.exports = class bitmart extends ccxt.bitmart {
         //         ]
         //     }
         //
-        if (message === 'pong') {
-            return this.handlePong (client, message);
-        }
         const table = this.safeString (message, 'table');
         if (table === undefined) {
             const event = this.safeString (message, 'event');
