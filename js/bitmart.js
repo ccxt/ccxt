@@ -17,6 +17,7 @@ module.exports = class bitmart extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'certified': true,
+            'pro': true,
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
