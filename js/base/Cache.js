@@ -1,3 +1,5 @@
+/* eslint-disable max-classes-per-file */
+
 'use strict';
 
 class BaseCache extends Array {
@@ -18,7 +20,7 @@ class BaseCache extends Array {
 
 class ArrayCache extends BaseCache {
 
-    constructor(maxSize = undefined) {
+    constructor (maxSize = undefined) {
         super (maxSize);
         Object.defineProperty (this, 'newUpdatesBySymbol', {
             __proto__: null, // make it invisible
@@ -145,7 +147,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
                 }
             }
             item = reference
-            const index = this.findIndex (x => x.id === item.id)
+            const index = this.findIndex ((x) => x.id === item.id)
             // move the order to the end of the array
             this.splice (index, 1)
         } else {
