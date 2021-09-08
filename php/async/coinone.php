@@ -207,23 +207,11 @@ class coinone extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $first = $this->safe_number($ticker, 'first');
+        $open = $this->safe_number($ticker, 'first');
         $last = $this->safe_number($ticker, 'last');
-        $average = null;
-        if ($first !== null && $last !== null) {
-            $average = $this->sum($first, $last) / 2;
-        }
         $previousClose = $this->safe_number($ticker, 'yesterday_last');
-        $change = null;
-        $percentage = null;
-        if ($last !== null && $previousClose !== null) {
-            $change = $last - $previousClose;
-            if ($previousClose !== 0) {
-                $percentage = $change / $previousClose * 100;
-            }
-        }
-        $symbol = ($market !== null) ? $market['symbol'] : null;
-        return array(
+        $symbol = $this->safe_symbol(null, $market);
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -234,17 +222,17 @@ class coinone extends Exchange {
             'ask' => null,
             'askVolume' => null,
             'vwap' => null,
-            'open' => $first,
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => $previousClose,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function parse_trade($trade, $market = null) {

@@ -451,16 +451,8 @@ class bitvavo(Exchange):
         baseVolume = self.safe_number(ticker, 'volume')
         quoteVolume = self.safe_number(ticker, 'volumeQuote')
         vwap = self.vwap(baseVolume, quoteVolume)
-        change = None
-        percentage = None
-        average = None
         open = self.safe_number(ticker, 'open')
-        if (open is not None) and (last is not None):
-            change = last - open
-            if open > 0:
-                percentage = change / open * 100
-            average = self.sum(open, last) / 2
-        result = {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -475,14 +467,13 @@ class bitvavo(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,  # previous day close
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
-        return result
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

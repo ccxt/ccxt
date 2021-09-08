@@ -463,24 +463,11 @@ class gemini(Exchange):
         price = self.safe_number(ticker, 'price')
         last = self.safe_number_2(ticker, 'last', 'close', price)
         percentage = self.safe_number(ticker, 'percentChange24h')
-        change = None
         open = self.safe_number(ticker, 'open')
-        average = None
-        if last is not None:
-            if open is not None:
-                change = last - open
-                if open != 0:
-                    percentage = change / open * 100
-                average = self.sum(last, open) / 2
-            elif percentage is not None:
-                change = last * percentage
-                if open is None:
-                    open = last - change
-                average = self.sum(last, open) / 2
         baseVolume = self.safe_number(volume, baseId)
         quoteVolume = self.safe_number(volume, quoteId)
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -495,13 +482,13 @@ class gemini(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,  # previous day close
-            'change': change,
+            'change': None,
             'percentage': percentage,
-            'average': average,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

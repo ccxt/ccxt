@@ -200,20 +200,11 @@ class coinone(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        first = self.safe_number(ticker, 'first')
+        open = self.safe_number(ticker, 'first')
         last = self.safe_number(ticker, 'last')
-        average = None
-        if first is not None and last is not None:
-            average = self.sum(first, last) / 2
         previousClose = self.safe_number(ticker, 'yesterday_last')
-        change = None
-        percentage = None
-        if last is not None and previousClose is not None:
-            change = last - previousClose
-            if previousClose != 0:
-                percentage = change / previousClose * 100
-        symbol = market['symbol'] if (market is not None) else None
-        return {
+        symbol = self.safe_symbol(None, market)
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -224,17 +215,17 @@ class coinone(Exchange):
             'ask': None,
             'askVolume': None,
             'vwap': None,
-            'open': first,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': previousClose,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def parse_trade(self, trade, market=None):
         #

@@ -464,28 +464,11 @@ class gemini extends Exchange {
         $price = $this->safe_number($ticker, 'price');
         $last = $this->safe_number_2($ticker, 'last', 'close', $price);
         $percentage = $this->safe_number($ticker, 'percentChange24h');
-        $change = null;
         $open = $this->safe_number($ticker, 'open');
-        $average = null;
-        if ($last !== null) {
-            if ($open !== null) {
-                $change = $last - $open;
-                if ($open !== 0) {
-                    $percentage = $change / $open * 100;
-                }
-                $average = $this->sum($last, $open) / 2;
-            } else if ($percentage !== null) {
-                $change = $last * $percentage;
-                if ($open === null) {
-                    $open = $last - $change;
-                }
-                $average = $this->sum($last, $open) / 2;
-            }
-        }
         $baseVolume = $this->safe_number($volume, $baseId);
         $quoteVolume = $this->safe_number($volume, $quoteId);
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -500,13 +483,13 @@ class gemini extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null, // previous day close
-            'change' => $change,
+            'change' => null,
             'percentage' => $percentage,
-            'average' => $average,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
