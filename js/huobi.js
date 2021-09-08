@@ -474,10 +474,7 @@ module.exports = class huobi extends Exchange {
         //         askSize:  0.4156
         //     }
         //
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeInteger (ticker, 'ts');
         let bid = undefined;
         let bidVolume = undefined;
@@ -503,20 +500,10 @@ module.exports = class huobi extends Exchange {
         }
         const open = this.safeNumber (ticker, 'open');
         const close = this.safeNumber (ticker, 'close');
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
-        if ((open !== undefined) && (close !== undefined)) {
-            change = close - open;
-            average = this.sum (open, close) / 2;
-            if ((close !== undefined) && (close > 0)) {
-                percentage = (change / open) * 100;
-            }
-        }
         const baseVolume = this.safeNumber (ticker, 'amount');
         const quoteVolume = this.safeNumber (ticker, 'vol');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -531,13 +518,13 @@ module.exports = class huobi extends Exchange {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
