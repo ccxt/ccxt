@@ -16,14 +16,11 @@ module.exports = class bitmart extends ccxt.bitmart {
                 'watchTicker': true,
                 'watchOrderBook': true,
                 'watchTrades': true,
-                'watchBalance': true,
                 'watchOHLCV': true,
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws-manager-compress.bitmart.com?protocol=1.1',
-                    // for Hong Kong and Asia this will work faster:
-                    // 'ws': 'wss://ws-manager-compress.bitmart.news?protocol=1.1'
+                    'ws': 'wss://ws-manager-compress.{hostname}?protocol=1.1',
                 },
             },
             'options': {
@@ -59,7 +56,7 @@ module.exports = class bitmart extends ccxt.bitmart {
     async subscribe (channel, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const url = this.urls['api']['ws'];
+        const url = this.implodeHostname (this.urls['api']['ws']);
         const messageHash = market['type'] + '/' + channel + ':' + market['id'];
         const request = {
             'op': 'subscribe',
@@ -333,17 +330,6 @@ module.exports = class bitmart extends ccxt.bitmart {
         return await future;
     }
 
-    async watchBalance (params = {}) {
-        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')");
-        }
-        // const query = this.omit (params, 'type');
-        const negotiation = await this.authenticate ();
-        return await this.subscribeToUserAccount (negotiation, params);
-    }
-
     async subscribeToUserAccount (negotiation, params = {}) {
         const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
@@ -399,58 +385,6 @@ module.exports = class bitmart extends ccxt.bitmart {
         };
         const query = this.omit (params, [ 'currency', 'code', 'instrument_id', 'symbol', 'type' ]);
         return await this.watch (url, messageHash, this.deepExtend (request, query), subscriptionHash);
-    }
-
-    handleBalance (client, message) {
-        //
-        // spot
-        //
-        //     {
-        //         table: 'spot/account',
-        //         data: [
-        //             {
-        //                 available: '11.044827320825',
-        //                 currency: 'USDT',
-        //                 id: '',
-        //                 balance: '11.044827320825',
-        //                 hold: '0'
-        //             }
-        //         ]
-        //     }
-        //
-        // margin
-        //
-        //     {
-        //         table: "spot/margin_account",
-        //         data: [
-        //             {
-        //                 maint_margin_ratio: "0.08",
-        //                 liquidation_price: "0",
-        //                 'currency:USDT': { available: "0", balance: "0", borrowed: "0", hold: "0", lending_fee: "0" },
-        //                 tiers: "1",
-        //                 instrument_id:   "ETH-USDT",
-        //                 'currency:ETH': { available: "0", balance: "0", borrowed: "0", hold: "0", lending_fee: "0" }
-        //             }
-        //         ]
-        //     }
-        //
-        const table = this.safeString (message, 'table');
-        const parts = table.split ('/');
-        let type = this.safeString (parts, 0);
-        if (type === 'spot') {
-            const part1 = this.safeString (parts, 1);
-            if (part1 === 'margin_account') {
-                type = 'margin';
-            }
-        }
-        const data = this.safeValue (message, 'data', []);
-        for (let i = 0; i < data.length; i++) {
-            const balance = this.parseBalanceByType (type, data);
-            const oldBalance = this.safeValue (this.balance, type, {});
-            const newBalance = this.deepExtend (oldBalance, balance);
-            this.balance[type] = this.parseBalance (newBalance);
-            client.resolve (this.balance[type], table);
-        }
     }
 
     handleSubscriptionStatus (client, message) {
