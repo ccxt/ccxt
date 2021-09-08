@@ -552,7 +552,9 @@ module.exports = class kucoin extends ccxt.kucoin {
         const rawType = this.safeString (order, 'type');
         const status = this.parseWsOrderStatus (rawType);
         let timestamp = this.safeInteger (order, 'ts');
-        timestamp = parseInt (timestamp / 1000000);
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp / 1000000);
+        }
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const side = this.safeStringLower (order, 'side');
