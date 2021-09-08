@@ -479,9 +479,7 @@ class huobi(Exchange):
         #         askSize:  0.4156
         #     }
         #
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(None, market)
         timestamp = self.safe_integer(ticker, 'ts')
         bid = None
         bidVolume = None
@@ -503,18 +501,10 @@ class huobi(Exchange):
                 askVolume = self.safe_value(ticker, 'askSize')
         open = self.safe_number(ticker, 'open')
         close = self.safe_number(ticker, 'close')
-        change = None
-        percentage = None
-        average = None
-        if (open is not None) and (close is not None):
-            change = close - open
-            average = self.sum(open, close) / 2
-            if (close is not None) and (close > 0):
-                percentage = (change / open) * 100
         baseVolume = self.safe_number(ticker, 'amount')
         quoteVolume = self.safe_number(ticker, 'vol')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -529,13 +519,13 @@ class huobi(Exchange):
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
