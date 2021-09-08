@@ -179,8 +179,12 @@ module.exports = class bitmart extends ccxt.bitmart {
         const parts = table.split ('/');
         const part1 = this.safeString (parts, 1);
         const interval = part1.replace ('kline', '');
+        console.dir (interval, { depth: null });
         // use a reverse lookup in a static map instead
-        const timeframe = this.findTimeframe (interval);
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        console.log (timeframes);
+        process.exit ();
+        const timeframe = this.findTimeframe (interval, timeframes);
         console.dir (message, { depth: null });
         console.log (timeframe);
         const duration = this.parseTimeframe (timeframe);
