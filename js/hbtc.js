@@ -1694,20 +1694,10 @@ module.exports = class hbtc extends Exchange {
         const timestamp = this.safeInteger (ticker, 'time');
         const open = this.safeNumber (ticker, 'openPrice');
         const close = this.safeNumber (ticker, 'lastPrice');
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
-        if ((open !== undefined) && (close !== undefined)) {
-            change = close - open;
-            average = this.sum (open, close) / 2;
-            if ((close !== undefined) && (close > 0)) {
-                percentage = (change / open) * 100;
-            }
-        }
         const quoteVolume = this.safeNumber (ticker, 'quoteVolume');
         const baseVolume = this.safeNumber (ticker, 'volume');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1722,13 +1712,13 @@ module.exports = class hbtc extends Exchange {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     parseTrade (trade, market) {
