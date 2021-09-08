@@ -207,7 +207,7 @@ module.exports = class coinone extends Exchange {
         const open = this.safeNumber (ticker, 'first');
         const last = this.safeNumber (ticker, 'last');
         const previousClose = this.safeNumber (ticker, 'yesterday_last');
-        const symbol = this.safeMarket (undefined, market);
+        const symbol = this.safeSymbol (undefined, market);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
