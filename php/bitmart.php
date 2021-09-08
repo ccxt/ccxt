@@ -22,6 +22,7 @@ class bitmart extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'certified' => true,
+            'pro' => true,
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -50,7 +51,7 @@ class bitmart extends Exchange {
                 'fetchFundingFee' => true,
                 'withdraw' => true,
             ),
-            'hostname' => 'bitmart.com', // bitmart.info for Hong Kong users
+            'hostname' => 'bitmart.com', // bitmart.info, bitmart.news for Hong Kong users
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
                 'api' => array(
@@ -715,7 +716,7 @@ class bitmart extends Exchange {
         $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_id');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $last = $this->safe_number_2($ticker, 'close_24h', 'last_price');
-        $percentage = $this->safe_number($ticker, 'fluctuation', 'rise_fall_rate');
+        $percentage = $this->safe_number_2($ticker, 'fluctuation', 'rise_fall_rate');
         if ($percentage !== null) {
             $percentage *= 100;
         }

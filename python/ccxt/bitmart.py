@@ -42,6 +42,7 @@ class bitmart(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'certified': True,
+            'pro': True,
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
@@ -70,7 +71,7 @@ class bitmart(Exchange):
                 'fetchFundingFee': True,
                 'withdraw': True,
             },
-            'hostname': 'bitmart.com',  # bitmart.info for Hong Kong users
+            'hostname': 'bitmart.com',  # bitmart.info, bitmart.news for Hong Kong users
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
                 'api': {
@@ -722,7 +723,7 @@ class bitmart(Exchange):
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_id')
         symbol = self.safe_symbol(marketId, market, '_')
         last = self.safe_number_2(ticker, 'close_24h', 'last_price')
-        percentage = self.safe_number(ticker, 'fluctuation', 'rise_fall_rate')
+        percentage = self.safe_number_2(ticker, 'fluctuation', 'rise_fall_rate')
         if percentage is not None:
             percentage *= 100
         baseVolume = self.safe_number_2(ticker, 'base_volume_24h', 'base_coin_volume')
