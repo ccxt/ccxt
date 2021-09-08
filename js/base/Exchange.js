@@ -176,7 +176,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         const keys = Object.keys (timeframes);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (this.timeframes[key] === timeframe) {
+            if (timeframes[key] === timeframe) {
                 return key;
             }
         }
