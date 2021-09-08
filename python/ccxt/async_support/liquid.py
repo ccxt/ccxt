@@ -544,16 +544,8 @@ class liquid(Exchange):
                     symbol = self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
         if market is not None:
             symbol = market['symbol']
-        change = None
-        percentage = None
-        average = None
         open = self.safe_number(ticker, 'last_price_24h')
-        if open is not None and last is not None:
-            change = last - open
-            average = self.sum(last, open) / 2
-            if open > 0:
-                percentage = change / open * 100
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -568,13 +560,13 @@ class liquid(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': self.safe_number(ticker, 'volume_24h'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

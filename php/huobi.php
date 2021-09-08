@@ -478,10 +478,7 @@ class huobi extends Exchange {
         //         askSize =>  0.4156
         //     }
         //
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_integer($ticker, 'ts');
         $bid = null;
         $bidVolume = null;
@@ -507,20 +504,10 @@ class huobi extends Exchange {
         }
         $open = $this->safe_number($ticker, 'open');
         $close = $this->safe_number($ticker, 'close');
-        $change = null;
-        $percentage = null;
-        $average = null;
-        if (($open !== null) && ($close !== null)) {
-            $change = $close - $open;
-            $average = $this->sum($open, $close) / 2;
-            if (($close !== null) && ($close > 0)) {
-                $percentage = ($change / $open) * 100;
-            }
-        }
         $baseVolume = $this->safe_number($ticker, 'amount');
         $quoteVolume = $this->safe_number($ticker, 'vol');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -535,13 +522,13 @@ class huobi extends Exchange {
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

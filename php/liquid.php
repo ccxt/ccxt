@@ -560,18 +560,8 @@ class liquid extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $change = null;
-        $percentage = null;
-        $average = null;
         $open = $this->safe_number($ticker, 'last_price_24h');
-        if ($open !== null && $last !== null) {
-            $change = $last - $open;
-            $average = $this->sum($last, $open) / 2;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-        }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -586,13 +576,13 @@ class liquid extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'volume_24h'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
