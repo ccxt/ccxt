@@ -277,14 +277,11 @@ class bibox(Exchange):
         last = self.safe_number(ticker, 'last')
         change = self.safe_number(ticker, 'change')
         baseVolume = self.safe_number_2(ticker, 'vol', 'vol24H')
-        open = None
-        if (last is not None) and (change is not None):
-            open = last - change
         percentage = self.safe_string(ticker, 'percent')
         if percentage is not None:
             percentage = percentage.replace('%', '')
             percentage = self.parse_number(percentage)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -295,7 +292,7 @@ class bibox(Exchange):
             'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
@@ -305,7 +302,7 @@ class bibox(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_number(ticker, 'amount'),
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
