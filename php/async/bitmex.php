@@ -949,24 +949,12 @@ class bitmex extends Exchange {
         //                            $timestamp => "2019-02-13T08:40:30.000Z",
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
         $open = $this->safe_number($ticker, 'prevPrice24h');
         $last = $this->safe_number($ticker, 'lastPrice');
-        $change = null;
-        $percentage = null;
-        if ($last !== null && $open !== null) {
-            $change = $last - $open;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-        }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -981,13 +969,13 @@ class bitmex extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $this->sum($open, $last) / 2,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'homeNotional24h'),
             'quoteVolume' => $this->safe_number($ticker, 'foreignNotional24h'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

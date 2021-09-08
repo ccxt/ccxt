@@ -273,23 +273,13 @@ class bithumb(Exchange):
         #     }
         #
         timestamp = self.safe_integer(ticker, 'date')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(None, market)
         open = self.safe_number(ticker, 'opening_price')
         close = self.safe_number(ticker, 'closing_price')
-        change = None
-        percentage = None
-        average = None
-        if (close is not None) and (open is not None):
-            change = close - open
-            if open > 0:
-                percentage = change / open * 100
-            average = self.sum(open, close) / 2
         baseVolume = self.safe_number(ticker, 'units_traded_24H')
         quoteVolume = self.safe_number(ticker, 'acc_trade_value_24H')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -304,13 +294,13 @@ class bithumb(Exchange):
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
