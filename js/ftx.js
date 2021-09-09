@@ -517,16 +517,7 @@ module.exports = class ftx extends Exchange {
         if (percentage !== undefined) {
             percentage *= 100;
         }
-        let change = undefined;
-        let average = undefined;
-        let open = undefined;
-        if ((last !== undefined) && (percentage !== undefined)) {
-            const percentageNumberChange = percentage / 100;
-            change = percentageNumberChange * last;
-            open = last - change;
-            average = this.sum (open, last) / 2;
-        }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -537,17 +528,17 @@ module.exports = class ftx extends Exchange {
             'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': this.safeNumber (ticker, 'askSize'),
             'vwap': undefined,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
-            'average': average,
+            'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber (ticker, 'quoteVolume24h'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
