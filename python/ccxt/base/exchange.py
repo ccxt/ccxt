@@ -1790,12 +1790,8 @@ class Exchange(object):
         change = self.safe_value(ticker, 'change')
         percentage = self.safe_value(ticker, 'percentage')
         average = self.safe_value(ticker, 'average')
-        if last is not None:
-            if close is None:
-                close = last
-            if change is None:
-                if open is not None:
-                    change = last - open
+        if (last is not None) and (close is None):
+            close = last
         elif (last is None) and (close is not None):
             last = close
         if last is not None and open is not None:
