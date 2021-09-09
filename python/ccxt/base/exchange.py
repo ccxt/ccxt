@@ -1794,16 +1794,21 @@ class Exchange(object):
             close = last
         elif (last is None) and (close is not None):
             last = close
-        if last is not None and open is not None:
-            change = last - open
-            if percentage is None:
-                if open > 0:
-                    percentage = change / open * 100
+        if (last is not None) and (open is not None):
+            if change is None:
+                change = last - open
             if average is None:
                 average = self.sum(last, open) / 2
+        if (percentage is None) and (change is not None) and (open is not None) and (open > 0):
+            percentage = change / open * 100
+        if (change is None) and (percentage is not None) and (last is not None):
+            change = percentage / 100 * last
+        if (open is None) and (last is not None) and (change is not None):
+            open = last - change
         ticker['symbol'] = symbol
         ticker['timestamp'] = timestamp
         ticker['datetime'] = self.iso8601(timestamp)
+        ticker['open'] = open
         ticker['close'] = close
         ticker['last'] = last
         ticker['vwap'] = vwap
