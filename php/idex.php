@@ -21,6 +21,7 @@ class idex extends Exchange {
             'rateLimit' => 1500,
             'version' => 'v2',
             'pro' => true,
+            'certified' => true,
             'requiresWeb3' => true,
             'has' => array(
                 'cancelOrder' => true,
