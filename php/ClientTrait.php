@@ -80,8 +80,19 @@ trait ClientTrait {
                     $client->subscriptions[$subscribe_hash] = isset($subscription) ? $subscription : true;
                     // todo: add PHP async rate-limiting
                     // todo: decouple signing from subscriptions
+                    $options = $this->safe_value($this->options, 'ws');
+                    $cost = $this->safe_value ($options, 'cost', 1);
                     if ($message) {
-                        $client->send($message);
+                        if ($this->enableRateLimit && $client->throttle) {
+                            // add cost here |
+                            //               |
+                            //               V
+                            $client->throttle($cost)->then(function ($result) use ($client, $message) {
+                                $client->send($message);
+                            });
+                        } else {
+                            $client->send($message);
+                        }
                     }
                 }
             },
