@@ -252,10 +252,10 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $feeRate = null;
         if (is_array($trade) && array_key_exists('maker_fee_rate', $trade)) {
             $parsed['takerOrMaker'] = 'maker';
-            $feeRate = $this->safe_float($trade, 'maker_fee_rate');
+            $feeRate = $this->safe_number($trade, 'maker_fee_rate');
         } else {
             $parsed['takerOrMaker'] = 'taker';
-            $feeRate = $this->safe_float($trade, 'taker_fee_rate');
+            $feeRate = $this->safe_number($trade, 'taker_fee_rate');
         }
         $market = $this->market($parsed['symbol']);
         $feeCurrency = $market['quote'];
@@ -450,14 +450,14 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $marketId = $this->safe_string($order, 'product_id');
         $symbol = $this->safe_symbol($marketId);
         $side = $this->safe_string($order, 'side');
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float_2($order, 'size', 'funds');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number_2($order, 'size', 'funds');
         $time = $this->safe_string($order, 'time');
         $timestamp = $this->parse8601($time);
         $reason = $this->safe_string($order, 'reason');
         $status = $this->parse_ws_order_status($reason);
         $orderType = $this->safe_string($order, 'order_type');
-        $remaining = $this->safe_float($order, 'remaining_size');
+        $remaining = $this->safe_number($order, 'remaining_size');
         $type = $this->safe_string($order, 'type');
         $filled = null;
         if (($amount !== null) && ($remaining !== null)) {
@@ -556,34 +556,34 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $marketId = $this->safe_string($ticker, 'product_id');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($ticker, 'time'));
-        $last = $this->safe_float($ticker, 'price');
+        $last = $this->safe_number($ticker, 'price');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high_24h'),
-            'low' => $this->safe_float($ticker, 'low_24h'),
-            'bid' => $this->safe_float($ticker, 'best_bid'),
+            'high' => $this->safe_number($ticker, 'high_24h'),
+            'low' => $this->safe_number($ticker, 'low_24h'),
+            'bid' => $this->safe_number($ticker, 'best_bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'best_ask'),
+            'ask' => $this->safe_number($ticker, 'best_ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_float($ticker, 'open_24h'),
+            'open' => $this->safe_number($ticker, 'open_24h'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume_24h'),
+            'baseVolume' => $this->safe_number($ticker, 'volume_24h'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
     }
 
     public function handle_delta($bookside, $delta) {
-        $price = $this->safe_float($delta, 0);
-        $amount = $this->safe_float($delta, 1);
+        $price = $this->safe_number($delta, 0);
+        $amount = $this->safe_number($delta, 1);
         $bookside->store ($price, $amount);
     }
 
@@ -647,8 +647,8 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 $change = $changes[$i];
                 $key = $this->safe_string($change, 0);
                 $side = $this->safe_string($sides, $key);
-                $price = $this->safe_float($change, 1);
-                $amount = $this->safe_float($change, 2);
+                $price = $this->safe_number($change, 1);
+                $amount = $this->safe_number($change, 2);
                 $bookside = $orderbook[$side];
                 $bookside->store ($price, $amount);
             }

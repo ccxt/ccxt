@@ -232,10 +232,10 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
         feeRate = None
         if 'maker_fee_rate' in trade:
             parsed['takerOrMaker'] = 'maker'
-            feeRate = self.safe_float(trade, 'maker_fee_rate')
+            feeRate = self.safe_number(trade, 'maker_fee_rate')
         else:
             parsed['takerOrMaker'] = 'taker'
-            feeRate = self.safe_float(trade, 'taker_fee_rate')
+            feeRate = self.safe_number(trade, 'taker_fee_rate')
         market = self.market(parsed['symbol'])
         feeCurrency = market['quote']
         feeCost = None
@@ -410,14 +410,14 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
         marketId = self.safe_string(order, 'product_id')
         symbol = self.safe_symbol(marketId)
         side = self.safe_string(order, 'side')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float_2(order, 'size', 'funds')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number_2(order, 'size', 'funds')
         time = self.safe_string(order, 'time')
         timestamp = self.parse8601(time)
         reason = self.safe_string(order, 'reason')
         status = self.parse_ws_order_status(reason)
         orderType = self.safe_string(order, 'order_type')
-        remaining = self.safe_float(order, 'remaining_size')
+        remaining = self.safe_number(order, 'remaining_size')
         type = self.safe_string(order, 'type')
         filled = None
         if (amount is not None) and (remaining is not None):
@@ -509,33 +509,33 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
         marketId = self.safe_string(ticker, 'product_id')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
-        last = self.safe_float(ticker, 'price')
+        last = self.safe_number(ticker, 'price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high_24h'),
-            'low': self.safe_float(ticker, 'low_24h'),
-            'bid': self.safe_float(ticker, 'best_bid'),
+            'high': self.safe_number(ticker, 'high_24h'),
+            'low': self.safe_number(ticker, 'low_24h'),
+            'bid': self.safe_number(ticker, 'best_bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'best_ask'),
+            'ask': self.safe_number(ticker, 'best_ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(ticker, 'open_24h'),
+            'open': self.safe_number(ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume_24h'),
+            'baseVolume': self.safe_number(ticker, 'volume_24h'),
             'quoteVolume': None,
             'info': ticker,
         }
 
     def handle_delta(self, bookside, delta):
-        price = self.safe_float(delta, 0)
-        amount = self.safe_float(delta, 1)
+        price = self.safe_number(delta, 0)
+        amount = self.safe_number(delta, 1)
         bookside.store(price, amount)
 
     def handle_deltas(self, bookside, deltas):
@@ -596,8 +596,8 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
                 change = changes[i]
                 key = self.safe_string(change, 0)
                 side = self.safe_string(sides, key)
-                price = self.safe_float(change, 1)
-                amount = self.safe_float(change, 2)
+                price = self.safe_number(change, 1)
+                amount = self.safe_number(change, 2)
                 bookside = orderbook[side]
                 bookside.store(price, amount)
             orderbook['timestamp'] = timestamp
