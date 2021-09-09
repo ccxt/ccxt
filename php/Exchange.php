@@ -1975,20 +1975,27 @@ class Exchange {
         } else if (($last === null) && ($close !== null)) {
             $last = $close;
         }
-        if ($last !== null && $open !== null) {
-            $change = $last - $open;
-            if ($percentage === null) {
-                if ($open > 0) {
-                    $percentage = $change / $open * 100;
-                }
+        if (($last !== null) && ($open !== null)) {
+            if ($change === null) {
+                $change = $last - $open;
             }
             if ($average === null) {
                 $average = $this->sum($last, $open) / 2;
             }
         }
+        if (($percentage === null) && ($change !== null) && ($open !== null) && ($open > 0)) {
+            $percentage = $change / $open * 100;
+        }
+        if (($change === null) && ($percentage !== null) && ($last !== null)) {
+            $change = $percentage / 100 * $last;
+        }
+        if (($open === null) && ($last !== null) && ($change !== null)) {
+            $open = $last - $change;
+        }
         $ticker['symbol'] = $symbol;
         $ticker['timestamp'] = $timestamp;
         $ticker['datetime'] = $this->iso8601($timestamp);
+        $ticker['open'] = $open;
         $ticker['close'] = $close;
         $ticker['last'] = $last;
         $ticker['vwap'] = $vwap;
