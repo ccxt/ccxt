@@ -520,16 +520,7 @@ class ftx extends Exchange {
         if ($percentage !== null) {
             $percentage *= 100;
         }
-        $change = null;
-        $average = null;
-        $open = null;
-        if (($last !== null) && ($percentage !== null)) {
-            $percentageNumberChange = $percentage / 100;
-            $change = $percentageNumberChange * $last;
-            $open = $last - $change;
-            $average = $this->sum($open, $last) / 2;
-        }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -540,17 +531,17 @@ class ftx extends Exchange {
             'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => $this->safe_number($ticker, 'askSize'),
             'vwap' => null,
-            'open' => $open,
+            'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
+            'change' => null,
             'percentage' => $percentage,
-            'average' => $average,
+            'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_number($ticker, 'quoteVolume24h'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

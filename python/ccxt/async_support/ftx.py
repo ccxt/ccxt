@@ -528,15 +528,7 @@ class ftx(Exchange):
         percentage = self.safe_number(ticker, 'change24h')
         if percentage is not None:
             percentage *= 100
-        change = None
-        average = None
-        open = None
-        if (last is not None) and (percentage is not None):
-            percentageNumberChange = percentage / 100
-            change = percentageNumberChange * last
-            open = last - change
-            average = self.sum(open, last) / 2
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -547,17 +539,17 @@ class ftx(Exchange):
             'ask': self.safe_number(ticker, 'ask'),
             'askVolume': self.safe_number(ticker, 'askSize'),
             'vwap': None,
-            'open': open,
+            'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
+            'change': None,
             'percentage': percentage,
-            'average': average,
+            'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_number(ticker, 'quoteVolume24h'),
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
