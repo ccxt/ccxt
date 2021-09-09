@@ -498,15 +498,10 @@ class bitpanda(Exchange):
         last = self.safe_number(ticker, 'last_price')
         percentage = self.safe_number(ticker, 'price_change_percentage')
         change = self.safe_number(ticker, 'price_change')
-        open = None
-        average = None
-        if (last is not None) and (change is not None):
-            open = last - change
-            average = self.sum(last, open) / 2
         baseVolume = self.safe_number(ticker, 'base_volume')
         quoteVolume = self.safe_number(ticker, 'quote_volume')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -517,17 +512,17 @@ class bitpanda(Exchange):
             'ask': self.safe_number(ticker, 'best_ask'),
             'askVolume': None,
             'vwap': vwap,
-            'open': open,
+            'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
             'change': change,
             'percentage': percentage,
-            'average': average,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
