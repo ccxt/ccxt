@@ -1970,15 +1970,8 @@ class Exchange {
         $change = $this->safe_value($ticker, 'change');
         $percentage = $this->safe_value($ticker, 'percentage');
         $average = $this->safe_value($ticker, 'average');
-        if ($last !== null) {
-            if ($close === null) {
-                $close = $last;
-            }
-            if ($change === null) {
-                if ($open !== null) {
-                    $change = $last - $open;
-                }
-            }
+        if (($last !== null) && ($close === null)) {
+            $close = $last;
         } else if (($last === null) && ($close !== null)) {
             $last = $close;
         }
