@@ -1191,15 +1191,8 @@ module.exports = class Exchange {
         let change = this.safeValue (ticker, 'change');
         let percentage = this.safeValue (ticker, 'percentage');
         let average = this.safeValue (ticker, 'average');
-        if (last !== undefined) {
-            if (close === undefined) {
-                close = last;
-            }
-            if (change === undefined) {
-                if (open !== undefined) {
-                    change = last - open;
-                }
-            }
+        if ((last !== undefined) && (close === undefined)) {
+            close = last;
         } else if ((last === undefined) && (close !== undefined)) {
             last = close;
         }
