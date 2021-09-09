@@ -123,10 +123,12 @@ class Exchange(BaseExchange):
             if subscribe_hash not in client.subscriptions:
                 client.subscriptions[subscribe_hash] = subscription or True
                 # todo: decouple signing from subscriptions
+                options = self.safe_value(self.options, 'ws')
+                cost = self.safe_value (options, 'cost', 1)
                 if message:
                     async def send_message():
                         if self.enableRateLimit:
-                            await client.throttle()
+                            await client.throttle(cost)
                         try:
                             await client.send(message)
                         except ConnectionError as e:
