@@ -71,6 +71,9 @@ class binance(Exchange, ccxt.binance):
                 },
                 'wallet': 'wb',  # wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate': 1200000,  # 20 mins
+                'ws': {
+                    'cost': 5,
+                },
             },
         })
 

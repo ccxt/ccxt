@@ -65,6 +65,9 @@ class binance extends \ccxt\async\binance {
                 ),
                 'wallet' => 'wb', // wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate' => 1200000, // 20 mins
+                'ws' => array(
+                    'cost' => 5,
+                ),
             ),
         ));
     }
