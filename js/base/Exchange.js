@@ -1185,7 +1185,7 @@ module.exports = class Exchange {
         if (vwap === undefined) {
             vwap = this.vwap (baseVolume, quoteVolume);
         }
-        const open = this.safeValue (ticker, 'open');
+        let open = this.safeValue (ticker, 'open');
         let close = this.safeValue (ticker, 'close');
         let last = this.safeValue (ticker, 'last');
         let change = this.safeValue (ticker, 'change');
@@ -1196,20 +1196,27 @@ module.exports = class Exchange {
         } else if ((last === undefined) && (close !== undefined)) {
             last = close;
         }
-        if (last !== undefined && open !== undefined) {
-            change = last - open;
-            if (percentage === undefined) {
-                if (open > 0) {
-                    percentage = change / open * 100;
-                }
+        if ((last !== undefined) && (open !== undefined)) {
+            if (change === undefined) {
+                change = last - open;
             }
             if (average === undefined) {
                 average = this.sum (last, open) / 2;
             }
         }
+        if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (open > 0)) {
+            percentage = change / open * 100;
+        }
+        if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
+            change = percentage / 100 * last;
+        }
+        if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
+            open = last - change;
+        }
         ticker['symbol'] = symbol;
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601 (timestamp);
+        ticker['open'] = open;
         ticker['close'] = close;
         ticker['last'] = last;
         ticker['vwap'] = vwap;
