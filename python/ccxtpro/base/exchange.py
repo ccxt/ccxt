@@ -124,7 +124,7 @@ class Exchange(BaseExchange):
                 client.subscriptions[subscribe_hash] = subscription or True
                 # todo: decouple signing from subscriptions
                 options = self.safe_value(self.options, 'ws')
-                cost = self.safe_value (options, 'cost', 1)
+                cost = self.safe_value(options, 'cost', 1)
                 if message:
                     async def send_message():
                         if self.enableRateLimit:
