@@ -45,6 +45,7 @@ class Client {
     public $verbose = false; // verbose output
     public $gunzip = false;
     public $inflate = false;
+    public $throttle = null;
     public $connection = null;
     public $connected; // connection-related Future
     public $isConnected = false;
