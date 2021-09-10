@@ -42,6 +42,7 @@ class ftx extends \ccxt\async\ftx {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    'Internal server error' => '\\ccxt\\ExchangeNotAvailable',
                     'Invalid login credentials' => '\\ccxt\\AuthenticationError',
                     'Not logged in' => '\\ccxt\\AuthenticationError',
                 ),

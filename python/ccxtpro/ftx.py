@@ -9,6 +9,7 @@ from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class ftx(Exchange, ccxt.ftx):
@@ -42,6 +43,7 @@ class ftx(Exchange, ccxt.ftx):
             },
             'exceptions': {
                 'exact': {
+                    'Internal server error': ExchangeNotAvailable,
                     'Invalid login credentials': AuthenticationError,
                     'Not logged in': AuthenticationError,
                 },
