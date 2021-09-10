@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -990,9 +990,12 @@ module.exports = class coinex extends Exchange {
         const message = this.safeString (response, 'message');
         if ((code !== '0') || (data === undefined) || ((message !== 'Success') && (message !== 'Ok') && !data)) {
             const responseCodes = {
+                // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
                 '24': AuthenticationError,
                 '25': AuthenticationError,
                 '34': AuthenticationError, // Access id is expires
+                '35': ExchangeNotAvailable, // Service unavailable
+                '36': RequestTimeout, // Service timeout
                 '107': InsufficientFunds,
                 '600': OrderNotFound,
                 '601': InvalidOrder,
