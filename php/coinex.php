@@ -992,9 +992,12 @@ class coinex extends Exchange {
         $message = $this->safe_string($response, 'message');
         if (($code !== '0') || ($data === null) || (($message !== 'Success') && ($message !== 'Ok') && !$data)) {
             $responseCodes = array(
+                // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
                 '24' => '\\ccxt\\AuthenticationError',
                 '25' => '\\ccxt\\AuthenticationError',
                 '34' => '\\ccxt\\AuthenticationError', // Access id is expires
+                '35' => '\\ccxt\\ExchangeNotAvailable', // Service unavailable
+                '36' => '\\ccxt\\RequestTimeout', // Service timeout
                 '107' => '\\ccxt\\InsufficientFunds',
                 '600' => '\\ccxt\\OrderNotFound',
                 '601' => '\\ccxt\\InvalidOrder',
