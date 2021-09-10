@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
+const { ExchangeError, AuthenticationError, ExchangeNotAvailableError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -38,6 +38,7 @@ module.exports = class ftx extends ccxt.ftx {
             },
             'exceptions': {
                 'exact': {
+                    'Internal server error': ExchangeNotAvailableError,
                     'Invalid login credentials': AuthenticationError,
                     'Not logged in': AuthenticationError,
                 },
