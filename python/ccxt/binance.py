@@ -672,7 +672,7 @@ class binance(Exchange):
             },
             # exchange-specific options
             'options': {
-                'fetchCurrencies': False,  # self is a private call and it requires API keys
+                'fetchCurrencies': True,  # self is a private call and it requires API keys
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
