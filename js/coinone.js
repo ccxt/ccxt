@@ -24,6 +24,7 @@ module.exports = class coinone extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': false,
+                'fetchDepositAddresses': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
@@ -56,6 +57,7 @@ module.exports = class coinone extends Exchange {
                 },
                 'private': {
                     'post': [
+                        'account/deposit_address/',
                         'account/btc_deposit_address/',
                         'account/balance/',
                         'account/daily_balance/',
@@ -610,6 +612,58 @@ module.exports = class coinone extends Exchange {
         //     }
         //
         return response;
+    }
+
+    async fetchDepositAddresses (codes = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostAccountDepositAddress (params);
+        //
+        //     {
+        //         result: 'success',
+        //         errorCode: '0',
+        //         walletAddress: {
+        //             matic: null,
+        //             btc: "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+        //             xrp: null,
+        //             xrp_tag: '-1',
+        //             kava: null,
+        //             kava_memo: null,
+        //         }
+        //     }
+        //
+        const walletAddress = this.safeValue (response, 'walletAddress', {});
+        const keys = Object.keys (walletAddress);
+        const result = {};
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = walletAddress[key];
+            if ((!value) || (value === '-1')) {
+                continue;
+            }
+            const parts = key.split ('_');
+            const currencyId = this.safeValue (parts, 0);
+            const secondPart = this.safeValue (parts, 1);
+            const code = this.safeCurrencyCode (currencyId);
+            let depositAddress = this.safeValue (result, code);
+            if (depositAddress === undefined) {
+                depositAddress = {
+                    'currency': code,
+                    'address': undefined,
+                    'tag': undefined,
+                    'info': value,
+                };
+            }
+            const address = this.safeString (depositAddress, 'address', value);
+            this.checkAddress (address);
+            depositAddress['address'] = address;
+            depositAddress['info'] = address;
+            if ((secondPart === 'tag' || secondPart === 'memo')) {
+                depositAddress['tag'] = value;
+                depositAddress['info'] = [ address, value ];
+            }
+            result[code] = depositAddress;
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
