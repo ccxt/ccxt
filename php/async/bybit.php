@@ -2339,11 +2339,11 @@ class bybit extends Exchange {
             $response = yield $this->privateLinearGetPositionList (array_merge($request, $params));
         } else if ($type === 'inverse') {
             $response = yield $this->v2PrivateGetPositionList (array_merge($request, $params));
-            if ($this->is_json_encoded_object($response)) {
-                $response = json_decode($response, $as_associative_array = true);
-            }
         } else if ($type === 'inverseFuture') {
             $response = yield $this->futuresPrivateGetPositionList (array_merge($request, $params));
+        }
+        if ((gettype($response) === 'string') && $this->is_json_encoded_object($response)) {
+            $response = json_decode($response, $as_associative_array = true);
         }
         //
         //     {
