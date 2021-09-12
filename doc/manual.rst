@@ -4162,13 +4162,13 @@ To check if any of the above methods are available, look into the ``.has`` prope
    # Python
    import ccxt
    id = 'binance'
-   exchange = getattr(ccxt, id) ()
+   exchange = getattr(ccxt, id)()
    print(exchange.has)
 
 .. code-block:: PHP
 
    // PHP
-   $exchange = new \ccxt\liqui ();
+   $exchange = new \ccxt\bitfinex();
    print_r ($exchange->has); // or var_dump
 
 A typical structure of the ``.has`` property usually contains the following flags corresponding to order API methods for querying orders:
@@ -4202,11 +4202,11 @@ The exchanges' order management APIs differ by design. The user has to understan
  * ``fetchOrders()`` – fetches a list of all orders (either open or closed/canceled).
  * ``fetchMyTrades()`` – though not a part of the orders' API, it is closely related, since it provides the history of settled trades.
 
-The majority of the exchanges will have a way of fetching currently-open orders. Thus, the ``exchange.has['fetchOpenOrders']``. If that method is not available, then most likely the ``exchange.has['fetchOrders']`` that will provide a list of open orders among all orders. The exchange will either return a list of open orders from ``fetchOpenOrders()`` or from ``fetchOrders()``. One of the two methods is usually available from any exchange.
+The majority of the exchanges will have a way of fetching currently-open orders. Thus, the ``exchange.has['fetchOpenOrders']``. If that method is not available, then most likely the ``exchange.has['fetchOrders']`` that will provide a list of all orders. The exchange will either return a list of open orders from ``fetchOpenOrders()`` or from ``fetchOrders()``. One of the two methods is usually available from any exchange.
 
 Some exchanges will provide the order history, other exchanges will not. If the underlying exchange provides the order history, then the ``exchange.has['fetchClosedOrders']`` or the ``exchange.has['fetchOrders']``. If the underlying exchange does not provide the order history, then ``fetchClosedOrders()`` and ``fetchOrders()`` are not available. In the latter case, the user is required to build a local cache of orders and track the open orders using ``fetchOpenOrders()`` and ``fetchOrder()`` for order statuses and for marking them as closed locally in the userland (when they're not open anymore).
 
-If the underlying exchange does not have methods for order history (\ ``fetchClosedOrders()`` and ``fetchOrders()``\ ), then it will provide ``fetchOpenOrders`` + the trade history with ``fetchMyTrades`` (see `How Orders Are Related To Trades <https://github.com/ccxt/ccxt/wiki/Manual#how-orders-are-related-to-trades>`__\ ). That set of information is in many cases enough to track the live-trading robot. If there's no order history – you have to track your live orders and restore historical info from open orders and historical trades.
+If the underlying exchange does not have methods for order history (\ ``fetchClosedOrders()`` and ``fetchOrders()``\ ), then it will provide ``fetchOpenOrders`` + the trade history with ``fetchMyTrades`` (see `How Orders Are Related To Trades <https://github.com/ccxt/ccxt/wiki/Manual#how-orders-are-related-to-trades>`__\ ). That set of information is in many cases enough for tracking in a live-trading robot. If there's no order history – you have to track your live orders and restore historical info from open orders and historical trades.
 
 In general, the underlying exchanges will usually provide one or more of the following types of historical data:
 
@@ -4287,8 +4287,8 @@ Below are examples of using the fetchOrder method to get order info from an auth
 
    // PHP
    if ($exchange->has['fetchOrder']) {
-       $order = $exchange->fetch_order ($id);
-       var_dump ($order);
+       $order = $exchange->fetch_order($id);
+       var_dump($order);
    }
 
 All Orders
