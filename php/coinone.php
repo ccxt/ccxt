@@ -26,6 +26,7 @@ class coinone extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => false,
+                'fetchDepositAddresses' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
@@ -58,6 +59,7 @@ class coinone extends Exchange {
                 ),
                 'private' => array(
                     'post' => array(
+                        'account/deposit_address/',
                         'account/btc_deposit_address/',
                         'account/balance/',
                         'account/daily_balance/',
@@ -612,6 +614,58 @@ class coinone extends Exchange {
         //     }
         //
         return $response;
+    }
+
+    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostAccountDepositAddress ($params);
+        //
+        //     {
+        //         $result => 'success',
+        //         errorCode => '0',
+        //         $walletAddress => {
+        //             matic => null,
+        //             btc => "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+        //             xrp => null,
+        //             xrp_tag => '-1',
+        //             kava => null,
+        //             kava_memo => null,
+        //         }
+        //     }
+        //
+        $walletAddress = $this->safe_value($response, 'walletAddress', array());
+        $keys = is_array($walletAddress) ? array_keys($walletAddress) : array();
+        $result = array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $value = $walletAddress[$key];
+            if ((!$value) || ($value === '-1')) {
+                continue;
+            }
+            $parts = explode('_', $key);
+            $currencyId = $this->safe_value($parts, 0);
+            $secondPart = $this->safe_value($parts, 1);
+            $code = $this->safe_currency_code($currencyId);
+            $depositAddress = $this->safe_value($result, $code);
+            if ($depositAddress === null) {
+                $depositAddress = array(
+                    'currency' => $code,
+                    'address' => null,
+                    'tag' => null,
+                    'info' => $value,
+                );
+            }
+            $address = $this->safe_string($depositAddress, 'address', $value);
+            $this->check_address($address);
+            $depositAddress['address'] = $address;
+            $depositAddress['info'] = $address;
+            if (($secondPart === 'tag' || $secondPart === 'memo')) {
+                $depositAddress['tag'] = $value;
+                $depositAddress['info'] = array( $address, $value );
+            }
+            $result[$code] = $depositAddress;
+        }
+        return $result;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

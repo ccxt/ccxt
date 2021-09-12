@@ -31,6 +31,7 @@ class coinone(Exchange):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchCurrencies': False,
+                'fetchDepositAddresses': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
@@ -63,6 +64,7 @@ class coinone(Exchange):
                 },
                 'private': {
                     'post': [
+                        'account/deposit_address/',
                         'account/btc_deposit_address/',
                         'account/balance/',
                         'account/daily_balance/',
@@ -578,6 +580,53 @@ class coinone(Exchange):
         #     }
         #
         return response
+
+    async def fetch_deposit_addresses(self, codes=None, params={}):
+        await self.load_markets()
+        response = await self.privatePostAccountDepositAddress(params)
+        #
+        #     {
+        #         result: 'success',
+        #         errorCode: '0',
+        #         walletAddress: {
+        #             matic: null,
+        #             btc: "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+        #             xrp: null,
+        #             xrp_tag: '-1',
+        #             kava: null,
+        #             kava_memo: null,
+        #         }
+        #     }
+        #
+        walletAddress = self.safe_value(response, 'walletAddress', {})
+        keys = list(walletAddress.keys())
+        result = {}
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = walletAddress[key]
+            if (not value) or (value == '-1'):
+                continue
+            parts = key.split('_')
+            currencyId = self.safe_value(parts, 0)
+            secondPart = self.safe_value(parts, 1)
+            code = self.safe_currency_code(currencyId)
+            depositAddress = self.safe_value(result, code)
+            if depositAddress is None:
+                depositAddress = {
+                    'currency': code,
+                    'address': None,
+                    'tag': None,
+                    'info': value,
+                }
+            address = self.safe_string(depositAddress, 'address', value)
+            self.check_address(address)
+            depositAddress['address'] = address
+            depositAddress['info'] = address
+            if (secondPart == 'tag' or secondPart == 'memo'):
+                depositAddress['tag'] = value
+                depositAddress['info'] = [address, value]
+            result[code] = depositAddress
+        return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.implode_params(path, params)
