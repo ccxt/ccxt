@@ -2685,6 +2685,8 @@ Any of the above three methods may be missing, if any other of the three methods
 
 If the underlying exchange does not provide historical orders, the CCXT library will not emulate the missing functionality – it has to be added on the user side where necessary.
 
+**Please, note, that a certain method may be missing either because the exchange does not have a corresponding API endpoint, or because CCXT has not implemented it yet (the library is also a work in progress). In the latter case, the missing method will be added as soon as possible.**
+
 #### Querying Multiple Orders And Trades
 
 All methods returning lists of trades and lists of orders, accept the second `since` argument and the third `limit` argument:
