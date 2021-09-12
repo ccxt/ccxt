@@ -2669,7 +2669,7 @@ The exchanges' order management APIs differ by design. The user has to understan
 - `fetchOrders()` – fetches a list of all orders (either open or closed/canceled).
 - `fetchMyTrades()` – though not a part of the orders' API, it is closely related, since it provides the history of settled trades.
 
-The majority of the exchanges will have a way of fetching currently-open orders. Thus, the `exchange.has['fetchOpenOrders']`. If that method is not available, then most likely the `exchange.has['fetchOrders']` that will provide a list of all orders. The exchange will either return a list of open orders from `fetchOpenOrders()` or from `fetchOrders()`. One of the two methods is usually available from any exchange.
+The majority of the exchanges will have a way of fetching currently-open orders. Thus, the `exchange.has['fetchOpenOrders']`. If that method is not available, then most likely the `exchange.has['fetchOrders']` that will provide a list of all orders. The exchange will return a list of open orders either from `fetchOpenOrders()` or from `fetchOrders()`. One of the two methods is usually available from any exchange.
 
 Some exchanges will provide the order history, other exchanges will not. If the underlying exchange provides the order history, then the `exchange.has['fetchClosedOrders']` or the `exchange.has['fetchOrders']`. If the underlying exchange does not provide the order history, then `fetchClosedOrders()` and `fetchOrders()` are not available. In the latter case, the user is required to build a local cache of orders and track the open orders using `fetchOpenOrders()` and `fetchOrder()` for order statuses and for marking them as closed locally in the userland (when they're not open anymore).
 
