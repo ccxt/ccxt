@@ -2630,13 +2630,13 @@ console.log (exchange.has)
 # Python
 import ccxt
 id = 'binance'
-exchange = getattr(ccxt, id) ()
+exchange = getattr(ccxt, id)()
 print(exchange.has)
 ```
 
 ```PHP
 // PHP
-$exchange = new \ccxt\liqui ();
+$exchange = new \ccxt\bitfinex();
 print_r ($exchange->has); // or var_dump
 ```
 
@@ -2749,8 +2749,8 @@ if exchange.has['fetchOrder']:
 ```PHP
 // PHP
 if ($exchange->has['fetchOrder']) {
-    $order = $exchange->fetch_order ($id);
-    var_dump ($order);
+    $order = $exchange->fetch_order($id);
+    var_dump($order);
 }
 ```
 
