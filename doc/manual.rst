@@ -4190,6 +4190,37 @@ A typical structure of the ``.has`` property usually contains the following flag
 
 The meanings of boolean ``true`` and ``false`` are obvious. A string value of ``emulated`` means that particular method is missing in the exchange API and ccxt will workaround that where possible on the client-side.
 
+Understanding The Orders API Design
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The exchanges' order management APIs differ by design. The user has to understand the purpose of each specific method and how they're combined together into a complete order API:
+
+
+ * ``fetchOrder()`` – fetches a single order (open or closed) by order ``id``.
+ * ``fetchOpenOrders()`` – fetches a list of open orders.
+ * ``fetchClosedOrders()`` – fetches a list of closed (or canceled) orders.
+ * ``fetchOrders()`` – fetches a list of all orders (either open or closed/canceled).
+ * ``fetchMyTrades()`` – though not a part of the orders' API, it is closely related, since it provides the history of settled trades.
+
+The majority of the exchanges will have a way of fetching currently-open orders. Thus, the ``exchange.has['fetchOpenOrders']``. If that method is not available, then most likely the ``exchange.has['fetchOrders']`` that will provide a list of open orders among all orders. The exchange will either return a list of open orders from ``fetchOpenOrders()`` or from ``fetchOrders()``. One of the two methods is usually available from any exchange.
+
+Some exchanges will provide the order history, other exchanges will not. If the underlying exchange provides the order history, then the ``exchange.has['fetchClosedOrders']`` or the ``exchange.has['fetchOrders']``. If the underlying exchange does not provide the order history, then ``fetchClosedOrders()`` and ``fetchOrders()`` are not available. In the latter case, the user is required to build a local cache of orders and track the open orders using ``fetchOpenOrders()`` and ``fetchOrder()`` for order statuses and for marking them as closed locally in the userland (when they're not open anymore).
+
+If the underlying exchange does not have methods for order history (\ ``fetchClosedOrders()`` and ``fetchOrders()``\ ), then it will provide ``fetchOpenOrders`` + the trade history with ``fetchMyTrades`` (see `How Orders Are Related To Trades <https://github.com/ccxt/ccxt/wiki/Manual#how-orders-are-related-to-trades>`__\ ). That set of information is in many cases enough to track the live-trading robot. If there's no order history – you have to track your live orders and restore historical info from open orders and historical trades.
+
+In general, the underlying exchanges will usually provide one or more of the following types of historical data:
+
+
+ * ``fetchClosedOrders()``
+ * ``fetchOrders()``
+ * ``fetchMyTrades()``
+
+Any of the above three methods may be missing, if any other of the three methods is present.
+
+If the underlying exchange does not provide historical orders, the CCXT library will not emulate the missing functionality – it has to be added on the user side where necessary.
+
+ **Please, note, that a certain method may be missing either because the exchange does not have a corresponding API endpoint, or because CCXT has not implemented it yet (the library is also a work in progress). In the latter case, the missing method will be added as soon as possible.**
+
 Querying Multiple Orders And Trades
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
