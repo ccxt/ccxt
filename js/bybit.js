@@ -2337,11 +2337,11 @@ module.exports = class bybit extends Exchange {
             response = await this.privateLinearGetPositionList (this.extend (request, params));
         } else if (type === 'inverse') {
             response = await this.v2PrivateGetPositionList (this.extend (request, params));
-            if (this.isJsonEncodedObject (response)) {
-                response = JSON.parse (response);
-            }
         } else if (type === 'inverseFuture') {
             response = await this.futuresPrivateGetPositionList (this.extend (request, params));
+        }
+        if ((typeof response === 'string') && this.isJsonEncodedObject (response)) {
+            response = JSON.parse (response);
         }
         //
         //     {
