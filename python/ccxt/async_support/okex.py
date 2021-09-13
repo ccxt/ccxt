@@ -501,6 +501,7 @@ class okex(Exchange):
                 'fetchOHLCV': {
                     'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
+                'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder'
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': ['spot', 'futures', 'swap'],  # spot, futures, swap, option
                 'defaultType': 'spot',  # 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
@@ -1379,7 +1380,18 @@ class okex(Exchange):
         else:
             request['px'] = self.price_to_precision(symbol, price)
             request['sz'] = self.amount_to_precision(symbol, amount)
-        response = await self.privatePostTradeOrder(self.extend(request, params))
+        extendedRequest = None
+        defaultMethod = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')  # or privatePostTradeOrder
+        if defaultMethod == 'privatePostTradeOrder':
+            extendedRequest = self.extend(request, params)
+        elif defaultMethod == 'privatePostTradeBatchOrders':
+            # keep the request body the same
+            # submit a single order in an array to the batch order endpoint
+            # because it has a lower ratelimit
+            extendedRequest = [self.extend(request, params)]
+        else:
+            raise ExchangeError(self.id + ' self.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder')
+        response = await getattr(self, defaultMethod)(extendedRequest)
         #
         #     {
         #         "code": "0",

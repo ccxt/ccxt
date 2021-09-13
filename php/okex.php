@@ -485,6 +485,7 @@ class okex extends Exchange {
                 'fetchOHLCV' => array(
                     'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 ),
+                'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
                 'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarkets' => array( 'spot', 'futures', 'swap' ), // spot, futures, swap, option
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
@@ -1414,7 +1415,19 @@ class okex extends Exchange {
             $request['px'] = $this->price_to_precision($symbol, $price);
             $request['sz'] = $this->amount_to_precision($symbol, $amount);
         }
-        $response = $this->privatePostTradeOrder (array_merge($request, $params));
+        $extendedRequest = null;
+        $defaultMethod = $this->safe_string($this->options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder
+        if ($defaultMethod === 'privatePostTradeOrder') {
+            $extendedRequest = array_merge($request, $params);
+        } else if ($defaultMethod === 'privatePostTradeBatchOrders') {
+            // keep the $request body the same
+            // submit a single $order in an array to the batch $order endpoint
+            // because it has a lower ratelimit
+            $extendedRequest = array( array_merge($request, $params) );
+        } else {
+            throw new ExchangeError($this->id . ' $this->options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder');
+        }
+        $response = $this->$defaultMethod ($extendedRequest);
         //
         //     {
         //         "code" => "0",
