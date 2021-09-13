@@ -742,7 +742,7 @@ class gateio extends Exchange {
         $baseVolume = $this->safe_number($ticker, 'base_volume');
         $quoteVolume = $this->safe_number($ticker, 'quote_volume');
         $percentage = $this->safe_number($ticker, 'change_percentage');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
@@ -763,7 +763,7 @@ class gateio extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

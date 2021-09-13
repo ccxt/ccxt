@@ -482,6 +482,7 @@ module.exports = class okex extends Exchange {
                 'fetchOHLCV': {
                     'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
+                'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot', 'futures', 'swap' ], // spot, futures, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
@@ -1411,7 +1412,19 @@ module.exports = class okex extends Exchange {
             request['px'] = this.priceToPrecision (symbol, price);
             request['sz'] = this.amountToPrecision (symbol, amount);
         }
-        const response = await this.privatePostTradeOrder (this.extend (request, params));
+        let extendedRequest = undefined;
+        const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder
+        if (defaultMethod === 'privatePostTradeOrder') {
+            extendedRequest = this.extend (request, params);
+        } else if (defaultMethod === 'privatePostTradeBatchOrders') {
+            // keep the request body the same
+            // submit a single order in an array to the batch order endpoint
+            // because it has a lower ratelimit
+            extendedRequest = [ this.extend (request, params) ];
+        } else {
+            throw new ExchangeError (this.id + ' this.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder');
+        }
+        const response = await this[defaultMethod] (extendedRequest);
         //
         //     {
         //         "code": "0",
