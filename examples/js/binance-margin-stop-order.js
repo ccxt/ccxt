@@ -26,9 +26,13 @@ async function main () {
         , params = {
             'stopPrice': YOUR_STOP_PRICE_HERE,
         }
-        , order = await exchange.createOrder (symbol, type, side, amount, price, params)
 
-    console.log (order)
+        try {
+            const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+            console.log (order)
+        } catch (e) {
+            console.log (e.constructor.name, e.message)
+        }
 }
 
 main ()
