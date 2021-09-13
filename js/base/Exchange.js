@@ -562,8 +562,8 @@ module.exports = class Exchange {
     }
 
     // eslint-disable-next-line no-unused-vars
-    calculateRateLimiterCost (api, path, method, params, config = {}, context = {}) {
-        return 1
+    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+        return this.safeInteger (config, 'cost', 1);
     }
 
     async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
