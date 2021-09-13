@@ -1,7 +1,9 @@
 "use strict";
 
 const ccxt      = require ('../../ccxt.js')
-const asTable   = require ('as-table')
+const asTable   = require ('as-table');
+const { uuid } = require('../../js/base/functions/string.js');
+const { now } = require('../../js/base/functions/time.js');
 const log       = require ('ololog').configure ({ locate: false })
 
 require ('ansicolor').nice
@@ -12,7 +14,7 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
 
     // instantiate the exchange
     let exchange = new ccxt.b2c2  ({
-        "apiKey": "",
+        "apiKey": "c2ed21ef1e8c278dde40bafdb6b81736f93fb7b1",
         "verbose": true,
     })
     exchange.setSandboxMode (true);
@@ -26,19 +28,30 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
     // let balance = await exchange.fetchBalance ()
     // log (exchange.name.green, 'balance', balance)
 
-    // // fetch orders from the exchange
-    const userId = '2'; // or whoever is logged in!
-    const params = {
-        'executing_unit': userId,
-    }
+    // // // fetch orders from the exchange
+    const userId = 'test1'; // or whoever is logged in!
+
     const symbol = 'ETH/USD';
+    const type = 'market';
     const side = 'buy';
     const amount = 1;
-    let quote = await exchange.createQuote (symbol, side, amount)
-    log (exchange.name.green, 'quote', quote)
+    const price = undefined;
+    const orderParams = {
+        'valid_until': exchange.iso8601 (now () + 86400000),
+        'client_order_id': uuid(),
+        'executing_unit': userId,
+    }
+    // let order1 = await exchange.createOrder (symbol, type, side, amount, price, orderParams)
+    // log (exchange.name.green, 'order', order1)
 
-    // let orders = await exchange.fetchOrders (undefined, undefined, 1000, params)
-    // log (exchange.name.green, 'orders', orders)
+
+    // let quote = await exchange.createQuote (symbol, side, amount)
+    // log (exchange.name.green, 'quote', quote)
+
+
+    let params = {}
+    let orders = await exchange.fetchOrders (undefined, undefined, 1, params)
+    log (exchange.name.green, 'orders', orders)
 
     // // fetch ledger items from the exchange
     // let ledger = await exchange.fetchLedger (undefined, undefined, 1000, params)

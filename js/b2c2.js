@@ -1,4 +1,4 @@
-'use strict';
+ 'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -16,19 +16,16 @@ module.exports = class b2c2 extends Exchange {
             'countries': [ 'GB' ],
             'rateLimit': 500,
             'has': {
-                'fetchBalance': true,  // partially implemented
-                'fetchCurrencies': true, // partially implemented
-                'fetchMarkets': true, // partially implemented
-                'fetchOrders': true, // partially implemented
-                'fetchLedger': true, // partially implemented
-                'fetchMyTrades': true, // partially implemented
-                'createOrder': true, // partially implemented
-                'fetchOrder': true, // partially implemented
-                'fetchWithdrawals': true, // partially implemented
-                'withdraw': true, // partially implemented
-                'fetchFundingHistory': true, // not urgent, not yet done
-                'fetchFundingRate': true, // not urgent, not yet done
-                'fetchFundingRates': true, // not urgent, not yet done
+                'fetchBalance': true,
+                'fetchCurrencies': true,
+                'fetchMarkets': true,
+                'fetchOrders': true,
+                'fetchLedger': true,
+                'fetchMyTrades': true,
+                'createOrder': true,
+                'fetchOrder': true,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
@@ -126,1662 +123,8 @@ module.exports = class b2c2 extends Exchange {
                 'defaultSort': 'timestamp,asc',
                 'defaultSortOrders': 'createdAt,asc',
             },
-            'currencies': {
-                'ADA': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '1.0',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Cardano',
-                        'ada_max_qty_per_trade': 4000000,
-                    },
-                    'id': 'ADA',
-                    'code': 'ADA',
-                    'name': 'Cardano',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 1,
-                            'max': 4000000,
-                        },
-                    },
-                },
-                'AUD': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.01',
-                        'stable_coin': false,
-                        'currency_type': 'fiat',
-                        'is_crypto': false,
-                        'readable_name': 'Australian Dollar',
-                        'aud_max_qty_per_trade': 750000,
-                    },
-                    'id': 'AUD',
-                    'code': 'AUD',
-                    'name': 'Australian Dollar',
-                    'type': 'fiat',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.01,
-                            'max': 750000,
-                        },
-                    },
-                },
-                'BCH': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.01',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Bitcoin cash',
-                        'bch_max_qty_per_trade': 500,
-                    },
-                    'id': 'BCH',
-                    'code': 'BCH',
-                    'name': 'Bitcoin cash',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.01,
-                            'max': 500,
-                        },
-                    },
-                },
-                'BNB': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.01',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Binance Coin',
-                        'bnb_max_qty_per_trade': 1700,
-                    },
-                    'id': 'BNB',
-                    'code': 'BNB',
-                    'name': 'Binance Coin',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.01,
-                            'max': 1700,
-                        },
-                    },
-                },
-                'BTC': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.0005',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Bitcoin',
-                        'btc_max_qty_per_trade': 100,
-                    },
-                    'id': 'BTC',
-                    'code': 'BTC',
-                    'name': 'Bitcoin',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.0005,
-                            'max': 100,
-                        },
-                    },
-                },
-                'CAD': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.01',
-                        'stable_coin': false,
-                        'currency_type': 'fiat',
-                        'is_crypto': false,
-                        'readable_name': 'Canadian Dollar',
-                        'cad_max_qty_per_trade': 750000,
-                    },
-                    'id': 'CAD',
-                    'code': 'CAD',
-                    'name': 'Canadian Dollar',
-                    'type': 'fiat',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.01,
-                            'max': 750000,
-                        },
-                    },
-                },
-                'CHF': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.01',
-                        'stable_coin': false,
-                        'currency_type': 'fiat',
-                        'is_crypto': false,
-                        'readable_name': 'Swiss Franc',
-                        'chf_max_qty_per_trade': 550000,
-                    },
-                    'id': 'CHF',
-                    'code': 'CHF',
-                    'name': 'Swiss Franc',
-                    'type': 'fiat',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.01,
-                            'max': 550000,
-                        },
-                    },
-                },
-                'CNH': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '1.0',
-                        'stable_coin': false,
-                        'currency_type': 'fiat',
-                        'is_crypto': false,
-                        'readable_name': 'Offshore Renminbi',
-                        'cnh_max_qty_per_trade': 600000,
-                    },
-                    'id': 'CNH',
-                    'code': 'CNH',
-                    'name': 'Offshore Renminbi',
-                    'type': 'fiat',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 1,
-                            'max': 600000,
-                        },
-                    },
-                },
-                'DOG': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '1.0',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Dogecoin',
-                        'dog_max_qty_per_trade': 1800000,
-                    },
-                    'id': 'DOG',
-                    'code': 'DOG',
-                    'name': 'Dogecoin',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 1,
-                            'max': 1800000,
-                        },
-                    },
-                },
-                'DOT': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.5',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Polkadot',
-                        'dot_max_qty_per_trade': 100000,
-                    },
-                    'id': 'DOT',
-                    'code': 'DOT',
-                    'name': 'Polkadot',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.5,
-                            'max': 100000,
-                        },
-                    },
-                },
-                'EOS': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '1.0',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'EOS',
-                        'eos_max_qty_per_trade': 20000,
-                    },
-                    'id': 'EOS',
-                    'code': 'EOS',
-                    'name': 'EOS',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 1,
-                            'max': 20000,
-                        },
-                    },
-                },
-                'ETH': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.005',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Ether',
-                        'eth_max_qty_per_trade': 1000,
-                    },
-                    'id': 'ETH',
-                    'code': 'ETH',
-                    'name': 'Ether',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.005,
-                            'max': 1000,
-                        },
-                    },
-                },
-                'EUR': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.01',
-                        'stable_coin': false,
-                        'currency_type': 'fiat',
-                        'is_crypto': false,
-                        'readable_name': 'Euro',
-                        'eur_max_qty_per_trade': 500000,
-                    },
-                    'id': 'EUR',
-                    'code': 'EUR',
-                    'name': 'Euro',
-                    'type': 'fiat',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.01,
-                            'max': 500000,
-                        },
-                    },
-                },
-                'GBP': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.01',
-                        'stable_coin': false,
-                        'currency_type': 'fiat',
-                        'is_crypto': false,
-                        'readable_name': 'Great British Pound',
-                        'gbp_max_qty_per_trade': 450000,
-                    },
-                    'id': 'GBP',
-                    'code': 'GBP',
-                    'name': 'Great British Pound',
-                    'type': 'fiat',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.01,
-                            'max': 450000,
-                        },
-                    },
-                },
-                'JPY': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.01',
-                        'stable_coin': false,
-                        'currency_type': 'fiat',
-                        'is_crypto': false,
-                        'readable_name': 'Japanese Yen',
-                        'jpy_max_qty_per_trade': 65000000,
-                    },
-                    'id': 'JPY',
-                    'code': 'JPY',
-                    'name': 'Japanese Yen',
-                    'type': 'fiat',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.01,
-                            'max': 65000000,
-                        },
-                    },
-                },
-                'LNK': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.1',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Chainlink',
-                        'lnk_max_qty_per_trade': 60000,
-                    },
-                    'id': 'LNK',
-                    'code': 'LNK',
-                    'name': 'Chainlink',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.1,
-                            'max': 60000,
-                        },
-                    },
-                },
-                'LTC': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.1',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Litecoin',
-                        'ltc_max_qty_per_trade': 4000,
-                    },
-                    'id': 'LTC',
-                    'code': 'LTC',
-                    'name': 'Litecoin',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.1,
-                            'max': 4000,
-                        },
-                    },
-                },
-                'MXN': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '1.0',
-                        'stable_coin': false,
-                        'currency_type': 'fiat',
-                        'is_crypto': false,
-                        'readable_name': '',
-                        'mxn_max_qty_per_trade': 12300000,
-                    },
-                    'id': 'MXN',
-                    'code': 'MXN',
-                    'name': '',
-                    'type': 'fiat',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 1,
-                            'max': 12300000,
-                        },
-                    },
-                },
-                'NZD': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.01',
-                        'stable_coin': false,
-                        'currency_type': 'fiat',
-                        'is_crypto': false,
-                        'readable_name': '',
-                    },
-                    'id': 'NZD',
-                    'code': 'NZD',
-                    'name': '',
-                    'type': 'fiat',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.01,
-                        },
-                    },
-                },
-                'SGD': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.01',
-                        'stable_coin': false,
-                        'currency_type': 'fiat',
-                        'is_crypto': false,
-                        'readable_name': 'Singapore Dollar',
-                        'sgd_max_qty_per_trade': 800000,
-                    },
-                    'id': 'SGD',
-                    'code': 'SGD',
-                    'name': 'Singapore Dollar',
-                    'type': 'fiat',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.01,
-                            'max': 800000,
-                        },
-                    },
-                },
-                'UNI': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.1',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Uniswap',
-                        'uni_max_qty_per_trade': 25000,
-                    },
-                    'id': 'UNI',
-                    'code': 'UNI',
-                    'name': 'Uniswap',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.1,
-                            'max': 25000,
-                        },
-                    },
-                },
-                'USC': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.01',
-                        'stable_coin': true,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'USD Coin',
-                        'usc_max_qty_per_trade': 600000,
-                    },
-                    'id': 'USC',
-                    'code': 'USC',
-                    'name': 'USD Coin',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                    },
-                },
-                'USD': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.01',
-                        'stable_coin': false,
-                        'currency_type': 'fiat',
-                        'is_crypto': false,
-                        'readable_name': 'US Dollar',
-                        'usd_max_qty_per_trade': 600000,
-                    },
-                    'id': 'USD',
-                    'code': 'USD',
-                    'name': 'US Dollar',
-                    'type': 'fiat',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                    },
-                },
-                'UST': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.01',
-                        'stable_coin': true,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Tether',
-                        'ust_max_qty_per_trade': 600000,
-                    },
-                    'id': 'UST',
-                    'code': 'UST',
-                    'name': 'Tether',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                    },
-                },
-                'XAU': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '1.0',
-                        'stable_coin': false,
-                        'currency_type': 'synthetic',
-                        'is_crypto': false,
-                        'readable_name': 'XAU',
-                        'xau_max_qty_per_trade': 1000,
-                    },
-                    'id': 'XAU',
-                    'code': 'XAU',
-                    'name': 'XAU',
-                    'type': 'synthetic',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 1,
-                            'max': 1000,
-                        },
-                    },
-                },
-                'XLM': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '100.0',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Stellar',
-                        'xlm_max_qty_per_trade': 4000000,
-                    },
-                    'id': 'XLM',
-                    'code': 'XLM',
-                    'name': 'Stellar',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 100,
-                            'max': 4000000,
-                        },
-                    },
-                },
-                'XMR': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '0.01',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Monero',
-                    },
-                    'id': 'XMR',
-                    'code': 'XMR',
-                    'name': 'Monero',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 0.01,
-                        },
-                    },
-                },
-                'XRP': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '20.0',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Ripple',
-                        'xrp_max_qty_per_trade': 200000,
-                    },
-                    'id': 'XRP',
-                    'code': 'XRP',
-                    'name': 'Ripple',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 20,
-                            'max': 200000,
-                        },
-                    },
-                },
-                'XTZ': {
-                    'info': {
-                        'long_only': false,
-                        'minimum_trade_size': '1.0',
-                        'stable_coin': false,
-                        'currency_type': 'crypto',
-                        'is_crypto': true,
-                        'readable_name': 'Tezos',
-                        'xtz_max_qty_per_trade': 170000,
-                    },
-                    'id': 'XTZ',
-                    'code': 'XTZ',
-                    'name': 'Tezos',
-                    'type': 'crypto',
-                    'active': true,
-                    'precision': 4,
-                    'limits': {
-                        'withdraw': {},
-                        'amount': {
-                            'min': 1,
-                            'max': 170000,
-                        },
-                    },
-                },
-            },
-            'markets': {
-                'LTC/USD': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.1,
-                            'max': 4000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'LTCUSD.SPOT',
-                        'underlier': 'LTCUSD',
-                        'type': 'SPOT',
-                    },
-                    'id': 'LTCUSD.SPOT',
-                    'symbol': 'LTC/USD',
-                    'base': 'LTC',
-                    'quote': 'USD',
-                    'baseId': 'LTC',
-                    'quoteId': 'USD',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'BCH/USD': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.01,
-                            'max': 500,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'BCHUSD.SPOT',
-                        'underlier': 'BCHUSD',
-                        'type': 'SPOT',
-                    },
-                    'id': 'BCHUSD.SPOT',
-                    'symbol': 'BCH/USD',
-                    'base': 'BCH',
-                    'quote': 'USD',
-                    'baseId': 'BCH',
-                    'quoteId': 'USD',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'LNK/ETH': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.1,
-                            'max': 60000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.005,
-                            'max': 1000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'LNKETH.SPOT',
-                        'underlier': 'LNKETH',
-                        'type': 'SPOT',
-                    },
-                    'id': 'LNKETH.SPOT',
-                    'symbol': 'LNK/ETH',
-                    'base': 'LNK',
-                    'quote': 'ETH',
-                    'baseId': 'LNK',
-                    'quoteId': 'ETH',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'BTC/USD': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.0005,
-                            'max': 100,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'BTCUSD.SPOT',
-                        'underlier': 'BTCUSD',
-                        'type': 'SPOT',
-                    },
-                    'id': 'BTCUSD.SPOT',
-                    'symbol': 'BTC/USD',
-                    'base': 'BTC',
-                    'quote': 'USD',
-                    'baseId': 'BTC',
-                    'quoteId': 'USD',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'ETH/BTC': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.005,
-                            'max': 1000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.0005,
-                            'max': 100,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'ETHBTC.SPOT',
-                        'underlier': 'ETHBTC',
-                        'type': 'SPOT',
-                    },
-                    'id': 'ETHBTC.SPOT',
-                    'symbol': 'ETH/BTC',
-                    'base': 'ETH',
-                    'quote': 'BTC',
-                    'baseId': 'ETH',
-                    'quoteId': 'BTC',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'ETH/USD': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.005,
-                            'max': 1000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'ETHUSD.SPOT',
-                        'underlier': 'ETHUSD',
-                        'type': 'SPOT',
-                    },
-                    'id': 'ETHUSD.SPOT',
-                    'symbol': 'ETH/USD',
-                    'base': 'ETH',
-                    'quote': 'USD',
-                    'baseId': 'ETH',
-                    'quoteId': 'USD',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'DOT/BTC': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.5,
-                            'max': 100000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.0005,
-                            'max': 100,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'DOTBTC.SPOT',
-                        'underlier': 'DOTBTC',
-                        'type': 'SPOT',
-                    },
-                    'id': 'DOTBTC.SPOT',
-                    'symbol': 'DOT/BTC',
-                    'base': 'DOT',
-                    'quote': 'BTC',
-                    'baseId': 'DOT',
-                    'quoteId': 'BTC',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'DOT/USD': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.5,
-                            'max': 100000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'DOTUSD.SPOT',
-                        'underlier': 'DOTUSD',
-                        'type': 'SPOT',
-                    },
-                    'id': 'DOTUSD.SPOT',
-                    'symbol': 'DOT/USD',
-                    'base': 'DOT',
-                    'quote': 'USD',
-                    'baseId': 'DOT',
-                    'quoteId': 'USD',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'DOT/ETH': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.5,
-                            'max': 100000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.005,
-                            'max': 1000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'DOTETH.SPOT',
-                        'underlier': 'DOTETH',
-                        'type': 'SPOT',
-                    },
-                    'id': 'DOTETH.SPOT',
-                    'symbol': 'DOT/ETH',
-                    'base': 'DOT',
-                    'quote': 'ETH',
-                    'baseId': 'DOT',
-                    'quoteId': 'ETH',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'BCH/BTC': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.01,
-                            'max': 500,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.0005,
-                            'max': 100,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'BCHBTC.SPOT',
-                        'underlier': 'BCHBTC',
-                        'type': 'SPOT',
-                    },
-                    'id': 'BCHBTC.SPOT',
-                    'symbol': 'BCH/BTC',
-                    'base': 'BCH',
-                    'quote': 'BTC',
-                    'baseId': 'BCH',
-                    'quoteId': 'BTC',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'XRP/BTC': {
-                    'limits': {
-                        'amount': {
-                            'min': 20,
-                            'max': 200000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.0005,
-                            'max': 100,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'XRPBTC.SPOT',
-                        'underlier': 'XRPBTC',
-                        'type': 'SPOT',
-                    },
-                    'id': 'XRPBTC.SPOT',
-                    'symbol': 'XRP/BTC',
-                    'base': 'XRP',
-                    'quote': 'BTC',
-                    'baseId': 'XRP',
-                    'quoteId': 'BTC',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'XRP/ETH': {
-                    'limits': {
-                        'amount': {
-                            'min': 20,
-                            'max': 200000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.005,
-                            'max': 1000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'XRPETH.SPOT',
-                        'underlier': 'XRPETH',
-                        'type': 'SPOT',
-                    },
-                    'id': 'XRPETH.SPOT',
-                    'symbol': 'XRP/ETH',
-                    'base': 'XRP',
-                    'quote': 'ETH',
-                    'baseId': 'XRP',
-                    'quoteId': 'ETH',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'XLM/BTC': {
-                    'limits': {
-                        'amount': {
-                            'min': 100,
-                            'max': 4000000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.0005,
-                            'max': 100,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'XLMBTC.SPOT',
-                        'underlier': 'XLMBTC',
-                        'type': 'SPOT',
-                    },
-                    'id': 'XLMBTC.SPOT',
-                    'symbol': 'XLM/BTC',
-                    'base': 'XLM',
-                    'quote': 'BTC',
-                    'baseId': 'XLM',
-                    'quoteId': 'BTC',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'XLM/ETH': {
-                    'limits': {
-                        'amount': {
-                            'min': 100,
-                            'max': 4000000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.005,
-                            'max': 1000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'XLMETH.SPOT',
-                        'underlier': 'XLMETH',
-                        'type': 'SPOT',
-                    },
-                    'id': 'XLMETH.SPOT',
-                    'symbol': 'XLM/ETH',
-                    'base': 'XLM',
-                    'quote': 'ETH',
-                    'baseId': 'XLM',
-                    'quoteId': 'ETH',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'LTC/BTC': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.1,
-                            'max': 4000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.0005,
-                            'max': 100,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'LTCBTC.SPOT',
-                        'underlier': 'LTCBTC',
-                        'type': 'SPOT',
-                    },
-                    'id': 'LTCBTC.SPOT',
-                    'symbol': 'LTC/BTC',
-                    'base': 'LTC',
-                    'quote': 'BTC',
-                    'baseId': 'LTC',
-                    'quoteId': 'BTC',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'XRP/USD': {
-                    'limits': {
-                        'amount': {
-                            'min': 20,
-                            'max': 200000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'XRPUSD.SPOT',
-                        'underlier': 'XRPUSD',
-                        'type': 'SPOT',
-                    },
-                    'id': 'XRPUSD.SPOT',
-                    'symbol': 'XRP/USD',
-                    'base': 'XRP',
-                    'quote': 'USD',
-                    'baseId': 'XRP',
-                    'quoteId': 'USD',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'EOS/USD': {
-                    'limits': {
-                        'amount': {
-                            'min': 1,
-                            'max': 20000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'EOSUSD.SPOT',
-                        'underlier': 'EOSUSD',
-                        'type': 'SPOT',
-                    },
-                    'id': 'EOSUSD.SPOT',
-                    'symbol': 'EOS/USD',
-                    'base': 'EOS',
-                    'quote': 'USD',
-                    'baseId': 'EOS',
-                    'quoteId': 'USD',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'UST/USD': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'USTUSD.SPOT',
-                        'underlier': 'USTUSD',
-                        'type': 'SPOT',
-                    },
-                    'id': 'USTUSD.SPOT',
-                    'symbol': 'UST/USD',
-                    'base': 'UST',
-                    'quote': 'USD',
-                    'baseId': 'UST',
-                    'quoteId': 'USD',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'LTC/ETH': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.1,
-                            'max': 4000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.005,
-                            'max': 1000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'LTCETH.SPOT',
-                        'underlier': 'LTCETH',
-                        'type': 'SPOT',
-                    },
-                    'id': 'LTCETH.SPOT',
-                    'symbol': 'LTC/ETH',
-                    'base': 'LTC',
-                    'quote': 'ETH',
-                    'baseId': 'LTC',
-                    'quoteId': 'ETH',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'LNK/USD': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.1,
-                            'max': 60000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'LNKUSD.SPOT',
-                        'underlier': 'LNKUSD',
-                        'type': 'SPOT',
-                    },
-                    'id': 'LNKUSD.SPOT',
-                    'symbol': 'LNK/USD',
-                    'base': 'LNK',
-                    'quote': 'USD',
-                    'baseId': 'LNK',
-                    'quoteId': 'USD',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'EOS/BTC': {
-                    'limits': {
-                        'amount': {
-                            'min': 1,
-                            'max': 20000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.0005,
-                            'max': 100,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'EOSBTC.SPOT',
-                        'underlier': 'EOSBTC',
-                        'type': 'SPOT',
-                    },
-                    'id': 'EOSBTC.SPOT',
-                    'symbol': 'EOS/BTC',
-                    'base': 'EOS',
-                    'quote': 'BTC',
-                    'baseId': 'EOS',
-                    'quoteId': 'BTC',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'XLM/USD': {
-                    'limits': {
-                        'amount': {
-                            'min': 100,
-                            'max': 4000000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'XLMUSD.SPOT',
-                        'underlier': 'XLMUSD',
-                        'type': 'SPOT',
-                    },
-                    'id': 'XLMUSD.SPOT',
-                    'symbol': 'XLM/USD',
-                    'base': 'XLM',
-                    'quote': 'USD',
-                    'baseId': 'XLM',
-                    'quoteId': 'USD',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'USC/USD': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.01,
-                            'max': 600000,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'USCUSD.SPOT',
-                        'underlier': 'USCUSD',
-                        'type': 'SPOT',
-                    },
-                    'id': 'USCUSD.SPOT',
-                    'symbol': 'USC/USD',
-                    'base': 'USC',
-                    'quote': 'USD',
-                    'baseId': 'USC',
-                    'quoteId': 'USD',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-                'LNK/BTC': {
-                    'limits': {
-                        'amount': {
-                            'min': 0.1,
-                            'max': 60000,
-                        },
-                        'price': {
-                            'min': 0.0001,
-                        },
-                        'cost': {
-                            'min': 0.0005,
-                            'max': 100,
-                        },
-                    },
-                    'precision': {
-                        'base': 4,
-                        'quote': 4,
-                        'price': 4,
-                        'amount': 4,
-                    },
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.002,
-                    'info': {
-                        'name': 'LNKBTC.SPOT',
-                        'underlier': 'LNKBTC',
-                        'type': 'SPOT',
-                    },
-                    'id': 'LNKBTC.SPOT',
-                    'symbol': 'LNK/BTC',
-                    'base': 'LNK',
-                    'quote': 'BTC',
-                    'baseId': 'LNK',
-                    'quoteId': 'BTC',
-                    'type': 'SPOT',
-                    'spot': true,
-                    'margin': false,
-                    'active': true,
-                },
-            },
+            'currencies': {"ADA":{"info":{"long_only":false,"minimum_trade_size":"1.0","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"Cardano","ada_max_qty_per_trade":4000000},"id":"ADA","code":"ADA","name":"Cardano","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":1,"max":4000000}}},"AUD":{"info":{"long_only":false,"minimum_trade_size":"0.01","stable_coin":false,"currency_type":"fiat","is_crypto":false,"readable_name":"Australian Dollar","aud_max_qty_per_trade":750000},"id":"AUD","code":"AUD","name":"Australian Dollar","type":"fiat","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.01,"max":750000}}},"BCH":{"info":{"long_only":false,"minimum_trade_size":"0.01","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"Bitcoin cash","bch_max_qty_per_trade":500},"id":"BCH","code":"BCH","name":"Bitcoin cash","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.01,"max":500}}},"BNB":{"info":{"long_only":false,"minimum_trade_size":"0.01","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"Binance Coin","bnb_max_qty_per_trade":1700},"id":"BNB","code":"BNB","name":"Binance Coin","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.01,"max":1700}}},"BTC":{"info":{"long_only":false,"minimum_trade_size":"0.0005","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"Bitcoin","btc_max_qty_per_trade":100},"id":"BTC","code":"BTC","name":"Bitcoin","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.0005,"max":100}}},"CAD":{"info":{"long_only":false,"minimum_trade_size":"0.01","stable_coin":false,"currency_type":"fiat","is_crypto":false,"readable_name":"Canadian Dollar","cad_max_qty_per_trade":750000},"id":"CAD","code":"CAD","name":"Canadian Dollar","type":"fiat","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.01,"max":750000}}},"CHF":{"info":{"long_only":false,"minimum_trade_size":"0.01","stable_coin":false,"currency_type":"fiat","is_crypto":false,"readable_name":"Swiss Franc","chf_max_qty_per_trade":550000},"id":"CHF","code":"CHF","name":"Swiss Franc","type":"fiat","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.01,"max":550000}}},"CNH":{"info":{"long_only":false,"minimum_trade_size":"1.0","stable_coin":false,"currency_type":"fiat","is_crypto":false,"readable_name":"Offshore Renminbi","cnh_max_qty_per_trade":600000},"id":"CNH","code":"CNH","name":"Offshore Renminbi","type":"fiat","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":1,"max":600000}}},"DOG":{"info":{"long_only":false,"minimum_trade_size":"1.0","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"Dogecoin","dog_max_qty_per_trade":1800000},"id":"DOG","code":"DOG","name":"Dogecoin","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":1,"max":1800000}}},"DOT":{"info":{"long_only":false,"minimum_trade_size":"0.5","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"Polkadot","dot_max_qty_per_trade":100000},"id":"DOT","code":"DOT","name":"Polkadot","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.5,"max":100000}}},"EOS":{"info":{"long_only":false,"minimum_trade_size":"1.0","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"EOS","eos_max_qty_per_trade":20000},"id":"EOS","code":"EOS","name":"EOS","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":1,"max":20000}}},"ETH":{"info":{"long_only":false,"minimum_trade_size":"0.005","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"Ether","eth_max_qty_per_trade":1000},"id":"ETH","code":"ETH","name":"Ether","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.005,"max":1000}}},"EUR":{"info":{"long_only":false,"minimum_trade_size":"0.01","stable_coin":false,"currency_type":"fiat","is_crypto":false,"readable_name":"Euro","eur_max_qty_per_trade":500000},"id":"EUR","code":"EUR","name":"Euro","type":"fiat","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.01,"max":500000}}},"GBP":{"info":{"long_only":false,"minimum_trade_size":"0.01","stable_coin":false,"currency_type":"fiat","is_crypto":false,"readable_name":"Great British Pound","gbp_max_qty_per_trade":450000},"id":"GBP","code":"GBP","name":"Great British Pound","type":"fiat","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.01,"max":450000}}},"JPY":{"info":{"long_only":false,"minimum_trade_size":"0.01","stable_coin":false,"currency_type":"fiat","is_crypto":false,"readable_name":"Japanese Yen","jpy_max_qty_per_trade":65000000},"id":"JPY","code":"JPY","name":"Japanese Yen","type":"fiat","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.01,"max":65000000}}},"LNK":{"info":{"long_only":false,"minimum_trade_size":"0.1","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"Chainlink","lnk_max_qty_per_trade":60000},"id":"LNK","code":"LNK","name":"Chainlink","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.1,"max":60000}}},"LTC":{"info":{"long_only":false,"minimum_trade_size":"0.1","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"Litecoin","ltc_max_qty_per_trade":4000},"id":"LTC","code":"LTC","name":"Litecoin","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.1,"max":4000}}},"MXN":{"info":{"long_only":false,"minimum_trade_size":"1.0","stable_coin":false,"currency_type":"fiat","is_crypto":false,"readable_name":"","mxn_max_qty_per_trade":12300000},"id":"MXN","code":"MXN","name":"","type":"fiat","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":1,"max":12300000}}},"NZD":{"info":{"long_only":false,"minimum_trade_size":"0.01","stable_coin":false,"currency_type":"fiat","is_crypto":false,"readable_name":""},"id":"NZD","code":"NZD","name":"","type":"fiat","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.01}}},"SGD":{"info":{"long_only":false,"minimum_trade_size":"0.01","stable_coin":false,"currency_type":"fiat","is_crypto":false,"readable_name":"Singapore Dollar","sgd_max_qty_per_trade":800000},"id":"SGD","code":"SGD","name":"Singapore Dollar","type":"fiat","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.01,"max":800000}}},"UNI":{"info":{"long_only":false,"minimum_trade_size":"0.1","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"Uniswap","uni_max_qty_per_trade":25000},"id":"UNI","code":"UNI","name":"Uniswap","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.1,"max":25000}}},"USC":{"info":{"long_only":false,"minimum_trade_size":"0.01","stable_coin":true,"currency_type":"crypto","is_crypto":true,"readable_name":"USD Coin","usc_max_qty_per_trade":600000},"id":"USC","code":"USC","name":"USD Coin","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.01,"max":600000}}},"USD":{"info":{"long_only":false,"minimum_trade_size":"0.01","stable_coin":false,"currency_type":"fiat","is_crypto":false,"readable_name":"US Dollar","usd_max_qty_per_trade":600000},"id":"USD","code":"USD","name":"US Dollar","type":"fiat","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.01,"max":600000}}},"UST":{"info":{"long_only":false,"minimum_trade_size":"0.01","stable_coin":true,"currency_type":"crypto","is_crypto":true,"readable_name":"Tether","ust_max_qty_per_trade":600000},"id":"UST","code":"UST","name":"Tether","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.01,"max":600000}}},"XAU":{"info":{"long_only":false,"minimum_trade_size":"1.0","stable_coin":false,"currency_type":"synthetic","is_crypto":false,"readable_name":"XAU","xau_max_qty_per_trade":1000},"id":"XAU","code":"XAU","name":"XAU","type":"synthetic","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":1,"max":1000}}},"XLM":{"info":{"long_only":false,"minimum_trade_size":"100.0","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"Stellar","xlm_max_qty_per_trade":4000000},"id":"XLM","code":"XLM","name":"Stellar","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":100,"max":4000000}}},"XMR":{"info":{"long_only":false,"minimum_trade_size":"0.01","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"Monero"},"id":"XMR","code":"XMR","name":"Monero","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":0.01}}},"XRP":{"info":{"long_only":false,"minimum_trade_size":"20.0","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"Ripple","xrp_max_qty_per_trade":200000},"id":"XRP","code":"XRP","name":"Ripple","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":20,"max":200000}}},"XTZ":{"info":{"long_only":false,"minimum_trade_size":"1.0","stable_coin":false,"currency_type":"crypto","is_crypto":true,"readable_name":"Tezos","xtz_max_qty_per_trade":170000},"id":"XTZ","code":"XTZ","name":"Tezos","type":"crypto","active":true,"precision":4,"limits":{"withdraw":{},"amount":{"min":1,"max":170000}}}},
+            'markets': {"LTC/USD":{"limits":{"amount":{"min":0.1,"max":4000},"price":{"min":0.0001},"cost":{"min":0.01,"max":600000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"LTCUSD.SPOT","underlier":"LTCUSD","type":"SPOT"},"id":"LTCUSD.SPOT","symbol":"LTC/USD","base":"LTC","quote":"USD","baseId":"LTC","quoteId":"USD","type":"SPOT","spot":true,"margin":false,"active":true},"BCH/USD":{"limits":{"amount":{"min":0.01,"max":500},"price":{"min":0.0001},"cost":{"min":0.01,"max":600000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"BCHUSD.SPOT","underlier":"BCHUSD","type":"SPOT"},"id":"BCHUSD.SPOT","symbol":"BCH/USD","base":"BCH","quote":"USD","baseId":"BCH","quoteId":"USD","type":"SPOT","spot":true,"margin":false,"active":true},"EOS/AUD":{"limits":{"amount":{"min":1,"max":20000},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"EOSAUD.SPOT","underlier":"EOSAUD","type":"SPOT"},"id":"EOSAUD.SPOT","symbol":"EOS/AUD","base":"EOS","quote":"AUD","baseId":"EOS","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"UST/AUD":{"limits":{"amount":{"min":0.01,"max":600000},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"USTAUD.SPOT","underlier":"USTAUD","type":"SPOT"},"id":"USTAUD.SPOT","symbol":"UST/AUD","base":"UST","quote":"AUD","baseId":"UST","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"LNK/ETH":{"limits":{"amount":{"min":0.1,"max":60000},"price":{"min":0.0001},"cost":{"min":0.005,"max":1000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"LNKETH.SPOT","underlier":"LNKETH","type":"SPOT"},"id":"LNKETH.SPOT","symbol":"LNK/ETH","base":"LNK","quote":"ETH","baseId":"LNK","quoteId":"ETH","type":"SPOT","spot":true,"margin":false,"active":true},"BTC/USD":{"limits":{"amount":{"min":0.0005,"max":100},"price":{"min":0.0001},"cost":{"min":0.01,"max":600000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"BTCUSD.SPOT","underlier":"BTCUSD","type":"SPOT"},"id":"BTCUSD.SPOT","symbol":"BTC/USD","base":"BTC","quote":"USD","baseId":"BTC","quoteId":"USD","type":"SPOT","spot":true,"margin":false,"active":true},"ETH/BTC":{"limits":{"amount":{"min":0.005,"max":1000},"price":{"min":0.0001},"cost":{"min":0.0005,"max":100}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"ETHBTC.SPOT","underlier":"ETHBTC","type":"SPOT"},"id":"ETHBTC.SPOT","symbol":"ETH/BTC","base":"ETH","quote":"BTC","baseId":"ETH","quoteId":"BTC","type":"SPOT","spot":true,"margin":false,"active":true},"ETH/USD":{"limits":{"amount":{"min":0.005,"max":1000},"price":{"min":0.0001},"cost":{"min":0.01,"max":600000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"ETHUSD.SPOT","underlier":"ETHUSD","type":"SPOT"},"id":"ETHUSD.SPOT","symbol":"ETH/USD","base":"ETH","quote":"USD","baseId":"ETH","quoteId":"USD","type":"SPOT","spot":true,"margin":false,"active":true},"BCH/AUD":{"limits":{"amount":{"min":0.01,"max":500},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"BCHAUD.SPOT","underlier":"BCHAUD","type":"SPOT"},"id":"BCHAUD.SPOT","symbol":"BCH/AUD","base":"BCH","quote":"AUD","baseId":"BCH","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"LTC/AUD":{"limits":{"amount":{"min":0.1,"max":4000},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"LTCAUD.SPOT","underlier":"LTCAUD","type":"SPOT"},"id":"LTCAUD.SPOT","symbol":"LTC/AUD","base":"LTC","quote":"AUD","baseId":"LTC","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"DOT/BTC":{"limits":{"amount":{"min":0.5,"max":100000},"price":{"min":0.0001},"cost":{"min":0.0005,"max":100}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"DOTBTC.SPOT","underlier":"DOTBTC","type":"SPOT"},"id":"DOTBTC.SPOT","symbol":"DOT/BTC","base":"DOT","quote":"BTC","baseId":"DOT","quoteId":"BTC","type":"SPOT","spot":true,"margin":false,"active":true},"DOT/USD":{"limits":{"amount":{"min":0.5,"max":100000},"price":{"min":0.0001},"cost":{"min":0.01,"max":600000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"DOTUSD.SPOT","underlier":"DOTUSD","type":"SPOT"},"id":"DOTUSD.SPOT","symbol":"DOT/USD","base":"DOT","quote":"USD","baseId":"DOT","quoteId":"USD","type":"SPOT","spot":true,"margin":false,"active":true},"DOT/ETH":{"limits":{"amount":{"min":0.5,"max":100000},"price":{"min":0.0001},"cost":{"min":0.005,"max":1000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"DOTETH.SPOT","underlier":"DOTETH","type":"SPOT"},"id":"DOTETH.SPOT","symbol":"DOT/ETH","base":"DOT","quote":"ETH","baseId":"DOT","quoteId":"ETH","type":"SPOT","spot":true,"margin":false,"active":true},"DOT/AUD":{"limits":{"amount":{"min":0.5,"max":100000},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"DOTAUD.SPOT","underlier":"DOTAUD","type":"SPOT"},"id":"DOTAUD.SPOT","symbol":"DOT/AUD","base":"DOT","quote":"AUD","baseId":"DOT","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"XTZ/AUD":{"limits":{"amount":{"min":1,"max":170000},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"XTZAUD.SPOT","underlier":"XTZAUD","type":"SPOT"},"id":"XTZAUD.SPOT","symbol":"XTZ/AUD","base":"XTZ","quote":"AUD","baseId":"XTZ","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"DOG/AUD":{"limits":{"amount":{"min":1,"max":1800000},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"DOGAUD.SPOT","underlier":"DOGAUD","type":"SPOT"},"id":"DOGAUD.SPOT","symbol":"DOG/AUD","base":"DOG","quote":"AUD","baseId":"DOG","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"BCH/BTC":{"limits":{"amount":{"min":0.01,"max":500},"price":{"min":0.0001},"cost":{"min":0.0005,"max":100}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"BCHBTC.SPOT","underlier":"BCHBTC","type":"SPOT"},"id":"BCHBTC.SPOT","symbol":"BCH/BTC","base":"BCH","quote":"BTC","baseId":"BCH","quoteId":"BTC","type":"SPOT","spot":true,"margin":false,"active":true},"XRP/BTC":{"limits":{"amount":{"min":20,"max":200000},"price":{"min":0.0001},"cost":{"min":0.0005,"max":100}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"XRPBTC.SPOT","underlier":"XRPBTC","type":"SPOT"},"id":"XRPBTC.SPOT","symbol":"XRP/BTC","base":"XRP","quote":"BTC","baseId":"XRP","quoteId":"BTC","type":"SPOT","spot":true,"margin":false,"active":true},"XRP/ETH":{"limits":{"amount":{"min":20,"max":200000},"price":{"min":0.0001},"cost":{"min":0.005,"max":1000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"XRPETH.SPOT","underlier":"XRPETH","type":"SPOT"},"id":"XRPETH.SPOT","symbol":"XRP/ETH","base":"XRP","quote":"ETH","baseId":"XRP","quoteId":"ETH","type":"SPOT","spot":true,"margin":false,"active":true},"LNK/AUD":{"limits":{"amount":{"min":0.1,"max":60000},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"LNKAUD.SPOT","underlier":"LNKAUD","type":"SPOT"},"id":"LNKAUD.SPOT","symbol":"LNK/AUD","base":"LNK","quote":"AUD","baseId":"LNK","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"USC/AUD":{"limits":{"amount":{"min":0.01,"max":600000},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"USCAUD.SPOT","underlier":"USCAUD","type":"SPOT"},"id":"USCAUD.SPOT","symbol":"USC/AUD","base":"USC","quote":"AUD","baseId":"USC","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"XLM/BTC":{"limits":{"amount":{"min":100,"max":4000000},"price":{"min":0.0001},"cost":{"min":0.0005,"max":100}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"XLMBTC.SPOT","underlier":"XLMBTC","type":"SPOT"},"id":"XLMBTC.SPOT","symbol":"XLM/BTC","base":"XLM","quote":"BTC","baseId":"XLM","quoteId":"BTC","type":"SPOT","spot":true,"margin":false,"active":true},"XLM/ETH":{"limits":{"amount":{"min":100,"max":4000000},"price":{"min":0.0001},"cost":{"min":0.005,"max":1000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"XLMETH.SPOT","underlier":"XLMETH","type":"SPOT"},"id":"XLMETH.SPOT","symbol":"XLM/ETH","base":"XLM","quote":"ETH","baseId":"XLM","quoteId":"ETH","type":"SPOT","spot":true,"margin":false,"active":true},"BTC/AUD":{"limits":{"amount":{"min":0.0005,"max":100},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"BTCAUD.SPOT","underlier":"BTCAUD","type":"SPOT"},"id":"BTCAUD.SPOT","symbol":"BTC/AUD","base":"BTC","quote":"AUD","baseId":"BTC","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"ETH/AUD":{"limits":{"amount":{"min":0.005,"max":1000},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"ETHAUD.SPOT","underlier":"ETHAUD","type":"SPOT"},"id":"ETHAUD.SPOT","symbol":"ETH/AUD","base":"ETH","quote":"AUD","baseId":"ETH","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"LTC/BTC":{"limits":{"amount":{"min":0.1,"max":4000},"price":{"min":0.0001},"cost":{"min":0.0005,"max":100}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"LTCBTC.SPOT","underlier":"LTCBTC","type":"SPOT"},"id":"LTCBTC.SPOT","symbol":"LTC/BTC","base":"LTC","quote":"BTC","baseId":"LTC","quoteId":"BTC","type":"SPOT","spot":true,"margin":false,"active":true},"XRP/USD":{"limits":{"amount":{"min":20,"max":200000},"price":{"min":0.0001},"cost":{"min":0.01,"max":600000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"XRPUSD.SPOT","underlier":"XRPUSD","type":"SPOT"},"id":"XRPUSD.SPOT","symbol":"XRP/USD","base":"XRP","quote":"USD","baseId":"XRP","quoteId":"USD","type":"SPOT","spot":true,"margin":false,"active":true},"XRP/AUD":{"limits":{"amount":{"min":20,"max":200000},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"XRPAUD.SPOT","underlier":"XRPAUD","type":"SPOT"},"id":"XRPAUD.SPOT","symbol":"XRP/AUD","base":"XRP","quote":"AUD","baseId":"XRP","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"EOS/USD":{"limits":{"amount":{"min":1,"max":20000},"price":{"min":0.0001},"cost":{"min":0.01,"max":600000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"EOSUSD.SPOT","underlier":"EOSUSD","type":"SPOT"},"id":"EOSUSD.SPOT","symbol":"EOS/USD","base":"EOS","quote":"USD","baseId":"EOS","quoteId":"USD","type":"SPOT","spot":true,"margin":false,"active":true},"UST/USD":{"limits":{"amount":{"min":0.01,"max":600000},"price":{"min":0.0001},"cost":{"min":0.01,"max":600000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"USTUSD.SPOT","underlier":"USTUSD","type":"SPOT"},"id":"USTUSD.SPOT","symbol":"UST/USD","base":"UST","quote":"USD","baseId":"UST","quoteId":"USD","type":"SPOT","spot":true,"margin":false,"active":true},"LTC/ETH":{"limits":{"amount":{"min":0.1,"max":4000},"price":{"min":0.0001},"cost":{"min":0.005,"max":1000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"LTCETH.SPOT","underlier":"LTCETH","type":"SPOT"},"id":"LTCETH.SPOT","symbol":"LTC/ETH","base":"LTC","quote":"ETH","baseId":"LTC","quoteId":"ETH","type":"SPOT","spot":true,"margin":false,"active":true},"LNK/USD":{"limits":{"amount":{"min":0.1,"max":60000},"price":{"min":0.0001},"cost":{"min":0.01,"max":600000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"LNKUSD.SPOT","underlier":"LNKUSD","type":"SPOT"},"id":"LNKUSD.SPOT","symbol":"LNK/USD","base":"LNK","quote":"USD","baseId":"LNK","quoteId":"USD","type":"SPOT","spot":true,"margin":false,"active":true},"UNI/AUD":{"limits":{"amount":{"min":0.1,"max":25000},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"UNIAUD.SPOT","underlier":"UNIAUD","type":"SPOT"},"id":"UNIAUD.SPOT","symbol":"UNI/AUD","base":"UNI","quote":"AUD","baseId":"UNI","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"BNB/AUD":{"limits":{"amount":{"min":0.01,"max":1700},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"BNBAUD.SPOT","underlier":"BNBAUD","type":"SPOT"},"id":"BNBAUD.SPOT","symbol":"BNB/AUD","base":"BNB","quote":"AUD","baseId":"BNB","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"ADA/AUD":{"limits":{"amount":{"min":1,"max":4000000},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"ADAAUD.SPOT","underlier":"ADAAUD","type":"SPOT"},"id":"ADAAUD.SPOT","symbol":"ADA/AUD","base":"ADA","quote":"AUD","baseId":"ADA","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"EOS/BTC":{"limits":{"amount":{"min":1,"max":20000},"price":{"min":0.0001},"cost":{"min":0.0005,"max":100}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"EOSBTC.SPOT","underlier":"EOSBTC","type":"SPOT"},"id":"EOSBTC.SPOT","symbol":"EOS/BTC","base":"EOS","quote":"BTC","baseId":"EOS","quoteId":"BTC","type":"SPOT","spot":true,"margin":false,"active":true},"XLM/USD":{"limits":{"amount":{"min":100,"max":4000000},"price":{"min":0.0001},"cost":{"min":0.01,"max":600000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"XLMUSD.SPOT","underlier":"XLMUSD","type":"SPOT"},"id":"XLMUSD.SPOT","symbol":"XLM/USD","base":"XLM","quote":"USD","baseId":"XLM","quoteId":"USD","type":"SPOT","spot":true,"margin":false,"active":true},"USC/USD":{"limits":{"amount":{"min":0.01,"max":600000},"price":{"min":0.0001},"cost":{"min":0.01,"max":600000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"USCUSD.SPOT","underlier":"USCUSD","type":"SPOT"},"id":"USCUSD.SPOT","symbol":"USC/USD","base":"USC","quote":"USD","baseId":"USC","quoteId":"USD","type":"SPOT","spot":true,"margin":false,"active":true},"XLM/AUD":{"limits":{"amount":{"min":100,"max":4000000},"price":{"min":0.0001},"cost":{"min":0.01,"max":750000}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"XLMAUD.SPOT","underlier":"XLMAUD","type":"SPOT"},"id":"XLMAUD.SPOT","symbol":"XLM/AUD","base":"XLM","quote":"AUD","baseId":"XLM","quoteId":"AUD","type":"SPOT","spot":true,"margin":false,"active":true},"LNK/BTC":{"limits":{"amount":{"min":0.1,"max":60000},"price":{"min":0.0001},"cost":{"min":0.0005,"max":100}},"precision":{"base":4,"quote":4,"price":4,"amount":4},"tierBased":false,"percentage":true,"info":{"name":"LNKBTC.SPOT","underlier":"LNKBTC","type":"SPOT"},"id":"LNKBTC.SPOT","symbol":"LNK/BTC","base":"LNK","quote":"BTC","baseId":"LNK","quoteId":"BTC","type":"SPOT","spot":true,"margin":false,"active":true}},
         });
     }
 
@@ -1852,7 +195,7 @@ module.exports = class b2c2 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        // hack to force reload currencies
+        // FIXME hack to force reload currencies
         const currencies = await this.fetchCurrencies ();
         this.currencies = this.deepExtend (currencies, this.currencies);
         const response = await this.privateGetInstruments (params);
@@ -1934,6 +277,7 @@ module.exports = class b2c2 extends Exchange {
         //     'price': pricePrecision,
         //     'amount': amountPrecision,
         // };
+        // FIXME - hard coded precisions
         const precision = {
             'base': 4,
             'quote': 4,
@@ -1967,8 +311,6 @@ module.exports = class b2c2 extends Exchange {
             'limits': limits,
             'tierBased': false,
             'percentage': true,
-            'taker': 0.002,
-            'maker': 0.002,
         };
     }
 
@@ -2012,12 +354,11 @@ module.exports = class b2c2 extends Exchange {
         const market = this.market (symbol);
         const lowercaseSide = side.toLowerCase ();
         const request = {
-            'client_order_id': this.uuid ().toString (), // FIXME to parameterise
             'quantity': this.amountToPrecision (symbol, amount),
             'side': lowercaseSide,
             'instrument': market['id'],
         };
-        const response = await this.privatePostRequestForQuote (request);
+        const response = await this.privatePostRequestForQuote (this.extend (request, params));
         return this.parseQuote (response, market);
     }
 
@@ -2033,9 +374,7 @@ module.exports = class b2c2 extends Exchange {
         //     "price": "50113.00000000"
         //   }
         const timestamp = this.parse8601 (this.safeString (quote, 'created'));
-        const datetime = this.iso8601 (timestamp);
         const validUntilTimestamp = this.parse8601 (this.safeString (quote, 'valid_until'));
-        const validUntilDatetime = this.iso8601 (validUntilTimestamp);
         const id = this.safeString (quote, 'rfq_id');
         const clQuoteId = this.safeString (quote, 'client_rfq_id');
         const amount = this.safeNumber (quote, 'quantity');
@@ -2054,16 +393,18 @@ module.exports = class b2c2 extends Exchange {
             status = 'closed';
         }
         let fee = undefined;
-        fee = this.calculateFee (symbol, undefined, side, amount, price);
-        fee.cost = this.feeToPrecision (symbol, fee.cost);
+        // this.calculateFee (symbol, type, side, amount, price, takerOrMaker); // no fees for B2C2
+        if (fee !== undefined){
+            fee.cost = this.feeToPrecision (symbol, fee.cost);
+        }
         return this.safeOrder ({
             'info': quote,
             'id': id,
             'clQuoteId': clQuoteId,
             'timestamp': timestamp,
-            'datetime': datetime,
-            'validUntilTimestamp': timestamp,
-            'validUntilDatetime': validUntilDatetime,
+            'datetime': this.iso8601 (timestamp),
+            'validUntilTimestamp': validUntilTimestamp,
+            'validUntilDatetime': this.iso8601 (validUntilTimestamp),
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -2082,14 +423,11 @@ module.exports = class b2c2 extends Exchange {
         const market = this.market (symbol);
         const lowercaseSide = side.toLowerCase ();
         const lowercaseType = type.toLowerCase ();
-        const twentyfourhrsfromnow = this.iso8601 (this.milliseconds () + 86400000);
         const request = {
-            'client_order_id': this.uuid ().toString (), // FIXME to parameterise
             'quantity': this.amountToPrecision (symbol, amount),
             'side': lowercaseSide,
             'instrument': market['id'],
             'order_type': undefined,
-            'valid_until': twentyfourhrsfromnow, // FIXME need to do properly
         };
         if (lowercaseType === 'limit') {
             request['order_type'] = 'FOK';
@@ -2141,7 +479,7 @@ module.exports = class b2c2 extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = 1000, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let marketId = undefined;
         if (symbol !== undefined) {
@@ -2152,7 +490,7 @@ module.exports = class b2c2 extends Exchange {
         // 'order_type': undefined,
         // 'executing_unit': undefined,
         const request = {
-            'limit': limit,
+            // 'limit': limit,
         };
         if (marketId !== undefined) {
             request['instrument'] = marketId;
@@ -2160,12 +498,41 @@ module.exports = class b2c2 extends Exchange {
         if (since !== undefined) {
             request['created__gte'] = this.iso8601 (since);
         }
-        const response = await this.privateGetOrder (this.extend (request, params));
-        // return this.parseOrders (response, market, since, limit);
+        let response = await this.privateGetOrder (this.extend (request, params));
+        let response_next = await this.fetchRecursively();
+        if (response_next !== undefined){
+            response.push(response_next)
+        }
         return this.parseOrders (response, undefined, since, limit);
     }
 
+    async fetchRecursively () {
+        const links = this.safeString (this.last_response_headers, 'Link');
+        console.log(links)
+        let next = undefined;
+        if (links.indexOf("next") >= 0){
+            const start = links.indexOf("//") + 2;
+            const end = links.indexOf(">");
+            next = links.substring(start, end);
+            const startsub = next.indexOf("/") + 1
+            next = next.substring(startsub);
+        }
+        console.log(next)
+        if (next !== undefined){
+            let response = await this.request(next, 'private', 'GET')
+            let response_next = await this.fetchRecursively();
+            if (response_next !== undefined){
+                response.push(response_next)
+            }
+            return response
+        }
+        else {
+            return undefined
+        }
+    }
+
     parseOrder (order, market = undefined) {
+        // From fetchOrder(s)
         // [
         //     {
         //       "order_id": "373991c8-727d-4b55-94c2-eece7b81023c",
@@ -2179,6 +546,30 @@ module.exports = class b2c2 extends Exchange {
         //       "created": "2021-07-23T13:36:24.885622Z",
         //       "executing_unit": ""
         //     },
+        //
+        // From a successful createOrder
+        // {        order_id:   "e0bc5d5d-f285-42d3-aa85-6a1b76baf74c",
+        // client_order_id:   "e21732d8-c62b-4922-841e-42c9e8ffdf40",
+        //      instrument:   "ETHUSD.SPOT",
+        //           price:    null,
+        //  executed_price:   "3278.20000000",
+        //        quantity:   "1.0000000000",
+        //            side:   "buy",
+        //      order_type:   "MKT",
+        //         created:   "2021-09-13T04:55:38.095940Z",
+        //  executing_unit:   "test1",
+        //          trades: [ {       trade_id: "2ec7679f-8e52-4020-a1fd-44ad3b24c0b3",
+        //                              rfq_id:  null,
+        //                        cfd_contract:  null,
+        //                               order: "e0bc5d5d-f285-42d3-aa85-6a1b76baf74c",
+        //                            quantity: "1.0000000000",
+        //                                side: "buy",
+        //                          instrument: "ETHUSD.SPOT",
+        //                               price: "3278.20000000",
+        //                             created: "2021-09-13T04:55:38.101368Z",
+        //                              origin: "rest",
+        //                      executing_unit: "test1"                                 } ] }
+        //
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_order_id');
         const customer_id = this.safeString (order, 'executing_unit');
@@ -2196,7 +587,7 @@ module.exports = class b2c2 extends Exchange {
         } else {
             type = 'market';
         }
-        const datetime = this.parse8601 (this.safeString (order, 'created'));
+        const timestamp = this.parse8601 (this.safeString (order, 'created'));
         let filled = undefined;
         let status = undefined;
         let cost = undefined;
@@ -2207,26 +598,31 @@ module.exports = class b2c2 extends Exchange {
             status = 'closed';
             filled = amount;
             cost = this.parseNumber (Precise.stringMul (averagepxString, amountString));
-            fee = this.calculateFee (symbol, type, side, filled, averagepx, takerOrMaker);
-            fee.cost = this.feeToPrecision (symbol, fee.cost);
+            // fee = this.calculateFee (symbol, type, side, filled, averagepx, takerOrMaker); // no fees for B2C2
+            if (fee !== undefined){
+                fee.cost = this.feeToPrecision (symbol, fee.cost);
+            }
         } else {
             status = 'open';
             remaining = amount;
         }
         const rawTrades = this.safeValue (order, 'trades', []);
         let trades = undefined;
+        const tradeParams = {
+            'clientOrderId': clientOrderId,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+        }
         if (rawTrades !== undefined) {
-            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                'type': type,
-            });
+            trades = this.parseTrades (rawTrades, market, undefined, undefined, tradeParams);
         }
         return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
-            'clientId': clientId,
-            'timestamp': undefined, // convert datetime to millis
-            'datetime': this.iso8601 (datetime),
+            'customer_id': customer_id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
@@ -2246,7 +642,7 @@ module.exports = class b2c2 extends Exchange {
         });
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = 1000, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         // 'created__gte': undefined,
         // 'created__lt': undefined,
@@ -2265,29 +661,53 @@ module.exports = class b2c2 extends Exchange {
             request['since'] = this.iso8601 (since);
         }
         const response = await this.privateGetTrade (this.extend (request, params));
-        // const trades = this.safeValue (response, 'trades', []);
+        let response_next = await this.fetchRecursively();
+        if (response_next !== undefined){
+            response.push(response_next)
+        }
         return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
         //
-        // [
-        //     {
-        //       "trade_id": "2b656360-c49f-4409-a4fb-6f39b11bc2bf",
-        //       "rfq_id": null,
-        //       "order": "80d591a0-30bc-4ee2-a1b8-712cb22dcf0f",
-        //       "quantity": "1.0000000000",
-        //       "side": "buy",
-        //       "instrument": "BTCUSD.SPOT",
-        //       "price": "33534.00000000",
-        //       "created": "2021-07-09T15:47:55.887484Z",
-        //       "end_client_id": "",
-        //       "client_rfq_id": null,
-        //       "client_order_id": "cd50d109-dca7-4f5d-bf1b-e7141ec6b50c",
-        //       "user": "Demo_Leonie",
-        //       "origin": "screen:mobile",
-        //       "executing_unit": ""
-        //     },
+            // When returned as part of the order object
+        // {        order_id:   "e0bc5d5d-f285-42d3-aa85-6a1b76baf74c",
+        // client_order_id:   "e21732d8-c62b-4922-841e-42c9e8ffdf40",
+        //      instrument:   "ETHUSD.SPOT",
+        //           price:    null,
+        //  executed_price:   "3278.20000000",
+        //        quantity:   "1.0000000000",
+        //            side:   "buy",
+        //      order_type:   "MKT",
+        //         created:   "2021-09-13T04:55:38.095940Z",
+        //  executing_unit:   "test1",
+        //          trades: [ {       trade_id: "2ec7679f-8e52-4020-a1fd-44ad3b24c0b3",
+        //                              rfq_id:  null,
+        //                        cfd_contract:  null,
+        //                               order: "e0bc5d5d-f285-42d3-aa85-6a1b76baf74c",
+        //                            quantity: "1.0000000000",
+        //                                side: "buy",
+        //                          instrument: "ETHUSD.SPOT",
+        //                               price: "3278.20000000",
+        //                             created: "2021-09-13T04:55:38.101368Z",
+        //                              origin: "rest",
+        //                      executing_unit: "test1"                                 } ] }
+        //
+        // When returnes from fetchmytrades
+        // {"trade_id":"2ec7679f-8e52-4020-a1fd-44ad3b24c0b3",
+            // "rfq_id":null,
+            // "order":"e0bc5d5d-f285-42d3-aa85-6a1b76baf74c",
+            // "quantity":"1.0000000000",
+            // "side":"buy",
+            // "instrument":"ETHUSD.SPOT",
+            // "price":"3278.20000000",
+            // "created":"2021-09-13T04:55:38.101368Z",
+            // "end_client_id":"",
+            // "client_rfq_id":null,
+            // "client_order_id":"e21732d8-c62b-4922-841e-42c9e8ffdf40",
+            // "user":"Demo_Leonie",
+            // "origin":"rest",
+            // "executing_unit":"test1"},
         //
         const id = this.safeString (trade, 'trade_id');
         const amountString = this.safeString (trade, 'quantity');
@@ -2297,19 +717,24 @@ module.exports = class b2c2 extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const priceString = this.safeString (trade, 'price');
         const price = this.parseNumber (priceString);
-        const datetime = this.parse8601 (this.safeString (trade, 'created'));
+        const timestamp = this.parse8601 (this.safeString (trade, 'created'));
         const orderId = this.safeString (trade, 'order');
-        const clientOrderId = this.safeString (trade, 'client_order_id');
-        const customer_id = this.safeString (order, 'executing_unit');
+        const clientOrderId = this.safeString (trade, 'client_order_id'); // parent order must provide in params override
+        const customer_id = this.safeString (trade, 'executing_unit');
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        const type = undefined; // need to link to the order, otherwise cannot tell
-        const takerOrMaker = undefined; // need to link to the order, otherwise cannot tell
+        const type = this.safeString (trade, 'type'); // parent order must provide in params override
+        const takerOrMaker = this.safeString (trade, 'takerOrMaker'); // parent order must provide in params override
+        let fee = undefined;
+        // this.calculateFee (symbol, type, side, amount, price, takerOrMaker); // no fees for B2C2
+        if (fee !== undefined){
+            fee.cost = this.feeToPrecision (symbol, fee.cost);
+        }
         return {
             'info': trade,
             'id': id,
             'customer_id': customer_id,
-            'timestamp': undefined, // need to do millis
-            'datetime': this.iso8601 (datetime),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'order': orderId,
             'clientOrderId': clientOrderId,
@@ -2319,7 +744,7 @@ module.exports = class b2c2 extends Exchange {
             'amount': amount,
             'cost': cost,
             'takerOrMaker': takerOrMaker,
-            'fee': undefined, // no fees for b2c2
+            'fee': fee,
         };
     }
 
@@ -2393,7 +818,7 @@ module.exports = class b2c2 extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = 1000, params = {}) {
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
         if (code !== undefined) {
@@ -2413,6 +838,10 @@ module.exports = class b2c2 extends Exchange {
             request['currency'] = currency['code'];
         }
         const response = await this.privateGetLedger (this.extend (request, params));
+        let response_next = await this.fetchRecursively();
+        if (response_next !== undefined){
+            response.push(response_next)
+        }
         return this.parseLedger (response, currency, since, limit);
     }
 
@@ -2476,13 +905,17 @@ module.exports = class b2c2 extends Exchange {
         };
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = 1000, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = undefined;
         const request = {
             'limit': limit,
         };
         const response = await this.privateGetWithdrawal (this.extend (request, params));
+        let response_next = await this.fetchRecursively();
+        if (response_next !== undefined){
+            response.push(response_next)
+        }
         return this.parseWithdrawals (response, currency, since, limit);
     }
 
@@ -2524,14 +957,14 @@ module.exports = class b2c2 extends Exchange {
         if (transaction['settled'] === true) {
             status = 'settled';
         }
-        const datetime = this.parse8601 (this.safeString (transaction, 'applyTime'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'applyTime'));
         const id = this.safeString (transaction, 'withdrawal_id');
         return {
             'info': transaction,
             'id': id,
             'txid': id,
-            'timestamp': undefined, // need to get millis from datetime
-            'datetime': this.iso8601 (datetime),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
