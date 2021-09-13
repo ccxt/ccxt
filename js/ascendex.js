@@ -27,6 +27,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchTrades': true,
+                'fetchMyTrades': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'createOrder': true,
@@ -1212,6 +1213,123 @@ module.exports = class ascendex extends Exchange {
             // 'orderType': 'market', // optional, string
             // 'side': 'buy', // or 'sell', optional, case insensitive.
             // 'status': 'Filled', // "Filled", "Canceled", or "Rejected"
+            // 'startTime': exchange.milliseconds (),
+            // 'endTime': exchange.milliseconds (),
+            // 'page': 1,
+            // 'pageSize': 100,
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const method = this.safeValue (options, 'method', 'accountGroupGetOrderHist');
+        if (method === 'accountGroupGetOrderHist') {
+            if (accountCategory !== undefined) {
+                request['category'] = accountCategory;
+            }
+        } else {
+            request['account-category'] = accountCategory;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // accountCategoryGetOrderHistCurrent
+        //
+        //     {
+        //         "code":0,
+        //         "accountId":"cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda",
+        //         "ac":"CASH",
+        //         "data":[
+        //             {
+        //                 "seqNum":15561826728,
+        //                 "orderId":"a17294d305c0U6491137460bethu7kw9",
+        //                 "symbol":"ETH/USDT",
+        //                 "orderType":"Limit",
+        //                 "lastExecTime":1591635618200,
+        //                 "price":"200",
+        //                 "orderQty":"0.1",
+        //                 "side":"Buy",
+        //                 "status":"Canceled",
+        //                 "avgPx":"0",
+        //                 "cumFilledQty":"0",
+        //                 "stopPrice":"",
+        //                 "errorCode":"",
+        //                 "cumFee":"0",
+        //                 "feeAsset":"USDT",
+        //                 "execInst":"NULL_VAL"
+        //             }
+        //         ]
+        //     }
+        //
+        // accountGroupGetOrderHist
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "data": [
+        //                 {
+        //                     "ac": "FUTURES",
+        //                     "accountId": "testabcdefg",
+        //                     "avgPx": "0",
+        //                     "cumFee": "0",
+        //                     "cumQty": "0",
+        //                     "errorCode": "NULL_VAL",
+        //                     "execInst": "NULL_VAL",
+        //                     "feeAsset": "USDT",
+        //                     "lastExecTime": 1584072844085,
+        //                     "orderId": "r170d21956dd5450276356bbtcpKa74",
+        //                     "orderQty": "1.1499",
+        //                     "orderType": "Limit",
+        //                     "price": "4000",
+        //                     "sendingTime": 1584072841033,
+        //                     "seqNum": 24105338,
+        //                     "side": "Buy",
+        //                     "status": "Canceled",
+        //                     "stopPrice": "",
+        //                     "symbol": "BTC-PERP"
+        //                 },
+        //             ],
+        //             "hasNext": False,
+        //             "limit": 500,
+        //             "page": 1,
+        //             "pageSize": 20
+        //         }
+        //     }
+        //
+        let data = this.safeValue (response, 'data');
+        const isArray = Array.isArray (data);
+        if (!isArray) {
+            data = this.safeValue (data, 'data', []);
+        }
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const defaultAccountCategory = this.safeString (this.options, 'account-category');
+        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
+        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
+        accountCategory = this.safeString (params, 'account-category', accountCategory);
+        params = this.omit (params, 'account-category');
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeValue (account, 'id');
+        const request = {
+            'account-group': accountGroup,
+            // 'category': accountCategory,
+            // 'symbol': market['id'],
+            // 'orderType': 'market', // optional, string
+            // 'side': 'buy', // or 'sell', optional, case insensitive.
+            'status': 'Filled', // "Filled", "Canceled", or "Rejected"
             // 'startTime': exchange.milliseconds (),
             // 'endTime': exchange.milliseconds (),
             // 'page': 1,
