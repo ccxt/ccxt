@@ -734,7 +734,7 @@ class gateio(Exchange):
         baseVolume = self.safe_number(ticker, 'base_volume')
         quoteVolume = self.safe_number(ticker, 'quote_volume')
         percentage = self.safe_number(ticker, 'change_percentage')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
@@ -755,7 +755,7 @@ class gateio(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

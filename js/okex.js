@@ -2858,8 +2858,4 @@ module.exports = class okex extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-
-    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
-        return this.safeInteger (config, 'cost', 1);
-    }
 };

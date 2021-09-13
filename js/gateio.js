@@ -737,7 +737,7 @@ module.exports = class gateio extends Exchange {
         const baseVolume = this.safeNumber (ticker, 'base_volume');
         const quoteVolume = this.safeNumber (ticker, 'quote_volume');
         const percentage = this.safeNumber (ticker, 'change_percentage');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
@@ -758,7 +758,7 @@ module.exports = class gateio extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

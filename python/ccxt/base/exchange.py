@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.56.29'
+__version__ = '1.56.31'
 
 # -----------------------------------------------------------------------------
 
@@ -490,7 +490,7 @@ class Exchange(object):
             time.sleep(delay / 1000.0)
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
-        return 1
+        return self.safe_value(config, 'cost', 1)
 
     def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         """A better wrapper over request for deferred signing"""

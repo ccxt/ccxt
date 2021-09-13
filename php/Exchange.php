@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.56.29';
+$version = '1.56.31';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.56.29';
+    const VERSION = '1.56.31';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1415,7 +1415,7 @@ class Exchange {
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array(), $context = array()) {
-        return 1;
+        return $this->safe_value($config, 'cost', 1);
     }
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
