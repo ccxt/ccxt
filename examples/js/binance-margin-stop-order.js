@@ -19,12 +19,13 @@ async function main () {
     exchange.verbose = true // uncomment for debugging purposes if necessary
 
     const symbol = 'BTC/USDT'
-    const type = 'limit'
+    const type = 'STOP_LOSS_LIMIT'
     const side = 'buy'
     const amount = YOUR_AMOUNT_HERE
     const price = YOUR_PRICE_HERE
     const params = {
         'stopPrice': YOUR_STOP_PRICE_HERE,
+        'timeInForce': 'GTC',
     }
 
     try {
