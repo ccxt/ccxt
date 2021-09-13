@@ -1415,7 +1415,7 @@ class Exchange {
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array(), $context = array()) {
-        return 1;
+        return $this->safe_value($config, 'cost', 1);
     }
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
