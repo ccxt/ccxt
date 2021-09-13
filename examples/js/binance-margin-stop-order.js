@@ -16,7 +16,7 @@ async function main () {
 
         , markets = await exchange.loadMarkets ()
 
-    // exchange.verbose = true // uncomment for debugging purposes if necessary
+        // exchange.verbose = true // uncomment for debugging purposes if necessary
 
         , symbol = 'BTC/USDT'
         , type = 'limit'
