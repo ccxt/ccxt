@@ -19,6 +19,7 @@ module.exports = class kucoin extends Exchange {
             'certified': false,
             'pro': true,
             'comment': 'Platform 2.0',
+            'quoteJsonNumbers': false,
             'has': {
                 'CORS': false,
                 'cancelAllOrders': true,
@@ -810,7 +811,12 @@ module.exports = class kucoin extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = { 'currency': currency['id'] };
+        const request = {
+            'currency': currency['id'],
+            // for USDT - OMNI, ERC20, TRC20, default is ERC20
+            // for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
+            // 'chain': 'ERC20', // optional
+        };
         const response = await this.privateGetDepositAddresses (this.extend (request, params));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
@@ -936,17 +942,22 @@ module.exports = class kucoin extends Exchange {
             // 'autoBorrow': false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
         };
         const quoteAmount = this.safeNumber2 (params, 'cost', 'funds');
+        let amountString = undefined;
+        let costString = undefined;
         if (type === 'market') {
             if (quoteAmount !== undefined) {
                 params = this.omit (params, [ 'cost', 'funds' ]);
                 // kucoin uses base precision even for quote values
-                request['funds'] = this.amountToPrecision (symbol, quoteAmount);
+                costString = this.amountToPrecision (symbol, quoteAmount);
+                request['funds'] = costString;
             } else {
+                amountString = this.amountToPrecision (symbol, amount);
                 request['size'] = this.amountToPrecision (symbol, amount);
             }
         } else {
+            amountString = this.amountToPrecision (symbol, amount);
+            request['size'] = amountString;
             request['price'] = this.priceToPrecision (symbol, price);
-            request['size'] = this.amountToPrecision (symbol, amount);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         //
@@ -971,8 +982,8 @@ module.exports = class kucoin extends Exchange {
             'type': type,
             'side': side,
             'price': price,
-            'amount': undefined,
-            'cost': undefined,
+            'amount': this.parseNumber (amountString),
+            'cost': this.parseNumber (costString),
             'average': undefined,
             'filled': undefined,
             'remaining': undefined,
@@ -980,11 +991,6 @@ module.exports = class kucoin extends Exchange {
             'fee': undefined,
             'trades': undefined,
         };
-        if (quoteAmount === undefined) {
-            order['amount'] = amount;
-        } else {
-            order['cost'] = quoteAmount;
-        }
         return order;
     }
 
@@ -1471,6 +1477,10 @@ module.exports = class kucoin extends Exchange {
             'currency': currency['id'],
             'address': address,
             'amount': amount,
+            // 'memo': tag,
+            // 'isInner': false, // internal transfer or external withdrawal
+            // 'remark': 'optional',
+            // 'chain': 'OMNI', // 'ERC20', 'TRC20', default is ERC20
         };
         if (tag !== undefined) {
             request['memo'] = tag;
@@ -1748,7 +1758,7 @@ module.exports = class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' type must be one of ' + keys.join (', '));
         }
         params = this.omit (params, 'type');
-        if (type === 'contract') {
+        if ((type === 'contract') || (type === 'futures')) {
             // futures api requires a futures apiKey
             // only fetches one balance at a time
             // by default it will only fetch the BTC balance of the futures account

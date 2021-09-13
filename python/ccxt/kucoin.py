@@ -35,6 +35,7 @@ class kucoin(Exchange):
             'certified': False,
             'pro': True,
             'comment': 'Platform 2.0',
+            'quoteJsonNumbers': False,
             'has': {
                 'CORS': False,
                 'cancelAllOrders': True,
@@ -800,7 +801,12 @@ class kucoin(Exchange):
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        request = {'currency': currency['id']}
+        request = {
+            'currency': currency['id'],
+            # for USDT - OMNI, ERC20, TRC20, default is ERC20
+            # for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
+            # 'chain': 'ERC20',  # optional
+        }
         response = self.privateGetDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
@@ -919,16 +925,21 @@ class kucoin(Exchange):
             # 'autoBorrow': False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
         }
         quoteAmount = self.safe_number_2(params, 'cost', 'funds')
+        amountString = None
+        costString = None
         if type == 'market':
             if quoteAmount is not None:
                 params = self.omit(params, ['cost', 'funds'])
                 # kucoin uses base precision even for quote values
-                request['funds'] = self.amount_to_precision(symbol, quoteAmount)
+                costString = self.amount_to_precision(symbol, quoteAmount)
+                request['funds'] = costString
             else:
+                amountString = self.amount_to_precision(symbol, amount)
                 request['size'] = self.amount_to_precision(symbol, amount)
         else:
+            amountString = self.amount_to_precision(symbol, amount)
+            request['size'] = amountString
             request['price'] = self.price_to_precision(symbol, price)
-            request['size'] = self.amount_to_precision(symbol, amount)
         response = self.privatePostOrders(self.extend(request, params))
         #
         #     {
@@ -952,8 +963,8 @@ class kucoin(Exchange):
             'type': type,
             'side': side,
             'price': price,
-            'amount': None,
-            'cost': None,
+            'amount': self.parse_number(amountString),
+            'cost': self.parse_number(costString),
             'average': None,
             'filled': None,
             'remaining': None,
@@ -961,10 +972,6 @@ class kucoin(Exchange):
             'fee': None,
             'trades': None,
         }
-        if quoteAmount is None:
-            order['amount'] = amount
-        else:
-            order['cost'] = quoteAmount
         return order
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -1416,6 +1423,10 @@ class kucoin(Exchange):
             'currency': currency['id'],
             'address': address,
             'amount': amount,
+            # 'memo': tag,
+            # 'isInner': False,  # internal transfer or external withdrawal
+            # 'remark': 'optional',
+            # 'chain': 'OMNI',  # 'ERC20', 'TRC20', default is ERC20
         }
         if tag is not None:
             request['memo'] = tag
@@ -1669,7 +1680,7 @@ class kucoin(Exchange):
             keys = list(accountsByType.keys())
             raise ExchangeError(self.id + ' type must be one of ' + ', '.join(keys))
         params = self.omit(params, 'type')
-        if type == 'contract':
+        if (type == 'contract') or (type == 'futures'):
             # futures api requires a futures apiKey
             # only fetches one balance at a time
             # by default it will only fetch the BTC balance of the futures account

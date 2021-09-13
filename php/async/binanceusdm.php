@@ -20,14 +20,6 @@ class binanceusdm extends binance {
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ),
             ),
-            'has' => array(
-                'fetchPositions' => true,
-                'fetchIsolatedPositions' => true,
-                'fetchFundingRate' => true,
-                'fetchFundingHistory' => true,
-                'setLeverage' => true,
-                'setMarginMode' => true,
-            ),
             'options' => array(
                 'defaultType' => 'future',
                 // https://www.binance.com/en/support/faq/360033162192

@@ -155,9 +155,11 @@ class probit extends Exchange {
                 'BTCBULL' => 'BULL',
                 'CBC' => 'CryptoBharatCoin',
                 'EPS' => 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
+                'GRB' => 'Global Reward Bank',
                 'HBC' => 'Hybrid Bank Cash',
                 'ORC' => 'Oracle System',
                 'SOC' => 'Soda Coin',
+                'TCT' => 'Top Coin Token',
                 'UNI' => 'UNICORN Token',
                 'UNISWAP' => 'UNI',
             ),
@@ -491,18 +493,10 @@ class probit extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $close = $this->safe_number($ticker, 'last');
         $change = $this->safe_number($ticker, 'change');
-        $percentage = null;
-        $open = null;
-        if ($change !== null) {
-            if ($close !== null) {
-                $open = $close - $change;
-                $percentage = ($change / $open) * 100;
-            }
-        }
         $baseVolume = $this->safe_number($ticker, 'base_volume');
         $quoteVolume = $this->safe_number($ticker, 'quote_volume');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -513,17 +507,17 @@ class probit extends Exchange {
             'ask' => null,
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => $open,
+            'open' => null,
             'close' => $close,
             'last' => $close,
             'previousClose' => null, // previous day $close
             'change' => $change,
-            'percentage' => $percentage,
+            'percentage' => null,
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1018,7 +1012,7 @@ class probit extends Exchange {
         // returned by the exchange on $market buys
         if (($type === 'market') && ($side === 'buy')) {
             $order['amount'] = null;
-            $order['cost'] = floatval($costToPrecision);
+            $order['cost'] = $this->parse_number($costToPrecision);
             $order['remaining'] = null;
         }
         return $order;

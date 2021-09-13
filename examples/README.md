@@ -75,6 +75,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [graphql-ccxt](https://github.com/fibo/graphql-ccxt) – Joins together GraphQL and CCXT: can fetch prices, read balance, open orders, ... on multiple exchanges at once.
 
+[ccxt-go](https://github.com/prompt-cash/ccxt-go) – CCXT port to Go (Golang).
+
 [The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
 
 [CC Power Analytics Part 1: How to get the data of the exchanges](https://www.linkedin.com/pulse/part-1-cc-power-analytics-how-get-data-exchanges-steve-rein/) – The first part of a series of articles on cryptocurrency analytics.

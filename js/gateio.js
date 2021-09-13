@@ -11,9 +11,11 @@ module.exports = class gateio extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'gateio',
             'name': 'Gate.io',
-            'country': [ 'KR' ],
+            'countries': [ 'KR' ],
             'rateLimit': 1000,
             'version': '4',
+            'certified': true,
+            'pro': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
                 'doc': 'https://www.gate.io/docs/apiv4/en/index.html',
@@ -28,22 +30,23 @@ module.exports = class gateio extends Exchange {
                 },
             },
             'has': {
-                'fetchMarkets': true,
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposits': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchMyTrades': true,
-                'fetchBalance': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchOrder': true,
-                'createOrder': true,
-                'cancelOrder': true,
-                'withdraw': true,
-                'fetchDeposits': true,
                 'fetchWithdrawals': true,
                 'transfer': true,
+                'withdraw': true,
             },
             'api': {
                 'public': {
@@ -442,8 +445,9 @@ module.exports = class gateio extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const taker = this.safeNumber (entry, 'fee');
-            const maker = undefined;
+            // Fee is in %, so divide by 100
+            const taker = this.safeNumber (entry, 'fee') / 100;
+            const maker = taker;
             const tradeStatus = this.safeString (entry, 'trade_status');
             const active = tradeStatus === 'tradable';
             const amountPrecision = this.safeString (entry, 'amount_precision');
@@ -514,10 +518,7 @@ module.exports = class gateio extends Exchange {
                 'id': currencyId,
                 'name': undefined,
                 'code': code,
-                'precision': {
-                    'amount': amountPrecision,
-                    'price': undefined,
-                },
+                'precision': amountPrecision,
                 'info': entry,
                 'active': active,
                 'fee': undefined,
@@ -763,8 +764,7 @@ module.exports = class gateio extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicSpotGetTickers (params);
-        const ticker = this.safeValue (response, 0);
-        return this.parseTickers (ticker, symbols);
+        return this.parseTickers (response, symbols);
     }
 
     async fetchBalance (params = {}) {
@@ -800,11 +800,15 @@ module.exports = class gateio extends Exchange {
             'currency_pair': market['id'],
             'interval': this.timeframes[timeframe],
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        if (since !== undefined) {
-            request['start'] = Math.floor (since / 1000);
+        if (since === undefined) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['from'] = Math.floor (since / 1000);
+            if (limit !== undefined) {
+                request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe) - 1);
+            }
         }
         const response = await this.publicSpotGetCandlesticks (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -852,9 +856,19 @@ module.exports = class gateio extends Exchange {
         const market = this.market (symbol);
         const request = {
             'currency_pair': market['id'],
+            // 'limit': limit,
+            // 'page': 0,
+            // 'order_id': 'Order ID',
+            // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
+            // 'from': since, // default to 7 days before current time
+            // 'to': this.milliseconds (), // default to current time
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
+        }
+        if (since !== undefined) {
+            request['from'] = Math.floor (since / 1000);
+            // request['to'] = since + 7 * 24 * 60 * 60;
         }
         const response = await this.privateSpotGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -951,6 +965,7 @@ module.exports = class gateio extends Exchange {
         }
         if (since !== undefined) {
             request['from'] = Math.floor (since / 1000);
+            request['to'] = since + 30 * 24 * 60 * 60;
         }
         const response = await this.privateWalletGetDeposits (this.extend (request, params));
         return this.parseTransactions (response, currency);
@@ -969,6 +984,7 @@ module.exports = class gateio extends Exchange {
         }
         if (since !== undefined) {
             request['from'] = Math.floor (since / 1000);
+            request['to'] = since + 30 * 24 * 60 * 60;
         }
         const response = await this.privateWalletGetWithdrawals (this.extend (request, params));
         return this.parseTransactions (response, currency);
@@ -1367,7 +1383,8 @@ module.exports = class gateio extends Exchange {
             const timestampString = timestamp.toString ();
             const signaturePath = '/api/v4' + entirePath;
             const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestampString ];
-            const payload = payloadArray.join ('\n');
+            // eslint-disable-next-line quotes
+            const payload = payloadArray.join ("\n");
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
             headers = {
                 'KEY': this.apiKey,

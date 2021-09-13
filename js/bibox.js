@@ -73,6 +73,7 @@ module.exports = class bibox extends Exchange {
                         'cquery',
                         'mdata',
                         'cdata',
+                        'orderpending',
                     ],
                 },
                 'private': {
@@ -118,6 +119,7 @@ module.exports = class bibox extends Exchange {
                 '2085': InvalidOrder, // Order quantity is too small
                 '2091': RateLimitExceeded, // request is too frequency, please try again later
                 '2092': InvalidOrder, // Minimum amount not met
+                '2131': InvalidOrder, // The order quantity cannot be greater than
                 '3000': BadRequest, // Requested parameter incorrect
                 '3002': BadRequest, // Parameter cannot be null
                 '3012': AuthenticationError, // invalid apiKey
@@ -136,6 +138,7 @@ module.exports = class bibox extends Exchange {
                 'MTC': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'NFT': 'NFT Protocol',
                 'PAI': 'PCHAIN',
+                'REVO': 'Revo Network',
                 'TERN': 'Ternio-ERC20',
             },
             'options': {
@@ -167,6 +170,30 @@ module.exports = class bibox extends Exchange {
         //     }
         //
         const markets = this.safeValue (response, 'result');
+        const request2 = {
+            'cmd': 'tradeLimit',
+        };
+        const response2 = await this.publicGetOrderpending (this.extend (request2, params));
+        //
+        //    {
+        //         result: {
+        //             min_trade_price: { default: '0.00000001', USDT: '0.0001', DAI: '0.0001' },
+        //             min_trade_amount: { default: '0.0001' },
+        //             min_trade_money: {
+        //                 USDT: '1',
+        //                 USDC: '1',
+        //                 DAI: '1',
+        //                 GUSD: '1',
+        //                 BIX: '3',
+        //                 BTC: '0.0002',
+        //                 ETH: '0.005'
+        //             }
+        //         },
+        //         cmd: 'tradeLimit'
+        //     }
+        //
+        const result2 = this.safeValue (response2, 'result', {});
+        const minCosts = this.safeValue (result2, 'min_trade_money', {});
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -206,6 +233,10 @@ module.exports = class bibox extends Exchange {
                         'min': Math.pow (10, -precision['price']),
                         'max': undefined,
                     },
+                    'cost': {
+                        'min': this.safeNumber (minCosts, quoteId),
+                        'max': undefined,
+                    },
                 },
             });
         }
@@ -228,16 +259,12 @@ module.exports = class bibox extends Exchange {
         const last = this.safeNumber (ticker, 'last');
         const change = this.safeNumber (ticker, 'change');
         const baseVolume = this.safeNumber2 (ticker, 'vol', 'vol24H');
-        let open = undefined;
-        if ((last !== undefined) && (change !== undefined)) {
-            open = last - change;
-        }
         let percentage = this.safeString (ticker, 'percent');
         if (percentage !== undefined) {
             percentage = percentage.replace ('%', '');
-            percentage = parseFloat (percentage);
+            percentage = this.parseNumber (percentage);
         }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -248,7 +275,7 @@ module.exports = class bibox extends Exchange {
             'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -258,7 +285,7 @@ module.exports = class bibox extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': this.safeNumber (ticker, 'amount'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1077,8 +1104,8 @@ module.exports = class bibox extends Exchange {
         }
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
         if (method === 'GET') {
             return response;
         } else {

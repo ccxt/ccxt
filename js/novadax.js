@@ -250,18 +250,10 @@ module.exports = class novadax extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '_');
         const open = this.safeNumber (ticker, 'open24h');
         const last = this.safeNumber (ticker, 'lastPrice');
-        let percentage = undefined;
-        let change = undefined;
-        let average = undefined;
-        if ((last !== undefined) && (open !== undefined)) {
-            change = last - open;
-            percentage = change / open * 100;
-            average = this.sum (last, open) / 2;
-        }
         const baseVolume = this.safeNumber (ticker, 'baseVolume24h');
         const quoteVolume = this.safeNumber (ticker, 'quoteVolume24h');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -276,13 +268,13 @@ module.exports = class novadax extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -587,8 +579,8 @@ module.exports = class novadax extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeString (balance, 'available');
-            account['free'] = this.safeString (balance, 'balance');
+            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'hold');
             result[code] = account;
         }
@@ -602,7 +594,6 @@ module.exports = class novadax extends Exchange {
         const uppercaseSide = side.toUpperCase ();
         const request = {
             'symbol': market['id'],
-            'type': uppercaseType, // LIMIT, MARKET
             'side': uppercaseSide, // or SELL
             // 'amount': this.amountToPrecision (symbol, amount),
             // "price": "1234.5678", // required for LIMIT and STOP orders
@@ -621,11 +612,8 @@ module.exports = class novadax extends Exchange {
             } else if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_MARKET';
             }
-            const operatorString = this.safeString (params, 'operator');
-            if (operatorString === undefined) {
-                throw new ArgumentsRequired (this.id + " createOrder() requires an operator parameter 'GTE' or 'LTE' for " + uppercaseType + ' orders');
-            }
-            request['operator'] = operatorString;
+            const defaultOperator = (uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
+            request['operator'] = this.safeString (params, 'operator', defaultOperator);
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             params = this.omit (params, 'stopPrice');
         }
@@ -653,6 +641,7 @@ module.exports = class novadax extends Exchange {
                 request['value'] = this.decimalToPrecision (value, TRUNCATE, precision, this.precisionMode);
             }
         }
+        request['type'] = uppercaseType;
         const response = await this.privatePostOrdersCreate (this.extend (request, params));
         //
         //     {
@@ -872,7 +861,7 @@ module.exports = class novadax extends Exchange {
         const id = this.safeString (order, 'id');
         const amount = this.safeNumber (order, 'amount');
         const price = this.safeNumber (order, 'price');
-        const cost = this.safeNumber (order, 'filledValue');
+        const cost = this.safeNumber2 (order, 'filledValue', 'value');
         const type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));

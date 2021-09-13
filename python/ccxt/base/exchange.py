@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.54.33'
+__version__ = '1.56.29'
 
 # -----------------------------------------------------------------------------
 
@@ -113,9 +113,9 @@ class Exchange(object):
     id = None
     name = None
     version = None
-    certified = False
-    pro = False
-
+    certified = False  # if certified by the CCXT dev team
+    pro = False  # if it is integrated with CCXT Pro for WebSocket support
+    alias = False  # whether this exchange is an alias to another exchange
     # rate limiter settings
     enableRateLimit = True
     rateLimit = 2000  # milliseconds = seconds * 1000
@@ -134,6 +134,7 @@ class Exchange(object):
     verbose = False
     markets = None
     symbols = None
+    codes = None
     timeframes = None
     fees = {
         'trading': {
@@ -417,55 +418,67 @@ class Exchange(object):
             self.urls['api'] = self.urls['apiBackup']
             del self.urls['apiBackup']
 
-    @classmethod
-    def define_rest_api(cls, api, method_name, paths=[]):
-        delimiters = re.compile('[^a-zA-Z0-9]')
+    def define_rest_api_endpoint(self, method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, config={}):
+        cls = type(self)
         entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
-        for key, value in api.items():
-            if isinstance(value, list):
-                uppercase_method = key.upper()
-                lowercase_method = key.lower()
-                camelcase_method = lowercase_method.capitalize()
-                for path in value:
-                    path = path.strip()
-                    split_path = delimiters.split(path)
-                    lowercase_path = [x.strip().lower() for x in split_path]
-                    camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
-                    underscore_suffix = '_'.join([x for x in lowercase_path if len(x)])
-                    camelcase_prefix = ''
-                    underscore_prefix = ''
-                    if len(paths):
-                        camelcase_prefix = paths[0]
-                        underscore_prefix = paths[0]
-                        if len(paths) > 1:
-                            camelcase_prefix += ''.join([Exchange.capitalize(x) for x in paths[1:]])
-                            underscore_prefix += '_' + '_'.join([x.strip() for p in paths[1:] for x in delimiters.split(p)])
-                            api_argument = paths
-                        else:
-                            api_argument = paths[0]
-                    camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
-                    underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
-
-                    def partialer():
-                        outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method}
-
-                        @functools.wraps(entry)
-                        def inner(_self, params=None):
-                            """
-                            Inner is called when a generated method (publicGetX) is called.
-                            _self is a reference to self created by function.__get__(exchange, type(exchange))
-                            https://en.wikipedia.org/wiki/Closure_(computer_programming) equivalent to functools.partial
-                            """
-                            inner_kwargs = dict(outer_kwargs)  # avoid mutation
-                            if params is not None:
-                                inner_kwargs['params'] = params
-                            return entry(_self, **inner_kwargs)
-                        return inner
-                    to_bind = partialer()
-                    setattr(cls, camelcase, to_bind)
-                    setattr(cls, underscore, to_bind)
+        delimiters = re.compile('[^a-zA-Z0-9]')
+        split_path = delimiters.split(path)
+        lowercase_path = [x.strip().lower() for x in split_path]
+        camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
+        underscore_suffix = '_'.join([x for x in lowercase_path if len(x)])
+        camelcase_prefix = ''
+        underscore_prefix = ''
+        if len(paths):
+            camelcase_prefix = paths[0]
+            underscore_prefix = paths[0]
+            if len(paths) > 1:
+                camelcase_prefix += ''.join([Exchange.capitalize(x) for x in paths[1:]])
+                underscore_prefix += '_' + '_'.join([x.strip() for p in paths[1:] for x in delimiters.split(p)])
+                api_argument = paths
             else:
-                cls.define_rest_api(value, method_name, paths + [key])
+                api_argument = paths[0]
+        camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
+        underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
+
+        def partialer():
+            outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method, 'config': config}
+            @functools.wraps(entry)
+            def inner(_self, params=None, context=None):
+                """
+                Inner is called when a generated method (publicGetX) is called.
+                _self is a reference to self created by function.__get__(exchange, type(exchange))
+                https://en.wikipedia.org/wiki/Closure_(computer_programming) equivalent to functools.partial
+                """
+                inner_kwargs = dict(outer_kwargs)  # avoid mutation
+                if params is not None:
+                    inner_kwargs['params'] = params
+                if context is not None:
+                    inner_kwargs['context'] = params
+                return entry(_self, **inner_kwargs)
+            return inner
+        to_bind = partialer()
+        setattr(cls, camelcase, to_bind)
+        setattr(cls, underscore, to_bind)
+
+    def define_rest_api(self, api, method_name, paths=[]):
+        for key, value in api.items():
+            uppercase_method = key.upper()
+            lowercase_method = key.lower()
+            camelcase_method = lowercase_method.capitalize()
+            if isinstance(value, list):
+                for path in value:
+                    self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths)
+            elif re.search(r'^(?:get|post|put|delete|options|head)$', key, re.IGNORECASE) is not None:
+                for [endpoint, config] in value.items():
+                    path = endpoint.strip()
+                    if isinstance(config, dict):
+                        self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, config)
+                    elif isinstance(config, Number):
+                        self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, {'cost': config})
+                    else:
+                        raise NotSupported(self.id + ' define_rest_api() API format not supported, API leafs must strings, objects or numbers')
+            else:
+                self.define_rest_api(value, method_name, paths + [key])
 
     def throttle(self, cost=None):
         now = float(self.milliseconds())
@@ -476,17 +489,21 @@ class Exchange(object):
             delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
 
-    def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+        return 1
+
+    def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         """A better wrapper over request for deferred signing"""
         if self.enableRateLimit:
-            self.throttle()
+            cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
+            self.throttle(cost)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         """Exchange.request is the entry point for all generated methods"""
-        return self.fetch2(path, api, method, params, headers, body)
+        return self.fetch2(path, api, method, params, headers, body, config, context)
 
     @staticmethod
     def gzip_deflate(response, text):
@@ -529,7 +546,7 @@ class Exchange(object):
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         return self.set_headers(headers)
 
-    def print(self, *args):
+    def log(self, *args):
         print(*args)
 
     def set_headers(self, headers):
@@ -553,7 +570,7 @@ class Exchange(object):
         url = self.proxy + url
 
         if self.verbose:
-            self.print("\nRequest:", method, url, request_headers, body)
+            self.log("\nRequest:", method, url, request_headers, body)
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
         request_body = body
@@ -591,7 +608,7 @@ class Exchange(object):
             if self.enableLastResponseHeaders:
                 self.last_response_headers = headers
             if self.verbose:
-                self.print("\nResponse:", method, url, http_status_code, headers, http_response)
+                self.log("\nResponse:", method, url, http_status_code, headers, http_response)
             self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
             response.raise_for_status()
 
@@ -1260,6 +1277,31 @@ class Exchange(object):
     def nonce(self):
         return Exchange.seconds()
 
+    @staticmethod
+    def check_required_version(required_version, error=True):
+        result = True
+        [major1, minor1, patch1] = required_version.split('.')
+        [major2, minor2, patch2] = __version__.split('.')
+        int_major1 = int(major1)
+        int_minor1 = int(minor1)
+        int_patch1 = int(patch1)
+        int_major2 = int(major2)
+        int_minor2 = int(minor2)
+        int_patch2 = int(patch2)
+        if int_major1 > int_major2:
+            result = False
+        if int_major1 == int_major2:
+            if int_minor1 > int_minor2:
+                result = False
+            elif int_minor1 == int_minor2 and int_patch1 > int_patch2:
+                result = False
+        if not result:
+            if error:
+                raise NotSupported('Your current version of CCXT is ' + __version__ + ', a newer version ' + required_version + ' is required, please, upgrade your version of CCXT')
+            else:
+                return error
+        return result
+
     def check_required_credentials(self, error=True):
         keys = list(self.requiredCredentials.keys())
         for key in keys:
@@ -1295,16 +1337,20 @@ class Exchange(object):
         return len(parts[1]) if len(parts) > 1 else 0
 
     def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
+        market = self.market(symbol)
+        return self.decimal_to_precision(cost, TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
 
     def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
+        market = self.market(symbol)
+        return self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
 
     def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode, self.paddingMode)
+        market = self.market(symbol)
+        return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
 
     def fee_to_precision(self, symbol, fee):
-        return self.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
+        market = self.market(symbol)
+        return self.decimal_to_precision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
 
     def currency_to_precision(self, currency, fee):
         return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
@@ -1351,6 +1397,7 @@ class Exchange(object):
             currencies = self.sort_by(base_currencies + quote_currencies, 'code')
             self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
         self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
+        self.codes = sorted(self.currencies.keys())
         return self.markets
 
     def load_markets(self, reload=False, params={}):
@@ -1408,6 +1455,9 @@ class Exchange(object):
             'trading': trading,
             'funding': funding,
         }
+
+    def fetch_balance(self, params={}):
+        raise NotSupported('fetch_balance() not supported yet')
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         raise NotSupported('create_order() not supported yet')
@@ -1727,22 +1777,44 @@ class Exchange(object):
     def safe_ticker(self, ticker, market=None):
         symbol = self.safe_value(ticker, 'symbol')
         if symbol is None:
-            ticker['symbol'] = self.safe_symbol(None, market)
+            symbol = self.safe_symbol(None, market)
         timestamp = self.safe_integer(ticker, 'timestamp')
-        if timestamp is not None:
-            ticker['timestamp'] = timestamp
-            ticker['datetime'] = self.iso8601(timestamp)
         baseVolume = self.safe_value(ticker, 'baseVolume')
         quoteVolume = self.safe_value(ticker, 'quoteVolume')
         vwap = self.safe_value(ticker, 'vwap')
         if vwap is None:
-            ticker['vwap'] = self.vwap(baseVolume, quoteVolume)
+            vwap = self.vwap(baseVolume, quoteVolume)
+        open = self.safe_value(ticker, 'open')
         close = self.safe_value(ticker, 'close')
         last = self.safe_value(ticker, 'last')
-        if (close is None) and (last is not None):
-            ticker['close'] = last
+        change = self.safe_value(ticker, 'change')
+        percentage = self.safe_value(ticker, 'percentage')
+        average = self.safe_value(ticker, 'average')
+        if (last is not None) and (close is None):
+            close = last
         elif (last is None) and (close is not None):
-            ticker['last'] = close
+            last = close
+        if (last is not None) and (open is not None):
+            if change is None:
+                change = last - open
+            if average is None:
+                average = self.sum(last, open) / 2
+        if (percentage is None) and (change is not None) and (open is not None) and (open > 0):
+            percentage = change / open * 100
+        if (change is None) and (percentage is not None) and (last is not None):
+            change = percentage / 100 * last
+        if (open is None) and (last is not None) and (change is not None):
+            open = last - change
+        ticker['symbol'] = symbol
+        ticker['timestamp'] = timestamp
+        ticker['datetime'] = self.iso8601(timestamp)
+        ticker['open'] = open
+        ticker['close'] = close
+        ticker['last'] = last
+        ticker['vwap'] = vwap
+        ticker['change'] = change
+        ticker['percentage'] = percentage
+        ticker['average'] = average
         return ticker
 
     def parse_tickers(self, tickers, symbols=None, params={}):

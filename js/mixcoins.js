@@ -210,18 +210,18 @@ module.exports = class mixcoins extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('status' in response) {
-            //
-            // todo add a unified standard handleErrors with this.exceptions in describe()
-            //
-            //     {"status":503,"message":"Maintenancing, try again later","result":null}
-            //
-            if (response['status'] === 200) {
-                return response;
-            }
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
         }
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+        //
+        // todo add a unified standard handleErrors with this.exceptions in describe()
+        //
+        //     {"status":503,"message":"Maintenancing, try again later","result":null}
+        //
+        const status = this.safeInteger (response, 'status');
+        if (status !== 200) {
+            throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
     }
 };

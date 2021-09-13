@@ -23,14 +23,6 @@ class binancecoinm(binance):
                 'defaultType': 'delivery',
                 'leverageBrackets': None,
             },
-            'has': {
-                'fetchPositions': True,
-                'fetchIsolatedPositions': True,
-                'fetchFundingRate': True,
-                'fetchFundingHistory': True,
-                'setLeverage': True,
-                'setMode': True,
-            },
         })
 
     def transfer_in(self, code, amount, params={}):

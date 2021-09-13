@@ -413,16 +413,13 @@ module.exports = class coincheck extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api === 'public') {
-            return response;
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
         }
-        if ('success' in response) {
-            if (response['success']) {
-                return response;
-            }
+        const success = this.safeValue (response, 'success', true);
+        if (!success) {
+            throw new ExchangeError (this.id + ' ' + this.json (response));
         }
-        throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 };

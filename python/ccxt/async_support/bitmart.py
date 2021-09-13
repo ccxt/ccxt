@@ -41,6 +41,8 @@ class bitmart(Exchange):
             'countries': ['US', 'CN', 'HK', 'KR'],
             'rateLimit': 1000,
             'version': 'v1',
+            'certified': True,
+            'pro': True,
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
@@ -69,10 +71,12 @@ class bitmart(Exchange):
                 'fetchFundingFee': True,
                 'withdraw': True,
             },
-            'hostname': 'bitmart.com',  # bitmart.info for Hong Kong users
+            'hostname': 'bitmart.com',  # bitmart.info, bitmart.news for Hong Kong users
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
-                'api': 'https://api-cloud.{hostname}',  # bitmart.info for Hong Kong users
+                'logo': 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
+                'api': {
+                    'rest': 'https://api-cloud.{hostname}',  # bitmart.info for Hong Kong users
+                },
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://developer-pro.bitmart.com/',
                 'referral': 'http://www.bitmart.com/?r=rQCFLh',
@@ -324,8 +328,10 @@ class bitmart(Exchange):
             'commonCurrencies': {
                 'COT': 'Community Coin',
                 'CPC': 'CPCoin',
+                'MVP': 'MVP Coin',
                 'ONE': 'Menlo One',
                 'PLA': 'Plair',
+                'TCT': 'TacoCat Token',
             },
             'options': {
                 'defaultType': 'spot',  # 'spot', 'swap'
@@ -456,7 +462,7 @@ class bitmart(Exchange):
             pricePrecision = self.safe_integer(market, 'price_max_precision')
             precision = {
                 'amount': self.safe_number(market, 'base_min_size'),
-                'price': float(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 12)),
+                'price': self.parse_number(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 12)),
             }
             minBuyCost = self.safe_number(market, 'min_buy_amount')
             minSellCost = self.safe_number(market, 'min_sell_amount')
@@ -490,7 +496,7 @@ class bitmart(Exchange):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-                'active': None,
+                'active': True,
             })
         return result
 
@@ -676,6 +682,7 @@ class bitmart(Exchange):
         #         "best_bid":"0.035983",
         #         "best_bid_size":"4.2792",
         #         "fluctuation":"-0.0143",
+        #         "s_t": "1630981727",  # ws only
         #         "url":"https://www.bitmart.com/trade?symbol=ETH_BTC"
         #     }
         #
@@ -712,11 +719,11 @@ class bitmart(Exchange):
         #         "next_funding_at":"2020-08-17T04:00:00Z"
         #     }
         #
-        timestamp = self.safe_timestamp(ticker, 'timestamp', self.milliseconds())
+        timestamp = self.safe_timestamp_2(ticker, 'timestamp', 's_t', self.milliseconds())
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_id')
         symbol = self.safe_symbol(marketId, market, '_')
         last = self.safe_number_2(ticker, 'close_24h', 'last_price')
-        percentage = self.safe_number(ticker, 'fluctuation', 'rise_fall_rate')
+        percentage = self.safe_number_2(ticker, 'fluctuation', 'rise_fall_rate')
         if percentage is not None:
             percentage *= 100
         baseVolume = self.safe_number_2(ticker, 'base_volume_24h', 'base_coin_volume')
@@ -1012,6 +1019,8 @@ class bitmart(Exchange):
         id = self.safe_string_2(trade, 'trade_id', 'detail_id')
         timestamp = self.safe_integer_2(trade, 'order_time', 'create_time')
         if timestamp is None:
+            timestamp = self.safe_timestamp(trade, 's_t')
+        if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         type = None
         way = self.safe_integer(trade, 'way')
@@ -1156,14 +1165,35 @@ class bitmart(Exchange):
         #         "quote_coin_volume":"31017.48"
         #     }
         #
-        return [
-            self.safe_timestamp(ohlcv, 'timestamp'),
-            self.safe_number(ohlcv, 'open'),
-            self.safe_number(ohlcv, 'high'),
-            self.safe_number(ohlcv, 'low'),
-            self.safe_number(ohlcv, 'close'),
-            self.safe_number(ohlcv, 'volume'),
-        ]
+        # ws
+        #
+        #     [
+        #         1631056350,  # timestamp
+        #         '46532.83',  # oopen
+        #         '46555.71',  # high
+        #         '46511.41',  # low
+        #         '46555.71',  # close
+        #         '0.25',  # volume
+        #     ]
+        #
+        if isinstance(ohlcv, list):
+            return [
+                self.safe_timestamp(ohlcv, 0),
+                self.safe_number(ohlcv, 1),
+                self.safe_number(ohlcv, 2),
+                self.safe_number(ohlcv, 3),
+                self.safe_number(ohlcv, 4),
+                self.safe_number(ohlcv, 5),
+            ]
+        else:
+            return [
+                self.safe_timestamp(ohlcv, 'timestamp'),
+                self.safe_number(ohlcv, 'open'),
+                self.safe_number(ohlcv, 'high'),
+                self.safe_number(ohlcv, 'low'),
+                self.safe_number(ohlcv, 'close'),
+                self.safe_number(ohlcv, 'volume'),
+            ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
@@ -2200,9 +2230,9 @@ class bitmart(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        baseUrl = self.implode_hostname(self.urls['api'])
         access = self.safe_string(api, 0)
         type = self.safe_string(api, 1)
+        baseUrl = self.implode_hostname(self.urls['api']['rest'])
         url = baseUrl + '/' + type
         if type != 'system':
             url += '/' + self.version

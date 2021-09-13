@@ -57,6 +57,7 @@ module.exports = class ftx extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -67,6 +68,10 @@ module.exports = class ftx extends Exchange {
                 '1h': '3600',
                 '4h': '14400',
                 '1d': '86400',
+                '3d': '259200',
+                '1w': '604800',
+                '2w': '1209600',
+                '1M': '2592000',
             },
             'api': {
                 'public': {
@@ -104,15 +109,14 @@ module.exports = class ftx extends Exchange {
                         'spot_margin/history',
                         'spot_margin/borrow_summary',
                         // nfts
-                        'nfts',
+                        'nft/nfts',
                         'nft/{nft_id}',
                         'nft/{nft_id}/trades',
-                        'all_trades',
+                        'nft/all_trades',
                         'nft/{nft_id}/account_info',
-                        'collections',
+                        'nft/collections',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
-                        'stats/latency_stats',
                     ],
                     'post': [
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -173,13 +177,15 @@ module.exports = class ftx extends Exchange {
                         'spot_margin/offers',
                         'spot_margin/lending_info',
                         // nfts
-                        'balances',
-                        'bids',
-                        'deposits',
-                        'withdrawals',
-                        'fills',
-                        'gallery/{gallery_id}',
-                        'gallery_settings',
+                        'nft/balances',
+                        'nft/bids',
+                        'nft/deposits',
+                        'nft/withdrawals',
+                        'nft/fills',
+                        'nft/gallery/{gallery_id}',
+                        'nft/gallery_settings',
+                        // latency statistics
+                        'stats/latency_stats',
                     ],
                     'post': [
                         // subaccounts
@@ -213,14 +219,14 @@ module.exports = class ftx extends Exchange {
                         // spot margin
                         'spot_margin/offers',
                         // nfts
-                        'offer',
-                        'buy',
-                        'auction',
-                        'edit_auction',
-                        'cancel_auction',
-                        'bids',
-                        'redeem',
-                        'gallery_settings',
+                        'nft/offer',
+                        'nft/buy',
+                        'nft/auction',
+                        'nft/edit_auction',
+                        'nft/cancel_auction',
+                        'nft/bids',
+                        'nft/redeem',
+                        'nft/gallery_settings',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/orders',
                     ],
@@ -246,8 +252,8 @@ module.exports = class ftx extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'maker': this.parseNumber ('0.02'),
-                    'taker': this.parseNumber ('0.07'),
+                    'maker': this.parseNumber ('0.0002'),
+                    'taker': this.parseNumber ('0.0007'),
                     'tiers': {
                         'taker': [
                             [ this.parseNumber ('0'), this.parseNumber ('0.0007') ],
@@ -290,6 +296,7 @@ module.exports = class ftx extends Exchange {
                     'Spot orders cannot be reduce-only': InvalidOrder, // {"error":"Spot orders cannot be reduce-only","success":false}
                     'Invalid reduce-only order': InvalidOrder, // {"error":"Invalid reduce-only order","success":false}
                     'Account does not have enough balances': InsufficientFunds, // {"success":false,"error":"Account does not have enough balances"}
+                    'Not authorized for subaccount-specific access': PermissionDenied, // {"success":false,"error":"Not authorized for subaccount-specific access"}
                 },
                 'broad': {
                     'Account does not have enough margin for order': InsufficientFunds,
@@ -507,7 +514,11 @@ module.exports = class ftx extends Exchange {
         }
         const last = this.safeNumber (ticker, 'last');
         const timestamp = this.safeTimestamp (ticker, 'time', this.milliseconds ());
-        return {
+        let percentage = this.safeNumber (ticker, 'change24h');
+        if (percentage !== undefined) {
+            percentage *= 100;
+        }
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -523,12 +534,12 @@ module.exports = class ftx extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeNumber (ticker, 'change24h'),
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber (ticker, 'quoteVolume24h'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1961,5 +1972,72 @@ module.exports = class ftx extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if ((leverage < 1) || (leverage > 20)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 20');
+        }
+        const request = {
+            'leverage': leverage,
+        };
+        return await this.privatePostAccountLeverage (this.extend (request, params));
+    }
+
+    parseIncome (income, market = undefined) {
+        //
+        //   {
+        //       "future": "ETH-PERP",
+        //        "id": 33830,
+        //        "payment": 0.0441342,
+        //        "time": "2019-05-15T18:00:00+00:00",
+        //        "rate": 0.0001
+        //   }
+        //
+        const marketId = this.safeString (income, 'future');
+        const symbol = this.safeSymbol (marketId, market);
+        const amount = this.safeNumber (income, 'payment');
+        const code = this.safeCurrencyCode ('USD');
+        const id = this.safeString (income, 'id');
+        const timestamp = this.safeInteger (income, 'time');
+        const rate = this.safe_number (income, 'rate');
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': id,
+            'amount': amount,
+            'rate': rate,
+        };
+    }
+
+    parseIncomes (incomes, market = undefined, since = undefined, limit = undefined) {
+        const result = [];
+        for (let i = 0; i < incomes.length; i++) {
+            const entry = incomes[i];
+            const parsed = this.parseIncome (entry, market);
+            result.push (parsed);
+        }
+        return this.filterBySinceLimit (result, since, limit, 'timestamp');
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const method = 'private_get_funding_payments';
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['future'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this[method] (this.extend (request, params));
+        return this.parseIncomes (response, market, since, limit);
     }
 };

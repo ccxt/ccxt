@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.54.33'
+__version__ = '1.56.29'
 
 # -----------------------------------------------------------------------------
 
@@ -86,11 +86,12 @@ class Exchange(BaseExchange):
                 await self.session.close()
             self.session = None
 
-    async def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    async def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         """A better wrapper over request for deferred signing"""
         if self.enableRateLimit:
+            cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
             # insert cost into here...
-            await self.throttle()
+            await self.throttle(cost)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
@@ -101,7 +102,7 @@ class Exchange(BaseExchange):
         url = self.proxy + url
 
         if self.verbose:
-            self.print("\nRequest:", method, url, headers, body)
+            self.log("\nRequest:", method, url, headers, body)
         self.logger.debug("%s %s, Request: %s %s", method, url, headers, body)
 
         request_body = body
@@ -139,7 +140,7 @@ class Exchange(BaseExchange):
                 if self.enableLastJsonResponse:
                     self.last_json_response = json_response
                 if self.verbose:
-                    self.print("\nResponse:", method, url, http_status_code, headers, http_response)
+                    self.log("\nResponse:", method, url, http_status_code, headers, http_response)
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror as e:
@@ -281,6 +282,9 @@ class Exchange(BaseExchange):
             raise ExchangeError('updateOrder() requires enableRateLimit = true')
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, *args)
+
+    async def fetch_balance(self, params={}):
+        raise NotSupported('fetch_balance() not supported yet')
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         raise NotSupported('create_order() not supported yet')

@@ -997,10 +997,10 @@ class coinbasepro(Exchange):
         return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions(code, since, limit, self.extend(params, {'type': 'deposit'}))
+        return self.fetch_transactions(code, since, limit, self.extend({'type': 'deposit'}, params))
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions(code, since, limit, self.extend(params, {'type': 'withdraw'}))
+        return self.fetch_transactions(code, since, limit, self.extend({'type': 'withdraw'}, params))
 
     def parse_transaction_status(self, transaction):
         canceled = self.safe_value(transaction, 'canceled_at')
@@ -1120,8 +1120,8 @@ class coinbasepro(Exchange):
                 raise ExchangeError(feedback)  # unknown message
             raise ExchangeError(self.id + ' ' + body)
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+        response = await self.fetch2(path, api, method, params, headers, body, config, context)
         if not isinstance(response, basestring):
             if 'message' in response:
                 raise ExchangeError(self.id + ' ' + self.json(response))

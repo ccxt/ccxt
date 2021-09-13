@@ -278,9 +278,9 @@ function createMarkdownTable (array, markdownMethod, centeredColumns) {
 
 function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, certifiedExchangesPaths, exchangesByCountriesPaths, proExchangesPaths }) {
 
-    const exchangesNotListedInDocs = [ 'hitbtc2' ]
+    const aliases = [ 'hitbtc2', 'huobipro' ] // aliases are not shown tables for deduplication
 
-    const arrayOfExchanges = values (exchanges)
+    const arrayOfExchanges = values (exchanges).filter (exchange => !aliases.includes (exchange.id))
     const numExchanges = arrayOfExchanges.length
 
     if (allExchangesPaths && numExchanges) {

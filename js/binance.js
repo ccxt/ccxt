@@ -15,7 +15,7 @@ module.exports = class binance extends Exchange {
             'id': 'binance',
             'name': 'Binance',
             'countries': [ 'JP', 'MT' ], // Japan, Malta
-            'rateLimit': 500,
+            'rateLimit': 50,
             'certified': true,
             'pro': true,
             // new metainfo interface
@@ -115,438 +115,459 @@ module.exports = class binance extends Exchange {
                 'api_management': 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
+            'depth': 1,
             'api': {
                 // the API structure below will need 3-layer apidefs
                 'sapi': {
-                    'get': [
-                        'accountSnapshot',
+                    'get': {
+                        'accountSnapshot': 1,
+                        'system/status': 1,
                         // these endpoints require this.apiKey
-                        'margin/asset',
-                        'margin/pair',
-                        'margin/allAssets',
-                        'margin/allPairs',
-                        'margin/priceIndex',
+                        'margin/asset': 1,
+                        'margin/pair': 1,
+                        'margin/allAssets': 1,
+                        'margin/allPairs': 1,
+                        'margin/priceIndex': 1,
                         // these endpoints require this.apiKey + this.secret
-                        'asset/assetDividend',
-                        'asset/dribblet',
-                        'asset/transfer',
-                        'asset/assetDetail',
-                        'asset/tradeFee',
-                        'margin/loan',
-                        'margin/repay',
-                        'margin/account',
-                        'margin/transfer',
-                        'margin/interestHistory',
-                        'margin/forceLiquidationRec',
-                        'margin/order',
-                        'margin/openOrders',
-                        'margin/allOrders',
-                        'margin/myTrades',
-                        'margin/maxBorrowable',
-                        'margin/maxTransferable',
-                        'margin/isolated/transfer',
-                        'margin/isolated/account',
-                        'margin/isolated/pair',
-                        'margin/isolated/allPairs',
-                        'margin/interestRateHistory',
-                        'fiatpayment/query/deposit/history',
-                        'fiatpayment/query/withdraw/history',
-                        'futures/transfer',
-                        'futures/loan/borrow/history',
-                        'futures/loan/repay/history',
-                        'futures/loan/wallet',
-                        'futures/loan/configs',
-                        'futures/loan/calcAdjustLevel',
-                        'futures/loan/calcMaxAdjustAmount',
-                        'futures/loan/adjustCollateral/history',
-                        'futures/loan/liquidationHistory',
+                        'asset/assetDividend': 1,
+                        'asset/dribblet': 1,
+                        'asset/transfer': 1,
+                        'asset/assetDetail': 1,
+                        'asset/tradeFee': 1,
+                        'asset/get-funding-asset': 1,
+                        'margin/loan': 1,
+                        'margin/repay': 1,
+                        'margin/account': 1,
+                        'margin/transfer': 1,
+                        'margin/interestHistory': 1,
+                        'margin/forceLiquidationRec': 1,
+                        'margin/order': 1,
+                        'margin/openOrders': 1,
+                        'margin/allOrders': 1,
+                        'margin/myTrades': 1,
+                        'margin/maxBorrowable': 5,
+                        'margin/maxTransferable': 5,
+                        'margin/isolated/transfer': 1,
+                        'margin/isolated/account': 1,
+                        'margin/isolated/pair': 1,
+                        'margin/isolated/allPairs': 1,
+                        'margin/interestRateHistory': 1,
+                        'margin/orderList': 2,
+                        'margin/allOrderList': 10,
+                        'margin/openOrderList': 3,
+                        'fiat/orders': 1,
+                        'fiat/payments': 1,
+                        'futures/transfer': 5,
+                        'futures/loan/borrow/history': 1,
+                        'futures/loan/repay/history': 1,
+                        'futures/loan/wallet': 1,
+                        'futures/loan/configs': 1,
+                        'futures/loan/calcAdjustLevel': 1,
+                        'futures/loan/calcMaxAdjustAmount': 1,
+                        'futures/loan/adjustCollateral/history': 1,
+                        'futures/loan/liquidationHistory': 1,
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
-                        'capital/config/getall', // get networks for withdrawing USDT ERC20 vs USDT Omni
-                        'capital/deposit/address',
-                        'capital/deposit/hisrec',
-                        'capital/deposit/subAddress',
-                        'capital/deposit/subHisrec',
-                        'capital/withdraw/history',
-                        'bnbBurn',
-                        'sub-account/assets',
-                        'sub-account/futures/account',
-                        'sub-account/futures/accountSummary',
-                        'sub-account/futures/positionRisk',
-                        'sub-account/futures/internalTransfer',
-                        'sub-account/list',
-                        'sub-account/margin/account',
-                        'sub-account/margin/accountSummary',
-                        'sub-account/spotSummary',
-                        'sub-account/status',
-                        'sub-account/sub/transfer/history',
-                        'sub-account/transfer/subUserHistory',
-                        'sub-account/universalTransfer',
+                        'capital/config/getall': 1, // get networks for withdrawing USDT ERC20 vs USDT Omni
+                        'capital/deposit/address': 1,
+                        'capital/deposit/hisrec': 1,
+                        'capital/deposit/subAddress': 1,
+                        'capital/deposit/subHisrec': 1,
+                        'capital/withdraw/history': 1,
+                        'bnbBurn': 1,
+                        'sub-account/assets': 1,
+                        'sub-account/futures/account': 1,
+                        'sub-account/futures/accountSummary': 20,
+                        'sub-account/futures/positionRisk': 1,
+                        'sub-account/futures/internalTransfer': 1,
+                        'sub-account/list': 1,
+                        'sub-account/margin/account': 1,
+                        'sub-account/margin/accountSummary': 1,
+                        'sub-account/spotSummary': 5,
+                        'sub-account/status': 1,
+                        'sub-account/sub/transfer/history': 1,
+                        'sub-account/transfer/subUserHistory': 1,
+                        'sub-account/universalTransfer': 1,
                         // lending endpoints
-                        'lending/daily/product/list',
-                        'lending/daily/userLeftQuota',
-                        'lending/daily/userRedemptionQuota',
-                        'lending/daily/token/position',
-                        'lending/union/account',
-                        'lending/union/purchaseRecord',
-                        'lending/union/redemptionRecord',
-                        'lending/union/interestHistory',
-                        'lending/project/list',
-                        'lending/project/position/list',
+                        'lending/daily/product/list': 1,
+                        'lending/daily/userLeftQuota': 1,
+                        'lending/daily/userRedemptionQuota': 1,
+                        'lending/daily/token/position': 1,
+                        'lending/union/account': 1,
+                        'lending/union/purchaseRecord': 1,
+                        'lending/union/redemptionRecord': 1,
+                        'lending/union/interestHistory': 1,
+                        'lending/project/list': 1,
+                        'lending/project/position/list': 1,
                         // mining endpoints
-                        'mining/pub/algoList',
-                        'mining/pub/coinList',
-                        'mining/worker/detail',
-                        'mining/worker/list',
-                        'mining/payment/list',
-                        'mining/statistics/user/status',
-                        'mining/statistics/user/list',
+                        'mining/pub/algoList': 1,
+                        'mining/pub/coinList': 1,
+                        'mining/worker/detail': 5,
+                        'mining/worker/list': 5,
+                        'mining/payment/list': 5,
+                        'mining/statistics/user/status': 5,
+                        'mining/statistics/user/list': 5,
                         // liquid swap endpoints
-                        'bswap/pools',
-                        'bswap/liquidity',
-                        'bswap/liquidityOps',
-                        'bswap/quote',
-                        'bswap/swap',
+                        'bswap/pools': 1,
+                        'bswap/liquidity': { 'cost': 1, 'noPoolId': 10 },
+                        'bswap/liquidityOps': 2,
+                        'bswap/quote': 2,
+                        'bswap/swap': 1,
                         // leveraged token endpoints
-                        'blvt/tokenInfo',
-                        'blvt/subscribe/record',
-                        'blvt/redeem/record',
-                        'blvt/userLimit',
+                        'blvt/tokenInfo': 1,
+                        'blvt/subscribe/record': 1,
+                        'blvt/redeem/record': 1,
+                        'blvt/userLimit': 1,
                         // broker api
-                        'apiReferral/ifNewUser',
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
-                        'apiReferral/rebate/recentRecord',
-                        'apiReferral/rebate/historicalRecord',
-                        'apiReferral/kickback/recentRecord',
-                        'apiReferral/kickback/historicalRecord',
+                        'apiReferral/ifNewUser': 1,
+                        'apiReferral/customization': 1,
+                        'apiReferral/userCustomization': 1,
+                        'apiReferral/rebate/recentRecord': 1,
+                        'apiReferral/rebate/historicalRecord': 1,
+                        'apiReferral/kickback/recentRecord': 1,
+                        'apiReferral/kickback/historicalRecord': 1,
                         // brokerage API
-                        'broker/subAccountApi',
-                        'broker/subAccount',
-                        'broker/subAccountApi/commission/futures',
-                        'broker/subAccountApi/commission/coinFutures',
-                        'broker/info',
-                        'broker/transfer',
-                        'broker/transfer/futures',
-                        'broker/rebate/recentRecord',
-                        'broker/rebate/historicalRecord',
-                        'broker/subAccount/bnbBurn/status',
-                        'broker/subAccount/depositHist',
-                        'broker/subAccount/spotSummary',
-                        'broker/subAccount/marginSummary',
-                        'broker/subAccount/futuresSummary',
-                        'broker/rebate/futures/recentRecord',
-                        'broker/subAccountApi/ipRestriction',
-                        'broker/universalTransfer',
+                        'broker/subAccountApi': 1,
+                        'broker/subAccount': 1,
+                        'broker/subAccountApi/commission/futures': 1,
+                        'broker/subAccountApi/commission/coinFutures': 1,
+                        'broker/info': 1,
+                        'broker/transfer': 1,
+                        'broker/transfer/futures': 1,
+                        'broker/rebate/recentRecord': 1,
+                        'broker/rebate/historicalRecord': 1,
+                        'broker/subAccount/bnbBurn/status': 1,
+                        'broker/subAccount/depositHist': 1,
+                        'broker/subAccount/spotSummary': 1,
+                        'broker/subAccount/marginSummary': 1,
+                        'broker/subAccount/futuresSummary': 1,
+                        'broker/rebate/futures/recentRecord': 1,
+                        'broker/subAccountApi/ipRestriction': 1,
+                        'broker/universalTransfer': 1,
                         // v2 not supported yet
                         // GET /sapi/v2/broker/subAccount/futuresSummary
-                        'account/apiRestrictions',
-                    ],
-                    'post': [
-                        'asset/dust',
-                        'asset/transfer',
-                        'get-funding-asset',
-                        'account/disableFastWithdrawSwitch',
-                        'account/enableFastWithdrawSwitch',
-                        'capital/withdraw/apply',
-                        'margin/transfer',
-                        'margin/loan',
-                        'margin/repay',
-                        'margin/order',
-                        'margin/isolated/create',
-                        'margin/isolated/transfer',
-                        'bnbBurn',
-                        'sub-account/margin/transfer',
-                        'sub-account/margin/enable',
-                        'sub-account/margin/enable',
-                        'sub-account/futures/enable',
-                        'sub-account/futures/transfer',
-                        'sub-account/futures/internalTransfer',
-                        'sub-account/transfer/subToSub',
-                        'sub-account/transfer/subToMaster',
-                        'sub-account/universalTransfer',
-                        'userDataStream',
-                        'userDataStream/isolated',
-                        'futures/transfer',
-                        'futures/loan/borrow',
-                        'futures/loan/repay',
-                        'futures/loan/adjustCollateral',
+                        'account/apiRestrictions': 1,
+                        // subaccounts
+                        'managed-subaccount/asset': 1,
+                    },
+                    'post': {
+                        'asset/dust': 1,
+                        'asset/transfer': 1,
+                        'asset/get-funding-asset': 1,
+                        'account/disableFastWithdrawSwitch': 1,
+                        'account/enableFastWithdrawSwitch': 1,
+                        'capital/withdraw/apply': 1,
+                        'margin/transfer': 1,
+                        'margin/loan': 1,
+                        'margin/repay': 1,
+                        'margin/order': 4,
+                        'margin/order/oco': 1,
+                        'margin/isolated/create': 1,
+                        'margin/isolated/transfer': 1,
+                        'bnbBurn': 1,
+                        'sub-account/margin/transfer': 1,
+                        'sub-account/margin/enable': 1,
+                        // 'sub-account/margin/enable': 1,
+                        'sub-account/futures/enable': 1,
+                        'sub-account/futures/transfer': 1,
+                        'sub-account/futures/internalTransfer': 1,
+                        'sub-account/transfer/subToSub': 1,
+                        'sub-account/transfer/subToMaster': 1,
+                        'sub-account/universalTransfer': 1,
+                        'managed-subaccount/deposit': 1,
+                        'managed-subaccount/withdraw': 1,
+                        'userDataStream': 1,
+                        'userDataStream/isolated': 1,
+                        'futures/transfer': 1,
+                        'futures/loan/borrow': 20,
+                        'futures/loan/repay': 20,
+                        'futures/loan/adjustCollateral': 20,
                         // lending
-                        'lending/customizedFixed/purchase',
-                        'lending/daily/purchase',
-                        'lending/daily/redeem',
+                        'lending/customizedFixed/purchase': 1,
+                        'lending/daily/purchase': 1,
+                        'lending/daily/redeem': 1,
                         // liquid swap endpoints
-                        'bswap/liquidityAdd',
-                        'bswap/liquidityRemove',
-                        'bswap/swap',
+                        'bswap/liquidityAdd': 2,
+                        'bswap/liquidityRemove': 2,
+                        'bswap/swap': 2,
                         // leveraged token endpoints
-                        'blvt/subscribe',
-                        'blvt/redeem',
+                        'blvt/subscribe': 1,
+                        'blvt/redeem': 1,
                         // brokerage API
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
-                        'apiReferral/rebate/historicalRecord',
-                        'apiReferral/kickback/historicalRecord',
-                        'broker/subAccount',
-                        'broker/subAccount/margin',
-                        'broker/subAccount/futures',
-                        'broker/subAccountApi',
-                        'broker/subAccountApi/permission',
-                        'broker/subAccountApi/commission',
-                        'broker/subAccountApi/commission/futures',
-                        'broker/subAccountApi/commission/coinFutures',
-                        'broker/transfer',
-                        'broker/transfer/futures',
-                        'broker/rebate/historicalRecord',
-                        'broker/subAccount/bnbBurn/spot',
-                        'broker/subAccount/bnbBurn/marginInterest',
-                        'broker/subAccount/blvt',
-                        'broker/subAccountApi/ipRestriction',
-                        'broker/subAccountApi/ipRestriction/ipList',
-                        'broker/universalTransfer',
-                        'broker/subAccountApi/permission/universalTransfer',
-                        'broker/subAccountApi/permission/vanillaOptions',
-                    ],
-                    'put': [
-                        'userDataStream',
-                        'userDataStream/isolated',
-                    ],
-                    'delete': [
-                        'margin/openOrders',
-                        'margin/order',
-                        'userDataStream',
-                        'userDataStream/isolated',
+                        'apiReferral/customization': 1,
+                        'apiReferral/userCustomization': 1,
+                        'apiReferral/rebate/historicalRecord': 1,
+                        'apiReferral/kickback/historicalRecord': 1,
+                        'broker/subAccount': 1,
+                        'broker/subAccount/margin': 1,
+                        'broker/subAccount/futures': 1,
+                        'broker/subAccountApi': 1,
+                        'broker/subAccountApi/permission': 1,
+                        'broker/subAccountApi/commission': 1,
+                        'broker/subAccountApi/commission/futures': 1,
+                        'broker/subAccountApi/commission/coinFutures': 1,
+                        'broker/transfer': 1,
+                        'broker/transfer/futures': 1,
+                        'broker/rebate/historicalRecord': 1,
+                        'broker/subAccount/bnbBurn/spot': 1,
+                        'broker/subAccount/bnbBurn/marginInterest': 1,
+                        'broker/subAccount/blvt': 1,
+                        'broker/subAccountApi/ipRestriction': 1,
+                        'broker/subAccountApi/ipRestriction/ipList': 1,
+                        'broker/universalTransfer': 1,
+                        'broker/subAccountApi/permission/universalTransfer': 1,
+                        'broker/subAccountApi/permission/vanillaOptions': 1,
+                    },
+                    'put': {
+                        'userDataStream': 1,
+                        'userDataStream/isolated': 1,
+                    },
+                    'delete': {
+                        'margin/openOrders': 1,
+                        'margin/order': 1,
+                        'margin/orderList': 1,
+                        'userDataStream': 1,
+                        'userDataStream/isolated': 1,
                         // brokerage API
-                        'broker/subAccountApi',
-                        'broker/subAccountApi/ipRestriction/ipList',
-                    ],
+                        'broker/subAccountApi': 1,
+                        'broker/subAccountApi/ipRestriction/ipList': 1,
+                    },
                 },
                 // deprecated
                 'wapi': {
-                    'post': [
-                        'withdraw',
-                        'sub-account/transfer',
-                    ],
-                    'get': [
-                        'depositHistory',
-                        'withdrawHistory',
-                        'depositAddress',
-                        'accountStatus',
-                        'systemStatus',
-                        'apiTradingStatus',
-                        'userAssetDribbletLog',
-                        'tradeFee',
-                        'assetDetail',
-                        'sub-account/list',
-                        'sub-account/transfer/history',
-                        'sub-account/assets',
-                    ],
+                    'post': {
+                        'withdraw': 1,
+                        'sub-account/transfer': 1,
+                    },
+                    'get': {
+                        'depositHistory': 1,
+                        'withdrawHistory': 1,
+                        'depositAddress': 1,
+                        'accountStatus': 1,
+                        'systemStatus': 1,
+                        'apiTradingStatus': 1,
+                        'userAssetDribbletLog': 1,
+                        'tradeFee': 1,
+                        'assetDetail': 1,
+                        'sub-account/list': 1,
+                        'sub-account/transfer/history': 1,
+                        'sub-account/assets': 1,
+                    },
                 },
                 'dapiPublic': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'exchangeInfo',
-                        'depth',
-                        'trades',
-                        'historicalTrades',
-                        'aggTrades',
-                        'premiumIndex',
-                        'fundingRate',
-                        'klines',
-                        'continuousKlines',
-                        'indexPriceKlines',
-                        'markPriceKlines',
-                        'ticker/24hr',
-                        'ticker/price',
-                        'ticker/bookTicker',
-                        'openInterest',
-                    ],
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'exchangeInfo': 1,
+                        'depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] },
+                        'trades': 1,
+                        'historicalTrades': 20,
+                        'aggTrades': 20,
+                        'premiumIndex': 10,
+                        'fundingRate': 1,
+                        'klines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
+                        'continuousKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
+                        'indexPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
+                        'markPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                        'openInterest': 1,
+                    },
                 },
                 'dapiData': {
-                    'get': [
-                        'openInterestHist',
-                        'topLongShortAccountRatio',
-                        'topLongShortPositionRatio',
-                        'globalLongShortAccountRatio',
-                        'takerBuySellVol',
-                        'basis',
-                    ],
+                    'get': {
+                        'openInterestHist': 1,
+                        'topLongShortAccountRatio': 1,
+                        'topLongShortPositionRatio': 1,
+                        'globalLongShortAccountRatio': 1,
+                        'takerBuySellVol': 1,
+                        'basis': 1,
+                    },
                 },
                 'dapiPrivate': {
-                    'get': [
-                        'positionSide/dual',
-                        'order',
-                        'openOrder',
-                        'openOrders',
-                        'allOrders',
-                        'balance',
-                        'account',
-                        'positionMargin/history',
-                        'positionRisk',
-                        'userTrades',
-                        'income',
-                        'leverageBracket',
-                        'forceOrders',
-                        'adlQuantile',
-                    ],
-                    'post': [
-                        'positionSide/dual',
-                        'order',
-                        'batchOrders',
-                        'countdownCancelAll',
-                        'leverage',
-                        'marginType',
-                        'positionMargin',
-                        'listenKey',
-                    ],
-                    'put': [
-                        'listenKey',
-                    ],
-                    'delete': [
-                        'order',
-                        'allOpenOrders',
-                        'batchOrders',
-                        'listenKey',
-                    ],
+                    'get': {
+                        'positionSide/dual': 30,
+                        'order': 1,
+                        'openOrder': 1,
+                        'openOrders': { 'cost': 1, 'noSymbol': 5 },
+                        'allOrders': { 'cost': 20, 'noSymbol': 40 },
+                        'balance': 1,
+                        'account': 5,
+                        'positionMargin/history': 1,
+                        'positionRisk': 1,
+                        'userTrades': { 'cost': 20, 'noSymbol': 40 },
+                        'income': 20,
+                        'leverageBracket': 1,
+                        'forceOrders': { 'cost': 20, 'noSymbol': 50 },
+                        'adlQuantile': 5,
+                    },
+                    'post': {
+                        'positionSide/dual': 1,
+                        'order': 4,
+                        'batchOrders': 5,
+                        'countdownCancelAll': 10,
+                        'leverage': 1,
+                        'marginType': 1,
+                        'positionMargin': 1,
+                        'listenKey': 1,
+                    },
+                    'put': {
+                        'listenKey': 1,
+                    },
+                    'delete': {
+                        'order': 1,
+                        'allOpenOrders': 1,
+                        'batchOrders': 5,
+                        'listenKey': 1,
+                    },
                 },
                 'dapiPrivateV2': {
-                    'get': [
-                        'leverageBracket',
-                    ],
+                    'get': {
+                        'leverageBracket': 1,
+                    },
                 },
                 'fapiPublic': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'exchangeInfo',
-                        'depth',
-                        'trades',
-                        'historicalTrades',
-                        'aggTrades',
-                        'klines',
-                        'continuousKlines',
-                        'fundingRate',
-                        'premiumIndex',
-                        'ticker/24hr',
-                        'ticker/price',
-                        'ticker/bookTicker',
-                        'openInterest',
-                        'indexInfo',
-                    ],
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'exchangeInfo': 1,
+                        'depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] },
+                        'trades': 1,
+                        'historicalTrades': 20,
+                        'aggTrades': 20,
+                        'klines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
+                        'continuousKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
+                        'fundingRate': 1,
+                        'premiumIndex': 1,
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                        'openInterest': 1,
+                        'indexInfo': 1,
+                        'apiTradingStatus': { 'cost': 1, 'noSymbol': 10 },
+                        'lvtKlines': 1,
+                    },
                 },
                 'fapiData': {
-                    'get': [
-                        'openInterestHist',
-                        'topLongShortAccountRatio',
-                        'topLongShortPositionRatio',
-                        'globalLongShortAccountRatio',
-                        'takerlongshortRatio',
-                    ],
+                    'get': {
+                        'openInterestHist': 1,
+                        'topLongShortAccountRatio': 1,
+                        'topLongShortPositionRatio': 1,
+                        'globalLongShortAccountRatio': 1,
+                        'takerlongshortRatio': 1,
+                    },
                 },
                 'fapiPrivate': {
-                    'get': [
-                        'forceOrders',
-                        'allOrders',
-                        'openOrder',
-                        'openOrders',
-                        'order',
-                        'account',
-                        'balance',
-                        'leverageBracket',
-                        'positionMargin/history',
-                        'positionRisk',
-                        'positionSide/dual',
-                        'userTrades',
-                        'income',
-                        'commissionRate',
-                        'apiTradingStatus',
-                        'multiAssetsMargin',
+                    'get': {
+                        'forceOrders': { 'cost': 20, 'noSymbol': 50 },
+                        'allOrders': 5,
+                        'openOrder': 1,
+                        'openOrders': 1,
+                        'order': 1,
+                        'account': 5,
+                        'balance': 5,
+                        'leverageBracket': 1,
+                        'positionMargin/history': 1,
+                        'positionRisk': 5,
+                        'positionSide/dual': 30,
+                        'userTrades': 5,
+                        'income': 30,
+                        'commissionRate': 20,
+                        'apiTradingStatus': 1,
+                        'multiAssetsMargin': 30,
                         // broker endpoints
-                        'apiReferral/ifNewUser',
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
-                        'apiReferral/traderNum',
-                        'apiReferral/overview',
-                        'apiReferral/tradeVol',
-                        'apiReferral/rebateVol',
-                        'apiReferral/traderSummary',
-                    ],
-                    'post': [
-                        'batchOrders',
-                        'positionSide/dual',
-                        'positionMargin',
-                        'marginType',
-                        'order',
-                        'leverage',
-                        'listenKey',
-                        'countdownCancelAll',
-                        'multiAssetsMargin',
+                        'apiReferral/ifNewUser': 1,
+                        'apiReferral/customization': 1,
+                        'apiReferral/userCustomization': 1,
+                        'apiReferral/traderNum': 1,
+                        'apiReferral/overview': 1,
+                        'apiReferral/tradeVol': 1,
+                        'apiReferral/rebateVol': 1,
+                        'apiReferral/traderSummary': 1,
+                        'adlQuantile': 5,
+                    },
+                    'post': {
+                        'batchOrders': 5,
+                        'positionSide/dual': 1,
+                        'positionMargin': 1,
+                        'marginType': 1,
+                        'order': 4,
+                        'leverage': 1,
+                        'listenKey': 1,
+                        'countdownCancelAll': 10,
+                        'multiAssetsMargin': 1,
                         // broker endpoints
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
-                    ],
-                    'put': [
-                        'listenKey',
-                    ],
-                    'delete': [
-                        'batchOrders',
-                        'order',
-                        'allOpenOrders',
-                        'listenKey',
-                    ],
+                        'apiReferral/customization': 1,
+                        'apiReferral/userCustomization': 1,
+                    },
+                    'put': {
+                        'listenKey': 1,
+                    },
+                    'delete': {
+                        'batchOrders': 1,
+                        'order': 1,
+                        'allOpenOrders': 1,
+                        'listenKey': 1,
+                    },
                 },
                 'fapiPrivateV2': {
-                    'get': [
-                        'account',
-                        'balance',
-                        'positionRisk',
-                    ],
+                    'get': {
+                        'account': 1,
+                        'balance': 1,
+                        'positionRisk': 1,
+                    },
                 },
                 'v3': {
-                    'get': [
-                        'ticker/price',
-                        'ticker/bookTicker',
-                    ],
+                    'get': {
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                    },
                 },
                 'public': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'depth',
-                        'trades',
-                        'aggTrades',
-                        'historicalTrades',
-                        'klines',
-                        'ticker/24hr',
-                        'ticker/price',
-                        'ticker/bookTicker',
-                        'exchangeInfo',
-                    ],
-                    'put': [ 'userDataStream' ],
-                    'post': [ 'userDataStream' ],
-                    'delete': [ 'userDataStream' ],
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] },
+                        'trades': 1,
+                        'aggTrades': 1,
+                        'historicalTrades': 5,
+                        'klines': 1,
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                        'exchangeInfo': 10,
+                    },
+                    'put': {
+                        'userDataStream': 1,
+                    },
+                    'post': {
+                        'userDataStream': 1,
+                    },
+                    'delete': {
+                        'userDataStream': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'allOrderList', // oco
-                        'openOrderList', // oco
-                        'orderList', // oco
-                        'order',
-                        'openOrders',
-                        'allOrders',
-                        'account',
-                        'myTrades',
-                    ],
-                    'post': [
-                        'order/oco',
-                        'order',
-                        'order/test',
-                    ],
-                    'delete': [
-                        'openOrders', // added on 2020-04-25 for canceling all open orders per symbol
-                        'orderList', // oco
-                        'order',
-                    ],
+                    'get': {
+                        'allOrderList': 10, // oco
+                        'openOrderList': 3, // oco
+                        'orderList': 2, // oco
+                        'order': 2,
+                        'openOrders': { 'cost': 3, 'noSymbol': 40 },
+                        'allOrders': 10,
+                        'account': 10,
+                        'myTrades': 10,
+                    },
+                    'post': {
+                        'order/oco': 1,
+                        'order': 4,
+                        'order/test': 1,
+                    },
+                    'delete': {
+                        'openOrders': 1, // added on 2020-04-25 for canceling all open orders per symbol
+                        'orderList': 1, // oco
+                        'order': 1,
+                    },
                 },
             },
             'fees': {
@@ -634,7 +655,7 @@ module.exports = class binance extends Exchange {
             },
             // exchange-specific options
             'options': {
-                'fetchCurrencies': false, // this is a private call and it requires API keys
+                'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
@@ -669,6 +690,40 @@ module.exports = class binance extends Exchange {
                     'UMFUTURE': 'future',
                     'CMFUTURE': 'delivery',
                     'MINING': 'mining',
+                },
+                'legalMoney': {
+                    'MXN': true,
+                    'UGX': true,
+                    'SEK': true,
+                    'CHF': true,
+                    'VND': true,
+                    'AED': true,
+                    'DKK': true,
+                    'KZT': true,
+                    'HUF': true,
+                    'PEN': true,
+                    'PHP': true,
+                    'USD': true,
+                    'TRY': true,
+                    'EUR': true,
+                    'NGN': true,
+                    'PLN': true,
+                    'BRL': true,
+                    'ZAR': true,
+                    'KES': true,
+                    'ARS': true,
+                    'RUB': true,
+                    'AUD': true,
+                    'NOK': true,
+                    'CZK': true,
+                    'GBP': true,
+                    'UAH': true,
+                    'GHS': true,
+                    'HKD': true,
+                    'CAD': true,
+                    'INR': true,
+                    'JPY': true,
+                    'NZD': true,
                 },
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
@@ -725,13 +780,17 @@ module.exports = class binance extends Exchange {
                     '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
                     '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
                     '-3005': InsufficientFunds, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
+                    '-3006': InsufficientFunds, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
                     '-3008': InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
                     '-3010': ExchangeError, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                    '-3015': ExchangeError, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
                     '-3022': AccountSuspended, // You account's trading is banned.
                     '-4028': BadRequest, // {"code":-4028,"msg":"Leverage 100 is not valid"}
                     '-3020': InsufficientFunds, // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
                     '-3041': InsufficientFunds, // {"code":-3041,"msg":"Balance is not enough"}
                     '-5013': InsufficientFunds, // Asset transfer failed: insufficient balance"
+                    '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}
+                    '-4051': InsufficientFunds, // {"code":-4051,"msg":"Isolated balance insufficient."}
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
@@ -741,8 +800,17 @@ module.exports = class binance extends Exchange {
         });
     }
 
+    costToPrecision (symbol, cost) {
+        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
+    }
+
     currencyToPrecision (currency, fee) {
-        return this.numberToString (fee);
+        // info is available in currencies only if the user has configured his api keys
+        if ('info' in this.currencies[currency]) {
+            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
+        } else {
+            return this.numberToString (fee);
+        }
     }
 
     nonce () {
@@ -1153,6 +1221,8 @@ module.exports = class binance extends Exchange {
             };
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+                const tickSize = this.safeString (filter, 'tickSize');
+                entry['precision']['price'] = this.precisionFromString (tickSize);
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -1205,6 +1275,8 @@ module.exports = class binance extends Exchange {
             method = 'sapiGetMarginAccount';
         } else if (type === 'savings') {
             method = 'sapiGetLendingUnionAccount';
+        } else if (type === 'pay') {
+            method = 'sapiPostAssetGetFundingAsset';
         }
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
@@ -1377,6 +1449,18 @@ module.exports = class binance extends Exchange {
         //       ]
         //     }
         //
+        // binance pay
+        //
+        //     [
+        //       {
+        //         "asset": "BUSD",
+        //         "free": "1129.83",
+        //         "locked": "0",
+        //         "freeze": "0",
+        //         "withdrawing": "0"
+        //       }
+        //     ]
+        //
         const result = {
             'info': response,
         };
@@ -1403,6 +1487,19 @@ module.exports = class binance extends Exchange {
                 const usedAndTotal = this.safeString (entry, 'amount');
                 account['total'] = usedAndTotal;
                 account['used'] = usedAndTotal;
+                result[code] = account;
+            }
+        } else if (type === 'pay') {
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const account = this.account ();
+                const currencyId = this.safeString (entry, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                account['free'] = this.safeString (entry, 'free');
+                const frozen = this.safeString (entry, 'freeze');
+                const withdrawing = this.safeString (entry, 'withdrawing');
+                const locked = this.safeString (entry, 'locked');
+                account['used'] = Precise.stringAdd (frozen, Precise.stringAdd (locked, withdrawing));
                 result[code] = account;
             }
         } else {
@@ -1553,7 +1650,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.wapiGetSystemStatus (params);
+        const response = await this.sapiGetSystemStatus (params);
         let status = this.safeString (response, 'status');
         if (status !== undefined) {
             status = (status === '0') ? 'ok' : 'maintenance';
@@ -2504,39 +2601,41 @@ module.exports = class binance extends Exchange {
             request['startTime'] = since;
             request['endTime'] = this.sum (since, 7776000000);
         }
-        const response = await this.wapiGetUserAssetDribbletLog (this.extend (request, params));
-        //
+        const response = await this.sapiGetAssetDribblet (this.extend (request, params));
         //     {
-        //         success: true,
-        //         results: {
-        //             total: 1,
-        //             rows: [
-        //                 {
-        //                     transfered_total: "1.06468458",
-        //                     service_charge_total: "0.02172826",
-        //                     tran_id: 2701371634,
-        //                     logs: [
-        //                         {
-        //                             tranId:  2701371634,
-        //                             serviceChargeAmount: "0.00012819",
-        //                             uid: "35103861",
-        //                             amount: "0.8012",
-        //                             operateTime: "2018-10-07 17:56:07",
-        //                             transferedAmount: "0.00628141",
-        //                             fromAsset: "ADA"
-        //                         }
-        //                     ],
-        //                     operate_time: "2018-10-07 17:56:06"
-        //                 }
-        //             ]
-        //         }
+        //       "total": "4",
+        //       "userAssetDribblets": [
+        //         {
+        //           "operateTime": "1627575731000",
+        //           "totalServiceChargeAmount": "0.00001453",
+        //           "totalTransferedAmount": "0.00072693",
+        //           "transId": "70899815863",
+        //           "userAssetDribbletDetails": [
+        //             {
+        //               "fromAsset": "LTC",
+        //               "amount": "0.000006",
+        //               "transferedAmount": "0.00000267",
+        //               "serviceChargeAmount": "0.00000005",
+        //               "operateTime": "1627575731000",
+        //               "transId": "70899815863"
+        //             },
+        //             {
+        //               "fromAsset": "GBP",
+        //               "amount": "0.15949157",
+        //               "transferedAmount": "0.00072426",
+        //               "serviceChargeAmount": "0.00001448",
+        //               "operateTime": "1627575731000",
+        //               "transId": "70899815863"
+        //             }
+        //           ]
+        //         },
+        //       ]
         //     }
-        //
-        const results = this.safeValue (response, 'results', {});
-        const rows = this.safeValue (results, 'rows', []);
+        const results = this.safeValue (response, 'userAssetDribblets', []);
+        const rows = this.safeInteger (response, 'total', 0);
         const data = [];
-        for (let i = 0; i < rows.length; i++) {
-            const logs = rows[i]['logs'];
+        for (let i = 0; i < rows; i++) {
+            const logs = this.safeValue (results[i], 'userAssetDribbletDetails', []);
             for (let j = 0; j < logs.length; j++) {
                 logs[j]['isDustTrade'] = true;
                 data.push (logs[j]);
@@ -2547,15 +2646,19 @@ module.exports = class binance extends Exchange {
     }
 
     parseDustTrade (trade, market = undefined) {
-        // {              tranId:  2701371634,
-        //   serviceChargeAmount: "0.00012819",
-        //                   uid: "35103861",
-        //                amount: "0.8012",
-        //           operateTime: "2018-10-07 17:56:07",
-        //      transferedAmount: "0.00628141",
-        //             fromAsset: "ADA"                  },
-        const orderId = this.safeString (trade, 'tranId');
-        const timestamp = this.parse8601 (this.safeString (trade, 'operateTime'));
+        //
+        //     {
+        //       "fromAsset": "USDT",
+        //       "amount": "0.009669",
+        //       "transferedAmount": "0.00002992",
+        //       "serviceChargeAmount": "0.00000059",
+        //       "operateTime": "1628076010000",
+        //       "transId": "71416578712",
+        //       "isDustTrade": true
+        //     }
+        //
+        const orderId = this.safeString (trade, 'transId');
+        const timestamp = this.safeInteger (trade, 'operateTime');
         const currencyId = this.safeString (trade, 'fromAsset');
         const tradedCurrency = this.safeCurrencyCode (currencyId);
         const bnb = this.currency ('BNB');
@@ -2624,105 +2727,182 @@ module.exports = class binance extends Exchange {
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
+        let response = undefined;
         const request = {};
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['coin'] = currency['id'];
+        const legalMoney = this.safeValue (this.options, 'legalMoney', {});
+        if (code in legalMoney) {
+            if (code !== undefined) {
+                currency = this.currency (code);
+            }
+            request['transactionType'] = 0;
+            if (since !== undefined) {
+                request['beginTime'] = since;
+            }
+            const raw = await this.sapiGetFiatOrders (this.extend (request, params));
+            response = this.safeValue (raw, 'data');
+            //     {
+            //       "code": "000000",
+            //       "message": "success",
+            //       "data": [
+            //         {
+            //           "orderNo": "25ced37075c1470ba8939d0df2316e23",
+            //           "fiatCurrency": "EUR",
+            //           "indicatedAmount": "15.00",
+            //           "amount": "15.00",
+            //           "totalFee": "0.00",
+            //           "method": "card",
+            //           "status": "Failed",
+            //           "createTime": 1627501026000,
+            //           "updateTime": 1627501027000
+            //         }
+            //       ],
+            //       "total": 1,
+            //       "success": true
+            //     }
+        } else {
+            if (code !== undefined) {
+                currency = this.currency (code);
+                request['coin'] = currency['id'];
+            }
+            if (since !== undefined) {
+                request['startTime'] = since;
+                // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+                request['endTime'] = this.sum (since, 7776000000);
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            response = await this.sapiGetCapitalDepositHisrec (this.extend (request, params));
+            //     [
+            //       {
+            //         "amount": "0.01844487",
+            //         "coin": "BCH",
+            //         "network": "BCH",
+            //         "status": 1,
+            //         "address": "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
+            //         "addressTag": "",
+            //         "txId": "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
+            //         "insertTime": 1610784980000,
+            //         "transferType": 0,
+            //         "confirmTimes": "2/2"
+            //       },
+            //       {
+            //         "amount": "4500",
+            //         "coin": "USDT",
+            //         "network": "BSC",
+            //         "status": 1,
+            //         "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
+            //         "addressTag": "",
+            //         "txId": "Internal transfer 51376627901",
+            //         "insertTime": 1618394381000,
+            //         "transferType": 1,
+            //         "confirmTimes": "1/15"
+            //     }
+            //   ]
         }
-        if (since !== undefined) {
-            request['startTime'] = since;
-            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            request['endTime'] = this.sum (since, 7776000000);
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.sapiGetCapitalDepositHisrec (this.extend (request, params));
-        //     [
-        //       {
-        //         "amount": "0.01844487",
-        //         "coin": "BCH",
-        //         "network": "BCH",
-        //         "status": 1,
-        //         "address": "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
-        //         "addressTag": "",
-        //         "txId": "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
-        //         "insertTime": 1610784980000,
-        //         "transferType": 0,
-        //         "confirmTimes": "2/2"
-        //       },
-        //       {
-        //         "amount": "4500",
-        //         "coin": "USDT",
-        //         "network": "BSC",
-        //         "status": 1,
-        //         "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
-        //         "addressTag": "",
-        //         "txId": "Internal transfer 51376627901",
-        //         "insertTime": 1618394381000,
-        //         "transferType": 1,
-        //         "confirmTimes": "1/15"
-        //     }
-        //   ]
         return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = undefined;
+        const legalMoney = this.safeValue (this.options, 'legalMoney', {});
         const request = {};
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['coin'] = currency['id'];
+        let response = undefined;
+        let currency = undefined;
+        if (code in legalMoney) {
+            if (code !== undefined) {
+                currency = this.currency (code);
+            }
+            request['transactionType'] = 1;
+            if (since !== undefined) {
+                request['beginTime'] = since;
+            }
+            const raw = await this.sapiGetFiatOrders (this.extend (request, params));
+            response = this.safeValue (raw, 'data');
+            //     {
+            //       "code": "000000",
+            //       "message": "success",
+            //       "data": [
+            //         {
+            //           "orderNo": "CJW706452266115170304",
+            //           "fiatCurrency": "GBP",
+            //           "indicatedAmount": "10001.50",
+            //           "amount": "100.00",
+            //           "totalFee": "1.50",
+            //           "method": "bank transfer",
+            //           "status": "Successful",
+            //           "createTime": 1620037745000,
+            //           "updateTime": 1620038480000
+            //         },
+            //         {
+            //           "orderNo": "CJW706287492781891584",
+            //           "fiatCurrency": "GBP",
+            //           "indicatedAmount": "10001.50",
+            //           "amount": "100.00",
+            //           "totalFee": "1.50",
+            //           "method": "bank transfer",
+            //           "status": "Successful",
+            //           "createTime": 1619998460000,
+            //           "updateTime": 1619998823000
+            //         }
+            //       ],
+            //       "total": 39,
+            //       "success": true
+            //     }
+        } else {
+            if (code !== undefined) {
+                currency = this.currency (code);
+                request['coin'] = currency['id'];
+            }
+            if (since !== undefined) {
+                request['startTime'] = since;
+                // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+                request['endTime'] = this.sum (since, 7776000000);
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, params));
+            //     [
+            //       {
+            //         "id": "69e53ad305124b96b43668ceab158a18",
+            //         "amount": "28.75",
+            //         "transactionFee": "0.25",
+            //         "coin": "XRP",
+            //         "status": 6,
+            //         "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+            //         "addressTag": "101286922",
+            //         "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+            //         "applyTime": "2021-04-15 12:09:16",
+            //         "network": "XRP",
+            //         "transferType": 0
+            //       },
+            //       {
+            //         "id": "9a67628b16ba4988ae20d329333f16bc",
+            //         "amount": "20",
+            //         "transactionFee": "20",
+            //         "coin": "USDT",
+            //         "status": 6,
+            //         "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+            //         "txId": "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
+            //         "applyTime": "2021-04-15 12:06:53",
+            //         "network": "ETH",
+            //         "transferType": 0
+            //       },
+            //       {
+            //         "id": "a7cdc0afbfa44a48bd225c9ece958fe2",
+            //         "amount": "51",
+            //         "transactionFee": "1",
+            //         "coin": "USDT",
+            //         "status": 6,
+            //         "address": "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
+            //         "txId": "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
+            //         "applyTime": "2021-04-13 12:46:59",
+            //         "network": "TRX",
+            //         "transferType": 0
+            //       }
+            //     ]
         }
-        if (since !== undefined) {
-            request['startTime'] = since;
-            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            request['endTime'] = this.sum (since, 7776000000);
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, params));
-        //     [
-        //       {
-        //         "id": "69e53ad305124b96b43668ceab158a18",
-        //         "amount": "28.75",
-        //         "transactionFee": "0.25",
-        //         "coin": "XRP",
-        //         "status": 6,
-        //         "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
-        //         "addressTag": "101286922",
-        //         "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
-        //         "applyTime": "2021-04-15 12:09:16",
-        //         "network": "XRP",
-        //         "transferType": 0
-        //       },
-        //       {
-        //         "id": "9a67628b16ba4988ae20d329333f16bc",
-        //         "amount": "20",
-        //         "transactionFee": "20",
-        //         "coin": "USDT",
-        //         "status": 6,
-        //         "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
-        //         "txId": "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
-        //         "applyTime": "2021-04-15 12:06:53",
-        //         "network": "ETH",
-        //         "transferType": 0
-        //       },
-        //       {
-        //         "id": "a7cdc0afbfa44a48bd225c9ece958fe2",
-        //         "amount": "51",
-        //         "transactionFee": "1",
-        //         "coin": "USDT",
-        //         "status": 6,
-        //         "address": "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
-        //         "txId": "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
-        //         "applyTime": "2021-04-13 12:46:59",
-        //         "network": "TRX",
-        //         "transferType": 0
-        //       }
-        //     ]
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -2731,6 +2911,14 @@ module.exports = class binance extends Exchange {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
+                // Fiat
+                // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
+                'Processing': 'pending',
+                'Failed': 'failed',
+                'Successful': 'ok',
+                'Refunding': 'canceled',
+                'Refunded': 'canceled',
+                'Refund Failed': 'failed',
             },
             'withdrawal': {
                 '0': 'pending', // Email Sent
@@ -2740,6 +2928,14 @@ module.exports = class binance extends Exchange {
                 '4': 'pending', // Processing
                 '5': 'failed', // Failure
                 '6': 'ok', // Completed
+                // Fiat
+                // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
+                'Processing': 'pending',
+                'Failed': 'failed',
+                'Successful': 'ok',
+                'Refunding': 'canceled',
+                'Refunded': 'canceled',
+                'Refund Failed': 'failed',
             },
         };
         const statuses = this.safeValue (statusesByType, type, {});
@@ -2779,7 +2975,34 @@ module.exports = class binance extends Exchange {
         //       "transferType": 0
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        // fiat transaction
+        // withdraw
+        //     {
+        //       "orderNo": "CJW684897551397171200",
+        //       "fiatCurrency": "GBP",
+        //       "indicatedAmount": "29.99",
+        //       "amount": "28.49",
+        //       "totalFee": "1.50",
+        //       "method": "bank transfer",
+        //       "status": "Successful",
+        //       "createTime": 1614898701000,
+        //       "updateTime": 1614898820000
+        //     }
+        //
+        // deposit
+        //     {
+        //       "orderNo": "25ced37075c1470ba8939d0df2316e23",
+        //       "fiatCurrency": "EUR",
+        //       "indicatedAmount": "15.00",
+        //       "amount": "15.00",
+        //       "totalFee": "0.00",
+        //       "method": "card",
+        //       "status": "Failed",
+        //       "createTime": "1627501026000",
+        //       "updateTime": "1627501027000"
+        //     }
+        //
+        const id = this.safeString2 (transaction, 'id', 'orderNo');
         const address = this.safeString (transaction, 'address');
         let tag = this.safeString (transaction, 'addressTag'); // set but unused
         if (tag !== undefined) {
@@ -2791,10 +3014,10 @@ module.exports = class binance extends Exchange {
         if ((txid !== undefined) && (txid.indexOf ('Internal transfer ') >= 0)) {
             txid = txid.slice (18);
         }
-        const currencyId = this.safeString (transaction, 'coin');
+        const currencyId = this.safeString2 (transaction, 'coin', 'fiatCurrency');
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
-        const insertTime = this.safeInteger (transaction, 'insertTime');
+        const insertTime = this.safeInteger2 (transaction, 'insertTime', 'createTime');
         const applyTime = this.parse8601 (this.safeString (transaction, 'applyTime'));
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
@@ -2808,12 +3031,12 @@ module.exports = class binance extends Exchange {
         }
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
-        const feeCost = this.safeNumber (transaction, 'transactionFee');
+        const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const updated = this.safeInteger (transaction, 'successTime');
+        const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let internal = this.safeInteger (transaction, 'transferType', false);
         internal = internal ? true : false;
         return {
@@ -3973,7 +4196,10 @@ module.exports = class binance extends Exchange {
         return this.parseIncomes (response, market, since, limit);
     }
 
-    async setLeverage (symbol, leverage, params = {}) {
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 125)) {
@@ -4145,7 +4371,7 @@ module.exports = class binance extends Exchange {
         if (error !== undefined) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if ((error === '200') || (error === '0')) {
+            if ((error === '200') || Precise.stringEquals (error, '0')) {
                 return;
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
@@ -4163,12 +4389,80 @@ module.exports = class binance extends Exchange {
         }
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
+    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+        if (('noSymbol' in config) && !('symbol' in params)) {
+            return config['noSymbol'];
+        } else if (('noPoolId' in config) && !('poolId' in params)) {
+            return config['noPoolId'];
+        } else if (('byLimit' in config) && ('limit' in params)) {
+            const limit = params['limit'];
+            const byLimit = config['byLimit'];
+            for (let i = 0; i < byLimit.length; i++) {
+                const entry = byLimit[i];
+                if (limit <= entry[0]) {
+                    return entry[1];
+                }
+            }
+        }
+        return this.safeInteger (config, 'cost', 1);
+    }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if ((api === 'private') || (api === 'wapi')) {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return response;
+    }
+
+    async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
+        // used to modify isolated positions
+        let defaultType = this.safeString (this.options, 'defaultType', 'future');
+        if (defaultType === 'spot') {
+            defaultType = 'future';
+        }
+        const type = this.safeString (params, 'type', defaultType);
+        if ((type === 'margin') || (type === 'spot')) {
+            throw new NotSupported (this.id + ' add / reduce margin only supported with type future or delivery');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'type': addOrReduce,
+            'symbol': market['id'],
+            'amount': amount,
+        };
+        let method = undefined;
+        let code = undefined;
+        if (type === 'future') {
+            method = 'fapiPrivatePostPositionMargin';
+            code = market['quote'];
+        } else {
+            method = 'dapiPrivatePostPositionMargin';
+            code = market['base'];
+        }
+        const response = await this[method] (this.extend (request, params));
+        const rawType = this.safeInteger (response, 'type');
+        const resultType = (rawType === 1) ? 'add' : 'reduce';
+        const resultAmount = this.safeNumber (response, 'amount');
+        const errorCode = this.safeString (response, 'code');
+        const status = (errorCode === '200') ? 'ok' : 'failed';
+        return {
+            'info': response,
+            'type': resultType,
+            'amount': resultAmount,
+            'code': code,
+            'symbol': market['symbol'],
+            'status': status,
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 2, params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 };

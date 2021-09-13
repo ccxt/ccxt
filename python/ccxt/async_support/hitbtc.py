@@ -189,11 +189,19 @@ class hitbtc(Exchange):
                     'bank': 'bank',
                     'exchange': 'exchange',
                     'main': 'bank',  # alias of the above
+                    'funding': 'bank',
+                    'spot': 'exchange',
+                    'trade': 'exchange',
                     'trading': 'exchange',
                 },
                 'fetchBalanceMethod': {
                     'account': 'account',
+                    'bank': 'account',
                     'main': 'account',
+                    'funding': 'account',
+                    'exchange': 'trading',
+                    'spot': 'trading',
+                    'trade': 'trading',
                     'trading': 'trading',
                 },
             },
@@ -202,6 +210,7 @@ class hitbtc(Exchange):
                 'BCC': 'BCC',  # initial symbol for Bitcoin Cash, now inactive
                 'BDP': 'BidiPass',
                 'BET': 'DAO.Casino',
+                'BIT': 'BitRewards',
                 'BOX': 'BOX Token',
                 'CPT': 'Cryptaur',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'GET': 'Themis',
@@ -512,23 +521,13 @@ class hitbtc(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['timestamp'])
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(None, market)
         baseVolume = self.safe_number(ticker, 'volume')
         quoteVolume = self.safe_number(ticker, 'volumeQuote')
         open = self.safe_number(ticker, 'open')
         last = self.safe_number(ticker, 'last')
-        change = None
-        percentage = None
-        average = None
-        if last is not None and open is not None:
-            change = last - open
-            average = self.sum(last, open) / 2
-            if open > 0:
-                percentage = change / open * 100
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -543,13 +542,13 @@ class hitbtc(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

@@ -78,7 +78,9 @@ class liquid(Exchange):
                         'accounts/{id}',
                         'accounts/{currency}/reserved_balance_details',
                         'crypto_accounts',  # add fetchAccounts
+                        'crypto_withdrawal',
                         'crypto_withdrawals',
+                        'crypto_withdrawals/crypto_networks',
                         'executions/me',
                         'fiat_accounts',  # add fetchAccounts
                         'fund_infos',  # add fetchDeposits
@@ -93,6 +95,11 @@ class liquid(Exchange):
                         'trading_accounts/{id}',
                         'transactions',
                         'withdrawals',  # add fetchWithdrawals
+                        'user/fee_tier',
+                        'user/fees',
+                        'trading_accounts/{id}',
+                        'bank_accounts',
+                        'accounts/{currency}/reserved_balance_details',
                     ],
                     'post': [
                         'crypto_withdrawals',
@@ -101,6 +108,7 @@ class liquid(Exchange):
                         'loan_bids',
                         'orders',
                         'withdrawals',
+                        'fees/estimate',
                     ],
                     'put': [
                         'crypto_withdrawal/{id}/cancel',
@@ -536,16 +544,8 @@ class liquid(Exchange):
                     symbol = self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
         if market is not None:
             symbol = market['symbol']
-        change = None
-        percentage = None
-        average = None
         open = self.safe_number(ticker, 'last_price_24h')
-        if open is not None and last is not None:
-            change = last - open
-            average = self.sum(last, open) / 2
-            if open > 0:
-                percentage = change / open * 100
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -560,13 +560,13 @@ class liquid(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': self.safe_number(ticker, 'volume_24h'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -1067,8 +1067,9 @@ class liquid(Exchange):
         updated = self.safe_timestamp(transaction, 'updated_at')
         type = 'withdrawal'
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        amount = self.safe_number(transaction, 'amount')
-        feeCost = self.safe_number(transaction, 'withdrawal_fee')
+        amountString = self.safe_string(transaction, 'amount')
+        feeCostString = self.safe_string(transaction, 'withdrawal_fee')
+        amount = self.parse_number(Precise.string_sub(amountString, feeCostString))
         return {
             'info': transaction,
             'id': id,
@@ -1078,13 +1079,13 @@ class liquid(Exchange):
             'address': address,
             'tag': tag,
             'type': type,
-            'amount': amount - feeCost,
+            'amount': amount,
             'currency': code,
             'status': status,
             'updated': updated,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCostString),
             },
         }
 

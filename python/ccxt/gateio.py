@@ -27,9 +27,11 @@ class gateio(Exchange):
         return self.deep_extend(super(gateio, self).describe(), {
             'id': 'gateio',
             'name': 'Gate.io',
-            'country': ['KR'],
+            'countries': ['KR'],
             'rateLimit': 1000,
             'version': '4',
+            'certified': True,
+            'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
                 'doc': 'https://www.gate.io/docs/apiv4/en/index.html',
@@ -44,22 +46,23 @@ class gateio(Exchange):
                 },
             },
             'has': {
-                'fetchMarkets': True,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposits': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchMyTrades': True,
-                'fetchBalance': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchOrder': True,
-                'createOrder': True,
-                'cancelOrder': True,
-                'withdraw': True,
-                'fetchDeposits': True,
                 'fetchWithdrawals': True,
                 'transfer': True,
+                'withdraw': True,
             },
             'api': {
                 'public': {
@@ -457,8 +460,9 @@ class gateio(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            taker = self.safe_number(entry, 'fee')
-            maker = None
+            # Fee is in %, so divide by 100
+            taker = self.safe_number(entry, 'fee') / 100
+            maker = taker
             tradeStatus = self.safe_string(entry, 'trade_status')
             active = tradeStatus == 'tradable'
             amountPrecision = self.safe_string(entry, 'amount_precision')
@@ -527,10 +531,7 @@ class gateio(Exchange):
                 'id': currencyId,
                 'name': None,
                 'code': code,
-                'precision': {
-                    'amount': amountPrecision,
-                    'price': None,
-                },
+                'precision': amountPrecision,
                 'info': entry,
                 'active': active,
                 'fee': None,
@@ -759,8 +760,7 @@ class gateio(Exchange):
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         response = self.publicSpotGetTickers(params)
-        ticker = self.safe_value(response, 0)
-        return self.parse_tickers(ticker, symbols)
+        return self.parse_tickers(response, symbols)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -793,10 +793,13 @@ class gateio(Exchange):
             'currency_pair': market['id'],
             'interval': self.timeframes[timeframe],
         }
-        if limit is not None:
-            request['limit'] = limit
-        if since is not None:
-            request['start'] = int(math.floor(since / 1000))
+        if since is None:
+            if limit is not None:
+                request['limit'] = limit
+        else:
+            request['from'] = int(math.floor(since / 1000))
+            if limit is not None:
+                request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe) - 1)
         response = self.publicSpotGetCandlesticks(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -840,9 +843,18 @@ class gateio(Exchange):
         market = self.market(symbol)
         request = {
             'currency_pair': market['id'],
+            # 'limit': limit,
+            # 'page': 0,
+            # 'order_id': 'Order ID',
+            # 'account': 'spot',  # default to spot and margin account if not specified, set to cross_margin to operate against margin account
+            # 'from': since,  # default to 7 days before current time
+            # 'to': self.milliseconds(),  # default to current time
         }
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
+        if since is not None:
+            request['from'] = int(math.floor(since / 1000))
+            # request['to'] = since + 7 * 24 * 60 * 60
         response = self.privateSpotGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -932,6 +944,7 @@ class gateio(Exchange):
             request['limit'] = limit
         if since is not None:
             request['from'] = int(math.floor(since / 1000))
+            request['to'] = since + 30 * 24 * 60 * 60
         response = self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
@@ -946,6 +959,7 @@ class gateio(Exchange):
             request['limit'] = limit
         if since is not None:
             request['from'] = int(math.floor(since / 1000))
+            request['to'] = since + 30 * 24 * 60 * 60
         response = self.privateWalletGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
@@ -1312,7 +1326,8 @@ class gateio(Exchange):
             timestampString = str(timestamp)
             signaturePath = '/api/v4' + entirePath
             payloadArray = [method.upper(), signaturePath, queryString, bodySignature, timestampString]
-            payload = '\n'.join(payloadArray)
+            # eslint-disable-next-line quotes
+            payload = "\n".join(payloadArray)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
             headers = {
                 'KEY': self.apiKey,

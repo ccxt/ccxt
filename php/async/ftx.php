@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\InvalidOrder;
 use \ccxt\Precise;
 
@@ -60,6 +61,7 @@ class ftx extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
+                'setLeverage' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -70,6 +72,10 @@ class ftx extends Exchange {
                 '1h' => '3600',
                 '4h' => '14400',
                 '1d' => '86400',
+                '3d' => '259200',
+                '1w' => '604800',
+                '2w' => '1209600',
+                '1M' => '2592000',
             ),
             'api' => array(
                 'public' => array(
@@ -107,15 +113,14 @@ class ftx extends Exchange {
                         'spot_margin/history',
                         'spot_margin/borrow_summary',
                         // nfts
-                        'nfts',
+                        'nft/nfts',
                         'nft/{nft_id}',
                         'nft/{nft_id}/trades',
-                        'all_trades',
+                        'nft/all_trades',
                         'nft/{nft_id}/account_info',
-                        'collections',
+                        'nft/collections',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
-                        'stats/latency_stats',
                     ),
                     'post' => array(
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -176,13 +181,15 @@ class ftx extends Exchange {
                         'spot_margin/offers',
                         'spot_margin/lending_info',
                         // nfts
-                        'balances',
-                        'bids',
-                        'deposits',
-                        'withdrawals',
-                        'fills',
-                        'gallery/{gallery_id}',
-                        'gallery_settings',
+                        'nft/balances',
+                        'nft/bids',
+                        'nft/deposits',
+                        'nft/withdrawals',
+                        'nft/fills',
+                        'nft/gallery/{gallery_id}',
+                        'nft/gallery_settings',
+                        // latency statistics
+                        'stats/latency_stats',
                     ),
                     'post' => array(
                         // subaccounts
@@ -216,14 +223,14 @@ class ftx extends Exchange {
                         // spot margin
                         'spot_margin/offers',
                         // nfts
-                        'offer',
-                        'buy',
-                        'auction',
-                        'edit_auction',
-                        'cancel_auction',
-                        'bids',
-                        'redeem',
-                        'gallery_settings',
+                        'nft/offer',
+                        'nft/buy',
+                        'nft/auction',
+                        'nft/edit_auction',
+                        'nft/cancel_auction',
+                        'nft/bids',
+                        'nft/redeem',
+                        'nft/gallery_settings',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/orders',
                     ),
@@ -249,8 +256,8 @@ class ftx extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'maker' => $this->parse_number('0.02'),
-                    'taker' => $this->parse_number('0.07'),
+                    'maker' => $this->parse_number('0.0002'),
+                    'taker' => $this->parse_number('0.0007'),
                     'tiers' => array(
                         'taker' => array(
                             array( $this->parse_number('0'), $this->parse_number('0.0007') ),
@@ -293,6 +300,7 @@ class ftx extends Exchange {
                     'Spot orders cannot be reduce-only' => '\\ccxt\\InvalidOrder', // array("error":"Spot orders cannot be reduce-only","success":false)
                     'Invalid reduce-only order' => '\\ccxt\\InvalidOrder', // array("error":"Invalid reduce-only order","success":false)
                     'Account does not have enough balances' => '\\ccxt\\InsufficientFunds', // array("success":false,"error":"Account does not have enough balances")
+                    'Not authorized for subaccount-specific access' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not authorized for subaccount-specific access")
                 ),
                 'broad' => array(
                     'Account does not have enough margin for order' => '\\ccxt\\InsufficientFunds',
@@ -510,7 +518,11 @@ class ftx extends Exchange {
         }
         $last = $this->safe_number($ticker, 'last');
         $timestamp = $this->safe_timestamp($ticker, 'time', $this->milliseconds());
-        return array(
+        $percentage = $this->safe_number($ticker, 'change24h');
+        if ($percentage !== null) {
+            $percentage *= 100;
+        }
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -526,12 +538,12 @@ class ftx extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $this->safe_number($ticker, 'change24h'),
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_number($ticker, 'quoteVolume24h'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1964,5 +1976,72 @@ class ftx extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (($leverage < 1) || ($leverage > 20)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 20');
+        }
+        $request = array(
+            'leverage' => $leverage,
+        );
+        return yield $this->privatePostAccountLeverage (array_merge($request, $params));
+    }
+
+    public function parse_income($income, $market = null) {
+        //
+        //   {
+        //       "future" => "ETH-PERP",
+        //        "$id" => 33830,
+        //        "payment" => 0.0441342,
+        //        "time" => "2019-05-15T18:00:00+00:00",
+        //        "$rate" => 0.0001
+        //   }
+        //
+        $marketId = $this->safe_string($income, 'future');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $amount = $this->safe_number($income, 'payment');
+        $code = $this->safe_currency_code('USD');
+        $id = $this->safe_string($income, 'id');
+        $timestamp = $this->safe_integer($income, 'time');
+        $rate = $this->safe_number($income, 'rate');
+        return array(
+            'info' => $income,
+            'symbol' => $symbol,
+            'code' => $code,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $id,
+            'amount' => $amount,
+            'rate' => $rate,
+        );
+    }
+
+    public function parse_incomes($incomes, $market = null, $since = null, $limit = null) {
+        $result = array();
+        for ($i = 0; $i < count($incomes); $i++) {
+            $entry = $incomes[$i];
+            $parsed = $this->parse_income ($entry, $market);
+            $result[] = $parsed;
+        }
+        return $this->filter_by_since_limit($result, $since, $limit, 'timestamp');
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $method = 'private_get_funding_payments';
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['future'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        return $this->parse_incomes ($response, $market, $since, $limit);
     }
 }

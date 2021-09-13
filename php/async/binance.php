@@ -22,7 +22,7 @@ class binance extends Exchange {
             'id' => 'binance',
             'name' => 'Binance',
             'countries' => array( 'JP', 'MT' ), // Japan, Malta
-            'rateLimit' => 500,
+            'rateLimit' => 50,
             'certified' => true,
             'pro' => true,
             // new metainfo interface
@@ -122,437 +122,458 @@ class binance extends Exchange {
                 'api_management' => 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees' => 'https://www.binance.com/en/fee/schedule',
             ),
+            'depth' => 1,
             'api' => array(
                 // the API structure below will need 3-layer apidefs
                 'sapi' => array(
                     'get' => array(
-                        'accountSnapshot',
+                        'accountSnapshot' => 1,
+                        'system/status' => 1,
                         // these endpoints require $this->apiKey
-                        'margin/asset',
-                        'margin/pair',
-                        'margin/allAssets',
-                        'margin/allPairs',
-                        'margin/priceIndex',
+                        'margin/asset' => 1,
+                        'margin/pair' => 1,
+                        'margin/allAssets' => 1,
+                        'margin/allPairs' => 1,
+                        'margin/priceIndex' => 1,
                         // these endpoints require $this->apiKey . $this->secret
-                        'asset/assetDividend',
-                        'asset/dribblet',
-                        'asset/transfer',
-                        'asset/assetDetail',
-                        'asset/tradeFee',
-                        'margin/loan',
-                        'margin/repay',
-                        'margin/account',
-                        'margin/transfer',
-                        'margin/interestHistory',
-                        'margin/forceLiquidationRec',
-                        'margin/order',
-                        'margin/openOrders',
-                        'margin/allOrders',
-                        'margin/myTrades',
-                        'margin/maxBorrowable',
-                        'margin/maxTransferable',
-                        'margin/isolated/transfer',
-                        'margin/isolated/account',
-                        'margin/isolated/pair',
-                        'margin/isolated/allPairs',
-                        'margin/interestRateHistory',
-                        'fiatpayment/query/deposit/history',
-                        'fiatpayment/query/withdraw/history',
-                        'futures/transfer',
-                        'futures/loan/borrow/history',
-                        'futures/loan/repay/history',
-                        'futures/loan/wallet',
-                        'futures/loan/configs',
-                        'futures/loan/calcAdjustLevel',
-                        'futures/loan/calcMaxAdjustAmount',
-                        'futures/loan/adjustCollateral/history',
-                        'futures/loan/liquidationHistory',
+                        'asset/assetDividend' => 1,
+                        'asset/dribblet' => 1,
+                        'asset/transfer' => 1,
+                        'asset/assetDetail' => 1,
+                        'asset/tradeFee' => 1,
+                        'asset/get-funding-asset' => 1,
+                        'margin/loan' => 1,
+                        'margin/repay' => 1,
+                        'margin/account' => 1,
+                        'margin/transfer' => 1,
+                        'margin/interestHistory' => 1,
+                        'margin/forceLiquidationRec' => 1,
+                        'margin/order' => 1,
+                        'margin/openOrders' => 1,
+                        'margin/allOrders' => 1,
+                        'margin/myTrades' => 1,
+                        'margin/maxBorrowable' => 5,
+                        'margin/maxTransferable' => 5,
+                        'margin/isolated/transfer' => 1,
+                        'margin/isolated/account' => 1,
+                        'margin/isolated/pair' => 1,
+                        'margin/isolated/allPairs' => 1,
+                        'margin/interestRateHistory' => 1,
+                        'margin/orderList' => 2,
+                        'margin/allOrderList' => 10,
+                        'margin/openOrderList' => 3,
+                        'fiat/orders' => 1,
+                        'fiat/payments' => 1,
+                        'futures/transfer' => 5,
+                        'futures/loan/borrow/history' => 1,
+                        'futures/loan/repay/history' => 1,
+                        'futures/loan/wallet' => 1,
+                        'futures/loan/configs' => 1,
+                        'futures/loan/calcAdjustLevel' => 1,
+                        'futures/loan/calcMaxAdjustAmount' => 1,
+                        'futures/loan/adjustCollateral/history' => 1,
+                        'futures/loan/liquidationHistory' => 1,
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
-                        'capital/config/getall', // get networks for withdrawing USDT ERC20 vs USDT Omni
-                        'capital/deposit/address',
-                        'capital/deposit/hisrec',
-                        'capital/deposit/subAddress',
-                        'capital/deposit/subHisrec',
-                        'capital/withdraw/history',
-                        'bnbBurn',
-                        'sub-account/assets',
-                        'sub-account/futures/account',
-                        'sub-account/futures/accountSummary',
-                        'sub-account/futures/positionRisk',
-                        'sub-account/futures/internalTransfer',
-                        'sub-account/list',
-                        'sub-account/margin/account',
-                        'sub-account/margin/accountSummary',
-                        'sub-account/spotSummary',
-                        'sub-account/status',
-                        'sub-account/sub/transfer/history',
-                        'sub-account/transfer/subUserHistory',
-                        'sub-account/universalTransfer',
+                        'capital/config/getall' => 1, // get networks for withdrawing USDT ERC20 vs USDT Omni
+                        'capital/deposit/address' => 1,
+                        'capital/deposit/hisrec' => 1,
+                        'capital/deposit/subAddress' => 1,
+                        'capital/deposit/subHisrec' => 1,
+                        'capital/withdraw/history' => 1,
+                        'bnbBurn' => 1,
+                        'sub-account/assets' => 1,
+                        'sub-account/futures/account' => 1,
+                        'sub-account/futures/accountSummary' => 20,
+                        'sub-account/futures/positionRisk' => 1,
+                        'sub-account/futures/internalTransfer' => 1,
+                        'sub-account/list' => 1,
+                        'sub-account/margin/account' => 1,
+                        'sub-account/margin/accountSummary' => 1,
+                        'sub-account/spotSummary' => 5,
+                        'sub-account/status' => 1,
+                        'sub-account/sub/transfer/history' => 1,
+                        'sub-account/transfer/subUserHistory' => 1,
+                        'sub-account/universalTransfer' => 1,
                         // lending endpoints
-                        'lending/daily/product/list',
-                        'lending/daily/userLeftQuota',
-                        'lending/daily/userRedemptionQuota',
-                        'lending/daily/token/position',
-                        'lending/union/account',
-                        'lending/union/purchaseRecord',
-                        'lending/union/redemptionRecord',
-                        'lending/union/interestHistory',
-                        'lending/project/list',
-                        'lending/project/position/list',
+                        'lending/daily/product/list' => 1,
+                        'lending/daily/userLeftQuota' => 1,
+                        'lending/daily/userRedemptionQuota' => 1,
+                        'lending/daily/token/position' => 1,
+                        'lending/union/account' => 1,
+                        'lending/union/purchaseRecord' => 1,
+                        'lending/union/redemptionRecord' => 1,
+                        'lending/union/interestHistory' => 1,
+                        'lending/project/list' => 1,
+                        'lending/project/position/list' => 1,
                         // mining endpoints
-                        'mining/pub/algoList',
-                        'mining/pub/coinList',
-                        'mining/worker/detail',
-                        'mining/worker/list',
-                        'mining/payment/list',
-                        'mining/statistics/user/status',
-                        'mining/statistics/user/list',
+                        'mining/pub/algoList' => 1,
+                        'mining/pub/coinList' => 1,
+                        'mining/worker/detail' => 5,
+                        'mining/worker/list' => 5,
+                        'mining/payment/list' => 5,
+                        'mining/statistics/user/status' => 5,
+                        'mining/statistics/user/list' => 5,
                         // liquid swap endpoints
-                        'bswap/pools',
-                        'bswap/liquidity',
-                        'bswap/liquidityOps',
-                        'bswap/quote',
-                        'bswap/swap',
+                        'bswap/pools' => 1,
+                        'bswap/liquidity' => array( 'cost' => 1, 'noPoolId' => 10 ),
+                        'bswap/liquidityOps' => 2,
+                        'bswap/quote' => 2,
+                        'bswap/swap' => 1,
                         // leveraged token endpoints
-                        'blvt/tokenInfo',
-                        'blvt/subscribe/record',
-                        'blvt/redeem/record',
-                        'blvt/userLimit',
+                        'blvt/tokenInfo' => 1,
+                        'blvt/subscribe/record' => 1,
+                        'blvt/redeem/record' => 1,
+                        'blvt/userLimit' => 1,
                         // broker api
-                        'apiReferral/ifNewUser',
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
-                        'apiReferral/rebate/recentRecord',
-                        'apiReferral/rebate/historicalRecord',
-                        'apiReferral/kickback/recentRecord',
-                        'apiReferral/kickback/historicalRecord',
+                        'apiReferral/ifNewUser' => 1,
+                        'apiReferral/customization' => 1,
+                        'apiReferral/userCustomization' => 1,
+                        'apiReferral/rebate/recentRecord' => 1,
+                        'apiReferral/rebate/historicalRecord' => 1,
+                        'apiReferral/kickback/recentRecord' => 1,
+                        'apiReferral/kickback/historicalRecord' => 1,
                         // brokerage API
-                        'broker/subAccountApi',
-                        'broker/subAccount',
-                        'broker/subAccountApi/commission/futures',
-                        'broker/subAccountApi/commission/coinFutures',
-                        'broker/info',
-                        'broker/transfer',
-                        'broker/transfer/futures',
-                        'broker/rebate/recentRecord',
-                        'broker/rebate/historicalRecord',
-                        'broker/subAccount/bnbBurn/status',
-                        'broker/subAccount/depositHist',
-                        'broker/subAccount/spotSummary',
-                        'broker/subAccount/marginSummary',
-                        'broker/subAccount/futuresSummary',
-                        'broker/rebate/futures/recentRecord',
-                        'broker/subAccountApi/ipRestriction',
-                        'broker/universalTransfer',
+                        'broker/subAccountApi' => 1,
+                        'broker/subAccount' => 1,
+                        'broker/subAccountApi/commission/futures' => 1,
+                        'broker/subAccountApi/commission/coinFutures' => 1,
+                        'broker/info' => 1,
+                        'broker/transfer' => 1,
+                        'broker/transfer/futures' => 1,
+                        'broker/rebate/recentRecord' => 1,
+                        'broker/rebate/historicalRecord' => 1,
+                        'broker/subAccount/bnbBurn/status' => 1,
+                        'broker/subAccount/depositHist' => 1,
+                        'broker/subAccount/spotSummary' => 1,
+                        'broker/subAccount/marginSummary' => 1,
+                        'broker/subAccount/futuresSummary' => 1,
+                        'broker/rebate/futures/recentRecord' => 1,
+                        'broker/subAccountApi/ipRestriction' => 1,
+                        'broker/universalTransfer' => 1,
                         // v2 not supported yet
                         // GET /sapi/v2/broker/subAccount/futuresSummary
-                        'account/apiRestrictions',
+                        'account/apiRestrictions' => 1,
+                        // subaccounts
+                        'managed-subaccount/asset' => 1,
                     ),
                     'post' => array(
-                        'asset/dust',
-                        'asset/transfer',
-                        'get-funding-asset',
-                        'account/disableFastWithdrawSwitch',
-                        'account/enableFastWithdrawSwitch',
-                        'capital/withdraw/apply',
-                        'margin/transfer',
-                        'margin/loan',
-                        'margin/repay',
-                        'margin/order',
-                        'margin/isolated/create',
-                        'margin/isolated/transfer',
-                        'bnbBurn',
-                        'sub-account/margin/transfer',
-                        'sub-account/margin/enable',
-                        'sub-account/margin/enable',
-                        'sub-account/futures/enable',
-                        'sub-account/futures/transfer',
-                        'sub-account/futures/internalTransfer',
-                        'sub-account/transfer/subToSub',
-                        'sub-account/transfer/subToMaster',
-                        'sub-account/universalTransfer',
-                        'userDataStream',
-                        'userDataStream/isolated',
-                        'futures/transfer',
-                        'futures/loan/borrow',
-                        'futures/loan/repay',
-                        'futures/loan/adjustCollateral',
+                        'asset/dust' => 1,
+                        'asset/transfer' => 1,
+                        'asset/get-funding-asset' => 1,
+                        'account/disableFastWithdrawSwitch' => 1,
+                        'account/enableFastWithdrawSwitch' => 1,
+                        'capital/withdraw/apply' => 1,
+                        'margin/transfer' => 1,
+                        'margin/loan' => 1,
+                        'margin/repay' => 1,
+                        'margin/order' => 4,
+                        'margin/order/oco' => 1,
+                        'margin/isolated/create' => 1,
+                        'margin/isolated/transfer' => 1,
+                        'bnbBurn' => 1,
+                        'sub-account/margin/transfer' => 1,
+                        'sub-account/margin/enable' => 1,
+                        // 'sub-account/margin/enable' => 1,
+                        'sub-account/futures/enable' => 1,
+                        'sub-account/futures/transfer' => 1,
+                        'sub-account/futures/internalTransfer' => 1,
+                        'sub-account/transfer/subToSub' => 1,
+                        'sub-account/transfer/subToMaster' => 1,
+                        'sub-account/universalTransfer' => 1,
+                        'managed-subaccount/deposit' => 1,
+                        'managed-subaccount/withdraw' => 1,
+                        'userDataStream' => 1,
+                        'userDataStream/isolated' => 1,
+                        'futures/transfer' => 1,
+                        'futures/loan/borrow' => 20,
+                        'futures/loan/repay' => 20,
+                        'futures/loan/adjustCollateral' => 20,
                         // lending
-                        'lending/customizedFixed/purchase',
-                        'lending/daily/purchase',
-                        'lending/daily/redeem',
+                        'lending/customizedFixed/purchase' => 1,
+                        'lending/daily/purchase' => 1,
+                        'lending/daily/redeem' => 1,
                         // liquid swap endpoints
-                        'bswap/liquidityAdd',
-                        'bswap/liquidityRemove',
-                        'bswap/swap',
+                        'bswap/liquidityAdd' => 2,
+                        'bswap/liquidityRemove' => 2,
+                        'bswap/swap' => 2,
                         // leveraged token endpoints
-                        'blvt/subscribe',
-                        'blvt/redeem',
+                        'blvt/subscribe' => 1,
+                        'blvt/redeem' => 1,
                         // brokerage API
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
-                        'apiReferral/rebate/historicalRecord',
-                        'apiReferral/kickback/historicalRecord',
-                        'broker/subAccount',
-                        'broker/subAccount/margin',
-                        'broker/subAccount/futures',
-                        'broker/subAccountApi',
-                        'broker/subAccountApi/permission',
-                        'broker/subAccountApi/commission',
-                        'broker/subAccountApi/commission/futures',
-                        'broker/subAccountApi/commission/coinFutures',
-                        'broker/transfer',
-                        'broker/transfer/futures',
-                        'broker/rebate/historicalRecord',
-                        'broker/subAccount/bnbBurn/spot',
-                        'broker/subAccount/bnbBurn/marginInterest',
-                        'broker/subAccount/blvt',
-                        'broker/subAccountApi/ipRestriction',
-                        'broker/subAccountApi/ipRestriction/ipList',
-                        'broker/universalTransfer',
-                        'broker/subAccountApi/permission/universalTransfer',
-                        'broker/subAccountApi/permission/vanillaOptions',
+                        'apiReferral/customization' => 1,
+                        'apiReferral/userCustomization' => 1,
+                        'apiReferral/rebate/historicalRecord' => 1,
+                        'apiReferral/kickback/historicalRecord' => 1,
+                        'broker/subAccount' => 1,
+                        'broker/subAccount/margin' => 1,
+                        'broker/subAccount/futures' => 1,
+                        'broker/subAccountApi' => 1,
+                        'broker/subAccountApi/permission' => 1,
+                        'broker/subAccountApi/commission' => 1,
+                        'broker/subAccountApi/commission/futures' => 1,
+                        'broker/subAccountApi/commission/coinFutures' => 1,
+                        'broker/transfer' => 1,
+                        'broker/transfer/futures' => 1,
+                        'broker/rebate/historicalRecord' => 1,
+                        'broker/subAccount/bnbBurn/spot' => 1,
+                        'broker/subAccount/bnbBurn/marginInterest' => 1,
+                        'broker/subAccount/blvt' => 1,
+                        'broker/subAccountApi/ipRestriction' => 1,
+                        'broker/subAccountApi/ipRestriction/ipList' => 1,
+                        'broker/universalTransfer' => 1,
+                        'broker/subAccountApi/permission/universalTransfer' => 1,
+                        'broker/subAccountApi/permission/vanillaOptions' => 1,
                     ),
                     'put' => array(
-                        'userDataStream',
-                        'userDataStream/isolated',
+                        'userDataStream' => 1,
+                        'userDataStream/isolated' => 1,
                     ),
                     'delete' => array(
-                        'margin/openOrders',
-                        'margin/order',
-                        'userDataStream',
-                        'userDataStream/isolated',
+                        'margin/openOrders' => 1,
+                        'margin/order' => 1,
+                        'margin/orderList' => 1,
+                        'userDataStream' => 1,
+                        'userDataStream/isolated' => 1,
                         // brokerage API
-                        'broker/subAccountApi',
-                        'broker/subAccountApi/ipRestriction/ipList',
+                        'broker/subAccountApi' => 1,
+                        'broker/subAccountApi/ipRestriction/ipList' => 1,
                     ),
                 ),
                 // deprecated
                 'wapi' => array(
                     'post' => array(
-                        'withdraw',
-                        'sub-account/transfer',
+                        'withdraw' => 1,
+                        'sub-account/transfer' => 1,
                     ),
                     'get' => array(
-                        'depositHistory',
-                        'withdrawHistory',
-                        'depositAddress',
-                        'accountStatus',
-                        'systemStatus',
-                        'apiTradingStatus',
-                        'userAssetDribbletLog',
-                        'tradeFee',
-                        'assetDetail',
-                        'sub-account/list',
-                        'sub-account/transfer/history',
-                        'sub-account/assets',
+                        'depositHistory' => 1,
+                        'withdrawHistory' => 1,
+                        'depositAddress' => 1,
+                        'accountStatus' => 1,
+                        'systemStatus' => 1,
+                        'apiTradingStatus' => 1,
+                        'userAssetDribbletLog' => 1,
+                        'tradeFee' => 1,
+                        'assetDetail' => 1,
+                        'sub-account/list' => 1,
+                        'sub-account/transfer/history' => 1,
+                        'sub-account/assets' => 1,
                     ),
                 ),
                 'dapiPublic' => array(
                     'get' => array(
-                        'ping',
-                        'time',
-                        'exchangeInfo',
-                        'depth',
-                        'trades',
-                        'historicalTrades',
-                        'aggTrades',
-                        'premiumIndex',
-                        'fundingRate',
-                        'klines',
-                        'continuousKlines',
-                        'indexPriceKlines',
-                        'markPriceKlines',
-                        'ticker/24hr',
-                        'ticker/price',
-                        'ticker/bookTicker',
-                        'openInterest',
+                        'ping' => 1,
+                        'time' => 1,
+                        'exchangeInfo' => 1,
+                        'depth' => array( 'cost' => 2, 'byLimit' => array( array( 50, 2 ), array( 100, 5 ), array( 500, 10 ), array( 1000, 20 ) ) ),
+                        'trades' => 1,
+                        'historicalTrades' => 20,
+                        'aggTrades' => 20,
+                        'premiumIndex' => 10,
+                        'fundingRate' => 1,
+                        'klines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'continuousKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'indexPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'markPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
+                        'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                        'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                        'openInterest' => 1,
                     ),
                 ),
                 'dapiData' => array(
                     'get' => array(
-                        'openInterestHist',
-                        'topLongShortAccountRatio',
-                        'topLongShortPositionRatio',
-                        'globalLongShortAccountRatio',
-                        'takerBuySellVol',
-                        'basis',
+                        'openInterestHist' => 1,
+                        'topLongShortAccountRatio' => 1,
+                        'topLongShortPositionRatio' => 1,
+                        'globalLongShortAccountRatio' => 1,
+                        'takerBuySellVol' => 1,
+                        'basis' => 1,
                     ),
                 ),
                 'dapiPrivate' => array(
                     'get' => array(
-                        'positionSide/dual',
-                        'order',
-                        'openOrder',
-                        'openOrders',
-                        'allOrders',
-                        'balance',
-                        'account',
-                        'positionMargin/history',
-                        'positionRisk',
-                        'userTrades',
-                        'income',
-                        'leverageBracket',
-                        'forceOrders',
-                        'adlQuantile',
+                        'positionSide/dual' => 30,
+                        'order' => 1,
+                        'openOrder' => 1,
+                        'openOrders' => array( 'cost' => 1, 'noSymbol' => 5 ),
+                        'allOrders' => array( 'cost' => 20, 'noSymbol' => 40 ),
+                        'balance' => 1,
+                        'account' => 5,
+                        'positionMargin/history' => 1,
+                        'positionRisk' => 1,
+                        'userTrades' => array( 'cost' => 20, 'noSymbol' => 40 ),
+                        'income' => 20,
+                        'leverageBracket' => 1,
+                        'forceOrders' => array( 'cost' => 20, 'noSymbol' => 50 ),
+                        'adlQuantile' => 5,
                     ),
                     'post' => array(
-                        'positionSide/dual',
-                        'order',
-                        'batchOrders',
-                        'countdownCancelAll',
-                        'leverage',
-                        'marginType',
-                        'positionMargin',
-                        'listenKey',
+                        'positionSide/dual' => 1,
+                        'order' => 4,
+                        'batchOrders' => 5,
+                        'countdownCancelAll' => 10,
+                        'leverage' => 1,
+                        'marginType' => 1,
+                        'positionMargin' => 1,
+                        'listenKey' => 1,
                     ),
                     'put' => array(
-                        'listenKey',
+                        'listenKey' => 1,
                     ),
                     'delete' => array(
-                        'order',
-                        'allOpenOrders',
-                        'batchOrders',
-                        'listenKey',
+                        'order' => 1,
+                        'allOpenOrders' => 1,
+                        'batchOrders' => 5,
+                        'listenKey' => 1,
                     ),
                 ),
                 'dapiPrivateV2' => array(
                     'get' => array(
-                        'leverageBracket',
+                        'leverageBracket' => 1,
                     ),
                 ),
                 'fapiPublic' => array(
                     'get' => array(
-                        'ping',
-                        'time',
-                        'exchangeInfo',
-                        'depth',
-                        'trades',
-                        'historicalTrades',
-                        'aggTrades',
-                        'klines',
-                        'continuousKlines',
-                        'fundingRate',
-                        'premiumIndex',
-                        'ticker/24hr',
-                        'ticker/price',
-                        'ticker/bookTicker',
-                        'openInterest',
-                        'indexInfo',
+                        'ping' => 1,
+                        'time' => 1,
+                        'exchangeInfo' => 1,
+                        'depth' => array( 'cost' => 2, 'byLimit' => array( array( 50, 2 ), array( 100, 5 ), array( 500, 10 ), array( 1000, 20 ) ) ),
+                        'trades' => 1,
+                        'historicalTrades' => 20,
+                        'aggTrades' => 20,
+                        'klines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'continuousKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'fundingRate' => 1,
+                        'premiumIndex' => 1,
+                        'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
+                        'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                        'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                        'openInterest' => 1,
+                        'indexInfo' => 1,
+                        'apiTradingStatus' => array( 'cost' => 1, 'noSymbol' => 10 ),
+                        'lvtKlines' => 1,
                     ),
                 ),
                 'fapiData' => array(
                     'get' => array(
-                        'openInterestHist',
-                        'topLongShortAccountRatio',
-                        'topLongShortPositionRatio',
-                        'globalLongShortAccountRatio',
-                        'takerlongshortRatio',
+                        'openInterestHist' => 1,
+                        'topLongShortAccountRatio' => 1,
+                        'topLongShortPositionRatio' => 1,
+                        'globalLongShortAccountRatio' => 1,
+                        'takerlongshortRatio' => 1,
                     ),
                 ),
                 'fapiPrivate' => array(
                     'get' => array(
-                        'forceOrders',
-                        'allOrders',
-                        'openOrder',
-                        'openOrders',
-                        'order',
-                        'account',
-                        'balance',
-                        'leverageBracket',
-                        'positionMargin/history',
-                        'positionRisk',
-                        'positionSide/dual',
-                        'userTrades',
-                        'income',
-                        'commissionRate',
-                        'apiTradingStatus',
-                        'multiAssetsMargin',
+                        'forceOrders' => array( 'cost' => 20, 'noSymbol' => 50 ),
+                        'allOrders' => 5,
+                        'openOrder' => 1,
+                        'openOrders' => 1,
+                        'order' => 1,
+                        'account' => 5,
+                        'balance' => 5,
+                        'leverageBracket' => 1,
+                        'positionMargin/history' => 1,
+                        'positionRisk' => 5,
+                        'positionSide/dual' => 30,
+                        'userTrades' => 5,
+                        'income' => 30,
+                        'commissionRate' => 20,
+                        'apiTradingStatus' => 1,
+                        'multiAssetsMargin' => 30,
                         // broker endpoints
-                        'apiReferral/ifNewUser',
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
-                        'apiReferral/traderNum',
-                        'apiReferral/overview',
-                        'apiReferral/tradeVol',
-                        'apiReferral/rebateVol',
-                        'apiReferral/traderSummary',
+                        'apiReferral/ifNewUser' => 1,
+                        'apiReferral/customization' => 1,
+                        'apiReferral/userCustomization' => 1,
+                        'apiReferral/traderNum' => 1,
+                        'apiReferral/overview' => 1,
+                        'apiReferral/tradeVol' => 1,
+                        'apiReferral/rebateVol' => 1,
+                        'apiReferral/traderSummary' => 1,
+                        'adlQuantile' => 5,
                     ),
                     'post' => array(
-                        'batchOrders',
-                        'positionSide/dual',
-                        'positionMargin',
-                        'marginType',
-                        'order',
-                        'leverage',
-                        'listenKey',
-                        'countdownCancelAll',
-                        'multiAssetsMargin',
+                        'batchOrders' => 5,
+                        'positionSide/dual' => 1,
+                        'positionMargin' => 1,
+                        'marginType' => 1,
+                        'order' => 4,
+                        'leverage' => 1,
+                        'listenKey' => 1,
+                        'countdownCancelAll' => 10,
+                        'multiAssetsMargin' => 1,
                         // broker endpoints
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
+                        'apiReferral/customization' => 1,
+                        'apiReferral/userCustomization' => 1,
                     ),
                     'put' => array(
-                        'listenKey',
+                        'listenKey' => 1,
                     ),
                     'delete' => array(
-                        'batchOrders',
-                        'order',
-                        'allOpenOrders',
-                        'listenKey',
+                        'batchOrders' => 1,
+                        'order' => 1,
+                        'allOpenOrders' => 1,
+                        'listenKey' => 1,
                     ),
                 ),
                 'fapiPrivateV2' => array(
                     'get' => array(
-                        'account',
-                        'balance',
-                        'positionRisk',
+                        'account' => 1,
+                        'balance' => 1,
+                        'positionRisk' => 1,
                     ),
                 ),
                 'v3' => array(
                     'get' => array(
-                        'ticker/price',
-                        'ticker/bookTicker',
+                        'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                        'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
                     ),
                 ),
                 'public' => array(
                     'get' => array(
-                        'ping',
-                        'time',
-                        'depth',
-                        'trades',
-                        'aggTrades',
-                        'historicalTrades',
-                        'klines',
-                        'ticker/24hr',
-                        'ticker/price',
-                        'ticker/bookTicker',
-                        'exchangeInfo',
+                        'ping' => 1,
+                        'time' => 1,
+                        'depth' => array( 'cost' => 1, 'byLimit' => array( array( 100, 1 ), array( 500, 5 ), array( 1000, 10 ), array( 5000, 50 ) ) ),
+                        'trades' => 1,
+                        'aggTrades' => 1,
+                        'historicalTrades' => 5,
+                        'klines' => 1,
+                        'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
+                        'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                        'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                        'exchangeInfo' => 10,
                     ),
-                    'put' => array( 'userDataStream' ),
-                    'post' => array( 'userDataStream' ),
-                    'delete' => array( 'userDataStream' ),
+                    'put' => array(
+                        'userDataStream' => 1,
+                    ),
+                    'post' => array(
+                        'userDataStream' => 1,
+                    ),
+                    'delete' => array(
+                        'userDataStream' => 1,
+                    ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'allOrderList', // oco
-                        'openOrderList', // oco
-                        'orderList', // oco
-                        'order',
-                        'openOrders',
-                        'allOrders',
-                        'account',
-                        'myTrades',
+                        'allOrderList' => 10, // oco
+                        'openOrderList' => 3, // oco
+                        'orderList' => 2, // oco
+                        'order' => 2,
+                        'openOrders' => array( 'cost' => 3, 'noSymbol' => 40 ),
+                        'allOrders' => 10,
+                        'account' => 10,
+                        'myTrades' => 10,
                     ),
                     'post' => array(
-                        'order/oco',
-                        'order',
-                        'order/test',
+                        'order/oco' => 1,
+                        'order' => 4,
+                        'order/test' => 1,
                     ),
                     'delete' => array(
-                        'openOrders', // added on 2020-04-25 for canceling all open orders per symbol
-                        'orderList', // oco
-                        'order',
+                        'openOrders' => 1, // added on 2020-04-25 for canceling all open orders per symbol
+                        'orderList' => 1, // oco
+                        'order' => 1,
                     ),
                 ),
             ),
@@ -641,7 +662,7 @@ class binance extends Exchange {
             ),
             // exchange-specific options
             'options' => array(
-                'fetchCurrencies' => false, // this is a private call and it requires API keys
+                'fetchCurrencies' => true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery'
@@ -676,6 +697,40 @@ class binance extends Exchange {
                     'UMFUTURE' => 'future',
                     'CMFUTURE' => 'delivery',
                     'MINING' => 'mining',
+                ),
+                'legalMoney' => array(
+                    'MXN' => true,
+                    'UGX' => true,
+                    'SEK' => true,
+                    'CHF' => true,
+                    'VND' => true,
+                    'AED' => true,
+                    'DKK' => true,
+                    'KZT' => true,
+                    'HUF' => true,
+                    'PEN' => true,
+                    'PHP' => true,
+                    'USD' => true,
+                    'TRY' => true,
+                    'EUR' => true,
+                    'NGN' => true,
+                    'PLN' => true,
+                    'BRL' => true,
+                    'ZAR' => true,
+                    'KES' => true,
+                    'ARS' => true,
+                    'RUB' => true,
+                    'AUD' => true,
+                    'NOK' => true,
+                    'CZK' => true,
+                    'GBP' => true,
+                    'UAH' => true,
+                    'GHS' => true,
+                    'HKD' => true,
+                    'CAD' => true,
+                    'INR' => true,
+                    'JPY' => true,
+                    'NZD' => true,
                 ),
             ),
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
@@ -732,13 +787,17 @@ class binance extends Exchange {
                     '-2015' => '\\ccxt\\AuthenticationError', // "Invalid API-key, IP, or permissions for action."
                     '-2019' => '\\ccxt\\InsufficientFunds', // array("code":-2019,"msg":"Margin is insufficient.")
                     '-3005' => '\\ccxt\\InsufficientFunds', // array("code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount.")
+                    '-3006' => '\\ccxt\\InsufficientFunds', // array("code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount.")
                     '-3008' => '\\ccxt\\InsufficientFunds', // array("code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount.")
                     '-3010' => '\\ccxt\\ExchangeError', // array("code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount.")
+                    '-3015' => '\\ccxt\\ExchangeError', // array("code":-3015,"msg":"Repay amount exceeds borrow amount.")
                     '-3022' => '\\ccxt\\AccountSuspended', // You account's trading is banned.
                     '-4028' => '\\ccxt\\BadRequest', // array("code":-4028,"msg":"Leverage 100 is not valid")
                     '-3020' => '\\ccxt\\InsufficientFunds', // array("code":-3020,"msg":"Transfer out amount exceeds max amount.")
                     '-3041' => '\\ccxt\\InsufficientFunds', // array("code":-3041,"msg":"Balance is not enough")
                     '-5013' => '\\ccxt\\InsufficientFunds', // Asset transfer failed => insufficient balance"
+                    '-11008' => '\\ccxt\\InsufficientFunds', // array("code":-11008,"msg":"Exceeding the account's maximum borrowable limit.")
+                    '-4051' => '\\ccxt\\InsufficientFunds', // array("code":-4051,"msg":"Isolated balance insufficient.")
                 ),
                 'broad' => array(
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
@@ -748,8 +807,17 @@ class binance extends Exchange {
         ));
     }
 
+    public function cost_to_precision($symbol, $cost) {
+        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['quote'], $this->precisionMode, $this->paddingMode);
+    }
+
     public function currency_to_precision($currency, $fee) {
-        return $this->number_to_string($fee);
+        // info is available in currencies only if the user has configured his api keys
+        if (is_array($this->currencies[$currency]) && array_key_exists('info', $this->currencies[$currency])) {
+            return $this->decimal_to_precision($fee, TRUNCATE, $this->currencies[$currency]['precision'], $this->precisionMode, $this->paddingMode);
+        } else {
+            return $this->number_to_string($fee);
+        }
     }
 
     public function nonce() {
@@ -958,7 +1026,7 @@ class binance extends Exchange {
         //                 "isSpotTradingAllowed":true,
         //                 "isMarginTradingAllowed":true,
         //                 "$filters":array(
-        //                     array("filterType":"PRICE_FILTER","minPrice":"0.00000100","maxPrice":"100000.00000000","tickSize":"0.00000100"),
+        //                     array("filterType":"PRICE_FILTER","minPrice":"0.00000100","maxPrice":"100000.00000000","$tickSize":"0.00000100"),
         //                     array("filterType":"PERCENT_PRICE","multiplierUp":"5","multiplierDown":"0.2","avgPriceMins":5),
         //                     array("filterType":"LOT_SIZE","minQty":"0.00100000","maxQty":"100000.00000000","$stepSize":"0.00100000"),
         //                     array("filterType":"MIN_NOTIONAL","minNotional":"0.00010000","applyToMarket":true,"avgPriceMins":5),
@@ -993,7 +1061,7 @@ class binance extends Exchange {
         //                 "baseAssetPrecision":8,
         //                 "quotePrecision":8,
         //                 "$filters":[
-        //                     array("minPrice":"0.01","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.01"),
+        //                     array("minPrice":"0.01","maxPrice":"100000","filterType":"PRICE_FILTER","$tickSize":"0.01"),
         //                     array("$stepSize":"0.001","filterType":"LOT_SIZE","maxQty":"1000","minQty":"0.001"),
         //                     array("$stepSize":"0.001","filterType":"MARKET_LOT_SIZE","maxQty":"1000","minQty":"0.001"),
         //                     array("limit":200,"filterType":"MAX_NUM_ORDERS"),
@@ -1035,7 +1103,7 @@ class binance extends Exchange {
         //                 "quotePrecision" => 8,
         //                 "equalQtyPrecision" => 4,
         //                 "$filters" => [
-        //                     array("minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.1"),
+        //                     array("minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","$tickSize":"0.1"),
         //                     array("$stepSize":"1","filterType":"LOT_SIZE","maxQty":"100000","minQty":"1"),
         //                     array("$stepSize":"0","filterType":"MARKET_LOT_SIZE","maxQty":"100000","minQty":"1"),
         //                     array("limit":200,"filterType":"MAX_NUM_ORDERS"),
@@ -1063,7 +1131,7 @@ class binance extends Exchange {
         //                 "quotePrecision" => 8,
         //                 "equalQtyPrecision" => 4,
         //                 "$filters" => array(
-        //                     array("minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.1"),
+        //                     array("minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","$tickSize":"0.1"),
         //                     array("$stepSize":"1","filterType":"LOT_SIZE","maxQty":"100000","minQty":"1"),
         //                     array("$stepSize":"1","filterType":"MARKET_LOT_SIZE","maxQty":"100000","minQty":"1"),
         //                     array("limit":200,"filterType":"MAX_NUM_ORDERS"),
@@ -1160,6 +1228,8 @@ class binance extends Exchange {
             );
             if (is_array($filtersByType) && array_key_exists('PRICE_FILTER', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
+                $tickSize = $this->safe_string($filter, 'tickSize');
+                $entry['precision']['price'] = $this->precision_from_string($tickSize);
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated $filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -1212,6 +1282,8 @@ class binance extends Exchange {
             $method = 'sapiGetMarginAccount';
         } else if ($type === 'savings') {
             $method = 'sapiGetLendingUnionAccount';
+        } else if ($type === 'pay') {
+            $method = 'sapiPostAssetGetFundingAsset';
         }
         $query = $this->omit($params, 'type');
         $response = yield $this->$method ($query);
@@ -1229,7 +1301,7 @@ class binance extends Exchange {
         //         updateTime => 1575357359602,
         //         accountType => "MARGIN",
         //         $balances => array(
-        //             array( asset => "BTC", free => "0.00219821", locked => "0.00000000"  ),
+        //             array( asset => "BTC", free => "0.00219821", $locked => "0.00000000"  ),
         //         )
         //     }
         //
@@ -1244,9 +1316,9 @@ class binance extends Exchange {
         //         "tradeEnabled":true,
         //         "transferEnabled":true,
         //         "userAssets":array(
-        //             array("asset":"MATIC","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"),
-        //             array("asset":"VET","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"),
-        //             array("asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000")
+        //             array("asset":"MATIC","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","$locked":"0.00000000","netAsset":"0.00000000"),
+        //             array("asset":"VET","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","$locked":"0.00000000","netAsset":"0.00000000"),
+        //             array("asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","$locked":"0.00000000","netAsset":"0.00000000")
         //         ),
         //     }
         //
@@ -1384,6 +1456,18 @@ class binance extends Exchange {
         //       )
         //     }
         //
+        // binance pay
+        //
+        //     array(
+        //       {
+        //         "asset" => "BUSD",
+        //         "free" => "1129.83",
+        //         "$locked" => "0",
+        //         "freeze" => "0",
+        //         "$withdrawing" => "0"
+        //       }
+        //     )
+        //
         $result = array(
             'info' => $response,
         );
@@ -1410,6 +1494,19 @@ class binance extends Exchange {
                 $usedAndTotal = $this->safe_string($entry, 'amount');
                 $account['total'] = $usedAndTotal;
                 $account['used'] = $usedAndTotal;
+                $result[$code] = $account;
+            }
+        } else if ($type === 'pay') {
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $account = $this->account();
+                $currencyId = $this->safe_string($entry, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account['free'] = $this->safe_string($entry, 'free');
+                $frozen = $this->safe_string($entry, 'freeze');
+                $withdrawing = $this->safe_string($entry, 'withdrawing');
+                $locked = $this->safe_string($entry, 'locked');
+                $account['used'] = Precise::string_add($frozen, Precise::string_add($locked, $withdrawing));
                 $result[$code] = $account;
             }
         } else {
@@ -1560,7 +1657,7 @@ class binance extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
-        $response = yield $this->wapiGetSystemStatus ($params);
+        $response = yield $this->sapiGetSystemStatus ($params);
         $status = $this->safe_string($response, 'status');
         if ($status !== null) {
             $status = ($status === '0') ? 'ok' : 'maintenance';
@@ -2511,39 +2608,41 @@ class binance extends Exchange {
             $request['startTime'] = $since;
             $request['endTime'] = $this->sum($since, 7776000000);
         }
-        $response = yield $this->wapiGetUserAssetDribbletLog (array_merge($request, $params));
-        //
+        $response = yield $this->sapiGetAssetDribblet (array_merge($request, $params));
         //     {
-        //         success => true,
-        //         $results => {
-        //             total => 1,
-        //             $rows => array(
-        //                 {
-        //                     transfered_total => "1.06468458",
-        //                     service_charge_total => "0.02172826",
-        //                     tran_id => 2701371634,
-        //                     $logs => array(
-        //                         {
-        //                             tranId =>  2701371634,
-        //                             serviceChargeAmount => "0.00012819",
-        //                             uid => "35103861",
-        //                             amount => "0.8012",
-        //                             operateTime => "2018-10-07 17:56:07",
-        //                             transferedAmount => "0.00628141",
-        //                             fromAsset => "ADA"
-        //                         }
-        //                     ),
-        //                     operate_time => "2018-10-07 17:56:06"
-        //                 }
-        //             )
-        //         }
+        //       "total" => "4",
+        //       "userAssetDribblets" => array(
+        //         {
+        //           "operateTime" => "1627575731000",
+        //           "totalServiceChargeAmount" => "0.00001453",
+        //           "totalTransferedAmount" => "0.00072693",
+        //           "transId" => "70899815863",
+        //           "userAssetDribbletDetails" => array(
+        //             array(
+        //               "fromAsset" => "LTC",
+        //               "amount" => "0.000006",
+        //               "transferedAmount" => "0.00000267",
+        //               "serviceChargeAmount" => "0.00000005",
+        //               "operateTime" => "1627575731000",
+        //               "transId" => "70899815863"
+        //             ),
+        //             array(
+        //               "fromAsset" => "GBP",
+        //               "amount" => "0.15949157",
+        //               "transferedAmount" => "0.00072426",
+        //               "serviceChargeAmount" => "0.00001448",
+        //               "operateTime" => "1627575731000",
+        //               "transId" => "70899815863"
+        //             }
+        //           )
+        //         ),
+        //       )
         //     }
-        //
-        $results = $this->safe_value($response, 'results', array());
-        $rows = $this->safe_value($results, 'rows', array());
+        $results = $this->safe_value($response, 'userAssetDribblets', array());
+        $rows = $this->safe_integer($response, 'total', 0);
         $data = array();
-        for ($i = 0; $i < count($rows); $i++) {
-            $logs = $rows[$i]['logs'];
+        for ($i = 0; $i < $rows; $i++) {
+            $logs = $this->safe_value($results[$i], 'userAssetDribbletDetails', array());
             for ($j = 0; $j < count($logs); $j++) {
                 $logs[$j]['isDustTrade'] = true;
                 $data[] = $logs[$j];
@@ -2554,15 +2653,19 @@ class binance extends Exchange {
     }
 
     public function parse_dust_trade($trade, $market = null) {
-        // array(              tranId =>  2701371634,
-        //   serviceChargeAmount => "0.00012819",
-        //                   uid => "35103861",
-        //                $amount => "0.8012",
-        //           operateTime => "2018-10-07 17:56:07",
-        //      transferedAmount => "0.00628141",
-        //             fromAsset => "ADA"                  ),
-        $orderId = $this->safe_string($trade, 'tranId');
-        $timestamp = $this->parse8601($this->safe_string($trade, 'operateTime'));
+        //
+        //     {
+        //       "fromAsset" => "USDT",
+        //       "$amount" => "0.009669",
+        //       "transferedAmount" => "0.00002992",
+        //       "serviceChargeAmount" => "0.00000059",
+        //       "operateTime" => "1628076010000",
+        //       "transId" => "71416578712",
+        //       "isDustTrade" => true
+        //     }
+        //
+        $orderId = $this->safe_string($trade, 'transId');
+        $timestamp = $this->safe_integer($trade, 'operateTime');
         $currencyId = $this->safe_string($trade, 'fromAsset');
         $tradedCurrency = $this->safe_currency_code($currencyId);
         $bnb = $this->currency('BNB');
@@ -2631,105 +2734,182 @@ class binance extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $currency = null;
+        $response = null;
         $request = array();
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['coin'] = $currency['id'];
+        $legalMoney = $this->safe_value($this->options, 'legalMoney', array());
+        if (is_array($legalMoney) && array_key_exists($code, $legalMoney)) {
+            if ($code !== null) {
+                $currency = $this->currency($code);
+            }
+            $request['transactionType'] = 0;
+            if ($since !== null) {
+                $request['beginTime'] = $since;
+            }
+            $raw = yield $this->sapiGetFiatOrders (array_merge($request, $params));
+            $response = $this->safe_value($raw, 'data');
+            //     {
+            //       "$code" => "000000",
+            //       "message" => "success",
+            //       "data" => array(
+            //         {
+            //           "orderNo" => "25ced37075c1470ba8939d0df2316e23",
+            //           "fiatCurrency" => "EUR",
+            //           "indicatedAmount" => "15.00",
+            //           "amount" => "15.00",
+            //           "totalFee" => "0.00",
+            //           "method" => "card",
+            //           "status" => "Failed",
+            //           "createTime" => 1627501026000,
+            //           "updateTime" => 1627501027000
+            //         }
+            //       ),
+            //       "total" => 1,
+            //       "success" => true
+            //     }
+        } else {
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['coin'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['startTime'] = $since;
+                // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+                $request['endTime'] = $this->sum($since, 7776000000);
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = yield $this->sapiGetCapitalDepositHisrec (array_merge($request, $params));
+            //     array(
+            //       array(
+            //         "amount" => "0.01844487",
+            //         "coin" => "BCH",
+            //         "network" => "BCH",
+            //         "status" => 1,
+            //         "address" => "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
+            //         "addressTag" => "",
+            //         "txId" => "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
+            //         "insertTime" => 1610784980000,
+            //         "transferType" => 0,
+            //         "confirmTimes" => "2/2"
+            //       ),
+            //       {
+            //         "amount" => "4500",
+            //         "coin" => "USDT",
+            //         "network" => "BSC",
+            //         "status" => 1,
+            //         "address" => "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
+            //         "addressTag" => "",
+            //         "txId" => "Internal transfer 51376627901",
+            //         "insertTime" => 1618394381000,
+            //         "transferType" => 1,
+            //         "confirmTimes" => "1/15"
+            //     }
+            //   )
         }
-        if ($since !== null) {
-            $request['startTime'] = $since;
-            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            $request['endTime'] = $this->sum($since, 7776000000);
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->sapiGetCapitalDepositHisrec (array_merge($request, $params));
-        //     array(
-        //       array(
-        //         "amount" => "0.01844487",
-        //         "coin" => "BCH",
-        //         "network" => "BCH",
-        //         "status" => 1,
-        //         "address" => "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
-        //         "addressTag" => "",
-        //         "txId" => "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
-        //         "insertTime" => 1610784980000,
-        //         "transferType" => 0,
-        //         "confirmTimes" => "2/2"
-        //       ),
-        //       {
-        //         "amount" => "4500",
-        //         "coin" => "USDT",
-        //         "network" => "BSC",
-        //         "status" => 1,
-        //         "address" => "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
-        //         "addressTag" => "",
-        //         "txId" => "Internal transfer 51376627901",
-        //         "insertTime" => 1618394381000,
-        //         "transferType" => 1,
-        //         "confirmTimes" => "1/15"
-        //     }
-        //   )
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $currency = null;
+        $legalMoney = $this->safe_value($this->options, 'legalMoney', array());
         $request = array();
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['coin'] = $currency['id'];
+        $response = null;
+        $currency = null;
+        if (is_array($legalMoney) && array_key_exists($code, $legalMoney)) {
+            if ($code !== null) {
+                $currency = $this->currency($code);
+            }
+            $request['transactionType'] = 1;
+            if ($since !== null) {
+                $request['beginTime'] = $since;
+            }
+            $raw = yield $this->sapiGetFiatOrders (array_merge($request, $params));
+            $response = $this->safe_value($raw, 'data');
+            //     {
+            //       "$code" => "000000",
+            //       "message" => "success",
+            //       "data" => array(
+            //         array(
+            //           "orderNo" => "CJW706452266115170304",
+            //           "fiatCurrency" => "GBP",
+            //           "indicatedAmount" => "10001.50",
+            //           "amount" => "100.00",
+            //           "totalFee" => "1.50",
+            //           "method" => "bank transfer",
+            //           "status" => "Successful",
+            //           "createTime" => 1620037745000,
+            //           "updateTime" => 1620038480000
+            //         ),
+            //         {
+            //           "orderNo" => "CJW706287492781891584",
+            //           "fiatCurrency" => "GBP",
+            //           "indicatedAmount" => "10001.50",
+            //           "amount" => "100.00",
+            //           "totalFee" => "1.50",
+            //           "method" => "bank transfer",
+            //           "status" => "Successful",
+            //           "createTime" => 1619998460000,
+            //           "updateTime" => 1619998823000
+            //         }
+            //       ),
+            //       "total" => 39,
+            //       "success" => true
+            //     }
+        } else {
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['coin'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['startTime'] = $since;
+                // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+                $request['endTime'] = $this->sum($since, 7776000000);
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = yield $this->sapiGetCapitalWithdrawHistory (array_merge($request, $params));
+            //     array(
+            //       array(
+            //         "id" => "69e53ad305124b96b43668ceab158a18",
+            //         "amount" => "28.75",
+            //         "transactionFee" => "0.25",
+            //         "coin" => "XRP",
+            //         "status" => 6,
+            //         "address" => "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+            //         "addressTag" => "101286922",
+            //         "txId" => "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+            //         "applyTime" => "2021-04-15 12:09:16",
+            //         "network" => "XRP",
+            //         "transferType" => 0
+            //       ),
+            //       array(
+            //         "id" => "9a67628b16ba4988ae20d329333f16bc",
+            //         "amount" => "20",
+            //         "transactionFee" => "20",
+            //         "coin" => "USDT",
+            //         "status" => 6,
+            //         "address" => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+            //         "txId" => "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
+            //         "applyTime" => "2021-04-15 12:06:53",
+            //         "network" => "ETH",
+            //         "transferType" => 0
+            //       ),
+            //       {
+            //         "id" => "a7cdc0afbfa44a48bd225c9ece958fe2",
+            //         "amount" => "51",
+            //         "transactionFee" => "1",
+            //         "coin" => "USDT",
+            //         "status" => 6,
+            //         "address" => "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
+            //         "txId" => "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
+            //         "applyTime" => "2021-04-13 12:46:59",
+            //         "network" => "TRX",
+            //         "transferType" => 0
+            //       }
+            //     )
         }
-        if ($since !== null) {
-            $request['startTime'] = $since;
-            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            $request['endTime'] = $this->sum($since, 7776000000);
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->sapiGetCapitalWithdrawHistory (array_merge($request, $params));
-        //     array(
-        //       array(
-        //         "id" => "69e53ad305124b96b43668ceab158a18",
-        //         "amount" => "28.75",
-        //         "transactionFee" => "0.25",
-        //         "coin" => "XRP",
-        //         "status" => 6,
-        //         "address" => "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
-        //         "addressTag" => "101286922",
-        //         "txId" => "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
-        //         "applyTime" => "2021-04-15 12:09:16",
-        //         "network" => "XRP",
-        //         "transferType" => 0
-        //       ),
-        //       array(
-        //         "id" => "9a67628b16ba4988ae20d329333f16bc",
-        //         "amount" => "20",
-        //         "transactionFee" => "20",
-        //         "coin" => "USDT",
-        //         "status" => 6,
-        //         "address" => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
-        //         "txId" => "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
-        //         "applyTime" => "2021-04-15 12:06:53",
-        //         "network" => "ETH",
-        //         "transferType" => 0
-        //       ),
-        //       {
-        //         "id" => "a7cdc0afbfa44a48bd225c9ece958fe2",
-        //         "amount" => "51",
-        //         "transactionFee" => "1",
-        //         "coin" => "USDT",
-        //         "status" => 6,
-        //         "address" => "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
-        //         "txId" => "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
-        //         "applyTime" => "2021-04-13 12:46:59",
-        //         "network" => "TRX",
-        //         "transferType" => 0
-        //       }
-        //     )
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
@@ -2738,6 +2918,14 @@ class binance extends Exchange {
             'deposit' => array(
                 '0' => 'pending',
                 '1' => 'ok',
+                // Fiat
+                // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
+                'Processing' => 'pending',
+                'Failed' => 'failed',
+                'Successful' => 'ok',
+                'Refunding' => 'canceled',
+                'Refunded' => 'canceled',
+                'Refund Failed' => 'failed',
             ),
             'withdrawal' => array(
                 '0' => 'pending', // Email Sent
@@ -2747,6 +2935,14 @@ class binance extends Exchange {
                 '4' => 'pending', // Processing
                 '5' => 'failed', // Failure
                 '6' => 'ok', // Completed
+                // Fiat
+                // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
+                'Processing' => 'pending',
+                'Failed' => 'failed',
+                'Successful' => 'ok',
+                'Refunding' => 'canceled',
+                'Refunded' => 'canceled',
+                'Refund Failed' => 'failed',
             ),
         );
         $statuses = $this->safe_value($statusesByType, $type, array());
@@ -2786,7 +2982,34 @@ class binance extends Exchange {
         //       "transferType" => 0
         //     }
         //
-        $id = $this->safe_string($transaction, 'id');
+        // fiat $transaction
+        // withdraw
+        //     {
+        //       "orderNo" => "CJW684897551397171200",
+        //       "fiatCurrency" => "GBP",
+        //       "indicatedAmount" => "29.99",
+        //       "$amount" => "28.49",
+        //       "totalFee" => "1.50",
+        //       "method" => "bank transfer",
+        //       "$status" => "Successful",
+        //       "createTime" => 1614898701000,
+        //       "updateTime" => 1614898820000
+        //     }
+        //
+        // deposit
+        //     {
+        //       "orderNo" => "25ced37075c1470ba8939d0df2316e23",
+        //       "fiatCurrency" => "EUR",
+        //       "indicatedAmount" => "15.00",
+        //       "$amount" => "15.00",
+        //       "totalFee" => "0.00",
+        //       "method" => "card",
+        //       "$status" => "Failed",
+        //       "createTime" => "1627501026000",
+        //       "updateTime" => "1627501027000"
+        //     }
+        //
+        $id = $this->safe_string_2($transaction, 'id', 'orderNo');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag'); // set but unused
         if ($tag !== null) {
@@ -2798,10 +3021,10 @@ class binance extends Exchange {
         if (($txid !== null) && (mb_strpos($txid, 'Internal transfer ') !== false)) {
             $txid = mb_substr($txid, 18);
         }
-        $currencyId = $this->safe_string($transaction, 'coin');
+        $currencyId = $this->safe_string_2($transaction, 'coin', 'fiatCurrency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;
-        $insertTime = $this->safe_integer($transaction, 'insertTime');
+        $insertTime = $this->safe_integer_2($transaction, 'insertTime', 'createTime');
         $applyTime = $this->parse8601($this->safe_string($transaction, 'applyTime'));
         $type = $this->safe_string($transaction, 'type');
         if ($type === null) {
@@ -2815,12 +3038,12 @@ class binance extends Exchange {
         }
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_number($transaction, 'amount');
-        $feeCost = $this->safe_number($transaction, 'transactionFee');
+        $feeCost = $this->safe_number_2($transaction, 'transactionFee', 'totalFee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
-        $updated = $this->safe_integer($transaction, 'successTime');
+        $updated = $this->safe_integer_2($transaction, 'successTime', 'updateTime');
         $internal = $this->safe_integer($transaction, 'transferType', false);
         $internal = $internal ? true : false;
         return array(
@@ -3980,7 +4203,10 @@ class binance extends Exchange {
         return $this->parse_incomes ($response, $market, $since, $limit);
     }
 
-    public function set_leverage($symbol, $leverage, $params = array ()) {
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 1) || ($leverage > 125)) {
@@ -4152,7 +4378,7 @@ class binance extends Exchange {
         if ($error !== null) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if (($error === '200') || ($error === '0')) {
+            if (($error === '200') || Precise::string_equals($error, '0')) {
                 return;
             }
             // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
@@ -4170,12 +4396,80 @@ class binance extends Exchange {
         }
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body);
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+        if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
+            return $config['noSymbol'];
+        } else if ((is_array($config) && array_key_exists('noPoolId', $config)) && !(is_array($params) && array_key_exists('poolId', $params))) {
+            return $config['noPoolId'];
+        } else if ((is_array($config) && array_key_exists('byLimit', $config)) && (is_array($params) && array_key_exists('limit', $params))) {
+            $limit = $params['limit'];
+            $byLimit = $config['byLimit'];
+            for ($i = 0; $i < count($byLimit); $i++) {
+                $entry = $byLimit[$i];
+                if ($limit <= $entry[0]) {
+                    return $entry[1];
+                }
+            }
+        }
+        return $this->safe_integer($config, 'cost', 1);
+    }
+
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
+        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context);
         // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
         if (($api === 'private') || ($api === 'wapi')) {
             $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return $response;
+    }
+
+    public function modify_margin_helper($symbol, $amount, $addOrReduce, $params = array ()) {
+        // used to modify isolated positions
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
+        if ($defaultType === 'spot') {
+            $defaultType = 'future';
+        }
+        $type = $this->safe_string($params, 'type', $defaultType);
+        if (($type === 'margin') || ($type === 'spot')) {
+            throw new NotSupported($this->id . ' add / reduce margin only supported with $type future or delivery');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'type' => $addOrReduce,
+            'symbol' => $market['id'],
+            'amount' => $amount,
+        );
+        $method = null;
+        $code = null;
+        if ($type === 'future') {
+            $method = 'fapiPrivatePostPositionMargin';
+            $code = $market['quote'];
+        } else {
+            $method = 'dapiPrivatePostPositionMargin';
+            $code = $market['base'];
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        $rawType = $this->safe_integer($response, 'type');
+        $resultType = ($rawType === 1) ? 'add' : 'reduce';
+        $resultAmount = $this->safe_number($response, 'amount');
+        $errorCode = $this->safe_string($response, 'code');
+        $status = ($errorCode === '200') ? 'ok' : 'failed';
+        return array(
+            'info' => $response,
+            'type' => $resultType,
+            'amount' => $resultAmount,
+            'code' => $code,
+            'symbol' => $market['symbol'],
+            'status' => $status,
+        );
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 2, $params);
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 }

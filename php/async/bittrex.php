@@ -173,6 +173,7 @@ class bittrex extends Exchange {
                     'INVALID_ORDER_TYPE' => '\\ccxt\\InvalidOrder',
                     'QUANTITY_NOT_PROVIDED' => '\\ccxt\\InvalidOrder',
                     'MIN_TRADE_REQUIREMENT_NOT_MET' => '\\ccxt\\InvalidOrder',
+                    'NOT_FOUND' => '\\ccxt\\OrderNotFound',
                     'ORDER_NOT_OPEN' => '\\ccxt\\OrderNotFound',
                     'INVALID_ORDER' => '\\ccxt\\InvalidOrder',
                     'UUID_INVALID' => '\\ccxt\\OrderNotFound',
@@ -1335,12 +1336,12 @@ class bittrex extends Exchange {
             $success = $this->safe_value($response, 'success');
             if ($success === null) {
                 $code = $this->safe_string($response, 'code');
+                if (($code === 'NOT_FOUND') && (mb_strpos($url, 'addresses') !== false)) {
+                    throw new InvalidAddress($feedback);
+                }
                 if ($code !== null) {
                     $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $code, $feedback);
-                }
-                if (($code === 'NOT_FOUND') && (mb_strpos($url, 'addresses') !== false)) {
-                    throw new InvalidAddress($feedback);
                 }
                 // throw new ExchangeError($this->id . ' malformed $response ' . $this->json($response));
                 return;

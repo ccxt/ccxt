@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.54.33'
+__version__ = '1.56.29'
 
 # ----------------------------------------------------------------------------
 
@@ -137,10 +137,10 @@ from ccxt.flowbtc import flowbtc                            # noqa: F401
 from ccxt.ftx import ftx                                    # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
-from ccxt.gopax import gopax                                # noqa: F401
 from ccxt.hbtc import hbtc                                  # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hollaex import hollaex                            # noqa: F401
+from ccxt.huobi import huobi                                # noqa: F401
 from ccxt.huobijp import huobijp                            # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
 from ccxt.idex import idex                                  # noqa: F401
@@ -253,10 +253,10 @@ exchanges = [
     'ftx',
     'gateio',
     'gemini',
-    'gopax',
     'hbtc',
     'hitbtc',
     'hollaex',
+    'huobi',
     'huobijp',
     'huobipro',
     'idex',

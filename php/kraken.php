@@ -246,6 +246,9 @@ class kraken extends Exchange {
                 'EGeneral:Permission denied' => '\\ccxt\\PermissionDenied',
                 'EOrder:Unknown order' => '\\ccxt\\InvalidOrder',
                 'EOrder:Order minimum not met' => '\\ccxt\\InvalidOrder',
+                'EGeneral:Invalid arguments' => '\\ccxt\\BadRequest',
+                'ESession:Invalid session' => '\\ccxt\\AuthenticationError',
+                'EAPI:Invalid nonce' => '\\ccxt\\InvalidNonce',
             ),
         ));
     }
@@ -1734,9 +1737,11 @@ class kraken extends Exchange {
                 // 'address' => $address, // they don't allow withdrawals to direct addresses
             );
             $response = $this->privatePostWithdraw (array_merge($request, $params));
+            $result = $this->safe_value($response, 'result', array());
+            $id = $this->safe_string($result, 'refid');
             return array(
-                'info' => $response,
-                'id' => $response['result'],
+                'info' => $result,
+                'id' => $id,
             );
         }
         throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");

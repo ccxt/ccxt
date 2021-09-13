@@ -418,45 +418,32 @@ class aofex(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(ticker, 'id')
-        symbol = None
-        if market:
-            symbol = market['symbol']
         open = self.safe_number(ticker, 'open')
         last = self.safe_number(ticker, 'close')
-        change = None
-        if symbol is not None:
-            change = float(self.price_to_precision(symbol, last - open))
-        else:
-            change = last - open
-        average = self.sum(last, open) / 2
-        percentage = change / open * 100
         baseVolume = self.safe_number(ticker, 'amount')
         quoteVolume = self.safe_number(ticker, 'vol')
-        vwap = self.vwap(baseVolume, quoteVolume)
-        if vwap is not None:
-            vwap = float(self.price_to_precision(symbol, vwap))
-        return {
-            'symbol': symbol,
+        return self.safe_ticker({
+            'symbol': None,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': None,
             'high': self.safe_number(ticker, 'high'),
             'low': self.safe_number(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

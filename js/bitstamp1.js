@@ -285,13 +285,13 @@ module.exports = class bitstamp1 extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('status' in response) {
-            if (response['status'] === 'error') {
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-            }
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
         }
-        return response;
+        const status = this.safeString (response, 'status');
+        if (status === 'error') {
+            throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
     }
 };

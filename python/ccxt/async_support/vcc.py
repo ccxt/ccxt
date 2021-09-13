@@ -428,17 +428,9 @@ class vcc(Exchange):
         quoteVolume = self.safe_number(ticker, 'quote_volume')
         open = self.safe_number(ticker, 'open_price')
         last = self.safe_number(ticker, 'last_price')
-        change = None
-        percentage = None
-        average = None
-        if last is not None and open is not None:
-            change = last - open
-            average = self.sum(last, open) / 2
-            if open > 0:
-                percentage = change / open * 100
         vwap = self.vwap(baseVolume, quoteVolume)
-        symbol = None if (market is None) else market['symbol']
-        return {
+        symbol = self.safe_symbol(None, market)
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -453,13 +445,13 @@ class vcc(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -790,7 +782,7 @@ class vcc(Exchange):
         if stopPrice is not None:
             request['is_stop'] = 1
             request['stop_condition'] = 'le' if (side == 'buy') else 'ge'  # ge = greater than or equal, le = less than or equal
-            request['stop_price'] = self.price_to_precision(symbol, price)
+            request['stop_price'] = self.price_to_precision(symbol, stopPrice)
         params = self.omit(params, ['stop_price', 'stopPrice'])
         response = await self.privatePostOrders(self.extend(request, params))
         #

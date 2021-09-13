@@ -259,17 +259,10 @@ class novadax(Exchange):
         symbol = self.safe_symbol(marketId, market, '_')
         open = self.safe_number(ticker, 'open24h')
         last = self.safe_number(ticker, 'lastPrice')
-        percentage = None
-        change = None
-        average = None
-        if (last is not None) and (open is not None):
-            change = last - open
-            percentage = change / open * 100
-            average = self.sum(last, open) / 2
         baseVolume = self.safe_number(ticker, 'baseVolume24h')
         quoteVolume = self.safe_number(ticker, 'quoteVolume24h')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -284,13 +277,13 @@ class novadax(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -580,8 +573,8 @@ class novadax(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_string(balance, 'available')
-            account['free'] = self.safe_string(balance, 'balance')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'hold')
             result[code] = account
         return self.parse_balance(result)
@@ -593,7 +586,6 @@ class novadax(Exchange):
         uppercaseSide = side.upper()
         request = {
             'symbol': market['id'],
-            'type': uppercaseType,  # LIMIT, MARKET
             'side': uppercaseSide,  # or SELL
             # 'amount': self.amount_to_precision(symbol, amount),
             # "price": "1234.5678",  # required for LIMIT and STOP orders
@@ -610,10 +602,8 @@ class novadax(Exchange):
                 uppercaseType = 'STOP_LIMIT'
             elif uppercaseType == 'MARKET':
                 uppercaseType = 'STOP_MARKET'
-            operatorString = self.safe_string(params, 'operator')
-            if operatorString is None:
-                raise ArgumentsRequired(self.id + " createOrder() requires an operator parameter 'GTE' or 'LTE' for " + uppercaseType + ' orders')
-            request['operator'] = operatorString
+            defaultOperator = 'LTE' if (uppercaseSide == 'BUY') else 'GTE'
+            request['operator'] = self.safe_string(params, 'operator', defaultOperator)
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
             params = self.omit(params, 'stopPrice')
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
@@ -635,6 +625,7 @@ class novadax(Exchange):
                     value = amount if (value is None) else value
                 precision = market['precision']['price']
                 request['value'] = self.decimal_to_precision(value, TRUNCATE, precision, self.precisionMode)
+        request['type'] = uppercaseType
         response = self.privatePostOrdersCreate(self.extend(request, params))
         #
         #     {
@@ -842,7 +833,7 @@ class novadax(Exchange):
         id = self.safe_string(order, 'id')
         amount = self.safe_number(order, 'amount')
         price = self.safe_number(order, 'price')
-        cost = self.safe_number(order, 'filledValue')
+        cost = self.safe_number_2(order, 'filledValue', 'value')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))

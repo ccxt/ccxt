@@ -165,6 +165,7 @@ module.exports = class bittrex extends Exchange {
                     'INVALID_ORDER_TYPE': InvalidOrder,
                     'QUANTITY_NOT_PROVIDED': InvalidOrder,
                     'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
+                    'NOT_FOUND': OrderNotFound,
                     'ORDER_NOT_OPEN': OrderNotFound,
                     'INVALID_ORDER': InvalidOrder,
                     'UUID_INVALID': OrderNotFound,
@@ -1327,12 +1328,12 @@ module.exports = class bittrex extends Exchange {
             let success = this.safeValue (response, 'success');
             if (success === undefined) {
                 const code = this.safeString (response, 'code');
+                if ((code === 'NOT_FOUND') && (url.indexOf ('addresses') >= 0)) {
+                    throw new InvalidAddress (feedback);
+                }
                 if (code !== undefined) {
                     this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
                     this.throwBroadlyMatchedException (this.exceptions['broad'], code, feedback);
-                }
-                if ((code === 'NOT_FOUND') && (url.indexOf ('addresses') >= 0)) {
-                    throw new InvalidAddress (feedback);
                 }
                 // throw new ExchangeError (this.id + ' malformed response ' + this.json (response));
                 return;

@@ -522,15 +522,7 @@ module.exports = class stex extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '_');
         const last = this.safeNumber (ticker, 'last');
         const open = this.safeNumber (ticker, 'open');
-        let change = undefined;
-        let percentage = undefined;
-        if (last !== undefined) {
-            if ((open !== undefined) && (open > 0)) {
-                change = last - open;
-                percentage = ((100 / open) * last) - 100;
-            }
-        }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -545,13 +537,13 @@ module.exports = class stex extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined, // previous day close
-            'change': change,
-            'percentage': percentage,
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'volumeQuote'),
             'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

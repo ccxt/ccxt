@@ -62,9 +62,9 @@ Sponsored Promotion
 -------------------
 
 
-.. image:: https://user-images.githubusercontent.com/1294454/126532774-77b2c4ce-71c1-4c9f-8653-ab3fc6d55c92.png
-     :target: https://tokenbot.com/?utm_source=ccxt
-     :alt: TokenBot – An an automated copy trading platform for crypto traders
+.. image:: https://user-images.githubusercontent.com/1294454/132700397-8d32a3c2-e301-4f30-b311-240b35214c6e.jpg
+     :target: https://www.huobi.com
+     :alt: Huobi Global – Bitcoin and Cryptocurrency Exchange
 
 
 
@@ -92,6 +92,11 @@ See Also
        :alt: Freqtrade
 
    `Freqtrade <https://www.freqtrade.io>`__ – leading opensource cryptocurrency algorithmic trading software!
+ * .. image:: https://user-images.githubusercontent.com/1294454/132113722-007fc092-7530-4b41-b929-b8ed380b7b2e.png
+       :target: https://www.octobot.online
+       :alt: OctoBot
+
+   `OctoBot <https://www.octobot.online>`__ – cryptocurrency trading bot with an advanced web interface.
 
 Certified Cryptocurrency Exchanges
 ----------------------------------
@@ -210,6 +215,25 @@ Certified Cryptocurrency Exchanges
           :target: https://www.binance.com/en/register?ref=BLEJC98C
           :alt: Sign up with Binance USDⓈ-M using CCXT's referral link for a 20% discount!
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg
+          :target: http://www.bitmart.com/?r=rQCFLh
+          :alt: bitmart
+     
+     - bitmart
+     - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://developer-pro.bitmart.com/
+          :alt: API Version 1
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
           :target: https://bitvavo.com/?a=24F34952F7
           :alt: bitvavo
@@ -228,6 +252,22 @@ Certified Cryptocurrency Exchanges
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg
+          :target: https://cdax.io/invite?invite_code=esc74
+          :alt: cdax
+     
+     - cdax
+     - `CDAX <https://cdax.io/invite?invite_code=esc74>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://github.com/cloudapidoc/API_Docs
+          :alt: API Version 1
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg
           :target: https://currency.com/trading/signup?c=362jaimv&pid=referral
@@ -270,14 +310,36 @@ Certified Cryptocurrency Exchanges
           :target: https://ftx.com/#a=ccxt
           :alt: Sign up with FTX using CCXT's referral link for a 5% discount!
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg
-          :target: https://www.gopax.co.kr
-          :alt: gopax
+   * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
+          :target: https://www.gate.io/ref/2436035
+          :alt: gateio
      
-     - gopax
-     - `GOPAX <https://www.gopax.co.kr>`__
+     - gateio
+     - `Gate.io <https://www.gate.io/ref/2436035>`__
+     - .. image:: https://img.shields.io/badge/4-lightgray
+          :target: https://www.gate.io/docs/apiv4/en/index.html
+          :alt: API Version 4
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+     - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d20%25&color=orange
+          :target: https://www.gate.io/ref/2436035
+          :alt: Sign up with Gate.io using CCXT's referral link for a 20% discount!
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
+          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
+          :alt: huobi
+     
+     - huobi
+     - `Huobi <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://gopax.github.io/API/index.en.html
+          :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
@@ -288,7 +350,10 @@ Certified Cryptocurrency Exchanges
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-     - 
+     - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d15%25&color=orange
+          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
+          :alt: Sign up with Huobi using CCXT's referral link for a 15% discount!
+     
    * - .. image:: https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg
           :target: https://idex.io
           :alt: idex
@@ -343,22 +408,6 @@ Certified Cryptocurrency Exchanges
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/87489843-bb469280-c64c-11ea-91aa-69c6326506af.jpg
-          :target: https://xena.exchange
-          :alt: xena
-     
-     - xena
-     - `Xena Exchange <https://xena.exchange>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://support.xena.exchange/support/solutions/44000808700
-          :alt: API Version *
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg
           :target: https://www.zbex.club/en/register?ref=4301lera
           :alt: zb
@@ -385,7 +434,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 112 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -687,7 +736,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg
           :target: http://www.bitmart.com/?r=rQCFLh
           :alt: bitmart
      
@@ -697,8 +746,14 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://developer-pro.bitmart.com/
           :alt: API Version 1
      
-     - 
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg
           :target: https://www.bitmex.com/register/upZpOX
           :alt: bitmex
@@ -940,7 +995,10 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://github.com/cloudapidoc/API_Docs
           :alt: API Version 1
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg
           :target: https://cex.io/r/0/up105393824/0/
@@ -1258,8 +1316,14 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://www.gate.io/docs/apiv4/en/index.html
           :alt: API Version 4
      
-     - 
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg
           :target: https://gemini.com/
           :alt: gemini
@@ -1272,24 +1336,6 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg
-          :target: https://www.gopax.co.kr
-          :alt: gopax
-     
-     - gopax
-     - `GOPAX <https://www.gopax.co.kr>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://gopax.github.io/API/index.en.html
-          :alt: API Version 1
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
    * - .. image:: https://user-images.githubusercontent.com/51840849/80134449-70663300-85a7-11ea-8942-e204cdeaab5d.jpg
           :target: https://www.hbtc.com/register/O2S8NS
           :alt: hbtc
@@ -1329,6 +1375,24 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - 
      - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
+          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
+          :alt: huobi
+     
+     - huobi
+     - `Huobi <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://huobiapi.github.io/docs/spot/v1/cn/
+          :alt: API Version 1
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg
           :target: https://www.huobi.co.jp/register/?invite_code=znnq3
           :alt: huobijp
@@ -1337,21 +1401,6 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - `Huobi Japan <https://www.huobi.co.jp/register/?invite_code=znnq3>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://api-doc.huobi.co.jp
-          :alt: API Version 1
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
-   * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
-          :target: https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3
-          :alt: huobipro
-     
-     - huobipro
-     - `Huobi Pro <https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
      
      - 
@@ -1846,10 +1895,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://support.xena.exchange/support/solutions/44000808700
           :alt: API Version *
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg
           :target: https://www.yobit.net
@@ -1951,14 +1997,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.54.33/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.54.33/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.56.29/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.56.29/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.54.33/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.56.29/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

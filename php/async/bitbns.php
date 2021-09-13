@@ -189,6 +189,7 @@ class bitbns extends Exchange {
             $priceLimits = $this->safe_value($marketLimits, 'price', array());
             $costLimits = $this->safe_value($marketLimits, 'cost', array());
             $usdt = ($quoteId === 'USDT');
+            // INR markets don't need a _INR prefix
             $uppercaseId = $usdt ? ($baseId . '_' . $quoteId) : $baseId;
             $result[] = array(
                 'id' => $id,
@@ -506,7 +507,7 @@ class bitbns extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'side' => strtoupper($side),
-            'symbol' => $market['baseId'] . '_' . $market['quoteId'],
+            'symbol' => $market['uppercaseId'],
             'quantity' => $this->amount_to_precision($symbol, $amount),
             'rate' => $this->price_to_precision($symbol, $price),
             // 'target_rate' => $this->price_to_precision($symbol, targetRate),

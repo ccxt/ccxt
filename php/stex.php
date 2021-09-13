@@ -525,15 +525,7 @@ class stex extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $last = $this->safe_number($ticker, 'last');
         $open = $this->safe_number($ticker, 'open');
-        $change = null;
-        $percentage = null;
-        if ($last !== null) {
-            if (($open !== null) && ($open > 0)) {
-                $change = $last - $open;
-                $percentage = ((100 / $open) * $last) - 100;
-            }
-        }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -548,13 +540,13 @@ class stex extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null, // previous day close
-            'change' => $change,
-            'percentage' => $percentage,
+            'change' => null,
+            'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'volumeQuote'),
             'quoteVolume' => $this->safe_number($ticker, 'volume'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

@@ -262,9 +262,9 @@ class bitstamp1(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'status' in response:
-            if response['status'] == 'error':
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
+        status = self.safe_string(response, 'status')
+        if status == 'error':
+            raise ExchangeError(self.id + ' ' + self.json(response))

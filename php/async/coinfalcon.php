@@ -133,7 +133,7 @@ class coinfalcon extends Exchange {
         $marketId = $this->safe_string($ticker, 'name');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->milliseconds();
-        $last = floatval($ticker['last_price']);
+        $last = $this->safe_number($ticker, 'last_price');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,

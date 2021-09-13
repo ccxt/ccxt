@@ -274,26 +274,13 @@ module.exports = class bithumb extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'date');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const open = this.safeNumber (ticker, 'opening_price');
         const close = this.safeNumber (ticker, 'closing_price');
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
-        if ((close !== undefined) && (open !== undefined)) {
-            change = close - open;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-            average = this.sum (open, close) / 2;
-        }
         const baseVolume = this.safeNumber (ticker, 'units_traded_24H');
         const quoteVolume = this.safeNumber (ticker, 'acc_trade_value_24H');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -308,13 +295,13 @@ module.exports = class bithumb extends Exchange {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -917,16 +904,5 @@ module.exports = class bithumb extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('status' in response) {
-            if (response['status'] === '0000' || response['message'] === '거래 진행중인 내역이 존재하지 않습니다') {
-                return response;
-            }
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        }
-        return response;
     }
 };

@@ -234,8 +234,9 @@ class paymium(Exchange):
             headers['Api-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'errors' in response:
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
+        errors = self.safe_value(response, 'errors')
+        if errors is not None:
             raise ExchangeError(self.id + ' ' + self.json(response))
-        return response

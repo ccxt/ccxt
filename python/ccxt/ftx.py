@@ -78,6 +78,7 @@ class ftx(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
+                'setLeverage': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -88,6 +89,10 @@ class ftx(Exchange):
                 '1h': '3600',
                 '4h': '14400',
                 '1d': '86400',
+                '3d': '259200',
+                '1w': '604800',
+                '2w': '1209600',
+                '1M': '2592000',
             },
             'api': {
                 'public': {
@@ -125,15 +130,14 @@ class ftx(Exchange):
                         'spot_margin/history',
                         'spot_margin/borrow_summary',
                         # nfts
-                        'nfts',
+                        'nft/nfts',
                         'nft/{nft_id}',
                         'nft/{nft_id}/trades',
-                        'all_trades',
+                        'nft/all_trades',
                         'nft/{nft_id}/account_info',
-                        'collections',
+                        'nft/collections',
                         # ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
-                        'stats/latency_stats',
                     ],
                     'post': [
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -194,13 +198,15 @@ class ftx(Exchange):
                         'spot_margin/offers',
                         'spot_margin/lending_info',
                         # nfts
-                        'balances',
-                        'bids',
-                        'deposits',
-                        'withdrawals',
-                        'fills',
-                        'gallery/{gallery_id}',
-                        'gallery_settings',
+                        'nft/balances',
+                        'nft/bids',
+                        'nft/deposits',
+                        'nft/withdrawals',
+                        'nft/fills',
+                        'nft/gallery/{gallery_id}',
+                        'nft/gallery_settings',
+                        # latency statistics
+                        'stats/latency_stats',
                     ],
                     'post': [
                         # subaccounts
@@ -234,14 +240,14 @@ class ftx(Exchange):
                         # spot margin
                         'spot_margin/offers',
                         # nfts
-                        'offer',
-                        'buy',
-                        'auction',
-                        'edit_auction',
-                        'cancel_auction',
-                        'bids',
-                        'redeem',
-                        'gallery_settings',
+                        'nft/offer',
+                        'nft/buy',
+                        'nft/auction',
+                        'nft/edit_auction',
+                        'nft/cancel_auction',
+                        'nft/bids',
+                        'nft/redeem',
+                        'nft/gallery_settings',
                         # ftx pay
                         'ftxpay/apps/{user_specific_id}/orders',
                     ],
@@ -267,8 +273,8 @@ class ftx(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'maker': self.parse_number('0.02'),
-                    'taker': self.parse_number('0.07'),
+                    'maker': self.parse_number('0.0002'),
+                    'taker': self.parse_number('0.0007'),
                     'tiers': {
                         'taker': [
                             [self.parse_number('0'), self.parse_number('0.0007')],
@@ -311,6 +317,7 @@ class ftx(Exchange):
                     'Spot orders cannot be reduce-only': InvalidOrder,  # {"error":"Spot orders cannot be reduce-only","success":false}
                     'Invalid reduce-only order': InvalidOrder,  # {"error":"Invalid reduce-only order","success":false}
                     'Account does not have enough balances': InsufficientFunds,  # {"success":false,"error":"Account does not have enough balances"}
+                    'Not authorized for subaccount-specific access': PermissionDenied,  # {"success":false,"error":"Not authorized for subaccount-specific access"}
                 },
                 'broad': {
                     'Account does not have enough margin for order': InsufficientFunds,
@@ -519,7 +526,10 @@ class ftx(Exchange):
             symbol = market['symbol']
         last = self.safe_number(ticker, 'last')
         timestamp = self.safe_timestamp(ticker, 'time', self.milliseconds())
-        return {
+        percentage = self.safe_number(ticker, 'change24h')
+        if percentage is not None:
+            percentage *= 100
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -535,12 +545,12 @@ class ftx(Exchange):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_number(ticker, 'change24h'),
+            'percentage': percentage,
             'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_number(ticker, 'quoteVolume24h'),
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -1890,3 +1900,62 @@ class ftx(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message
+
+    def set_leverage(self, leverage, symbol=None, params={}):
+        # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (leverage < 1) or (leverage > 20):
+            raise BadRequest(self.id + ' leverage should be between 1 and 20')
+        request = {
+            'leverage': leverage,
+        }
+        return self.privatePostAccountLeverage(self.extend(request, params))
+
+    def parse_income(self, income, market=None):
+        #
+        #   {
+        #       "future": "ETH-PERP",
+        #        "id": 33830,
+        #        "payment": 0.0441342,
+        #        "time": "2019-05-15T18:00:00+00:00",
+        #        "rate": 0.0001
+        #   }
+        #
+        marketId = self.safe_string(income, 'future')
+        symbol = self.safe_symbol(marketId, market)
+        amount = self.safe_number(income, 'payment')
+        code = self.safe_currency_code('USD')
+        id = self.safe_string(income, 'id')
+        timestamp = self.safe_integer(income, 'time')
+        rate = self.safe_number(income, 'rate')
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': id,
+            'amount': amount,
+            'rate': rate,
+        }
+
+    def parse_incomes(self, incomes, market=None, since=None, limit=None):
+        result = []
+        for i in range(0, len(incomes)):
+            entry = incomes[i]
+            parsed = self.parse_income(entry, market)
+            result.append(parsed)
+        return self.filter_by_since_limit(result, since, limit, 'timestamp')
+
+    def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        method = 'private_get_funding_payments'
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['future'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        response = getattr(self, method)(self.extend(request, params))
+        return self.parse_incomes(response, market, since, limit)

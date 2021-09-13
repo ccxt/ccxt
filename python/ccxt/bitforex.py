@@ -85,6 +85,7 @@ class bitforex(Exchange):
                         'api/v1/trade/placeMultiOrder',
                         'api/v1/trade/cancelOrder',
                         'api/v1/trade/cancelMultiOrder',
+                        'api/v1/trade/cancelAllOrder',
                         'api/v1/trade/orderInfo',
                         'api/v1/trade/multiOrderInfo',
                         'api/v1/trade/orderInfos',
@@ -118,7 +119,7 @@ class bitforex(Exchange):
                 'UOS': 'UOS Network',
             },
             'exceptions': {
-                '4004': OrderNotFound,
+                '1003': BadSymbol,  # {"success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error"}
                 '1013': AuthenticationError,
                 '1016': AuthenticationError,
                 '1017': PermissionDenied,  # {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
@@ -126,6 +127,7 @@ class bitforex(Exchange):
                 '3002': InsufficientFunds,
                 '4002': InvalidOrder,  # {"success":false,"code":"4002","message":"Price unreasonable"}
                 '4003': InvalidOrder,  # {"success":false,"code":"4003","message":"amount too small"}
+                '4004': OrderNotFound,
                 '10204': DDoSProtection,
             },
         })

@@ -522,13 +522,7 @@ class stex(Exchange):
         symbol = self.safe_symbol(marketId, market, '_')
         last = self.safe_number(ticker, 'last')
         open = self.safe_number(ticker, 'open')
-        change = None
-        percentage = None
-        if last is not None:
-            if (open is not None) and (open > 0):
-                change = last - open
-                percentage = ((100 / open) * last) - 100
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -543,13 +537,13 @@ class stex(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,  # previous day close
-            'change': change,
-            'percentage': percentage,
+            'change': None,
+            'percentage': None,
             'average': None,
             'baseVolume': self.safe_number(ticker, 'volumeQuote'),
             'quoteVolume': self.safe_number(ticker, 'volume'),
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

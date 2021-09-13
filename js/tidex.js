@@ -541,8 +541,6 @@ module.exports = class tidex extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'rate': this.priceToPrecision (symbol, price),
         };
-        price = parseFloat (price);
-        amount = parseFloat (amount);
         const response = await this.privatePostTrade (this.extend (request, params));
         let id = undefined;
         let status = 'open';

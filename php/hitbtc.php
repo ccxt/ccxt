@@ -180,11 +180,19 @@ class hitbtc extends Exchange {
                     'bank' => 'bank',
                     'exchange' => 'exchange',
                     'main' => 'bank',  // alias of the above
+                    'funding' => 'bank',
+                    'spot' => 'exchange',
+                    'trade' => 'exchange',
                     'trading' => 'exchange',
                 ),
                 'fetchBalanceMethod' => array(
                     'account' => 'account',
+                    'bank' => 'account',
                     'main' => 'account',
+                    'funding' => 'account',
+                    'exchange' => 'trading',
+                    'spot' => 'trading',
+                    'trade' => 'trading',
                     'trading' => 'trading',
                 ),
             ),
@@ -193,6 +201,7 @@ class hitbtc extends Exchange {
                 'BCC' => 'BCC', // initial symbol for Bitcoin Cash, now inactive
                 'BDP' => 'BidiPass',
                 'BET' => 'DAO.Casino',
+                'BIT' => 'BitRewards',
                 'BOX' => 'BOX Token',
                 'CPT' => 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'GET' => 'Themis',
@@ -528,26 +537,13 @@ class hitbtc extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->parse8601($ticker['timestamp']);
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol(null, $market);
         $baseVolume = $this->safe_number($ticker, 'volume');
         $quoteVolume = $this->safe_number($ticker, 'volumeQuote');
         $open = $this->safe_number($ticker, 'open');
         $last = $this->safe_number($ticker, 'last');
-        $change = null;
-        $percentage = null;
-        $average = null;
-        if ($last !== null && $open !== null) {
-            $change = $last - $open;
-            $average = $this->sum($last, $open) / 2;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-        }
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -562,13 +558,13 @@ class hitbtc extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
