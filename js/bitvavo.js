@@ -447,18 +447,8 @@ module.exports = class bitvavo extends Exchange {
         const baseVolume = this.safeNumber (ticker, 'volume');
         const quoteVolume = this.safeNumber (ticker, 'volumeQuote');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
         const open = this.safeNumber (ticker, 'open');
-        if ((open !== undefined) && (last !== undefined)) {
-            change = last - open;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-            average = this.sum (open, last) / 2;
-        }
-        const result = {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -473,14 +463,13 @@ module.exports = class bitvavo extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined, // previous day close
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
-        return result;
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

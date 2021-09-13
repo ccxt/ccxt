@@ -208,7 +208,7 @@ module.exports = class btctradeua extends Exchange {
             'Jun': '06',
             'Jul': '07',
             'Aug': '08',
-            'Sep': '09',
+            'Sept': '09',
             'Oct': '10',
             'Nov': '11',
             'Dec': '12',
@@ -228,7 +228,7 @@ module.exports = class btctradeua extends Exchange {
         month = month.replace ('.', '');
         month = this.convertMonthNameToString (month);
         if (!month) {
-            throw new ExchangeError (this.id + ' parseTrade() undefined month name: ' + cyrillic);
+            throw new ExchangeError (this.id + ' parseTrade() unrecognized month name: ' + cyrillic);
         }
         const hms = parts[3];
         const hmsParts = hms.split (':');

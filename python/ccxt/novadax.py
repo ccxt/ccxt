@@ -259,17 +259,10 @@ class novadax(Exchange):
         symbol = self.safe_symbol(marketId, market, '_')
         open = self.safe_number(ticker, 'open24h')
         last = self.safe_number(ticker, 'lastPrice')
-        percentage = None
-        change = None
-        average = None
-        if (last is not None) and (open is not None):
-            change = last - open
-            percentage = change / open * 100
-            average = self.sum(last, open) / 2
         baseVolume = self.safe_number(ticker, 'baseVolume24h')
         quoteVolume = self.safe_number(ticker, 'quoteVolume24h')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -284,13 +277,13 @@ class novadax(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -609,7 +602,8 @@ class novadax(Exchange):
                 uppercaseType = 'STOP_LIMIT'
             elif uppercaseType == 'MARKET':
                 uppercaseType = 'STOP_MARKET'
-            request['operator'] = 'LTE' if (uppercaseSide == 'BUY') else 'GTE'
+            defaultOperator = 'LTE' if (uppercaseSide == 'BUY') else 'GTE'
+            request['operator'] = self.safe_string(params, 'operator', defaultOperator)
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
             params = self.omit(params, 'stopPrice')
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):

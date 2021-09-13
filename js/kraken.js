@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded } = require ('./base/errors');
+const { BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -237,6 +237,9 @@ module.exports = class kraken extends Exchange {
                 'EGeneral:Permission denied': PermissionDenied,
                 'EOrder:Unknown order': InvalidOrder,
                 'EOrder:Order minimum not met': InvalidOrder,
+                'EGeneral:Invalid arguments': BadRequest,
+                'ESession:Invalid session': AuthenticationError,
+                'EAPI:Invalid nonce': InvalidNonce,
             },
         });
     }

@@ -612,7 +612,7 @@ module.exports = class exmo extends Exchange {
                 const market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
             }
-            result[symbol] = this.parseOrderBook (response[marketId], undefined, 'bid', 'ask');
+            result[symbol] = this.parseOrderBook (response[marketId], symbol, undefined, 'bid', 'ask');
         }
         return result;
     }

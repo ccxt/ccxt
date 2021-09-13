@@ -27,7 +27,7 @@ class gateio(Exchange):
         return self.deep_extend(super(gateio, self).describe(), {
             'id': 'gateio',
             'name': 'Gate.io',
-            'country': ['KR'],
+            'countries': ['KR'],
             'rateLimit': 1000,
             'version': '4',
             'certified': True,
@@ -531,10 +531,7 @@ class gateio(Exchange):
                 'id': currencyId,
                 'name': None,
                 'code': code,
-                'precision': {
-                    'amount': amountPrecision,
-                    'price': None,
-                },
+                'precision': amountPrecision,
                 'info': entry,
                 'active': active,
                 'fee': None,
@@ -737,7 +734,7 @@ class gateio(Exchange):
         baseVolume = self.safe_number(ticker, 'base_volume')
         quoteVolume = self.safe_number(ticker, 'quote_volume')
         percentage = self.safe_number(ticker, 'change_percentage')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
@@ -758,7 +755,7 @@ class gateio(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -846,9 +843,18 @@ class gateio(Exchange):
         market = self.market(symbol)
         request = {
             'currency_pair': market['id'],
+            # 'limit': limit,
+            # 'page': 0,
+            # 'order_id': 'Order ID',
+            # 'account': 'spot',  # default to spot and margin account if not specified, set to cross_margin to operate against margin account
+            # 'from': since,  # default to 7 days before current time
+            # 'to': self.milliseconds(),  # default to current time
         }
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
+        if since is not None:
+            request['from'] = int(math.floor(since / 1000))
+            # request['to'] = since + 7 * 24 * 60 * 60
         response = self.privateSpotGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -938,6 +944,7 @@ class gateio(Exchange):
             request['limit'] = limit
         if since is not None:
             request['from'] = int(math.floor(since / 1000))
+            request['to'] = since + 30 * 24 * 60 * 60
         response = self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
@@ -952,6 +959,7 @@ class gateio(Exchange):
             request['limit'] = limit
         if since is not None:
             request['from'] = int(math.floor(since / 1000))
+            request['to'] = since + 30 * 24 * 60 * 60
         response = self.privateWalletGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency)
 

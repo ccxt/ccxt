@@ -133,10 +133,15 @@ module.exports = class kuna extends Exchange {
             const id = ids[i];
             for (let j = 0; j < quotes.length; j++) {
                 const quoteId = quotes[j];
-                const index = id.indexOf (quoteId);
-                const slice = id.slice (index);
+                // usd gets matched before usdt in usdtusd USDT/USD
+                // https://github.com/ccxt/ccxt/issues/9868
+                const slicedId = id.slice (1);
+                const index = slicedId.indexOf (quoteId);
+                const slice = slicedId.slice (index);
                 if ((index > 0) && (slice === quoteId)) {
-                    const baseId = id.replace (quoteId, '');
+                    // usd gets matched before usdt in usdtusd USDT/USD
+                    // https://github.com/ccxt/ccxt/issues/9868
+                    const baseId = id[0] + slicedId.replace (quoteId, '');
                     const base = this.safeCurrencyCode (baseId);
                     const quote = this.safeCurrencyCode (quoteId);
                     const symbol = base + '/' + quote;
@@ -168,7 +173,6 @@ module.exports = class kuna extends Exchange {
                         'active': undefined,
                         'info': undefined,
                     });
-                    break;
                 }
             }
         }

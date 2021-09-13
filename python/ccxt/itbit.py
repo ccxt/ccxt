@@ -584,8 +584,9 @@ class itbit(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'code' in response:
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
+        code = self.safe_string(response, 'code')
+        if code is not None:
             raise ExchangeError(self.id + ' ' + self.json(response))
-        return response

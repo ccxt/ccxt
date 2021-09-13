@@ -96,6 +96,7 @@ class bibox(Exchange):
                         'cquery',
                         'mdata',
                         'cdata',
+                        'orderpending',
                     ],
                 },
                 'private': {
@@ -160,6 +161,7 @@ class bibox(Exchange):
                 'MTC': 'MTC Mesh Network',  # conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'NFT': 'NFT Protocol',
                 'PAI': 'PCHAIN',
+                'REVO': 'Revo Network',
                 'TERN': 'Ternio-ERC20',
             },
             'options': {
@@ -190,6 +192,30 @@ class bibox(Exchange):
         #     }
         #
         markets = self.safe_value(response, 'result')
+        request2 = {
+            'cmd': 'tradeLimit',
+        }
+        response2 = await self.publicGetOrderpending(self.extend(request2, params))
+        #
+        #    {
+        #         result: {
+        #             min_trade_price: {default: '0.00000001', USDT: '0.0001', DAI: '0.0001'},
+        #             min_trade_amount: {default: '0.0001'},
+        #             min_trade_money: {
+        #                 USDT: '1',
+        #                 USDC: '1',
+        #                 DAI: '1',
+        #                 GUSD: '1',
+        #                 BIX: '3',
+        #                 BTC: '0.0002',
+        #                 ETH: '0.005'
+        #             }
+        #         },
+        #         cmd: 'tradeLimit'
+        #     }
+        #
+        result2 = self.safe_value(response2, 'result', {})
+        minCosts = self.safe_value(result2, 'min_trade_money', {})
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -228,6 +254,10 @@ class bibox(Exchange):
                         'min': math.pow(10, -precision['price']),
                         'max': None,
                     },
+                    'cost': {
+                        'min': self.safe_number(minCosts, quoteId),
+                        'max': None,
+                    },
                 },
             })
         return result
@@ -247,14 +277,11 @@ class bibox(Exchange):
         last = self.safe_number(ticker, 'last')
         change = self.safe_number(ticker, 'change')
         baseVolume = self.safe_number_2(ticker, 'vol', 'vol24H')
-        open = None
-        if (last is not None) and (change is not None):
-            open = last - change
         percentage = self.safe_string(ticker, 'percent')
         if percentage is not None:
             percentage = percentage.replace('%', '')
             percentage = self.parse_number(percentage)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -265,7 +292,7 @@ class bibox(Exchange):
             'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
@@ -275,7 +302,7 @@ class bibox(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_number(ticker, 'amount'),
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -1017,8 +1044,8 @@ class bibox(Exchange):
         if not ('result' in response):
             raise ExchangeError(self.id + ' ' + body)
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+        response = await self.fetch2(path, api, method, params, headers, body, config, context)
         if method == 'GET':
             return response
         else:

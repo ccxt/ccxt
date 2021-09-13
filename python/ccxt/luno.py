@@ -662,8 +662,9 @@ class luno(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
+        error = self.safe_value(response, 'error')
+        if error is not None:
             raise ExchangeError(self.id + ' ' + self.json(response))
-        return response

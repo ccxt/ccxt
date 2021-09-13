@@ -638,34 +638,17 @@ class ascendex(Exchange):
         #
         timestamp = None
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        elif marketId is not None:
-            type = self.safe_string(ticker, 'type')
-            if type == 'spot':
-                baseId, quoteId = marketId.split('/')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        type = self.safe_string(ticker, 'type')
+        delimiter = '/' if (type == 'spot') else None
+        symbol = self.safe_symbol(marketId, market, delimiter)
         close = self.safe_number(ticker, 'close')
         bid = self.safe_value(ticker, 'bid', [])
         ask = self.safe_value(ticker, 'ask', [])
         open = self.safe_number(ticker, 'open')
-        change = None
-        percentage = None
-        average = None
-        if (open is not None) and (close is not None):
-            change = close - open
-            if open > 0:
-                percentage = change / open * 100
-            average = self.sum(open, close) / 2
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': None,
             'high': self.safe_number(ticker, 'high'),
             'low': self.safe_number(ticker, 'low'),
             'bid': self.safe_number(bid, 0),
@@ -677,13 +660,13 @@ class ascendex(Exchange):
             'close': close,
             'last': close,
             'previousClose': None,  # previous day close
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

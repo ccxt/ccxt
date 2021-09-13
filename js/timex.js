@@ -985,17 +985,7 @@ module.exports = class timex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const last = this.safeNumber (ticker, 'last');
         const open = this.safeNumber (ticker, 'open');
-        let change = undefined;
-        let average = undefined;
-        if (last !== undefined && open !== undefined) {
-            change = last - open;
-            average = this.sum (last, open) / 2;
-        }
-        let percentage = undefined;
-        if (change !== undefined && open) {
-            percentage = (change / open) * 100;
-        }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
@@ -1011,12 +1001,12 @@ module.exports = class timex extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': this.safeNumber (ticker, 'volumeQuote'),
-        };
+        }, market);
     }
 
     parseTrade (trade, market = undefined) {

@@ -448,18 +448,8 @@ class bitvavo extends Exchange {
         $baseVolume = $this->safe_number($ticker, 'volume');
         $quoteVolume = $this->safe_number($ticker, 'volumeQuote');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        $change = null;
-        $percentage = null;
-        $average = null;
         $open = $this->safe_number($ticker, 'open');
-        if (($open !== null) && ($last !== null)) {
-            $change = $last - $open;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-            $average = $this->sum($open, $last) / 2;
-        }
-        $result = array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -474,14 +464,13 @@ class bitvavo extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null, // previous day close
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
-        return $result;
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

@@ -630,11 +630,18 @@ class mercado extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('error_message', $response)) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
+        }
+        //
+        // todo add a unified standard handleErrors with $this->exceptions in describe()
+        //
+        //     array("status":503,"message":"Maintenancing, try again later","result":null)
+        //
+        $errorMessage = $this->safe_value($response, 'error_message');
+        if ($errorMessage !== null) {
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
-        return $response;
     }
 }

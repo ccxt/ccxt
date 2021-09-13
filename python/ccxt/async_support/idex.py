@@ -27,8 +27,8 @@ class idex(Exchange):
             'countries': ['US'],
             'rateLimit': 1500,
             'version': 'v2',
-            'certified': True,
             'pro': True,
+            'certified': True,
             'requiresWeb3': True,
             'has': {
                 'cancelOrder': True,

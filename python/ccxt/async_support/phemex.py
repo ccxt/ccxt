@@ -16,7 +16,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DuplicateOrderId
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -35,7 +34,7 @@ class phemex(Exchange):
             'pro': True,
             'hostname': 'api.phemex.com',
             'has': {
-                'cancelAllOrders': True,  # swap contracts only
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -159,6 +158,7 @@ class phemex(Exchange):
                     'delete': [
                         # spot
                         'spot/orders',  # ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/all',  # ?symbol=<symbol>&untriggered=<untriggered>
                         # 'spot/orders',  # ?symbol=<symbol>&clOrdID=<clOrdID>
                         # swap
                         'orders/cancel',  # ?symbol=<symbol>&orderID=<orderID>
@@ -1862,19 +1862,20 @@ class phemex(Exchange):
         return self.parse_order(data, market)
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         request = {
             # 'symbol': market['id'],
             # 'untriggerred': False,  # False to cancel non-conditional orders, True to cancel conditional orders
             # 'text': 'up to 40 characters max',
         }
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            if not market['swap']:
-                raise NotSupported(self.id + ' cancelAllOrders() supports swap market type orders only')
-            request['symbol'] = market['id']
-        return await self.privateDeleteOrdersAll(self.extend(request, params))
+        market = self.market(symbol)
+        method = 'privateDeleteSpotOrdersAll'
+        if market['swap']:
+            method = 'privateDeleteOrdersAll'
+        request['symbol'] = market['id']
+        return await getattr(self, method)(self.extend(request, params))
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:

@@ -625,8 +625,10 @@ class bitbank extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body);
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
+        }
         $success = $this->safe_integer($response, 'success');
         $data = $this->safe_value($response, 'data');
         if (!$success || !$data) {
@@ -702,6 +704,5 @@ class bitbank extends Exchange {
                 throw new ExchangeError($this->id . ' ' . $this->json($response));
             }
         }
-        return $response;
     }
 }

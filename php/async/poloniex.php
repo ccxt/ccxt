@@ -156,6 +156,7 @@ class poloniex extends Exchange {
                 'HOT' => 'Hotcoin',
                 'ITC' => 'Information Coin',
                 'KEY' => 'KEYCoin',
+                'MASK' => 'NFTX Hashmasks Index', // conflict with Mask Network
                 'PLX' => 'ParallaxCoin',
                 'REPV2' => 'REP',
                 'STR' => 'XLM',
@@ -197,6 +198,7 @@ class poloniex extends Exchange {
                     'You may only place orders that reduce your position.' => '\\ccxt\\InvalidOrder',
                     'Invalid order number, or you are not the person who placed the order.' => '\\ccxt\\OrderNotFound',
                     'Permission denied' => '\\ccxt\\PermissionDenied',
+                    'Permission denied.' => '\\ccxt\\PermissionDenied',
                     'Connection timed out. Please try again.' => '\\ccxt\\RequestTimeout',
                     'Internal error. Please try again.' => '\\ccxt\\ExchangeNotAvailable',
                     'Currently in maintenance mode.' => '\\ccxt\\OnMaintenance',

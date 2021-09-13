@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, NotSupported } = require ('./base/errors');
+const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -21,7 +21,7 @@ module.exports = class phemex extends Exchange {
             'pro': true,
             'hostname': 'api.phemex.com',
             'has': {
-                'cancelAllOrders': true, // swap contracts only
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -145,6 +145,7 @@ module.exports = class phemex extends Exchange {
                     'delete': [
                         // spot
                         'spot/orders', // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/all', // ?symbol=<symbol>&untriggered=<untriggered>
                         // 'spot/orders', // ?symbol=<symbol>&clOrdID=<clOrdID>
                         // swap
                         'orders/cancel', // ?symbol=<symbol>&orderID=<orderID>
@@ -1929,21 +1930,22 @@ module.exports = class phemex extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
             // 'untriggerred': false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text': 'up to 40 characters max',
         };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            if (!market['swap']) {
-                throw new NotSupported (this.id + ' cancelAllOrders() supports swap market type orders only');
-            }
-            request['symbol'] = market['id'];
+        const market = this.market (symbol);
+        let method = 'privateDeleteSpotOrdersAll';
+        if (market['swap']) {
+            method = 'privateDeleteOrdersAll';
         }
-        return await this.privateDeleteOrdersAll (this.extend (request, params));
+        request['symbol'] = market['id'];
+        return await this[method] (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
