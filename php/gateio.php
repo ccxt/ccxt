@@ -15,7 +15,7 @@ class gateio extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'gateio',
             'name' => 'Gate.io',
-            'country' => array( 'KR' ),
+            'countries' => array( 'KR' ),
             'rateLimit' => 1000,
             'version' => '4',
             'certified' => true,
@@ -522,10 +522,7 @@ class gateio extends Exchange {
                 'id' => $currencyId,
                 'name' => null,
                 'code' => $code,
-                'precision' => array(
-                    'amount' => $amountPrecision,
-                    'price' => null,
-                ),
+                'precision' => $amountPrecision,
                 'info' => $entry,
                 'active' => $active,
                 'fee' => null,
@@ -744,7 +741,7 @@ class gateio extends Exchange {
         $baseVolume = $this->safe_number($ticker, 'base_volume');
         $quoteVolume = $this->safe_number($ticker, 'quote_volume');
         $percentage = $this->safe_number($ticker, 'change_percentage');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
@@ -765,7 +762,7 @@ class gateio extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -863,9 +860,19 @@ class gateio extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'currency_pair' => $market['id'],
+            // 'limit' => $limit,
+            // 'page' => 0,
+            // 'order_id' => 'Order ID',
+            // 'account' => 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
+            // 'from' => $since, // default to 7 days before current time
+            // 'to' => $this->milliseconds(), // default to current time
         );
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000
+        }
+        if ($since !== null) {
+            $request['from'] = (int) floor($since / 1000);
+            // $request['to'] = $since + 7 * 24 * 60 * 60;
         }
         $response = $this->privateSpotGetMyTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
@@ -962,6 +969,7 @@ class gateio extends Exchange {
         }
         if ($since !== null) {
             $request['from'] = (int) floor($since / 1000);
+            $request['to'] = $since + 30 * 24 * 60 * 60;
         }
         $response = $this->privateWalletGetDeposits (array_merge($request, $params));
         return $this->parse_transactions($response, $currency);
@@ -980,6 +988,7 @@ class gateio extends Exchange {
         }
         if ($since !== null) {
             $request['from'] = (int) floor($since / 1000);
+            $request['to'] = $since + 30 * 24 * 60 * 60;
         }
         $response = $this->privateWalletGetWithdrawals (array_merge($request, $params));
         return $this->parse_transactions($response, $currency);

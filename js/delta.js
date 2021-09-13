@@ -467,20 +467,10 @@ module.exports = class delta extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber (ticker, 'close');
         const open = this.safeNumber (ticker, 'open');
-        let change = undefined;
-        let average = undefined;
-        let percentage = undefined;
-        if ((open !== undefined) && (last !== undefined)) {
-            change = last - open;
-            average = this.sum (last, open) / 2;
-            if (open !== 0.0) {
-                percentage = (change / open) * 100;
-            }
-        }
         const baseVolume = this.safeNumber (ticker, 'volume');
         const quoteVolume = this.safeNumber (ticker, 'turnover');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -495,13 +485,13 @@ module.exports = class delta extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

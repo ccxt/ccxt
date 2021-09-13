@@ -78,6 +78,7 @@ class bibox extends Exchange {
                         'cquery',
                         'mdata',
                         'cdata',
+                        'orderpending',
                     ),
                 ),
                 'private' => array(
@@ -142,6 +143,7 @@ class bibox extends Exchange {
                 'MTC' => 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'NFT' => 'NFT Protocol',
                 'PAI' => 'PCHAIN',
+                'REVO' => 'Revo Network',
                 'TERN' => 'Ternio-ERC20',
             ),
             'options' => array(
@@ -173,6 +175,30 @@ class bibox extends Exchange {
         //     }
         //
         $markets = $this->safe_value($response, 'result');
+        $request2 = array(
+            'cmd' => 'tradeLimit',
+        );
+        $response2 = yield $this->publicGetOrderpending (array_merge($request2, $params));
+        //
+        //    {
+        //         $result => {
+        //             min_trade_price => array( default => '0.00000001', USDT => '0.0001', DAI => '0.0001' ),
+        //             min_trade_amount => array( default => '0.0001' ),
+        //             min_trade_money => array(
+        //                 USDT => '1',
+        //                 USDC => '1',
+        //                 DAI => '1',
+        //                 GUSD => '1',
+        //                 BIX => '3',
+        //                 BTC => '0.0002',
+        //                 ETH => '0.005'
+        //             }
+        //         ),
+        //         cmd => 'tradeLimit'
+        //     }
+        //
+        $result2 = $this->safe_value($response2, 'result', array());
+        $minCosts = $this->safe_value($result2, 'min_trade_money', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -212,6 +238,10 @@ class bibox extends Exchange {
                         'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
+                    'cost' => array(
+                        'min' => $this->safe_number($minCosts, $quoteId),
+                        'max' => null,
+                    ),
                 ),
             );
         }
@@ -234,16 +264,12 @@ class bibox extends Exchange {
         $last = $this->safe_number($ticker, 'last');
         $change = $this->safe_number($ticker, 'change');
         $baseVolume = $this->safe_number_2($ticker, 'vol', 'vol24H');
-        $open = null;
-        if (($last !== null) && ($change !== null)) {
-            $open = $last - $change;
-        }
         $percentage = $this->safe_string($ticker, 'percent');
         if ($percentage !== null) {
             $percentage = str_replace('%', '', $percentage);
             $percentage = $this->parse_number($percentage);
         }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -254,7 +280,7 @@ class bibox extends Exchange {
             'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $open,
+            'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -264,7 +290,7 @@ class bibox extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_number($ticker, 'amount'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1083,8 +1109,8 @@ class bibox extends Exchange {
         }
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
+        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context);
         if ($method === 'GET') {
             return $response;
         } else {

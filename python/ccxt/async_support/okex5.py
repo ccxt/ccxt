@@ -11,4 +11,5 @@ class okex5(okex):
     def describe(self):
         return self.deep_extend(super(okex5, self).describe(), {
             'id': 'okex5',
+            'alias': True,
         })

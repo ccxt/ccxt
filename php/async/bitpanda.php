@@ -504,16 +504,10 @@ class bitpanda extends Exchange {
         $last = $this->safe_number($ticker, 'last_price');
         $percentage = $this->safe_number($ticker, 'price_change_percentage');
         $change = $this->safe_number($ticker, 'price_change');
-        $open = null;
-        $average = null;
-        if (($last !== null) && ($change !== null)) {
-            $open = $last - $change;
-            $average = $this->sum($last, $open) / 2;
-        }
         $baseVolume = $this->safe_number($ticker, 'base_volume');
         $quoteVolume = $this->safe_number($ticker, 'quote_volume');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -524,17 +518,17 @@ class bitpanda extends Exchange {
             'ask' => $this->safe_number($ticker, 'best_ask'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => $open,
+            'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => $change,
             'percentage' => $percentage,
-            'average' => $average,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

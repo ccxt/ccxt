@@ -590,8 +590,9 @@ class bitbank(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
         success = self.safe_integer(response, 'success')
         data = self.safe_value(response, 'data')
         if not success or not data:
@@ -665,4 +666,3 @@ class bitbank(Exchange):
                 raise ErrorClass(message)
             else:
                 raise ExchangeError(self.id + ' ' + self.json(response))
-        return response

@@ -383,11 +383,9 @@ class coincheck(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if api == 'public':
-            return response
-        if 'success' in response:
-            if response['success']:
-                return response
-        raise ExchangeError(self.id + ' ' + self.json(response))
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
+        success = self.safe_value(response, 'success', True)
+        if not success:
+            raise ExchangeError(self.id + ' ' + self.json(response))

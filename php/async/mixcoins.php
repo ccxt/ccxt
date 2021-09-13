@@ -212,18 +212,18 @@ class mixcoins extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('status', $response)) {
-            //
-            // todo add a unified standard handleErrors with $this->exceptions in describe()
-            //
-            //     array("status":503,"message":"Maintenancing, try again later","result":null)
-            //
-            if ($response['status'] === 200) {
-                return $response;
-            }
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
         }
-        throw new ExchangeError($this->id . ' ' . $this->json($response));
+        //
+        // todo add a unified standard handleErrors with $this->exceptions in describe()
+        //
+        //     array("$status":503,"message":"Maintenancing, try again later","result":null)
+        //
+        $status = $this->safe_integer($response, 'status');
+        if ($status !== 200) {
+            throw new ExchangeError($this->id . ' ' . $this->json($response));
+        }
     }
 }

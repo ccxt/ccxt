@@ -71,7 +71,10 @@ class deribit extends Exchange {
                     'https://github.com/deribit',
                 ),
                 'fees' => 'https://www.deribit.com/pages/information/fees',
-                'referral' => 'https://www.deribit.com/reg-1189.4038',
+                'referral' => array(
+                    'url' => 'https://www.deribit.com/reg-1189.4038',
+                    'discount' => 0.1,
+                ),
             ),
             'api' => array(
                 'public' => array(

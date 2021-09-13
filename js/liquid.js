@@ -67,7 +67,9 @@ module.exports = class liquid extends Exchange {
                         'accounts/{id}',
                         'accounts/{currency}/reserved_balance_details',
                         'crypto_accounts', // add fetchAccounts
+                        'crypto_withdrawal',
                         'crypto_withdrawals',
+                        'crypto_withdrawals/crypto_networks',
                         'executions/me',
                         'fiat_accounts', // add fetchAccounts
                         'fund_infos', // add fetchDeposits
@@ -82,6 +84,11 @@ module.exports = class liquid extends Exchange {
                         'trading_accounts/{id}',
                         'transactions',
                         'withdrawals', // add fetchWithdrawals
+                        'user/fee_tier',
+                        'user/fees',
+                        'trading_accounts/{id}',
+                        'bank_accounts',
+                        'accounts/{currency}/reserved_balance_details',
                     ],
                     'post': [
                         'crypto_withdrawals',
@@ -90,6 +97,7 @@ module.exports = class liquid extends Exchange {
                         'loan_bids',
                         'orders',
                         'withdrawals',
+                        'fees/estimate',
                     ],
                     'put': [
                         'crypto_withdrawal/{id}/cancel',
@@ -548,18 +556,8 @@ module.exports = class liquid extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
         const open = this.safeNumber (ticker, 'last_price_24h');
-        if (open !== undefined && last !== undefined) {
-            change = last - open;
-            average = this.sum (last, open) / 2;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-        }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -574,13 +572,13 @@ module.exports = class liquid extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'volume_24h'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

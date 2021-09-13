@@ -315,9 +315,9 @@ class coinmarketcap(Exchange):
             url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            if response['error']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
+        error = self.safe_value(response, 'error', False)
+        if error:
+            raise ExchangeError(self.id + ' ' + self.json(response))

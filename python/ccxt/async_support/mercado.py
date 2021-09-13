@@ -583,8 +583,14 @@ class mercado(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'error_message' in response:
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
+        #
+        # todo add a unified standard handleErrors with self.exceptions in describe()
+        #
+        #     {"status":503,"message":"Maintenancing, try again later","result":null}
+        #
+        errorMessage = self.safe_value(response, 'error_message')
+        if errorMessage is not None:
             raise ExchangeError(self.id + ' ' + self.json(response))
-        return response

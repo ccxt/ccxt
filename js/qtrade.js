@@ -404,20 +404,17 @@ module.exports = class qtrade extends Exchange {
         const day_change = this.safeNumber (ticker, 'day_change');
         let percentage = undefined;
         let change = undefined;
-        let average = this.safeNumber (ticker, 'day_avg_price');
+        const average = this.safeNumber (ticker, 'day_avg_price');
         if (day_change !== undefined) {
             percentage = day_change * 100;
             if (previous !== undefined) {
                 change = day_change * previous;
             }
         }
-        if ((average === undefined) && (last !== undefined) && (previous !== undefined)) {
-            average = this.sum (last, previous) / 2;
-        }
         const baseVolume = this.safeNumber (ticker, 'day_volume_market');
         const quoteVolume = this.safeNumber (ticker, 'day_volume_base');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -438,7 +435,7 @@ module.exports = class qtrade extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

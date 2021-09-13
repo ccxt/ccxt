@@ -179,6 +179,7 @@ class bittrex(Exchange):
                     # 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
                     # 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
                     'APISIGN_NOT_PROVIDED': AuthenticationError,
+                    'APIKEY_INVALID': AuthenticationError,
                     'INVALID_SIGNATURE': AuthenticationError,
                     'INVALID_CURRENCY': ExchangeError,
                     'INVALID_PERMISSION': AuthenticationError,
@@ -188,6 +189,7 @@ class bittrex(Exchange):
                     'INVALID_ORDER_TYPE': InvalidOrder,
                     'QUANTITY_NOT_PROVIDED': InvalidOrder,
                     'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
+                    'NOT_FOUND': OrderNotFound,
                     'ORDER_NOT_OPEN': OrderNotFound,
                     'INVALID_ORDER': InvalidOrder,
                     'UUID_INVALID': OrderNotFound,
@@ -1260,11 +1262,11 @@ class bittrex(Exchange):
             success = self.safe_value(response, 'success')
             if success is None:
                 code = self.safe_string(response, 'code')
+                if (code == 'NOT_FOUND') and (url.find('addresses') >= 0):
+                    raise InvalidAddress(feedback)
                 if code is not None:
                     self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
                     self.throw_broadly_matched_exception(self.exceptions['broad'], code, feedback)
-                if (code == 'NOT_FOUND') and (url.find('addresses') >= 0):
-                    raise InvalidAddress(feedback)
                 # raise ExchangeError(self.id + ' malformed response ' + self.json(response))
                 return
             if isinstance(success, basestring):

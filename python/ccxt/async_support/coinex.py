@@ -11,6 +11,8 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import RequestTimeout
 from ccxt.base.precise import Precise
 
 
@@ -924,15 +926,20 @@ class coinex(Exchange):
                 body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
         message = self.safe_string(response, 'message')
         if (code != '0') or (data is None) or ((message != 'Success') and (message != 'Ok') and not data):
             responseCodes = {
+                # https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
                 '24': AuthenticationError,
                 '25': AuthenticationError,
+                '34': AuthenticationError,  # Access id is expires
+                '35': ExchangeNotAvailable,  # Service unavailable
+                '36': RequestTimeout,  # Service timeout
                 '107': InsufficientFunds,
                 '600': OrderNotFound,
                 '601': InvalidOrder,
@@ -941,4 +948,3 @@ class coinex(Exchange):
             }
             ErrorClass = self.safe_value(responseCodes, code, ExchangeError)
             raise ErrorClass(response['message'])
-        return response

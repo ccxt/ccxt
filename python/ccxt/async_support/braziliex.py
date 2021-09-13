@@ -593,8 +593,8 @@ class braziliex(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+        response = await self.fetch2(path, api, method, params, headers, body, config, context)
         if (isinstance(response, basestring)) and (len(response) < 1):
             raise ExchangeError(self.id + ' returned empty response')
         if 'success' in response:

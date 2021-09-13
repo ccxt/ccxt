@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.55.20';
+$version = '1.56.34';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.55.20';
+    const VERSION = '1.56.34';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -129,7 +129,6 @@ class Exchange {
         'ftx',
         'gateio',
         'gemini',
-        'gopax',
         'hbtc',
         'hitbtc',
         'hollaex',
@@ -248,12 +247,15 @@ class Exchange {
         'fetchImplementation' => 'fetch_implementation',
         'executeRestRequest' => 'execute_rest_request',
         'encodeURIComponent' => 'encode_uri_component',
+        'checkRequiredVersion' => 'check_required_version',
         'checkRequiredCredentials' => 'check_required_credentials',
         'checkAddress' => 'check_address',
         'initRestRateLimiter' => 'init_rest_rate_limiter',
         'setSandboxMode' => 'set_sandbox_mode',
+        'defineRestApiEndpoint' => 'define_rest_api_endpoint',
         'defineRestApi' => 'define_rest_api',
         'setHeaders' => 'set_headers',
+        'calculateRateLimiterCost' => 'calculate_rate_limiter_cost',
         'parseJson' => 'parse_json',
         'throwExactlyMatchedException' => 'throw_exactly_matched_exception',
         'throwBroadlyMatchedException' => 'throw_broadly_matched_exception',
@@ -997,15 +999,6 @@ class Exchange {
 
         $this->id = null;
 
-        // rate limiter params
-        $this->rateLimit = 2000;
-        $this->tokenBucket = array(
-            'delay' => 1.0,
-            'capacity' => 1.0,
-            'defaultCost' => 1.0,
-            'maxCapacity' => 1000,
-        );
-
         $this->curlopt_interface = null;
         $this->timeout = 10000; // in milliseconds
         $this->proxy = '';
@@ -1021,8 +1014,10 @@ class Exchange {
         $this->name = null;
         $this->countries = null;
         $this->version = null;
-        $this->certified = false;
-        $this->pro = false;
+        $this->certified = false; // if certified by the CCXT dev team
+        $this->pro = false; // if it is integrated with CCXT Pro for WebSocket support
+        $this->alias = false; // whether this exchange is an alias to another exchange
+
         $this->urls = array();
         $this->api = array();
         $this->comment = null;
@@ -1187,6 +1182,7 @@ class Exchange {
 
         $this->requiresWeb3 = false;
         $this->requiresEddsa = false;
+        $this->rateLimit = 2000;
 
         $this->commonCurrencies = array(
             'XBT' => 'BTC',
@@ -1208,6 +1204,14 @@ class Exchange {
                         $value;
             }
         }
+
+        $this->tokenBucket = array(
+            'delay' => 0.001,
+            'capacity' => 1.0,
+            'cost' => 1.0,
+            'maxCapacity' => 1000,
+            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
+        );
 
         if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
@@ -1242,34 +1246,51 @@ class Exchange {
         }
     }
 
+    public function define_rest_api_endpoint ($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths, $config = array()) {
+        $split_path = mb_split('[^a-zA-Z0-9]', $path);
+        $camelcase_suffix = implode(array_map(get_called_class() . '::capitalize', $split_path));
+        $lowercase_path = array_map('trim', array_map('strtolower', $split_path));
+        $underscore_suffix = implode('_', array_filter($lowercase_path));
+        $camelcase_prefix = implode('', array_merge(
+            array($paths[0]),
+            array_map(get_called_class() . '::capitalize', array_slice($paths, 1))
+        ));
+        $underscore_prefix = implode('_', array_merge(
+            array($paths[0]),
+            array_filter(array_map('trim', array_slice($paths, 1)))
+        ));
+        $camelcase = $camelcase_prefix . $camelcase_method . static::capitalize($camelcase_suffix);
+        $underscore = $underscore_prefix . '_' . $lowercase_method . '_' . mb_strtolower($underscore_suffix);
+        $api_argument = (count($paths) > 1) ? $paths : $paths[0];
+        $this->defined_rest_api[$camelcase] = array($path, $api_argument, $uppercase_method, $method_name, $config);
+        $this->defined_rest_api[$underscore] = array($path, $api_argument, $uppercase_method, $method_name, $config);
+    }
+
     public function define_rest_api($api, $method_name, $paths = array()) {
         foreach ($api as $key => $value) {
+            $uppercase_method = mb_strtoupper($key);
+            $lowercase_method = mb_strtolower($key);
+            $camelcase_method = static::capitalize($lowercase_method);
             if (static::is_associative($value)) {
-                $copy = $paths;
-                array_push ($copy, $key);
-                $this->define_rest_api($value, $method_name, $copy);
+                if (preg_match('/^(?:get|post|put|delete|options|head)$/i', $key)) {
+                    foreach ($value as $endpoint => $config) {
+                        $path = trim($endpoint);
+                        if (static::is_associative($config)) {
+                            $this->define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths, $config);
+                        } else if (is_numeric($config)) {
+                            $this->define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths, array('cost' => $config));
+                        } else {
+                            throw new NotSupported($this->id . ' define_rest_api() API format not supported, API leafs must strings, objects or numbers');
+                        }
+                    }
+                } else {
+                    $copy = $paths;
+                    array_push ($copy, $key);
+                    $this->define_rest_api($value, $method_name, $copy);
+                }
             } else {
-                $uppercaseMethod = mb_strtoupper($key);
-                $lowercaseMethod = mb_strtolower($key);
-                $camelcaseMethod = static::capitalize($lowercaseMethod);
                 foreach ($value as $path) {
-                    $splitPath = mb_split('[^a-zA-Z0-9]', $path);
-                    $camelcaseSuffix = implode(array_map(get_called_class() . '::capitalize', $splitPath));
-                    $lowercasePath = array_map('trim', array_map('strtolower', $splitPath));
-                    $underscoreSuffix = implode('_', array_filter($lowercasePath));
-                    $camelcasePrefix = implode('', array_merge(
-                        array($paths[0]),
-                        array_map(get_called_class() . '::capitalize', array_slice($paths, 1))
-                    ));
-                    $underscorePrefix = implode('_', array_merge(
-                        array($paths[0]),
-                        array_filter(array_map('trim', array_slice($paths, 1)))
-                    ));
-                    $camelcase = $camelcasePrefix . $camelcaseMethod . static::capitalize($camelcaseSuffix);
-                    $underscore = $underscorePrefix . '_' . $lowercaseMethod . '_' . mb_strtolower($underscoreSuffix);
-                    $apiArgument = (count($paths) > 1) ? $paths : $paths[0];
-                    $this->defined_rest_api[$camelcase] = array($path, $apiArgument, $uppercaseMethod, $method_name);
-                    $this->defined_rest_api[$underscore] = array($path, $apiArgument, $uppercaseMethod, $method_name);
+                    $this->define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths);
                 }
             }
         }
@@ -1393,16 +1414,21 @@ class Exchange {
         throw new NotSupported($this->id . ' sign() not supported yet');
     }
 
-    public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array(), $context = array()) {
+        return $this->safe_value($config, 'cost', 1);
+    }
+
+    public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
         if ($this->enableRateLimit) {
-            $this->throttle();
+            $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
+            $this->throttle($cost);
         }
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
         return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
-        return $this->fetch2($path, $api, $method, $params, $headers, $body);
+    public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array ()) {
+        return $this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context);
     }
 
     public function throw_exactly_matched_exception($exact, $string, $message) {
@@ -1929,26 +1955,53 @@ class Exchange {
     public function safe_ticker($ticker, $market = null) {
         $symbol = $this->safe_value($ticker, 'symbol');
         if ($symbol === null) {
-            $ticker['symbol'] = $this->safe_symbol(null, $market);
+            $symbol = $this->safe_symbol(null, $market);
         }
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        if ($timestamp !== null) {
-            $ticker['timestamp'] = $timestamp;
-            $ticker['datetime'] = $this->iso8601($timestamp);
-        }
         $baseVolume = $this->safe_value($ticker, 'baseVolume');
         $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
         $vwap = $this->safe_value($ticker, 'vwap');
         if ($vwap === null) {
-            $ticker['vwap'] = $this->vwap($baseVolume, $quoteVolume);
+            $vwap = $this->vwap($baseVolume, $quoteVolume);
         }
+        $open = $this->safe_value($ticker, 'open');
         $close = $this->safe_value($ticker, 'close');
         $last = $this->safe_value($ticker, 'last');
-        if (($close === null) && ($last !== null)) {
-            $ticker['close'] = $last;
+        $change = $this->safe_value($ticker, 'change');
+        $percentage = $this->safe_value($ticker, 'percentage');
+        $average = $this->safe_value($ticker, 'average');
+        if (($last !== null) && ($close === null)) {
+            $close = $last;
         } else if (($last === null) && ($close !== null)) {
-            $ticker['last'] = $close;
+            $last = $close;
         }
+        if (($last !== null) && ($open !== null)) {
+            if ($change === null) {
+                $change = $last - $open;
+            }
+            if ($average === null) {
+                $average = $this->sum($last, $open) / 2;
+            }
+        }
+        if (($percentage === null) && ($change !== null) && ($open !== null) && ($open > 0)) {
+            $percentage = $change / $open * 100;
+        }
+        if (($change === null) && ($percentage !== null) && ($last !== null)) {
+            $change = $percentage / 100 * $last;
+        }
+        if (($open === null) && ($last !== null) && ($change !== null)) {
+            $open = $last - $change;
+        }
+        $ticker['symbol'] = $symbol;
+        $ticker['timestamp'] = $timestamp;
+        $ticker['datetime'] = $this->iso8601($timestamp);
+        $ticker['open'] = $open;
+        $ticker['close'] = $close;
+        $ticker['last'] = $last;
+        $ticker['vwap'] = $vwap;
+        $ticker['change'] = $change;
+        $ticker['percentage'] = $percentage;
+        $ticker['average'] = $average;
         return $ticker;
     }
 
@@ -2436,19 +2489,23 @@ class Exchange {
     }
 
     public function cost_to_precision($symbol, $cost) {
-        return self::decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $market = $this->market($symbol);
+        return self::decimal_to_precision($cost, TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function price_to_precision($symbol, $price) {
-        return self::decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $market = $this->market($symbol);
+        return self::decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function amount_to_precision($symbol, $amount) {
-        return self::decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        $market = $this->market($symbol);
+        return self::decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
     }
 
     public function fee_to_precision($symbol, $fee) {
-        return self::decimalToPrecision($fee, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $market = $this->market($symbol);
+        return self::decimalToPrecision($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function currency_to_precision($currency, $fee) {
@@ -2489,7 +2546,12 @@ class Exchange {
         if (array_key_exists($function, $this->defined_rest_api)) {
             $partial = $this->defined_rest_api[$function];
             $entry = $partial[3];
+            $config = $partial[4];
             $partial[3] = $params ? $params[0] : $params;
+            $partial[4] = null;
+            $partial[5] = null;
+            $partial[6] = $config;
+            $partial[7] = ($params && (count($params) > 1)) ? $params[1] : array();
             return call_user_func_array(array($this, $entry), $partial);
         } else if (array_key_exists($function, static::$camelcase_methods)) {
             $underscore = static::$camelcase_methods[$function];
@@ -2739,6 +2801,37 @@ class Exchange {
         // PHP version of this function does nothing, as most of its
         // dependencies are lightweight and don't eat a lot
         return true;
+    }
+
+    public static function check_required_version ($required_version, $error = true) {
+        global $version;
+        $result = true;
+        $required = explode('.', $required_version);
+        $current = explode('.', $version);
+        $intMajor1 = intval($required[0]);
+        $intMinor1 = intval($required[1]);
+        $intPatch1 = intval($required[2]);
+        $intMajor2 = intval($current[0]);
+        $intMinor2 = intval($current[1]);
+        $intPatch2 = intval($current[2]);
+        if ($intMajor1 > $intMajor2) {
+            $result = false;
+        }
+        if ($intMajor1 === $intMajor2) {
+            if ($intMinor1 > $intMinor2) {
+                $result = false;
+            } else if ($intMinor1 === $intMinor2 && $intPatch1 > $intPatch2) {
+                $result = false;
+            }
+        }
+        if (!$result) {
+            if ($error) {
+                throw new NotSupported ('Your current version of CCXT is ' . $version . ', a newer version ' . $required_version . ' is required, please, upgrade your version of CCXT');
+            } else {
+                return $error;
+            }
+        }
+        return $result;
     }
 
     public function check_required_dependencies() {

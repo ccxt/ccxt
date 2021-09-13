@@ -289,13 +289,13 @@ class bitstamp1 extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('status', $response)) {
-            if ($response['status'] === 'error') {
-                throw new ExchangeError($this->id . ' ' . $this->json($response));
-            }
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
         }
-        return $response;
+        $status = $this->safe_string($response, 'status');
+        if ($status === 'error') {
+            throw new ExchangeError($this->id . ' ' . $this->json($response));
+        }
     }
 }

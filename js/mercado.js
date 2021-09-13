@@ -626,11 +626,18 @@ module.exports = class mercado extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error_message' in response) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        //
+        // todo add a unified standard handleErrors with this.exceptions in describe()
+        //
+        //     {"status":503,"message":"Maintenancing, try again later","result":null}
+        //
+        const errorMessage = this.safeValue (response, 'error_message');
+        if (errorMessage !== undefined) {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
-        return response;
     }
 };

@@ -236,6 +236,41 @@ class crex24(Exchange):
         #             "state": "active"
         #           },]
         #
+        response2 = await self.publicGetTradingFeeSchedules(params)
+        #
+        #     [
+        #         {
+        #             "name": "FeeSchedule05",
+        #             "feeRates": [
+        #                 {
+        #                     "volumeThreshold": 0.0,
+        #                     "maker": 0.0005,
+        #                     "taker": 0.0005
+        #                 },
+        #                 {
+        #                     "volumeThreshold": 5.0,
+        #                     "maker": 0.0004,
+        #                     "taker": 0.0004
+        #                 },
+        #                 {
+        #                     "volumeThreshold": 15.0,
+        #                     "maker": 0.0003,
+        #                     "taker": 0.0003
+        #                 },
+        #                 {
+        #                     "volumeThreshold": 30.0,
+        #                     "maker": 0.0002,
+        #                     "taker": 0.0002
+        #                 },
+        #                 {
+        #                     "volumeThreshold": 50.0,
+        #                     "maker": 0.0001,
+        #                     "taker": 0.0001
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        #
         result = []
         for i in range(0, len(response)):
             market = response[i]
@@ -256,6 +291,20 @@ class crex24(Exchange):
                 'amount': minAmount,
                 'price': tickSize,
             }
+            maker = None
+            taker = None
+            feeSchedule = self.safe_string(market, 'feeSchedule')
+            for j in range(0, len(response2)):
+                feeScheduleName = self.safe_string(response2[j], 'name')
+                if feeScheduleName == feeSchedule:
+                    feeRates = self.safe_value(response2[j], 'feeRates', [])
+                    for k in range(0, len(feeRates)):
+                        volumeThreshold = self.safe_number(feeRates[k], 'volumeThreshold')
+                        if volumeThreshold == 0:
+                            maker = self.safe_number(feeRates[k], 'maker')
+                            taker = self.safe_number(feeRates[k], 'taker')
+                            break
+                    break
             active = (market['state'] == 'active')
             result.append({
                 'id': id,
@@ -267,6 +316,8 @@ class crex24(Exchange):
                 'info': market,
                 'active': active,
                 'precision': precision,
+                'maker': maker,
+                'taker': taker,
                 'limits': {
                     'amount': {
                         'min': minAmount,

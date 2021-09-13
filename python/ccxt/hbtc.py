@@ -1612,18 +1612,10 @@ class hbtc(Exchange):
         timestamp = self.safe_integer(ticker, 'time')
         open = self.safe_number(ticker, 'openPrice')
         close = self.safe_number(ticker, 'lastPrice')
-        change = None
-        percentage = None
-        average = None
-        if (open is not None) and (close is not None):
-            change = close - open
-            average = self.sum(open, close) / 2
-            if (close is not None) and (close > 0):
-                percentage = (change / open) * 100
         quoteVolume = self.safe_number(ticker, 'quoteVolume')
         baseVolume = self.safe_number(ticker, 'volume')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1638,13 +1630,13 @@ class hbtc(Exchange):
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def parse_trade(self, trade, market):
         #

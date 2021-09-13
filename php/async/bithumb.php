@@ -277,26 +277,13 @@ class bithumb extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'date');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol(null, $market);
         $open = $this->safe_number($ticker, 'opening_price');
         $close = $this->safe_number($ticker, 'closing_price');
-        $change = null;
-        $percentage = null;
-        $average = null;
-        if (($close !== null) && ($open !== null)) {
-            $change = $close - $open;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-            $average = $this->sum($open, $close) / 2;
-        }
         $baseVolume = $this->safe_number($ticker, 'units_traded_24H');
         $quoteVolume = $this->safe_number($ticker, 'acc_trade_value_24H');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -311,13 +298,13 @@ class bithumb extends Exchange {
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -920,16 +907,5 @@ class bithumb extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
-    }
-
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('status', $response)) {
-            if ($response['status'] === '0000' || $response['message'] === '거래 진행중인 내역이 존재하지 않습니다') {
-                return $response;
-            }
-            throw new ExchangeError($this->id . ' ' . $this->json($response));
-        }
-        return $response;
     }
 }

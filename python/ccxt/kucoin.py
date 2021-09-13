@@ -35,6 +35,7 @@ class kucoin(Exchange):
             'certified': False,
             'pro': True,
             'comment': 'Platform 2.0',
+            'quoteJsonNumbers': False,
             'has': {
                 'CORS': False,
                 'cancelAllOrders': True,
@@ -800,7 +801,12 @@ class kucoin(Exchange):
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        request = {'currency': currency['id']}
+        request = {
+            'currency': currency['id'],
+            # for USDT - OMNI, ERC20, TRC20, default is ERC20
+            # for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
+            # 'chain': 'ERC20',  # optional
+        }
         response = self.privateGetDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}

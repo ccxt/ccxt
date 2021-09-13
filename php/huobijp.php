@@ -17,6 +17,7 @@ class huobijp extends huobipro {
             'countries' => array( 'JP' ),
             'hostname' => 'api-cloud.huobi.co.jp',
             'pro' => true,
+            'certified' => false,
             'has' => array(
                 'fetchDepositAddress' => false,
             ),

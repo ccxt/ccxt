@@ -143,9 +143,9 @@ class zb extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api' => array(
-                    'public' => 'https://api.zb.today/data',
-                    'private' => 'https://trade.zb.today/api',
-                    'trade' => 'https://trade.zb.today/api',
+                    'public' => 'https://api.zb.work/data',
+                    'private' => 'https://trade.zb.work/api',
+                    'trade' => 'https://trade.zb.work/api',
                 ),
                 'www' => 'https://www.zb.com',
                 'doc' => 'https://www.zb.com/i/developer',
@@ -267,7 +267,6 @@ class zb extends Exchange {
             $symbol = $base . '/' . $quote;
             $amountPrecisionString = $this->safe_string($market, 'amountScale');
             $pricePrecisionString = $this->safe_string($market, 'priceScale');
-            $amountLimit = $this->parse_precision($amountPrecisionString);
             $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
                 'amount' => intval($amountPrecisionString),
@@ -284,7 +283,7 @@ class zb extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->parse_number($amountLimit),
+                        'min' => $this->safe_number($market, 'minAmount'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -292,7 +291,7 @@ class zb extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => 0,
+                        'min' => $this->safe_number($market, 'minSize'),
                         'max' => null,
                     ),
                 ),

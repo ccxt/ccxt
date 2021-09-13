@@ -2325,7 +2325,7 @@ module.exports = class bybit extends Exchange {
         if (Array.isArray (symbols)) {
             const length = symbols.length;
             if (length !== 1) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions takes exactly one symbol');
+                throw new ArgumentsRequired (this.id + ' fetchPositions takes an array with exactly one symbol');
             }
             request['symbol'] = this.marketId (symbols[0]);
         }
@@ -2340,13 +2340,18 @@ module.exports = class bybit extends Exchange {
         } else if (type === 'inverseFuture') {
             response = await this.futuresPrivateGetPositionList (this.extend (request, params));
         }
-        // {
-        //   ret_code: 0,
-        //   ret_msg: 'OK',
-        //   ext_code: '',
-        //   ext_info: '',
-        //   result: [] or {} depending on the request
-        // }
+        if ((typeof response === 'string') && this.isJsonEncodedObject (response)) {
+            response = JSON.parse (response);
+        }
+        //
+        //     {
+        //         ret_code: 0,
+        //         ret_msg: 'OK',
+        //         ext_code: '',
+        //         ext_info: '',
+        //         result: [] or {} depending on the request
+        //     }
+        //
         return this.safeValue (response, 'result');
     }
 

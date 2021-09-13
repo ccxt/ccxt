@@ -1697,20 +1697,10 @@ class hbtc extends Exchange {
         $timestamp = $this->safe_integer($ticker, 'time');
         $open = $this->safe_number($ticker, 'openPrice');
         $close = $this->safe_number($ticker, 'lastPrice');
-        $change = null;
-        $percentage = null;
-        $average = null;
-        if (($open !== null) && ($close !== null)) {
-            $change = $close - $open;
-            $average = $this->sum($open, $close) / 2;
-            if (($close !== null) && ($close > 0)) {
-                $percentage = ($change / $open) * 100;
-            }
-        }
         $quoteVolume = $this->safe_number($ticker, 'quoteVolume');
         $baseVolume = $this->safe_number($ticker, 'volume');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1725,13 +1715,13 @@ class hbtc extends Exchange {
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function parse_trade($trade, $market) {
