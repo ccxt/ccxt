@@ -179,12 +179,8 @@ class bit2c extends Exchange {
         return $this->parse_order_book($orderbook, $symbol);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
-        $request = array(
-            'pair' => $this->market_id($symbol),
-        );
-        $ticker = $this->publicGetExchangesPairTicker (array_merge($request, $params));
+    public function parse_ticker($ticker, $market = null) {
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->milliseconds();
         $averagePrice = $this->safe_number($ticker, 'av');
         $baseVolume = $this->safe_number($ticker, 'a');
@@ -193,7 +189,7 @@ class bit2c extends Exchange {
             $quoteVolume = $baseVolume * $averagePrice;
         }
         $last = $this->safe_number($ticker, 'll');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -214,7 +210,17 @@ class bit2c extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
+        ), $market);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'pair' => $market['id'],
         );
+        $response = $this->publicGetExchangesPairTicker (array_merge($request, $params));
+        return $this->parse_ticker($response, $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

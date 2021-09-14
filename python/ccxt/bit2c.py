@@ -185,12 +185,8 @@ class bit2c(Exchange):
         orderbook = self.publicGetExchangesPairOrderbook(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol)
 
-    def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
-        request = {
-            'pair': self.market_id(symbol),
-        }
-        ticker = self.publicGetExchangesPairTicker(self.extend(request, params))
+    def parse_ticker(self, ticker, market=None):
+        symbol = self.safe_symbol(None, market)
         timestamp = self.milliseconds()
         averagePrice = self.safe_number(ticker, 'av')
         baseVolume = self.safe_number(ticker, 'a')
@@ -198,7 +194,7 @@ class bit2c(Exchange):
         if baseVolume is not None and averagePrice is not None:
             quoteVolume = baseVolume * averagePrice
         last = self.safe_number(ticker, 'll')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -219,7 +215,16 @@ class bit2c(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market)
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
         }
+        response = self.publicGetExchangesPairTicker(self.extend(request, params))
+        return self.parse_ticker(response, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

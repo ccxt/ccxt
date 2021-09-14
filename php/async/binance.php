@@ -1632,7 +1632,7 @@ class binance extends Exchange {
             $baseVolume = $this->safe_number($ticker, 'volume');
             $quoteVolume = $this->safe_number($ticker, 'quoteVolume');
         }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1653,7 +1653,7 @@ class binance extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_status($params = array ()) {
