@@ -1625,7 +1625,7 @@ module.exports = class binance extends Exchange {
             baseVolume = this.safeNumber (ticker, 'volume');
             quoteVolume = this.safeNumber (ticker, 'quoteVolume');
         }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1646,7 +1646,7 @@ module.exports = class binance extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchStatus (params = {}) {
