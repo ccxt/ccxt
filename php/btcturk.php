@@ -15,7 +15,7 @@ class btcturk extends Exchange {
             'id' => 'btcturk',
             'name' => 'BTCTurk',
             'countries' => array( 'TR' ), // Turkey
-            'rateLimit' => 1000,
+            'rateLimit' => 10,
             'has' => array(
                 'cancelOrder' => true,
                 'CORS' => true,
@@ -47,30 +47,30 @@ class btcturk extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'orderbook',
-                        'ticker',
-                        'trades',   // ?last=COUNT (max 50)
-                        'server/exchangeinfo',
+                        'orderbook' => 10,
+                        'ticker' => 1,
+                        'trades' => 10,   // ?last=COUNT (max 50)
+                        'server/exchangeinfo' => 10,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'users/balances',
-                        'openOrders',
-                        'allOrders',
-                        'users/transactions/trade',
+                        'users/balances' => 10,
+                        'openOrders' => 10,
+                        'allOrders' => 10,
+                        'users/transactions/trade' => 10,
                     ),
                     'post' => array(
-                        'order',
-                        'cancelOrder',
+                        'order' => 10,
+                        'cancelOrder' => 10,
                     ),
                     'delete' => array(
-                        'order',
+                        'order' => 10,
                     ),
                 ),
                 'graph' => array(
                     'get' => array(
-                        'ohlcs',
+                        'ohlcs' => 10,
                     ),
                 ),
             ),
