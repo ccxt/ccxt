@@ -694,7 +694,7 @@ module.exports = class bitfinex extends Exchange {
             }
         }
         const last = this.safeNumber (ticker, 'last_price');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -715,7 +715,7 @@ module.exports = class bitfinex extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     parseTrade (trade, market) {
