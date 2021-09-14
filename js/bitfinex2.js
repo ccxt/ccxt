@@ -721,13 +721,10 @@ module.exports = class bitfinex2 extends bitfinex {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.milliseconds ();
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const length = ticker.length;
         const last = this.safeNumber (ticker, length - 4);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -748,7 +745,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'baseVolume': this.safeNumber (ticker, length - 3),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
