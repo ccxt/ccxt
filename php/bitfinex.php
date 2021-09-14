@@ -696,7 +696,7 @@ class bitfinex extends Exchange {
             }
         }
         $last = $this->safe_number($ticker, 'last_price');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -717,7 +717,7 @@ class bitfinex extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function parse_trade($trade, $market) {

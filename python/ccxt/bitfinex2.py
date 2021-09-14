@@ -712,12 +712,10 @@ class bitfinex2(bitfinex):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(None, market)
         length = len(ticker)
         last = self.safe_number(ticker, length - 4)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -738,7 +736,7 @@ class bitfinex2(bitfinex):
             'baseVolume': self.safe_number(ticker, length - 3),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
