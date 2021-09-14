@@ -378,8 +378,8 @@ class b2c2(Exchange):
         #   }
         timestamp = self.parse8601(self.safe_string(quote, 'created'))
         validUntilTimestamp = self.parse8601(self.safe_string(quote, 'valid_until'))
-        id = self.safe_string(quote, 'rfq_id')
-        clQuoteId = self.safe_string(quote, 'client_rfq_id')
+        rfqId = self.safe_string(quote, 'rfq_id')
+        clientRfqId = self.safe_string(quote, 'client_rfq_id')
         amount = self.safe_number(quote, 'quantity')
         amountString = self.safe_string(quote, 'quantity')
         type = 'quote'
@@ -400,12 +400,12 @@ class b2c2(Exchange):
             fee.cost = self.fee_to_precision(symbol, fee.cost)
         return self.safe_order({
             'info': quote,
-            'id': id,
-            'clQuoteId': clQuoteId,
+            'rfqId': rfqId,
+            'clientRfqId': clientRfqId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'validUntilTimestamp': validUntilTimestamp,
-            'validUntilDatetime': self.iso8601(validUntilTimestamp),
+            'timeInForce': self.iso8601(validUntilTimestamp),
             'symbol': symbol,
             'type': type,
             'side': side,

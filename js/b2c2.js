@@ -375,8 +375,8 @@ module.exports = class b2c2 extends Exchange {
         //   }
         const timestamp = this.parse8601 (this.safeString (quote, 'created'));
         const validUntilTimestamp = this.parse8601 (this.safeString (quote, 'valid_until'));
-        const id = this.safeString (quote, 'rfq_id');
-        const clQuoteId = this.safeString (quote, 'client_rfq_id');
+        const rfqId = this.safeString (quote, 'rfq_id');
+        const clientRfqId = this.safeString (quote, 'client_rfq_id');
         const amount = this.safeNumber (quote, 'quantity');
         const amountString = this.safeString (quote, 'quantity');
         const type = 'quote';
@@ -399,12 +399,12 @@ module.exports = class b2c2 extends Exchange {
         }
         return this.safeOrder ({
             'info': quote,
-            'id': id,
-            'clQuoteId': clQuoteId,
+            'rfqId': rfqId,
+            'clientRfqId': clientRfqId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'validUntilTimestamp': validUntilTimestamp,
-            'validUntilDatetime': this.iso8601 (validUntilTimestamp),
+            'timeInForce': this.iso8601 (validUntilTimestamp),
             'symbol': symbol,
             'type': type,
             'side': side,
