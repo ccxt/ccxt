@@ -1604,7 +1604,7 @@ class binance(Exchange):
         else:
             baseVolume = self.safe_number(ticker, 'volume')
             quoteVolume = self.safe_number(ticker, 'quoteVolume')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1625,7 +1625,7 @@ class binance(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_status(self, params={}):
         response = await self.sapiGetSystemStatus(params)
