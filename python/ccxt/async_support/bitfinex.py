@@ -225,7 +225,7 @@ class bitfinex(Exchange):
                 'ALG': 'ALGO',  # https://github.com/ccxt/ccxt/issues/6034
                 'AMP': 'AMPL',
                 'ATO': 'ATOM',  # https://github.com/ccxt/ccxt/issues/5118
-                'BCHABC': 'BCHA',
+                'BCHABC': 'XEC',
                 'BCHN': 'BCH',
                 'DAT': 'DATA',
                 'DOG': 'MDOGE',
