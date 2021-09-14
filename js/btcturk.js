@@ -685,7 +685,7 @@ module.exports = class btcturk extends Exchange {
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
         return this.safeValue (config, 'cost', 1);
-    };
+    }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString (response, 'code', '0');
