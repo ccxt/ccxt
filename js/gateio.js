@@ -1404,8 +1404,4 @@ module.exports = class gateio extends Exchange {
             throw new Error (this.id + ' ' + message);
         }
     }
-
-    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
-        return this.safeValue (config, 'cost', 1);
-    }
 };
