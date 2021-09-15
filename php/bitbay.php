@@ -429,12 +429,8 @@ class bitbay extends Exchange {
         return $this->parse_order_book($orderbook, $symbol);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
-        $request = array(
-            'id' => $this->market_id($symbol),
-        );
-        $ticker = $this->publicGetIdTicker (array_merge($request, $params));
+    public function parse_ticker($ticker, $market = null) {
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->milliseconds();
         $baseVolume = $this->safe_number($ticker, 'volume');
         $vwap = $this->safe_number($ticker, 'vwap');
@@ -443,7 +439,7 @@ class bitbay extends Exchange {
             $quoteVolume = $baseVolume * $vwap;
         }
         $last = $this->safe_number($ticker, 'last');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -464,7 +460,17 @@ class bitbay extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
+        ), $market);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'id' => $market['id'],
         );
+        $response = $this->publicGetIdTicker (array_merge($request, $params));
+        return $this->parse_ticker($response, $market);
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {

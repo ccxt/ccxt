@@ -414,13 +414,10 @@ class qtrade extends Exchange {
                 $change = $day_change * $previous;
             }
         }
-        if (($average === null) && ($last !== null) && ($previous !== null)) {
-            $average = $this->sum($last, $previous) / 2;
-        }
         $baseVolume = $this->safe_number($ticker, 'day_volume_market');
         $quoteVolume = $this->safe_number($ticker, 'day_volume_base');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -441,7 +438,7 @@ class qtrade extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

@@ -662,7 +662,7 @@ class binance extends Exchange {
             ),
             // exchange-specific options
             'options' => array(
-                'fetchCurrencies' => false, // this is a private call and it requires API keys
+                'fetchCurrencies' => true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery'
@@ -1632,7 +1632,7 @@ class binance extends Exchange {
             $baseVolume = $this->safe_number($ticker, 'volume');
             $quoteVolume = $this->safe_number($ticker, 'quoteVolume');
         }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1653,7 +1653,7 @@ class binance extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_status($params = array ()) {
@@ -2665,7 +2665,7 @@ class binance extends Exchange {
         //     }
         //
         $orderId = $this->safe_string($trade, 'transId');
-        $timestamp = $this->parse8601($this->safe_string($trade, 'operateTime'));
+        $timestamp = $this->safe_integer($trade, 'operateTime');
         $currencyId = $this->safe_string($trade, 'fromAsset');
         $tradedCurrency = $this->safe_currency_code($currencyId);
         $bnb = $this->currency('BNB');

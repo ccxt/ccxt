@@ -57,8 +57,9 @@ module.exports = class Exchange {
             'countries': undefined,
             'enableRateLimit': true,
             'rateLimit': 2000, // milliseconds = seconds * 1000
-            'certified': false,
-            'pro': false,
+            'certified': false, // if certified by the CCXT dev team
+            'pro': false, // if it is integrated with CCXT Pro for WebSocket support
+            'alias': false, // whether this exchange is an alias to another exchange
             'has': {
                 'loadMarkets': true,
                 'cancelAllOrders': false,
@@ -335,6 +336,36 @@ module.exports = class Exchange {
         return encodeURIComponent (...args)
     }
 
+    checkRequiredVersion (requiredVersion, error = true) {
+        let result = true
+        const [ major1, minor1, patch1 ] = requiredVersion.split ('.')
+            , [ major2, minor2, patch2 ] = Exchange.ccxtVersion.split ('.')
+            , intMajor1 = parseInt (major1)
+            , intMinor1 = parseInt (minor1)
+            , intPatch1 = parseInt (patch1)
+            , intMajor2 = parseInt (major2)
+            , intMinor2 = parseInt (minor2)
+            , intPatch2 = parseInt (patch2)
+        if (intMajor1 > intMajor2) {
+            result = false
+        }
+        if (intMajor1 === intMajor2) {
+            if (intMinor1 > intMinor2) {
+                result = false
+            } else if (intMinor1 === intMinor2 && intPatch1 > intPatch2) {
+                result = false
+            }
+        }
+        if (!result) {
+            if (error) {
+                throw new NotSupported ('Your current version of CCXT is ' + Exchange.ccxtVersion + ', a newer version ' + requiredVersion + ' is required, please, upgrade your version of CCXT')
+            } else {
+                return error
+            }
+        }
+        return result
+    }
+
     checkRequiredCredentials (error = true) {
         const keys = Object.keys (this.requiredCredentials)
         for (let i = 0; i < keys.length; i++) {
@@ -531,8 +562,8 @@ module.exports = class Exchange {
     }
 
     // eslint-disable-next-line no-unused-vars
-    calculateRateLimiterCost (api, path, method, params, config = {}, context = {}) {
-        return 1
+    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+        return this.safeValue (config, 'cost', 1);
     }
 
     async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
@@ -1143,28 +1174,55 @@ module.exports = class Exchange {
     }
 
     safeTicker (ticker, market = undefined) {
-        const symbol = this.safeValue (ticker, 'symbol');
+        let symbol = this.safeValue (ticker, 'symbol');
         if (symbol === undefined) {
-            ticker['symbol'] = this.safeSymbol (undefined, market);
+            symbol = this.safeSymbol (undefined, market);
         }
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            ticker['timestamp'] = timestamp;
-            ticker['datetime'] = this.iso8601 (timestamp);
-        }
         const baseVolume = this.safeValue (ticker, 'baseVolume');
         const quoteVolume = this.safeValue (ticker, 'quoteVolume');
-        const vwap = this.safeValue (ticker, 'vwap');
+        let vwap = this.safeValue (ticker, 'vwap');
         if (vwap === undefined) {
-            ticker['vwap'] = this.vwap (baseVolume, quoteVolume);
+            vwap = this.vwap (baseVolume, quoteVolume);
         }
-        const close = this.safeValue (ticker, 'close');
-        const last = this.safeValue (ticker, 'last');
-        if ((close === undefined) && (last !== undefined)) {
-            ticker['close'] = last;
+        let open = this.safeValue (ticker, 'open');
+        let close = this.safeValue (ticker, 'close');
+        let last = this.safeValue (ticker, 'last');
+        let change = this.safeValue (ticker, 'change');
+        let percentage = this.safeValue (ticker, 'percentage');
+        let average = this.safeValue (ticker, 'average');
+        if ((last !== undefined) && (close === undefined)) {
+            close = last;
         } else if ((last === undefined) && (close !== undefined)) {
-            ticker['last'] = close;
+            last = close;
         }
+        if ((last !== undefined) && (open !== undefined)) {
+            if (change === undefined) {
+                change = last - open;
+            }
+            if (average === undefined) {
+                average = this.sum (last, open) / 2;
+            }
+        }
+        if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (open > 0)) {
+            percentage = change / open * 100;
+        }
+        if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
+            change = percentage / 100 * last;
+        }
+        if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
+            open = last - change;
+        }
+        ticker['symbol'] = symbol;
+        ticker['timestamp'] = timestamp;
+        ticker['datetime'] = this.iso8601 (timestamp);
+        ticker['open'] = open;
+        ticker['close'] = close;
+        ticker['last'] = last;
+        ticker['vwap'] = vwap;
+        ticker['change'] = change;
+        ticker['percentage'] = percentage;
+        ticker['average'] = average;
         return ticker;
     }
 
@@ -1382,19 +1440,23 @@ module.exports = class Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return decimalToPrecision (cost, TRUNCATE, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
+        const market = this.market (symbol)
+        return decimalToPrecision (cost, TRUNCATE, market.precision.price, this.precisionMode, this.paddingMode)
     }
 
     priceToPrecision (symbol, price) {
-        return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
+        const market = this.market (symbol)
+        return decimalToPrecision (price, ROUND, market.precision.price, this.precisionMode, this.paddingMode)
     }
 
     amountToPrecision (symbol, amount) {
-        return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, this.precisionMode, this.paddingMode)
+        const market = this.market (symbol)
+        return decimalToPrecision (amount, TRUNCATE, market.precision.amount, this.precisionMode, this.paddingMode)
     }
 
     feeToPrecision (symbol, fee) {
-        return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
+        const market = this.market (symbol)
+        return decimalToPrecision (fee, ROUND, market.precision.price, this.precisionMode, this.paddingMode)
     }
 
     currencyToPrecision (currency, fee) {

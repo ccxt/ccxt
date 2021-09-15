@@ -247,6 +247,9 @@ class kraken extends Exchange {
                 'EGeneral:Permission denied' => '\\ccxt\\PermissionDenied',
                 'EOrder:Unknown order' => '\\ccxt\\InvalidOrder',
                 'EOrder:Order minimum not met' => '\\ccxt\\InvalidOrder',
+                'EGeneral:Invalid arguments' => '\\ccxt\\BadRequest',
+                'ESession:Invalid session' => '\\ccxt\\AuthenticationError',
+                'EAPI:Invalid nonce' => '\\ccxt\\InvalidNonce',
             ),
         ));
     }

@@ -22,6 +22,7 @@ class bitmart extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'certified' => true,
+            'pro' => true,
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -50,16 +51,15 @@ class bitmart extends Exchange {
                 'fetchFundingFee' => true,
                 'withdraw' => true,
             ),
-            'hostname' => 'bitmart.com', // bitmart.info for Hong Kong users
+            'hostname' => 'bitmart.com', // bitmart.info, bitmart.news for Hong Kong users
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
-                'api' => 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
+                'api' => array(
+                    'rest' => 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
+                ),
                 'www' => 'https://www.bitmart.com/',
                 'doc' => 'https://developer-pro.bitmart.com/',
-                'referral' => array(
-                    'url' => 'http://www.bitmart.com/?r=rQCFLh',
-                    'discount' => 0.25,
-                ),
+                'referral' => 'http://www.bitmart.com/?r=rQCFLh',
                 'fees' => 'https://www.bitmart.com/fee/en',
             ),
             'requiredCredentials' => array(
@@ -482,7 +482,7 @@ class bitmart extends Exchange {
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
-                'active' => null,
+                'active' => true,
             );
         }
         return $result;
@@ -675,6 +675,7 @@ class bitmart extends Exchange {
         //         "best_bid":"0.035983",
         //         "best_bid_size":"4.2792",
         //         "fluctuation":"-0.0143",
+        //         "s_t" => "1630981727", // ws only
         //         "url":"https://www.bitmart.com/trade?$symbol=ETH_BTC"
         //     }
         //
@@ -711,11 +712,11 @@ class bitmart extends Exchange {
         //         "next_funding_at":"2020-08-17T04:00:00Z"
         //     }
         //
-        $timestamp = $this->safe_timestamp($ticker, 'timestamp', $this->milliseconds());
+        $timestamp = $this->safe_timestamp_2($ticker, 'timestamp', 's_t', $this->milliseconds());
         $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_id');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $last = $this->safe_number_2($ticker, 'close_24h', 'last_price');
-        $percentage = $this->safe_number($ticker, 'fluctuation', 'rise_fall_rate');
+        $percentage = $this->safe_number_2($ticker, 'fluctuation', 'rise_fall_rate');
         if ($percentage !== null) {
             $percentage *= 100;
         }
@@ -1025,6 +1026,9 @@ class bitmart extends Exchange {
         $id = $this->safe_string_2($trade, 'trade_id', 'detail_id');
         $timestamp = $this->safe_integer_2($trade, 'order_time', 'create_time');
         if ($timestamp === null) {
+            $timestamp = $this->safe_timestamp($trade, 's_t');
+        }
+        if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         }
         $type = null;
@@ -1179,14 +1183,36 @@ class bitmart extends Exchange {
         //         "quote_coin_volume":"31017.48"
         //     }
         //
-        return array(
-            $this->safe_timestamp($ohlcv, 'timestamp'),
-            $this->safe_number($ohlcv, 'open'),
-            $this->safe_number($ohlcv, 'high'),
-            $this->safe_number($ohlcv, 'low'),
-            $this->safe_number($ohlcv, 'close'),
-            $this->safe_number($ohlcv, 'volume'),
-        );
+        // ws
+        //
+        //     array(
+        //         1631056350, // timestamp
+        //         '46532.83', // oopen
+        //         '46555.71', // high
+        //         '46511.41', // low
+        //         '46555.71', // close
+        //         '0.25', // volume
+        //     )
+        //
+        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+            return array(
+                $this->safe_timestamp($ohlcv, 0),
+                $this->safe_number($ohlcv, 1),
+                $this->safe_number($ohlcv, 2),
+                $this->safe_number($ohlcv, 3),
+                $this->safe_number($ohlcv, 4),
+                $this->safe_number($ohlcv, 5),
+            );
+        } else {
+            return array(
+                $this->safe_timestamp($ohlcv, 'timestamp'),
+                $this->safe_number($ohlcv, 'open'),
+                $this->safe_number($ohlcv, 'high'),
+                $this->safe_number($ohlcv, 'low'),
+                $this->safe_number($ohlcv, 'close'),
+                $this->safe_number($ohlcv, 'volume'),
+            );
+        }
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -2304,9 +2330,9 @@ class bitmart extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $baseUrl = $this->implode_hostname($this->urls['api']);
         $access = $this->safe_string($api, 0);
         $type = $this->safe_string($api, 1);
+        $baseUrl = $this->implode_hostname($this->urls['api']['rest']);
         $url = $baseUrl . '/' . $type;
         if ($type !== 'system') {
             $url .= '/' . $this->version;

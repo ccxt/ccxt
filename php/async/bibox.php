@@ -143,6 +143,7 @@ class bibox extends Exchange {
                 'MTC' => 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'NFT' => 'NFT Protocol',
                 'PAI' => 'PCHAIN',
+                'REVO' => 'Revo Network',
                 'TERN' => 'Ternio-ERC20',
             ),
             'options' => array(
@@ -263,16 +264,12 @@ class bibox extends Exchange {
         $last = $this->safe_number($ticker, 'last');
         $change = $this->safe_number($ticker, 'change');
         $baseVolume = $this->safe_number_2($ticker, 'vol', 'vol24H');
-        $open = null;
-        if (($last !== null) && ($change !== null)) {
-            $open = $last - $change;
-        }
         $percentage = $this->safe_string($ticker, 'percent');
         if ($percentage !== null) {
             $percentage = str_replace('%', '', $percentage);
             $percentage = $this->parse_number($percentage);
         }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -283,7 +280,7 @@ class bibox extends Exchange {
             'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $open,
+            'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -293,7 +290,7 @@ class bibox extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_number($ticker, 'amount'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

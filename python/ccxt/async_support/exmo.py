@@ -592,7 +592,7 @@ class exmo(Exchange):
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
-            result[symbol] = self.parse_order_book(response[marketId], None, 'bid', 'ask')
+            result[symbol] = self.parse_order_book(response[marketId], symbol, None, 'bid', 'ask')
         return result
 
     def parse_ticker(self, ticker, market=None):

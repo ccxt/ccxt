@@ -524,19 +524,11 @@ class aax(Exchange):
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_number(ticker, 'c')
         open = self.safe_number(ticker, 'o')
-        change = None
-        percentage = None
-        average = None
-        if last is not None and open is not None:
-            change = last - open
-            if open > 0:
-                percentage = change / open * 100
-            average = self.sum(last, open) / 2
         quoteVolume = self.safe_number(ticker, 'v')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': None,
             'high': self.safe_number(ticker, 'h'),
             'low': self.safe_number(ticker, 'l'),
             'bid': None,
@@ -548,13 +540,13 @@ class aax(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': None,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

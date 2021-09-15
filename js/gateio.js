@@ -11,7 +11,7 @@ module.exports = class gateio extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'gateio',
             'name': 'Gate.io',
-            'country': [ 'KR' ],
+            'countries': [ 'KR' ],
             'rateLimit': 1000,
             'version': '4',
             'certified': true,
@@ -518,10 +518,7 @@ module.exports = class gateio extends Exchange {
                 'id': currencyId,
                 'name': undefined,
                 'code': code,
-                'precision': {
-                    'amount': amountPrecision,
-                    'price': undefined,
-                },
+                'precision': amountPrecision,
                 'info': entry,
                 'active': active,
                 'fee': undefined,
@@ -740,7 +737,7 @@ module.exports = class gateio extends Exchange {
         const baseVolume = this.safeNumber (ticker, 'base_volume');
         const quoteVolume = this.safeNumber (ticker, 'quote_volume');
         const percentage = this.safeNumber (ticker, 'change_percentage');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
@@ -761,7 +758,7 @@ module.exports = class gateio extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -859,9 +856,19 @@ module.exports = class gateio extends Exchange {
         const market = this.market (symbol);
         const request = {
             'currency_pair': market['id'],
+            // 'limit': limit,
+            // 'page': 0,
+            // 'order_id': 'Order ID',
+            // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
+            // 'from': since, // default to 7 days before current time
+            // 'to': this.milliseconds (), // default to current time
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
+        }
+        if (since !== undefined) {
+            request['from'] = Math.floor (since / 1000);
+            // request['to'] = since + 7 * 24 * 60 * 60;
         }
         const response = await this.privateSpotGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -958,6 +965,7 @@ module.exports = class gateio extends Exchange {
         }
         if (since !== undefined) {
             request['from'] = Math.floor (since / 1000);
+            request['to'] = since + 30 * 24 * 60 * 60;
         }
         const response = await this.privateWalletGetDeposits (this.extend (request, params));
         return this.parseTransactions (response, currency);
@@ -976,6 +984,7 @@ module.exports = class gateio extends Exchange {
         }
         if (since !== undefined) {
             request['from'] = Math.floor (since / 1000);
+            request['to'] = since + 30 * 24 * 60 * 60;
         }
         const response = await this.privateWalletGetWithdrawals (this.extend (request, params));
         return this.parseTransactions (response, currency);

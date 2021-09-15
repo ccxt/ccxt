@@ -655,7 +655,7 @@ module.exports = class binance extends Exchange {
             },
             // exchange-specific options
             'options': {
-                'fetchCurrencies': false, // this is a private call and it requires API keys
+                'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
@@ -1625,7 +1625,7 @@ module.exports = class binance extends Exchange {
             baseVolume = this.safeNumber (ticker, 'volume');
             quoteVolume = this.safeNumber (ticker, 'quoteVolume');
         }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1646,7 +1646,7 @@ module.exports = class binance extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchStatus (params = {}) {
@@ -2658,7 +2658,7 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const orderId = this.safeString (trade, 'transId');
-        const timestamp = this.parse8601 (this.safeString (trade, 'operateTime'));
+        const timestamp = this.safeInteger (trade, 'operateTime');
         const currencyId = this.safeString (trade, 'fromAsset');
         const tradedCurrency = this.safeCurrencyCode (currencyId);
         const bnb = this.currency ('BNB');

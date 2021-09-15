@@ -7,10 +7,13 @@ from ccxt.async_support.base.exchange import Exchange
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import RequestTimeout
 from ccxt.base.precise import Precise
 
 
@@ -932,8 +935,13 @@ class coinex(Exchange):
         message = self.safe_string(response, 'message')
         if (code != '0') or (data is None) or ((message != 'Success') and (message != 'Ok') and not data):
             responseCodes = {
+                # https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
+                '23': PermissionDenied,  # IP Prohibited
                 '24': AuthenticationError,
                 '25': AuthenticationError,
+                '34': AuthenticationError,  # Access id is expires
+                '35': ExchangeNotAvailable,  # Service unavailable
+                '36': RequestTimeout,  # Service timeout
                 '107': InsufficientFunds,
                 '600': OrderNotFound,
                 '601': InvalidOrder,

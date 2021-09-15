@@ -17,6 +17,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -261,6 +262,9 @@ class kraken(Exchange):
                 'EGeneral:Permission denied': PermissionDenied,
                 'EOrder:Unknown order': InvalidOrder,
                 'EOrder:Order minimum not met': InvalidOrder,
+                'EGeneral:Invalid arguments': BadRequest,
+                'ESession:Invalid session': AuthenticationError,
+                'EAPI:Invalid nonce': InvalidNonce,
             },
         })
 

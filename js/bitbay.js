@@ -428,12 +428,8 @@ module.exports = class bitbay extends Exchange {
         return this.parseOrderBook (orderbook, symbol);
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'id': this.marketId (symbol),
-        };
-        const ticker = await this.publicGetIdTicker (this.extend (request, params));
+    parseTicker (ticker, market = undefined) {
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.milliseconds ();
         const baseVolume = this.safeNumber (ticker, 'volume');
         const vwap = this.safeNumber (ticker, 'vwap');
@@ -442,7 +438,7 @@ module.exports = class bitbay extends Exchange {
             quoteVolume = baseVolume * vwap;
         }
         const last = this.safeNumber (ticker, 'last');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -463,7 +459,17 @@ module.exports = class bitbay extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'id': market['id'],
         };
+        const response = await this.publicGetIdTicker (this.extend (request, params));
+        return this.parseTicker (response, market);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {

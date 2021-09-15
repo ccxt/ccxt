@@ -2326,7 +2326,7 @@ class bybit extends Exchange {
         if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
             $length = is_array($symbols) ? count($symbols) : 0;
             if ($length !== 1) {
-                throw new ArgumentsRequired($this->id . ' fetchPositions takes exactly one symbol');
+                throw new ArgumentsRequired($this->id . ' fetchPositions takes an array with exactly one symbol');
             }
             $request['symbol'] = $this->market_id($symbols[0]);
         }
@@ -2341,13 +2341,18 @@ class bybit extends Exchange {
         } else if ($type === 'inverseFuture') {
             $response = $this->futuresPrivateGetPositionList (array_merge($request, $params));
         }
-        // {
-        //   ret_code => 0,
-        //   ret_msg => 'OK',
-        //   ext_code => '',
-        //   ext_info => '',
-        //   result => array() or array() depending on the $request
-        // }
+        if ((gettype($response) === 'string') && $this->is_json_encoded_object($response)) {
+            $response = json_decode($response, $as_associative_array = true);
+        }
+        //
+        //     {
+        //         ret_code => 0,
+        //         ret_msg => 'OK',
+        //         ext_code => '',
+        //         ext_info => '',
+        //         result => array() or array() depending on the $request
+        //     }
+        //
         return $this->safe_value($response, 'result');
     }
 

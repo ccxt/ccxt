@@ -225,7 +225,7 @@ class bitfinex(Exchange):
                 'ALG': 'ALGO',  # https://github.com/ccxt/ccxt/issues/6034
                 'AMP': 'AMPL',
                 'ATO': 'ATOM',  # https://github.com/ccxt/ccxt/issues/5118
-                'BCHABC': 'BCHA',
+                'BCHABC': 'XEC',
                 'BCHN': 'BCH',
                 'DAT': 'DATA',
                 'DOG': 'MDOGE',
@@ -679,7 +679,7 @@ class bitfinex(Exchange):
                     quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
         last = self.safe_number(ticker, 'last_price')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -700,7 +700,7 @@ class bitfinex(Exchange):
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def parse_trade(self, trade, market):
         id = self.safe_string(trade, 'tid')

@@ -168,6 +168,7 @@ class poloniex(Exchange):
                 'HOT': 'Hotcoin',
                 'ITC': 'Information Coin',
                 'KEY': 'KEYCoin',
+                'MASK': 'NFTX Hashmasks Index',  # conflict with Mask Network
                 'PLX': 'ParallaxCoin',
                 'REPV2': 'REP',
                 'STR': 'XLM',
@@ -209,6 +210,7 @@ class poloniex(Exchange):
                     'You may only place orders that reduce your position.': InvalidOrder,
                     'Invalid order number, or you are not the person who placed the order.': OrderNotFound,
                     'Permission denied': PermissionDenied,
+                    'Permission denied.': PermissionDenied,
                     'Connection timed out. Please try again.': RequestTimeout,
                     'Internal error. Please try again.': ExchangeNotAvailable,
                     'Currently in maintenance mode.': OnMaintenance,

@@ -672,7 +672,7 @@ class binance(Exchange):
             },
             # exchange-specific options
             'options': {
-                'fetchCurrencies': False,  # self is a private call and it requires API keys
+                'fetchCurrencies': True,  # self is a private call and it requires API keys
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
@@ -1604,7 +1604,7 @@ class binance(Exchange):
         else:
             baseVolume = self.safe_number(ticker, 'volume')
             quoteVolume = self.safe_number(ticker, 'quoteVolume')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1625,7 +1625,7 @@ class binance(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_status(self, params={}):
         response = self.sapiGetSystemStatus(params)
@@ -2551,7 +2551,7 @@ class binance(Exchange):
         #     }
         #
         orderId = self.safe_string(trade, 'transId')
-        timestamp = self.parse8601(self.safe_string(trade, 'operateTime'))
+        timestamp = self.safe_integer(trade, 'operateTime')
         currencyId = self.safe_string(trade, 'fromAsset')
         tradedCurrency = self.safe_currency_code(currencyId)
         bnb = self.currency('BNB')

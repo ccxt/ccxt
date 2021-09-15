@@ -17,6 +17,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.precise import Precise
@@ -326,6 +327,8 @@ class bitfinex2(bitfinex):
                     '10100': AuthenticationError,
                     '10114': InvalidNonce,
                     '20060': OnMaintenance,
+                    # {"code":503,"error":"temporarily_unavailable","error_description":"Sorry, the service is temporarily unavailable. See https://www.bitfinex.com/ for more info."}
+                    'temporarily_unavailable': ExchangeNotAvailable,
                 },
                 'broad': {
                     'address': InvalidAddress,
@@ -709,12 +712,10 @@ class bitfinex2(bitfinex):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(None, market)
         length = len(ticker)
         last = self.safe_number(ticker, length - 4)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -735,7 +736,7 @@ class bitfinex2(bitfinex):
             'baseVolume': self.safe_number(ticker, length - 3),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -1539,10 +1540,11 @@ class bitfinex2(bitfinex):
     def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
         if response is not None:
             if not isinstance(response, list):
-                message = self.safe_string(response, 'message')
-                if (message is not None) and (message.find('not enough exchange balance') >= 0):
-                    raise InsufficientFunds(self.id + ' ' + self.json(response))
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                message = self.safe_string_2(response, 'message', 'error')
+                feedback = self.id + ' ' + responseBody
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+                raise ExchangeError(self.id + ' ' + responseBody)
         elif response == '':
             raise ExchangeError(self.id + ' returned empty response')
         if statusCode == 500:

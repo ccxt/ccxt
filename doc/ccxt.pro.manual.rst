@@ -197,6 +197,24 @@ The CCXT Pro library currently supports the following 34 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg
+          :target: http://www.bitmart.com/?r=rQCFLh
+          :alt: bitmart
+     
+     - bitmart
+     - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://developer-pro.bitmart.com/
+          :alt: API Version 1
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg
           :target: https://www.bitmex.com/register/upZpOX
           :alt: bitmex
@@ -344,24 +362,6 @@ The CCXT Pro library currently supports the following 34 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg
-          :target: https://www.gopax.co.kr
-          :alt: gopax
-     
-     - gopax
-     - `GOPAX <https://www.gopax.co.kr>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://gopax.github.io/API/index.en.html
-          :alt: API Version 1
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
           :target: https://hitbtc.com/?ref_id=5a5d39a65d466
           :alt: hitbtc
@@ -387,7 +387,10 @@ The CCXT Pro library currently supports the following 34 cryptocurrency exchange
           :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro

@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\InsufficientFunds;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\NotSupported;
@@ -318,6 +317,8 @@ class bitfinex2 extends bitfinex {
                     '10100' => '\\ccxt\\AuthenticationError',
                     '10114' => '\\ccxt\\InvalidNonce',
                     '20060' => '\\ccxt\\OnMaintenance',
+                    // array("code":503,"error":"temporarily_unavailable","error_description":"Sorry, the service is temporarily unavailable. See https://www.bitfinex.com/ for more info.")
+                    'temporarily_unavailable' => '\\ccxt\\ExchangeNotAvailable',
                 ),
                 'broad' => array(
                     'address' => '\\ccxt\\InvalidAddress',
@@ -726,13 +727,10 @@ class bitfinex2 extends bitfinex {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->milliseconds();
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol(null, $market);
         $length = is_array($ticker) ? count($ticker) : 0;
         $last = $this->safe_number($ticker, $length - 4);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -753,7 +751,7 @@ class bitfinex2 extends bitfinex {
             'baseVolume' => $this->safe_number($ticker, $length - 3),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1636,11 +1634,11 @@ class bitfinex2 extends bitfinex {
     public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
         if ($response !== null) {
             if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
-                $message = $this->safe_string($response, 'message');
-                if (($message !== null) && (mb_strpos($message, 'not enough exchange balance') !== false)) {
-                    throw new InsufficientFunds($this->id . ' ' . $this->json($response));
-                }
-                throw new ExchangeError($this->id . ' ' . $this->json($response));
+                $message = $this->safe_string_2($response, 'message', 'error');
+                $feedback = $this->id . ' ' . $responseBody;
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+                throw new ExchangeError($this->id . ' ' . $responseBody);
             }
         } else if ($response === '') {
             throw new ExchangeError($this->id . ' returned empty response');

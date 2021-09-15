@@ -1131,7 +1131,7 @@ class Transpiler {
 
         const regex = /\/[\n]{2}(?:    export class [^\s]+ extends [^\s]+ \{\}[\r]?[\n])+/
         const replacement = "/\n\n" + Object.keys (classes).map (className => {
-            const baseClass = classes[className].replace (/ccxt\.[a-z_]+/, 'Exchange')
+            const baseClass = classes[className].replace (/ccxt\.[a-z0-9_]+/, 'Exchange')
             return '    export class ' + className + ' extends ' + baseClass + " {}"
         }).join ("\n") + "\n"
 

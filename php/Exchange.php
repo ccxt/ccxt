@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.55.63';
+$version = '1.56.41';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.55.63';
+    const VERSION = '1.56.41';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -129,7 +129,6 @@ class Exchange {
         'ftx',
         'gateio',
         'gemini',
-        'gopax',
         'hbtc',
         'hitbtc',
         'hollaex',
@@ -248,6 +247,7 @@ class Exchange {
         'fetchImplementation' => 'fetch_implementation',
         'executeRestRequest' => 'execute_rest_request',
         'encodeURIComponent' => 'encode_uri_component',
+        'checkRequiredVersion' => 'check_required_version',
         'checkRequiredCredentials' => 'check_required_credentials',
         'checkAddress' => 'check_address',
         'initRestRateLimiter' => 'init_rest_rate_limiter',
@@ -1014,8 +1014,10 @@ class Exchange {
         $this->name = null;
         $this->countries = null;
         $this->version = null;
-        $this->certified = false;
-        $this->pro = false;
+        $this->certified = false; // if certified by the CCXT dev team
+        $this->pro = false; // if it is integrated with CCXT Pro for WebSocket support
+        $this->alias = false; // whether this exchange is an alias to another exchange
+
         $this->urls = array();
         $this->api = array();
         $this->comment = null;
@@ -1413,7 +1415,7 @@ class Exchange {
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array(), $context = array()) {
-        return 1;
+        return $this->safe_value($config, 'cost', 1);
     }
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
@@ -1953,26 +1955,53 @@ class Exchange {
     public function safe_ticker($ticker, $market = null) {
         $symbol = $this->safe_value($ticker, 'symbol');
         if ($symbol === null) {
-            $ticker['symbol'] = $this->safe_symbol(null, $market);
+            $symbol = $this->safe_symbol(null, $market);
         }
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        if ($timestamp !== null) {
-            $ticker['timestamp'] = $timestamp;
-            $ticker['datetime'] = $this->iso8601($timestamp);
-        }
         $baseVolume = $this->safe_value($ticker, 'baseVolume');
         $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
         $vwap = $this->safe_value($ticker, 'vwap');
         if ($vwap === null) {
-            $ticker['vwap'] = $this->vwap($baseVolume, $quoteVolume);
+            $vwap = $this->vwap($baseVolume, $quoteVolume);
         }
+        $open = $this->safe_value($ticker, 'open');
         $close = $this->safe_value($ticker, 'close');
         $last = $this->safe_value($ticker, 'last');
-        if (($close === null) && ($last !== null)) {
-            $ticker['close'] = $last;
+        $change = $this->safe_value($ticker, 'change');
+        $percentage = $this->safe_value($ticker, 'percentage');
+        $average = $this->safe_value($ticker, 'average');
+        if (($last !== null) && ($close === null)) {
+            $close = $last;
         } else if (($last === null) && ($close !== null)) {
-            $ticker['last'] = $close;
+            $last = $close;
         }
+        if (($last !== null) && ($open !== null)) {
+            if ($change === null) {
+                $change = $last - $open;
+            }
+            if ($average === null) {
+                $average = $this->sum($last, $open) / 2;
+            }
+        }
+        if (($percentage === null) && ($change !== null) && ($open !== null) && ($open > 0)) {
+            $percentage = $change / $open * 100;
+        }
+        if (($change === null) && ($percentage !== null) && ($last !== null)) {
+            $change = $percentage / 100 * $last;
+        }
+        if (($open === null) && ($last !== null) && ($change !== null)) {
+            $open = $last - $change;
+        }
+        $ticker['symbol'] = $symbol;
+        $ticker['timestamp'] = $timestamp;
+        $ticker['datetime'] = $this->iso8601($timestamp);
+        $ticker['open'] = $open;
+        $ticker['close'] = $close;
+        $ticker['last'] = $last;
+        $ticker['vwap'] = $vwap;
+        $ticker['change'] = $change;
+        $ticker['percentage'] = $percentage;
+        $ticker['average'] = $average;
         return $ticker;
     }
 
@@ -2460,19 +2489,23 @@ class Exchange {
     }
 
     public function cost_to_precision($symbol, $cost) {
-        return self::decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $market = $this->market($symbol);
+        return self::decimal_to_precision($cost, TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function price_to_precision($symbol, $price) {
-        return self::decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $market = $this->market($symbol);
+        return self::decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function amount_to_precision($symbol, $amount) {
-        return self::decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        $market = $this->market($symbol);
+        return self::decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
     }
 
     public function fee_to_precision($symbol, $fee) {
-        return self::decimalToPrecision($fee, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $market = $this->market($symbol);
+        return self::decimalToPrecision($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function currency_to_precision($currency, $fee) {
@@ -2768,6 +2801,37 @@ class Exchange {
         // PHP version of this function does nothing, as most of its
         // dependencies are lightweight and don't eat a lot
         return true;
+    }
+
+    public static function check_required_version ($required_version, $error = true) {
+        global $version;
+        $result = true;
+        $required = explode('.', $required_version);
+        $current = explode('.', $version);
+        $intMajor1 = intval($required[0]);
+        $intMinor1 = intval($required[1]);
+        $intPatch1 = intval($required[2]);
+        $intMajor2 = intval($current[0]);
+        $intMinor2 = intval($current[1]);
+        $intPatch2 = intval($current[2]);
+        if ($intMajor1 > $intMajor2) {
+            $result = false;
+        }
+        if ($intMajor1 === $intMajor2) {
+            if ($intMinor1 > $intMinor2) {
+                $result = false;
+            } else if ($intMinor1 === $intMinor2 && $intPatch1 > $intPatch2) {
+                $result = false;
+            }
+        }
+        if (!$result) {
+            if ($error) {
+                throw new NotSupported ('Your current version of CCXT is ' . $version . ', a newer version ' . $required_version . ' is required, please, upgrade your version of CCXT');
+            } else {
+                return $error;
+            }
+        }
+        return $result;
     }
 
     public function check_required_dependencies() {

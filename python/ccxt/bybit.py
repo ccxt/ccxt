@@ -4,6 +4,14 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -2212,7 +2220,7 @@ class bybit(Exchange):
         if isinstance(symbols, list):
             length = len(symbols)
             if length != 1:
-                raise ArgumentsRequired(self.id + ' fetchPositions takes exactly one symbol')
+                raise ArgumentsRequired(self.id + ' fetchPositions takes an array with exactly one symbol')
             request['symbol'] = self.market_id(symbols[0])
         defaultType = self.safe_string(self.options, 'defaultType', 'linear')
         type = self.safe_string(params, 'type', defaultType)
@@ -2224,13 +2232,17 @@ class bybit(Exchange):
             response = self.v2PrivateGetPositionList(self.extend(request, params))
         elif type == 'inverseFuture':
             response = self.futuresPrivateGetPositionList(self.extend(request, params))
-        # {
-        #   ret_code: 0,
-        #   ret_msg: 'OK',
-        #   ext_code: '',
-        #   ext_info: '',
-        #   result: [] or {} depending on the request
-        # }
+        if (isinstance(response, basestring)) and self.is_json_encoded_object(response):
+            response = json.loads(response)
+        #
+        #     {
+        #         ret_code: 0,
+        #         ret_msg: 'OK',
+        #         ext_code: '',
+        #         ext_info: '',
+        #         result: [] or {} depending on the request
+        #     }
+        #
         return self.safe_value(response, 'result')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

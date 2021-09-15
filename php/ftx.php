@@ -120,7 +120,6 @@ class ftx extends Exchange {
                         'nft/collections',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
-                        'stats/latency_stats',
                     ),
                     'post' => array(
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -188,6 +187,8 @@ class ftx extends Exchange {
                         'nft/fills',
                         'nft/gallery/{gallery_id}',
                         'nft/gallery_settings',
+                        // latency statistics
+                        'stats/latency_stats',
                     ),
                     'post' => array(
                         // subaccounts
@@ -298,6 +299,7 @@ class ftx extends Exchange {
                     'Spot orders cannot be reduce-only' => '\\ccxt\\InvalidOrder', // array("error":"Spot orders cannot be reduce-only","success":false)
                     'Invalid reduce-only order' => '\\ccxt\\InvalidOrder', // array("error":"Invalid reduce-only order","success":false)
                     'Account does not have enough balances' => '\\ccxt\\InsufficientFunds', // array("success":false,"error":"Account does not have enough balances")
+                    'Not authorized for subaccount-specific access' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not authorized for subaccount-specific access")
                 ),
                 'broad' => array(
                     'Account does not have enough margin for order' => '\\ccxt\\InsufficientFunds',
@@ -519,16 +521,7 @@ class ftx extends Exchange {
         if ($percentage !== null) {
             $percentage *= 100;
         }
-        $change = null;
-        $average = null;
-        $open = null;
-        if (($last !== null) && ($percentage !== null)) {
-            $percentageNumberChange = $percentage / 100;
-            $change = $percentageNumberChange * $last;
-            $open = $last - $change;
-            $average = $this->sum($open, $last) / 2;
-        }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -539,17 +532,17 @@ class ftx extends Exchange {
             'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => $this->safe_number($ticker, 'askSize'),
             'vwap' => null,
-            'open' => $open,
+            'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
+            'change' => null,
             'percentage' => $percentage,
-            'average' => $average,
+            'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_number($ticker, 'quoteVolume24h'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

@@ -209,7 +209,7 @@ module.exports = class bitfinex extends Exchange {
                 'ALG': 'ALGO', // https://github.com/ccxt/ccxt/issues/6034
                 'AMP': 'AMPL',
                 'ATO': 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
-                'BCHABC': 'BCHA',
+                'BCHABC': 'XEC',
                 'BCHN': 'BCH',
                 'DAT': 'DATA',
                 'DOG': 'MDOGE',
@@ -694,7 +694,7 @@ module.exports = class bitfinex extends Exchange {
             }
         }
         const last = this.safeNumber (ticker, 'last_price');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -715,7 +715,7 @@ module.exports = class bitfinex extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     parseTrade (trade, market) {

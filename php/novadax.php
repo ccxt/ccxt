@@ -252,18 +252,10 @@ class novadax extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $open = $this->safe_number($ticker, 'open24h');
         $last = $this->safe_number($ticker, 'lastPrice');
-        $percentage = null;
-        $change = null;
-        $average = null;
-        if (($last !== null) && ($open !== null)) {
-            $change = $last - $open;
-            $percentage = $change / $open * 100;
-            $average = $this->sum($last, $open) / 2;
-        }
         $baseVolume = $this->safe_number($ticker, 'baseVolume24h');
         $quoteVolume = $this->safe_number($ticker, 'quoteVolume24h');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -278,13 +270,13 @@ class novadax extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

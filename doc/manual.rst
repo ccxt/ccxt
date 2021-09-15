@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 112 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -367,7 +367,10 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg
           :target: https://www.bitmex.com/register/upZpOX
           :alt: bitmex
@@ -609,7 +612,10 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://github.com/cloudapidoc/API_Docs
           :alt: API Version 1
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg
           :target: https://cex.io/r/0/up105393824/0/
@@ -947,24 +953,6 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg
-          :target: https://www.gopax.co.kr
-          :alt: gopax
-     
-     - gopax
-     - `GOPAX <https://www.gopax.co.kr>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://gopax.github.io/API/index.en.html
-          :alt: API Version 1
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
    * - .. image:: https://user-images.githubusercontent.com/51840849/80134449-70663300-85a7-11ea-8942-e204cdeaab5d.jpg
           :target: https://www.hbtc.com/register/O2S8NS
           :alt: hbtc
@@ -1014,7 +1002,10 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -2054,7 +2045,7 @@ Reuse the exchange instance as much as possible as shown below:
        console.log (result)
    }
 
-Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits.
+Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time you call a unified method like fetchOrderBook, fetchBalance, etc. This, you will force-load the markets pver and over as explained in the `Loading Markets <https://github.com/ccxt/ccxt/wiki/Manual#loading-markets>`__ section. Abusing the markets endpoint will eventually break the rate limiter as well.
 
 .. code-block:: JavaScript
 
@@ -2429,7 +2420,7 @@ For example:
 Loading Markets
 ---------------
 
-In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially.
+In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially. For that reason, your first call to a unified CCXT API method like fetchTicker, fetchBalance, etc will take more time, than the consequent calls, since it has to do more work loading the market information from the exchange API. See `Notes On Rate Limiter <https://github.com/ccxt/ccxt/wiki/Manual#notes-on-rate-limiter>`__ for more details.
 
 In order to load markets manually beforehand call the ``loadMarkets ()`` / ``load_markets ()`` method on an exchange instance. It returns an associative array of markets indexed by trading symbol. If you want more control over the execution of your logic, preloading markets by hand is recommended.
 
@@ -4171,13 +4162,13 @@ To check if any of the above methods are available, look into the ``.has`` prope
    # Python
    import ccxt
    id = 'binance'
-   exchange = getattr(ccxt, id) ()
+   exchange = getattr(ccxt, id)()
    print(exchange.has)
 
 .. code-block:: PHP
 
    // PHP
-   $exchange = new \ccxt\liqui ();
+   $exchange = new \ccxt\bitfinex();
    print_r ($exchange->has); // or var_dump
 
 A typical structure of the ``.has`` property usually contains the following flags corresponding to order API methods for querying orders:
@@ -4198,6 +4189,37 @@ A typical structure of the ``.has`` property usually contains the following flag
    }
 
 The meanings of boolean ``true`` and ``false`` are obvious. A string value of ``emulated`` means that particular method is missing in the exchange API and ccxt will workaround that where possible on the client-side.
+
+Understanding The Orders API Design
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The exchanges' order management APIs differ by design. The user has to understand the purpose of each specific method and how they're combined together into a complete order API:
+
+
+ * ``fetchOrder()`` – fetches a single order (open or closed) by order ``id``.
+ * ``fetchOpenOrders()`` – fetches a list of open orders.
+ * ``fetchClosedOrders()`` – fetches a list of closed (or canceled) orders.
+ * ``fetchOrders()`` – fetches a list of all orders (either open or closed/canceled).
+ * ``fetchMyTrades()`` – though not a part of the orders' API, it is closely related, since it provides the history of settled trades.
+
+The majority of the exchanges will have a way of fetching currently-open orders. Thus, the ``exchange.has['fetchOpenOrders']``. If that method is not available, then most likely the ``exchange.has['fetchOrders']`` that will provide a list of all orders. The exchange will return a list of open orders either from ``fetchOpenOrders()`` or from ``fetchOrders()``. One of the two methods is usually available from any exchange.
+
+Some exchanges will provide the order history, other exchanges will not. If the underlying exchange provides the order history, then the ``exchange.has['fetchClosedOrders']`` or the ``exchange.has['fetchOrders']``. If the underlying exchange does not provide the order history, then ``fetchClosedOrders()`` and ``fetchOrders()`` are not available. In the latter case, the user is required to build a local cache of orders and track the open orders using ``fetchOpenOrders()`` and ``fetchOrder()`` for order statuses and for marking them as closed locally in the userland (when they're not open anymore).
+
+If the underlying exchange does not have methods for order history (\ ``fetchClosedOrders()`` and ``fetchOrders()``\ ), then it will provide ``fetchOpenOrders`` + the trade history with ``fetchMyTrades`` (see `How Orders Are Related To Trades <https://github.com/ccxt/ccxt/wiki/Manual#how-orders-are-related-to-trades>`__\ ). That set of information is in many cases enough for tracking in a live-trading robot. If there's no order history – you have to track your live orders and restore historical info from open orders and historical trades.
+
+In general, the underlying exchanges will usually provide one or more of the following types of historical data:
+
+
+ * ``fetchClosedOrders()``
+ * ``fetchOrders()``
+ * ``fetchMyTrades()``
+
+Any of the above three methods may be missing, if any other of the three methods is present.
+
+If the underlying exchange does not provide historical orders, the CCXT library will not emulate the missing functionality – it has to be added on the user side where necessary.
+
+ **Please, note, that a certain method may be missing either because the exchange does not have a corresponding API endpoint, or because CCXT has not implemented it yet (the library is also a work in progress). In the latter case, the missing method will be added as soon as possible.**
 
 Querying Multiple Orders And Trades
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -4265,8 +4287,8 @@ Below are examples of using the fetchOrder method to get order info from an auth
 
    // PHP
    if ($exchange->has['fetchOrder']) {
-       $order = $exchange->fetch_order ($id);
-       var_dump ($order);
+       $order = $exchange->fetch_order($id);
+       var_dump($order);
    }
 
 All Orders
@@ -4898,11 +4920,11 @@ Position Structure
       'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
       'price': 20000,              // float, the average entry price of the position
       'markPrice': 20050,          // float, a price that is used for funding calculations
-      'notional': 100000,          // float, the number of contracts times the price
+      'notional': 100000,          // float, the value of the position in the settlement currency
       'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
       'collateral': 5300,          // float, the maximum amount of collateral that can be lost, affected by pnl
-      'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position in the same currency as the notional
-      'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated in the same currency as the notional
+      'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position
+      'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated
       'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
       'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
       'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative

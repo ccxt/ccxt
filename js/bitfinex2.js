@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js');
-const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -311,6 +311,8 @@ module.exports = class bitfinex2 extends bitfinex {
                     '10100': AuthenticationError,
                     '10114': InvalidNonce,
                     '20060': OnMaintenance,
+                    // {"code":503,"error":"temporarily_unavailable","error_description":"Sorry, the service is temporarily unavailable. See https://www.bitfinex.com/ for more info."}
+                    'temporarily_unavailable': ExchangeNotAvailable,
                 },
                 'broad': {
                     'address': InvalidAddress,
@@ -719,13 +721,10 @@ module.exports = class bitfinex2 extends bitfinex {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.milliseconds ();
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const length = ticker.length;
         const last = this.safeNumber (ticker, length - 4);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -746,7 +745,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'baseVolume': this.safeNumber (ticker, length - 3),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1629,11 +1628,11 @@ module.exports = class bitfinex2 extends bitfinex {
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (response !== undefined) {
             if (!Array.isArray (response)) {
-                const message = this.safeString (response, 'message');
-                if ((message !== undefined) && (message.indexOf ('not enough exchange balance') >= 0)) {
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                }
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+                const message = this.safeString2 (response, 'message', 'error');
+                const feedback = this.id + ' ' + responseBody;
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                throw new ExchangeError (this.id + ' ' + responseBody);
             }
         } else if (response === '') {
             throw new ExchangeError (this.id + ' returned empty response');

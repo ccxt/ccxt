@@ -275,7 +275,6 @@ class zb(Exchange):
             symbol = base + '/' + quote
             amountPrecisionString = self.safe_string(market, 'amountScale')
             pricePrecisionString = self.safe_string(market, 'priceScale')
-            amountLimit = self.parse_precision(amountPrecisionString)
             priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
                 'amount': int(amountPrecisionString),
@@ -292,7 +291,7 @@ class zb(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.parse_number(amountLimit),
+                        'min': self.safe_number(market, 'minAmount'),
                         'max': None,
                     },
                     'price': {
@@ -300,7 +299,7 @@ class zb(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': 0,
+                        'min': self.safe_number(market, 'minSize'),
                         'max': None,
                     },
                 },

@@ -177,12 +177,8 @@ module.exports = class bit2c extends Exchange {
         return this.parseOrderBook (orderbook, symbol);
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'pair': this.marketId (symbol),
-        };
-        const ticker = await this.publicGetExchangesPairTicker (this.extend (request, params));
+    parseTicker (ticker, market = undefined) {
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.milliseconds ();
         const averagePrice = this.safeNumber (ticker, 'av');
         const baseVolume = this.safeNumber (ticker, 'a');
@@ -191,7 +187,7 @@ module.exports = class bit2c extends Exchange {
             quoteVolume = baseVolume * averagePrice;
         }
         const last = this.safeNumber (ticker, 'll');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -212,7 +208,17 @@ module.exports = class bit2c extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
         };
+        const response = await this.publicGetExchangesPairTicker (this.extend (request, params));
+        return this.parseTicker (response, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

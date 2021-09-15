@@ -117,7 +117,6 @@ module.exports = class ftx extends Exchange {
                         'nft/collections',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
-                        'stats/latency_stats',
                     ],
                     'post': [
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -185,6 +184,8 @@ module.exports = class ftx extends Exchange {
                         'nft/fills',
                         'nft/gallery/{gallery_id}',
                         'nft/gallery_settings',
+                        // latency statistics
+                        'stats/latency_stats',
                     ],
                     'post': [
                         // subaccounts
@@ -295,6 +296,7 @@ module.exports = class ftx extends Exchange {
                     'Spot orders cannot be reduce-only': InvalidOrder, // {"error":"Spot orders cannot be reduce-only","success":false}
                     'Invalid reduce-only order': InvalidOrder, // {"error":"Invalid reduce-only order","success":false}
                     'Account does not have enough balances': InsufficientFunds, // {"success":false,"error":"Account does not have enough balances"}
+                    'Not authorized for subaccount-specific access': PermissionDenied, // {"success":false,"error":"Not authorized for subaccount-specific access"}
                 },
                 'broad': {
                     'Account does not have enough margin for order': InsufficientFunds,
@@ -516,16 +518,7 @@ module.exports = class ftx extends Exchange {
         if (percentage !== undefined) {
             percentage *= 100;
         }
-        let change = undefined;
-        let average = undefined;
-        let open = undefined;
-        if ((last !== undefined) && (percentage !== undefined)) {
-            const percentageNumberChange = percentage / 100;
-            change = percentageNumberChange * last;
-            open = last - change;
-            average = this.sum (open, last) / 2;
-        }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -536,17 +529,17 @@ module.exports = class ftx extends Exchange {
             'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': this.safeNumber (ticker, 'askSize'),
             'vwap': undefined,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
-            'average': average,
+            'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber (ticker, 'quoteVolume24h'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

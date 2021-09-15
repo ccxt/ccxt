@@ -574,17 +574,7 @@ module.exports = class wavesexchange extends Exchange {
         const baseVolume = this.safeNumber (data, 'volume');
         const quoteVolume = this.safeNumber (data, 'quoteVolume');
         const open = this.safeNumber (data, 'firstPrice');
-        let change = undefined;
-        let average = undefined;
-        let percentage = undefined;
-        if (last !== undefined && open !== undefined) {
-            change = last - open;
-            average = this.sum (last, open) / 2;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-        }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -599,13 +589,13 @@ module.exports = class wavesexchange extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
