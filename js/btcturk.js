@@ -14,7 +14,7 @@ module.exports = class btcturk extends Exchange {
             'id': 'btcturk',
             'name': 'BTCTurk',
             'countries': [ 'TR' ], // Turkey
-            'rateLimit': 1000,
+            'rateLimit': 10,
             'has': {
                 'cancelOrder': true,
                 'CORS': true,
@@ -45,32 +45,32 @@ module.exports = class btcturk extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'orderbook',
-                        'ticker',
-                        'trades',   // ?last=COUNT (max 50)
-                        'server/exchangeinfo',
-                    ],
+                    'get': {
+                        'orderbook': 10,
+                        'ticker': 1,
+                        'trades': 10,   // ?last=COUNT (max 50)
+                        'server/exchangeinfo': 10,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'users/balances',
-                        'openOrders',
-                        'allOrders',
-                        'users/transactions/trade',
-                    ],
-                    'post': [
-                        'order',
-                        'cancelOrder',
-                    ],
-                    'delete': [
-                        'order',
-                    ],
+                    'get': {
+                        'users/balances': 10,
+                        'openOrders': 10,
+                        'allOrders': 10,
+                        'users/transactions/trade': 10,
+                    },
+                    'post': {
+                        'order': 10,
+                        'cancelOrder': 10,
+                    },
+                    'delete': {
+                        'order': 10,
+                    },
                 },
                 'graph': {
-                    'get': [
-                        'ohlcs',
-                    ],
+                    'get': {
+                        'ohlcs': 10,
+                    },
                 },
             },
             'fees': {

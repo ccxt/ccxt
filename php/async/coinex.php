@@ -994,6 +994,7 @@ class coinex extends Exchange {
         if (($code !== '0') || ($data === null) || (($message !== 'Success') && ($message !== 'Ok') && !$data)) {
             $responseCodes = array(
                 // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
+                '23' => '\\ccxt\\PermissionDenied', // IP Prohibited
                 '24' => '\\ccxt\\AuthenticationError',
                 '25' => '\\ccxt\\AuthenticationError',
                 '34' => '\\ccxt\\AuthenticationError', // Access id is expires
