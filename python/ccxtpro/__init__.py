@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.8.56'
+__version__ = '0.8.57'
 
 # -----------------------------------------------------------------------------
 
@@ -76,7 +76,6 @@ from ccxt.async_support.bitso import bitso                                # noqa
 from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.async_support.bitz import bitz                                  # noqa: F401
 from ccxt.async_support.bl3p import bl3p                                  # noqa: F401
-from ccxt.async_support.braziliex import braziliex                        # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                          # noqa: F401
 from ccxt.async_support.btcbox import btcbox                              # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                      # noqa: F401
