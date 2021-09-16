@@ -17,7 +17,7 @@ module.exports = class mexc extends Exchange {
             'rateLimit': 1000,
             'version': '2',
             'urls': {
-                'logo': '',
+                'logo': 'https://www.mexc.com/email/logo.png',
                 'api': 'https://www.mexc.com/open/api',
                 'www': 'https://www.mexc.com',
                 'doc': 'https://mxcdevelop.github.io/APIDoc',
@@ -44,7 +44,7 @@ module.exports = class mexc extends Exchange {
                 'fetchTickers': false,
                 'fetchTrades': true,
                 'fetchWithdrawals': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'api': {
                 'public': {
@@ -76,6 +76,7 @@ module.exports = class mexc extends Exchange {
                     'post': [
                         'order/place', // 创建订单
                         'order/place_batch', // 批量下单
+                        '/asset/withdraw', // 提币
                     ],
                     'delete': [
                         'order/cancel', // 取消订单
@@ -122,7 +123,7 @@ module.exports = class mexc extends Exchange {
                         'FILLED': 'closed', // Order fully filled
                         'PARTIALLY_FILLED': 'open', // Order partially filled
                         'CANCELED': 'canceled', // Order canceled
-                        'PARTIALLY_CANCELED': 'open', // Order filled partially, and then the rest of the order is canceled
+                        'PARTIALLY_CANCELED': 'canceled', // Order filled partially, and then the rest of the order is canceled
                     },
                     'orderType': {
                         'LIMIT_ORDER': 'limit', // Limit price order
@@ -290,7 +291,7 @@ module.exports = class mexc extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': this.parseNumber (change),
-            'percentage': this.safeNumber (ticker, 'change_rate'),
+            'percentage': Precise.stringMul (this.safeString (ticker, 'change_rate'), '100'),
             'average': this.parseNumber (average),
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
@@ -982,6 +983,60 @@ module.exports = class mexc extends Exchange {
             'info': depositAddress,
             // extra
             'network': this.safeString (depositAddress, 'chain'),
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a `code` argument');
+        }
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a `amount` argument');
+        }
+        if (address === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a `address` argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const currencyInfo = this.safeValue (currency, 'info', {});
+        const coins = this.safeValue (currencyInfo, 'coins', []);
+        if (coins.length > 1) {
+            const paramChain = this.safeString (params, 'chain');
+            if (paramChain === undefined) {
+                throw new ArgumentsRequired (this.id + ' withdraw() ' + code + ' requires a `chain` in params');
+            } else {
+                let hasParamChain = false;
+                for (let i = 0; i < coins.length; i++) {
+                    const chain = this.safeString (coins[i], 'chain');
+                    if (chain === paramChain) {
+                        hasParamChain = true;
+                    }
+                }
+                if (!hasParamChain) {
+                    throw new ArgumentsRequired (this.id + ' withdraw() ' + code + ' chain `' + paramChain + '` not supported');
+                }
+            }
+        }
+        if (tag !== undefined) {
+            address += ':' + tag;
+        }
+        const request = {
+            'currency': currency['id'],
+            'address': address,
+            'amount': amount,
+            // 'chain': Chain name, refer to GET /open/api/v2/market/coin/list (currency information query) for the value or this.currency
+        };
+        const response = await this.privatePostAssetWithdraw (this.extend (request, params));
+        const responseCode = this.safeString (response, 'code');
+        if (responseCode !== '200') {
+            const message = this.safeString2 (response, 'message', 'msg');
+            throw new ExchangeError (this.id + ' withdraw failed: ' + message);
+        }
+        const data = this.safeValue (response, 'data', {});
+        const withdrawId = this.safeString (data, 'withdrawId');
+        return {
+            'info': response,
+            'id': withdrawId,
         };
     }
 
