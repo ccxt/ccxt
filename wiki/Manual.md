@@ -670,10 +670,6 @@ The most common symptoms for a DDoS protection problem, rate-limiting problem or
 
 If you encounter DDoS protection errors and cannot reach a particular exchange then:
 
-- try using a cloudscraper:
-  - https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
-  - https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
-  - https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare-with-cookies.py
 - use a proxy (this is less responsive, though)
 - ask the exchange support to add you to a whitelist
 - run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
@@ -4177,10 +4173,6 @@ In case you experience any difficulty connecting to a particular exchange, do th
 - **Try a fresh new keypair if possible.**
 - Read the answers to Frequently Asked Questions: https://github.com/ccxt/ccxt/wiki/FAQ
 - Check the permissions on the keypair with the exchange website!
-- If it is a Cloudflare protection error, try these examples:
-  - https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
-  - https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
-  - https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare-with-cookies.py
 - Check your nonce. If you used your API keys with other software, you most likely should [override your nonce function](#overriding-the-nonce) to match your previous nonce value. A nonce usually can be easily reset by generating a new unused keypair. If you are getting nonce errors with an existing key, try with a new API key that hasn't been used yet.
 - Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests or enable the built-in rate-limiter, like shown in the long-poller [examples](https://github.com/ccxt/ccxt/tree/master/examples), also [here](#order-book--market-depth).
 - Read the [docs for your exchange](https://github.com/ccxt/ccxt/wiki/Exchanges) and compare your verbose output to the docs.
