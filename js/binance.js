@@ -2167,10 +2167,6 @@ module.exports = class binance extends Exchange {
         return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
-    async createPostOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        return await this.createOrder (symbol, 'limit_maker', side, amount, price, params);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
