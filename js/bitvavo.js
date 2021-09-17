@@ -15,7 +15,7 @@ module.exports = class bitvavo extends Exchange {
             'id': 'bitvavo',
             'name': 'Bitvavo',
             'countries': [ 'NL' ], // Netherlands
-            'rateLimit': 60, // 1000 requests per second
+            'rateLimit': 61, // 1000 requests per second
             'version': 'v2',
             'certified': true,
             'pro': true,
