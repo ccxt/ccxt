@@ -2168,6 +2168,14 @@ module.exports = class binance extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if ((orderType === 'future') || (orderType === 'delivery')) {
+                params = this.omit (params, 'reduceOnly');
+            } else {
+                throw new InvalidOrder (this.id + ' createOrder() does not support recudeOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
+            }
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
@@ -2200,6 +2208,9 @@ module.exports = class binance extends Exchange {
             'type': uppercaseType,
             'side': side.toUpperCase (),
         };
+        if (reduceOnly !== undefined) {
+            request['reduceOnly'] = reduceOnly;
+        }
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker');
             if (broker !== undefined) {
@@ -2312,15 +2323,6 @@ module.exports = class binance extends Exchange {
             } else {
                 params = this.omit (params, 'stopPrice');
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            }
-        }
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        if (reduceOnly !== undefined) {
-            if ((orderType === 'future') || (orderType === 'delivery')) {
-                request['reduceOnly'] = reduceOnly;
-                params = this.omit (params, 'reduceOnly');
-            } else {
-                throw new InvalidOrder (this.id + ' createOrder() does not support recudeOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
             }
         }
         const response = await this[method] (this.extend (request, params));
