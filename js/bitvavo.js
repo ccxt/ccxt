@@ -1494,6 +1494,6 @@ module.exports = class bitvavo extends Exchange {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }
-        return this.safeInteger (config, 'cost', 1);
+        return this.safeValue (config, 'cost', 1);
     }
 };
