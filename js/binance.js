@@ -2160,6 +2160,13 @@ module.exports = class binance extends Exchange {
         });
     }
 
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'reduceOnly': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2167,6 +2174,12 @@ module.exports = class binance extends Exchange {
         const orderType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId' ]);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if ((orderType !== 'future') && (orderType !== 'delivery')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
+            }
+        }
         let method = 'privatePostOrder';
         if (orderType === 'future') {
             method = 'fapiPrivatePostOrder';
