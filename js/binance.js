@@ -4465,4 +4465,17 @@ module.exports = class binance extends Exchange {
     async addMargin (symbol, amount, params = {}) {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
+
+    async reduceOnly (symbol, type, side, amount, price = undefined, params = {}) {
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const orderType = this.safeString (params, 'type', defaultType);
+        if ((orderType === 'future') || (orderType === 'delivery')) {
+            const reduceOnly = this.extend (params, {
+                'reduceOnly': true,
+            });
+            return await this.createOrder (symbol, type, side, amount, price, reduceOnly);
+        } else {
+            throw new ExchangeError ('reducePosition orders may only be made on binance futures defaultType is ' + orderType);
+        }
+    }
 };
