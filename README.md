@@ -345,7 +345,7 @@ const ccxt = require ('ccxt');
     let kraken    = new ccxt.kraken ()
     let bitfinex  = new ccxt.bitfinex ({ verbose: true })
     let huobipro  = new ccxt.huobipro ()
-    let okcoinusd = new ccxt.okcoinusd ({
+    let okcoinusd = new ccxt.okcoin ({
         apiKey: 'YOUR_PUBLIC_API_KEY',
         secret: 'YOUR_SECRET_PRIVATE_KEY',
     })
