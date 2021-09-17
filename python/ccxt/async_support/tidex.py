@@ -14,6 +14,7 @@ except NameError:
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -95,10 +96,9 @@ class tidex(Exchange):
                         'OrderInfo',
                         'CancelOrder',
                         'TradeHistory',
-                        'CoinDepositAddress',
-                        'WithdrawCoin',
-                        'CreateCoupon',
-                        'RedeemCoupon',
+                        'getDepositAddress',
+                        'createWithdraw',
+                        'getWithdraw',
                     ],
                 },
             },
@@ -138,6 +138,7 @@ class tidex(Exchange):
                     'not available': ExchangeNotAvailable,
                     'data unavailable': ExchangeNotAvailable,
                     'external service unavailable': ExchangeNotAvailable,
+                    'IP restricted': PermissionDenied,  # {"success":0,"code":0,"error":"IP restricted(223.xxx.xxx.xxx)"}
                 },
             },
             'options': {
@@ -691,17 +692,41 @@ class tidex(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         request = {
-            'coinName': currency['id'],
+            'asset': currency['id'],
             'amount': float(amount),
             'address': address,
         }
-        # no docs on the tag, yet...
         if tag is not None:
-            raise ExchangeError(self.id + ' withdraw() does not support the tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.')
-        response = await self.privatePostWithdrawCoin(self.extend(request, params))
+            request['memo'] = tag
+        response = await self.privatePostCreateWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         "success":1,
+        #         "return":{
+        #             "withdraw_id":1111,
+        #             "withdraw_info":{
+        #                 "id":1111,
+        #                 "asset_id":1,
+        #                 "asset":"BTC",
+        #                 "amount":0.0093,
+        #                 "fee":0.0007,
+        #                 "create_time":1575128018,
+        #                 "status":"Created",
+        #                 "data":{
+        #                     "address":"1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY",
+        #                     "memo":"memo",
+        #                     "tx":null,
+        #                     "error":null
+        #                 },
+        #             "in_blockchain":false
+        #             }
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'return', {})
         return {
             'info': response,
-            'id': response['return']['tId'],
+            'id': self.safe_string(result, 'withdraw_id'),
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
