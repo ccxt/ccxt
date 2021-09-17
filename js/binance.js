@@ -2168,20 +2168,18 @@ module.exports = class binance extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        if (reduceOnly !== undefined) {
-            if ((orderType === 'future') || (orderType === 'delivery')) {
-                params = this.omit (params, 'reduceOnly');
-            } else {
-                throw new InvalidOrder (this.id + ' createOrder() does not support recudeOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
-            }
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
         const orderType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId' ]);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if ((orderType !== 'future') && (orderType !== 'delivery')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support recudeOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
+            }
+        }
         let method = 'privatePostOrder';
         if (orderType === 'future') {
             method = 'fapiPrivatePostOrder';
@@ -2208,9 +2206,6 @@ module.exports = class binance extends Exchange {
             'type': uppercaseType,
             'side': side.toUpperCase (),
         };
-        if (reduceOnly !== undefined) {
-            request['reduceOnly'] = reduceOnly;
-        }
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker');
             if (broker !== undefined) {
