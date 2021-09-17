@@ -2160,6 +2160,13 @@ module.exports = class binance extends Exchange {
         });
     }
 
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'reduceOnly': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2305,6 +2312,15 @@ module.exports = class binance extends Exchange {
             } else {
                 params = this.omit (params, 'stopPrice');
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            }
+        }
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if ((orderType === 'future') || (orderType === 'delivery')) {
+                request['reduceOnly'] = reduceOnly;
+                params = this.omit (params, 'reduceOnly');
+            } else {
+                throw new InvalidOrder (this.id + ' createOrder() does not support recudeOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
             }
         }
         const response = await this[method] (this.extend (request, params));
@@ -4464,18 +4480,5 @@ module.exports = class binance extends Exchange {
 
     async addMargin (symbol, amount, params = {}) {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
-    }
-
-    async reduceOnly (symbol, type, side, amount, price = undefined, params = {}) {
-        const defaultType = this.safeString (this.options, 'defaultType');
-        const orderType = this.safeString (params, 'type', defaultType);
-        if ((orderType === 'future') || (orderType === 'delivery')) {
-            const reduceOnly = this.extend (params, {
-                'reduceOnly': true,
-            });
-            return await this.createOrder (symbol, type, side, amount, price, reduceOnly);
-        } else {
-            throw new ExchangeError ('reduceOnly orders are only available on binance futures, current orderType is ' + orderType);
-        }
     }
 };
