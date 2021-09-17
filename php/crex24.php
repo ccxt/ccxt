@@ -174,6 +174,7 @@ class crex24 extends Exchange {
                     "Nonce error. Make sure that the value passed in the 'X-CREX24-API-NONCE' header is greater in each consecutive request than in the previous one for the corresponding API-Key provided in 'X-CREX24-API-KEY' header." => '\\ccxt\\InvalidNonce',
                     'Market orders are not supported by the instrument currently.' => '\\ccxt\\InvalidOrder',
                     "Parameter 'instrument' contains invalid value." => '\\ccxt\\BadSymbol',
+                    "Trading has been disabled for the account until the verification is passed. To initiate the verification process, please log into your account at crex24.com and proceed to 'My account' -> 'Verification'." => '\\ccxt\\AccountSuspended', // array("errorDescription":"Trading has been disabled for the account until the verification is passed. To initiate the verification process, please log into your account at crex24.com and proceed to 'My account' -> 'Verification'.")
                 ),
                 'broad' => array(
                     'try again later' => '\\ccxt\\ExchangeNotAvailable', // array("errorDescription":"Failed to process the request. Please, try again later.")
