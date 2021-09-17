@@ -2167,18 +2167,29 @@ module.exports = class binance extends Exchange {
         return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
+    async createPostOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'postOnly': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
         const orderType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId' ]);
+        const postOnly = this.safeValue (params, 'postOnly');
+        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             if ((orderType !== 'future') && (orderType !== 'delivery')) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
             }
+        }
+        if (postOnly) {
+            type = 'limit_maker';
         }
         if (type === 'limit_maker') {
             if ((orderType !== 'spot') && (orderType !== 'margin')) {
