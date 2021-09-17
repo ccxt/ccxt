@@ -4475,7 +4475,7 @@ module.exports = class binance extends Exchange {
             });
             return await this.createOrder (symbol, type, side, amount, price, reduceOnly);
         } else {
-            throw new ExchangeError ('reducePosition orders may only be made on binance futures defaultType is ' + orderType);
+            throw new ExchangeError ('reduceOnly orders are only available on binance futures, current orderType is ' + orderType);
         }
     }
 };
