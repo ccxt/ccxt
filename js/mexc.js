@@ -1024,7 +1024,6 @@ module.exports = class mexc extends Exchange {
             'currency': currency['id'],
             'address': address,
             'amount': amount,
-            // 'chain': Chain name, refer to GET /open/api/v2/market/coin/list (currency information query) for the value or this.currency
         };
         const response = await this.privatePostAssetWithdraw (this.extend (request, params));
         const responseCode = this.safeString (response, 'code');
