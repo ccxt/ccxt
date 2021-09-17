@@ -2190,8 +2190,7 @@ module.exports = class binance extends Exchange {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
             }
         }
-        const postOnly = type === 'limit_maker';
-        if (postOnly) {
+        if (type === 'limit_maker') {
             if ((orderType !== 'spot') && (orderType !== 'margin')) {
                 throw new InvalidOrder (this.id + ' createOrder does not support limit_maker orders for ' + orderType + ' orders, limit_maker orders are supported for spot and margin only');
             }
