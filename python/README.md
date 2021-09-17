@@ -222,13 +222,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.56.47/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.56.47/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.56.48/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.56.48/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.56.47/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.56.48/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -345,7 +345,7 @@ const ccxt = require ('ccxt');
     let kraken    = new ccxt.kraken ()
     let bitfinex  = new ccxt.bitfinex ({ verbose: true })
     let huobipro  = new ccxt.huobipro ()
-    let okcoinusd = new ccxt.okcoinusd ({
+    let okcoinusd = new ccxt.okcoin ({
         apiKey: 'YOUR_PUBLIC_API_KEY',
         secret: 'YOUR_SECRET_PRIVATE_KEY',
     })
