@@ -2167,7 +2167,7 @@ module.exports = class binance extends Exchange {
         return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
-    async createPostOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createLimitMakerOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if ((type !== 'limit') && (type !== 'limit_maker')) {
             throw new ExchangeError (this.id + ' postOnly order must be a limit or limit_maker order');
         }
