@@ -821,7 +821,7 @@ class binance(Exchange):
 
     def currency_to_precision(self, currency, fee):
         # info is available in currencies only if the user has configured his api keys
-        if 'info' in self.currencies[currency]:
+        if self.safe_value(self.currencies[currency], 'precision') is not None:
             return self.decimal_to_precision(fee, TRUNCATE, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
         else:
             return self.number_to_string(fee)

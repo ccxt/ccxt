@@ -812,7 +812,7 @@ class binance extends Exchange {
 
     public function currency_to_precision($currency, $fee) {
         // info is available in currencies only if the user has configured his api keys
-        if (is_array($this->currencies[$currency]) && array_key_exists('info', $this->currencies[$currency])) {
+        if ($this->safe_value($this->currencies[$currency], 'precision') !== null) {
             return $this->decimal_to_precision($fee, TRUNCATE, $this->currencies[$currency]['precision'], $this->precisionMode, $this->paddingMode);
         } else {
             return $this->number_to_string($fee);
