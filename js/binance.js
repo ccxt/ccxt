@@ -2167,6 +2167,16 @@ module.exports = class binance extends Exchange {
         return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
+    async createPostOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if ((type !== 'limit') && (type !== 'limit_maker')) {
+            throw new ExchangeError (this.id + ' postOnly order must be a limit or limit_maker order');
+        }
+        if (type === 'limit') {
+            type = 'limit_maker';
+        }
+        return await this.createOrder (symbol, type, side, amount, price, params);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2178,6 +2188,12 @@ module.exports = class binance extends Exchange {
         if (reduceOnly !== undefined) {
             if ((orderType !== 'future') && (orderType !== 'delivery')) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
+            }
+        }
+        const postOnly = type === 'limit_maker';
+        if (postOnly) {
+            if ((orderType !== 'spot') && (orderType !== 'margin')) {
+                throw new InvalidOrder (this.id + ' createOrder does not support limit_maker orders for ' + orderType + ' orders, limit_maker orders are supported for spot and margin only');
             }
         }
         let method = 'privatePostOrder';
