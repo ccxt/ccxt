@@ -135,6 +135,7 @@ module.exports = class crex24 extends Exchange {
                 'BCC': 'BCH',
                 'BIT': 'BitMoney',
                 'BULL': 'BuySell',
+                'CLC': 'CaluraCoin',
                 'CREDIT': 'TerraCredit',
                 'EPS': 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND': 'FUNDChains',
