@@ -2177,7 +2177,7 @@ module.exports = class binance extends Exchange {
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             if ((orderType !== 'future') && (orderType !== 'delivery')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support recudeOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
             }
         }
         let method = 'privatePostOrder';
