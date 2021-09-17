@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, InvalidNonce, RequestTimeout, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, AuthenticationError, BadSymbol } = require ('./base/errors');
+const { ExchangeError, BadRequest, InvalidNonce, RequestTimeout, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, AuthenticationError, BadSymbol, AccountSuspended } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -167,6 +167,7 @@ module.exports = class crex24 extends Exchange {
                     "Nonce error. Make sure that the value passed in the 'X-CREX24-API-NONCE' header is greater in each consecutive request than in the previous one for the corresponding API-Key provided in 'X-CREX24-API-KEY' header.": InvalidNonce,
                     'Market orders are not supported by the instrument currently.': InvalidOrder,
                     "Parameter 'instrument' contains invalid value.": BadSymbol,
+                    "Trading has been disabled for the account until the verification is passed. To initiate the verification process, please log into your account at crex24.com and proceed to 'My account' -> 'Verification'.": AccountSuspended, // {"errorDescription":"Trading has been disabled for the account until the verification is passed. To initiate the verification process, please log into your account at crex24.com and proceed to 'My account' -> 'Verification'."}
                 },
                 'broad': {
                     'try again later': ExchangeNotAvailable, // {"errorDescription":"Failed to process the request. Please, try again later."}
