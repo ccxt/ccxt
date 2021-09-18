@@ -708,16 +708,20 @@ module.exports = class bitmart extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp2 (ticker, 'timestamp', 's_t', this.milliseconds ());
-        const marketId = this.safeString2 (ticker, 'symbol', 'contract_id');
-        const symbol = this.safeSymbol (marketId, market, '_');
+        let marketId = this.safeString2 (ticker, 'symbol', 'contract_id');
+        marketId = this.safeString (ticker, 'contract_symbol', marketId);
+        const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber2 (ticker, 'close_24h', 'last_price');
         let percentage = this.safeNumber2 (ticker, 'fluctuation', 'rise_fall_rate');
         if (percentage !== undefined) {
             percentage *= 100;
         }
+        if (percentage === undefined) {
+            percentage = this.safeNumber (ticker, 'price_change_percent_24h');
+        }
         const baseVolume = this.safeNumber2 (ticker, 'base_volume_24h', 'base_coin_volume');
-        const quoteVolume = this.safeNumber2 (ticker, 'quote_volume_24h', 'quote_coin_volume');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        let quoteVolume = this.safeNumber2 (ticker, 'quote_volume_24h', 'quote_coin_volume');
+        quoteVolume = this.safeNumber (ticker, 'volume_24h', quoteVolume);
         const open = this.safeNumber2 (ticker, 'open_24h', 'open');
         let average = undefined;
         if ((last !== undefined) && (open !== undefined)) {
@@ -731,11 +735,11 @@ module.exports = class bitmart extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber2 (ticker, 'high', 'high_24h'),
             'low': this.safeNumber2 (ticker, 'low', 'low_24h'),
-            'bid': this.safeNumber (price, 'best_bid', 'bid_price'),
+            'bid': this.safeNumber2 (price, 'best_bid', 'bid_price'),
             'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
-            'ask': this.safeNumber (price, 'best_ask', 'ask_price'),
+            'ask': this.safeNumber2 (price, 'best_ask', 'ask_price'),
             'askVolume': this.safeNumber (ticker, 'best_ask_size'),
-            'vwap': vwap,
+            'vwap': undefined,
             'open': this.safeNumber (ticker, 'open_24h'),
             'close': last,
             'last': last,
