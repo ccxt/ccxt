@@ -39,7 +39,7 @@ class bitmart(Exchange):
             'id': 'bitmart',
             'name': 'BitMart',
             'countries': ['US', 'CN', 'HK', 'KR'],
-            'rateLimit': 1000,
+            'rateLimit': 25,  # a bit slower than 50 times per second ~40 times per second
             'version': 'v1',
             'certified': True,
             'pro': True,
@@ -90,85 +90,59 @@ class bitmart(Exchange):
             'api': {
                 'public': {
                     'system': {
-                        'get': [
-                            'time',  # https://api-cloud.bitmart.com/system/time
-                            'service',  # https://api-cloud.bitmart.com/system/service
-                        ],
+                        'get': {
+                            'time': 5,  # https://api-cloud.bitmart.com/system/time
+                            'service': 5,  # https://api-cloud.bitmart.com/system/service
+                        },
                     },
                     'account': {
-                        'get': [
-                            'currencies',  # https://api-cloud.bitmart.com/account/v1/currencies
-                        ],
+                        'get': {
+                            'currencies': 10,  # https://api-cloud.bitmart.com/account/v1/currencies
+                        },
                     },
                     'spot': {
-                        'get': [
-                            'currencies',
-                            'symbols',
-                            'symbols/details',
-                            'ticker',  # ?symbol=BTC_USDT
-                            'steps',  # ?symbol=BMX_ETH
-                            'symbols/kline',  # ?symbol=BMX_ETH&step=15&from=1525760116&to=1525769116
-                            'symbols/book',  # ?symbol=BMX_ETH&precision=6
-                            'symbols/trades',  # ?symbol=BMX_ETH
-                        ],
+                        'get': {
+                            'currencies': 10,
+                            'symbols': 10,
+                            'symbols/details': 10,
+                            'ticker': 10,  # ?symbol=BTC_USDT
+                            'steps': 10,  # ?symbol=BMX_ETH
+                            'symbols/kline': 10,  # ?symbol=BMX_ETH&step=15&from=1525760116&to=1525769116
+                            'symbols/book': 10,  # ?symbol=BMX_ETH&precision=6
+                            'symbols/trades': 10,  # ?symbol=BMX_ETH
+                        },
                     },
                     'contract': {
-                        'get': [
-                            'contracts',  # https://api-cloud.bitmart.com/contract/v1/ifcontract/contracts
-                            'pnls',
-                            'indexes',
-                            'tickers',
-                            'quote',
-                            'indexquote',
-                            'trades',
-                            'depth',
-                            'fundingrate',
-                        ],
+                        'get': {
+                            'tickers': 5,
+                        },
                     },
                 },
                 'private': {
                     'account': {
-                        'get': [
-                            'wallet',  # ?account_type=1
-                            'deposit/address',  # ?currency=USDT-TRC20
-                            'withdraw/charge',  # ?currency=BTC
-                            'deposit-withdraw/history',  # ?limit=10&offset=1&operationType=withdraw
-                            'deposit-withdraw/detail',  # ?id=1679952
-                        ],
-                        'post': [
-                            'withdraw/apply',
-                        ],
+                        'get': {
+                            'wallet': 5,  # ?account_type=1
+                            'deposit/address': 10,  # ?currency=USDT-TRC20
+                            'withdraw/charge': 10,  # ?currency=BTC
+                            'deposit-withdraw/history': 10,  # ?limit=10&offset=1&operationType=withdraw
+                            'deposit-withdraw/detail': 10,  # ?id=1679952
+                        },
+                        'post': {
+                            'withdraw/apply': 10,
+                        },
                     },
                     'spot': {
-                        'get': [
-                            'wallet',
-                            'order_detail',
-                            'orders',
-                            'trades',
-                        ],
-                        'post': [
-                            'submit_order',  # https://api-cloud.bitmart.com/spot/v1/submit_order
-                            'cancel_order',  # https://api-cloud.bitmart.com/spot/v2/cancel_order
-                            'cancel_orders',
-                        ],
-                    },
-                    'contract': {
-                        'get': [
-                            'userOrders',
-                            'userOrderInfo',
-                            'userTrades',
-                            'orderTrades',
-                            'accounts',
-                            'userPositions',
-                            'userLiqRecords',
-                            'positionFee',
-                        ],
-                        'post': [
-                            'batchOrders',
-                            'submitOrder',
-                            'cancelOrders',
-                            'marginOper',
-                        ],
+                        'get': {
+                            'wallet': 5,
+                            'order_detail': 1,
+                            'orders': 5,
+                            'trades': 5,
+                        },
+                        'post': {
+                            'submit_order': 1,  # https://api-cloud.bitmart.com/spot/v1/submit_order
+                            'cancel_order': 1,  # https://api-cloud.bitmart.com/spot/v2/cancel_order
+                            'cancel_orders': 1,
+                        },
                     },
                 },
             },
@@ -689,46 +663,28 @@ class bitmart(Exchange):
         # contract
         #
         #     {
-        #         "last_price":"422.2",
-        #         "open":"430.5",
-        #         "close":"422.2",
-        #         "low":"421.9",
-        #         "high":"436.9",
-        #         "avg_price":"430.8569900089815372072",
-        #         "volume":"2720",
-        #         "total_volume":"18912248",
-        #         "timestamp":1597631495,
-        #         "rise_fall_rate":"-0.0192799070847851336",
-        #         "rise_fall_value":"-8.3",
-        #         "contract_id":2,
-        #         "position_size":"3067404",
-        #         "volume_day":"9557384",
-        #         "amount24":"80995537.0919999999999974153",
-        #         "base_coin_volume":"189122.48",
-        #         "quote_coin_volume":"81484742.475833810590837937856",
-        #         "pps":"1274350547",
-        #         "index_price":"422.135",
-        #         "fair_price":"422.147253318507",
-        #         "depth_price":{"bid_price":"421.9","ask_price":"422","mid_price":"421.95"},
-        #         "fair_basis":"0.000029027013",
-        #         "fair_value":"0.012253318507",
-        #         "rate":{"quote_rate":"0.0006","base_rate":"0.0003","interest_rate":"0.000099999999"},
-        #         "premium_index":"0.000045851604",
-        #         "funding_rate":"0.000158",
-        #         "next_funding_rate":"0.000099999999",
-        #         "next_funding_at":"2020-08-17T04:00:00Z"
+        #         contract_symbol: "DGBUSDT",
+        #         last_price: "0.05759",
+        #         index_price: "0.05757755",
+        #         last_funding_rate: "0.00010000",
+        #         price_change_percent_24h: "0.244",
+        #         volume_24h: "64303817.028126",
+        #         url: "https://futures.bitmart.com/en?symbol=DGBUSDT"
         #     }
         #
         timestamp = self.safe_timestamp_2(ticker, 'timestamp', 's_t', self.milliseconds())
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_id')
-        symbol = self.safe_symbol(marketId, market, '_')
+        marketId = self.safe_string(ticker, 'contract_symbol', marketId)
+        symbol = self.safe_symbol(marketId, market)
         last = self.safe_number_2(ticker, 'close_24h', 'last_price')
         percentage = self.safe_number_2(ticker, 'fluctuation', 'rise_fall_rate')
         if percentage is not None:
             percentage *= 100
+        if percentage is None:
+            percentage = self.safe_number(ticker, 'price_change_percent_24h')
         baseVolume = self.safe_number_2(ticker, 'base_volume_24h', 'base_coin_volume')
         quoteVolume = self.safe_number_2(ticker, 'quote_volume_24h', 'quote_coin_volume')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        quoteVolume = self.safe_number(ticker, 'volume_24h', quoteVolume)
         open = self.safe_number_2(ticker, 'open_24h', 'open')
         average = None
         if (last is not None) and (open is not None):
@@ -741,11 +697,11 @@ class bitmart(Exchange):
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number_2(ticker, 'high', 'high_24h'),
             'low': self.safe_number_2(ticker, 'low', 'low_24h'),
-            'bid': self.safe_number(price, 'best_bid', 'bid_price'),
+            'bid': self.safe_number_2(price, 'best_bid', 'bid_price'),
             'bidVolume': self.safe_number(ticker, 'best_bid_size'),
-            'ask': self.safe_number(price, 'best_ask', 'ask_price'),
+            'ask': self.safe_number_2(price, 'best_ask', 'ask_price'),
             'askVolume': self.safe_number(ticker, 'best_ask_size'),
-            'vwap': vwap,
+            'vwap': None,
             'open': self.safe_number(ticker, 'open_24h'),
             'close': last,
             'last': last,
@@ -802,44 +758,22 @@ class bitmart(Exchange):
         # contract
         #
         #     {
-        #         "errno":"OK",
-        #         "message":"OK",
-        #         "code":1000,
-        #         "trace":"d09b57c4-d99b-4a13-91a8-2df98f889909",
-        #         "data":{
-        #             "tickers":[
+        #         message: "OK",
+        #         code: "1000",
+        #         trace: "84a0dc44-b395-4bae-a1b7-fe1201defd51",
+        #         data: {
+        #             tickers: [
         #                 {
-        #                     "last_price":"422.2",
-        #                     "open":"430.5",
-        #                     "close":"422.2",
-        #                     "low":"421.9",
-        #                     "high":"436.9",
-        #                     "avg_price":"430.8569900089815372072",
-        #                     "volume":"2720",
-        #                     "total_volume":"18912248",
-        #                     "timestamp":1597631495,
-        #                     "rise_fall_rate":"-0.0192799070847851336",
-        #                     "rise_fall_value":"-8.3",
-        #                     "contract_id":2,
-        #                     "position_size":"3067404",
-        #                     "volume_day":"9557384",
-        #                     "amount24":"80995537.0919999999999974153",
-        #                     "base_coin_volume":"189122.48",
-        #                     "quote_coin_volume":"81484742.475833810590837937856",
-        #                     "pps":"1274350547",
-        #                     "index_price":"422.135",
-        #                     "fair_price":"422.147253318507",
-        #                     "depth_price":{"bid_price":"421.9","ask_price":"422","mid_price":"421.95"},
-        #                     "fair_basis":"0.000029027013",
-        #                     "fair_value":"0.012253318507",
-        #                     "rate":{"quote_rate":"0.0006","base_rate":"0.0003","interest_rate":"0.000099999999"},
-        #                     "premium_index":"0.000045851604",
-        #                     "funding_rate":"0.000158",
-        #                     "next_funding_rate":"0.000099999999",
-        #                     "next_funding_at":"2020-08-17T04:00:00Z"
-        #                 }
-        #             ]
-        #         }
+        #                     contract_symbol: "DGBUSDT",
+        #                     last_price: "0.05759",
+        #                     index_price: "0.05757755",
+        #                     last_funding_rate: "0.00010000",
+        #                     price_change_percent_24h: "0.244",
+        #                     volume_24h: "64303817.028126",
+        #                     url: "https://futures.bitmart.com/en?symbol=DGBUSDT"
+        #                 },
+        #             ],
+        #         },
         #     }
         #
         data = self.safe_value(response, 'data', {})
@@ -2238,8 +2172,6 @@ class bitmart(Exchange):
         url = baseUrl + '/' + type
         if type != 'system':
             url += '/' + self.version
-        if type == 'contract':
-            url += '/' + 'ifcontract'
         url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if type == 'system':
