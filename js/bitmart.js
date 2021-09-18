@@ -916,6 +916,9 @@ module.exports = class bitmart extends Exchange {
         if (market['spot']) {
             method = 'publicSpotGetSymbolsBook';
             request['symbol'] = market['id'];
+            if (limit !== undefined) {
+                request['size'] = limit; // default 50, max 200
+            }
             // request['precision'] = 4; // optional price precision / depth level whose range is defined in symbol details
         } else if (market['swap'] || market['future']) {
             method = 'publicContractGetDepth';
