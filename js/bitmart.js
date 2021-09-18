@@ -677,34 +677,13 @@ module.exports = class bitmart extends Exchange {
         // contract
         //
         //     {
-        //         "last_price":"422.2",
-        //         "open":"430.5",
-        //         "close":"422.2",
-        //         "low":"421.9",
-        //         "high":"436.9",
-        //         "avg_price":"430.8569900089815372072",
-        //         "volume":"2720",
-        //         "total_volume":"18912248",
-        //         "timestamp":1597631495,
-        //         "rise_fall_rate":"-0.0192799070847851336",
-        //         "rise_fall_value":"-8.3",
-        //         "contract_id":2,
-        //         "position_size":"3067404",
-        //         "volume_day":"9557384",
-        //         "amount24":"80995537.0919999999999974153",
-        //         "base_coin_volume":"189122.48",
-        //         "quote_coin_volume":"81484742.475833810590837937856",
-        //         "pps":"1274350547",
-        //         "index_price":"422.135",
-        //         "fair_price":"422.147253318507",
-        //         "depth_price":{"bid_price":"421.9","ask_price":"422","mid_price":"421.95"},
-        //         "fair_basis":"0.000029027013",
-        //         "fair_value":"0.012253318507",
-        //         "rate":{"quote_rate":"0.0006","base_rate":"0.0003","interest_rate":"0.000099999999"},
-        //         "premium_index":"0.000045851604",
-        //         "funding_rate":"0.000158",
-        //         "next_funding_rate":"0.000099999999",
-        //         "next_funding_at":"2020-08-17T04:00:00Z"
+        //         contract_symbol: "DGBUSDT",
+        //         last_price: "0.05759",
+        //         index_price: "0.05757755",
+        //         last_funding_rate: "0.00010000",
+        //         price_change_percent_24h: "0.244",
+        //         volume_24h: "64303817.028126",
+        //         url: "https://futures.bitmart.com/en?symbol=DGBUSDT"
         //     }
         //
         const timestamp = this.safeTimestamp2 (ticker, 'timestamp', 's_t', this.milliseconds ());
@@ -798,44 +777,22 @@ module.exports = class bitmart extends Exchange {
         // contract
         //
         //     {
-        //         "errno":"OK",
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"d09b57c4-d99b-4a13-91a8-2df98f889909",
-        //         "data":{
-        //             "tickers":[
+        //         message: "OK",
+        //         code: "1000",
+        //         trace: "84a0dc44-b395-4bae-a1b7-fe1201defd51",
+        //         data: {
+        //             tickers: [
         //                 {
-        //                     "last_price":"422.2",
-        //                     "open":"430.5",
-        //                     "close":"422.2",
-        //                     "low":"421.9",
-        //                     "high":"436.9",
-        //                     "avg_price":"430.8569900089815372072",
-        //                     "volume":"2720",
-        //                     "total_volume":"18912248",
-        //                     "timestamp":1597631495,
-        //                     "rise_fall_rate":"-0.0192799070847851336",
-        //                     "rise_fall_value":"-8.3",
-        //                     "contract_id":2,
-        //                     "position_size":"3067404",
-        //                     "volume_day":"9557384",
-        //                     "amount24":"80995537.0919999999999974153",
-        //                     "base_coin_volume":"189122.48",
-        //                     "quote_coin_volume":"81484742.475833810590837937856",
-        //                     "pps":"1274350547",
-        //                     "index_price":"422.135",
-        //                     "fair_price":"422.147253318507",
-        //                     "depth_price":{"bid_price":"421.9","ask_price":"422","mid_price":"421.95"},
-        //                     "fair_basis":"0.000029027013",
-        //                     "fair_value":"0.012253318507",
-        //                     "rate":{"quote_rate":"0.0006","base_rate":"0.0003","interest_rate":"0.000099999999"},
-        //                     "premium_index":"0.000045851604",
-        //                     "funding_rate":"0.000158",
-        //                     "next_funding_rate":"0.000099999999",
-        //                     "next_funding_at":"2020-08-17T04:00:00Z"
-        //                 }
-        //             ]
-        //         }
+        //                     contract_symbol: "DGBUSDT",
+        //                     last_price: "0.05759",
+        //                     index_price: "0.05757755",
+        //                     last_funding_rate: "0.00010000",
+        //                     price_change_percent_24h: "0.244",
+        //                     volume_24h: "64303817.028126",
+        //                     url: "https://futures.bitmart.com/en?symbol=DGBUSDT"
+        //                 },
+        //             ],
+        //         },
         //     }
         //
         const data = this.safeValue (response, 'data', {});
