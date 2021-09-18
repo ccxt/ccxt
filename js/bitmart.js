@@ -89,15 +89,7 @@ module.exports = class bitmart extends Exchange {
                     },
                     'contract': {
                         'get': {
-                            'contracts': 5, // https://api-cloud.bitmart.com/contract/v1/ifcontract/contracts
-                            'pnls': 5,
-                            'indexes': 5,
                             'tickers': 5,
-                            'quote': 5,
-                            'indexquote': 5,
-                            'trades': 5,
-                            'depth': 5,
-                            'fundingrate': 5,
                         },
                     },
                 },
@@ -125,24 +117,6 @@ module.exports = class bitmart extends Exchange {
                             'submit_order': 1, // https://api-cloud.bitmart.com/spot/v1/submit_order
                             'cancel_order': 1, // https://api-cloud.bitmart.com/spot/v2/cancel_order
                             'cancel_orders': 1,
-                        },
-                    },
-                    'contract': {
-                        'get': {
-                            'userOrders': 5,
-                            'userOrderInfo': 5,
-                            'userTrades': 5,
-                            'orderTrades': 5,
-                            'accounts': 5,
-                            'userPositions': 5,
-                            'userLiqRecords': 5,
-                            'positionFee': 5,
-                        },
-                        'post': {
-                            'batchOrders': 5,
-                            'submitOrder': 5,
-                            'cancelOrders': 5,
-                            'marginOper': 5,
                         },
                     },
                 },
