@@ -918,6 +918,8 @@ class bitmart(Exchange):
         if market['spot']:
             method = 'publicSpotGetSymbolsBook'
             request['symbol'] = market['id']
+            if limit is not None:
+                request['size'] = limit  # default 50, max 200
             # request['precision'] = 4  # optional price precision / depth level whose range is defined in symbol details
         elif market['swap'] or market['future']:
             method = 'publicContractGetDepth'
