@@ -776,8 +776,8 @@ class zb(Exchange):
         market = self.market(symbol)
         request = {
             'currency': market['id'],
-            'pageIndex': 1,  # default pageIndex is 1
-            'pageSize': 10,  # default pageSize is 10, doesn't work with other values now
+            'pageIndex': params.get("pageIndex", 1),  # default pageIndex is 1
+            'pageSize': limit or 10,  # default pageSize is 10, doesn't work with other values now
         }
         response = self.privateGetGetFinishedAndPartialOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
