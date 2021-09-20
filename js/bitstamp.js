@@ -918,9 +918,9 @@ module.exports = class bitstamp extends Exchange {
         }
         method += 'Pair';
         const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
-        params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
+            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
         }
         const response = await this[method] (this.extend (request, params));
         const order = this.parseOrder (response, market);
@@ -966,11 +966,10 @@ module.exports = class bitstamp extends Exchange {
         const request = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            query = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
         } else {
             request['id'] = id;
         }
-
         const response = await this.privatePostOrderStatus (this.extend (request, params));
         return this.parseOrderStatus (this.safeString (response, 'status'));
     }
@@ -985,11 +984,11 @@ module.exports = class bitstamp extends Exchange {
         const request = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
+            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
         } else {
             request['id'] = id;
         }
-        const query = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
-        const response = await this.privatePostOrderStatus (this.extend (request, query));
+        const response = await this.privatePostOrderStatus (this.extend (request, params));
         //
         //     {
         //         "status": "Finished",
