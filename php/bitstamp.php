@@ -926,6 +926,11 @@ class bitstamp extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $method .= 'Pair';
+        $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['client_order_id'] = $clientOrderId;
+            $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
+        }
         $response = $this->$method (array_merge($request, $params));
         $order = $this->parse_order($response, $market);
         return array_merge($order, array(
@@ -966,9 +971,14 @@ class bitstamp extends Exchange {
 
     public function fetch_order_status($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array(
-            'id' => $id,
-        );
+        $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
+        $request = array();
+        if ($clientOrderId !== null) {
+            $request['client_order_id'] = $clientOrderId;
+            $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
+        } else {
+            $request['id'] = $id;
+        }
         $response = $this->privatePostOrderStatus (array_merge($request, $params));
         return $this->parse_order_status($this->safe_string($response, 'status'));
     }
@@ -979,12 +989,20 @@ class bitstamp extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $request = array( 'id' => $id );
+        $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
+        $request = array();
+        if ($clientOrderId !== null) {
+            $request['client_order_id'] = $clientOrderId;
+            $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
+        } else {
+            $request['id'] = $id;
+        }
         $response = $this->privatePostOrderStatus (array_merge($request, $params));
         //
         //     {
         //         "status" => "Finished",
         //         "$id" => 3047704374,
+        //         "client_order_id" => ""
         //         "transactions" => array(
         //             {
         //                 "usd" => "6.0134400000000000",
@@ -1234,6 +1252,7 @@ class bitstamp extends Exchange {
         // from fetch $order:
         //   { $status => 'Finished',
         //     $id => 731693945,
+        //     client_order_id => '',
         //     $transactions:
         //     array( { fee => '0.000019',
         //         $price => '0.00015803',
@@ -1245,6 +1264,7 @@ class bitstamp extends Exchange {
         //
         // partially filled $order:
         //   { "$id" => 468646390,
+        //     "client_order_id" => "",
         //     "$status" => "Canceled",
         //     "$transactions" => [array(
         //         "eth" => "0.23000000",
@@ -1259,6 +1279,7 @@ class bitstamp extends Exchange {
         // from create $order response:
         //     {
         //         $price => '0.00008012',
+        //         client_order_id => '',
         //         currency_pair => 'XRP/BTC',
         //         datetime => '2019-01-31 21:23:36',
         //         $amount => '15.00000000',
@@ -1267,6 +1288,7 @@ class bitstamp extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'id');
+        $clientOrderId = $this->safe_string($order, 'client_order_id');
         $side = $this->safe_string($order, 'type');
         if ($side !== null) {
             $side = ($side === '1') ? 'sell' : 'buy';
@@ -1286,7 +1308,7 @@ class bitstamp extends Exchange {
         $price = $this->safe_number($order, 'price');
         return $this->safe_order(array(
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
@@ -1439,6 +1461,7 @@ class bitstamp extends Exchange {
         //         {
         //             price => '0.00008012',
         //             currency_pair => 'XRP/BTC',
+        //             client_order_id => '',
         //             datetime => '2019-01-31 21:23:36',
         //             amount => '15.00000000',
         //             type => '0',

@@ -969,6 +969,7 @@ class bittrex(Exchange):
         #         quantity: '0.50000000',
         #         limit: '0.17846699',
         #         timeInForce: 'GOOD_TIL_CANCELLED',
+        #         clientOrderId: 'ff156d39-fe01-44ca-8f21-b0afa19ef228',
         #         fillQuantity: '0.50000000',
         #         commission: '0.00022286',
         #         proceeds: '0.08914915',
@@ -986,6 +987,7 @@ class bittrex(Exchange):
         createdAt = self.safe_string(order, 'createdAt')
         updatedAt = self.safe_string(order, 'updatedAt')
         closedAt = self.safe_string(order, 'closedAt')
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         lastTradeTimestamp = None
         if closedAt is not None:
             lastTradeTimestamp = self.parse8601(closedAt)
@@ -1003,7 +1005,7 @@ class bittrex(Exchange):
         postOnly = (timeInForce == 'PO')
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
