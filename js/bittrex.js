@@ -998,6 +998,7 @@ module.exports = class bittrex extends Exchange {
         //         quantity: '0.50000000',
         //         limit: '0.17846699',
         //         timeInForce: 'GOOD_TIL_CANCELLED',
+        //         clientOrderId: 'ff156d39-fe01-44ca-8f21-b0afa19ef228',
         //         fillQuantity: '0.50000000',
         //         commission: '0.00022286',
         //         proceeds: '0.08914915',
@@ -1015,6 +1016,7 @@ module.exports = class bittrex extends Exchange {
         const createdAt = this.safeString (order, 'createdAt');
         const updatedAt = this.safeString (order, 'updatedAt');
         const closedAt = this.safeString (order, 'closedAt');
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         let lastTradeTimestamp = undefined;
         if (closedAt !== undefined) {
             lastTradeTimestamp = this.parse8601 (closedAt);
@@ -1033,7 +1035,7 @@ module.exports = class bittrex extends Exchange {
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
