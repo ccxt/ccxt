@@ -1243,7 +1243,7 @@ module.exports = class bitstamp extends Exchange {
         // from fetch order:
         //   { status: 'Finished',
         //     id: 731693945,
-        //     client_order_id: '', 
+        //     client_order_id: '',
         //     transactions:
         //     [ { fee: '0.000019',
         //         price: '0.00015803',
@@ -1255,7 +1255,7 @@ module.exports = class bitstamp extends Exchange {
         //
         // partially filled order:
         //   { "id": 468646390,
-        //     "client_order_id": '', 
+        //     "client_order_id": "",
         //     "status": "Canceled",
         //     "transactions": [{
         //         "eth": "0.23000000",
