@@ -917,6 +917,13 @@ module.exports = class bitstamp extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         method += 'Pair';
+
+        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
+        params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+        }
+
         const response = await this[method] (this.extend (request, params));
         const order = this.parseOrder (response, market);
         return this.extend (order, {
@@ -957,9 +964,17 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchOrderStatus (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'id': id,
-        };
+
+        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        const request = {};
+
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+            query = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+        } else {
+            request['id'] = id;
+        }
+
         const response = await this.privatePostOrderStatus (this.extend (request, params));
         return this.parseOrderStatus (this.safeString (response, 'status'));
     }
@@ -970,12 +985,23 @@ module.exports = class bitstamp extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = { 'id': id };
-        const response = await this.privatePostOrderStatus (this.extend (request, params));
+
+        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        const request = {};
+
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+        } else {
+            request['id'] = id;
+        }
+
+        const query = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+        const response = await this.privatePostOrderStatus (this.extend (request, query));
         //
         //     {
         //         "status": "Finished",
         //         "id": 3047704374,
+        //         "client_order_id": ""
         //         "transactions": [
         //             {
         //                 "usd": "6.0134400000000000",
@@ -1225,6 +1251,7 @@ module.exports = class bitstamp extends Exchange {
         // from fetch order:
         //   { status: 'Finished',
         //     id: 731693945,
+        //     client_order_id: '', 
         //     transactions:
         //     [ { fee: '0.000019',
         //         price: '0.00015803',
@@ -1236,6 +1263,7 @@ module.exports = class bitstamp extends Exchange {
         //
         // partially filled order:
         //   { "id": 468646390,
+        //     "client_order_id": '', 
         //     "status": "Canceled",
         //     "transactions": [{
         //         "eth": "0.23000000",
@@ -1250,6 +1278,7 @@ module.exports = class bitstamp extends Exchange {
         // from create order response:
         //     {
         //         price: '0.00008012',
+        //         client_order_id: '',
         //         currency_pair: 'XRP/BTC',
         //         datetime: '2019-01-31 21:23:36',
         //         amount: '15.00000000',
@@ -1258,6 +1287,7 @@ module.exports = class bitstamp extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'id');
+        const clientOrderId = this.safeString (order, 'client_order_id');
         let side = this.safeString (order, 'type');
         if (side !== undefined) {
             side = (side === '1') ? 'sell' : 'buy';
@@ -1277,7 +1307,7 @@ module.exports = class bitstamp extends Exchange {
         const price = this.safeNumber (order, 'price');
         return this.safeOrder ({
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -1430,6 +1460,7 @@ module.exports = class bitstamp extends Exchange {
         //         {
         //             price: '0.00008012',
         //             currency_pair: 'XRP/BTC',
+        //             client_order_id: '',
         //             datetime: '2019-01-31 21:23:36',
         //             amount: '15.00000000',
         //             type: '0',
