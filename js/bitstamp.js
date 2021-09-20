@@ -917,13 +917,11 @@ module.exports = class bitstamp extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         method += 'Pair';
-
         const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-
         const response = await this[method] (this.extend (request, params));
         const order = this.parseOrder (response, market);
         return this.extend (order, {
@@ -964,10 +962,8 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchOrderStatus (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
         const request = {};
-
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
             query = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
@@ -985,16 +981,13 @@ module.exports = class bitstamp extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
         const request = {};
-
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         } else {
             request['id'] = id;
         }
-
         const query = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
         const response = await this.privatePostOrderStatus (this.extend (request, query));
         //
