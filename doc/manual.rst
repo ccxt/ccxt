@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 112 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 111 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -491,18 +491,6 @@ The CCXT library currently supports the following 112 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://github.com/BitonicNL/bl3p-api/tree/master/docs
           :alt: API Version 1
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg
-          :target: https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465
-          :alt: braziliex
-     
-     - braziliex
-     - `Braziliex <https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://braziliex.com/exchange/api.php
-          :alt: API Version *
      
      - 
      - 
@@ -2096,12 +2084,6 @@ The most common symptoms for a DDoS protection problem, rate-limiting problem or
 
 If you encounter DDoS protection errors and cannot reach a particular exchange then:
 
-
- * try using a cloudscraper:
-
-  * https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
-  * https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
-  * https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare-with-cookies.py
 
  * use a proxy (this is less responsive, though)
  * ask the exchange support to add you to a whitelist
@@ -5802,12 +5784,6 @@ In case you experience any difficulty connecting to a particular exchange, do th
  * **Try a fresh new keypair if possible.**
  * Read the answers to Frequently Asked Questions: https://github.com/ccxt/ccxt/wiki/FAQ
  * Check the permissions on the keypair with the exchange website!
- * If it is a Cloudflare protection error, try these examples:
-
-  * https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
-  * https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
-  * https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare-with-cookies.py
-
  * Check your nonce. If you used your API keys with other software, you most likely should :ref:`override your nonce function <overriding the nonce>` to match your previous nonce value. A nonce usually can be easily reset by generating a new unused keypair. If you are getting nonce errors with an existing key, try with a new API key that hasn't been used yet.
  * Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests or enable the built-in rate-limiter, like shown in the long-poller `examples <https://github.com/ccxt/ccxt/tree/master/examples>`__\ , also :ref:`here <order-book--market-depth>`.
  * Read the `docs for your exchange <https://github.com/ccxt/ccxt/wiki/Exchanges>`__ and compare your verbose output to the docs.

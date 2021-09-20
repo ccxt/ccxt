@@ -32,7 +32,7 @@ class bitvavo(Exchange):
             'id': 'bitvavo',
             'name': 'Bitvavo',
             'countries': ['NL'],  # Netherlands
-            'rateLimit': 500,
+            'rateLimit': 60.1,  # 1000 requests per second
             'version': 'v2',
             'certified': True,
             'pro': True,
@@ -88,40 +88,40 @@ class bitvavo(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'time',
-                        'markets',
-                        'assets',
-                        '{market}/book',
-                        '{market}/trades',
-                        '{market}/candles',
-                        'ticker/price',
-                        'ticker/book',
-                        'ticker/24h',
-                    ],
+                    'get': {
+                        'time': 1,
+                        'markets': 1,
+                        'assets': 1,
+                        '{market}/book': 1,
+                        '{market}/trades': 5,
+                        '{market}/candles': 1,
+                        'ticker/price': 1,
+                        'ticker/book': 1,
+                        'ticker/24h': {'cost': 1, 'noMarket': 25},
+                    },
                 },
                 'private': {
-                    'get': [
-                        'order',
-                        'orders',
-                        'ordersOpen',
-                        'trades',
-                        'balance',
-                        'deposit',
-                        'depositHistory',
-                        'withdrawalHistory',
-                    ],
-                    'post': [
-                        'order',
-                        'withdrawal',
-                    ],
-                    'put': [
-                        'order',
-                    ],
-                    'delete': [
-                        'order',
-                        'orders',
-                    ],
+                    'get': {
+                        'order': 1,
+                        'orders': 5,
+                        'ordersOpen': {'cost': 1, 'noMarket': 25},
+                        'trades': 5,
+                        'balance': 5,
+                        'deposit': 1,
+                        'depositHistory': 5,
+                        'withdrawalHistory': 5,
+                    },
+                    'post': {
+                        'order': 1,
+                        'withdrawal': 1,
+                    },
+                    'put': {
+                        'order': 1,
+                    },
+                    'delete': {
+                        'order': 1,
+                        'orders': 1,
+                    },
                 },
             },
             'fees': {
@@ -1419,3 +1419,8 @@ class bitvavo(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
+
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+        if ('noMarket' in config) and not ('market' in params):
+            return config['noMarket']
+        return self.safe_value(config, 'cost', 1)

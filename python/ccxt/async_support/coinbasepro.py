@@ -34,7 +34,7 @@ class coinbasepro(Exchange):
             'id': 'coinbasepro',
             'name': 'Coinbase Pro',
             'countries': ['US'],
-            'rateLimit': 1000,
+            'rateLimit': 100,
             'userAgent': self.userAgents['chrome'],
             'pro': True,
             'has': {

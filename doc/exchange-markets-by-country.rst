@@ -101,17 +101,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 1
      
    * - Brazil
-     - .. image:: https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg
-          :target: https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465
-          :alt: braziliex
-     
-     - braziliex
-     - `Braziliex <https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://braziliex.com/exchange/api.php
-          :alt: API Version *
-     
-   * - Brazil
      - .. image:: https://user-images.githubusercontent.com/51840849/87443317-01c0d080-c5fe-11ea-95c2-9ebe1a8fafd9.jpg
           :target: https://www.flowbtc.com.br
           :alt: flowbtc

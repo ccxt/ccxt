@@ -769,7 +769,7 @@ class zb(Exchange):
             raise e
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=10, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + 'fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
@@ -777,7 +777,7 @@ class zb(Exchange):
         request = {
             'currency': market['id'],
             'pageIndex': 1,  # default pageIndex is 1
-            'pageSize': 10,  # default pageSize is 10, doesn't work with other values now
+            'pageSize': limit,  # default pageSize is 10, doesn't work with other values now
         }
         response = await self.privateGetGetFinishedAndPartialOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)

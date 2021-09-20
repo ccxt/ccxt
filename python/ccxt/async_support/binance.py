@@ -821,7 +821,7 @@ class binance(Exchange):
 
     def currency_to_precision(self, currency, fee):
         # info is available in currencies only if the user has configured his api keys
-        if 'info' in self.currencies[currency]:
+        if self.safe_value(self.currencies[currency], 'precision') is not None:
             return self.decimal_to_precision(fee, TRUNCATE, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
         else:
             return self.number_to_string(fee)
@@ -2104,6 +2104,12 @@ class binance(Exchange):
             'trades': trades,
         })
 
+    async def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
+        request = {
+            'reduceOnly': True,
+        }
+        return await self.create_order(symbol, type, side, amount, price, self.extend(request, params))
+
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -2111,6 +2117,10 @@ class binance(Exchange):
         orderType = self.safe_string(params, 'type', defaultType)
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
         params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId'])
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        if reduceOnly is not None:
+            if (orderType != 'future') and (orderType != 'delivery'):
+                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only')
         method = 'privatePostOrder'
         if orderType == 'future':
             method = 'fapiPrivatePostOrder'

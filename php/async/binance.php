@@ -813,7 +813,7 @@ class binance extends Exchange {
 
     public function currency_to_precision($currency, $fee) {
         // info is available in currencies only if the user has configured his api keys
-        if (is_array($this->currencies[$currency]) && array_key_exists('info', $this->currencies[$currency])) {
+        if ($this->safe_value($this->currencies[$currency], 'precision') !== null) {
             return $this->decimal_to_precision($fee, TRUNCATE, $this->currencies[$currency]['precision'], $this->precisionMode, $this->paddingMode);
         } else {
             return $this->number_to_string($fee);
@@ -2167,6 +2167,13 @@ class binance extends Exchange {
         ));
     }
 
+    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $request = array(
+            'reduceOnly' => true,
+        );
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
+    }
+
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -2174,6 +2181,12 @@ class binance extends Exchange {
         $orderType = $this->safe_string($params, 'type', $defaultType);
         $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
         $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId' ));
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        if ($reduceOnly !== null) {
+            if (($orderType !== 'future') && ($orderType !== 'delivery')) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $orderType . ' orders, $reduceOnly orders are supported for futures and perpetuals only');
+            }
+        }
         $method = 'privatePostOrder';
         if ($orderType === 'future') {
             $method = 'fapiPrivatePostOrder';

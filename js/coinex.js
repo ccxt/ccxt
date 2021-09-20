@@ -988,7 +988,7 @@ module.exports = class coinex extends Exchange {
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
         const message = this.safeString (response, 'message');
-        if ((code !== '0') || (data === undefined) || ((message !== 'Success') && (message !== 'Ok') && !data)) {
+        if ((code !== '0') || (data === undefined) || ((message !== 'Success') && (message !== 'Succeeded') && (message !== 'Ok') && !data)) {
             const responseCodes = {
                 // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
                 '23': PermissionDenied, // IP Prohibited

@@ -16,7 +16,7 @@ class bitvavo extends Exchange {
             'id' => 'bitvavo',
             'name' => 'Bitvavo',
             'countries' => array( 'NL' ), // Netherlands
-            'rateLimit' => 500,
+            'rateLimit' => 60.1, // 1000 requests per second
             'version' => 'v2',
             'certified' => true,
             'pro' => true,
@@ -73,38 +73,38 @@ class bitvavo extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'time',
-                        'markets',
-                        'assets',
-                        '{market}/book',
-                        '{market}/trades',
-                        '{market}/candles',
-                        'ticker/price',
-                        'ticker/book',
-                        'ticker/24h',
+                        'time' => 1,
+                        'markets' => 1,
+                        'assets' => 1,
+                        '{market}/book' => 1,
+                        '{market}/trades' => 5,
+                        '{market}/candles' => 1,
+                        'ticker/price' => 1,
+                        'ticker/book' => 1,
+                        'ticker/24h' => array( 'cost' => 1, 'noMarket' => 25 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'order',
-                        'orders',
-                        'ordersOpen',
-                        'trades',
-                        'balance',
-                        'deposit',
-                        'depositHistory',
-                        'withdrawalHistory',
+                        'order' => 1,
+                        'orders' => 5,
+                        'ordersOpen' => array( 'cost' => 1, 'noMarket' => 25 ),
+                        'trades' => 5,
+                        'balance' => 5,
+                        'deposit' => 1,
+                        'depositHistory' => 5,
+                        'withdrawalHistory' => 5,
                     ),
                     'post' => array(
-                        'order',
-                        'withdrawal',
+                        'order' => 1,
+                        'withdrawal' => 1,
                     ),
                     'put' => array(
-                        'order',
+                        'order' => 1,
                     ),
                     'delete' => array(
-                        'order',
-                        'orders',
+                        'order' => 1,
+                        'orders' => 1,
                     ),
                 ),
             ),
@@ -1489,5 +1489,12 @@ class bitvavo extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
+    }
+
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+        if ((is_array($config) && array_key_exists('noMarket', $config)) && !(is_array($params) && array_key_exists('market', $params))) {
+            return $config['noMarket'];
+        }
+        return $this->safe_value($config, 'cost', 1);
     }
 }

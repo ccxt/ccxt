@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -148,6 +149,7 @@ class crex24(Exchange):
                 'BCC': 'BCH',
                 'BIT': 'BitMoney',
                 'BULL': 'BuySell',
+                'CLC': 'CaluraCoin',
                 'CREDIT': 'TerraCredit',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND': 'FUNDChains',
@@ -179,6 +181,7 @@ class crex24(Exchange):
                     "Nonce error. Make sure that the value passed in the 'X-CREX24-API-NONCE' header is greater in each consecutive request than in the previous one for the corresponding API-Key provided in 'X-CREX24-API-KEY' header.": InvalidNonce,
                     'Market orders are not supported by the instrument currently.': InvalidOrder,
                     "Parameter 'instrument' contains invalid value.": BadSymbol,
+                    "Trading has been disabled for the account until the verification is passed. To initiate the verification process, please log into your account at crex24.com and proceed to 'My account' -> 'Verification'.": AccountSuspended,  # {"errorDescription":"Trading has been disabled for the account until the verification is passed. To initiate the verification process, please log into your account at crex24.com and proceed to 'My account' -> 'Verification'."}
                 },
                 'broad': {
                     'try again later': ExchangeNotAvailable,  # {"errorDescription":"Failed to process the request. Please, try again later."}

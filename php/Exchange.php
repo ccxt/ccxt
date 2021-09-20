@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.56.41';
+$version = '1.56.60';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.56.41';
+    const VERSION = '1.56.60';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -93,7 +93,6 @@ class Exchange {
         'bitvavo',
         'bitz',
         'bl3p',
-        'braziliex',
         'btcalpha',
         'btcbox',
         'btcmarkets',
@@ -1272,7 +1271,7 @@ class Exchange {
             $lowercase_method = mb_strtolower($key);
             $camelcase_method = static::capitalize($lowercase_method);
             if (static::is_associative($value)) {
-                if (preg_match('/^(?:get|post|put|delete|options|head)$/i', $key)) {
+                if (preg_match('/^(?:get|post|put|delete|options|head|patch)$/i', $key)) {
                     foreach ($value as $endpoint => $config) {
                         $path = trim($endpoint);
                         if (static::is_associative($config)) {
