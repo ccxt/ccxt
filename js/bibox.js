@@ -994,7 +994,7 @@ module.exports = class bibox extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        [ tag, params ] = this.handleTagAndParams (tag, params);        
+        [ tag, params ] = this.handleTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
