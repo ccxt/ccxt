@@ -2357,3 +2357,10 @@ class Exchange(object):
         if float(string_number) == 0:
             return None
         return string_number
+
+    def handle_tag_and_params(self, tag, params):
+        if isinstance(tag, dict):
+            params = self.extend(tag, params)
+        if tag is None:
+            tag = self.safe_string(params, 'tag')
+        return [ tag, params ]
