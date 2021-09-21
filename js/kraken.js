@@ -17,7 +17,7 @@ module.exports = class kraken extends Exchange {
             'countries': [ 'US' ],
             'version': '0',
             'rateLimit': 3000,
-            'certified': true,
+            'certified': false,
             'pro': true,
             'has': {
                 'cancelAllOrders': true,
