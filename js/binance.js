@@ -691,6 +691,14 @@ module.exports = class binance extends Exchange {
                     'CMFUTURE': 'delivery',
                     'MINING': 'mining',
                 },
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'BNB': 'BNB',
+                    'BSC': 'BSC',
+                    'OMNI': 'OMNI',
+                    'EOS': 'EOS',
+                },
                 'legalMoney': {
                     'MXN': true,
                     'UGX': true,
@@ -968,6 +976,7 @@ module.exports = class binance extends Exchange {
                 'precision': precision,
                 'info': entry,
                 'active': active,
+                'networks': networkList,
                 'fee': fee,
                 'fees': fees,
                 'limits': this.limits,
@@ -3414,6 +3423,13 @@ module.exports = class binance extends Exchange {
         };
         if (tag !== undefined) {
             request['addressTag'] = tag;
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['network'] = network;
+            params = this.omit (params, 'network');
         }
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
