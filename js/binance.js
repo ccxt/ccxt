@@ -694,8 +694,8 @@ module.exports = class binance extends Exchange {
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
-                    'BNB': 'BNB',
-                    'BSC': 'BSC',
+                    'BEP2': 'BNB',
+                    'BEP20': 'BSC',
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
                 },
