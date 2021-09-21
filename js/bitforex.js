@@ -76,7 +76,7 @@ module.exports = class bitforex extends Exchange {
                         'api/v1/trade/multiOrderInfo': 10,
                         'api/v1/trade/orderInfos': 20,
                     },
-                }
+                },
             },
             'fees': {
                 'trading': {
