@@ -174,6 +174,11 @@ class poloniex extends Exchange {
                 'USDTETH' => 'USDT',
             ),
             'options' => array(
+                'networks' => array(
+                    'ERC20' => 'ETH',
+                    'TRX' => 'TRON',
+                    'TRC20' => 'TRON',
+                ),
                 'limits' => array(
                     'cost' => array(
                         'min' => array(
@@ -1294,6 +1299,13 @@ class poloniex extends Exchange {
         );
         if ($tag !== null) {
             $request['paymentId'] = $tag;
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['currency'] .= $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            $params = $this->omit($params, 'network');
         }
         $response = $this->privatePostWithdraw (array_merge($request, $params));
         //
