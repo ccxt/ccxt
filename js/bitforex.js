@@ -14,6 +14,7 @@ module.exports = class bitforex extends Exchange {
             'id': 'bitforex',
             'name': 'Bitforex',
             'countries': [ 'CN' ],
+            'rateLimit': 500, // https://github.com/ccxt/ccxt/issues/5054
             'version': 'v1',
             'has': {
                 'cancelOrder': true,
@@ -54,28 +55,28 @@ module.exports = class bitforex extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'api/v1/market/symbols',
-                        'api/v1/market/ticker',
-                        'api/v1/market/depth',
-                        'api/v1/market/trades',
-                        'api/v1/market/kline',
-                    ],
+                    'get': {
+                        'api/v1/market/symbols': 20,
+                        'api/v1/market/ticker': 4,
+                        'api/v1/market/depth': 4,
+                        'api/v1/market/trades': 20,
+                        'api/v1/market/kline': 20,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'api/v1/fund/mainAccount',
-                        'api/v1/fund/allAccount',
-                        'api/v1/trade/placeOrder',
-                        'api/v1/trade/placeMultiOrder',
-                        'api/v1/trade/cancelOrder',
-                        'api/v1/trade/cancelMultiOrder',
-                        'api/v1/trade/cancelAllOrder',
-                        'api/v1/trade/orderInfo',
-                        'api/v1/trade/multiOrderInfo',
-                        'api/v1/trade/orderInfos',
-                    ],
-                },
+                    'post': {
+                        'api/v1/fund/mainAccount': 1,
+                        'api/v1/fund/allAccount': 30,
+                        'api/v1/trade/placeOrder': 1,
+                        'api/v1/trade/placeMultiOrder': 10,
+                        'api/v1/trade/cancelOrder': 1,
+                        'api/v1/trade/cancelMultiOrder': 20,
+                        'api/v1/trade/cancelAllOrder': 20,
+                        'api/v1/trade/orderInfo': 1,
+                        'api/v1/trade/multiOrderInfo': 10,
+                        'api/v1/trade/orderInfos': 20,
+                    },
+                }
             },
             'fees': {
                 'trading': {
