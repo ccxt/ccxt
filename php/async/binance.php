@@ -3281,10 +3281,17 @@ class binance extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
-            // 'network' => 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the $response of sapiGetCapitalConfigDetail
+            // 'network' => 'ETH', // 'BSC', 'XMR', you can get $network and isDefault in networkList in the $response of sapiGetCapitalConfigDetail
         );
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['network'] = $network;
+            $params = $this->omit($params, 'network');
+        }
         // has support for the 'network' parameter
-        // https://binance-docs.github.io/apidocs/spot/en/#deposit-$address-supporting-network-user_data
+        // https://binance-docs.github.io/apidocs/spot/en/#deposit-$address-supporting-$network-user_data
         $response = yield $this->sapiGetCapitalDepositAddress (array_merge($request, $params));
         //
         //     {
