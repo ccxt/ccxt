@@ -976,7 +976,7 @@ module.exports = class binance extends Exchange {
                 'precision': precision,
                 'info': entry,
                 'active': active,
-                'networkList': networkList,
+                'networks': networkList,
                 'fee': fee,
                 'fees': fees,
                 'limits': this.limits,
