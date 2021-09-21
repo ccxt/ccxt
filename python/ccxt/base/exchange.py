@@ -2363,4 +2363,4 @@ class Exchange(object):
             params = self.extend(tag, params)
         if tag is None:
             tag = self.safe_string(params, 'tag')
-        return [ tag, params ]
+        return [tag, params]
