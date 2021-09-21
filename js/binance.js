@@ -3,7 +3,24 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable } = require ('./base/errors');
+const {
+    ExchangeError,
+    ArgumentsRequired,
+    ExchangeNotAvailable,
+    InsufficientFunds,
+    OrderNotFound,
+    InvalidOrder,
+    DDoSProtection,
+    InvalidNonce,
+    AuthenticationError,
+    RateLimitExceeded,
+    PermissionDenied,
+    NotSupported,
+    BadRequest,
+    BadSymbol,
+    AccountSuspended,
+    OrderImmediatelyFillable,
+} = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -691,6 +708,14 @@ module.exports = class binance extends Exchange {
                     'CMFUTURE': 'delivery',
                     'MINING': 'mining',
                 },
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'BNB': 'BNB',
+                    'BSC': 'BSC',
+                    'OMNI': 'OMNI',
+                    'EOS': 'EOS',
+                },
                 'legalMoney': {
                     'MXN': true,
                     'UGX': true,
@@ -968,6 +993,7 @@ module.exports = class binance extends Exchange {
                 'precision': precision,
                 'info': entry,
                 'active': active,
+                'networkList': networkList,
                 'fee': fee,
                 'fees': fees,
                 'limits': this.limits,
@@ -3414,6 +3440,16 @@ module.exports = class binance extends Exchange {
         };
         if (tag !== undefined) {
             request['addressTag'] = tag;
+        }
+        const network = this.safeString (params, 'network');
+        if (network !== undefined) {
+            if (this.options.networks[network] !== undefined) {
+                request['network'] = network;
+            } else {
+                const networkEnabled = [];
+                for (let i = 0; i < currency.networkList.length; i++) networkEnabled.push (currency.networkList[i].network);
+                throw new ArgumentsRequired (this.id + ' does not have this network enabled, only this ' + networkEnabled.join (', '));
+            }
         }
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
