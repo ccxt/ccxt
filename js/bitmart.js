@@ -284,11 +284,8 @@ module.exports = class bitmart extends Exchange {
             },
             'options': {
                 'networks': {
-                    'TRC20': 'TRC20',
-                    'ERC20': 'ERC20',
-                    'BEP20': 'BEP20',
-                    'BEP2': 'BEP2',
-                    'SOL': 'SOL',
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
                 },
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
