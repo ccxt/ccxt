@@ -3497,7 +3497,7 @@ In some cases you can also use the withdrawal id to check withdrawal status late
 
 #### Other supported withdraw signatures
 
-It is also possible to pass the parameters as the third argument with or without a specified tag
+It is also possible to pass the parameters as the fourth argument with or without a specified tag
 
 ```JavaScript
 // JavaScript
