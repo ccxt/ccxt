@@ -3,24 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const {
-    ExchangeError,
-    ArgumentsRequired,
-    ExchangeNotAvailable,
-    InsufficientFunds,
-    OrderNotFound,
-    InvalidOrder,
-    DDoSProtection,
-    InvalidNonce,
-    AuthenticationError,
-    RateLimitExceeded,
-    PermissionDenied,
-    NotSupported,
-    BadRequest,
-    BadSymbol,
-    AccountSuspended,
-    OrderImmediatelyFillable,
-} = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable} = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -3441,15 +3424,12 @@ module.exports = class binance extends Exchange {
         if (tag !== undefined) {
             request['addressTag'] = tag;
         }
-        const network = this.safeString (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
-            if (this.options.networks[network] !== undefined) {
-                request['network'] = network;
-            } else {
-                const networkEnabled = [];
-                for (let i = 0; i < currency.networkList.length; i++) networkEnabled.push (currency.networkList[i].network);
-                throw new ArgumentsRequired (this.id + ' does not have this network enabled, only this ' + networkEnabled.join (', '));
-            }
+            request['network'] = network;
+            params = this.omit (params, 'network');
         }
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
