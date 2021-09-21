@@ -708,6 +708,14 @@ class binance(Exchange):
                     'CMFUTURE': 'delivery',
                     'MINING': 'mining',
                 },
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'BEP2': 'BNB',
+                    'BEP20': 'BSC',
+                    'OMNI': 'OMNI',
+                    'EOS': 'EOS',
+                },
                 'legalMoney': {
                     'MXN': True,
                     'UGX': True,
@@ -972,6 +980,7 @@ class binance(Exchange):
                 'precision': precision,
                 'info': entry,
                 'active': active,
+                'networks': networkList,
                 'fee': fee,
                 'fees': fees,
                 'limits': self.limits,
@@ -3257,6 +3266,12 @@ class binance(Exchange):
         }
         if tag is not None:
             request['addressTag'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['network'] = network
+            params = self.omit(params, 'network')
         response = await self.sapiPostCapitalWithdrawApply(self.extend(request, params))
         #     {id: '9a67628b16ba4988ae20d329333f16bc'}
         return {

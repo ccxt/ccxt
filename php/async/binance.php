@@ -698,6 +698,14 @@ class binance extends Exchange {
                     'CMFUTURE' => 'delivery',
                     'MINING' => 'mining',
                 ),
+                'networks' => array(
+                    'ERC20' => 'ETH',
+                    'TRC20' => 'TRX',
+                    'BEP2' => 'BNB',
+                    'BEP20' => 'BSC',
+                    'OMNI' => 'OMNI',
+                    'EOS' => 'EOS',
+                ),
                 'legalMoney' => array(
                     'MXN' => true,
                     'UGX' => true,
@@ -975,6 +983,7 @@ class binance extends Exchange {
                 'precision' => $precision,
                 'info' => $entry,
                 'active' => $active,
+                'networks' => $networkList,
                 'fee' => $fee,
                 'fees' => $fees,
                 'limits' => $this->limits,
@@ -3416,11 +3425,18 @@ class binance extends Exchange {
             'address' => $address,
             'amount' => $amount,
             // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
-            // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
+            // issue sapiGetCapitalConfigGetall () to get $networks for withdrawing USDT ERC20 vs USDT Omni
             // 'network' => 'ETH', // 'BTC', 'TRX', etc, optional
         );
         if ($tag !== null) {
             $request['addressTag'] = $tag;
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['network'] = $network;
+            $params = $this->omit($params, 'network');
         }
         $response = yield $this->sapiPostCapitalWithdrawApply (array_merge($request, $params));
         //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
