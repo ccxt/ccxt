@@ -27,7 +27,7 @@ class kraken extends Exchange {
             'countries' => array( 'US' ),
             'version' => '0',
             'rateLimit' => 3000,
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'has' => array(
                 'cancelAllOrders' => true,

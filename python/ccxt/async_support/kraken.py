@@ -42,7 +42,7 @@ class kraken(Exchange):
             'countries': ['US'],
             'version': '0',
             'rateLimit': 3000,
-            'certified': True,
+            'certified': False,
             'pro': True,
             'has': {
                 'cancelAllOrders': True,

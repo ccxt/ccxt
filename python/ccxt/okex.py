@@ -37,6 +37,7 @@ class okex(Exchange):
             'version': 'v5',
             'rateLimit': 20 / 3,  # 300 requests per 2 seconds
             'pro': True,
+            'certified': True,
             'has': {
                 'CORS': False,
                 'cancelOrder': True,

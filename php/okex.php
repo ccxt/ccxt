@@ -21,6 +21,7 @@ class okex extends Exchange {
             'version' => 'v5',
             'rateLimit' => 20 / 3, // 300 requests per 2 seconds
             'pro' => true,
+            'certified' => true,
             'has' => array(
                 'CORS' => false,
                 'cancelOrder' => true,

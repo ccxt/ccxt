@@ -438,10 +438,7 @@ The CCXT Pro library currently supports the following 34 cryptocurrency exchange
           :target: https://www.kraken.com/features/api
           :alt: API Version 0
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -501,7 +498,10 @@ The CCXT Pro library currently supports the following 34 cryptocurrency exchange
           :target: https://www.okex.com/docs/en/
           :alt: API Version 5
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -531,7 +531,10 @@ The CCXT Pro library currently supports the following 34 cryptocurrency exchange
           :target: https://www.okex.com/docs/en/
           :alt: API Version 5
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro

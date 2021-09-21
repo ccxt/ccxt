@@ -368,15 +368,34 @@ Certified Cryptocurrency Exchanges
           :alt: CCXT Pro
      
      - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg
-          :target: https://www.kraken.com
-          :alt: kraken
+   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
+          :target: https://www.okex.com/join/1888677
+          :alt: okex
      
-     - kraken
-     - `Kraken <https://www.kraken.com>`__
-     - .. image:: https://img.shields.io/badge/0-lightgray
-          :target: https://www.kraken.com/features/api
-          :alt: API Version 0
+     - okex
+     - `OKEX <https://www.okex.com/join/1888677>`__
+     - .. image:: https://img.shields.io/badge/5-lightgray
+          :target: https://www.okex.com/docs/en/
+          :alt: API Version 5
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
+          :target: https://www.okex.com/join/1888677
+          :alt: okex5
+     
+     - okex5
+     - `OKEX <https://www.okex.com/join/1888677>`__
+     - .. image:: https://img.shields.io/badge/5-lightgray
+          :target: https://www.okex.com/docs/en/
+          :alt: API Version 5
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -1455,10 +1474,7 @@ The CCXT library currently supports the following 111 cryptocurrency exchange ma
           :target: https://www.kraken.com/features/api
           :alt: API Version 0
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -1638,7 +1654,10 @@ The CCXT library currently supports the following 111 cryptocurrency exchange ma
           :target: https://www.okex.com/docs/en/
           :alt: API Version 5
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -1668,7 +1687,10 @@ The CCXT library currently supports the following 111 cryptocurrency exchange ma
           :target: https://www.okex.com/docs/en/
           :alt: API Version 5
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -1980,14 +2002,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.56.66/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.56.66/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.56.67/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.56.67/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.56.66/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.56.67/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
