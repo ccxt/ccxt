@@ -18,7 +18,7 @@ class ftx extends Exchange {
             'id' => 'ftx',
             'name' => 'FTX',
             'countries' => array( 'HK' ),
-            'rateLimit' => 50,
+            'rateLimit' => 100,
             'certified' => true,
             'pro' => true,
             'hostname' => 'ftx.com', // or ftx.us

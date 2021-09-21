@@ -1006,6 +1006,7 @@ class bittrex extends Exchange {
         //         $quantity => '0.50000000',
         //         $limit => '0.17846699',
         //         $timeInForce => 'GOOD_TIL_CANCELLED',
+        //         $clientOrderId => 'ff156d39-fe01-44ca-8f21-b0afa19ef228',
         //         $fillQuantity => '0.50000000',
         //         $commission => '0.00022286',
         //         $proceeds => '0.08914915',
@@ -1023,6 +1024,7 @@ class bittrex extends Exchange {
         $createdAt = $this->safe_string($order, 'createdAt');
         $updatedAt = $this->safe_string($order, 'updatedAt');
         $closedAt = $this->safe_string($order, 'closedAt');
+        $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $lastTradeTimestamp = null;
         if ($closedAt !== null) {
             $lastTradeTimestamp = $this->parse8601($closedAt);
@@ -1041,7 +1043,7 @@ class bittrex extends Exchange {
         $postOnly = ($timeInForce === 'PO');
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,

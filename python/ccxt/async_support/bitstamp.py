@@ -191,6 +191,10 @@ class bitstamp(Exchange):
                         'ftt_address/',
                         'storj_withdrawal/',
                         'storj_address/',
+                        'axs_withdrawal/',
+                        'axs_address/',
+                        'sand_withdrawal/',
+                        'sand_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -874,6 +878,10 @@ class bitstamp(Exchange):
         else:
             request['price'] = self.price_to_precision(symbol, price)
         method += 'Pair'
+        clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+            params = self.omit(params, ['client_order_id', 'clientOrderId'])
         response = await getattr(self, method)(self.extend(request, params))
         order = self.parse_order(response, market)
         return self.extend(order, {
@@ -909,9 +917,13 @@ class bitstamp(Exchange):
 
     async def fetch_order_status(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = {
-            'id': id,
-        }
+        clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+        request = {}
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+            params = self.omit(params, ['client_order_id', 'clientOrderId'])
+        else:
+            request['id'] = id
         response = await self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order_status(self.safe_string(response, 'status'))
 
@@ -920,12 +932,19 @@ class bitstamp(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {'id': id}
+        clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+        request = {}
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+            params = self.omit(params, ['client_order_id', 'clientOrderId'])
+        else:
+            request['id'] = id
         response = await self.privatePostOrderStatus(self.extend(request, params))
         #
         #     {
         #         "status": "Finished",
         #         "id": 3047704374,
+        #         "client_order_id": ""
         #         "transactions": [
         #             {
         #                 "usd": "6.0134400000000000",
@@ -1156,6 +1175,7 @@ class bitstamp(Exchange):
         # from fetch order:
         #   {status: 'Finished',
         #     id: 731693945,
+        #     client_order_id: '',
         #     transactions:
         #     [{fee: '0.000019',
         #         price: '0.00015803',
@@ -1167,6 +1187,7 @@ class bitstamp(Exchange):
         #
         # partially filled order:
         #   {"id": 468646390,
+        #     "client_order_id": "",
         #     "status": "Canceled",
         #     "transactions": [{
         #         "eth": "0.23000000",
@@ -1181,6 +1202,7 @@ class bitstamp(Exchange):
         # from create order response:
         #     {
         #         price: '0.00008012',
+        #         client_order_id: '',
         #         currency_pair: 'XRP/BTC',
         #         datetime: '2019-01-31 21:23:36',
         #         amount: '15.00000000',
@@ -1189,6 +1211,7 @@ class bitstamp(Exchange):
         #     }
         #
         id = self.safe_string(order, 'id')
+        clientOrderId = self.safe_string(order, 'client_order_id')
         side = self.safe_string(order, 'type')
         if side is not None:
             side = 'sell' if (side == '1') else 'buy'
@@ -1206,7 +1229,7 @@ class bitstamp(Exchange):
         price = self.safe_number(order, 'price')
         return self.safe_order({
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -1346,6 +1369,7 @@ class bitstamp(Exchange):
         #         {
         #             price: '0.00008012',
         #             currency_pair: 'XRP/BTC',
+        #             client_order_id: '',
         #             datetime: '2019-01-31 21:23:36',
         #             amount: '15.00000000',
         #             type: '0',
