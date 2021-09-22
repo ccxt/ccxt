@@ -23,6 +23,8 @@ Current feature list:
 
 [![Huobi Global – Bitcoin and Cryptocurrency Exchange](https://user-images.githubusercontent.com/1294454/132700397-8d32a3c2-e301-4f30-b311-240b35214c6e.jpg)](https://www.huobi.com)
 
+[![BitMart – 0% trading fees!](https://user-images.githubusercontent.com/1294454/134417745-7571cd63-2221-4936-8343-3c4f809bf6b6.png)](https://bit.ly/2W3IXUV)
+
 [![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png)](https://ccxt.pro)
 
 ## See Also
