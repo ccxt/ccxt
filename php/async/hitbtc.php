@@ -176,6 +176,12 @@ class hitbtc extends Exchange {
                 ),
             ),
             'options' => array(
+                'networks' => array(
+                    'ETH' => 'T20',
+                    'ERC20' => 'T20',
+                    'TRC20' => 'TTRX',
+                    'OMNI' => '',
+                ),
                 'defaultTimeInForce' => 'FOK',
                 'accountsByType' => array(
                     'bank' => 'bank',
@@ -1148,6 +1154,23 @@ class hitbtc extends Exchange {
             'currency' => $currency['code'],
             'address' => $address,
             'tag' => $tag,
+            'info' => $response,
+        );
+    }
+
+    public function convert_currency_network($code, $amount, $fromNetwork, $toNetwork, $params) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $fromNetwork = $this->safe_string($networks, $fromNetwork, $fromNetwork); // handle ETH>ERC20 alias
+        $toNetwork = $this->safe_string($networks, $toNetwork, $fromNetwork); // handle ETH>ERC20 alias
+        $request = array(
+            'fromCurrency' => $currency['id'] . $fromNetwork,
+            'toCurrency' => $currency['id'] . $toNetwork,
+            'amount' => floatval($amount),
+        );
+        $response = yield $this->privatePostAccountCryptoTransferConvert (array_merge($request, $params));
+        return array(
             'info' => $response,
         );
     }
