@@ -2012,6 +2012,7 @@ module.exports = class ndax extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // this method required login, password and twofa key
         const sessionToken = this.safeString (this.options, 'sessionToken');
         if (sessionToken === undefined) {
