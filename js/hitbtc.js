@@ -175,7 +175,8 @@ module.exports = class hitbtc extends Exchange {
                 'networks': {
                     'ETH': 'T20',
                     'ERC20': 'T20',
-                    'TRC20': 'TTRX',
+                    'TRX': 'TRX',
+                    'TRC20': 'TRX',
                     'OMNI': '',
                 },
                 'defaultTimeInForce': 'FOK',
@@ -1142,6 +1143,13 @@ module.exports = class hitbtc extends Exchange {
         const request = {
             'currency': currency['id'],
         };
+        const network = this.safeString (params, 'network');
+        if (network !== undefined) {
+            params = this.omit (params, 'network');
+            const networks = this.safeValue (this.options, 'networks');
+            const endpart = this.safeString (networks, network, network);
+            request['currency'] += endpart;
+        }
         const response = await this.privateGetAccountCryptoAddressCurrency (this.extend (request, params));
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
