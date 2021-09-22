@@ -1159,11 +1159,14 @@ module.exports = class hitbtc extends Exchange {
         const currency = this.currency (code);
         const networks = this.safeValue (this.options, 'networks', {});
         fromNetwork = this.safeString (networks, fromNetwork, fromNetwork); // handle ETH>ERC20 alias
-        toNetwork = this.safeString (networks, toNetwork, fromNetwork); // handle ETH>ERC20 alias
+        toNetwork = this.safeString (networks, toNetwork, toNetwork); // handle ETH>ERC20 alias
+        if (fromNetwork === toNetwork) {
+            throw new ExchangeError (this.id + ' fromNetwork cannot be the same as toNetwork');
+        }
         const request = {
             'fromCurrency': currency['id'] + fromNetwork,
             'toCurrency': currency['id'] + toNetwork,
-            'amount': parseFloat (amount),
+            'amount': this.currencyToPrecision (code, amount),
         };
         const response = await this.privatePostAccountCryptoTransferConvert (this.extend (request, params));
         return {
