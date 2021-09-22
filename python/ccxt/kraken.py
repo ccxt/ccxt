@@ -1331,9 +1331,10 @@ class kraken(Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = None
+        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
         try:
             response = self.privatePostCancelOrder(self.extend({
-                'txid': id,
+                'txid': clientOrderId or id,
             }, params))
         except Exception as e:
             if self.last_http_response:
@@ -1351,7 +1352,12 @@ class kraken(Exchange):
         request = {}
         if since is not None:
             request['start'] = int(since / 1000)
-        response = self.privatePostOpenOrders(self.extend(request, params))
+        query = params
+        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
+        if clientOrderId is not None:
+            request['userref'] = clientOrderId
+            query = self.omit(params, ['userref', 'clientOrderId'])
+        response = self.privatePostOpenOrders(self.extend(request, query))
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1364,7 +1370,12 @@ class kraken(Exchange):
         request = {}
         if since is not None:
             request['start'] = int(since / 1000)
-        response = self.privatePostClosedOrders(self.extend(request, params))
+        query = params
+        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
+        if clientOrderId is not None:
+            request['userref'] = clientOrderId
+            query = self.omit(params, ['userref', 'clientOrderId'])
+        response = self.privatePostClosedOrders(self.extend(request, query))
         #
         #     {
         #         "error":[],
