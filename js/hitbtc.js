@@ -172,6 +172,12 @@ module.exports = class hitbtc extends Exchange {
                 },
             },
             'options': {
+                'networks': {
+                    'ETH': 'T20',
+                    'ERC20': 'T20',
+                    'TRC20': 'TTRX',
+                    'OMNI': '',
+                },
                 'defaultTimeInForce': 'FOK',
                 'accountsByType': {
                     'bank': 'bank',
@@ -1144,6 +1150,23 @@ module.exports = class hitbtc extends Exchange {
             'currency': currency['code'],
             'address': address,
             'tag': tag,
+            'info': response,
+        };
+    }
+
+    async convertCurrencyNetwork (code, amount, fromNetwork, toNetwork, params) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const networks = this.safeValue (this.options, 'networks', {});
+        fromNetwork = this.safeString (networks, fromNetwork, fromNetwork); // handle ETH>ERC20 alias
+        toNetwork = this.safeString (networks, toNetwork, fromNetwork); // handle ETH>ERC20 alias
+        const request = {
+            'fromCurrency': currency['id'] + fromNetwork,
+            'toCurrency': currency['id'] + toNetwork,
+            'amount': parseFloat (amount),
+        };
+        const response = await this.privatePostAccountCryptoTransferConvert (this.extend (request, params));
+        return {
             'info': response,
         };
     }

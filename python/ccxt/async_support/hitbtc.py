@@ -184,6 +184,12 @@ class hitbtc(Exchange):
                 },
             },
             'options': {
+                'networks': {
+                    'ETH': 'T20',
+                    'ERC20': 'T20',
+                    'TRC20': 'TTRX',
+                    'OMNI': '',
+                },
                 'defaultTimeInForce': 'FOK',
                 'accountsByType': {
                     'bank': 'bank',
@@ -1085,6 +1091,22 @@ class hitbtc(Exchange):
             'currency': currency['code'],
             'address': address,
             'tag': tag,
+            'info': response,
+        }
+
+    async def convert_currency_network(self, code, amount, fromNetwork, toNetwork, params):
+        await self.load_markets()
+        currency = self.currency(code)
+        networks = self.safe_value(self.options, 'networks', {})
+        fromNetwork = self.safe_string(networks, fromNetwork, fromNetwork)  # handle ETH>ERC20 alias
+        toNetwork = self.safe_string(networks, toNetwork, fromNetwork)  # handle ETH>ERC20 alias
+        request = {
+            'fromCurrency': currency['id'] + fromNetwork,
+            'toCurrency': currency['id'] + toNetwork,
+            'amount': float(amount),
+        }
+        response = await self.privatePostAccountCryptoTransferConvert(self.extend(request, params))
+        return {
             'info': response,
         }
 
