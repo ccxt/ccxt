@@ -2014,6 +2014,7 @@ class ndax extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         // this method required login, password and twofa key
         $sessionToken = $this->safe_string($this->options, 'sessionToken');
         if ($sessionToken === null) {

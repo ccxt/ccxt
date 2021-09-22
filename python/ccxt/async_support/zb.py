@@ -974,6 +974,7 @@ class zb(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         password = self.safe_string(params, 'safePwd', self.password)
         if password is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires exchange.password or a safePwd parameter')

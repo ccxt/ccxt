@@ -65,6 +65,7 @@ class bybit extends Exchange {
             ),
             'urls' => array(
                 'test' => array(
+                    'spot' => 'https://api-testnet.{hostname}',
                     'futures' => 'https://api-testnet.{hostname}',
                     'v2' => 'https://api-testnet.{hostname}',
                     'public' => 'https://api-testnet.{hostname}',
@@ -72,6 +73,7 @@ class bybit extends Exchange {
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
                 'api' => array(
+                    'spot' => 'https://api.{hostname}',
                     'futures' => 'https://api.{hostname}',
                     'v2' => 'https://api.{hostname}',
                     'public' => 'https://api.{hostname}',
@@ -87,6 +89,48 @@ class bybit extends Exchange {
                 'referral' => 'https://www.bybit.com/app/register?ref=X7Prm',
             ),
             'api' => array(
+                'spot' => array(
+                    'public' => array(
+                        'get' => array(
+                            'symbols',
+                        ),
+                    ),
+                    'quote' => array(
+                        'get' => array(
+                            'depth',
+                            'depth/merged',
+                            'trades',
+                            'kline',
+                            'ticker/24hr',
+                            'ticker/price',
+                            'ticker/book_ticker',
+                        ),
+                    ),
+                    'private' => array(
+                        'get' => array(
+                            'order',
+                            'open-orders',
+                            'history-orders',
+                            'myTrades',
+                            'account',
+                            'time',
+                        ),
+                        'post' => array(
+                            'order',
+                        ),
+                        'delete' => array(
+                            'order',
+                            'order/fast',
+                        ),
+                    ),
+                    'order' => array(
+                        'delete' => array(
+                            'batch-cancel',
+                            'batch-fast-cancel',
+                            'batch-cancel-by-ids',
+                        ),
+                    ),
+                ),
                 'futures' => array(
                     'private' => array(
                         'get' => array(
@@ -2360,10 +2404,20 @@ class bybit extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $type = $this->safe_string($api, 0);
         $section = $this->safe_string($api, 1);
+        if ($type === 'spot') {
+            if ($section === 'public') {
+                $section = 'v1';
+            } else {
+                $section .= '/v1';
+            }
+        }
         $url = $this->implode_hostname($this->urls['api'][$type]);
         $request = '/' . $type . '/' . $section . '/' . $path;
-        // public v2
-        if ($section === 'public') {
+        if (($type === 'spot') || ($type === 'quote')) {
+            if ($params) {
+                $request .= '?' . $this->rawencode($params);
+            }
+        } else if ($section === 'public') {
             if ($params) {
                 $request .= '?' . $this->rawencode($params);
             }

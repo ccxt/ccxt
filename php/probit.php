@@ -1090,6 +1090,7 @@ class probit extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         // In order to use this method
         // you need to allow API withdrawal from the API Settings Page, and
         // and register the list of withdrawal addresses and destination tags on the API Settings page

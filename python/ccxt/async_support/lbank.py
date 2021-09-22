@@ -512,6 +512,7 @@ class lbank(Exchange):
         return self.filter_by_symbol_since_limit(allOrders, symbol, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # mark and fee are optional params, mark is a note and must be less than 255 characters
         self.check_address(address)
         await self.load_markets()

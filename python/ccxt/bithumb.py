@@ -787,6 +787,7 @@ class bithumb(Exchange):
         return self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
