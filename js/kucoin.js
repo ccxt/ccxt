@@ -15,6 +15,7 @@ module.exports = class kucoin extends ccxt.kucoin {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
+                'watchMyTrades': true,
                 'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
@@ -525,7 +526,11 @@ module.exports = class kucoin extends ccxt.kucoin {
         const request = {
             'privateChannel': true,
         };
-        const orders = await this.subscribe (negotiation, topic, topic, undefined, undefined, this.extend (request, params));
+        let messageHash = topic;
+        if (symbol !== undefined) {
+            messageHash = messageHash + ':' + symbol;
+        }
+        const orders = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -610,7 +615,108 @@ module.exports = class kucoin extends ccxt.kucoin {
             }
             cachedOrders.append (parsed);
             client.resolve (this.orders, messageHash);
+            const symbolSpecificMessageHash = messageHash + ':' + symbol;
+            client.resolve (this.orders, symbolSpecificMessageHash);
         }
+    }
+
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const negotiation = await this.negotiate ();
+        const topic = '/spotMarket/tradeOrders';
+        const request = {
+            'privateChannel': true,
+        };
+        let messageHash = topic;
+        if (symbol !== undefined) {
+            messageHash = messageHash + ':' + symbol;
+        }
+        const trades = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
+        if (this.newUpdates) {
+            limit = trades.getLimit ();
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+    }
+
+    handleMyTrade (client, message) {
+        let trades = this.myTrades;
+        if (trades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            trades = new ArrayCacheBySymbolById (limit);
+        }
+        const data = this.safeValue (message, 'data');
+        const parsed = this.parseWsTrade (data);
+        trades.append (parsed);
+        const messageHash = 'myTrades';
+        client.resolve (trades, messageHash);
+        const symbolSpecificMessageHash = messageHash + ':' + parsed['symbol'];
+        client.resolve (trades, symbolSpecificMessageHash);
+    }
+
+    parseWsTrade (trade) {
+        // {
+        //     "type":"message",
+        //     "topic":"/spotMarket/tradeOrders",
+        //     "subject":"orderChange",
+        //     "channelType":"private",
+        //     "data":{
+        //         "symbol":"KCS-USDT",
+        //         "orderType":"limit",
+        //         "side":"sell",
+        //         "orderId":"5efab07953bdea00089965fa",
+        //         "liquidity":"taker",
+        //         "type":"match",
+        //         "orderTime":1593487482038606180,
+        //         "size":"0.1",
+        //         "filledSize":"0.1",
+        //         "price":"0.938",
+        //         "matchPrice":"0.96738",
+        //         "matchSize":"0.1",
+        //         "tradeId":"5efab07a4ee4c7000a82d6d9",
+        //         "clientOid":"1593487481000313",
+        //         "remainSize":"0",
+        //         "status":"match",
+        //         "ts":1593487482038606180
+        //     }
+        // }
+        const symbol = this.safeString (trade, 'symbol');
+        const type = this.safeString (trade, 'orderType');
+        const side = this.safeString (trade, 'side');
+        const takerOrMaker = this.safeString (trade, 'liquidity');
+        const tradeId = this.safeString (trade, 'tradeId');
+        const price = this.safeFloat (trade, 'matchPrice');
+        const amount = this.safeFloat (trade, 'matchSize');
+        const order = this.safeString (trade, 'orderId');
+        let timestamp = this.safeInteger (order, 'ts');
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp / 1000000);
+        }
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
+        const market = this.market (symbol);
+        const feeCurrency = market['quote'];
+        const fee = {
+            'cost': undefined,
+            'rate': undefined,
+            'currency': feeCurrency,
+        };
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': tradeId,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
     }
 
     handleSubject (client, message) {
@@ -636,9 +742,17 @@ module.exports = class kucoin extends ccxt.kucoin {
             'trade.snapshot': this.handleTicker,
             'trade.l3match': this.handleTrade,
             'trade.candles.update': this.handleOHLCV,
-            'orderChange': this.handleOrder,
         };
-        const method = this.safeValue (methods, subject);
+        let method = this.safeValue (methods, subject);
+        if (subject === 'orderChange') {
+            const data = this.safeValue (message, 'data');
+            const type = this.safeString (data, 'type');
+            if (type === 'match') {
+                method = this.handleMyTrade;
+            } else {
+                method = this.handleOrder;
+            }
+        }
         if (method === undefined) {
             return message;
         } else {
