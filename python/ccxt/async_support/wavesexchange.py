@@ -1468,6 +1468,7 @@ class wavesexchange(Exchange):
             raise ExchangeError(self.id + ' ' + body)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # currently only works for BTC and WAVES
         if code != 'WAVES':
             supportedCurrencies = await self.privateGetWithdrawCurrencies()

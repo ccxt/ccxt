@@ -187,6 +187,11 @@ class poloniex(Exchange):
                 'USDTETH': 'USDT',
             },
             'options': {
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRX': 'TRON',
+                    'TRC20': 'TRON',
+                },
                 'limits': {
                     'cost': {
                         'min': {
@@ -1196,6 +1201,7 @@ class poloniex(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
@@ -1206,6 +1212,12 @@ class poloniex(Exchange):
         }
         if tag is not None:
             request['paymentId'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['currency'] += network  # when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            params = self.omit(params, 'network')
         response = self.privatePostWithdraw(self.extend(request, params))
         #
         #     {

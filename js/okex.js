@@ -18,6 +18,7 @@ module.exports = class okex extends Exchange {
             'version': 'v5',
             'rateLimit': 20 / 3, // 300 requests per 2 seconds
             'pro': true,
+            'certified': true,
             'has': {
                 'CORS': false,
                 'cancelOrder': true,
@@ -484,7 +485,6 @@ module.exports = class okex extends Exchange {
                     'TRX': 'TRC20',
                     'OMNI': 'Omini',
                 },
-                'fetchCurrencies': true, // this is a private call and it requires API keys
                 'fetchOHLCV': {
                     'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
@@ -756,10 +756,6 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const fetchCurrenciesEnabled = this.safeValue (this.options, 'fetchCurrencies');
-        if (!fetchCurrenciesEnabled) {
-            return undefined;
-        }
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
@@ -2192,6 +2188,7 @@ module.exports = class okex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

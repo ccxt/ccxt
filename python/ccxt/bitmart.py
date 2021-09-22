@@ -308,6 +308,10 @@ class bitmart(Exchange):
                 'TCT': 'TacoCat Token',
             },
             'options': {
+                'networks': {
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                },
                 'defaultType': 'spot',  # 'spot', 'swap'
                 'fetchBalance': {
                     'type': 'spot',  # 'spot', 'swap', 'contract', 'account'
@@ -2002,6 +2006,7 @@ class bitmart(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
@@ -2013,6 +2018,12 @@ class bitmart(Exchange):
         }
         if tag is not None:
             request['address_memo'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['currency'] += '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+            params = self.omit(params, 'network')
         response = self.privateAccountPostWithdrawApply(self.extend(request, params))
         #
         #     {

@@ -81,6 +81,7 @@ class bybit(Exchange):
             },
             'urls': {
                 'test': {
+                    'spot': 'https://api-testnet.{hostname}',
                     'futures': 'https://api-testnet.{hostname}',
                     'v2': 'https://api-testnet.{hostname}',
                     'public': 'https://api-testnet.{hostname}',
@@ -88,6 +89,7 @@ class bybit(Exchange):
                 },
                 'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
                 'api': {
+                    'spot': 'https://api.{hostname}',
                     'futures': 'https://api.{hostname}',
                     'v2': 'https://api.{hostname}',
                     'public': 'https://api.{hostname}',
@@ -103,6 +105,48 @@ class bybit(Exchange):
                 'referral': 'https://www.bybit.com/app/register?ref=X7Prm',
             },
             'api': {
+                'spot': {
+                    'public': {
+                        'get': [
+                            'symbols',
+                        ],
+                    },
+                    'quote': {
+                        'get': [
+                            'depth',
+                            'depth/merged',
+                            'trades',
+                            'kline',
+                            'ticker/24hr',
+                            'ticker/price',
+                            'ticker/book_ticker',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'order',
+                            'open-orders',
+                            'history-orders',
+                            'myTrades',
+                            'account',
+                            'time',
+                        ],
+                        'post': [
+                            'order',
+                        ],
+                        'delete': [
+                            'order',
+                            'order/fast',
+                        ],
+                    },
+                    'order': {
+                        'delete': [
+                            'batch-cancel',
+                            'batch-fast-cancel',
+                            'batch-cancel-by-ids',
+                        ],
+                    },
+                },
                 'futures': {
                     'private': {
                         'get': [
@@ -2248,10 +2292,17 @@ class bybit(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         type = self.safe_string(api, 0)
         section = self.safe_string(api, 1)
+        if type == 'spot':
+            if section == 'public':
+                section = 'v1'
+            else:
+                section += '/v1'
         url = self.implode_hostname(self.urls['api'][type])
         request = '/' + type + '/' + section + '/' + path
-        # public v2
-        if section == 'public':
+        if (type == 'spot') or (type == 'quote'):
+            if params:
+                request += '?' + self.rawencode(params)
+        elif section == 'public':
             if params:
                 request += '?' + self.rawencode(params)
         elif type == 'public':

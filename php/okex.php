@@ -21,6 +21,7 @@ class okex extends Exchange {
             'version' => 'v5',
             'rateLimit' => 20 / 3, // 300 requests per 2 seconds
             'pro' => true,
+            'certified' => true,
             'has' => array(
                 'CORS' => false,
                 'cancelOrder' => true,
@@ -482,6 +483,11 @@ class okex extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'networks' => array(
+                    'ETH' => 'ERC20',
+                    'TRX' => 'TRC20',
+                    'OMNI' => 'Omini',
+                ),
                 'fetchOHLCV' => array(
                     'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 ),
@@ -753,6 +759,13 @@ class okex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        // this endpoint requires authentication
+        // while fetchCurrencies is a public API method by design
+        // therefore we check the keys here
+        // and fallback to generating the currencies from the markets
+        if (!$this->check_required_credentials(false)) {
+            return null;
+        }
         // has['fetchCurrencies'] is currently set to false
         // it will reply with array("msg":"Request header “OK_ACCESS_KEY“ can't be empty.","$code":"50103")
         // if you attempt to access it without authentication
@@ -804,6 +817,7 @@ class okex extends Exchange {
                 'active' => $active,
                 'fee' => $this->safe_number($first, 'minFee'),
                 'precision' => $precision,
+                'networks' => $chains,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array(
@@ -2177,6 +2191,7 @@ class okex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2185,7 +2200,7 @@ class okex extends Exchange {
         }
         $fee = $this->safe_string($params, 'fee');
         if ($fee === null) {
-            throw new ArgumentsRequired($this->id . " withdraw() requires a `$fee` string parameter, network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set '0'. Withdrawing to external digital asset $address requires network $transaction $fee->");
+            throw new ArgumentsRequired($this->id . " withdraw() requires a `$fee` string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set '0'. Withdrawing to external digital asset $address requires $network $transaction $fee->");
         }
         $request = array(
             'ccy' => $currency['id'],
@@ -2198,6 +2213,13 @@ class okex extends Exchange {
             $request['pwd'] = $params['password'];
         } else if (is_array($params) && array_key_exists('pwd', $params)) {
             $request['pwd'] = $params['pwd'];
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ETH>ERC20 alias
+        if ($network !== null) {
+            $request['chain'] = $currency['id'] . '-' . $network;
+            $params = $this->omit($params, 'network');
         }
         $query = $this->omit($params, array( 'fee', 'password', 'pwd' ));
         if (!(is_array($request) && array_key_exists('pwd', $request))) {

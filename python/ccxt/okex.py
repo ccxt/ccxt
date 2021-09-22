@@ -37,6 +37,7 @@ class okex(Exchange):
             'version': 'v5',
             'rateLimit': 20 / 3,  # 300 requests per 2 seconds
             'pro': True,
+            'certified': True,
             'has': {
                 'CORS': False,
                 'cancelOrder': True,
@@ -498,6 +499,11 @@ class okex(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'OMNI': 'Omini',
+                },
                 'fetchOHLCV': {
                     'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
@@ -754,6 +760,12 @@ class okex(Exchange):
         return self.parse_markets(data)
 
     def fetch_currencies(self, params={}):
+        # self endpoint requires authentication
+        # while fetchCurrencies is a public API method by design
+        # therefore we check the keys here
+        # and fallback to generating the currencies from the markets
+        if not self.check_required_credentials(False):
+            return None
         # has['fetchCurrencies'] is currently set to False
         # it will reply with {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
         # if you attempt to access it without authentication
@@ -804,6 +816,7 @@ class okex(Exchange):
                 'active': active,
                 'fee': self.safe_number(first, 'minFee'),
                 'precision': precision,
+                'networks': chains,
                 'limits': {
                     'amount': {'min': None, 'max': None},
                     'withdraw': {
@@ -2107,6 +2120,7 @@ class okex(Exchange):
         return address
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
@@ -2126,6 +2140,12 @@ class okex(Exchange):
             request['pwd'] = params['password']
         elif 'pwd' in params:
             request['pwd'] = params['pwd']
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ETH>ERC20 alias
+        if network is not None:
+            request['chain'] = currency['id'] + '-' + network
+            params = self.omit(params, 'network')
         query = self.omit(params, ['fee', 'password', 'pwd'])
         if not ('pwd' in request):
             raise ExchangeError(self.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase')

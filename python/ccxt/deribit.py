@@ -546,8 +546,8 @@ class deribit(Exchange):
         currencyId = self.safe_string(balance, 'currency')
         currencyCode = self.safe_currency_code(currencyId)
         account = self.account()
-        account['free'] = self.safe_string(balance, 'availableFunds')
-        account['used'] = self.safe_string(balance, 'maintenanceMargin')
+        account['free'] = self.safe_string(balance, 'available_funds')
+        account['used'] = self.safe_string(balance, 'maintenance_margin')
         account['total'] = self.safe_string(balance, 'equity')
         result[currencyCode] = account
         return self.parse_balance(result)
@@ -1649,6 +1649,7 @@ class deribit(Exchange):
         return result
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)

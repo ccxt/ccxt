@@ -539,8 +539,8 @@ module.exports = class deribit extends Exchange {
         const currencyId = this.safeString (balance, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        account['free'] = this.safeString (balance, 'availableFunds');
-        account['used'] = this.safeString (balance, 'maintenanceMargin');
+        account['free'] = this.safeString (balance, 'available_funds');
+        account['used'] = this.safeString (balance, 'maintenance_margin');
         account['total'] = this.safeString (balance, 'equity');
         result[currencyCode] = account;
         return this.parseBalance (result);
@@ -1702,6 +1702,7 @@ module.exports = class deribit extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

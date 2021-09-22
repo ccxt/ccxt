@@ -12,6 +12,7 @@ module.exports = class huobipro extends huobi {
         // to be removed soon
         return this.deepExtend (super.describe (), {
             'id': 'huobipro',
+            'alias': true,
         });
     }
 };

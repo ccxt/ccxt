@@ -1017,6 +1017,7 @@ class zb extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $password = $this->safe_string($params, 'safePwd', $this->password);
         if ($password === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() requires exchange.password or a safePwd parameter');

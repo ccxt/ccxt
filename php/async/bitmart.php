@@ -288,6 +288,10 @@ class bitmart extends Exchange {
                 'TCT' => 'TacoCat Token',
             ),
             'options' => array(
+                'networks' => array(
+                    'TRX' => 'TRC20',
+                    'ETH' => 'ERC20',
+                ),
                 'defaultType' => 'spot', // 'spot', 'swap'
                 'fetchBalance' => array(
                     'type' => 'spot', // 'spot', 'swap', 'contract', 'account'
@@ -2091,6 +2095,7 @@ class bitmart extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
         $currency = $this->currency($code);
@@ -2102,6 +2107,13 @@ class bitmart extends Exchange {
         );
         if ($tag !== null) {
             $request['address_memo'] = $tag;
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['currency'] .= '-' . $network; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+            $params = $this->omit($params, 'network');
         }
         $response = yield $this->privateAccountPostWithdrawApply (array_merge($request, $params));
         //

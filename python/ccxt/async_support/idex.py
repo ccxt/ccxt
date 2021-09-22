@@ -1029,6 +1029,7 @@ class idex(Exchange):
         return self.parse_order(response, market)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_required_credentials()
         await self.load_markets()
         nonce = self.uuidv1()
