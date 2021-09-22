@@ -1174,7 +1174,7 @@ module.exports = class hitbtc extends Exchange {
         const request = {
             'fromCurrency': currency['id'] + fromNetwork,
             'toCurrency': currency['id'] + toNetwork,
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': parseFloat (this.currencyToPrecision (code, amount)),
         };
         const response = await this.privatePostAccountCryptoTransferConvert (this.extend (request, params));
         return {
