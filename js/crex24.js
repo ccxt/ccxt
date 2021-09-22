@@ -149,6 +149,10 @@ module.exports = class crex24 extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                },
                 'fetchOrdersMethod': 'tradingGetOrderHistory', // or 'tradingGetActiveOrders'
                 'fetchClosedOrdersMethod': 'tradingGetOrderHistory', // or 'tradingGetActiveOrders'
                 'fetchTickersMethod': 'publicGetTicker24hr',
@@ -1331,6 +1335,13 @@ module.exports = class crex24 extends Exchange {
         };
         if (tag !== undefined) {
             request['paymentId'] = tag;
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['transport'] = network;
+            params = this.omit (params, 'network');
         }
         const response = await this.accountPostWithdraw (this.extend (request, params));
         return this.parseTransaction (response);
