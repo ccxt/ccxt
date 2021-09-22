@@ -1724,7 +1724,7 @@ module.exports = class Exchange {
         return '1e' + Precise.stringNeg (precision)
     }
 
-    handleTagAndParams (tag, params) {
+    handleWithdrawTagAndParams (tag, params) {
         if (typeof tag === 'object') {
             params = this.extend (tag, params)
         }

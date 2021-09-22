@@ -2358,7 +2358,7 @@ class Exchange(object):
             return None
         return string_number
 
-    def handle_tag_and_params(self, tag, params):
+    def handle_withdraw_tag_and_params(self, tag, params):
         if isinstance(tag, dict):
             params = self.extend(tag, params)
         if tag is None:

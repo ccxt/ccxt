@@ -3147,7 +3147,7 @@ class Exchange {
         return $string_number;
     }
 
-    public function handle_tag_and_params($tag, $params) {
+    public function handle_withdraw_tag_and_params($tag, $params) {
         if (gettype($tag) === 'array') {
             $params = $this->extend($tag, $params);
         }
