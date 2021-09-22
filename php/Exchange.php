@@ -360,6 +360,7 @@ class Exchange {
         'safeNumber' => 'safe_number',
         'safeNumber2' => 'safe_number2',
         'parsePrecision' => 'parse_precision',
+        'handleTagAndParams' => 'handle_tag_and_params',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -3144,5 +3145,15 @@ class Exchange {
             return null;
         }
         return $string_number;
+    }
+
+    public function handle_tag_and_params($tag, $params) {
+        if (gettype($tag) === 'array') {
+            $params = $this->extend($tag, $params);
+        }
+        if ($tag === null) {
+            $tag = $this->safe_string($params, 'tag');
+        }
+        return array( $tag, $params );
     }
 }

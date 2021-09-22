@@ -1552,6 +1552,7 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleTagAndParams (tag, params);
         // currently only works for BTC and WAVES
         if (code !== 'WAVES') {
             const supportedCurrencies = await this.privateGetWithdrawCurrencies ();

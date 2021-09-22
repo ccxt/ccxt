@@ -3493,6 +3493,26 @@ Some exchanges require a manual approval of each withdrawal by means of 2FA (2-f
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](#exchanges) for details.
 
+#### Other supported withdraw signatures
+
+It is also possible to pass the parameters as the fourth argument with or without a specified tag
+
+```JavaScript
+// JavaScript
+exchange.withdraw (code, amount, address, { tag, network: 'ETH' })
+```
+
+```Python
+# Python
+exchange.withdraw(code, amount, address, { 'tag': tag, 'network': 'ETH' })
+```
+
+```PHP
+// PHP
+$exchange->withdraw ($code, $amount, $address, array( 'tag' => tag, 'network' -> 'ETH' ));
+```
+
+
 ## Transactions
 
 #### Transaction Structure
