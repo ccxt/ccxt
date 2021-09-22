@@ -124,8 +124,8 @@ module.exports = class kucoin extends ccxt.kucoin {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const negotiation = await this.negotiate ();
-        const topic = '/market/snapshot';
-        const messageHash = topic + ':' + market['id'];
+        const topic = '/market/snapshot:' + market['id'];
+        const messageHash = topic;
         return await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
     }
 
@@ -179,10 +179,10 @@ module.exports = class kucoin extends ccxt.kucoin {
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
-        const topic = '/market/candles';
         const market = this.market (symbol);
         const period = this.timeframes[timeframe];
-        const messageHash = topic + ':' + market['id'] + '_' + period;
+        const topic = '/market/candles:' + market['id'] + '_' + period;
+        const messageHash = topic;
         const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -236,9 +236,9 @@ module.exports = class kucoin extends ccxt.kucoin {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
-        const topic = '/market/match';
         const market = this.market (symbol);
-        const messageHash = topic + ':' + market['id'];
+        const topic = '/market/match:' + market['id'];
+        const messageHash = topic;
         const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -304,9 +304,9 @@ module.exports = class kucoin extends ccxt.kucoin {
         }
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
-        const topic = '/market/level2';
         const market = this.market (symbol);
-        const messageHash = topic + ':' + market['id'];
+        const topic = '/market/level2:' + market['id'];
+        const messageHash = topic;
         const orderbook = await this.subscribe (negotiation, topic, messageHash, this.handleOrderBookSubscription, symbol, params);
         return orderbook.limit (limit);
     }
