@@ -282,6 +282,10 @@ class huobi extends Exchange {
                 ),
             ),
             'options' => array(
+                'networks' => array(
+                    'ETH' => 'ERC20',
+                    'TRX' => 'TRC20',
+                ),
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
@@ -1512,6 +1516,13 @@ class huobi extends Exchange {
         );
         if ($tag !== null) {
             $request['addr-tag'] = $tag; // only for XRP?
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_lower($networks, $network, $network); // handle ETH>ERC20 alias
+        if ($network !== null) {
+            $request['chain'] = $network . $currency['id'];
+            $params = $this->omit($params, 'network');
         }
         $response = $this->privatePostDwWithdrawApiCreate (array_merge($request, $params));
         $id = $this->safe_string($response, 'data');
