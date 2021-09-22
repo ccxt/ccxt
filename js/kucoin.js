@@ -105,7 +105,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         const subscribe = {
             'id': nonce,
             'type': 'subscribe',
-            'topic': messageHash,
+            'topic': topic,
             'response': true,
         };
         const subscription = {
@@ -116,7 +116,8 @@ module.exports = class kucoin extends ccxt.kucoin {
             'method': method,
         };
         const request = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        const subscriptionHash = topic;
+        return await this.watch (url, messageHash, request, subscriptionHash, subscription);
     }
 
     async watchTicker (symbol, params = {}) {
