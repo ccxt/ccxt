@@ -546,8 +546,8 @@ class deribit(Exchange):
         currencyId = self.safe_string(balance, 'currency')
         currencyCode = self.safe_currency_code(currencyId)
         account = self.account()
-        account['free'] = self.safe_string(balance, 'availableFunds')
-        account['used'] = self.safe_string(balance, 'maintenanceMargin')
+        account['free'] = self.safe_string(balance, 'available_funds')
+        account['used'] = self.safe_string(balance, 'maintenance_margin')
         account['total'] = self.safe_string(balance, 'equity')
         result[currencyCode] = account
         return self.parse_balance(result)
