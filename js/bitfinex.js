@@ -1162,7 +1162,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        [ tag, params ] = this.handleTagAndParams (tag, params);
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method

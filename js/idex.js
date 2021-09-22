@@ -1083,7 +1083,7 @@ module.exports = class idex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        [ tag, params ] = this.handleTagAndParams (tag, params);
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const nonce = this.uuidv1 ();

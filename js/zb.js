@@ -1012,7 +1012,7 @@ module.exports = class zb extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        [ tag, params ] = this.handleTagAndParams (tag, params);
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const password = this.safeString (params, 'safePwd', this.password);
         if (password === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires exchange.password or a safePwd parameter');

@@ -1470,7 +1470,7 @@ module.exports = class kucoin extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        [ tag, params ] = this.handleTagAndParams (tag, params);
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);

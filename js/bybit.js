@@ -63,6 +63,7 @@ module.exports = class bybit extends Exchange {
             },
             'urls': {
                 'test': {
+                    'spot': 'https://api-testnet.{hostname}',
                     'futures': 'https://api-testnet.{hostname}',
                     'v2': 'https://api-testnet.{hostname}',
                     'public': 'https://api-testnet.{hostname}',
@@ -70,6 +71,7 @@ module.exports = class bybit extends Exchange {
                 },
                 'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
                 'api': {
+                    'spot': 'https://api.{hostname}',
                     'futures': 'https://api.{hostname}',
                     'v2': 'https://api.{hostname}',
                     'public': 'https://api.{hostname}',
@@ -85,6 +87,48 @@ module.exports = class bybit extends Exchange {
                 'referral': 'https://www.bybit.com/app/register?ref=X7Prm',
             },
             'api': {
+                'spot': {
+                    'public': {
+                        'get': [
+                            'symbols',
+                        ],
+                    },
+                    'quote': {
+                        'get': [
+                            'depth',
+                            'depth/merged',
+                            'trades',
+                            'kline',
+                            'ticker/24hr',
+                            'ticker/price',
+                            'ticker/book_ticker',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'order',
+                            'open-orders',
+                            'history-orders',
+                            'myTrades',
+                            'account',
+                            'time',
+                        ],
+                        'post': [
+                            'order',
+                        ],
+                        'delete': [
+                            'order',
+                            'order/fast',
+                        ],
+                    },
+                    'order': {
+                        'delete': [
+                            'batch-cancel',
+                            'batch-fast-cancel',
+                            'batch-cancel-by-ids',
+                        ],
+                    },
+                },
                 'futures': {
                     'private': {
                         'get': [
@@ -2357,11 +2401,21 @@ module.exports = class bybit extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = this.safeString (api, 0);
-        const section = this.safeString (api, 1);
+        let section = this.safeString (api, 1);
+        if (type === 'spot') {
+            if (section === 'public') {
+                section = 'v1';
+            } else {
+                section += '/v1';
+            }
+        }
         let url = this.implodeHostname (this.urls['api'][type]);
         let request = '/' + type + '/' + section + '/' + path;
-        // public v2
-        if (section === 'public') {
+        if ((type === 'spot') || (type === 'quote')) {
+            if (Object.keys (params).length) {
+                request += '?' + this.rawencode (params);
+            }
+        } else if (section === 'public') {
             if (Object.keys (params).length) {
                 request += '?' + this.rawencode (params);
             }
