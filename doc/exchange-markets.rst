@@ -2,7 +2,7 @@
 Supported Exchanges
 ===================
 
-The CCXT library currently supports the following 108 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 109 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -538,6 +538,18 @@ The CCXT library currently supports the following 108 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://bybit-exchange.github.io/docs/inverse/
           :alt: API Version 2
+     
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg
+          :target: https://www.byte-trade.com
+          :alt: bytetrade
+     
+     - bytetrade
+     - `ByteTrade <https://www.byte-trade.com>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://docs.byte-trade.com/#description
+          :alt: API Version *
      
      - 
      - 
