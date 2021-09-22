@@ -480,6 +480,12 @@ module.exports = class okex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'OMNI': 'Omini',
+                },
+                'fetchCurrencies': true, // this is a private call and it requires API keys
                 'fetchOHLCV': {
                     'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
@@ -751,6 +757,17 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        const fetchCurrenciesEnabled = this.safeValue (this.options, 'fetchCurrencies');
+        if (!fetchCurrenciesEnabled) {
+            return undefined;
+        }
+        // this endpoint requires authentication
+        // while fetchCurrencies is a public API method by design
+        // therefore we check the keys here
+        // and fallback to generating the currencies from the markets
+        if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
         // has['fetchCurrencies'] is currently set to false
         // it will reply with {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
         // if you attempt to access it without authentication
@@ -802,6 +819,7 @@ module.exports = class okex extends Exchange {
                 'active': active,
                 'fee': this.safeNumber (first, 'minFee'),
                 'precision': precision,
+                'networks': chains,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': {
@@ -2196,6 +2214,13 @@ module.exports = class okex extends Exchange {
             request['pwd'] = params['password'];
         } else if ('pwd' in params) {
             request['pwd'] = params['pwd'];
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ETH>ERC20 alias
+        if (network !== undefined) {
+            request['chain'] = currency['id'] + '-' + network;
+            params = this.omit (params, 'network');
         }
         const query = this.omit (params, [ 'fee', 'password', 'pwd' ]);
         if (!('pwd' in request)) {
