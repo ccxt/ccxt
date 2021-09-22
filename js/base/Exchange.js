@@ -1727,6 +1727,7 @@ module.exports = class Exchange {
     handleWithdrawTagAndParams (tag, params) {
         if (typeof tag === 'object') {
             params = this.extend (tag, params)
+            tag = undefined
         }
         if (tag === undefined) {
             tag = this.safeString (params, 'tag')
