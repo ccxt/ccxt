@@ -12,7 +12,7 @@ $exchange = new \ccxt\coinbasepro (array (
     'enableRateLimit' => true,
 ));
 
-$exchange->urls['api'] = $exchange->urls['test'];
+$exchange->set_sandbox_mode(true);
 
 // preload the markets first
 
