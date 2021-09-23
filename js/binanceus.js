@@ -31,6 +31,10 @@ module.exports = class binanceus extends binance {
                 'doc': 'https://github.com/binance-us/binance-official-api-docs',
                 'fees': 'https://www.binance.us/en/fee/schedule',
             },
+            'options': {
+                'fetchCurrencies': false,
+                'quoteOrderQty': false,
+            },
             'fees': {
                 'trading': {
                     'tierBased': false,
