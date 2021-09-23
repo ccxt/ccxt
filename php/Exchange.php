@@ -3150,6 +3150,7 @@ class Exchange {
     public function handle_withdraw_tag_and_params($tag, $params) {
         if (gettype($tag) === 'array') {
             $params = $this->extend($tag, $params);
+            $tag = null;
         }
         if ($tag === null) {
             $tag = $this->safe_string($params, 'tag');

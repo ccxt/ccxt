@@ -2361,6 +2361,7 @@ class Exchange(object):
     def handle_withdraw_tag_and_params(self, tag, params):
         if isinstance(tag, dict):
             params = self.extend(tag, params)
+            tag = None
         if tag is None:
             tag = self.safe_string(params, 'tag')
         return [tag, params]
