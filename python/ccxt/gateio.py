@@ -286,6 +286,11 @@ class gateio(Exchange):
                 'VAI': 'VAIOT',
             },
             'options': {
+                'networks': {
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
+                },
                 'accountsByType': {
                     'spot': 'spot',
                     'margin': 'margin',
@@ -975,6 +980,12 @@ class gateio(Exchange):
         }
         if tag is not None:
             request['memo'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_lower(networks, network, network)  # handle ETH>ERC20 alias
+        if network is not None:
+            request['chain'] = network
+            params = self.omit(params, 'network')
         response = self.privateWithdrawalsPost(self.extend(request, params))
         #
         #     {
