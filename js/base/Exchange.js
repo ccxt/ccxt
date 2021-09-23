@@ -1723,4 +1723,15 @@ module.exports = class Exchange {
         }
         return '1e' + Precise.stringNeg (precision)
     }
+
+    handleWithdrawTagAndParams (tag, params) {
+        if (typeof tag === 'object') {
+            params = this.extend (tag, params)
+            tag = undefined
+        }
+        if (tag === undefined) {
+            tag = this.safeString (params, 'tag')
+        }
+        return [ tag, params ]
+    }
 }

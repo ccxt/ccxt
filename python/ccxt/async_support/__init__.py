@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.56.63'
+__version__ = '1.56.83'
 
 # -----------------------------------------------------------------------------
 
@@ -90,6 +90,7 @@ from ccxt.async_support.btcturk import btcturk                            # noqa
 from ccxt.async_support.buda import buda                                  # noqa: F401
 from ccxt.async_support.bw import bw                                      # noqa: F401
 from ccxt.async_support.bybit import bybit                                # noqa: F401
+from ccxt.async_support.bytetrade import bytetrade                        # noqa: F401
 from ccxt.async_support.cdax import cdax                                  # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.coinbase import coinbase                          # noqa: F401
@@ -204,6 +205,7 @@ exchanges = [
     'buda',
     'bw',
     'bybit',
+    'bytetrade',
     'cdax',
     'cex',
     'coinbase',

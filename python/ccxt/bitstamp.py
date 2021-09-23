@@ -1407,6 +1407,7 @@ class bitstamp(Exchange):
     def withdraw(self, code, amount, address, tag=None, params={}):
         # For fiat withdrawals please provide all required additional parameters in the 'params'
         # Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         self.check_address(address)
         request = {

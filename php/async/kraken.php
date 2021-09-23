@@ -27,7 +27,7 @@ class kraken extends Exchange {
             'countries' => array( 'US' ),
             'version' => '0',
             'rateLimit' => 3000,
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'has' => array(
                 'cancelAllOrders' => true,
@@ -1418,9 +1418,10 @@ class kraken extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         yield $this->load_markets();
         $response = null;
+        $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
         try {
             $response = yield $this->privatePostCancelOrder (array_merge(array(
-                'txid' => $id,
+                'txid' => $clientOrderId || $id,
             ), $params));
         } catch (Exception $e) {
             if ($this->last_http_response) {
@@ -1444,7 +1445,13 @@ class kraken extends Exchange {
         if ($since !== null) {
             $request['start'] = intval($since / 1000);
         }
-        $response = yield $this->privatePostOpenOrders (array_merge($request, $params));
+        $query = $params;
+        $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['userref'] = $clientOrderId;
+            $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
+        }
+        $response = yield $this->privatePostOpenOrders (array_merge($request, $query));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1460,7 +1467,13 @@ class kraken extends Exchange {
         if ($since !== null) {
             $request['start'] = intval($since / 1000);
         }
-        $response = yield $this->privatePostClosedOrders (array_merge($request, $params));
+        $query = $params;
+        $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['userref'] = $clientOrderId;
+            $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
+        }
+        $response = yield $this->privatePostClosedOrders (array_merge($request, $query));
         //
         //     {
         //         "error":array(),
@@ -1728,6 +1741,7 @@ class kraken extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         if (is_array($params) && array_key_exists('key', $params)) {
             yield $this->load_markets();

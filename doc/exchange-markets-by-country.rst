@@ -376,17 +376,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 3
      
    * - China
-     - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
-          :target: https://www.okex.com/join/1888677
-          :alt: okex5
-     
-     - okex5
-     - `OKEX <https://www.okex.com/join/1888677>`__
-     - .. image:: https://img.shields.io/badge/5-lightgray
-          :target: https://www.okex.com/docs/en/
-          :alt: API Version 5
-     
-   * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg
           :target: https://phemex.com/register?referralCode=EDNVJ
           :alt: phemex
@@ -563,6 +552,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - Hong Kong
+     - .. image:: https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg
+          :target: https://www.byte-trade.com
+          :alt: bytetrade
+     
+     - bytetrade
+     - `ByteTrade <https://www.byte-trade.com>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://docs.byte-trade.com/#description
+          :alt: API Version *
+     
+   * - Hong Kong
      - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
           :target: https://ftx.com/#a=ccxt
           :alt: ftx
@@ -726,17 +726,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://coincheck.com/documents/exchange/api
           :alt: API Version *
-     
-   * - Japan
-     - .. image:: https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg
-          :target: https://www.huobi.co.jp/register/?invite_code=znnq3
-          :alt: huobijp
-     
-     - huobijp
-     - `Huobi Japan <https://www.huobi.co.jp/register/?invite_code=znnq3>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://api-doc.huobi.co.jp
-          :alt: API Version 1
      
    * - Japan
      - .. image:: https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg
@@ -913,17 +902,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.buda.com
           :alt: API Version 2
-     
-   * - Russia
-     - .. image:: https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg
-          :target: https://cdax.io/invite?invite_code=esc74
-          :alt: cdax
-     
-     - cdax
-     - `CDAX <https://cdax.io/invite?invite_code=esc74>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://github.com/cloudapidoc/API_Docs
-          :alt: API Version 1
      
    * - Russia
      - .. image:: https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg
@@ -1580,17 +1558,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: okex
      
      - okex
-     - `OKEX <https://www.okex.com/join/1888677>`__
-     - .. image:: https://img.shields.io/badge/5-lightgray
-          :target: https://www.okex.com/docs/en/
-          :alt: API Version 5
-     
-   * - US
-     - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
-          :target: https://www.okex.com/join/1888677
-          :alt: okex5
-     
-     - okex5
      - `OKEX <https://www.okex.com/join/1888677>`__
      - .. image:: https://img.shields.io/badge/5-lightgray
           :target: https://www.okex.com/docs/en/

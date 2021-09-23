@@ -18,6 +18,7 @@ module.exports = class okex extends Exchange {
             'version': 'v5',
             'rateLimit': 20 / 3, // 300 requests per 2 seconds
             'pro': true,
+            'certified': true,
             'has': {
                 'CORS': false,
                 'cancelOrder': true,
@@ -479,6 +480,11 @@ module.exports = class okex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'OMNI': 'Omini',
+                },
                 'fetchOHLCV': {
                     'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
@@ -750,6 +756,13 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        // this endpoint requires authentication
+        // while fetchCurrencies is a public API method by design
+        // therefore we check the keys here
+        // and fallback to generating the currencies from the markets
+        if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
         // has['fetchCurrencies'] is currently set to false
         // it will reply with {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
         // if you attempt to access it without authentication
@@ -801,6 +814,7 @@ module.exports = class okex extends Exchange {
                 'active': active,
                 'fee': this.safeNumber (first, 'minFee'),
                 'precision': precision,
+                'networks': chains,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': {
@@ -2174,6 +2188,7 @@ module.exports = class okex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2195,6 +2210,13 @@ module.exports = class okex extends Exchange {
             request['pwd'] = params['password'];
         } else if ('pwd' in params) {
             request['pwd'] = params['pwd'];
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ETH>ERC20 alias
+        if (network !== undefined) {
+            request['chain'] = currency['id'] + '-' + network;
+            params = this.omit (params, 'network');
         }
         const query = this.omit (params, [ 'fee', 'password', 'pwd' ]);
         if (!('pwd' in request)) {

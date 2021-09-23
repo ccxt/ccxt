@@ -17,7 +17,7 @@ module.exports = class kraken extends Exchange {
             'countries': [ 'US' ],
             'version': '0',
             'rateLimit': 3000,
-            'certified': true,
+            'certified': false,
             'pro': true,
             'has': {
                 'cancelAllOrders': true,
@@ -1408,9 +1408,10 @@ module.exports = class kraken extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = undefined;
+        const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
         try {
             response = await this.privatePostCancelOrder (this.extend ({
-                'txid': id,
+                'txid': clientOrderId || id,
             }, params));
         } catch (e) {
             if (this.last_http_response) {
@@ -1434,7 +1435,13 @@ module.exports = class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = parseInt (since / 1000);
         }
-        const response = await this.privatePostOpenOrders (this.extend (request, params));
+        let query = params;
+        const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['userref'] = clientOrderId;
+            query = this.omit (params, [ 'userref', 'clientOrderId' ]);
+        }
+        const response = await this.privatePostOpenOrders (this.extend (request, query));
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1450,7 +1457,13 @@ module.exports = class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = parseInt (since / 1000);
         }
-        const response = await this.privatePostClosedOrders (this.extend (request, params));
+        let query = params;
+        const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['userref'] = clientOrderId;
+            query = this.omit (params, [ 'userref', 'clientOrderId' ]);
+        }
+        const response = await this.privatePostClosedOrders (this.extend (request, query));
         //
         //     {
         //         "error":[],
@@ -1718,6 +1731,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if ('key' in params) {
             await this.loadMarkets ();

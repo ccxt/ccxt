@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.56.63'
+__version__ = '1.56.83'
 
 # -----------------------------------------------------------------------------
 
@@ -2357,3 +2357,11 @@ class Exchange(object):
         if float(string_number) == 0:
             return None
         return string_number
+
+    def handle_withdraw_tag_and_params(self, tag, params):
+        if isinstance(tag, dict):
+            params = self.extend(tag, params)
+            tag = None
+        if tag is None:
+            tag = self.safe_string(params, 'tag')
+        return [tag, params]

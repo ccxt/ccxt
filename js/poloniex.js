@@ -172,6 +172,11 @@ module.exports = class poloniex extends Exchange {
                 'USDTETH': 'USDT',
             },
             'options': {
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRX': 'TRON',
+                    'TRC20': 'TRON',
+                },
                 'limits': {
                     'cost': {
                         'min': {
@@ -1282,6 +1287,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1292,6 +1298,13 @@ module.exports = class poloniex extends Exchange {
         };
         if (tag !== undefined) {
             request['paymentId'] = tag;
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['currency'] += network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            params = this.omit (params, 'network');
         }
         const response = await this.privatePostWithdraw (this.extend (request, params));
         //

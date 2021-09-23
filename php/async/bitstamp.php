@@ -1504,6 +1504,7 @@ class bitstamp extends Exchange {
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         yield $this->load_markets();
         $this->check_address($address);
         $request = array(

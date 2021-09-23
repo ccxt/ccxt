@@ -36,7 +36,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.56.63'
+const version = '1.56.83'
 
 Exchange.ccxtVersion = version
 
@@ -82,6 +82,7 @@ const exchanges = {
     'buda':                    require ('./js/buda.js'),
     'bw':                      require ('./js/bw.js'),
     'bybit':                   require ('./js/bybit.js'),
+    'bytetrade':               require ('./js/bytetrade.js'),
     'cdax':                    require ('./js/cdax.js'),
     'cex':                     require ('./js/cex.js'),
     'coinbase':                require ('./js/coinbase.js'),

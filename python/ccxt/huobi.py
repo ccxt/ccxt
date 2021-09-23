@@ -293,6 +293,10 @@ class huobi(Exchange):
                 },
             },
             'options': {
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'private_get_order_orders',  # 'private_get_order_history'  # https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2'  # https://github.com/ccxt/ccxt/issues/5388
@@ -1418,6 +1422,7 @@ class huobi(Exchange):
         return self.safe_string(statuses, status, status)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
@@ -1428,6 +1433,12 @@ class huobi(Exchange):
         }
         if tag is not None:
             request['addr-tag'] = tag  # only for XRP?
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_lower(networks, network, network)  # handle ETH>ERC20 alias
+        if network is not None:
+            request['chain'] = network + currency['id']
+            params = self.omit(params, 'network')
         response = self.privatePostDwWithdrawApiCreate(self.extend(request, params))
         id = self.safe_string(response, 'data')
         return {

@@ -42,7 +42,7 @@ class kraken(Exchange):
             'countries': ['US'],
             'version': '0',
             'rateLimit': 3000,
-            'certified': True,
+            'certified': False,
             'pro': True,
             'has': {
                 'cancelAllOrders': True,
@@ -1331,9 +1331,10 @@ class kraken(Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         response = None
+        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
         try:
             response = await self.privatePostCancelOrder(self.extend({
-                'txid': id,
+                'txid': clientOrderId or id,
             }, params))
         except Exception as e:
             if self.last_http_response:
@@ -1351,7 +1352,12 @@ class kraken(Exchange):
         request = {}
         if since is not None:
             request['start'] = int(since / 1000)
-        response = await self.privatePostOpenOrders(self.extend(request, params))
+        query = params
+        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
+        if clientOrderId is not None:
+            request['userref'] = clientOrderId
+            query = self.omit(params, ['userref', 'clientOrderId'])
+        response = await self.privatePostOpenOrders(self.extend(request, query))
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1364,7 +1370,12 @@ class kraken(Exchange):
         request = {}
         if since is not None:
             request['start'] = int(since / 1000)
-        response = await self.privatePostClosedOrders(self.extend(request, params))
+        query = params
+        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
+        if clientOrderId is not None:
+            request['userref'] = clientOrderId
+            query = self.omit(params, ['userref', 'clientOrderId'])
+        response = await self.privatePostClosedOrders(self.extend(request, query))
         #
         #     {
         #         "error":[],
@@ -1612,6 +1623,7 @@ class kraken(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         if 'key' in params:
             await self.load_markets()

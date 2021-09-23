@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.56.63';
+$version = '1.56.83';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.56.63';
+    const VERSION = '1.56.83';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -101,6 +101,7 @@ class Exchange {
         'buda',
         'bw',
         'bybit',
+        'bytetrade',
         'cdax',
         'cex',
         'coinbase',
@@ -359,6 +360,7 @@ class Exchange {
         'safeNumber' => 'safe_number',
         'safeNumber2' => 'safe_number2',
         'parsePrecision' => 'parse_precision',
+        'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -3143,5 +3145,16 @@ class Exchange {
             return null;
         }
         return $string_number;
+    }
+
+    public function handle_withdraw_tag_and_params($tag, $params) {
+        if (gettype($tag) === 'array') {
+            $params = $this->extend($tag, $params);
+            $tag = null;
+        }
+        if ($tag === null) {
+            $tag = $this->safe_string($params, 'tag');
+        }
+        return array( $tag, $params );
     }
 }

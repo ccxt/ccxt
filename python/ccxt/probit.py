@@ -1031,6 +1031,7 @@ class probit(Exchange):
         return self.parse_deposit_addresses(data)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # In order to use self method
         # you need to allow API withdrawal from the API Settings Page, and
         # and register the list of withdrawal addresses and destination tags on the API Settings page

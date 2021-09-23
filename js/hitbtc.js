@@ -172,6 +172,13 @@ module.exports = class hitbtc extends Exchange {
                 },
             },
             'options': {
+                'networks': {
+                    'ETH': 'T20',
+                    'ERC20': 'T20',
+                    'TRX': 'TTRX',
+                    'TRC20': 'TTRX',
+                    'OMNI': '',
+                },
                 'defaultTimeInForce': 'FOK',
                 'accountsByType': {
                     'bank': 'bank',
@@ -1136,6 +1143,13 @@ module.exports = class hitbtc extends Exchange {
         const request = {
             'currency': currency['id'],
         };
+        const network = this.safeString (params, 'network');
+        if (network !== undefined) {
+            params = this.omit (params, 'network');
+            const networks = this.safeValue (this.options, 'networks');
+            const endpart = this.safeString (networks, network, network);
+            request['currency'] += endpart;
+        }
         const response = await this.privateGetAccountCryptoAddressCurrency (this.extend (request, params));
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
@@ -1148,7 +1162,28 @@ module.exports = class hitbtc extends Exchange {
         };
     }
 
+    async convertCurrencyNetwork (code, amount, fromNetwork, toNetwork, params) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const networks = this.safeValue (this.options, 'networks', {});
+        fromNetwork = this.safeString (networks, fromNetwork, fromNetwork); // handle ETH>ERC20 alias
+        toNetwork = this.safeString (networks, toNetwork, toNetwork); // handle ETH>ERC20 alias
+        if (fromNetwork === toNetwork) {
+            throw new ExchangeError (this.id + ' fromNetwork cannot be the same as toNetwork');
+        }
+        const request = {
+            'fromCurrency': currency['id'] + fromNetwork,
+            'toCurrency': currency['id'] + toNetwork,
+            'amount': parseFloat (this.currencyToPrecision (code, amount)),
+        };
+        const response = await this.privatePostAccountCryptoTransferConvert (this.extend (request, params));
+        return {
+            'info': response,
+        };
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);
@@ -1159,6 +1194,13 @@ module.exports = class hitbtc extends Exchange {
         };
         if (tag) {
             request['paymentId'] = tag;
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['currency'] += network; // when network the currency need to be changed to currency + network
+            params = this.omit (params, 'network');
         }
         const response = await this.privatePostAccountCryptoWithdraw (this.extend (request, params));
         return {

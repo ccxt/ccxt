@@ -54,7 +54,10 @@ module.exports = class bitmart extends Exchange {
                 },
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://developer-pro.bitmart.com/',
-                'referral': 'http://www.bitmart.com/?r=rQCFLh',
+                'referral': {
+                    'url': 'http://www.bitmart.com/?r=rQCFLh',
+                    'discount': 1.0,
+                },
                 'fees': 'https://www.bitmart.com/fee/en',
             },
             'requiredCredentials': {
@@ -283,6 +286,10 @@ module.exports = class bitmart extends Exchange {
                 'TCT': 'TacoCat Token',
             },
             'options': {
+                'networks': {
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                },
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
                     'type': 'spot', // 'spot', 'swap', 'contract', 'account'
@@ -2086,6 +2093,7 @@ module.exports = class bitmart extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2097,6 +2105,13 @@ module.exports = class bitmart extends Exchange {
         };
         if (tag !== undefined) {
             request['address_memo'] = tag;
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['currency'] += '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+            params = this.omit (params, 'network');
         }
         const response = await this.privateAccountPostWithdrawApply (this.extend (request, params));
         //

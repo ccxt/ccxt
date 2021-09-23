@@ -544,6 +544,7 @@ module.exports = class lbank extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // mark and fee are optional params, mark is a note and must be less than 255 characters
         this.checkAddress (address);
         await this.loadMarkets ();

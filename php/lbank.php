@@ -545,6 +545,7 @@ class lbank extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         // mark and fee are optional $params, mark is a note and must be less than 255 characters
         $this->check_address($address);
         $this->load_markets();
