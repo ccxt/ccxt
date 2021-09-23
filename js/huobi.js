@@ -128,7 +128,7 @@ module.exports = class huobi extends Exchange {
                         'etp/limit': 1, // 获取ETP持仓限额
                     },
                     'post': {
-                        'account/transfer',
+                        'account/transfer': 1,
                         'account/repayment': 5, // 归还借币（全仓逐仓通用）
                         'point/transfer': 5, // 点卡划转
                         'sub-user/management': 1, // 冻结/解冻子用户
