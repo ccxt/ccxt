@@ -175,8 +175,8 @@ module.exports = class hitbtc extends Exchange {
                 'networks': {
                     'ETH': 'T20',
                     'ERC20': 'T20',
-                    'TRX': 'TRX',
-                    'TRC20': 'TRX',
+                    'TRX': 'TTRX',
+                    'TRC20': 'TTRX',
                     'OMNI': '',
                 },
                 'defaultTimeInForce': 'FOK',
