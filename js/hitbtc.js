@@ -175,6 +175,7 @@ module.exports = class hitbtc extends Exchange {
                 'networks': {
                     'ETH': 'T20',
                     'ERC20': 'T20',
+                    'TRX': 'TTRX',
                     'TRC20': 'TTRX',
                     'OMNI': '',
                 },
@@ -1142,6 +1143,13 @@ module.exports = class hitbtc extends Exchange {
         const request = {
             'currency': currency['id'],
         };
+        const network = this.safeString (params, 'network');
+        if (network !== undefined) {
+            params = this.omit (params, 'network');
+            const networks = this.safeValue (this.options, 'networks');
+            const endpart = this.safeString (networks, network, network);
+            request['currency'] += endpart;
+        }
         const response = await this.privateGetAccountCryptoAddressCurrency (this.extend (request, params));
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
@@ -1159,11 +1167,14 @@ module.exports = class hitbtc extends Exchange {
         const currency = this.currency (code);
         const networks = this.safeValue (this.options, 'networks', {});
         fromNetwork = this.safeString (networks, fromNetwork, fromNetwork); // handle ETH>ERC20 alias
-        toNetwork = this.safeString (networks, toNetwork, fromNetwork); // handle ETH>ERC20 alias
+        toNetwork = this.safeString (networks, toNetwork, toNetwork); // handle ETH>ERC20 alias
+        if (fromNetwork === toNetwork) {
+            throw new ExchangeError (this.id + ' fromNetwork cannot be the same as toNetwork');
+        }
         const request = {
             'fromCurrency': currency['id'] + fromNetwork,
             'toCurrency': currency['id'] + toNetwork,
-            'amount': parseFloat (amount),
+            'amount': parseFloat (this.currencyToPrecision (code, amount)),
         };
         const response = await this.privatePostAccountCryptoTransferConvert (this.extend (request, params));
         return {

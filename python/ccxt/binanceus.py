@@ -40,6 +40,7 @@ class binanceus(binance):
                 },
             },
             'options': {
+                'fetchCurrencies': False,
                 'quoteOrderQty': False,
             },
         })

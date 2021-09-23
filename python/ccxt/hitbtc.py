@@ -184,6 +184,13 @@ class hitbtc(Exchange):
                 },
             },
             'options': {
+                'networks': {
+                    'ETH': 'T20',
+                    'ERC20': 'T20',
+                    'TRX': 'TTRX',
+                    'TRC20': 'TTRX',
+                    'OMNI': '',
+                },
                 'defaultTimeInForce': 'FOK',
                 'accountsByType': {
                     'bank': 'bank',
@@ -1077,6 +1084,12 @@ class hitbtc(Exchange):
         request = {
             'currency': currency['id'],
         }
+        network = self.safe_string(params, 'network')
+        if network is not None:
+            params = self.omit(params, 'network')
+            networks = self.safe_value(self.options, 'networks')
+            endpart = self.safe_string(networks, network, network)
+            request['currency'] += endpart
         response = self.privateGetAccountCryptoAddressCurrency(self.extend(request, params))
         address = self.safe_string(response, 'address')
         self.check_address(address)
@@ -1085,6 +1098,24 @@ class hitbtc(Exchange):
             'currency': currency['code'],
             'address': address,
             'tag': tag,
+            'info': response,
+        }
+
+    def convert_currency_network(self, code, amount, fromNetwork, toNetwork, params):
+        self.load_markets()
+        currency = self.currency(code)
+        networks = self.safe_value(self.options, 'networks', {})
+        fromNetwork = self.safe_string(networks, fromNetwork, fromNetwork)  # handle ETH>ERC20 alias
+        toNetwork = self.safe_string(networks, toNetwork, toNetwork)  # handle ETH>ERC20 alias
+        if fromNetwork == toNetwork:
+            raise ExchangeError(self.id + ' fromNetwork cannot be the same as toNetwork')
+        request = {
+            'fromCurrency': currency['id'] + fromNetwork,
+            'toCurrency': currency['id'] + toNetwork,
+            'amount': float(self.currency_to_precision(code, amount)),
+        }
+        response = self.privatePostAccountCryptoTransferConvert(self.extend(request, params))
+        return {
             'info': response,
         }
 
@@ -1100,6 +1131,12 @@ class hitbtc(Exchange):
         }
         if tag:
             request['paymentId'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['currency'] += network  # when network the currency need to be changed to currency + network
+            params = self.omit(params, 'network')
         response = self.privatePostAccountCryptoWithdraw(self.extend(request, params))
         return {
             'info': response,

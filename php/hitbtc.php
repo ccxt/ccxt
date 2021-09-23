@@ -175,6 +175,13 @@ class hitbtc extends Exchange {
                 ),
             ),
             'options' => array(
+                'networks' => array(
+                    'ETH' => 'T20',
+                    'ERC20' => 'T20',
+                    'TRX' => 'TTRX',
+                    'TRC20' => 'TTRX',
+                    'OMNI' => '',
+                ),
                 'defaultTimeInForce' => 'FOK',
                 'accountsByType' => array(
                     'bank' => 'bank',
@@ -1139,6 +1146,13 @@ class hitbtc extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
+        $network = $this->safe_string($params, 'network');
+        if ($network !== null) {
+            $params = $this->omit($params, 'network');
+            $networks = $this->safe_value($this->options, 'networks');
+            $endpart = $this->safe_string($networks, $network, $network);
+            $request['currency'] .= $endpart;
+        }
         $response = $this->privateGetAccountCryptoAddressCurrency (array_merge($request, $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
@@ -1147,6 +1161,26 @@ class hitbtc extends Exchange {
             'currency' => $currency['code'],
             'address' => $address,
             'tag' => $tag,
+            'info' => $response,
+        );
+    }
+
+    public function convert_currency_network($code, $amount, $fromNetwork, $toNetwork, $params) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $fromNetwork = $this->safe_string($networks, $fromNetwork, $fromNetwork); // handle ETH>ERC20 alias
+        $toNetwork = $this->safe_string($networks, $toNetwork, $toNetwork); // handle ETH>ERC20 alias
+        if ($fromNetwork === $toNetwork) {
+            throw new ExchangeError($this->id . ' $fromNetwork cannot be the same as toNetwork');
+        }
+        $request = array(
+            'fromCurrency' => $currency['id'] . $fromNetwork,
+            'toCurrency' => $currency['id'] . $toNetwork,
+            'amount' => floatval($this->currency_to_precision($code, $amount)),
+        );
+        $response = $this->privatePostAccountCryptoTransferConvert (array_merge($request, $params));
+        return array(
             'info' => $response,
         );
     }
@@ -1163,6 +1197,13 @@ class hitbtc extends Exchange {
         );
         if ($tag) {
             $request['paymentId'] = $tag;
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['currency'] .= $network; // when $network the $currency need to be changed to $currency . $network
+            $params = $this->omit($params, 'network');
         }
         $response = $this->privatePostAccountCryptoWithdraw (array_merge($request, $params));
         return array(

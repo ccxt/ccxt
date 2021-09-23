@@ -39,6 +39,7 @@ module.exports = class binanceus extends binance {
                 },
             },
             'options': {
+                'fetchCurrencies': false,
                 'quoteOrderQty': false,
             },
         });

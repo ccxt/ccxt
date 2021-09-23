@@ -54,7 +54,10 @@ module.exports = class bitmart extends Exchange {
                 },
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://developer-pro.bitmart.com/',
-                'referral': 'http://www.bitmart.com/?r=rQCFLh',
+                'referral': {
+                    'url': 'http://www.bitmart.com/?r=rQCFLh',
+                    'discount': 1.0,
+                },
                 'fees': 'https://www.bitmart.com/fee/en',
             },
             'requiredCredentials': {
