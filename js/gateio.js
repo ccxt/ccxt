@@ -270,6 +270,11 @@ module.exports = class gateio extends Exchange {
                 'VAI': 'VAIOT',
             },
             'options': {
+                'networks': {
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
+                },
                 'accountsByType': {
                     'spot': 'spot',
                     'margin': 'margin',
@@ -1002,6 +1007,13 @@ module.exports = class gateio extends Exchange {
         };
         if (tag !== undefined) {
             request['memo'] = tag;
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
+        if (network !== undefined) {
+            request['chain'] = network;
+            params = this.omit (params, 'network');
         }
         const response = await this.privateWithdrawalsPost (this.extend (request, params));
         //
