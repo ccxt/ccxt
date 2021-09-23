@@ -32,6 +32,10 @@ class binanceus(binance):
                 'doc': 'https://github.com/binance-us/binance-official-api-docs',
                 'fees': 'https://www.binance.us/en/fee/schedule',
             },
+            'options': {
+                'fetchCurrencies': False,
+                'quoteOrderQty': False,
+            },
             'fees': {
                 'trading': {
                     'tierBased': False,
