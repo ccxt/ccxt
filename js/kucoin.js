@@ -366,6 +366,7 @@ module.exports = class kucoin extends Exchange {
                     'TRX': 'trx',
                     'TRC20': 'trx',
                     'KCC': 'kcc',
+                    'TERRA': 'luna',
                 },
             },
         });
