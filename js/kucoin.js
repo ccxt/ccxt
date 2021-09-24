@@ -360,6 +360,13 @@ module.exports = class kucoin extends Exchange {
                     'pool': 'pool',
                     'pool-x': 'pool',
                 },
+                'networks': {
+                    'ETH': 'eth',
+                    'ERC20': 'eth',
+                    'TRX': 'trx',
+                    'TRC20': 'trx',
+                    'KCC': 'kcc',
+                },
             },
         });
     }
@@ -817,6 +824,14 @@ module.exports = class kucoin extends Exchange {
             // for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
             // 'chain': 'ERC20', // optional
         };
+        // same as for withdraw
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['chain'] = network;
+            params = this.omit (params, 'network');
+        }
         const response = await this.privateGetDepositAddresses (this.extend (request, params));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
@@ -1485,6 +1500,13 @@ module.exports = class kucoin extends Exchange {
         };
         if (tag !== undefined) {
             request['memo'] = tag;
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['chain'] = network;
+            params = this.omit (params, 'network');
         }
         const response = await this.privatePostWithdrawals (this.extend (request, params));
         //
