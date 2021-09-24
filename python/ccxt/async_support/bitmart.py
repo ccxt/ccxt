@@ -2022,7 +2022,7 @@ class bitmart(Exchange):
         if tag is not None:
             request['address_memo'] = tag
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
             request['currency'] += '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page

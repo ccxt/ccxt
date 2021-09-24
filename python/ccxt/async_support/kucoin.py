@@ -376,6 +376,14 @@ class kucoin(Exchange):
                     'pool': 'pool',
                     'pool-x': 'pool',
                 },
+                'networks': {
+                    'ETH': 'eth',
+                    'ERC20': 'eth',
+                    'TRX': 'trx',
+                    'TRC20': 'trx',
+                    'KCC': 'kcc',
+                    'TERRA': 'luna',
+                },
             },
         })
 
@@ -807,6 +815,13 @@ class kucoin(Exchange):
             # for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
             # 'chain': 'ERC20',  # optional
         }
+        # same as for withdraw
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['chain'] = network
+            params = self.omit(params, 'network')
         response = await self.privateGetDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
@@ -1431,6 +1446,12 @@ class kucoin(Exchange):
         }
         if tag is not None:
             request['memo'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['chain'] = network
+            params = self.omit(params, 'network')
         response = await self.privatePostWithdrawals(self.extend(request, params))
         #
         # https://github.com/ccxt/ccxt/issues/5558

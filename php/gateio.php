@@ -1013,7 +1013,7 @@ class gateio extends Exchange {
             $request['memo'] = $tag;
         }
         $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string_lower($networks, $network, $network); // handle ETH>ERC20 alias
         if ($network !== null) {
             $request['chain'] = $network;

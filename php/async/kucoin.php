@@ -364,6 +364,14 @@ class kucoin extends Exchange {
                     'pool' => 'pool',
                     'pool-x' => 'pool',
                 ),
+                'networks' => array(
+                    'ETH' => 'eth',
+                    'ERC20' => 'eth',
+                    'TRX' => 'trx',
+                    'TRC20' => 'trx',
+                    'KCC' => 'kcc',
+                    'TERRA' => 'luna',
+                ),
             ),
         ));
     }
@@ -821,6 +829,14 @@ class kucoin extends Exchange {
             // for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
             // 'chain' => 'ERC20', // optional
         );
+        // same as for withdraw
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['chain'] = $network;
+            $params = $this->omit($params, 'network');
+        }
         $response = yield $this->privateGetDepositAddresses (array_merge($request, $params));
         // BCH array("$code":"200000","$data":array("$address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
         // BTC array("$code":"200000","$data":array("$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
@@ -1489,6 +1505,13 @@ class kucoin extends Exchange {
         );
         if ($tag !== null) {
             $request['memo'] = $tag;
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['chain'] = $network;
+            $params = $this->omit($params, 'network');
         }
         $response = yield $this->privatePostWithdrawals (array_merge($request, $params));
         //

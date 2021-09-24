@@ -2141,7 +2141,7 @@ class okex(Exchange):
         elif 'pwd' in params:
             request['pwd'] = params['pwd']
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH>ERC20 alias
         if network is not None:
             request['chain'] = currency['id'] + '-' + network
