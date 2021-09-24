@@ -352,6 +352,17 @@ class ftx(Exchange):
                     'ftx.com': 'FTX',
                     'ftx.us': 'FTXUS',
                 },
+                'networks': {
+                    'SOL': 'sol',
+                    'SPL': 'sol',
+                    'TRX': 'trx',
+                    'TRC20': 'trx',
+                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
+                    'OMNI': 'omni',
+                    'BEP2': 'bep2',
+                    'BNB': 'bep2',
+                },
             },
         })
 
@@ -1571,6 +1582,12 @@ class ftx(Exchange):
             request['password'] = self.password
         if tag is not None:
             request['tag'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['method'] = network
+            params = self.omit(params, 'network')
         response = self.privatePostWalletWithdrawals(self.extend(request, params))
         #
         #     {
@@ -1683,6 +1700,12 @@ class ftx(Exchange):
         request = {
             'coin': currency['id'],
         }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['method'] = network
+            params = self.omit(params, 'network')
         response = self.privateGetWalletDepositAddressCoin(self.extend(request, params))
         #
         #     {
