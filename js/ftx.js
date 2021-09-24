@@ -331,6 +331,17 @@ module.exports = class ftx extends Exchange {
                     'ftx.com': 'FTX',
                     'ftx.us': 'FTXUS',
                 },
+                'networks': {
+                    'SOL': 'sol',
+                    'SPL': 'sol',
+                    'TRX': 'trx',
+                    'TRC20': 'trx',
+                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
+                    'OMNI': 'omni',
+                    'BEP2': 'bep2',
+                    'BNB': 'bep2',
+                },
             },
         });
     }
@@ -1623,6 +1634,13 @@ module.exports = class ftx extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['method'] = network;
+            params = this.omit (params, 'network');
+        }
         const response = await this.privatePostWalletWithdrawals (this.extend (request, params));
         //
         //     {
@@ -1738,6 +1756,13 @@ module.exports = class ftx extends Exchange {
         const request = {
             'coin': currency['id'],
         };
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['method'] = network;
+            params = this.omit (params, 'network');
+        }
         const response = await this.privateGetWalletDepositAddressCoin (this.extend (request, params));
         //
         //     {
