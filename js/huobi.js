@@ -279,8 +279,13 @@ module.exports = class huobi extends Exchange {
             },
             'options': {
                 'networks': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
+                    'ETH': 'erc20',
+                    'TRX': 'trc20',
+                    'HRC20': 'hrc20',
+                    'HECO': 'hrc20',
+                    'HT': 'hrc20',
+                    'ALGO': 'algo',
+                    'OMNI': '',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
@@ -1356,7 +1361,28 @@ module.exports = class huobi extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseDepositAddress (this.safeValue (data, 0, {}), currency);
+        let chain = this.safeString (params, 'chain');
+        if (chain === undefined) {
+            const network = this.safeString (params, 'network');
+            if (network === undefined) {
+                return this.parseDepositAddress (this.safeValue (data, 0, {}), currency);
+            }
+            const networks = this.safeValue (this.options, 'networks', {});
+            chain = this.safeStringLower (networks, network, network);
+            // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
+            if (chain === 'erc20') {
+                chain = currency['id'] + chain;
+            } else {
+                chain = chain + currency['id'];
+            }
+        }
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const entryChain = this.safeString (entry, 'chain');
+            if (entryChain === chain) {
+                return this.parseDepositAddress (entry, currency);
+            }
+        }
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1518,7 +1544,12 @@ module.exports = class huobi extends Exchange {
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
-            request['chain'] = network + currency['id'];
+            // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
+            if (network === 'erc20') {
+                request['chain'] = currency['id'] + network;
+            } else {
+                request['chain'] = network + currency['id'];
+            }
             params = this.omit (params, 'network');
         }
         const response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
