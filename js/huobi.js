@@ -1376,16 +1376,13 @@ module.exports = class huobi extends Exchange {
                 chain = chain + currency['id'];
             }
         }
-        let value = undefined;
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const entryChain = this.safeString (entry, 'chain');
             if (entryChain === chain) {
-                value = entry;
-                break;
+                return this.parseDepositAddress (entry, currency);
             }
         }
-        return this.parseDepositAddress (value, currency);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
