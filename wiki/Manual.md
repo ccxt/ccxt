@@ -3522,7 +3522,7 @@ The following aliases of `network` allow for withdrawing crypto on multiple chai
 |HT |HECO |
 ```
 
-You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km95sDFN9jhLxJ2D', { 'network': 'TRX' })` in order to withdraw USDT on the tron chain, or 'BSC' to withdraw USDT on binance smart chain. In the table above BSC and BEP20 are equivalent aliases so it doesnt matter which one you use as they both will achieve the same effect.
+You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km95sDFN9jhLxJ2D', { 'network': 'TRX' })` in order to withdraw USDT on the TRON chain, or 'BSC' to withdraw USDT on Binance Smart Chain. In the table above BSC and BEP20 are equivalent aliases, so it doesn't matter which one you use as they both will achieve the same effect.
 
 ## Transactions
 
