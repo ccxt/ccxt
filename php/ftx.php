@@ -334,6 +334,17 @@ class ftx extends Exchange {
                     'ftx.com' => 'FTX',
                     'ftx.us' => 'FTXUS',
                 ),
+                'networks' => array(
+                    'SOL' => 'sol',
+                    'SPL' => 'sol',
+                    'TRX' => 'trx',
+                    'TRC20' => 'trx',
+                    'ETH' => 'erc20',
+                    'ERC20' => 'erc20',
+                    'OMNI' => 'omni',
+                    'BEP2' => 'bep2',
+                    'BNB' => 'bep2',
+                ),
             ),
         ));
     }
@@ -1626,6 +1637,13 @@ class ftx extends Exchange {
         if ($tag !== null) {
             $request['tag'] = $tag;
         }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['method'] = $network;
+            $params = $this->omit($params, 'network');
+        }
         $response = $this->privatePostWalletWithdrawals (array_merge($request, $params));
         //
         //     {
@@ -1741,6 +1759,13 @@ class ftx extends Exchange {
         $request = array(
             'coin' => $currency['id'],
         );
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['method'] = $network;
+            $params = $this->omit($params, 'network');
+        }
         $response = $this->privateGetWalletDepositAddressCoin (array_merge($request, $params));
         //
         //     {

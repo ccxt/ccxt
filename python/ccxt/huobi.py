@@ -143,7 +143,7 @@ class huobi(Exchange):
                         'etp/limit': 1,  # 获取ETP持仓限额
                     },
                     'post': {
-                        # 'account/transfer',
+                        'account/transfer': 1,
                         'account/repayment': 5,  # 归还借币（全仓逐仓通用）
                         'point/transfer': 5,  # 点卡划转
                         'sub-user/management': 1,  # 冻结/解冻子用户
@@ -294,8 +294,13 @@ class huobi(Exchange):
             },
             'options': {
                 'networks': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
+                    'ETH': 'erc20',
+                    'TRX': 'trc20',
+                    'HRC20': 'hrc20',
+                    'HECO': 'hrc20',
+                    'HT': 'hrc20',
+                    'ALGO': 'algo',
+                    'OMNI': '',
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'private_get_order_orders',  # 'private_get_order_history'  # https://github.com/ccxt/ccxt/pull/5392
@@ -1291,7 +1296,23 @@ class huobi(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_deposit_address(self.safe_value(data, 0, {}), currency)
+        chain = self.safe_string(params, 'chain')
+        if chain is None:
+            network = self.safe_string(params, 'network')
+            if network is None:
+                return self.parse_deposit_address(self.safe_value(data, 0, {}), currency)
+            networks = self.safe_value(self.options, 'networks', {})
+            chain = self.safe_string_lower(networks, network, network)
+            # possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
+            if chain == 'erc20':
+                chain = currency['id'] + chain
+            else:
+                chain = chain + currency['id']
+        for i in range(0, len(data)):
+            entry = data[i]
+            entryChain = self.safe_string(entry, 'chain')
+            if entryChain == chain:
+                return self.parse_deposit_address(entry, currency)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if limit is None or limit > 100:
@@ -1434,10 +1455,14 @@ class huobi(Exchange):
         if tag is not None:
             request['addr-tag'] = tag  # only for XRP?
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string_lower(networks, network, network)  # handle ETH>ERC20 alias
         if network is not None:
-            request['chain'] = network + currency['id']
+            # possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
+            if network == 'erc20':
+                request['chain'] = currency['id'] + network
+            else:
+                request['chain'] = network + currency['id']
             params = self.omit(params, 'network')
         response = self.privatePostDwWithdrawApiCreate(self.extend(request, params))
         id = self.safe_string(response, 'data')

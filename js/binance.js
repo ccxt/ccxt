@@ -3277,7 +3277,7 @@ module.exports = class binance extends Exchange {
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
             request['network'] = network;
@@ -3433,7 +3433,7 @@ module.exports = class binance extends Exchange {
             request['addressTag'] = tag;
         }
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
             request['network'] = network;
