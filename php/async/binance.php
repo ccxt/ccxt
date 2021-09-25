@@ -1736,18 +1736,18 @@ class binance extends Exchange {
     public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
-        //         1591478520000,
-        //         "0.02501300",
-        //         "0.02501800",
-        //         "0.02500000",
-        //         "0.02500000",
-        //         "22.19000000",
-        //         1591478579999,
-        //         "0.55490906",
-        //         40,
-        //         "10.92900000",
-        //         "0.27336462",
-        //         "0"
+        //         1591478520000, // open time
+        //         "0.02501300",  // open
+        //         "0.02501800",  // high
+        //         "0.02500000",  // low
+        //         "0.02500000",  // close
+        //         "22.19000000", // volume
+        //         1591478579999, // close time
+        //         "0.55490906",  // quote asset volume
+        //         40,            // number of trades
+        //         "10.92900000", // taker buy base asset volume
+        //         "0.27336462",  // taker buy quote asset volume
+        //         "0"            // ignore
         //     )
         //
         return array(
