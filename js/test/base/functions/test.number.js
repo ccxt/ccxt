@@ -75,6 +75,13 @@ assert (Precise.stringMod ('18', '6') === '0');
 assert (Precise.stringMod ('10.1', '0.5') === '0.1');
 assert (Precise.stringMod ('10000000', '5555') === '1000');
 assert (Precise.stringMod ('5550', '120') === '30');
+assert (Precise.stringMod ('0.000123456700', '0.00012') === '0.0000034567');
+assert (Precise.stringMod ('-57.123', '10') === '2.877');
+assert (Precise.stringMod ('-18', '6') === '0');
+assert (Precise.stringMod ('-10.1', '0.5') === '0.4');
+assert (Precise.stringMod ('-10000000', '5555') === '4555');
+assert (Precise.stringMod ('-5550', '120') === '90');
+assert (Precise.stringMod ('-0.000123456700', '0.00012') === '0.0001165433');
 
 assert (Precise.stringPow10 ('-4') == '0.0001');
 assert (Precise.stringPow10 ('-3') == '0.001');
