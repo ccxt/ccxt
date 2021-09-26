@@ -139,6 +139,8 @@ class Precise:
         rationizerDenominator = max(-other.decimals + self.decimals, 0)
         denominator = other.integer * (self.base ** rationizerDenominator)
         result = numerator % denominator
+        if result < 0:
+            result += denominator
         return Precise(result, rationizerDenominator + other.decimals)
 
     def min(self, other):
