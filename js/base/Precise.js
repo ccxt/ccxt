@@ -117,6 +117,24 @@ class Precise {
         return this.gt (other) ? this : other
     }
 
+    round () {
+        let fractional = this.mod (new Precise(BigInt(1),0))
+        let whole = this.sub (fractional)
+        if (this.integer > zero) {
+            if (fractional.ge (new Precise (BigInt(5),1))) {
+                return whole.add (new Precise(BigInt(1),0))
+            } else {
+                return whole
+            }
+        } else {
+            if (fractional.gt (new Precise (BigInt(5),1))) {
+                return whole.add (new Precise(BigInt(1),0))
+            } else {
+                return whole
+            }
+        }
+    }
+
     gt (other) {
         const sum = this.sub (other)
         return sum.integer > 0
@@ -283,6 +301,13 @@ class Precise {
             return undefined
         }
         return (new Precise (string1)).max (new Precise (string2)).toString ()
+    }
+
+    static stringRound (string) {
+	    if (string === undefined) {
+		    return undefined
+	    }
+        return (new Precise (string)).round ().toString ()
     }
 
     static stringGt (string1, string2) {
