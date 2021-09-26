@@ -307,6 +307,13 @@ module.exports = class phemex extends Exchange {
             'options': {
                 'x-phemex-request-expiry': 60, // in seconds
                 'createOrderByQuoteRequiresPrice': true,
+                'networks': {
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                },
+                'defaultNetworks': {
+                    'USDT': 'ETH',
+                },
             },
         });
     }
@@ -2195,6 +2202,17 @@ module.exports = class phemex extends Exchange {
         const request = {
             'currency': currency['id'],
         };
+        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
+        const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network', defaultNetwork);
+        network = this.safeString (networks, network, network);
+        if (network === undefined) {
+            request['chainName'] = currency['id'];
+        } else {
+            request['chainName'] = network;
+            params = this.omit (params, 'network');
+        }
         const response = await this.privateGetPhemexUserWalletsV2DepositAddress (this.extend (request, params));
         //     {
         //         "code":0,
