@@ -218,6 +218,7 @@ module.exports = class bittrex extends Exchange {
             },
             'commonCurrencies': {
                 'REPV2': 'REP',
+                'MER': 'Mercury', // conflict with Mercurial Finance
             },
         });
     }
