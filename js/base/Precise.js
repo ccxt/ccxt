@@ -74,7 +74,10 @@ class Precise {
         const numerator = this.integer * (base ** BigInt (rationizerNumerator))
         const rationizerDenominator = Math.max (-other.decimals + this.decimals, 0)
         const denominator = other.integer * (base ** BigInt (rationizerDenominator))
-        const result = numerator % denominator
+        let result = numerator % denominator
+        if ( result < 0 ) {
+            result += denominator
+        }
         return new Precise (result, rationizerDenominator + other.decimals)
     }
 
