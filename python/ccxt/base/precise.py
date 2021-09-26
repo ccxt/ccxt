@@ -111,6 +111,18 @@ class Precise:
             result = normalised + bigger.integer
             return Precise(result, bigger.decimals)
 
+    def pow10(self):
+        # this must represent a positive or negative integer
+        if self.decimals is None or self.decimals == 0:
+            if self.integer >= 0:
+                result = self.base ** self.integer
+                return Precise(result, 0)
+            else:
+                return Precise(1, -self.integer)
+        else:
+            # non-integer argument is NOT handled
+            assert(False)
+
     def sub(self, other):
         negative = Precise(-other.integer, other.decimals)
         return self.add(negative)
@@ -234,6 +246,12 @@ class Precise:
         if string1 is None or string2 is None:
             return None
         return str(Precise(string1).mod(Precise(string2)))
+
+    @staticmethod
+    def string_pow10(string):
+        if string is None:
+            return None
+        return str(Precise(string).pow10())
 
     @staticmethod
     def string_equals(string1, string2):
