@@ -59,6 +59,8 @@ assert (Precise.stringDiv (y, a, 0) === '696');
 assert (Precise.stringDiv (y, a, 1) === '696.9');
 assert (Precise.stringDiv (y, a, 2) === '696.96');
 assert (Precise.stringDiv (a, y) === '0.001434784043479695');
+assert (Precise.stringDiv (w, y, 22) === '-0.0000000000000000161126');
+assert (Precise.stringDiv (w, y) === '-0.000000000000000016');
 
 assert (Precise.stringAbs ('0') === '0');
 assert (Precise.stringAbs ('-0') === '0');
