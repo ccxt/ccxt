@@ -163,6 +163,11 @@ class Precise:
             else:
                 return whole
 
+    def floor(self):
+        fractional = self.mod(Precise(1, 0))
+        whole = self.sub(fractional)
+        return whole
+
     def gt(self, other):
         add = self.sub(other)
         return add.integer > 0
@@ -298,6 +303,12 @@ class Precise:
         if string is None:
             return None
         return str(Precise(string).round())
+
+    @staticmethod
+    def string_floor(string):
+        if string is None:
+            return None
+        return str(Precise(string).floor())
 
     @staticmethod
     def string_gt(string1, string2):
