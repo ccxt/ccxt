@@ -46,6 +46,7 @@ const ccxt         = require ('../../ccxt.js')
 
 //-----------------------------------------------------------------------------
 
+console.log (new Date ())
 console.log ('Node.js:', process.version)
 console.log ('CCXT v' + ccxt.version)
 
