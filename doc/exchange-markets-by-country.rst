@@ -288,17 +288,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - China
-     - .. image:: https://user-images.githubusercontent.com/51840849/80134449-70663300-85a7-11ea-8942-e204cdeaab5d.jpg
-          :target: https://www.hbtc.com/register/O2S8NS
-          :alt: hbtc
-     
-     - hbtc
-     - `HBTC <https://www.hbtc.com/register/O2S8NS>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://github.com/bhexopen/BHEX-OpenApi/tree/master/doc
-          :alt: API Version 1
-     
-   * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
           :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
           :alt: huobi
