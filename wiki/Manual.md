@@ -2300,9 +2300,9 @@ This process may differ from exchange to exchange. Some exchanges may want the s
 
 The authentication is already handled for you, so you don't need to perform any of those steps manually unless you are implementing a new exchange class. The only thing you need for trading is the actual API key pair.
 
-## API Keys Setup
+### API Keys Setup
 
-### Required Credentials
+#### Required Credentials
 
 The API credentials usually include the following:
 
@@ -3515,11 +3515,12 @@ The following aliases of `network` allow for withdrawing crypto on multiple chai
 
 | Currency | Network |
 |:---:|:---:|
-| ETH | ERC20 |
-| TRX | TRC20 |
-| BSC | BEP20 |
-| BNB | BEP2 |
-| HT | HECO |
+| ETH  | ERC20 |
+| TRX  | TRC20 |
+| BSC  | BEP20 |
+| BNB  | BEP2  |
+| HT   | HECO  |
+| OMNI | OMNI  |
 
 You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km95sDFN9jhLxJ2D', { 'network': 'TRX' })` in order to withdraw USDT on the TRON chain, or 'BSC' to withdraw USDT on Binance Smart Chain. In the table above BSC and BEP20 are equivalent aliases, so it doesn't matter which one you use as they both will achieve the same effect.
 
