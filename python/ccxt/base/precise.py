@@ -149,6 +149,20 @@ class Precise:
     def max(self, other):
         return self if self.gt(other) else other
 
+    def round(self):
+        fractional = self.mod(Precise(1, 0))
+        whole = self.sub(fractional)
+        if self.integer > 0:
+            if fractional.ge(Precise(5, 1)):
+                return whole.add(Precise(1, 0))
+            else:
+                return whole
+        else:
+            if fractional.gt(Precise(5, 1)):
+                return whole.add(Precise(1, 0))
+            else:
+                return whole
+
     def gt(self, other):
         add = self.sub(other)
         return add.integer > 0
@@ -278,6 +292,12 @@ class Precise:
         if string1 is None or string2 is None:
             return None
         return str(Precise(string1).max(Precise(string2)))
+
+    @staticmethod
+    def string_round(string):
+        if string is None:
+            return None
+        return str(Precise(string).round())
 
     @staticmethod
     def string_gt(string1, string2):
