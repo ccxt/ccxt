@@ -112,6 +112,24 @@ assert (Precise.stringMax ('3.1415', '-2') === '3.1415');
 assert (Precise.stringMax ('-3.1415', '-2') === '-2');
 assert (Precise.stringMax ('0.000', '-0.0') === '0');
 
+assert (Precise.stringRound ('1.0000') === '1');
+assert (Precise.stringRound ('2') === '2');
+assert (Precise.stringRound ('3.1415') === '3');
+assert (Precise.stringRound ('-3.1415') === '-3');
+assert (Precise.stringRound ('0.000') === '0');
+assert (Precise.stringRound ('3.5415') === '4');
+assert (Precise.stringRound ('-3.5415') === '-4');
+assert (Precise.stringRound ('314.15') === '314');
+assert (Precise.stringRound ('-314.15') === '-314');
+assert (Precise.stringRound ('314.55') === '315');
+assert (Precise.stringRound ('-314.55') === '-315');
+assert (Precise.stringRound ('0.499999999999999999999999999') === '0');
+assert (Precise.stringRound ('0.5') === '1');
+assert (Precise.stringRound ('0.500000000000000000000000001') === '1');
+assert (Precise.stringRound ('-0.499999999999999999999999999') === '0');
+assert (Precise.stringRound ('-0.5') === '-1');
+assert (Precise.stringRound ('-0.500000000000000000000000001') === '-1');
+
 assert (!Precise.stringGt ('1.0000', '2'));
 assert (Precise.stringGt ('2', '1.2345'));
 assert (Precise.stringGt ('3.1415', '-2'));
