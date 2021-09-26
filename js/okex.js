@@ -2552,7 +2552,11 @@ module.exports = class okex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parsePosition (this.safeValue (data, 0));
+        const position = this.safeValue (data, 0);
+        if (position === undefined) {
+            return position;
+        }
+        return this.parsePosition (position);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
