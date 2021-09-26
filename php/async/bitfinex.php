@@ -235,6 +235,7 @@ class bitfinex extends Exchange {
                 'STJ' => 'STORJ',
                 'TERRAUST' => 'UST',
                 'TSD' => 'TUSD',
+                'YGG' => 'YEED', // conflict with Yield Guild Games
                 'YYW' => 'YOYOW',
                 'UDC' => 'USDC',
                 'UST' => 'USDT',
