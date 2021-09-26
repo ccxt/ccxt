@@ -7,6 +7,9 @@ const base = BigInt (10)
 class Precise {
     constructor (number, decimals = undefined) {
         if (decimals === undefined) {
+            if (typeof number !== 'string') {
+                throw new Error ('number must be a string')
+            }
             let modifier = 0
             number = number.toLowerCase ()
             if (number.indexOf ('e') > -1) {
@@ -19,6 +22,12 @@ class Precise {
             this.integer = BigInt (integerString)
             this.decimals = this.decimals - modifier
         } else {
+            if (typeof number !== 'bigint') {
+                throw new Error ('number must be a BigInt')
+            }
+            if (!(Number.isInteger (decimals))) {
+                throw new Error ('decimals must be an integer')
+            }
             this.integer = number
             this.decimals = decimals
         }
