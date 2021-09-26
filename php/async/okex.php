@@ -2502,7 +2502,7 @@ class okex extends Exchange {
         $request = array(
             // instType String No Instrument $type, MARGIN, SWAP, FUTURES, OPTION
             'instId' => $market['id'],
-            // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
+            // posId String No Single $position ID or multiple $position IDs (no more than 20) separated with comma
         );
         if ($type !== null) {
             $request['instType'] = strtoupper($type);
@@ -2556,7 +2556,11 @@ class okex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_position($this->safe_value($data, 0));
+        $position = $this->safe_value($data, 0);
+        if ($position === null) {
+            return $position;
+        }
+        return $this->parse_position($position);
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {

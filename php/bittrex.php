@@ -225,6 +225,7 @@ class bittrex extends Exchange {
             ),
             'commonCurrencies' => array(
                 'REPV2' => 'REP',
+                'MER' => 'Mercury', // conflict with Mercurial Finance
             ),
         ));
     }

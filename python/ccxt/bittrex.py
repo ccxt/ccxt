@@ -241,6 +241,7 @@ class bittrex(Exchange):
             },
             'commonCurrencies': {
                 'REPV2': 'REP',
+                'MER': 'Mercury',  # conflict with Mercurial Finance
             },
         })
 
