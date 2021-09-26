@@ -168,6 +168,14 @@ class Precise:
         whole = self.sub(fractional)
         return whole
 
+    def ceil(self):
+        fractional = self.mod(Precise(1, 0))
+        whole = self.sub(fractional)
+        if fractional.integer > 0:
+            return whole.add(Precise(1, 0))
+        else:
+            return whole
+
     def gt(self, other):
         add = self.sub(other)
         return add.integer > 0
@@ -309,6 +317,12 @@ class Precise:
         if string is None:
             return None
         return str(Precise(string).floor())
+
+    @staticmethod
+    def string_ceil(string):
+        if string is None:
+            return None
+        return str(Precise(string).ceil())
 
     @staticmethod
     def string_gt(string1, string2):
