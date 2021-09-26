@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 109 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 108 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -934,18 +934,6 @@ The CCXT library currently supports the following 109 cryptocurrency exchange ma
      - `Gemini <https://gemini.com/>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://docs.gemini.com/rest-api
-          :alt: API Version 1
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/80134449-70663300-85a7-11ea-8942-e204cdeaab5d.jpg
-          :target: https://www.hbtc.com/register/O2S8NS
-          :alt: hbtc
-     
-     - hbtc
-     - `HBTC <https://www.hbtc.com/register/O2S8NS>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://github.com/bhexopen/BHEX-OpenApi/tree/master/doc
           :alt: API Version 1
      
      - 
