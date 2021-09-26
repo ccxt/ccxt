@@ -9,6 +9,7 @@ class Precise {
 
     public function __construct($number, $decimals = null) {
         if ($decimals === null) {
+            assert(gettype($number) === 'string');
             $modifier = 0;
             $number = strtolower($number);
             if (strpos($number, 'e') > -1) {
@@ -21,6 +22,7 @@ class Precise {
             $this->integer = gmp_init($integerString, 10);
             $this->decimals = $this->decimals - $modifier;
         } else {
+            assert(is_int($decimals));
             $this->integer = $number;
             $this->decimals = $decimals;
         }
