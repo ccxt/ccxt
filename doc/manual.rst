@@ -5058,13 +5058,22 @@ It is also possible to pass the parameters as the fourth argument with or withou
 
 The following aliases of ``network`` allow for withdrawing crypto on multiple chains
 
-.. code-block::
+.. list-table::
+   :header-rows: 1
 
-   |BSC|BEP20|
-   |BNB|BEP2 |
-   |ETH|ERC20|
-   |TRX|TRC20|
-   |HT |HECO |
+   * - Currency
+     - Network
+   * - ETH
+     - ERC20
+   * - TRX
+     - TRC20
+   * - BSC
+     - BEP20
+   * - BNB
+     - BEP2
+   * - HT
+     - HECO
+
 
 You may set the value of ``exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km95sDFN9jhLxJ2D', { 'network': 'TRX' })`` in order to withdraw USDT on the TRON chain, or 'BSC' to withdraw USDT on Binance Smart Chain. In the table above BSC and BEP20 are equivalent aliases, so it doesn't matter which one you use as they both will achieve the same effect.
 
