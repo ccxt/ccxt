@@ -78,6 +78,21 @@ class Precise {
         return new Precise (result, rationizerDenominator + other.decimals)
     }
 
+    pow10 () {
+        // this must represent a positive or negative integer
+        if (this.decimals === undefined || this.decimals === 0) {
+            if (this.integer >= 0) {
+	            const result = base ** this.integer
+	            return new Precise (result, 0)
+            } else {
+                return new Precise (BigInt(1), Number(-this.integer))
+            }
+        } else {
+            // non-integer argument is NOT handled.
+            throw new Error ('this must be a positive or negative integer for pow10')
+        }
+    }
+
     sub (other) {
         const negative = new Precise (-other.integer, other.decimals)
         return this.add (negative)
@@ -230,6 +245,13 @@ class Precise {
             return undefined
         }
         return (new Precise (string1)).mod (new Precise (string2)).toString ()
+    }
+
+    static stringPow10 (string) {
+	    if (string === undefined) {
+		    return undefined
+	    }
+        return (new Precise (string)).pow10 ().toString ()
     }
 
     static stringEquals (string1, string2) {

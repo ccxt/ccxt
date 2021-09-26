@@ -76,6 +76,16 @@ assert (Precise.stringMod ('10.1', '0.5') === '0.1');
 assert (Precise.stringMod ('10000000', '5555') === '1000');
 assert (Precise.stringMod ('5550', '120') === '30');
 
+assert (Precise.stringPow10 ('-4') == '0.0001');
+assert (Precise.stringPow10 ('-3') == '0.001');
+assert (Precise.stringPow10 ('-2') == '0.01');
+assert (Precise.stringPow10 ('-1') == '0.1');
+assert (Precise.stringPow10 ('0') == '1');
+assert (Precise.stringPow10 ('1') == '10');
+assert (Precise.stringPow10 ('2') == '100');
+assert (Precise.stringPow10 ('3') == '1000');
+assert (Precise.stringPow10 ('4') == '10000');
+
 assert (Precise.stringEquals ('1.0000', '1'));
 assert (Precise.stringEquals ('-0.0', '0'));
 assert (Precise.stringEquals ('-0.0', '0.0'));
