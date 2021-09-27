@@ -1817,6 +1817,16 @@ module.exports = class binance extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    async fetchMarkOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}){
+        params = Object.assign(params, {mark: true})
+        return this.fetchOHLCV (symbol, timeframe, since, limit, params)
+    }
+
+    async fetchIndexOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}){
+        params = Object.assign(params, {index: true})
+        return this.fetchOHLCV (symbol, timeframe, since, limit, params)
+    }
+
     parseTrade (trade, market = undefined) {
         if ('isDustTrade' in trade) {
             return this.parseDustTrade (trade, market);
