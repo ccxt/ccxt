@@ -130,6 +130,18 @@ assert (Precise.stringRound ('-0.499999999999999999999999999') === '0');
 assert (Precise.stringRound ('-0.5') === '-1');
 assert (Precise.stringRound ('-0.500000000000000000000000001') === '-1');
 
+assert (Precise.stringFloor ('1.0000') === '1');
+assert (Precise.stringFloor ('2') === '2');
+assert (Precise.stringFloor ('3.1415') === '3');
+assert (Precise.stringFloor ('-3.1415') === '-4');
+assert (Precise.stringFloor ('0.000') === '0');
+assert (Precise.stringFloor ('3.5415') === '3');
+assert (Precise.stringFloor ('-3.5415') === '-4');
+assert (Precise.stringFloor ('314.15') === '314');
+assert (Precise.stringFloor ('-314.15') === '-315');
+assert (Precise.stringFloor ('314.55') === '314');
+assert (Precise.stringFloor ('-314.55') === '-315');
+
 assert (!Precise.stringGt ('1.0000', '2'));
 assert (Precise.stringGt ('2', '1.2345'));
 assert (Precise.stringGt ('3.1415', '-2'));
