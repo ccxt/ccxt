@@ -295,6 +295,9 @@ class bitmart extends Exchange {
                     'TRX' => 'TRC20',
                     'ETH' => 'ERC20',
                 ),
+                'defaultNetworks' => array(
+                    'USDT' => 'ERC20',
+                ),
                 'defaultType' => 'spot', // 'spot', 'swap'
                 'fetchBalance' => array(
                     'type' => 'spot', // 'spot', 'swap', 'contract', 'account'
@@ -2071,6 +2074,17 @@ class bitmart extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
+        if ($code === 'USDT') {
+            $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
+            $defaultNetwork = $this->safe_string_upper($defaultNetworks, $code);
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+            if ($network !== null) {
+                $request['currency'] .= '-' . $network; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                $params = $this->omit($params, 'network');
+            }
+        }
         $response = yield $this->privateAccountGetDepositAddress (array_merge($request, $params));
         //
         //     {
@@ -2111,12 +2125,16 @@ class bitmart extends Exchange {
         if ($tag !== null) {
             $request['address_memo'] = $tag;
         }
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-        if ($network !== null) {
-            $request['currency'] .= '-' . $network; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-            $params = $this->omit($params, 'network');
+        if ($code === 'USDT') {
+            $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
+            $defaultNetwork = $this->safe_string_upper($defaultNetworks, $code);
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+            if ($network !== null) {
+                $request['currency'] .= '-' . $network; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                $params = $this->omit($params, 'network');
+            }
         }
         $response = yield $this->privateAccountPostWithdrawApply (array_merge($request, $params));
         //

@@ -3777,11 +3777,14 @@ class binance extends Exchange {
             $marketId = $this->safe_string($position, 'symbol');
             $market = $this->safe_market($marketId);
             $code = ($this->options['defaultType'] === 'future') ? $market['quote'] : $market['base'];
-            $parsed = $this->parse_position(array_merge($position, array(
-                'crossMargin' => $balances[$code]['crossMargin'],
-                'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
-            )), $market);
-            $result[] = $parsed;
+            // sometimes not all the codes are correctly returned...
+            if (is_array($balances) && array_key_exists($code, $balances)) {
+                $parsed = $this->parse_position(array_merge($position, array(
+                    'crossMargin' => $balances[$code]['crossMargin'],
+                    'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
+                )), $market);
+                $result[] = $parsed;
+            }
         }
         return $result;
     }

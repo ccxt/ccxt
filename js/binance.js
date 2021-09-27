@@ -3771,11 +3771,14 @@ module.exports = class binance extends Exchange {
             const marketId = this.safeString (position, 'symbol');
             const market = this.safeMarket (marketId);
             const code = (this.options['defaultType'] === 'future') ? market['quote'] : market['base'];
-            const parsed = this.parsePosition (this.extend (position, {
-                'crossMargin': balances[code]['crossMargin'],
-                'crossWalletBalance': balances[code]['crossWalletBalance'],
-            }), market);
-            result.push (parsed);
+            // sometimes not all the codes are correctly returned...
+            if (code in balances) {
+                const parsed = this.parsePosition (this.extend (position, {
+                    'crossMargin': balances[code]['crossMargin'],
+                    'crossWalletBalance': balances[code]['crossWalletBalance'],
+                }), market);
+                result.push (parsed);
+            }
         }
         return result;
     }
