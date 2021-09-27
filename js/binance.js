@@ -1729,7 +1729,7 @@ module.exports = class binance extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined) {
-        //
+        // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     [
         //         1591478520000, // open time
         //         "0.02501300",  // open
@@ -1743,6 +1743,24 @@ module.exports = class binance extends Exchange {
         //         "10.92900000", // taker buy base asset volume
         //         "0.27336462",  // taker buy quote asset volume
         //         "0"            // ignore
+        //     ]
+        //
+        //  when api method = fapiPublicGetMarkPriceKlines || fapiPublicGetIndexPriceKlines
+        //     [
+        //         [
+        //         1591256460000,          // Open time
+        //         "9653.29201333",        // Open
+        //         "9654.56401333",        // High
+        //         "9653.07367333",        // Low
+        //         "9653.07367333",        // Close (or latest price)
+        //         "0",                    // Ignore
+        //         1591256519999,          // Close time
+        //         "0",                    // Ignore
+        //         60,                     // Number of bisic data
+        //         "0",                    // Ignore
+        //         "0",                    // Ignore
+        //         "0"                     // Ignore
+        //         ]
         //     ]
         //
         return [
@@ -1767,6 +1785,7 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
             'limit': limit,
+            'pair': market['id'],   //Index price takes this argument instead of symbol
         };
         const duration = this.parseTimeframe (timeframe);
         if (since !== undefined) {
@@ -1782,6 +1801,10 @@ module.exports = class binance extends Exchange {
             method = 'fapiPublicGetKlines';
         } else if (market['inverse']) {
             method = 'dapiPublicGetKlines';
+        } else if (params['mark']){
+            method = 'fapiPublicGetMarkPriceKlines'
+        } else if (params['index']){
+            method = 'fapiPublicGetIndexPriceKlines'
         }
         const response = await this[method] (this.extend (request, params));
         //
