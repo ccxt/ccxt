@@ -3593,11 +3593,13 @@ class binance(Exchange):
             marketId = self.safe_string(position, 'symbol')
             market = self.safe_market(marketId)
             code = market['quote'] if (self.options['defaultType'] == 'future') else market['base']
-            parsed = self.parse_position(self.extend(position, {
-                'crossMargin': balances[code]['crossMargin'],
-                'crossWalletBalance': balances[code]['crossWalletBalance'],
-            }), market)
-            result.append(parsed)
+            # sometimes not all the codes are correctly returned...
+            if code in balances:
+                parsed = self.parse_position(self.extend(position, {
+                    'crossMargin': balances[code]['crossMargin'],
+                    'crossWalletBalance': balances[code]['crossWalletBalance'],
+                }), market)
+                result.append(parsed)
         return result
 
     def parse_position(self, position, market=None):
