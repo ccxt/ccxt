@@ -135,6 +135,12 @@ class Precise {
         }
     }
 
+    floor () {
+        const fractional = this.mod (new Precise(BigInt(1),0))
+        const whole = this.sub (fractional)
+        return whole
+    }
+
     gt (other) {
         const sum = this.sub (other)
         return sum.integer > 0
@@ -308,6 +314,13 @@ class Precise {
 		    return undefined
 	    }
         return (new Precise (string)).round ().toString ()
+    }
+
+    static stringFloor (string) {
+	    if (string === undefined) {
+		    return undefined
+	    }
+        return (new Precise (string)).floor ().toString ()
     }
 
     static stringGt (string1, string2) {
