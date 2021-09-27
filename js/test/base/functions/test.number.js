@@ -142,6 +142,18 @@ assert (Precise.stringFloor ('-314.15') === '-315');
 assert (Precise.stringFloor ('314.55') === '314');
 assert (Precise.stringFloor ('-314.55') === '-315');
 
+assert (Precise.stringCeil ('1.0000') === '1');
+assert (Precise.stringCeil ('2') === '2');
+assert (Precise.stringCeil ('3.1415') === '4');
+assert (Precise.stringCeil ('-3.1415') === '-3');
+assert (Precise.stringCeil ('0.000') === '0');
+assert (Precise.stringCeil ('3.5415') === '4');
+assert (Precise.stringCeil ('-3.5415') === '-3');
+assert (Precise.stringCeil ('314.15') === '315');
+assert (Precise.stringCeil ('-314.15') === '-314');
+assert (Precise.stringCeil ('314.55') === '315');
+assert (Precise.stringCeil ('-314.55') === '-314');
+
 assert (!Precise.stringGt ('1.0000', '2'));
 assert (Precise.stringGt ('2', '1.2345'));
 assert (Precise.stringGt ('3.1415', '-2'));

@@ -141,6 +141,16 @@ class Precise {
         return whole
     }
 
+    ceil () {
+        const fractional = this.mod (new Precise(BigInt(1),0))
+        const whole = this.sub (fractional)
+        if ( fractional.integer > 0 ) {
+            return whole.add (new Precise(BigInt(1),0))
+        } else {
+            return whole
+        }
+    }
+
     gt (other) {
         const sum = this.sub (other)
         return sum.integer > 0
@@ -321,6 +331,13 @@ class Precise {
 		    return undefined
 	    }
         return (new Precise (string)).floor ().toString ()
+    }
+
+    static stringCeil (string) {
+	    if (string === undefined) {
+		    return undefined
+	    }
+        return (new Precise (string)).ceil ().toString ()
     }
 
     static stringGt (string1, string2) {
