@@ -200,7 +200,7 @@ function initializeAllExchanges () {
         })
         return extend ({
             'exchange': result.exchange,
-            '$': decimalToPrecision (value, ROUND, 8, DECIMAL_PLACES),
+            '$': decimalToPrecision (value, ROUND, 2, DECIMAL_PLACES),
         }, result);
     })
 
