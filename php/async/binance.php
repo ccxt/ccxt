@@ -444,8 +444,6 @@ class binance extends Exchange {
                         'aggTrades' => 20,
                         'klines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'continuousKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
-                        'markPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
-                        'indexPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'fundingRate' => 1,
                         'premiumIndex' => 1,
                         'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
@@ -1736,7 +1734,7 @@ class binance extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
-        // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
+        //
         //     array(
         //         1591478520000, // open time
         //         "0.02501300",  // open
@@ -1750,24 +1748,6 @@ class binance extends Exchange {
         //         "10.92900000", // taker buy base asset volume
         //         "0.27336462",  // taker buy quote asset volume
         //         "0"            // ignore
-        //     )
-        //
-        //  when api method = fapiPublicGetMarkPriceKlines || fapiPublicGetIndexPriceKlines
-        //     array(
-        //         array(
-        //         1591256460000,          // Open time
-        //         "9653.29201333",        // Open
-        //         "9654.56401333",        // High
-        //         "9653.07367333",        // Low
-        //         "9653.07367333",        // Close (or latest price)
-        //         "0",                    // Ignore
-        //         1591256519999,          // Close time
-        //         "0",                    // Ignore
-        //         60,                     // Number of bisic data
-        //         "0",                    // Ignore
-        //         "0",                    // Ignore
-        //         "0"                     // Ignore
-        //         )
         //     )
         //
         return array(
@@ -1789,14 +1769,10 @@ class binance extends Exchange {
         $maxLimit = 1500;
         $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
         $request = array(
+            'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
             'limit' => $limit,
         );
-        if ($params['index']) {
-            $request['pair'] = $market['id'];   // Index price takes this argument instead of $symbol
-        } else {
-            $request['symbol'] = $market['id'];
-        }
         $duration = $this->parse_timeframe($timeframe);
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -1807,21 +1783,7 @@ class binance extends Exchange {
             }
         }
         $method = 'publicGetKlines';
-        if (is_array($params) && array_key_exists('mark', $params)) {
-            if ($market['delivery']) {
-                $method = 'dapiPublicGetMarkPriceKlines';
-            } else {
-                $method = 'fapiPublicGetMarkPriceKlines';
-            }
-            $params = $this->omit($params, 'mark');
-        } else if (is_array($params) && array_key_exists('index', $params)) {
-            if ($market['delivery']) {
-                $method = 'dapiPublicGetIndexPriceKlines';
-            } else {
-                $method = 'fapiPublicGetIndexPriceKlines';
-            }
-            $params = $this->omit($params, 'index');
-        } else if ($market['linear']) {
+        if ($market['linear']) {
             $method = 'fapiPublicGetKlines';
         } else if ($market['inverse']) {
             $method = 'dapiPublicGetKlines';
@@ -1835,20 +1797,6 @@ class binance extends Exchange {
         //     ]
         //
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'mark' => true,
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'index' => true,
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_trade($trade, $market = null) {
