@@ -751,7 +751,7 @@ module.exports = class ftx extends Exchange {
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const request = {
-            'index': true,
+            'price': 'index',
         };
         return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
