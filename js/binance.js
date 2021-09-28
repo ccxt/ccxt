@@ -1780,12 +1780,14 @@ module.exports = class binance extends Exchange {
         // the reality is that the time range wider than 500 candles won't work right
         const defaultLimit = 500;
         const maxLimit = 1500;
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
         limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const request = {
             'interval': this.timeframes[timeframe],
             'limit': limit,
         };
-        if (params['index']) {
+        if (price === 'index') {
             request['pair'] = market['id'];   // Index price takes this argument instead of symbol
         } else {
             request['symbol'] = market['id'];
@@ -1800,20 +1802,18 @@ module.exports = class binance extends Exchange {
             }
         }
         let method = 'publicGetKlines';
-        if ('mark' in params) {
+        if (price === 'mark') {
             if (market['inverse']) {
                 method = 'dapiPublicGetMarkPriceKlines';
             } else {
                 method = 'fapiPublicGetMarkPriceKlines';
             }
-            params = this.omit (params, 'mark');
-        } else if ('index' in params) {
+        } else if (price === 'index') {
             if (market['inverse']) {
                 method = 'dapiPublicGetIndexPriceKlines';
             } else {
                 method = 'fapiPublicGetIndexPriceKlines';
             }
-            params = this.omit (params, 'index');
         } else if (market['linear']) {
             method = 'fapiPublicGetKlines';
         } else if (market['inverse']) {
