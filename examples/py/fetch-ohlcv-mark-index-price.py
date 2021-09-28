@@ -15,11 +15,7 @@ print('CCXT Version:', ccxt.__version__)
 
 # -----------------------------------------------------------------------------
 
-exchange = ccxt.binance({
-    "options": {
-        "defaultType": "future"
-    }}
-)
+exchange = ccxt.binanceusdm()
 
 response = exchange.fetchOHLCV(
     symbol='ADA/USDT',
