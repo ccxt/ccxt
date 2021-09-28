@@ -3,9 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeError } = require ('./base/errors');
+const { BadSymbol, ExchangeError, AuthenticationError } = require ('./base/errors');
 const Precise = require ('./base/Precise');
-const { AuthenticationError } = require('ccxt');
 
 //  ---------------------------------------------------------------------------
 
