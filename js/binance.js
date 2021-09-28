@@ -1801,10 +1801,18 @@ module.exports = class binance extends Exchange {
         }
         let method = 'publicGetKlines';
         if ('mark' in params) {
-            method = 'fapiPublicGetMarkPriceKlines';
+            if (market['inverse']) {
+                method = 'dapiPublicGetMarkPriceKlines';
+            } else {
+                method = 'fapiPublicGetMarkPriceKlines';
+            }
             params = this.omit (params, 'mark');
         } else if ('index' in params) {
-            method = 'fapiPublicGetIndexPriceKlines';
+            if (market['inverse']) {
+                method = 'dapiPublicGetIndexPriceKlines';
+            } else {
+                method = 'fapiPublicGetIndexPriceKlines';
+            }
             params = this.omit (params, 'index');
         } else if (market['linear']) {
             method = 'fapiPublicGetKlines';

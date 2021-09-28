@@ -1808,10 +1808,18 @@ class binance extends Exchange {
         }
         $method = 'publicGetKlines';
         if (is_array($params) && array_key_exists('mark', $params)) {
-            $method = 'fapiPublicGetMarkPriceKlines';
+            if ($market['delivery']) {
+                $method = 'dapiPublicGetMarkPriceKlines';
+            } else {
+                $method = 'fapiPublicGetMarkPriceKlines';
+            }
             $params = $this->omit($params, 'mark');
         } else if (is_array($params) && array_key_exists('index', $params)) {
-            $method = 'fapiPublicGetIndexPriceKlines';
+            if ($market['delivery']) {
+                $method = 'dapiPublicGetIndexPriceKlines';
+            } else {
+                $method = 'fapiPublicGetIndexPriceKlines';
+            }
             $params = $this->omit($params, 'index');
         } else if ($market['linear']) {
             $method = 'fapiPublicGetKlines';

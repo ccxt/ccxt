@@ -1766,10 +1766,16 @@ class binance(Exchange):
                 request['endTime'] = min(now, endTime)
         method = 'publicGetKlines'
         if 'mark' in params:
-            method = 'fapiPublicGetMarkPriceKlines'
+            if market['delivery']:
+                method = 'dapiPublicGetMarkPriceKlines'
+            else:
+                method = 'fapiPublicGetMarkPriceKlines'
             params = self.omit(params, 'mark')
         elif 'index' in params:
-            method = 'fapiPublicGetIndexPriceKlines'
+            if market['delivery']:
+                method = 'dapiPublicGetIndexPriceKlines'
+            else:
+                method = 'fapiPublicGetIndexPriceKlines'
             params = self.omit(params, 'index')
         elif market['linear']:
             method = 'fapiPublicGetKlines'
