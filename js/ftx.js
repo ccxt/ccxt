@@ -712,7 +712,6 @@ module.exports = class ftx extends Exchange {
             request['limit'] = limit;
             request['end_time'] = this.sum (request['start_time'], limit * this.parseTimeframe (timeframe));
         }
-        let response = {};
         let method = 'publicGetMarketsMarketNameCandles';
         if (price === 'index') {
             if (symbol in this.markets) {
@@ -720,7 +719,7 @@ module.exports = class ftx extends Exchange {
             }
             method = 'publicGetIndexesMarketNameCandles';
         }
-        response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "success": true,
