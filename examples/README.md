@@ -129,6 +129,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Cryptocurrencies and APIs](https://jonc.dev/cryptocurrency) – A presentation given to kick off the Bloomberg cryptocurrency hackathon and as a Recurse Center talk.
 
+[Perform Currency Conversions And Get Bitcoin Prices In Python](http://www.maxpython.com/packages/perform-currency-conversions-and-get-bitcoin-prices-in-python.php) – an article showing how to use CCXT to get exchange rates, Bitcoin prices and perform currency conversions.
+
 [비트코인 해외 거래소 API - 바이낸스 CCXT설치](https://www.youtube.com/watch?v=7dMGbjwZwlU) – Using CCXT to trade with Binance API.
 
 [ccxt_라이브러리](https://www.youtube.com/watch?v=ifkJ5FtMpKY) – A quick short demo of CCXT on YouTube.
