@@ -1782,11 +1782,14 @@ module.exports = class binance extends Exchange {
         const maxLimit = 1500;
         limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const request = {
-            'symbol': market['id'],
             'interval': this.timeframes[timeframe],
             'limit': limit,
-            'pair': market['id'],   //Index price takes this argument instead of symbol
         };
+        if (params['index']) {
+            request['pair'] = market['id'];   // Index price takes this argument instead of symbol
+        } else {
+            request['symbol'] = market['id'];
+        }
         const duration = this.parseTimeframe (timeframe);
         if (since !== undefined) {
             request['startTime'] = since;
@@ -1797,14 +1800,16 @@ module.exports = class binance extends Exchange {
             }
         }
         let method = 'publicGetKlines';
-        if (market['linear']) {
+        if ('mark' in params) {
+            method = 'fapiPublicGetMarkPriceKlines';
+            params = this.omit (params, 'mark');
+        } else if ('index' in params) {
+            method = 'fapiPublicGetIndexPriceKlines';
+            params = this.omit (params, 'index');
+        } else if (market['linear']) {
             method = 'fapiPublicGetKlines';
         } else if (market['inverse']) {
             method = 'dapiPublicGetKlines';
-        } else if (params['mark']){
-            method = 'fapiPublicGetMarkPriceKlines'
-        } else if (params['index']){
-            method = 'fapiPublicGetIndexPriceKlines'
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1817,14 +1822,18 @@ module.exports = class binance extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchMarkOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}){
-        params = Object.assign(params, {mark: true})
-        return this.fetchOHLCV (symbol, timeframe, since, limit, params)
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'mark': true,
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
-    async fetchIndexOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}){
-        params = Object.assign(params, {index: true})
-        return this.fetchOHLCV (symbol, timeframe, since, limit, params)
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'index': true,
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {
