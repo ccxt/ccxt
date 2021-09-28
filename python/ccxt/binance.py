@@ -1793,13 +1793,13 @@ class binance(Exchange):
 
     def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {
-            'mark': True,
+            'price': 'mark',
         }
         return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {
-            'index': True,
+            'price': 'index',
         }
         return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
