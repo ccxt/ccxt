@@ -65,6 +65,7 @@ class ftx(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': False,
+                'fetchIndexOHLCV': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -700,6 +701,8 @@ class ftx(Exchange):
             'resolution': self.timeframes[timeframe],
             'market_name': marketId,
         }
+        price = self.safe_string(params, 'price')
+        params = self.omit(params, 'price')
         # max 1501 candles, including the current candle when since is not specified
         limit = 1501 if (limit is None) else limit
         if since is None:
@@ -710,7 +713,12 @@ class ftx(Exchange):
             request['start_time'] = int(since / 1000)
             request['limit'] = limit
             request['end_time'] = self.sum(request['start_time'], limit * self.parse_timeframe(timeframe))
-        response = self.publicGetMarketsMarketNameCandles(self.extend(request, params))
+        method = 'publicGetMarketsMarketNameCandles'
+        if price == 'index':
+            if symbol in self.markets:
+                request['market_name'] = market['baseId']
+            method = 'publicGetIndexesMarketNameCandles'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -738,6 +746,12 @@ class ftx(Exchange):
         #
         result = self.safe_value(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
+
+    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_trade(self, trade, market=None):
         #

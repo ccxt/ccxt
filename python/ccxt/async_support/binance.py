@@ -51,6 +51,8 @@ class binance(Exchange):
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRates': True,
+                'fetchIndexOHLCV': True,
+                'fetchMarkOHLCV': True,
                 'fetchIsolatedPositions': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,

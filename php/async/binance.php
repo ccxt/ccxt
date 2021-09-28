@@ -41,6 +41,8 @@ class binance extends Exchange {
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRates' => true,
+                'fetchIndexOHLCV' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchIsolatedPositions' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
