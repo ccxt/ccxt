@@ -24,10 +24,12 @@ async function main () {
 
     const mark = await exchange.fetchMarkOHLCV (symbol, timeframe)
 
+    console.log ('-----------------------------------------------------------')
     console.log (asTable (mark))
 
     const index = await exchange.fetchIndexOHLCV (symbol, timeframe)
 
+    console.log ('-----------------------------------------------------------')
     console.log (asTable (index))
 
 }
