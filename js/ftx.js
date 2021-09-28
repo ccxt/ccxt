@@ -713,17 +713,14 @@ module.exports = class ftx extends Exchange {
             request['end_time'] = this.sum (request['start_time'], limit * this.parseTimeframe (timeframe));
         }
         let response = {};
+        let method = 'publicGetMarketsMarketNameCandles';
         if (price === 'index') {
             if (symbol in this.markets) {
                 request['market_name'] = market['baseId'];
-            } else {
-                const currency = this.currency (symbol);
-                request['market_name'] = currency['id'];
             }
-            response = await this.publicGetIndexesMarketNameCandles (this.extend (request, params));
-        } else {
-            response = await this.publicGetMarketsMarketNameCandles (this.extend (request, params));
+            method = 'publicGetIndexesMarketNameCandles';
         }
+        response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "success": true,
