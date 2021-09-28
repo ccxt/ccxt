@@ -116,6 +116,12 @@ class coincheck extends Exchange {
                     'taker' => $this->parse_number('0'),
                 ),
             ),
+            'exceptions' => array(
+                'exact' => array(
+                    'disabled API Key' => '\\ccxt\\AuthenticationError', // array("success":false,"error":"disabled API Key")'
+                ),
+                'broad' => array(),
+            ),
         ));
     }
 
@@ -419,8 +425,15 @@ class coincheck extends Exchange {
         if ($response === null) {
             return;
         }
+        //
+        //     array("$success":false,"$error":"disabled API Key")'
+        //
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {
+            $error = $this->safe_string($response, 'error');
+            $feedback = $this->id . ' ' . $this->json($response);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
     }

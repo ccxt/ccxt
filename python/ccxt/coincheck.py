@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.precise import Precise
 
@@ -115,6 +116,12 @@ class coincheck(Exchange):
                     'maker': self.parse_number('0'),
                     'taker': self.parse_number('0'),
                 },
+            },
+            'exceptions': {
+                'exact': {
+                    'disabled API Key': AuthenticationError,  # {"success":false,"error":"disabled API Key"}'
+                },
+                'broad': {},
             },
         })
 
@@ -386,6 +393,13 @@ class coincheck(Exchange):
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
+        #
+        #     {"success":false,"error":"disabled API Key"}'
+        #
         success = self.safe_value(response, 'success', True)
         if not success:
+            error = self.safe_string(response, 'error')
+            feedback = self.id + ' ' + self.json(response)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(self.id + ' ' + self.json(response))
