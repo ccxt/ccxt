@@ -212,4 +212,6 @@ function initializeAllExchanges () {
 
     log.green ('Currencies:', currencies)
 
+    console.log (new Date ())
+
 }) ()
