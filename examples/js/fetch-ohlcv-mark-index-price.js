@@ -1,45 +1,35 @@
 const ccxt = require('../../ccxt')
+    , asTable  = require ('as-table').configure ({ delimiter: ' | ' })
 
-// -----------------------------------------------------------------------------
+console.log ('CCXT Version:', ccxt.version)
 
-console.log('CCXT Version:', ccxt.__version__)
+async function main () {
 
-// -----------------------------------------------------------------------------
+    const exchange = new ccxt.binanceusdm()
+        , symbol = 'ADA/USDT'
+        , timeframe = '1h'
+        , since = undefined
+        , limit = undefined
 
-const exchange = new ccxt.binance({
-  "options": {
-    "defaultType": "future"
-  }}
-)
+    // ------------------------------------------------------------------------
+    // method 1 – fetch mark price OHLCVs with a `price` override in `params`:
 
-// -----------------------------------------------------------------------------
+    const params = { 'price': 'mark' }
+    const response = await exchange.fetchOHLCV (symbol, timeframe, since, limit, params)
 
-const markPriceKlines = async () => {
-  markKlines = await exchange.fetchOHLCV(
-    symbol='ADA/USDT', 
-    timeframe='1h', 
-    undefined, 
-    undefined, 
-    params={price: 'mark'}
-  );
-  console.log(markKlines);
+    console.log (asTable (response))
+
+    // ------------------------------------------------------------------------
+    // method 2 – use convenience shorthands
+
+    const mark = await exchange.fetchMarkOHLCV (symbol, timeframe)
+
+    console.log (asTable (mark))
+
+    const index = await exchange.fetchIndexOHLCV (symbol, timeframe)
+
+    console.log (asTable (index))
+
 }
 
-markPriceKlines();
-
-// Convenience methods -------------------------------------------------------
-
-const markAndIndexPriceKlines = async () => {
-  markKlines = await exchange.fetchMarkOHLCV(
-    symbol='ADA/USDT',
-    timeframe='1h',
-  );
-  indexKlines = await exchange.fetchIndexOHLCV(
-    symbol='ADA/USDT',
-    timeframe='1h',
-  );
-  console.log(markKlines);
-  console.log(indexKlines);
-}
-
-markAndIndexPriceKlines();
+main ()
