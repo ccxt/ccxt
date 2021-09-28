@@ -44,6 +44,7 @@ module.exports = class ftx extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': false,
+                'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -698,6 +699,8 @@ module.exports = class ftx extends Exchange {
             'resolution': this.timeframes[timeframe],
             'market_name': marketId,
         };
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
         // max 1501 candles, including the current candle when since is not specified
         limit = (limit === undefined) ? 1501 : limit;
         if (since === undefined) {
@@ -709,7 +712,14 @@ module.exports = class ftx extends Exchange {
             request['limit'] = limit;
             request['end_time'] = this.sum (request['start_time'], limit * this.parseTimeframe (timeframe));
         }
-        const response = await this.publicGetMarketsMarketNameCandles (this.extend (request, params));
+        let method = 'publicGetMarketsMarketNameCandles';
+        if (price === 'index') {
+            if (symbol in this.markets) {
+                request['market_name'] = market['baseId'];
+            }
+            method = 'publicGetIndexesMarketNameCandles';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -737,6 +747,13 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {
