@@ -248,7 +248,7 @@ class bibox(Exchange):
                 'limits': {
                     'amount': {
                         'min': math.pow(10, -precision['amount']),
-                        'max': None,
+                        'max': 1000000,
                     },
                     'price': {
                         'min': math.pow(10, -precision['price']),
