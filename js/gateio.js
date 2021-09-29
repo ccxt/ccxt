@@ -806,11 +806,14 @@ module.exports = class gateio extends Exchange {
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
         const isFuture = price === 'mark' || price === 'index';
-        const pairKey = isFuture ? 'contract' : 'currency_pair';
         const request = {
             'interval': this.timeframes[timeframe],
-            [pairKey]: market['id'],
         };
+        if (isFuture) {
+            request['contract'] = market['id'];
+        } else {
+            request['currency_pair'] = market['id'];
+        }
         if (since === undefined) {
             if (limit !== undefined) {
                 request['limit'] = limit;
