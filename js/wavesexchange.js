@@ -925,8 +925,8 @@ module.exports = class wavesexchange extends Exchange {
             matcherFeeAssetId = this.options['feeAssetId'];
         } else {
             const balances = await this.fetchBalance ();
-            const floatWavesMatherFee = parseFloat (wavesMatcherFee);
-            if (balances['WAVES']['free'] > floatWavesMatherFee) {
+            const floatWavesMatcherFee = parseFloat (wavesMatcherFee);
+            if (balances['WAVES']['free'] > floatWavesMatcherFee) {
                 matcherFeeAssetId = 'WAVES';
                 matcherFee = baseMatcherFee;
             } else {
