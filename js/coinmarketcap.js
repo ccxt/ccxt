@@ -22,7 +22,6 @@ module.exports = class coinmarketcap extends Exchange {
                 'createMarketOrder': false,
                 'createOrder': false,
                 'editOrder': false,
-                'privateAPI': false,
                 'fetchBalance': false,
                 'fetchCurrencies': true,
                 'fetchL2OrderBook': false,
@@ -32,6 +31,7 @@ module.exports = class coinmarketcap extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': false,
+                'privateAPI': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg',
