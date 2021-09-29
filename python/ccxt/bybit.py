@@ -46,8 +46,10 @@ class bybit(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
+                'fetchIndexOHLCV': True,
                 'fetchLedger': True,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -773,6 +775,8 @@ class bybit(Exchange):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
+        price = self.safe_string(params, 'price')
+        params = self.omit(params, 'price')
         request = {
             'symbol': market['id'],
             'interval': self.timeframes[timeframe],
@@ -788,7 +792,13 @@ class bybit(Exchange):
             request['from'] = int(since / 1000)
         if limit is not None:
             request['limit'] = limit  # max 200, default 200
-        method = 'publicLinearGetKline' if market['linear'] else 'v2PublicGetKlineList'
+        method = 'v2PublicGetKlineList'
+        if price == 'mark':
+            method = 'v2PublicGetMarkPriceKline'
+        elif price == 'index':
+            method = 'v2PublicGetIndexPriceKline'
+        elif market['linear']:
+            method = 'publicLinearGetKline'
         response = getattr(self, method)(self.extend(request, params))
         #
         # inverse perpetual BTC/USD
@@ -839,6 +849,18 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
+
+    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'mark',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_trade(self, trade, market=None):
         #
