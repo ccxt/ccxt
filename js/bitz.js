@@ -20,11 +20,11 @@ module.exports = class bitz extends Exchange {
             'has': {
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'createOrder': true,
                 'createMarketOrder': false,
+                'createOrder': true,
                 'fetchBalance': true,
-                'fetchDeposits': true,
                 'fetchClosedOrders': true,
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,

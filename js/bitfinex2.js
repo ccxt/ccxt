@@ -19,9 +19,9 @@ module.exports = class bitfinex2 extends bitfinex {
             'pro': false,
             // new metainfo interface
             'has': {
-                'CORS': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': false,
                 'createDepositAddress': true,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
