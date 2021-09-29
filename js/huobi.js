@@ -35,7 +35,9 @@ module.exports = class huobi extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -154,6 +156,14 @@ module.exports = class huobi extends Exchange {
                         'etp/redemption': 5, // 杠杆ETP换出
                         'etp/{transactId}/cancel': 10, // 杠杆ETP单个撤单
                         'etp/batch-cancel': 50, // 杠杆ETP批量撤单
+                    },
+                },
+                'index': {
+                    'market': {
+                        'get': {
+                            'history/index': 1,
+                            'history/mark_price_kline': 1,
+                        },
                     },
                 },
                 'market': {
@@ -838,7 +848,15 @@ module.exports = class huobi extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.marketGetHistoryKline (this.extend (request, params));
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
+        let method = 'marketGetHistoryKline';
+        if (price === 'index') {
+            method = 'indexMarketGetHistoryMark_price_kline';
+        } else if (price === 'mark') {
+            method = 'indexMarketGetHistoryIndex';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "status":"ok",
@@ -853,6 +871,20 @@ module.exports = class huobi extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     async fetchAccounts (params = {}) {
