@@ -20,6 +20,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.precise import Precise
@@ -758,6 +759,7 @@ class binance(Exchange):
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
                 'exact': {
+                    'System is under maintenance.': OnMaintenance,  # {"code":1,"msg":"System is under maintenance."}
                     'System abnormality': ExchangeError,  # {"code":-1000,"msg":"System abnormality"}
                     'You are not authorized to execute self request.': PermissionDenied,  # {"msg":"You are not authorized to execute self request."}
                     'API key does not exist': AuthenticationError,
