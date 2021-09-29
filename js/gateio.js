@@ -853,7 +853,7 @@ module.exports = class gateio extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined) {
-        //
+        // Spot market candles
         //     [
         //       "1626163200",           // Unix timestamp in seconds
         //       "346711.933138181617",  // Trading volume
@@ -863,20 +863,35 @@ module.exports = class gateio extends Exchange {
         //       "33184.47"              // Open price
         //     ]
         //
-        const timestamp = this.safeTimestamp (ohlcv, 0) || this.safeTimestamp (ohlcv, 't');
-        const volume = this.safeNumber (ohlcv, 1);
-        const close = this.safeNumber (ohlcv, 2) || this.safeNumber (ohlcv, 'c');
-        const high = this.safeNumber (ohlcv, 3) || this.safeNumber (ohlcv, 'h');
-        const low = this.safeNumber (ohlcv, 4) || this.safeNumber (ohlcv, 'l');
-        const open = this.safeNumber (ohlcv, 5) || this.safeNumber (ohlcv, 'o');
-        return [
-            timestamp,
-            open,
-            high,
-            low,
-            close,
-            volume,
-        ];
+        // Mark and Index price candles
+        // {
+        //      "t":1632873600,         // Unix timestamp in seconds
+        //      "o":"41025",            // Open price
+        //      "h":"41882.17",         // Highest price
+        //      "c":"41776.92",         // Close price
+        //      "l":"40783.94"          // Lowest price
+        // }
+        //
+        if (Array.isArray (ohlcv)) {
+            return [
+                this.safeTimestamp (ohlcv, 0),   // unix timestamp in seconds
+                this.safeNumber (ohlcv, 5),      // open price
+                this.safeNumber (ohlcv, 3),      // highest price
+                this.safeNumber (ohlcv, 4),      // lowest price
+                this.safeNumber (ohlcv, 2),      // close price
+                this.safeNumber (ohlcv, 1),      // trading volume
+            ];
+        } else {
+            // Mark and Index price candles
+            return [
+                this.safeTimestamp (ohlcv, 't'), // unix timestamp in seconds
+                this.safeNumber (ohlcv, 'o'),    // open price
+                this.safeNumber (ohlcv, 'h'),    // highest price
+                this.safeNumber (ohlcv, 'l'),    // lowest price
+                this.safeNumber (ohlcv, 'c'),    // close price
+                0,
+            ];
+        }
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
