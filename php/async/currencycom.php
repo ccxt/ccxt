@@ -38,8 +38,8 @@ class currencycom extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
-                'fetchTradingFees' => true,
                 'fetchTrades' => true,
+                'fetchTradingFees' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',

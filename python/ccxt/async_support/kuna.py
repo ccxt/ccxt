@@ -20,8 +20,8 @@ class kuna(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'CORS': False,
                 'cancelOrder': True,
+                'CORS': False,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchMarkets': True,

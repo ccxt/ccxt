@@ -29,8 +29,8 @@ class ripio(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
-                'CORS': False,
                 'cancelOrder': True,
+                'CORS': False,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,

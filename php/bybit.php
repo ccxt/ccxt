@@ -21,9 +21,9 @@ class bybit extends Exchange {
             'rateLimit' => 100,
             'hostname' => 'bybit.com', // bybit.com, bytick.com
             'has' => array(
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => true,
-                'cancelAllOrders' => true,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
@@ -38,15 +38,15 @@ class bybit extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchOrders' => true,
+                'fetchPositions' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => false,
                 'fetchWithdrawals' => true,
-                'fetchPositions' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',

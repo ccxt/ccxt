@@ -20,6 +20,7 @@ class poloniex extends Exchange {
             'certified' => false,
             'pro' => true,
             'has' => array(
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => false,
                 'createDepositAddress' => true,
@@ -46,7 +47,6 @@ class poloniex extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
-                'cancelAllOrders' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(

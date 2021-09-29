@@ -20,9 +20,9 @@ class hollaex extends Exchange {
             'rateLimit' => 333,
             'version' => 'v2',
             'has' => array(
-                'CORS' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'CORS' => false,
                 'createLimitBuyOrder' => true,
                 'createLimitSellOrder' => true,
                 'createMarketBuyOrder' => true,
@@ -32,6 +32,7 @@ class hollaex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => 'emulated',
+                'fetchDepositAddresses' => true,
                 'fetchDeposits' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -48,7 +49,6 @@ class hollaex extends Exchange {
                 'fetchTransactions' => false,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
-                'fetchDepositAddresses' => true,
             ),
             'timeframes' => array(
                 '1h' => '1h',

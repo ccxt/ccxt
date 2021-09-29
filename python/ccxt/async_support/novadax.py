@@ -32,8 +32,8 @@ class novadax(Exchange):
             'version': 'v1',
             # new metainfo interface
             'has': {
-                'CORS': False,
                 'cancelOrder': True,
+                'CORS': False,
                 'createOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
@@ -44,9 +44,9 @@ class novadax(Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOrderTrades': True,
                 'fetchOrderBook': True,
+                'fetchOrderTrades': True,
+                'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
