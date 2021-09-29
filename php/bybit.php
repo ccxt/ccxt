@@ -29,8 +29,10 @@ class bybit extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDeposits' => true,
+                'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -772,6 +774,8 @@ class bybit extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
+        $price = $this->safe_string($params, 'price');
+        $params = $this->omit($params, 'price');
         $request = array(
             'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
@@ -790,7 +794,14 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // max 200, default 200
         }
-        $method = $market['linear'] ? 'publicLinearGetKline' : 'v2PublicGetKlineList';
+        $method = 'v2PublicGetKlineList';
+        if ($price === 'mark') {
+            $method = 'v2PublicGetMarkPriceKline';
+        } else if ($price === 'index') {
+            $method = 'v2PublicGetIndexPriceKline';
+        } else if ($market['linear']) {
+            $method = 'publicLinearGetKline';
+        }
         $response = $this->$method (array_merge($request, $params));
         //
         // inverse perpetual BTC/USD
@@ -841,6 +852,20 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_trade($trade, $market = null) {
