@@ -826,9 +826,9 @@ module.exports = class gateio extends Exchange {
             method = 'publicFuturesGetSettleCandlesticks';
             request['settle'] = market['quote'].toLowerCase ();
             if (price === 'mark') {
-                request['contract'] = `mark_${request['contract']}`;
+                request['contract'] = 'mark_' + request['contract'];
             } else if (price === 'index') {
-                request['contract'] = `index_${request['contract']}`;
+                request['contract'] = 'index_' + request['contract'];
             }
         }
         const response = await this[method] (this.extend (request, params));
