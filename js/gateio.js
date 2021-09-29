@@ -36,7 +36,9 @@ module.exports = class gateio extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
+                'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -801,9 +803,13 @@ module.exports = class gateio extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
+        const isFuture = price === 'mark' || price === 'index';
+        const pairKey = isFuture ? 'contract' : 'currency_pair';
         const request = {
-            'currency_pair': market['id'],
             'interval': this.timeframes[timeframe],
+            [pairKey]: market['id'],
         };
         if (since === undefined) {
             if (limit !== undefined) {
@@ -815,8 +821,32 @@ module.exports = class gateio extends Exchange {
                 request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe) - 1);
             }
         }
-        const response = await this.publicSpotGetCandlesticks (this.extend (request, params));
+        let method = 'publicSpotGetCandlesticks';
+        if (isFuture) {
+            method = 'publicFuturesGetSettleCandlesticks';
+            request['settle'] = market['quote'].toLowerCase ();
+            if (price === 'mark') {
+                request['contract'] = `mark_${request['contract']}`;
+            } else if (price === 'index') {
+                request['contract'] = `index_${request['contract']}`;
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -830,12 +860,12 @@ module.exports = class gateio extends Exchange {
         //       "33184.47"              // Open price
         //     ]
         //
-        const timestamp = this.safeTimestamp (ohlcv, 0);
+        const timestamp = this.safeTimestamp (ohlcv, 0) || this.safeTimestamp (ohlcv, 't');
         const volume = this.safeNumber (ohlcv, 1);
-        const close = this.safeNumber (ohlcv, 2);
-        const high = this.safeNumber (ohlcv, 3);
-        const low = this.safeNumber (ohlcv, 4);
-        const open = this.safeNumber (ohlcv, 5);
+        const close = this.safeNumber (ohlcv, 2) || this.safeNumber (ohlcv, 'c');
+        const high = this.safeNumber (ohlcv, 3) || this.safeNumber (ohlcv, 'h');
+        const low = this.safeNumber (ohlcv, 4) || this.safeNumber (ohlcv, 'l');
+        const open = this.safeNumber (ohlcv, 5) || this.safeNumber (ohlcv, 'o');
         return [
             timestamp,
             open,
