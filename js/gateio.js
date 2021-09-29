@@ -805,15 +805,12 @@ module.exports = class gateio extends Exchange {
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        const isFuture = price === 'mark' || price === 'index';
+        const isMark = (price === 'mark');
+        const isIndex = (price === 'index');
+        const isFuture = isMark || isIndex;
         const request = {
             'interval': this.timeframes[timeframe],
         };
-        if (isFuture) {
-            request['contract'] = market['id'];
-        } else {
-            request['currency_pair'] = market['id'];
-        }
         if (since === undefined) {
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -826,13 +823,16 @@ module.exports = class gateio extends Exchange {
         }
         let method = 'publicSpotGetCandlesticks';
         if (isFuture) {
+            request['contract'] = market['id'];
             method = 'publicFuturesGetSettleCandlesticks';
             request['settle'] = market['quote'].toLowerCase ();
-            if (price === 'mark') {
+            if (isMark) {
                 request['contract'] = 'mark_' + request['contract'];
-            } else if (price === 'index') {
+            } else if (isIndex) {
                 request['contract'] = 'index_' + request['contract'];
             }
+        } else {
+            request['currency_pair'] = market['id'];
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
