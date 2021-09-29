@@ -175,11 +175,21 @@ declare module 'ccxt' {
         total: number;
     }
 
+    export interface BalanceCurrency {
+        currency: string;
+        price: number;
+    }
+
     export interface PartialBalances extends Dictionary<number> {
     }
 
     export interface Balances extends Dictionary<Balance> {
         info: any;
+        timestamp?: number;
+        datetime?: string;
+        free: BalanceCurrency[];
+        used: BalanceCurrency[];
+        total: BalanceCurrency[];
     }
 
     export interface DepositAddress {
