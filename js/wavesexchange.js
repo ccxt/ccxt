@@ -933,9 +933,9 @@ module.exports = class wavesexchange extends Exchange {
                 for (let i = 0; i < priceAssets.length; i++) {
                     const assetId = priceAssets[i];
                     const code = this.safeCurrencyCode (assetId);
-                    const balance = this.safeValue (this.safeValue (balances, code, {}), 'free');
+                    const balance = this.safeString (this.safeValue (balances, code, {}), 'free');
                     const assetFee = Precise.stringMul (rates[assetId], wavesMatcherFee);
-                    if ((balance !== undefined) && (balance > assetFee)) {
+                    if ((balance !== undefined) && Precise.stringGt (balance, assetFee)) {
                         matcherFeeAssetId = assetId;
                         break;
                     }
