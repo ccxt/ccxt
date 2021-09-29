@@ -18,6 +18,7 @@ class kucoin(Exchange, ccxt.kucoin):
                 'ws': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
+                'watchMyTrades': True,
                 'watchTickers': False,  # for now
                 'watchTicker': True,
                 'watchTrades': True,
@@ -103,7 +104,7 @@ class kucoin(Exchange, ccxt.kucoin):
         subscribe = {
             'id': nonce,
             'type': 'subscribe',
-            'topic': messageHash,
+            'topic': topic,
             'response': True,
         }
         subscription = {
@@ -114,14 +115,15 @@ class kucoin(Exchange, ccxt.kucoin):
             'method': method,
         }
         request = self.extend(subscribe, params)
-        return await self.watch(url, messageHash, request, messageHash, subscription)
+        subscriptionHash = topic
+        return await self.watch(url, messageHash, request, subscriptionHash, subscription)
 
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         negotiation = await self.negotiate()
-        topic = '/market/snapshot'
-        messageHash = topic + ':' + market['id']
+        topic = '/market/snapshot:' + market['id']
+        messageHash = topic
         return await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
 
     def handle_ticker(self, client, message):
@@ -172,10 +174,10 @@ class kucoin(Exchange, ccxt.kucoin):
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         negotiation = await self.negotiate()
-        topic = '/market/candles'
         market = self.market(symbol)
         period = self.timeframes[timeframe]
-        messageHash = topic + ':' + market['id'] + '_' + period
+        topic = '/market/candles:' + market['id'] + '_' + period
+        messageHash = topic
         trades = await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -225,9 +227,9 @@ class kucoin(Exchange, ccxt.kucoin):
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         negotiation = await self.negotiate()
-        topic = '/market/match'
         market = self.market(symbol)
-        messageHash = topic + ':' + market['id']
+        topic = '/market/match:' + market['id']
+        messageHash = topic
         trades = await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -287,9 +289,9 @@ class kucoin(Exchange, ccxt.kucoin):
                 raise ExchangeError(self.id + " watchOrderBook 'limit' argument must be None, 20 or 100")
         await self.load_markets()
         negotiation = await self.negotiate()
-        topic = '/market/level2'
         market = self.market(symbol)
-        messageHash = topic + ':' + market['id']
+        topic = '/market/level2:' + market['id']
+        messageHash = topic
         orderbook = await self.subscribe(negotiation, topic, messageHash, self.handle_order_book_subscription, symbol, params)
         return orderbook.limit(limit)
 
@@ -485,7 +487,10 @@ class kucoin(Exchange, ccxt.kucoin):
         request = {
             'privateChannel': True,
         }
-        orders = await self.subscribe(negotiation, topic, topic, None, None, self.extend(request, params))
+        messageHash = topic
+        if symbol is not None:
+            messageHash = messageHash + ':' + symbol
+        orders = await self.subscribe(negotiation, topic, messageHash, None, None, self.extend(request, params))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
@@ -561,6 +566,99 @@ class kucoin(Exchange, ccxt.kucoin):
                     parsed['status'] = 'closed'
             cachedOrders.append(parsed)
             client.resolve(self.orders, messageHash)
+            symbolSpecificMessageHash = messageHash + ':' + symbol
+            client.resolve(self.orders, symbolSpecificMessageHash)
+
+    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        negotiation = await self.negotiate()
+        topic = '/spotMarket/tradeOrders'
+        request = {
+            'privateChannel': True,
+        }
+        messageHash = topic
+        if symbol is not None:
+            messageHash = messageHash + ':' + symbol
+        trades = await self.subscribe(negotiation, topic, messageHash, None, None, self.extend(request, params))
+        if self.newUpdates:
+            limit = trades.getLimit()
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+
+    def handle_my_trade(self, client, message):
+        trades = self.myTrades
+        if trades is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            trades = ArrayCacheBySymbolById(limit)
+        data = self.safe_value(message, 'data')
+        parsed = self.parse_ws_trade(data)
+        trades.append(parsed)
+        messageHash = 'myTrades'
+        client.resolve(trades, messageHash)
+        symbolSpecificMessageHash = messageHash + ':' + parsed['symbol']
+        client.resolve(trades, symbolSpecificMessageHash)
+
+    def parse_ws_trade(self, trade):
+        # {
+        #     "type":"message",
+        #     "topic":"/spotMarket/tradeOrders",
+        #     "subject":"orderChange",
+        #     "channelType":"private",
+        #     "data":{
+        #         "symbol":"KCS-USDT",
+        #         "orderType":"limit",
+        #         "side":"sell",
+        #         "orderId":"5efab07953bdea00089965fa",
+        #         "liquidity":"taker",
+        #         "type":"match",
+        #         "orderTime":1593487482038606180,
+        #         "size":"0.1",
+        #         "filledSize":"0.1",
+        #         "price":"0.938",
+        #         "matchPrice":"0.96738",
+        #         "matchSize":"0.1",
+        #         "tradeId":"5efab07a4ee4c7000a82d6d9",
+        #         "clientOid":"1593487481000313",
+        #         "remainSize":"0",
+        #         "status":"match",
+        #         "ts":1593487482038606180
+        #     }
+        # }
+        symbol = self.safe_string(trade, 'symbol')
+        type = self.safe_string(trade, 'orderType')
+        side = self.safe_string(trade, 'side')
+        takerOrMaker = self.safe_string(trade, 'liquidity')
+        tradeId = self.safe_string(trade, 'tradeId')
+        price = self.safe_float(trade, 'matchPrice')
+        amount = self.safe_float(trade, 'matchSize')
+        order = self.safe_string(trade, 'orderId')
+        timestamp = self.safe_integer(order, 'ts')
+        if timestamp is not None:
+            timestamp = int(timestamp / 1000000)
+        cost = None
+        if (price is not None) and (amount is not None):
+            cost = price * amount
+        market = self.market(symbol)
+        feeCurrency = market['quote']
+        fee = {
+            'cost': None,
+            'rate': None,
+            'currency': feeCurrency,
+        }
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'id': tradeId,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        }
 
     def handle_subject(self, client, message):
         #
@@ -585,9 +683,15 @@ class kucoin(Exchange, ccxt.kucoin):
             'trade.snapshot': self.handle_ticker,
             'trade.l3match': self.handle_trade,
             'trade.candles.update': self.handle_ohlcv,
-            'orderChange': self.handle_order,
         }
         method = self.safe_value(methods, subject)
+        if subject == 'orderChange':
+            data = self.safe_value(message, 'data')
+            type = self.safe_string(data, 'type')
+            if type == 'match':
+                method = self.handle_my_trade
+            else:
+                method = self.handle_order
         if method is None:
             return message
         else:
