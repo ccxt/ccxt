@@ -1,4 +1,5 @@
 {
+    "bitfinex": { "skip": true },
     "currencycom": { "skip": true },
     "dsx": { "skip": true },
     "gateio": { "skip": true },
