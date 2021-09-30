@@ -35,9 +35,9 @@ class bitfinex2(bitfinex):
             'pro': False,
             # new metainfo interface
             'has': {
-                'CORS': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'CORS': False,
                 'createDepositAddress': True,
                 'createLimitOrder': True,
                 'createMarketOrder': True,

@@ -19,13 +19,13 @@ module.exports = class bibox extends Exchange {
             'has': {
                 'cancelOrder': true,
                 'CORS': undefined,
-                'createMarketOrder': false, // or they will return https://github.com/ccxt/ccxt/issues/2338
+                'createMarketOrder': undefined, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDeposits': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchFundingFees': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -227,7 +227,7 @@ module.exports = class bibox extends Exchange {
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -precision['amount']),
-                        'max': undefined,
+                        'max': 1000000,
                     },
                     'price': {
                         'min': Math.pow (10, -precision['price']),

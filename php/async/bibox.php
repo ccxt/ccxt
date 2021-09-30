@@ -29,8 +29,8 @@ class bibox extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchDeposits' => true,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
                 'fetchFundingFees' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -232,7 +232,7 @@ class bibox extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => pow(10, -$precision['amount']),
-                        'max' => null,
+                        'max' => 1000000,
                     ),
                     'price' => array(
                         'min' => pow(10, -$precision['price']),

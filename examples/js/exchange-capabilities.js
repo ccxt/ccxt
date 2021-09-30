@@ -3,7 +3,7 @@
 /*  ------------------------------------------------------------------------ */
 
 const ccxt        = require ('../../ccxt.js')
-    , asTable     = require ('as-table') // .configure ({ print: require ('string.ify').noPretty })
+    , asTable     = require ('as-table').configure ({ delimiter: ' | ', /* print: require ('string.ify').noPretty  */ })
     , log         = require ('ololog').noLocate
     , ansi        = require ('ansicolor').nice
 

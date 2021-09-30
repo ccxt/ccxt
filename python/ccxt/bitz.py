@@ -31,11 +31,11 @@ class bitz(Exchange):
             'has': {
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'createOrder': True,
                 'createMarketOrder': False,
+                'createOrder': True,
                 'fetchBalance': True,
-                'fetchDeposits': True,
                 'fetchClosedOrders': True,
+                'fetchDeposits': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,

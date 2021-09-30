@@ -45,8 +45,8 @@ class currencycom(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
-                'fetchTradingFees': True,
                 'fetchTrades': True,
+                'fetchTradingFees': True,
             },
             'timeframes': {
                 '1m': '1m',

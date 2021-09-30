@@ -25,9 +25,9 @@ class kucoin extends Exchange {
             'comment' => 'Platform 2.0',
             'quoteJsonNumbers' => false,
             'has' => array(
-                'CORS' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'CORS' => false,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'fetchAccounts' => true,
@@ -50,8 +50,8 @@ class kucoin extends Exchange {
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
-                'withdraw' => true,
                 'transfer' => true,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',

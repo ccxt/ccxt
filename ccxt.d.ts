@@ -180,6 +180,11 @@ declare module 'ccxt' {
 
     export interface Balances extends Dictionary<Balance> {
         info: any;
+        timestamp?: number;
+        datetime?: string;
+        free: Dictionary<number>;
+        used: Dictionary<number>;
+        total: Dictionary<number>;
     }
 
     export interface DepositAddress {

@@ -30,6 +30,7 @@ class coinone(Exchange):
                 'createMarketOrder': False,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchClosedOrders': False,  # the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchCurrencies': False,
                 'fetchDepositAddresses': True,
                 'fetchMarkets': True,
@@ -40,9 +41,6 @@ class coinone(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                # https://github.com/ccxt/ccxt/pull/7067
-                # the endpoint that should return closed orders actually returns trades
-                'fetchClosedOrders': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',

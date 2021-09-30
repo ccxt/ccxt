@@ -39,15 +39,17 @@ class okex(Exchange):
             'pro': True,
             'certified': True,
             'has': {
-                'CORS': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'CORS': False,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,  # see below
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchIndexOHLCV': True,
                 'fetchLedger': True,
+                'fetchMarkOHLCV': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -1124,6 +1126,8 @@ class okex(Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        price = self.safe_string(params, 'price')
+        params = self.omit(params, 'price')
         request = {
             'instId': market['id'],
             'bar': self.timeframes[timeframe],
@@ -1135,6 +1139,10 @@ class okex(Exchange):
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
         method = 'publicGetMarket' + type
+        if price == 'mark':
+            method = 'publicGetMarketMarkPriceCandles'
+        elif price == 'index':
+            method = 'publicGetMarketIndexCandles'
         if since is not None:
             request['before'] = since - 1
         response = await getattr(self, method)(self.extend(request, params))
@@ -1151,6 +1159,18 @@ class okex(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'mark',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_balance_by_type(self, type, response):
         if type == 'funding':

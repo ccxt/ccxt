@@ -20,6 +20,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.precise import Precise
@@ -41,10 +42,10 @@ class binance(Exchange):
                 'cancelOrder': True,
                 'CORS': False,
                 'createOrder': True,
-                'fetchCurrencies': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': True,
@@ -52,15 +53,15 @@ class binance(Exchange):
                 'fetchFundingRate': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
-                'fetchMarkOHLCV': True,
                 'fetchIsolatedPositions': True,
+                'fetchMarkOHLCV': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
                 'fetchOrderBook': True,
+                'fetchOrders': True,
                 'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -70,12 +71,12 @@ class binance(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactions': False,
+                'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': True,
-                'withdraw': True,
                 'transfer': True,
-                'fetchTransfers': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -758,6 +759,7 @@ class binance(Exchange):
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
                 'exact': {
+                    'System is under maintenance.': OnMaintenance,  # {"code":1,"msg":"System is under maintenance."}
                     'System abnormality': ExchangeError,  # {"code":-1000,"msg":"System abnormality"}
                     'You are not authorized to execute self request.': PermissionDenied,  # {"msg":"You are not authorized to execute self request."}
                     'API key does not exist': AuthenticationError,

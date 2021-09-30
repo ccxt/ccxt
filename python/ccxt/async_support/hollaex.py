@@ -24,9 +24,9 @@ class hollaex(Exchange):
             'rateLimit': 333,
             'version': 'v2',
             'has': {
-                'CORS': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'CORS': False,
                 'createLimitBuyOrder': True,
                 'createLimitSellOrder': True,
                 'createMarketBuyOrder': True,
@@ -36,6 +36,7 @@ class hollaex(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': True,
                 'fetchDeposits': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -52,7 +53,6 @@ class hollaex(Exchange):
                 'fetchTransactions': False,
                 'fetchWithdrawals': True,
                 'withdraw': True,
-                'fetchDepositAddresses': True,
             },
             'timeframes': {
                 '1h': '1h',

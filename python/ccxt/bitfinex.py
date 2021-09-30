@@ -61,8 +61,8 @@ class bitfinex(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': False,
-                'withdraw': True,
                 'transfer': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',

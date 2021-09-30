@@ -23,7 +23,6 @@ class coinmarketcap(Exchange):
                 'createMarketOrder': False,
                 'createOrder': False,
                 'editOrder': False,
-                'privateAPI': False,
                 'fetchBalance': False,
                 'fetchCurrencies': True,
                 'fetchL2OrderBook': False,
@@ -33,6 +32,7 @@ class coinmarketcap(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': False,
+                'privateAPI': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg',

@@ -22,7 +22,6 @@ module.exports = class coinmarketcap extends Exchange {
                 'createMarketOrder': undefined,
                 'createOrder': undefined,
                 'editOrder': undefined,
-                'privateAPI': undefined,
                 'fetchBalance': undefined,
                 'fetchCurrencies': true,
                 'fetchL2OrderBook': undefined,
@@ -32,15 +31,11 @@ module.exports = class coinmarketcap extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': undefined,
+                'privateAPI': undefined,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg',
-                'api': {
-                    'public': 'https://api.coinmarketcap.com',
-                    'files': 'https://files.coinmarketcap.com',
-                    'charts': 'https://graph.coinmarketcap.com',
-                },
-                'www': 'https://coinmarketcap.com',
+                'charts': 'https://graph.coinmarketcap.com',
                 'doc': 'https://coinmarketcap.com/api',
             },
             'requiredCredentials': {

@@ -30,10 +30,10 @@ class binance extends Exchange {
                 'cancelOrder' => true,
                 'CORS' => false,
                 'createOrder' => true,
-                'fetchCurrencies' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchClosedOrders' => 'emulated',
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => true,
@@ -41,15 +41,15 @@ class binance extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
-                'fetchMarkOHLCV' => true,
                 'fetchIsolatedPositions' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchOrders' => true,
                 'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -59,12 +59,12 @@ class binance extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => false,
+                'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
-                'withdraw' => true,
                 'transfer' => true,
-                'fetchTransfers' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -747,6 +747,7 @@ class binance extends Exchange {
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions' => array(
                 'exact' => array(
+                    'System is under maintenance.' => '\\ccxt\\OnMaintenance', // array("code":1,"msg":"System is under maintenance.")
                     'System abnormality' => '\\ccxt\\ExchangeError', // array("code":-1000,"msg":"System abnormality")
                     'You are not authorized to execute this request.' => '\\ccxt\\PermissionDenied', // array("msg":"You are not authorized to execute this request.")
                     'API key does not exist' => '\\ccxt\\AuthenticationError',

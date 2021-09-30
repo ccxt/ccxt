@@ -20,9 +20,9 @@ module.exports = class okex extends Exchange {
             'pro': true,
             'certified': true,
             'has': {
-                'CORS': undefined,
                 'cancelOrder': true,
                 'createOrder': true,
+                'CORS': undefined,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': undefined, // see below
@@ -30,8 +30,8 @@ module.exports = class okex extends Exchange {
                 'fetchDeposits': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
-                'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,

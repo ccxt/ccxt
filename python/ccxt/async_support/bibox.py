@@ -47,8 +47,8 @@ class bibox(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
-                'fetchDeposits': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
                 'fetchFundingFees': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -248,7 +248,7 @@ class bibox(Exchange):
                 'limits': {
                     'amount': {
                         'min': math.pow(10, -precision['amount']),
-                        'max': None,
+                        'max': 1000000,
                     },
                     'price': {
                         'min': math.pow(10, -precision['price']),
