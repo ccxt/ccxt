@@ -17,7 +17,7 @@ module.exports = class cex extends Exchange {
             'rateLimit': 1500,
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,

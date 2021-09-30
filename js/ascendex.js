@@ -19,7 +19,7 @@ module.exports = class ascendex extends Exchange {
             'certified': true,
             // new metainfo interface
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
                 'fetchOrderBook': true,

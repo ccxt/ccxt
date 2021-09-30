@@ -18,7 +18,7 @@ module.exports = class hollaex extends Exchange {
             'rateLimit': 333,
             'version': 'v2',
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createLimitBuyOrder': true,
@@ -43,7 +43,7 @@ module.exports = class hollaex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTransactions': false,
+                'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'withdraw': true,
                 'fetchDepositAddresses': true,

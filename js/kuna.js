@@ -17,7 +17,7 @@ module.exports = class kuna extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -31,7 +31,7 @@ module.exports = class kuna extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'withdraw': false,
+                'withdraw': undefined,
             },
             'timeframes': undefined,
             'urls': {

@@ -16,7 +16,7 @@ module.exports = class independentreserve extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,

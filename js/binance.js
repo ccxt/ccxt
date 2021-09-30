@@ -22,7 +22,7 @@ module.exports = class binance extends Exchange {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchCurrencies': true,
                 'fetchBalance': true,
@@ -52,7 +52,7 @@ module.exports = class binance extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTransactions': false,
+                'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
                 'setMarginMode': true,

@@ -27,7 +27,7 @@ module.exports = class btcalpha extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchTicker': false,
+                'fetchTicker': undefined,
                 'fetchTrades': true,
             },
             'timeframes': {

@@ -20,7 +20,7 @@ module.exports = class bitvavo extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'publicAPI': true,
                 'privateAPI': true,
                 'cancelAllOrders': true,

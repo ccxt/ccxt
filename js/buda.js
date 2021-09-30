@@ -18,7 +18,7 @@ module.exports = class buda extends Exchange {
             'version': 'v2',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -28,7 +28,7 @@ module.exports = class buda extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingFees': true,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,

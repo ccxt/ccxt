@@ -19,7 +19,7 @@ module.exports = class wavesexchange extends Exchange {
             'pro': false,
             'has': {
                 'cancelOrder': true,
-                'createMarketOrder': false,
+                'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,

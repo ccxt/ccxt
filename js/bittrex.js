@@ -21,7 +21,7 @@ module.exports = class bittrex extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
@@ -43,7 +43,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTransactions': false,
+                'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },

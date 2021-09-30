@@ -20,12 +20,12 @@ module.exports = class okex extends Exchange {
             'pro': true,
             'certified': true,
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': false, // see below
+                'fetchCurrencies': undefined, // see below
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchIndexOHLCV': true,

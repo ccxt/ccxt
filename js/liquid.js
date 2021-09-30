@@ -19,7 +19,7 @@ module.exports = class liquid extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,

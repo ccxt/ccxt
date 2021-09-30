@@ -20,7 +20,7 @@ module.exports = class bitget extends Exchange {
             'has': {
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,

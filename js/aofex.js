@@ -19,7 +19,7 @@ module.exports = class aofex extends Exchange {
             'hostname': 'openapi.aofex.com',
             'has': {
                 'fetchMarkets': true,
-                'fetchCurrencies': false,
+                'fetchCurrencies': undefined,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchTicker': true,

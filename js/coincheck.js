@@ -17,7 +17,7 @@ module.exports = class coincheck extends Exchange {
             'rateLimit': 1500,
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchMyTrades': true,
