@@ -3,7 +3,7 @@
 /*  ------------------------------------------------------------------------ */
 
 const ccxt        = require ('../../ccxt.js')
-    , asTable     = require ('as-table').configure ({ delimiter: ' | ', /* print: require ('string.ify').noPretty  */ })
+    , asTable     = require ('as-table') // .configure ({ print: require ('string.ify').noPretty })
     , log         = require ('ololog').noLocate
     , ansi        = require ('ansicolor').nice
 
@@ -11,16 +11,16 @@ console.log (ccxt.iso8601 (ccxt.milliseconds ()))
 console.log ('CCXT v' + ccxt.version)
 
 ;(async function test () {
-
+    
     let total = 0
     let missing = 0
     let implemented = 0
     let emulated = 0
-
+    
     log (asTable (ccxt.exchanges.map (id => new ccxt[id]()).map (exchange => {
-
+        
         let result = {};
-
+        
         [
             'publicAPI',
             'privateAPI',
@@ -46,10 +46,17 @@ console.log ('CCXT v' + ccxt.version)
             'fetchTime',
             'fetchTrades',
             'fetchTradingLimits',
+            'loadMarkets',
             'cancelAllOrders',
             'cancelOrder',
             'cancelOrders',
             'createDepositAddress',
+            'createLimitBuyOrder',
+            'createLimitOrder',
+            'createLimitSellOrder',
+            'createMarketBuyOrder',
+            'createMarketOrder',
+            'createMarketSellOrder',
             'createOrder',
             'deposit',
             'editOrder',
@@ -67,12 +74,15 @@ console.log ('CCXT v' + ccxt.version)
             'fetchIsolatedPositions',
             'fetchLedger',
             'fetchLedgerEntry',
+            'fetchMyBuys',
+            'fetchMySells',
             'fetchMyTrades',
             'fetchOpenOrder',
             'fetchOpenOrders',
             'fetchOrder',
             'fetchOrderTrades',
             'fetchOrders',
+            'fetchOrdersByStatus',
             'fetchPosition',
             'fetchPositions',
             'fetchTradingFee',
@@ -116,6 +126,6 @@ console.log ('CCXT v' + ccxt.version)
         missing.toString ().red, 'missing,',
         total.toString (), 'total')
 
-    log("Messy? Try piping to less (e.g. node script.js | less -S -R)".red)
+    log("\nMessy? Try piping to less (e.g. node script.js | less -S -R)\n".red)
 
 }) ()
