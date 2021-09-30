@@ -19,7 +19,7 @@ class bl3p extends Exchange {
             'comment' => 'An exchange market by BitonicNL',
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchOrderBook' => true,

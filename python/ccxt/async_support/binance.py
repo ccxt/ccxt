@@ -40,7 +40,7 @@ class binance(Exchange):
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
@@ -70,7 +70,7 @@ class binance(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'fetchTransactions': False,
+                'fetchTransactions': None,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,

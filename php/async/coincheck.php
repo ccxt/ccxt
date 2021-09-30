@@ -20,7 +20,7 @@ class coincheck extends Exchange {
             'rateLimit' => 1500,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchMyTrades' => true,

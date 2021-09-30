@@ -30,7 +30,7 @@ class bit2c(Exchange):
             'rateLimit': 3000,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchMyTrades': True,

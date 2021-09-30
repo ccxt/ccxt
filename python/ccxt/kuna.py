@@ -21,7 +21,7 @@ class kuna(Exchange):
             'version': 'v2',
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchMarkets': True,
@@ -34,7 +34,7 @@ class kuna(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'withdraw': False,
+                'withdraw': None,
             },
             'timeframes': None,
             'urls': {

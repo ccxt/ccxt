@@ -48,11 +48,11 @@ class okex3(Exchange):
             'pro': True,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': False,  # see below
+                'fetchCurrencies': None,  # see below
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchLedger': True,
@@ -63,12 +63,12 @@ class okex3(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
-                'fetchOrders': False,
+                'fetchOrders': None,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTransactions': False,
+                'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'futures': True,
                 'withdraw': True,

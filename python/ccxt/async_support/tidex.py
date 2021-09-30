@@ -36,8 +36,8 @@ class tidex(Exchange):
             'userAgent': self.userAgents['chrome'],
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
-                'createMarketOrder': False,
+                'CORS': None,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,

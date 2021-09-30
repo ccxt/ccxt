@@ -36,7 +36,7 @@ class cex(Exchange):
             'rateLimit': 1500,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,

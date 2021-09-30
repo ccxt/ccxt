@@ -25,10 +25,10 @@ class okex extends Exchange {
             'has' => array(
                 'cancelOrder' => true,
                 'createOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchCurrencies' => false, // see below
+                'fetchCurrencies' => null, // see below
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchIndexOHLCV' => true,

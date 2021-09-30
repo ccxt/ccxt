@@ -33,7 +33,7 @@ class currencycom(Exchange):
             # new metainfo interface
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,

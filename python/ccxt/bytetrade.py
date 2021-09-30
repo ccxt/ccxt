@@ -27,7 +27,7 @@ class bytetrade(Exchange):
             # new metainfo interface
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
@@ -46,7 +46,7 @@ class bytetrade(Exchange):
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
-                'withdraw': False,
+                'withdraw': None,
             },
             'timeframes': {
                 '1m': '1m',

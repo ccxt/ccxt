@@ -20,7 +20,7 @@ class coincheck(Exchange):
             'rateLimit': 1500,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchMyTrades': True,

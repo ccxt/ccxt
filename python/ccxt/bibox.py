@@ -41,8 +41,8 @@ class bibox(Exchange):
             'hostname': 'bibox365.com',
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
-                'createMarketOrder': False,  # or they will return https://github.com/ccxt/ccxt/issues/2338
+                'CORS': None,
+                'createMarketOrder': None,  # or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
@@ -60,7 +60,7 @@ class bibox(Exchange):
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
-                'publicAPI': False,
+                'publicAPI': None,
                 'withdraw': True,
             },
             'timeframes': {

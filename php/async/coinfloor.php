@@ -21,7 +21,7 @@ class coinfloor extends Exchange {
             'countries' => array( 'UK' ),
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchLedger' => true,

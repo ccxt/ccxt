@@ -19,8 +19,8 @@ class btctradeua(Exchange):
             'rateLimit': 3000,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
-                'createMarketOrder': False,
+                'CORS': None,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchOpenOrders': True,

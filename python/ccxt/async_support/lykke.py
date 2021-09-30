@@ -17,7 +17,7 @@ class lykke(Exchange):
             'version': 'v1',
             'rateLimit': 200,
             'has': {
-                'CORS': False,
+                'CORS': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -25,7 +25,7 @@ class lykke(Exchange):
                 'fetchClosedOrders': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
-                'fetchOHLCV': False,
+                'fetchOHLCV': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,

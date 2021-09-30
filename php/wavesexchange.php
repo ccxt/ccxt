@@ -24,7 +24,7 @@ class wavesexchange extends Exchange {
             'pro' => false,
             'has' => array(
                 'cancelOrder' => true,
-                'createMarketOrder' => false,
+                'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,

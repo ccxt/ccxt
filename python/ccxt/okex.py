@@ -41,10 +41,10 @@ class okex(Exchange):
             'has': {
                 'cancelOrder': True,
                 'createOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': False,  # see below
+                'fetchCurrencies': None,  # see below
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchIndexOHLCV': True,

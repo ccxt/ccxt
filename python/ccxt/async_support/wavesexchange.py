@@ -31,7 +31,7 @@ class wavesexchange(Exchange):
             'pro': False,
             'has': {
                 'cancelOrder': True,
-                'createMarketOrder': False,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,

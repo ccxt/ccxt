@@ -21,7 +21,7 @@ class mixcoins(Exchange):
             'userAgent': self.userAgents['chrome'],
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchOrderBook': True,

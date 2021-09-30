@@ -35,7 +35,7 @@ class crex24(Exchange):
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -56,8 +56,8 @@ class crex24(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTradingFee': False,  # actually, True, but will be implemented later
-                'fetchTradingFees': False,  # actually, True, but will be implemented later
+                'fetchTradingFee': None,  # actually, True, but will be implemented later
+                'fetchTradingFees': None,  # actually, True, but will be implemented later
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,

@@ -38,7 +38,7 @@ class exmo(Exchange):
             'version': 'v1.1',
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,
