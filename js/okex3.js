@@ -20,11 +20,11 @@ module.exports = class okex3 extends Exchange {
             'pro': true,
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': false, // see below
+                'fetchCurrencies': undefined, // see below
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchLedger': true,
@@ -35,12 +35,12 @@ module.exports = class okex3 extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
-                'fetchOrders': false,
+                'fetchOrders': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTransactions': false,
+                'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'futures': true,
                 'withdraw': true,

@@ -16,7 +16,7 @@ module.exports = class lykke extends Exchange {
             'version': 'v1',
             'rateLimit': 200,
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -24,7 +24,7 @@ module.exports = class lykke extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,

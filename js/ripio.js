@@ -21,7 +21,7 @@ module.exports = class ripio extends Exchange {
             // new metainfo interface
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,

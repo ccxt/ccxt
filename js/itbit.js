@@ -19,7 +19,7 @@ module.exports = class itbit extends Exchange {
             'has': {
                 'cancelOrder': true,
                 'CORS': true,
-                'createMarketOrder': false,
+                'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,

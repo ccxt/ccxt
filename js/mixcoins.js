@@ -19,7 +19,7 @@ module.exports = class mixcoins extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchOrderBook': true,

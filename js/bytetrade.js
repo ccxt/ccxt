@@ -20,7 +20,7 @@ module.exports = class bytetrade extends Exchange {
             // new metainfo interface
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -39,7 +39,7 @@ module.exports = class bytetrade extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
-                'withdraw': false,
+                'withdraw': undefined,
             },
             'timeframes': {
                 '1m': '1m',

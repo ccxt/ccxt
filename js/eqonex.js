@@ -17,7 +17,7 @@ module.exports = class eqonex extends Exchange {
             'rateLimit': 10,
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
@@ -32,7 +32,7 @@ module.exports = class eqonex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchTicker': false,
+                'fetchTicker': undefined,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,

@@ -18,8 +18,8 @@ module.exports = class bibox extends Exchange {
             'hostname': 'bibox365.com',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
-                'createMarketOrder': false, // or they will return https://github.com/ccxt/ccxt/issues/2338
+                'CORS': undefined,
+                'createMarketOrder': undefined, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -37,7 +37,7 @@ module.exports = class bibox extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
-                'publicAPI': false,
+                'publicAPI': undefined,
                 'withdraw': true,
             },
             'timeframes': {
