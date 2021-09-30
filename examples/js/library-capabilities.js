@@ -22,8 +22,8 @@ console.log ('CCXT v' + ccxt.version)
         let result = {};
         
         [
-            'privateAPI',
             'publicAPI',
+            'privateAPI',
             'futures',
             'CORS',
             'fetchAccounts',
@@ -126,6 +126,6 @@ console.log ('CCXT v' + ccxt.version)
         missing.toString ().red, 'missing,',
         total.toString (), 'total')
 
-    log("Messy? Try piping to less (e.g. node script.js | less -S -R)".red)
+    log("\nMessy? Try piping to less (e.g. node script.js | less -S -R)\n".red)
 
 }) ()

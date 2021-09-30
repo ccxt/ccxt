@@ -22,8 +22,8 @@ console.log ('CCXT v' + ccxt.version)
         let result = {};
 
         [
-            'privateAPI',
             'publicAPI',
+            'privateAPI',
             'futures',
             'CORS',
             'fetchAccounts',
