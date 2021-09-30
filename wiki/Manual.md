@@ -514,8 +514,9 @@ See this section on [Overriding exchange properties](#overriding-exchange-proper
 
     The meaning of each flag showing availability of this or that method is:
 
+    - a value of `undefined` / `None` / `null` means the method is not unified in the ccxt library yet
+    - boolean `false` means the method isn't natively available from the exchange API
     - boolean `true` means the method is natively available from the exchange API and unified in the ccxt library
-    - boolean `false` means the method isn't natively available from the exchange API or not unified in the ccxt library yet
     - an `'emulated'` string means the endpoint isn't natively available from the exchange API but reconstructed by the ccxt library from available true-methods
 
 ## Rate Limit
