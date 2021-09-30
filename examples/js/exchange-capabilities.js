@@ -14,6 +14,7 @@ console.log ('CCXT v' + ccxt.version)
 
     let total = 0
     let missing = 0
+    let ignored = 0
     let implemented = 0
     let emulated = 0
 
@@ -92,9 +93,12 @@ console.log ('CCXT v' + ccxt.version)
 
             let capability = exchange.has[key]
 
-            if (!capability) {
-                capability = exchange.id.red.dim
+            if (capability === undefined) {
+                capability = exchange.id.red.bright
                 missing += 1
+            } else if (capability === false) {
+                capability = exchange.id.red.dim
+                ignored += 1
             } else if (capability.toString () === 'emulated') {
                 capability = exchange.id.yellow
                 emulated += 1
@@ -113,9 +117,11 @@ console.log ('CCXT v' + ccxt.version)
         ccxt.exchanges.length.toString (), 'exchanges,',
         implemented.toString ().green, 'methods implemented,',
         emulated.toString ().yellow, 'emulated,',
-        missing.toString ().red, 'missing,',
-        total.toString (), 'total')
+        ignored.toString ().red.dim, 'ignored,',
+        missing.toString ().red.bright, 'missing,',
+        total.toString (), 'total'
+    )
 
-    log("Messy? Try piping to less (e.g. node script.js | less -S -R)".red)
+    log("\nMessy? Try piping to less (e.g. node script.js | less -S -R)\n".red)
 
 }) ()
