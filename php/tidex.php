@@ -21,8 +21,8 @@ class tidex extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
-                'createMarketOrder' => false,
+                'CORS' => null,
+                'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,

@@ -20,9 +20,9 @@ module.exports = class stex extends Exchange {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createDepositAddress': true,
-                'createMarketOrder': false, // limit orders only
+                'createMarketOrder': undefined, // limit orders only
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,

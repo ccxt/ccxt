@@ -31,7 +31,7 @@ class wavesexchange(Exchange):
             'pro': False,
             'has': {
                 'cancelOrder': True,
-                'createMarketOrder': False,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
@@ -882,16 +882,17 @@ class wavesexchange(Exchange):
             matcherFeeAssetId = self.options['feeAssetId']
         else:
             balances = self.fetch_balance()
-            if balances['WAVES']['free'] > wavesMatcherFee:
+            floatWavesMatcherFee = float(wavesMatcherFee)
+            if balances['WAVES']['free'] > floatWavesMatcherFee:
                 matcherFeeAssetId = 'WAVES'
                 matcherFee = baseMatcherFee
             else:
                 for i in range(0, len(priceAssets)):
                     assetId = priceAssets[i]
                     code = self.safe_currency_code(assetId)
-                    balance = self.safe_value(self.safe_value(balances, code, {}), 'free')
+                    balance = self.safe_string(self.safe_value(balances, code, {}), 'free')
                     assetFee = Precise.string_mul(rates[assetId], wavesMatcherFee)
-                    if (balance is not None) and (balance > assetFee):
+                    if (balance is not None) and Precise.string_gt(balance, assetFee):
                         matcherFeeAssetId = assetId
                         break
         if matcherFeeAssetId is None:

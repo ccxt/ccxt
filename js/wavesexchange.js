@@ -19,7 +19,7 @@ module.exports = class wavesexchange extends Exchange {
             'pro': false,
             'has': {
                 'cancelOrder': true,
-                'createMarketOrder': false,
+                'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -925,16 +925,17 @@ module.exports = class wavesexchange extends Exchange {
             matcherFeeAssetId = this.options['feeAssetId'];
         } else {
             const balances = await this.fetchBalance ();
-            if (balances['WAVES']['free'] > wavesMatcherFee) {
+            const floatWavesMatcherFee = parseFloat (wavesMatcherFee);
+            if (balances['WAVES']['free'] > floatWavesMatcherFee) {
                 matcherFeeAssetId = 'WAVES';
                 matcherFee = baseMatcherFee;
             } else {
                 for (let i = 0; i < priceAssets.length; i++) {
                     const assetId = priceAssets[i];
                     const code = this.safeCurrencyCode (assetId);
-                    const balance = this.safeValue (this.safeValue (balances, code, {}), 'free');
+                    const balance = this.safeString (this.safeValue (balances, code, {}), 'free');
                     const assetFee = Precise.stringMul (rates[assetId], wavesMatcherFee);
-                    if ((balance !== undefined) && (balance > assetFee)) {
+                    if ((balance !== undefined) && Precise.stringGt (balance, assetFee)) {
                         matcherFeeAssetId = assetId;
                         break;
                     }

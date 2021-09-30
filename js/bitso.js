@@ -19,7 +19,7 @@ module.exports = class bitso extends Exchange {
             'version': 'v3',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchDepositAddress': true,

@@ -23,14 +23,14 @@ class bibox extends Exchange {
             'hostname' => 'bibox365.com',
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
-                'createMarketOrder' => false, // or they will return https://github.com/ccxt/ccxt/issues/2338
+                'CORS' => null,
+                'createMarketOrder' => null, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchDeposits' => true,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
                 'fetchFundingFees' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -42,7 +42,7 @@ class bibox extends Exchange {
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
-                'publicAPI' => false,
+                'publicAPI' => null,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -232,7 +232,7 @@ class bibox extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => pow(10, -$precision['amount']),
-                        'max' => null,
+                        'max' => 1000000,
                     ),
                     'price' => array(
                         'min' => pow(10, -$precision['price']),

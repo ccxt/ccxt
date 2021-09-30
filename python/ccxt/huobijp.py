@@ -18,7 +18,7 @@ class huobijp(huobipro):
             'pro': True,
             'certified': False,
             'has': {
-                'fetchDepositAddress': False,
+                'fetchDepositAddress': None,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg',

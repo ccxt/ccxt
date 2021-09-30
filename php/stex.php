@@ -23,9 +23,9 @@ class stex extends Exchange {
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createDepositAddress' => true,
-                'createMarketOrder' => false, // limit orders only
+                'createMarketOrder' => null, // limit orders only
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,

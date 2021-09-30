@@ -18,7 +18,7 @@ module.exports = class luno extends Exchange {
             'version': '1',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,

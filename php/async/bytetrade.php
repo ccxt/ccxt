@@ -25,7 +25,7 @@ class bytetrade extends Exchange {
             // new metainfo interface
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
@@ -44,7 +44,7 @@ class bytetrade extends Exchange {
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
-                'withdraw' => false,
+                'withdraw' => null,
             ),
             'timeframes' => array(
                 '1m' => '1m',

@@ -20,7 +20,7 @@ class bit2c extends Exchange {
             'rateLimit' => 3000,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchMyTrades' => true,

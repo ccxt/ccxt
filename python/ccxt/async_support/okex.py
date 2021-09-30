@@ -39,18 +39,18 @@ class okex(Exchange):
             'pro': True,
             'certified': True,
             'has': {
-                'CORS': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'CORS': None,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': False,  # see below
+                'fetchCurrencies': None,  # see below
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': True,
-                'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,

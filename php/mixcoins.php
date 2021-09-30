@@ -20,7 +20,7 @@ class mixcoins extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchOrderBook' => true,

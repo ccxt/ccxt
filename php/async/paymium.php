@@ -19,13 +19,13 @@ class paymium extends Exchange {
             'rateLimit' => 2000,
             'version' => 'v1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
+                'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchOrderBook' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
-                'fetchOrderBook' => true,
-                'createOrder' => true,
-                'cancelOrder' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',

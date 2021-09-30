@@ -20,8 +20,8 @@ class btctradeua extends Exchange {
             'rateLimit' => 3000,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
-                'createMarketOrder' => false,
+                'CORS' => null,
+                'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchOpenOrders' => true,
