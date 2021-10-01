@@ -3746,7 +3746,7 @@ module.exports = class binance extends Exchange {
         return this.parseFundingRate (response);
     }
 
-    async fetchFundingRateHistory (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol, limit = undefined, since = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
