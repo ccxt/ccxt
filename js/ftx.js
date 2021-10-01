@@ -46,6 +46,7 @@ module.exports = class ftx extends Exchange {
                 'fetchFundingFees': undefined,
                 'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
