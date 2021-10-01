@@ -879,10 +879,20 @@ module.exports = class bybit extends Exchange {
         //     "rate_limit": 120
         // }
         //
+        const result = this.safeValue (response, 'result');
+        const lastFundingRate = this.safeNumber (result, 'funding_rate');
+        const lastFundingTime = this.safeInteger (result, 'funding_rate_timestamp') * 1000;
+        const nextFundingTime = lastFundingTime + (8 * 3600000);
+        const currentTime = Math.floor ((new Date ()).getTime ());
         return {
-            'symbol': response['result']['symbol'],
-            'lastFundingRate': response['result']['funding_rate'],
-            'lastFundingTimestamp': response['result']['funding_rate_timestamp'],
+            'symbol': symbol,
+            'timestamp': currentTime,
+            'datetime': this.iso8601 (currentTime),
+            'lastFundingRate': lastFundingRate,
+            'lastFundingTimestamp': lastFundingTime,
+            'nextFundingTimestamp': nextFundingTime,
+            'lastFundingDatetime': this.iso8601 (lastFundingTime),
+            'nextFundingDatetime': this.iso8601 (nextFundingTime),
         };
     }
 
