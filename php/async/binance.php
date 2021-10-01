@@ -40,6 +40,7 @@ class binance extends Exchange {
                 'fetchFundingFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchIsolatedPositions' => true,
@@ -3750,6 +3751,41 @@ class binance extends Exchange {
         //     }
         //
         return $this->parse_funding_rate ($response);
+    }
+
+    public function fetch_funding_rate_history($symbol, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $method = 'fapiPublicGetFundingRate';
+        if ($market['inverse']) {
+            $method = 'dapiPublicGetFundingRate';
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "$symbol" => "BTCUSDT",
+        //         "fundingRate" => "0.00063521",
+        //         "fundingTime" => "1621267200000",
+        //     }
+        //
+        $rates = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $rates[] = array(
+                'symbol' => $this->safe_string($response[$i], 'symbol'),
+                'fundingRate' => $this->safe_number($response[$i], 'fundingRate'),
+                'timestamp' => $this->safe_number($response[$i], 'fundingTime'),
+            );
+        }
+        return $rates;
     }
 
     public function fetch_funding_rates($symbols = null, $params = array ()) {

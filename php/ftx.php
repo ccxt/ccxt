@@ -47,6 +47,8 @@ class ftx extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => null,
+                'fetchFundingRate' => false,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,

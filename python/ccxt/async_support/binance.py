@@ -51,6 +51,7 @@ class binance(Exchange):
                 'fetchFundingFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
                 'fetchIsolatedPositions': True,
@@ -3567,6 +3568,36 @@ class binance(Exchange):
         #     }
         #
         return self.parse_funding_rate(response)
+
+    async def fetch_funding_rate_history(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        method = 'fapiPublicGetFundingRate'
+        if market['inverse']:
+            method = 'dapiPublicGetFundingRate'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "fundingRate": "0.00063521",
+        #         "fundingTime": "1621267200000",
+        #     }
+        #
+        rates = []
+        for i in range(0, len(response)):
+            rates.append({
+                'symbol': self.safe_string(response[i], 'symbol'),
+                'fundingRate': self.safe_number(response[i], 'fundingRate'),
+                'timestamp': self.safe_number(response[i], 'fundingTime'),
+            })
+        return rates
 
     async def fetch_funding_rates(self, symbols=None, params={}):
         await self.load_markets()
