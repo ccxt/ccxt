@@ -883,7 +883,7 @@ module.exports = class bybit extends Exchange {
         const lastFundingRate = this.safeNumber (result, 'funding_rate');
         const lastFundingTime = this.safeInteger (result, 'funding_rate_timestamp') * 1000;
         const nextFundingTime = lastFundingTime + (8 * 3600000);
-        const currentTime = Math.floor ((new Date ()).getTime ());
+        const currentTime = this.milliseconds ();
         return {
             'symbol': symbol,
             'timestamp': currentTime,
