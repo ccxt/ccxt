@@ -3770,15 +3770,15 @@ module.exports = class binance extends Exchange {
         //         "fundingTime": "1621267200000",
         //     }
         //
-        return response.map ((rate) => this.parseFundingRateHistory (rate));
-    }
-
-    parseFundingRateHistory (rate) {
-        return {
-            'symbol': this.safeString (rate, 'symbol'),
-            'fundingRate': this.safeNumber (rate, 'fundingRate'),
-            'timestamp': this.safeNumber (rate, 'fundingTime'),
-        };
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            rates.push ({
+                'symbol': this.safeString (response[i], 'symbol'),
+                'fundingRate': this.safeNumber (response[i], 'fundingRate'),
+                'timestamp': this.safeNumber (response[i], 'fundingTime'),
+            });
+        }
+        return rates;
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {
