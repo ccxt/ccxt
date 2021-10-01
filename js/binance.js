@@ -3839,8 +3839,8 @@ module.exports = class binance extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastFundingRate': lastFundingRate,
             'lastFundingTimestamp': lastFundingTime, // subtract 8 hours
-            'lastFundingDatetime': this.iso8601 (lastFundingTime),
             'nextFundingTimestamp': nextFundingTime,
+            'lastFundingDatetime': this.iso8601 (lastFundingTime),
             'nextFundingDatetime': this.iso8601 (nextFundingTime),
         };
     }
