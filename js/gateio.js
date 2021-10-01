@@ -36,6 +36,7 @@ module.exports = class gateio extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
+                'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -843,6 +844,35 @@ module.exports = class gateio extends Exchange {
             'price': 'mark',
         };
         return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchFundingRateHistory (symbol, limit = undefined, since = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'contract': market['id'],
+            'settle': market['quote'].toLowerCase (),
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const method = 'publicFuturesGetSettleFundingRate';
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "fundingRate": "0.00063521",
+        //         "fundingTime": "1621267200000",
+        //     }
+        //
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            rates.push ({
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (response[i], 'r'),
+                'timestamp': this.safeNumber (response[i], 't'),
+            });
+        }
+        return rates;
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
