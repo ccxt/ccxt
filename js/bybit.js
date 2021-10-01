@@ -28,6 +28,7 @@ module.exports = class bybit extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
@@ -37,8 +38,8 @@ module.exports = class bybit extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrderTrades': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -851,6 +852,38 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseOHLCVs (result, market, timeframe, since, limit);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const method = 'v2PublicGetFundingPrevFundingRate';
+        const response = await this[method] (this.extend (request, params));
+        //
+        // {
+        //     "ret_code": 0,
+        //     "ret_msg": "ok",
+        //     "ext_code": "",
+        //     "result": {
+        //         "symbol": "BTCUSD",
+        //         "funding_rate": "0.00010000",
+        //         "funding_rate_timestamp": 1577433600
+        //     },
+        //     "ext_info": null,
+        //     "time_now": "1577445586.446797",
+        //     "rate_limit_status": 119,
+        //     "rate_limit_reset_ms": 1577445586454,
+        //     "rate_limit": 120
+        // }
+        //
+        return {
+            'symbol': response['result']['symbol'],
+            'lastFundingRate': response['result']['funding_rate'],
+            'lastFundingTimestamp': response['result']['funding_rate_timestamp'],
+        };
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
