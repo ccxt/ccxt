@@ -3555,6 +3555,8 @@ class binance(Exchange):
         else:
             raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
         response = getattr(self, method)(self.extend(request, params))
+        if market['inverse']:
+            response = response[0]
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -3639,19 +3641,23 @@ class binance(Exchange):
         markPrice = self.safe_number(premiumIndex, 'markPrice')
         indexPrice = self.safe_number(premiumIndex, 'indexPrice')
         interestRate = self.safe_number(premiumIndex, 'interestRate')
-        # current funding rate
-        fundingRate = self.safe_number(premiumIndex, 'lastFundingRate')
+        estimatedSettlePrice = self.safe_number(premiumIndex, 'estimatedSettlePrice')
+        lastFundingRate = self.safe_number(premiumIndex, 'lastFundingRate')
         nextFundingTime = self.safe_integer(premiumIndex, 'nextFundingTime')
+        lastFundingTime = nextFundingTime - (8 * 3600000)
         return {
             'info': premiumIndex,
             'symbol': symbol,
             'markPrice': markPrice,
             'indexPrice': indexPrice,
             'interestRate': interestRate,
+            'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fundingRate': fundingRate,
+            'lastFundingRate': lastFundingRate,
+            'lastFundingTimestamp': lastFundingTime,  # subtract 8 hours
             'nextFundingTimestamp': nextFundingTime,
+            'lastFundingDatetime': self.iso8601(lastFundingTime),
             'nextFundingDatetime': self.iso8601(nextFundingTime),
         }
 
