@@ -30,7 +30,7 @@ module.exports = class mercado extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': undefined,
                 'fetchTrades': true,
                 'withdraw': true,
             },

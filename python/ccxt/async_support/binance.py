@@ -20,6 +20,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.precise import Precise
@@ -39,26 +40,28 @@ class binance(Exchange):
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
-                'fetchCurrencies': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRates': True,
+                'fetchIndexOHLCV': True,
                 'fetchIsolatedPositions': True,
+                'fetchMarkOHLCV': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
                 'fetchOrderBook': True,
+                'fetchOrders': True,
                 'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -67,13 +70,13 @@ class binance(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'fetchTransactions': False,
+                'fetchTransactions': None,
+                'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': True,
-                'withdraw': True,
                 'transfer': True,
-                'fetchTransfers': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -454,6 +457,8 @@ class binance(Exchange):
                         'aggTrades': 20,
                         'klines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'continuousKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'markPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'indexPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'fundingRate': 1,
                         'premiumIndex': 1,
                         'ticker/24hr': {'cost': 1, 'noSymbol': 40},
@@ -754,6 +759,7 @@ class binance(Exchange):
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
                 'exact': {
+                    'System is under maintenance.': OnMaintenance,  # {"code":1,"msg":"System is under maintenance."}
                     'System abnormality': ExchangeError,  # {"code":-1000,"msg":"System abnormality"}
                     'You are not authorized to execute self request.': PermissionDenied,  # {"msg":"You are not authorized to execute self request."}
                     'API key does not exist': AuthenticationError,
@@ -1696,7 +1702,7 @@ class binance(Exchange):
         return self.parse_tickers(response, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
-        #
+        # when api method = publicGetKlines or fapiPublicGetKlines or dapiPublicGetKlines
         #     [
         #         1591478520000,  # open time
         #         "0.02501300",  # open
@@ -1710,6 +1716,24 @@ class binance(Exchange):
         #         "10.92900000",  # taker buy base asset volume
         #         "0.27336462",  # taker buy quote asset volume
         #         "0"            # ignore
+        #     ]
+        #
+        #  when api method = fapiPublicGetMarkPriceKlines or fapiPublicGetIndexPriceKlines
+        #     [
+        #         [
+        #         1591256460000,          # Open time
+        #         "9653.29201333",        # Open
+        #         "9654.56401333",        # High
+        #         "9653.07367333",        # Low
+        #         "9653.07367333",        # Close(or latest price)
+        #         "0",                    # Ignore
+        #         1591256519999,          # Close time
+        #         "0",                    # Ignore
+        #         60,                     # Number of bisic data
+        #         "0",                    # Ignore
+        #         "0",                    # Ignore
+        #         "0"                     # Ignore
+        #         ]
         #     ]
         #
         return [
@@ -1728,12 +1752,17 @@ class binance(Exchange):
         # the reality is that the time range wider than 500 candles won't work right
         defaultLimit = 500
         maxLimit = 1500
+        price = self.safe_string(params, 'price')
+        params = self.omit(params, 'price')
         limit = defaultLimit if (limit is None) else min(limit, maxLimit)
         request = {
-            'symbol': market['id'],
             'interval': self.timeframes[timeframe],
             'limit': limit,
         }
+        if price == 'index':
+            request['pair'] = market['id']   # Index price takes self argument instead of symbol
+        else:
+            request['symbol'] = market['id']
         duration = self.parse_timeframe(timeframe)
         if since is not None:
             request['startTime'] = since
@@ -1742,7 +1771,17 @@ class binance(Exchange):
                 now = self.milliseconds()
                 request['endTime'] = min(now, endTime)
         method = 'publicGetKlines'
-        if market['linear']:
+        if price == 'mark':
+            if market['inverse']:
+                method = 'dapiPublicGetMarkPriceKlines'
+            else:
+                method = 'fapiPublicGetMarkPriceKlines'
+        elif price == 'index':
+            if market['inverse']:
+                method = 'dapiPublicGetIndexPriceKlines'
+            else:
+                method = 'fapiPublicGetIndexPriceKlines'
+        elif market['linear']:
             method = 'fapiPublicGetKlines'
         elif market['inverse']:
             method = 'dapiPublicGetKlines'
@@ -1755,6 +1794,18 @@ class binance(Exchange):
         #     ]
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'mark',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_trade(self, trade, market=None):
         if 'isDustTrade' in trade:
@@ -3593,11 +3644,13 @@ class binance(Exchange):
             marketId = self.safe_string(position, 'symbol')
             market = self.safe_market(marketId)
             code = market['quote'] if (self.options['defaultType'] == 'future') else market['base']
-            parsed = self.parse_position(self.extend(position, {
-                'crossMargin': balances[code]['crossMargin'],
-                'crossWalletBalance': balances[code]['crossWalletBalance'],
-            }), market)
-            result.append(parsed)
+            # sometimes not all the codes are correctly returned...
+            if code in balances:
+                parsed = self.parse_position(self.extend(position, {
+                    'crossMargin': balances[code]['crossMargin'],
+                    'crossWalletBalance': balances[code]['crossWalletBalance'],
+                }), market)
+                result.append(parsed)
         return result
 
     def parse_position(self, position, market=None):

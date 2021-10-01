@@ -20,30 +20,32 @@ module.exports = class bybit extends Exchange {
             'rateLimit': 100,
             'hostname': 'bybit.com', // bybit.com, bytick.com
             'has': {
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': true,
-                'cancelAllOrders': true,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
+                'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchOrders': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTransactions': false,
+                'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
-                'fetchPositions': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -771,6 +773,8 @@ module.exports = class bybit extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
         const request = {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
@@ -789,7 +793,14 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 200, default 200
         }
-        const method = market['linear'] ? 'publicLinearGetKline' : 'v2PublicGetKlineList';
+        let method = 'v2PublicGetKlineList';
+        if (price === 'mark') {
+            method = 'v2PublicGetMarkPriceKline';
+        } else if (price === 'index') {
+            method = 'v2PublicGetIndexPriceKline';
+        } else if (market['linear']) {
+            method = 'publicLinearGetKline';
+        }
         const response = await this[method] (this.extend (request, params));
         //
         // inverse perpetual BTC/USD
@@ -840,6 +851,20 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseOHLCVs (result, market, timeframe, since, limit);
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {

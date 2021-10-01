@@ -24,7 +24,7 @@ class exmo extends Exchange {
             'version' => 'v1.1',
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,

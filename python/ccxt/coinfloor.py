@@ -22,7 +22,7 @@ class coinfloor(Exchange):
             'countries': ['UK'],
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchLedger': True,

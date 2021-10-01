@@ -26,7 +26,7 @@ class bitstamp1 extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchMyTrades' => true,
-                'fetchOrder' => false,
+                'fetchOrder' => null,
                 'fetchOrderBook' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,

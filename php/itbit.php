@@ -22,7 +22,7 @@ class itbit extends Exchange {
             'has' => array(
                 'cancelOrder' => true,
                 'CORS' => true,
-                'createMarketOrder' => false,
+                'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,

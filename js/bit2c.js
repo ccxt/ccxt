@@ -17,7 +17,7 @@ module.exports = class bit2c extends Exchange {
             'rateLimit': 3000,
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchMyTrades': true,

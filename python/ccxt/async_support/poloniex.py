@@ -33,10 +33,11 @@ class poloniex(Exchange):
             'certified': False,
             'pro': True,
             'has': {
+                'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createDepositAddress': True,
-                'createMarketOrder': False,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -59,7 +60,6 @@ class poloniex(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
-                'cancelAllOrders': True,
                 'withdraw': True,
             },
             'timeframes': {

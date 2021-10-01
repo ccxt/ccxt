@@ -18,7 +18,7 @@ module.exports = class exmo extends Exchange {
             'version': 'v1.1',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,

@@ -34,7 +34,7 @@ class mercado extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchTicker' => true,
-                'fetchTickers' => false,
+                'fetchTickers' => null,
                 'fetchTrades' => true,
                 'withdraw' => true,
             ),

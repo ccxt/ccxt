@@ -54,21 +54,21 @@ class bitmart(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingFee': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchOrders': True,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
-                'fetchStatus': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
-                'fetchFundingFee': True,
                 'withdraw': True,
             },
             'hostname': 'bitmart.com',  # bitmart.info, bitmart.news for Hong Kong users
@@ -314,6 +314,9 @@ class bitmart(Exchange):
                 'networks': {
                     'TRX': 'TRC20',
                     'ETH': 'ERC20',
+                },
+                'defaultNetworks': {
+                    'USDT': 'ERC20',
                 },
                 'defaultType': 'spot',  # 'spot', 'swap'
                 'fetchBalance': {
@@ -1983,6 +1986,15 @@ class bitmart(Exchange):
         request = {
             'currency': currency['id'],
         }
+        if code == 'USDT':
+            defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
+            defaultNetwork = self.safe_string_upper(defaultNetworks, code)
+            networks = self.safe_value(self.options, 'networks', {})
+            network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
+            network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+            if network is not None:
+                request['currency'] += '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                params = self.omit(params, 'network')
         response = self.privateAccountGetDepositAddress(self.extend(request, params))
         #
         #     {
@@ -2021,12 +2033,15 @@ class bitmart(Exchange):
         }
         if tag is not None:
             request['address_memo'] = tag
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
-        if network is not None:
-            request['currency'] += '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-            params = self.omit(params, 'network')
+        if code == 'USDT':
+            defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
+            defaultNetwork = self.safe_string_upper(defaultNetworks, code)
+            networks = self.safe_value(self.options, 'networks', {})
+            network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
+            network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+            if network is not None:
+                request['currency'] += '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                params = self.omit(params, 'network')
         response = self.privateAccountPostWithdrawApply(self.extend(request, params))
         #
         #     {

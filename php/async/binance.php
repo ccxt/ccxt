@@ -29,26 +29,28 @@ class binance extends Exchange {
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
-                'fetchCurrencies' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchClosedOrders' => 'emulated',
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRates' => true,
+                'fetchIndexOHLCV' => true,
                 'fetchIsolatedPositions' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchOrders' => true,
                 'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -57,13 +59,13 @@ class binance extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
-                'fetchTransactions' => false,
+                'fetchTransactions' => null,
+                'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
-                'withdraw' => true,
                 'transfer' => true,
-                'fetchTransfers' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -444,6 +446,8 @@ class binance extends Exchange {
                         'aggTrades' => 20,
                         'klines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'continuousKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'markPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'indexPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'fundingRate' => 1,
                         'premiumIndex' => 1,
                         'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
@@ -744,6 +748,7 @@ class binance extends Exchange {
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions' => array(
                 'exact' => array(
+                    'System is under maintenance.' => '\\ccxt\\OnMaintenance', // array("code":1,"msg":"System is under maintenance.")
                     'System abnormality' => '\\ccxt\\ExchangeError', // array("code":-1000,"msg":"System abnormality")
                     'You are not authorized to execute this request.' => '\\ccxt\\PermissionDenied', // array("msg":"You are not authorized to execute this request.")
                     'API key does not exist' => '\\ccxt\\AuthenticationError',
@@ -1734,7 +1739,7 @@ class binance extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
-        //
+        // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     array(
         //         1591478520000, // open time
         //         "0.02501300",  // open
@@ -1748,6 +1753,24 @@ class binance extends Exchange {
         //         "10.92900000", // taker buy base asset volume
         //         "0.27336462",  // taker buy quote asset volume
         //         "0"            // ignore
+        //     )
+        //
+        //  when api method = fapiPublicGetMarkPriceKlines || fapiPublicGetIndexPriceKlines
+        //     array(
+        //         array(
+        //         1591256460000,          // Open time
+        //         "9653.29201333",        // Open
+        //         "9654.56401333",        // High
+        //         "9653.07367333",        // Low
+        //         "9653.07367333",        // Close (or latest price)
+        //         "0",                    // Ignore
+        //         1591256519999,          // Close time
+        //         "0",                    // Ignore
+        //         60,                     // Number of bisic data
+        //         "0",                    // Ignore
+        //         "0",                    // Ignore
+        //         "0"                     // Ignore
+        //         )
         //     )
         //
         return array(
@@ -1767,12 +1790,18 @@ class binance extends Exchange {
         // the reality is that the time range wider than 500 candles won't work right
         $defaultLimit = 500;
         $maxLimit = 1500;
+        $price = $this->safe_string($params, 'price');
+        $params = $this->omit($params, 'price');
         $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
         $request = array(
-            'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
             'limit' => $limit,
         );
+        if ($price === 'index') {
+            $request['pair'] = $market['id'];   // Index $price takes this argument instead of $symbol
+        } else {
+            $request['symbol'] = $market['id'];
+        }
         $duration = $this->parse_timeframe($timeframe);
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -1783,7 +1812,19 @@ class binance extends Exchange {
             }
         }
         $method = 'publicGetKlines';
-        if ($market['linear']) {
+        if ($price === 'mark') {
+            if ($market['inverse']) {
+                $method = 'dapiPublicGetMarkPriceKlines';
+            } else {
+                $method = 'fapiPublicGetMarkPriceKlines';
+            }
+        } else if ($price === 'index') {
+            if ($market['inverse']) {
+                $method = 'dapiPublicGetIndexPriceKlines';
+            } else {
+                $method = 'fapiPublicGetIndexPriceKlines';
+            }
+        } else if ($market['linear']) {
             $method = 'fapiPublicGetKlines';
         } else if ($market['inverse']) {
             $method = 'dapiPublicGetKlines';
@@ -1797,6 +1838,20 @@ class binance extends Exchange {
         //     ]
         //
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_trade($trade, $market = null) {
@@ -3778,11 +3833,14 @@ class binance extends Exchange {
             $marketId = $this->safe_string($position, 'symbol');
             $market = $this->safe_market($marketId);
             $code = ($this->options['defaultType'] === 'future') ? $market['quote'] : $market['base'];
-            $parsed = $this->parse_position(array_merge($position, array(
-                'crossMargin' => $balances[$code]['crossMargin'],
-                'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
-            )), $market);
-            $result[] = $parsed;
+            // sometimes not all the codes are correctly returned...
+            if (is_array($balances) && array_key_exists($code, $balances)) {
+                $parsed = $this->parse_position(array_merge($position, array(
+                    'crossMargin' => $balances[$code]['crossMargin'],
+                    'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
+                )), $market);
+                $result[] = $parsed;
+            }
         }
         return $result;
     }

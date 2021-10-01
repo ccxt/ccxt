@@ -36,7 +36,9 @@ module.exports = class gateio extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
+                'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -801,8 +803,12 @@ module.exports = class gateio extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
+        const isMark = (price === 'mark');
+        const isIndex = (price === 'index');
+        const isFuture = isMark || isIndex;
         const request = {
-            'currency_pair': market['id'],
             'interval': this.timeframes[timeframe],
         };
         if (since === undefined) {
@@ -815,12 +821,39 @@ module.exports = class gateio extends Exchange {
                 request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe) - 1);
             }
         }
-        const response = await this.publicSpotGetCandlesticks (this.extend (request, params));
+        let method = 'publicSpotGetCandlesticks';
+        if (isFuture) {
+            request['contract'] = market['id'];
+            method = 'publicFuturesGetSettleCandlesticks';
+            request['settle'] = market['quote'].toLowerCase ();
+            if (isMark) {
+                request['contract'] = 'mark_' + request['contract'];
+            } else if (isIndex) {
+                request['contract'] = 'index_' + request['contract'];
+            }
+        } else {
+            request['currency_pair'] = market['id'];
+        }
+        const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
     parseOHLCV (ohlcv, market = undefined) {
-        //
+        // Spot market candles
         //     [
         //       "1626163200",           // Unix timestamp in seconds
         //       "346711.933138181617",  // Trading volume
@@ -830,20 +863,35 @@ module.exports = class gateio extends Exchange {
         //       "33184.47"              // Open price
         //     ]
         //
-        const timestamp = this.safeTimestamp (ohlcv, 0);
-        const volume = this.safeNumber (ohlcv, 1);
-        const close = this.safeNumber (ohlcv, 2);
-        const high = this.safeNumber (ohlcv, 3);
-        const low = this.safeNumber (ohlcv, 4);
-        const open = this.safeNumber (ohlcv, 5);
-        return [
-            timestamp,
-            open,
-            high,
-            low,
-            close,
-            volume,
-        ];
+        // Mark and Index price candles
+        // {
+        //      "t":1632873600,         // Unix timestamp in seconds
+        //      "o":"41025",            // Open price
+        //      "h":"41882.17",         // Highest price
+        //      "c":"41776.92",         // Close price
+        //      "l":"40783.94"          // Lowest price
+        // }
+        //
+        if (Array.isArray (ohlcv)) {
+            return [
+                this.safeTimestamp (ohlcv, 0),   // unix timestamp in seconds
+                this.safeNumber (ohlcv, 5),      // open price
+                this.safeNumber (ohlcv, 3),      // highest price
+                this.safeNumber (ohlcv, 4),      // lowest price
+                this.safeNumber (ohlcv, 2),      // close price
+                this.safeNumber (ohlcv, 1),      // trading volume
+            ];
+        } else {
+            // Mark and Index price candles
+            return [
+                this.safeTimestamp (ohlcv, 't'), // unix timestamp in seconds
+                this.safeNumber (ohlcv, 'o'),    // open price
+                this.safeNumber (ohlcv, 'h'),    // highest price
+                this.safeNumber (ohlcv, 'l'),    // lowest price
+                this.safeNumber (ohlcv, 'c'),    // close price
+                0,
+            ];
+        }
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

@@ -17,7 +17,7 @@ module.exports = class coinfloor extends Exchange {
             'countries': [ 'UK' ],
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchLedger': true,

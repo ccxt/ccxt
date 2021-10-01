@@ -25,7 +25,7 @@ class wavesexchange extends Exchange {
             'pro' => false,
             'has' => array(
                 'cancelOrder' => true,
-                'createMarketOrder' => false,
+                'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -931,16 +931,17 @@ class wavesexchange extends Exchange {
             $matcherFeeAssetId = $this->options['feeAssetId'];
         } else {
             $balances = yield $this->fetch_balance();
-            if ($balances['WAVES']['free'] > $wavesMatcherFee) {
+            $floatWavesMatcherFee = floatval($wavesMatcherFee);
+            if ($balances['WAVES']['free'] > $floatWavesMatcherFee) {
                 $matcherFeeAssetId = 'WAVES';
                 $matcherFee = $baseMatcherFee;
             } else {
                 for ($i = 0; $i < count($priceAssets); $i++) {
                     $assetId = $priceAssets[$i];
                     $code = $this->safe_currency_code($assetId);
-                    $balance = $this->safe_value($this->safe_value($balances, $code, array()), 'free');
+                    $balance = $this->safe_string($this->safe_value($balances, $code, array()), 'free');
                     $assetFee = Precise::string_mul($rates[$assetId], $wavesMatcherFee);
-                    if (($balance !== null) && ($balance > $assetFee)) {
+                    if (($balance !== null) && Precise::string_gt($balance, $assetFee)) {
                         $matcherFeeAssetId = $assetId;
                         break;
                     }

@@ -37,9 +37,9 @@ class kucoin(Exchange):
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': False,
             'has': {
-                'CORS': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'fetchAccounts': True,
@@ -62,8 +62,8 @@ class kucoin(Exchange):
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
-                'withdraw': True,
                 'transfer': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',

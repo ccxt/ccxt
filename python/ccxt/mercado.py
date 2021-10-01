@@ -34,7 +34,7 @@ class mercado(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchTicker': True,
-                'fetchTickers': False,
+                'fetchTickers': None,
                 'fetchTrades': True,
                 'withdraw': True,
             },

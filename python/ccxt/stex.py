@@ -30,9 +30,9 @@ class stex(Exchange):
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createDepositAddress': True,
-                'createMarketOrder': False,  # limit orders only
+                'createMarketOrder': None,  # limit orders only
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,

@@ -34,7 +34,7 @@ class btcbox(Exchange):
             'version': 'v1',
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchOpenOrders': True,
@@ -42,7 +42,7 @@ class btcbox(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchTicker': True,
-                'fetchTickers': False,
+                'fetchTickers': None,
                 'fetchTrades': True,
             },
             'urls': {

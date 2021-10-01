@@ -18,7 +18,7 @@ module.exports = class therock extends Exchange {
             'version': 'v1',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,

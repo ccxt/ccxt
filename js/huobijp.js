@@ -17,7 +17,7 @@ module.exports = class huobijp extends huobipro {
             'pro': true,
             'certified': false,
             'has': {
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': undefined,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg',

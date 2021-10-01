@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeError } = require ('./base/errors');
+const { BadSymbol, ExchangeError, AuthenticationError } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -17,12 +17,12 @@ module.exports = class coincheck extends Exchange {
             'rateLimit': 1500,
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchMyTrades': true,
-                'fetchOrderBook': true,
                 'fetchOpenOrders': true,
+                'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
             },
@@ -113,6 +113,12 @@ module.exports = class coincheck extends Exchange {
                     'maker': this.parseNumber ('0'),
                     'taker': this.parseNumber ('0'),
                 },
+            },
+            'exceptions': {
+                'exact': {
+                    'disabled API Key': AuthenticationError, // {"success":false,"error":"disabled API Key"}'
+                },
+                'broad': {},
             },
         });
     }
@@ -417,8 +423,15 @@ module.exports = class coincheck extends Exchange {
         if (response === undefined) {
             return;
         }
+        //
+        //     {"success":false,"error":"disabled API Key"}'
+        //
         const success = this.safeValue (response, 'success', true);
         if (!success) {
+            const error = this.safeString (response, 'error');
+            const feedback = this.id + ' ' + this.json (response);
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
     }

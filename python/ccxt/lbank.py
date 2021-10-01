@@ -28,7 +28,7 @@ class lbank(Exchange):
                 'fetchClosedOrders': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
-                'fetchOpenOrders': False,  # status 0 API doesn't work
+                'fetchOpenOrders': None,  # status 0 API doesn't work
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,

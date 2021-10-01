@@ -17,8 +17,8 @@ module.exports = class btctradeua extends Exchange {
             'rateLimit': 3000,
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
-                'createMarketOrder': false,
+                'CORS': undefined,
+                'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchOpenOrders': true,

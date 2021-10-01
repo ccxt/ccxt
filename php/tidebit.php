@@ -21,7 +21,7 @@ class tidebit extends Exchange {
             'version' => 'v2',
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchDepositAddress' => true,
