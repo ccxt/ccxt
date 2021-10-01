@@ -67,6 +67,7 @@ class ftx(Exchange):
                 'fetchFundingFees': None,
                 'fetchIndexOHLCV': True,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,

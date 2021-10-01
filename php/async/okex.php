@@ -25,8 +25,8 @@ class okex extends Exchange {
             'certified' => true,
             'has' => array(
                 'cancelOrder' => true,
-                'createOrder' => true,
                 'CORS' => null,
+                'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => null, // see below
@@ -34,8 +34,8 @@ class okex extends Exchange {
                 'fetchDeposits' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
-                'fetchMarkOHLCV' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,

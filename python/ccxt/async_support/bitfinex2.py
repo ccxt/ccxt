@@ -50,6 +50,8 @@ class bitfinex2(bitfinex):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchFundingFees': None,
+                'fetchIndexOHLCV': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,

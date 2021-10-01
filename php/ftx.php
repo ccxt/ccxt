@@ -49,6 +49,7 @@ class ftx extends Exchange {
                 'fetchFundingFees' => null,
                 'fetchIndexOHLCV' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,

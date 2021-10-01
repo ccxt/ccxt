@@ -18,9 +18,9 @@ class lykke extends Exchange {
             'version' => 'v1',
             'rateLimit' => 200,
             'has' => array(
-                'CORS' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
