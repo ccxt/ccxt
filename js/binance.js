@@ -3730,7 +3730,10 @@ module.exports = class binance extends Exchange {
         } else {
             throw new NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = await this[method] (this.extend (request, params));
+        if (market['inverse']) {
+            response = response[0];
+        }
         //
         //     {
         //         "symbol": "BTCUSDT",
