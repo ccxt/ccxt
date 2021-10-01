@@ -28,7 +28,7 @@ class crex24 extends Exchange {
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
@@ -37,6 +37,7 @@ class crex24 extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingFees' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -48,9 +49,8 @@ class crex24 extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => false, // actually, true, but will be implemented later
-                'fetchTradingFees' => false, // actually, true, but will be implemented later
-                'fetchFundingFees' => true,
+                'fetchTradingFee' => null, // actually, true, but will be implemented later
+                'fetchTradingFees' => null, // actually, true, but will be implemented later
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
@@ -1346,7 +1346,7 @@ class crex24 extends Exchange {
             $request['paymentId'] = $tag;
         }
         $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
             $request['transport'] = $network;

@@ -32,7 +32,9 @@ class phemex extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -310,6 +312,13 @@ class phemex extends Exchange {
             'options' => array(
                 'x-phemex-request-expiry' => 60, // in seconds
                 'createOrderByQuoteRequiresPrice' => true,
+                'networks' => array(
+                    'TRC20' => 'TRX',
+                    'ERC20' => 'ETH',
+                ),
+                'defaultNetworks' => array(
+                    'USDT' => 'ETH',
+                ),
             ),
         ));
     }
@@ -2198,6 +2207,17 @@ class phemex extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
+        $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
+        $defaultNetwork = $this->safe_string_upper($defaultNetworks, $code);
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network', $defaultNetwork);
+        $network = $this->safe_string($networks, $network, $network);
+        if ($network === null) {
+            $request['chainName'] = $currency['id'];
+        } else {
+            $request['chainName'] = $network;
+            $params = $this->omit($params, 'network');
+        }
         $response = yield $this->privateGetPhemexUserWalletsV2DepositAddress (array_merge($request, $params));
         //     {
         //         "$code":0,

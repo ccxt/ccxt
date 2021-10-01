@@ -32,7 +32,7 @@ class btcalpha(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
-                'fetchTicker': False,
+                'fetchTicker': None,
                 'fetchTrades': True,
             },
             'timeframes': {

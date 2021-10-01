@@ -19,8 +19,8 @@ class bl3p(Exchange):
             'version': '1',
             'comment': 'An exchange market by BitonicNL',
             'has': {
-                'CORS': False,
                 'cancelOrder': True,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchOrderBook': True,

@@ -32,7 +32,7 @@ class huobi extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -284,8 +284,13 @@ class huobi extends Exchange {
             ),
             'options' => array(
                 'networks' => array(
-                    'ETH' => 'ERC20',
-                    'TRX' => 'TRC20',
+                    'ETH' => 'erc20',
+                    'TRX' => 'trc20',
+                    'HRC20' => 'hrc20',
+                    'HECO' => 'hrc20',
+                    'HT' => 'hrc20',
+                    'ALGO' => 'algo',
+                    'OMNI' => '',
                 ),
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
@@ -736,8 +741,7 @@ class huobi extends Exchange {
             $request['size'] = $limit; // 1-100 orders, default is 100
         }
         if ($since !== null) {
-            $request['start-date'] = $this->ymd($since); // a date within 61 days from today
-            $request['end-date'] = $this->ymd($this->sum($since, 86400000));
+            $request['start-time'] = (int) floor($since); // a date within 120 days from today
         }
         $response = yield $this->privateGetOrderMatchresults (array_merge($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
@@ -1355,13 +1359,34 @@ class huobi extends Exchange {
         //                 $currency => "eth",
         //                 address => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
         //                 addressTag => "",
-        //                 chain => "eth"
+        //                 $chain => "eth"
         //             }
         //         )
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_deposit_address($this->safe_value($data, 0, array()), $currency);
+        $chain = $this->safe_string($params, 'chain');
+        if ($chain === null) {
+            $network = $this->safe_string($params, 'network');
+            if ($network === null) {
+                return $this->parse_deposit_address($this->safe_value($data, 0, array()), $currency);
+            }
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $chain = $this->safe_string_lower($networks, $network, $network);
+            // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
+            if ($chain === 'erc20') {
+                $chain = $currency['id'] . $chain;
+            } else {
+                $chain = $chain . $currency['id'];
+            }
+        }
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $entryChain = $this->safe_string($entry, 'chain');
+            if ($entryChain === $chain) {
+                return $this->parse_deposit_address($entry, $currency);
+            }
+        }
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1520,10 +1545,15 @@ class huobi extends Exchange {
             $request['addr-tag'] = $tag; // only for XRP?
         }
         $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string_lower($networks, $network, $network); // handle ETH>ERC20 alias
         if ($network !== null) {
-            $request['chain'] = $network . $currency['id'];
+            // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
+            if ($network === 'erc20') {
+                $request['chain'] = $currency['id'] . $network;
+            } else {
+                $request['chain'] = $network . $currency['id'];
+            }
             $params = $this->omit($params, 'network');
         }
         $response = yield $this->privatePostDwWithdrawApiCreate (array_merge($request, $params));

@@ -23,7 +23,7 @@ class hitbtc extends Exchange {
             'pro' => true,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'editOrder' => true,
@@ -31,7 +31,7 @@ class hitbtc extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchDeposits' => false,
+                'fetchDeposits' => null,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -39,16 +39,16 @@ class hitbtc extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => null,
                 'fetchOrderTrades' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTransactions' => true,
-                'fetchWithdrawals' => false,
-                'withdraw' => true,
+                'fetchWithdrawals' => null,
                 'transfer' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => 'M1',
@@ -1199,7 +1199,7 @@ class hitbtc extends Exchange {
             $request['paymentId'] = $tag;
         }
         $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
             $request['currency'] .= $network; // when $network the $currency need to be changed to $currency . $network

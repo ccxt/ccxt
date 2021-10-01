@@ -43,12 +43,16 @@ class ftx extends Exchange {
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
-                'fetchClosedOrders' => false,
+                'fetchClosedOrders' => null,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => false,
+                'fetchFundingFees' => null,
+                'fetchFundingRate' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -334,6 +338,17 @@ class ftx extends Exchange {
                 'sign' => array(
                     'ftx.com' => 'FTX',
                     'ftx.us' => 'FTXUS',
+                ),
+                'networks' => array(
+                    'SOL' => 'sol',
+                    'SPL' => 'sol',
+                    'TRX' => 'trx',
+                    'TRC20' => 'trx',
+                    'ETH' => 'erc20',
+                    'ERC20' => 'erc20',
+                    'OMNI' => 'omni',
+                    'BEP2' => 'bep2',
+                    'BNB' => 'bep2',
                 ),
             ),
         ));
@@ -691,6 +706,8 @@ class ftx extends Exchange {
             'resolution' => $this->timeframes[$timeframe],
             'market_name' => $marketId,
         );
+        $price = $this->safe_string($params, 'price');
+        $params = $this->omit($params, 'price');
         // max 1501 candles, including the current candle when $since is not specified
         $limit = ($limit === null) ? 1501 : $limit;
         if ($since === null) {
@@ -702,7 +719,14 @@ class ftx extends Exchange {
             $request['limit'] = $limit;
             $request['end_time'] = $this->sum($request['start_time'], $limit * $this->parse_timeframe($timeframe));
         }
-        $response = yield $this->publicGetMarketsMarketNameCandles (array_merge($request, $params));
+        $method = 'publicGetMarketsMarketNameCandles';
+        if ($price === 'index') {
+            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+                $request['market_name'] = $market['baseId'];
+            }
+            $method = 'publicGetIndexesMarketNameCandles';
+        }
+        $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
@@ -730,6 +754,13 @@ class ftx extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_trade($trade, $market = null) {
@@ -1627,6 +1658,13 @@ class ftx extends Exchange {
         if ($tag !== null) {
             $request['tag'] = $tag;
         }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['method'] = $network;
+            $params = $this->omit($params, 'network');
+        }
         $response = yield $this->privatePostWalletWithdrawals (array_merge($request, $params));
         //
         //     {
@@ -1742,6 +1780,13 @@ class ftx extends Exchange {
         $request = array(
             'coin' => $currency['id'],
         );
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['method'] = $network;
+            $params = $this->omit($params, 'network');
+        }
         $response = yield $this->privateGetWalletDepositAddressCoin (array_merge($request, $params));
         //
         //     {

@@ -22,7 +22,7 @@ module.exports = class bitstamp1 extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchMyTrades': true,
-                'fetchOrder': false,
+                'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTrades': true,

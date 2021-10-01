@@ -23,7 +23,7 @@ class bitflyer extends Exchange {
             'hostname' => 'bitflyer.com', // or bitflyer.com
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',

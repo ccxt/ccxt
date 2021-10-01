@@ -15,8 +15,8 @@ module.exports = class tidex extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
-                'createMarketOrder': false,
+                'CORS': undefined,
+                'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,

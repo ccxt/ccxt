@@ -20,16 +20,18 @@ module.exports = class okex extends Exchange {
             'pro': true,
             'certified': true,
             'has': {
-                'CORS': false,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': false, // see below
+                'fetchCurrencies': undefined, // see below
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -1138,6 +1140,8 @@ module.exports = class okex extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
         const request = {
             'instId': market['id'],
             'bar': this.timeframes[timeframe],
@@ -1149,7 +1153,12 @@ module.exports = class okex extends Exchange {
         const defaultType = this.safeString (options, 'type', 'Candles'); // Candles or HistoryCandles
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        const method = 'publicGetMarket' + type;
+        let method = 'publicGetMarket' + type;
+        if (price === 'mark') {
+            method = 'publicGetMarketMarkPriceCandles';
+        } else if (price === 'index') {
+            method = 'publicGetMarketIndexCandles';
+        }
         if (since !== undefined) {
             request['before'] = since - 1;
         }
@@ -1167,6 +1176,20 @@ module.exports = class okex extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseBalanceByType (type, response) {
@@ -2212,7 +2235,7 @@ module.exports = class okex extends Exchange {
             request['pwd'] = params['pwd'];
         }
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
             request['chain'] = currency['id'] + '-' + network;
@@ -2552,7 +2575,11 @@ module.exports = class okex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parsePosition (this.safeValue (data, 0));
+        const position = this.safeValue (data, 0);
+        if (position === undefined) {
+            return position;
+        }
+        return this.parsePosition (position);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {

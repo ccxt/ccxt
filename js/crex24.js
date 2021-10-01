@@ -21,7 +21,7 @@ module.exports = class crex24 extends Exchange {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
@@ -30,6 +30,7 @@ module.exports = class crex24 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingFees': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -41,9 +42,8 @@ module.exports = class crex24 extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false, // actually, true, but will be implemented later
-                'fetchTradingFees': false, // actually, true, but will be implemented later
-                'fetchFundingFees': true,
+                'fetchTradingFee': undefined, // actually, true, but will be implemented later
+                'fetchTradingFees': undefined, // actually, true, but will be implemented later
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -1339,7 +1339,7 @@ module.exports = class crex24 extends Exchange {
             request['paymentId'] = tag;
         }
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
             request['transport'] = network;

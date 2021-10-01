@@ -19,12 +19,12 @@ class coincheck extends Exchange {
             'rateLimit' => 1500,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchMyTrades' => true,
-                'fetchOrderBook' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
             ),
@@ -115,6 +115,12 @@ class coincheck extends Exchange {
                     'maker' => $this->parse_number('0'),
                     'taker' => $this->parse_number('0'),
                 ),
+            ),
+            'exceptions' => array(
+                'exact' => array(
+                    'disabled API Key' => '\\ccxt\\AuthenticationError', // array("success":false,"error":"disabled API Key")'
+                ),
+                'broad' => array(),
             ),
         ));
     }
@@ -419,8 +425,15 @@ class coincheck extends Exchange {
         if ($response === null) {
             return;
         }
+        //
+        //     array("$success":false,"$error":"disabled API Key")'
+        //
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {
+            $error = $this->safe_string($response, 'error');
+            $feedback = $this->id . ' ' . $this->json($response);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
     }

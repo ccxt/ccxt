@@ -35,7 +35,7 @@ class crex24(Exchange):
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -44,6 +44,7 @@ class crex24(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingFees': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -55,9 +56,8 @@ class crex24(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTradingFee': False,  # actually, True, but will be implemented later
-                'fetchTradingFees': False,  # actually, True, but will be implemented later
-                'fetchFundingFees': True,
+                'fetchTradingFee': None,  # actually, True, but will be implemented later
+                'fetchTradingFees': None,  # actually, True, but will be implemented later
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
@@ -1288,7 +1288,7 @@ class crex24(Exchange):
         if tag is not None:
             request['paymentId'] = tag
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
             request['transport'] = network

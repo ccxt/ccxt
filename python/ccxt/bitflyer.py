@@ -22,7 +22,7 @@ class bitflyer(Exchange):
             'hostname': 'bitflyer.com',  # or bitflyer.com
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',

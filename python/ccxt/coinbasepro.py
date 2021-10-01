@@ -46,9 +46,10 @@ class coinbasepro(Exchange):
                 'deposit': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
-                'fetchCurrencies': True,
                 'fetchClosedOrders': True,
-                'fetchDepositAddress': False,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchCurrencies': True,
+                'fetchDepositAddress': None,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchDeposits': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -57,13 +58,12 @@ class coinbasepro(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
-                'fetchTime': True,
                 'fetchTicker': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTransactions': True,
-                'withdraw': True,
-                'fetchDeposits': True,
                 'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 60,

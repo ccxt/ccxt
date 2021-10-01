@@ -41,7 +41,10 @@ class gateio extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRateHistory' => true,
+                'fetchIndexOHLCV' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -275,6 +278,11 @@ class gateio extends Exchange {
                 'VAI' => 'VAIOT',
             ),
             'options' => array(
+                'networks' => array(
+                    'TRC20' => 'TRX',
+                    'ERC20' => 'ETH',
+                    'BEP20' => 'BSC',
+                ),
                 'accountsByType' => array(
                     'spot' => 'spot',
                     'margin' => 'margin',
@@ -801,8 +809,12 @@ class gateio extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $price = $this->safe_string($params, 'price');
+        $params = $this->omit($params, 'price');
+        $isMark = ($price === 'mark');
+        $isIndex = ($price === 'index');
+        $isFuture = $isMark || $isIndex;
         $request = array(
-            'currency_pair' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
         );
         if ($since === null) {
@@ -815,35 +827,106 @@ class gateio extends Exchange {
                 $request['to'] = $this->sum($request['from'], $limit * $this->parse_timeframe($timeframe) - 1);
             }
         }
-        $response = yield $this->publicSpotGetCandlesticks (array_merge($request, $params));
+        $method = 'publicSpotGetCandlesticks';
+        if ($isFuture) {
+            $request['contract'] = $market['id'];
+            $method = 'publicFuturesGetSettleCandlesticks';
+            $request['settle'] = strtolower($market['quote']);
+            if ($isMark) {
+                $request['contract'] = 'mark_' . $request['contract'];
+            } else if ($isIndex) {
+                $request['contract'] = 'index_' . $request['contract'];
+            }
+        } else {
+            $request['currency_pair'] = $market['id'];
+        }
+        $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_funding_rate_history($symbol, $limit = null, $since = null, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'contract' => $market['id'],
+            'settle' => strtolower($market['quote']),
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $method = 'publicFuturesGetSettleFundingRate';
+        $response = yield $this->$method (array_merge($request, $params));
         //
+        //     {
+        //         "fundingRate" => "0.00063521",
+        //         "fundingTime" => "1621267200000",
+        //     }
+        //
+        $rates = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $rates[] = array(
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_number($response[$i], 'r'),
+                'timestamp' => $this->safe_number($response[$i], 't'),
+            );
+        }
+        return $rates;
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        // Spot $market candles
         //     array(
-        //       "1626163200",           // Unix $timestamp in seconds
-        //       "346711.933138181617",  // Trading $volume
+        //       "1626163200",           // Unix timestamp in seconds
+        //       "346711.933138181617",  // Trading volume
         //       "33165.23",             // Close price
         //       "33260",                // Highest price
         //       "33117.6",              // Lowest price
         //       "33184.47"              // Open price
         //     )
         //
-        $timestamp = $this->safe_timestamp($ohlcv, 0);
-        $volume = $this->safe_number($ohlcv, 1);
-        $close = $this->safe_number($ohlcv, 2);
-        $high = $this->safe_number($ohlcv, 3);
-        $low = $this->safe_number($ohlcv, 4);
-        $open = $this->safe_number($ohlcv, 5);
-        return array(
-            $timestamp,
-            $open,
-            $high,
-            $low,
-            $close,
-            $volume,
-        );
+        // Mark and Index price candles
+        // {
+        //      "t":1632873600,         // Unix timestamp in seconds
+        //      "o":"41025",            // Open price
+        //      "h":"41882.17",         // Highest price
+        //      "c":"41776.92",         // Close price
+        //      "l":"40783.94"          // Lowest price
+        // }
+        //
+        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+            return array(
+                $this->safe_timestamp($ohlcv, 0),   // unix timestamp in seconds
+                $this->safe_number($ohlcv, 5),      // open price
+                $this->safe_number($ohlcv, 3),      // highest price
+                $this->safe_number($ohlcv, 4),      // lowest price
+                $this->safe_number($ohlcv, 2),      // close price
+                $this->safe_number($ohlcv, 1),      // trading volume
+            );
+        } else {
+            // Mark and Index price candles
+            return array(
+                $this->safe_timestamp($ohlcv, 't'), // unix timestamp in seconds
+                $this->safe_number($ohlcv, 'o'),    // open price
+                $this->safe_number($ohlcv, 'h'),    // highest price
+                $this->safe_number($ohlcv, 'l'),    // lowest price
+                $this->safe_number($ohlcv, 'c'),    // close price
+                0,
+            );
+        }
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1007,6 +1090,13 @@ class gateio extends Exchange {
         );
         if ($tag !== null) {
             $request['memo'] = $tag;
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_lower($networks, $network, $network); // handle ETH>ERC20 alias
+        if ($network !== null) {
+            $request['chain'] = $network;
+            $params = $this->omit($params, 'network');
         }
         $response = yield $this->privateWithdrawalsPost (array_merge($request, $params));
         //

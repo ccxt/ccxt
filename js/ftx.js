@@ -39,12 +39,16 @@ module.exports = class ftx extends Exchange {
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': false,
+                'fetchFundingFees': undefined,
+                'fetchFundingRate': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -330,6 +334,17 @@ module.exports = class ftx extends Exchange {
                 'sign': {
                     'ftx.com': 'FTX',
                     'ftx.us': 'FTXUS',
+                },
+                'networks': {
+                    'SOL': 'sol',
+                    'SPL': 'sol',
+                    'TRX': 'trx',
+                    'TRC20': 'trx',
+                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
+                    'OMNI': 'omni',
+                    'BEP2': 'bep2',
+                    'BNB': 'bep2',
                 },
             },
         });
@@ -687,6 +702,8 @@ module.exports = class ftx extends Exchange {
             'resolution': this.timeframes[timeframe],
             'market_name': marketId,
         };
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
         // max 1501 candles, including the current candle when since is not specified
         limit = (limit === undefined) ? 1501 : limit;
         if (since === undefined) {
@@ -698,7 +715,14 @@ module.exports = class ftx extends Exchange {
             request['limit'] = limit;
             request['end_time'] = this.sum (request['start_time'], limit * this.parseTimeframe (timeframe));
         }
-        const response = await this.publicGetMarketsMarketNameCandles (this.extend (request, params));
+        let method = 'publicGetMarketsMarketNameCandles';
+        if (price === 'index') {
+            if (symbol in this.markets) {
+                request['market_name'] = market['baseId'];
+            }
+            method = 'publicGetIndexesMarketNameCandles';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -726,6 +750,13 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {
@@ -1623,6 +1654,13 @@ module.exports = class ftx extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['method'] = network;
+            params = this.omit (params, 'network');
+        }
         const response = await this.privatePostWalletWithdrawals (this.extend (request, params));
         //
         //     {
@@ -1738,6 +1776,13 @@ module.exports = class ftx extends Exchange {
         const request = {
             'coin': currency['id'],
         };
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['method'] = network;
+            params = this.omit (params, 'network');
+        }
         const response = await this.privateGetWalletDepositAddressCoin (this.extend (request, params));
         //
         //     {

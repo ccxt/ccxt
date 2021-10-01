@@ -42,7 +42,9 @@ class phemex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -320,6 +322,13 @@ class phemex(Exchange):
             'options': {
                 'x-phemex-request-expiry': 60,  # in seconds
                 'createOrderByQuoteRequiresPrice': True,
+                'networks': {
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                },
+                'defaultNetworks': {
+                    'USDT': 'ETH',
+                },
             },
         })
 
@@ -2100,6 +2109,16 @@ class phemex(Exchange):
         request = {
             'currency': currency['id'],
         }
+        defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
+        defaultNetwork = self.safe_string_upper(defaultNetworks, code)
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network', defaultNetwork)
+        network = self.safe_string(networks, network, network)
+        if network is None:
+            request['chainName'] = currency['id']
+        else:
+            request['chainName'] = network
+            params = self.omit(params, 'network')
         response = await self.privateGetPhemexUserWalletsV2DepositAddress(self.extend(request, params))
         #     {
         #         "code":0,

@@ -60,12 +60,16 @@ class ftx(Exchange):
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
-                'fetchClosedOrders': False,
+                'fetchClosedOrders': None,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': False,
+                'fetchFundingFees': None,
+                'fetchFundingRate': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': True,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -351,6 +355,17 @@ class ftx(Exchange):
                 'sign': {
                     'ftx.com': 'FTX',
                     'ftx.us': 'FTXUS',
+                },
+                'networks': {
+                    'SOL': 'sol',
+                    'SPL': 'sol',
+                    'TRX': 'trx',
+                    'TRC20': 'trx',
+                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
+                    'OMNI': 'omni',
+                    'BEP2': 'bep2',
+                    'BNB': 'bep2',
                 },
             },
         })
@@ -689,6 +704,8 @@ class ftx(Exchange):
             'resolution': self.timeframes[timeframe],
             'market_name': marketId,
         }
+        price = self.safe_string(params, 'price')
+        params = self.omit(params, 'price')
         # max 1501 candles, including the current candle when since is not specified
         limit = 1501 if (limit is None) else limit
         if since is None:
@@ -699,7 +716,12 @@ class ftx(Exchange):
             request['start_time'] = int(since / 1000)
             request['limit'] = limit
             request['end_time'] = self.sum(request['start_time'], limit * self.parse_timeframe(timeframe))
-        response = self.publicGetMarketsMarketNameCandles(self.extend(request, params))
+        method = 'publicGetMarketsMarketNameCandles'
+        if price == 'index':
+            if symbol in self.markets:
+                request['market_name'] = market['baseId']
+            method = 'publicGetIndexesMarketNameCandles'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -727,6 +749,12 @@ class ftx(Exchange):
         #
         result = self.safe_value(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
+
+    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_trade(self, trade, market=None):
         #
@@ -1571,6 +1599,12 @@ class ftx(Exchange):
             request['password'] = self.password
         if tag is not None:
             request['tag'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['method'] = network
+            params = self.omit(params, 'network')
         response = self.privatePostWalletWithdrawals(self.extend(request, params))
         #
         #     {
@@ -1683,6 +1717,12 @@ class ftx(Exchange):
         request = {
             'coin': currency['id'],
         }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['method'] = network
+            params = self.omit(params, 'network')
         response = self.privateGetWalletDepositAddressCoin(self.extend(request, params))
         #
         #     {

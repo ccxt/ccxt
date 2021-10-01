@@ -23,7 +23,7 @@ class itbit(Exchange):
             'has': {
                 'cancelOrder': True,
                 'CORS': True,
-                'createMarketOrder': False,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,

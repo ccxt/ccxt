@@ -33,7 +33,7 @@ class currencycom(Exchange):
             # new metainfo interface
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
@@ -45,8 +45,8 @@ class currencycom(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
-                'fetchTradingFees': True,
                 'fetchTrades': True,
+                'fetchTradingFees': True,
             },
             'timeframes': {
                 '1m': '1m',

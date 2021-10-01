@@ -19,7 +19,7 @@ module.exports = class bitflyer extends Exchange {
             'hostname': 'bitflyer.com', // or bitflyer.com
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',

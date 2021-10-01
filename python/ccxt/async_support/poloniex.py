@@ -33,10 +33,11 @@ class poloniex(Exchange):
             'certified': False,
             'pro': True,
             'has': {
+                'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createDepositAddress': True,
-                'createMarketOrder': False,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -59,7 +60,6 @@ class poloniex(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
-                'cancelAllOrders': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -1213,7 +1213,7 @@ class poloniex(Exchange):
         if tag is not None:
             request['paymentId'] = tag
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
             request['currency'] += network  # when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section

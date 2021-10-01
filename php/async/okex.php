@@ -24,16 +24,18 @@ class okex extends Exchange {
             'pro' => true,
             'certified' => true,
             'has' => array(
-                'CORS' => false,
                 'cancelOrder' => true,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchCurrencies' => false, // see below
+                'fetchCurrencies' => null, // see below
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -1142,6 +1144,8 @@ class okex extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $price = $this->safe_string($params, 'price');
+        $params = $this->omit($params, 'price');
         $request = array(
             'instId' => $market['id'],
             'bar' => $this->timeframes[$timeframe],
@@ -1154,6 +1158,11 @@ class okex extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
         $method = 'publicGetMarket' . $type;
+        if ($price === 'mark') {
+            $method = 'publicGetMarketMarkPriceCandles';
+        } else if ($price === 'index') {
+            $method = 'publicGetMarketIndexCandles';
+        }
         if ($since !== null) {
             $request['before'] = $since - 1;
         }
@@ -1171,6 +1180,20 @@ class okex extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_balance_by_type($type, $response) {
@@ -2216,7 +2239,7 @@ class okex extends Exchange {
             $request['pwd'] = $params['pwd'];
         }
         $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ETH>ERC20 alias
         if ($network !== null) {
             $request['chain'] = $currency['id'] . '-' . $network;
@@ -2502,7 +2525,7 @@ class okex extends Exchange {
         $request = array(
             // instType String No Instrument $type, MARGIN, SWAP, FUTURES, OPTION
             'instId' => $market['id'],
-            // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
+            // posId String No Single $position ID or multiple $position IDs (no more than 20) separated with comma
         );
         if ($type !== null) {
             $request['instType'] = strtoupper($type);
@@ -2556,7 +2579,11 @@ class okex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_position($this->safe_value($data, 0));
+        $position = $this->safe_value($data, 0);
+        if ($position === null) {
+            return $position;
+        }
+        return $this->parse_position($position);
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {

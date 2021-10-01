@@ -31,9 +31,10 @@ class coinbasepro extends Exchange {
                 'deposit' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
-                'fetchCurrencies' => true,
                 'fetchClosedOrders' => true,
-                'fetchDepositAddress' => false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => null, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchDeposits' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -42,13 +43,12 @@ class coinbasepro extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
-                'fetchTime' => true,
                 'fetchTicker' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => true,
-                'withdraw' => true,
-                'fetchDeposits' => true,
                 'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => 60,

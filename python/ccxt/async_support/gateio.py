@@ -52,7 +52,10 @@ class gateio(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposits': True,
+                'fetchFundingRateHistory': True,
+                'fetchIndexOHLCV': True,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -286,6 +289,11 @@ class gateio(Exchange):
                 'VAI': 'VAIOT',
             },
             'options': {
+                'networks': {
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
+                },
                 'accountsByType': {
                     'spot': 'spot',
                     'margin': 'margin',
@@ -789,8 +797,12 @@ class gateio(Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        price = self.safe_string(params, 'price')
+        params = self.omit(params, 'price')
+        isMark = (price == 'mark')
+        isIndex = (price == 'index')
+        isFuture = isMark or isIndex
         request = {
-            'currency_pair': market['id'],
             'interval': self.timeframes[timeframe],
         }
         if since is None:
@@ -800,11 +812,60 @@ class gateio(Exchange):
             request['from'] = int(math.floor(since / 1000))
             if limit is not None:
                 request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe) - 1)
-        response = await self.publicSpotGetCandlesticks(self.extend(request, params))
+        method = 'publicSpotGetCandlesticks'
+        if isFuture:
+            request['contract'] = market['id']
+            method = 'publicFuturesGetSettleCandlesticks'
+            request['settle'] = market['quote'].lower()
+            if isMark:
+                request['contract'] = 'mark_' + request['contract']
+            elif isIndex:
+                request['contract'] = 'index_' + request['contract']
+        else:
+            request['currency_pair'] = market['id']
+        response = await getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'mark',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    async def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'contract': market['id'],
+            'settle': market['quote'].lower(),
+        }
+        if limit is not None:
+            request['limit'] = limit
+        method = 'publicFuturesGetSettleFundingRate'
+        response = await getattr(self, method)(self.extend(request, params))
         #
+        #     {
+        #         "fundingRate": "0.00063521",
+        #         "fundingTime": "1621267200000",
+        #     }
+        #
+        rates = []
+        for i in range(0, len(response)):
+            rates.append({
+                'symbol': symbol,
+                'fundingRate': self.safe_number(response[i], 'r'),
+                'timestamp': self.safe_number(response[i], 't'),
+            })
+        return rates
+
+    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        # Spot market candles
         #     [
         #       "1626163200",           # Unix timestamp in seconds
         #       "346711.933138181617",  # Trading volume
@@ -814,20 +875,34 @@ class gateio(Exchange):
         #       "33184.47"              # Open price
         #     ]
         #
-        timestamp = self.safe_timestamp(ohlcv, 0)
-        volume = self.safe_number(ohlcv, 1)
-        close = self.safe_number(ohlcv, 2)
-        high = self.safe_number(ohlcv, 3)
-        low = self.safe_number(ohlcv, 4)
-        open = self.safe_number(ohlcv, 5)
-        return [
-            timestamp,
-            open,
-            high,
-            low,
-            close,
-            volume,
-        ]
+        # Mark and Index price candles
+        # {
+        #      "t":1632873600,         # Unix timestamp in seconds
+        #      "o":"41025",            # Open price
+        #      "h":"41882.17",         # Highest price
+        #      "c":"41776.92",         # Close price
+        #      "l":"40783.94"          # Lowest price
+        # }
+        #
+        if isinstance(ohlcv, list):
+            return [
+                self.safe_timestamp(ohlcv, 0),   # unix timestamp in seconds
+                self.safe_number(ohlcv, 5),      # open price
+                self.safe_number(ohlcv, 3),      # highest price
+                self.safe_number(ohlcv, 4),      # lowest price
+                self.safe_number(ohlcv, 2),      # close price
+                self.safe_number(ohlcv, 1),      # trading volume
+            ]
+        else:
+            # Mark and Index price candles
+            return [
+                self.safe_timestamp(ohlcv, 't'),  # unix timestamp in seconds
+                self.safe_number(ohlcv, 'o'),    # open price
+                self.safe_number(ohlcv, 'h'),    # highest price
+                self.safe_number(ohlcv, 'l'),    # lowest price
+                self.safe_number(ohlcv, 'c'),    # close price
+                0,
+            ]
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -975,6 +1050,12 @@ class gateio(Exchange):
         }
         if tag is not None:
             request['memo'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_lower(networks, network, network)  # handle ETH>ERC20 alias
+        if network is not None:
+            request['chain'] = network
+            params = self.omit(params, 'network')
         response = await self.privateWithdrawalsPost(self.extend(request, params))
         #
         #     {

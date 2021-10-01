@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 109 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 108 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -934,18 +934,6 @@ The CCXT library currently supports the following 109 cryptocurrency exchange ma
      - `Gemini <https://gemini.com/>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://docs.gemini.com/rest-api
-          :alt: API Version 1
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/80134449-70663300-85a7-11ea-8942-e204cdeaab5d.jpg
-          :target: https://www.hbtc.com/register/O2S8NS
-          :alt: hbtc
-     
-     - hbtc
-     - `HBTC <https://www.hbtc.com/register/O2S8NS>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://github.com/bhexopen/BHEX-OpenApi/tree/master/doc
           :alt: API Version 1
      
      - 
@@ -1893,8 +1881,9 @@ Exchange Metadata
     The meaning of each flag showing availability of this or that method is:
 
 
+  * a value of ``undefined`` / ``None`` / ``null`` means the method is not unified in the ccxt library yet or the method isn't natively available from the exchange API
+  * boolean ``false`` means the method isn't natively available from the exchange API
   * boolean ``true`` means the method is natively available from the exchange API and unified in the ccxt library
-  * boolean ``false`` means the method isn't natively available from the exchange API or not unified in the ccxt library yet
   * an ``'emulated'`` string means the endpoint isn't natively available from the exchange API but reconstructed by the ccxt library from available true-methods
 
 Rate Limit
@@ -3777,10 +3766,10 @@ This process may differ from exchange to exchange. Some exchanges may want the s
 The authentication is already handled for you, so you don't need to perform any of those steps manually unless you are implementing a new exchange class. The only thing you need for trading is the actual API key pair.
 
 API Keys Setup
---------------
+^^^^^^^^^^^^^^
 
 Required Credentials
-^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~
 
 The API credentials usually include the following:
 
@@ -5036,8 +5025,8 @@ Some exchanges require a manual approval of each withdrawal by means of 2FA (2-f
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See :ref:`their docs <exchanges>` for details.
 
-Other supported withdraw signatures
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Withdrawal Networks
+-------------------
 
 It is also possible to pass the parameters as the fourth argument with or without a specified tag
 
@@ -5055,6 +5044,29 @@ It is also possible to pass the parameters as the fourth argument with or withou
 
    // PHP
    $exchange->withdraw ($code, $amount, $address, array( 'tag' => tag, 'network' -> 'ETH' ));
+
+The following aliases of ``network`` allow for withdrawing crypto on multiple chains
+
+.. list-table::
+   :header-rows: 1
+
+   * - Currency
+     - Network
+   * - ETH
+     - ERC20
+   * - TRX
+     - TRC20
+   * - BSC
+     - BEP20
+   * - BNB
+     - BEP2
+   * - HT
+     - HECO
+   * - OMNI
+     - OMNI
+
+
+You may set the value of ``exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km95sDFN9jhLxJ2D', { 'network': 'TRX' })`` in order to withdraw USDT on the TRON chain, or 'BSC' to withdraw USDT on Binance Smart Chain. In the table above BSC and BEP20 are equivalent aliases, so it doesn't matter which one you use as they both will achieve the same effect.
 
 Transactions
 ------------
