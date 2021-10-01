@@ -33,6 +33,7 @@ module.exports = class binance extends Exchange {
                 'fetchFundingFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedPositions': true,
@@ -3743,6 +3744,41 @@ module.exports = class binance extends Exchange {
         //     }
         //
         return this.parseFundingRate (response);
+    }
+
+    async fetchFundingRateHistory (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let method = 'fapiPublicGetFundingRate';
+        if (market['inverse']) {
+            method = 'dapiPublicGetFundingRate';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "fundingRate": "0.00063521",
+        //         "fundingTime": "1621267200000",
+        //     }
+        //
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            rates.push ({
+                'symbol': this.safeString (response[i], 'symbol'),
+                'fundingRate': this.safeNumber (response[i], 'fundingRate'),
+                'timestamp': this.safeNumber (response[i], 'fundingTime'),
+            });
+        }
+        return rates;
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {

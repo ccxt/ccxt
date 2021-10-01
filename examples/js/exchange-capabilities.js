@@ -34,6 +34,7 @@ console.log ('CCXT v' + ccxt.version)
             'fetchFundingFees',
             'fetchFundingRate',
             'fetchFundingRates',
+            'fetchFundingRateHistory',
             'fetchIndexOHLCV',
             'fetchL2OrderBook',
             'fetchMarkOHLCV',
