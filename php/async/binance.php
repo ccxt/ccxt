@@ -3753,7 +3753,7 @@ class binance extends Exchange {
         return $this->parse_funding_rate ($response);
     }
 
-    public function fetch_funding_rate_history($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history($symbol, $limit = null, $since = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

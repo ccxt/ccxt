@@ -3569,7 +3569,7 @@ class binance(Exchange):
         #
         return self.parse_funding_rate(response)
 
-    async def fetch_funding_rate_history(self, symbol, since=None, limit=None, params={}):
+    async def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {

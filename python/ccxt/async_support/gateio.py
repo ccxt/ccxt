@@ -52,6 +52,7 @@ class gateio(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposits': True,
+                'fetchFundingRateHistory': True,
                 'fetchIndexOHLCV': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -830,6 +831,32 @@ class gateio(Exchange):
             'price': 'mark',
         }
         return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    async def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'contract': market['id'],
+            'settle': market['quote'].lower(),
+        }
+        if limit is not None:
+            request['limit'] = limit
+        method = 'publicFuturesGetSettleFundingRate'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "fundingRate": "0.00063521",
+        #         "fundingTime": "1621267200000",
+        #     }
+        #
+        rates = []
+        for i in range(0, len(response)):
+            rates.append({
+                'symbol': symbol,
+                'fundingRate': self.safe_number(response[i], 'r'),
+                'timestamp': self.safe_number(response[i], 't'),
+            })
+        return rates
 
     async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {
