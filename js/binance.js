@@ -3728,7 +3728,7 @@ module.exports = class binance extends Exchange {
         } else if (market['inverse']) {
             method = 'dapiPublicGetPremiumIndex';
         } else {
-            throw NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -3792,7 +3792,7 @@ module.exports = class binance extends Exchange {
         } else if (type === 'delivery') {
             method = 'dapiPublicGetPremiumIndex';
         } else {
-            throw NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
         }
         const response = await this[method] (query);
         const result = [];
@@ -3824,18 +3824,22 @@ module.exports = class binance extends Exchange {
         const markPrice = this.safeNumber (premiumIndex, 'markPrice');
         const indexPrice = this.safeNumber (premiumIndex, 'indexPrice');
         const interestRate = this.safeNumber (premiumIndex, 'interestRate');
-        // current funding rate
-        const fundingRate = this.safeNumber (premiumIndex, 'lastFundingRate');
+        const estimatedSettlePrice = this.safeNumber (premiumIndex, 'estimatedSettlePrice');
+        const lastFundingRate = this.safeNumber (premiumIndex, 'lastFundingRate');
         const nextFundingTime = this.safeInteger (premiumIndex, 'nextFundingTime');
+        const lastFundingTime = nextFundingTime - (8 * 3600000);
         return {
             'info': premiumIndex,
             'symbol': symbol,
             'markPrice': markPrice,
             'indexPrice': indexPrice,
             'interestRate': interestRate,
+            'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fundingRate': fundingRate,
+            'lastFundingRate': lastFundingRate,
+            'lastFundingTimestamp': lastFundingTime, // subtract 8 hours
+            'lastFundingDatetime': this.iso8601 (lastFundingTime),
             'nextFundingTimestamp': nextFundingTime,
             'nextFundingDatetime': this.iso8601 (nextFundingTime),
         };
