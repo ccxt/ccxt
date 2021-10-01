@@ -3766,13 +3766,8 @@ module.exports = class binance extends Exchange {
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "markPrice": "45802.81129892",
-        //         "indexPrice": "45745.47701915",
-        //         "estimatedSettlePrice": "45133.91753671",
-        //         "lastFundingRate": "0.00063521",
-        //         "interestRate": "0.00010000",
-        //         "nextFundingTime": "1621267200000",
-        //         "time": "1621252344001"
+        //         "fundingRate": "0.00063521",
+        //         "fundingTime": "1621267200000",
         //     }
         //
         return response.map ((rate) => ({
