@@ -214,6 +214,7 @@ class wavesexchange extends Exchange {
                 ),
                 'public' => array(
                     'get' => array(
+                        'assets',
                         'pairs',
                         'candles/{baseId}/{quoteId}',
                         'transactions/exchange',
@@ -457,7 +458,7 @@ class wavesexchange extends Exchange {
         $isCancelOrder = $path === 'matcher/orders/{wavesAddress}/cancel';
         $path = $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . '/' . $path;
-        $queryString = $this->urlencode($query);
+        $queryString = $this->urlencode_with_array_repeat($query);
         if (($api === 'private') || ($api === 'forward')) {
             $headers = array(
                 'Accept' => 'application/json',
@@ -1301,12 +1302,12 @@ class wavesexchange extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        // makes a lot of different requests to get all the data
+        // makes a lot of different requests to get all the $data
         // in particular:
         // fetchMarkets, getWavesAddress,
         // getTotalBalance (doesn't include waves), getReservedBalance (doesn't include waves)
         // getReservedBalance (includes WAVES)
-        // I couldn't find another way to get all the data
+        // I couldn't find another way to get all the $data
         $this->check_required_dependencies();
         $this->check_required_keys();
         $this->load_markets();
@@ -1352,17 +1353,42 @@ class wavesexchange extends Exchange {
         $balances = $this->safe_value($totalBalance, 'balances');
         $result = array();
         $timestamp = null;
+        $assetIds = array();
+        $nonStandardBalances = array();
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $balances[$i];
             $entryTimestamp = $this->safe_integer($entry, 'timestamp');
             $timestamp = ($timestamp === null) ? $entryTimestamp : max ($timestamp, $entryTimestamp);
             $issueTransaction = $this->safe_value($entry, 'issueTransaction');
-            $decimals = $this->safe_integer($issueTransaction, 'decimals');
             $currencyId = $this->safe_string($entry, 'assetId');
             $balance = $this->safe_string($entry, 'balance');
+            if ($issueTransaction === null) {
+                $assetIds[] = $currencyId;
+                $nonStandardBalances[] = $balance;
+                continue;
+            }
+            $decimals = $this->safe_integer($issueTransaction, 'decimals');
             $code = null;
             if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->safe_currency_code($currencyId);
+                $result[$code] = $this->account();
+                $result[$code]['total'] = $this->from_precision($balance, $decimals);
+            }
+        }
+        $nonStandardAssets = is_array($assetIds) ? count($assetIds) : 0;
+        if ($nonStandardAssets) {
+            $request = array(
+                'ids' => $assetIds,
+            );
+            $response = $this->publicGetAssets ($request);
+            $data = $this->safe_value($response, 'data');
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $balance = $nonStandardBalances[$i];
+                $inner = $this->safe_value($entry, 'data');
+                $decimals = $this->safe_integer($inner, 'precision');
+                $ticker = $this->safe_string($inner, 'ticker');
+                $code = $this->safe_currency_code($ticker);
                 $result[$code] = $this->account();
                 $result[$code]['total'] = $this->from_precision($balance, $decimals);
             }
