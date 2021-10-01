@@ -1,3 +1,5 @@
+/* eslint-disable max-classes-per-file */
+
 'use strict';
 
 const { iso8601 } = require ('ccxt/js/base/functions/time')
