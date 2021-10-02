@@ -81,6 +81,9 @@ class Precise {
         $denominatorRationizer = max(-$other->decimals + $this->decimals, 0);
         $denominator = gmp_mul($other->integer, gmp_pow(static::$base, $denominatorRationizer));
         $result = gmp_mod($numerator, $denominator);
+        if (gmp_cmp($result, 0) < 0) {
+            $result = gmp_add($result, $denominator);
+        }
         return new Precise($result, $denominatorRationizer + $other->decimals);
     }
 
