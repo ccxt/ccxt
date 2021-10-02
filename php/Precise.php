@@ -129,6 +129,12 @@ class Precise {
         }
     }
 
+    public function floor() {
+        $fractional = $this->mod(new Precise(1, 0));
+        $whole = $this->sub($fractional);
+        return $whole;
+    }
+
     public function gt($other) {
         $sum = $this->sub($other);
         return gmp_cmp($sum->integer, '0') > 0;
@@ -293,6 +299,13 @@ class Precise {
             return null;
         }
         return strval((new Precise($string))->round());
+    }
+
+    public static function string_floor($string) {
+        if ($string === null) {
+            return null;
+        }
+        return strval((new Precise($string))->floor());
     }
 
     public static function string_gt($string1, $string2) {

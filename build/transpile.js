@@ -408,6 +408,7 @@ class Transpiler {
             [ /Precise\.stringMin\s/g, 'Precise::string_min' ],
             [ /Precise\.stringMax\s/g, 'Precise::string_max' ],
             [ /Precise\.stringRound\s/g, 'Precise::string_round' ],
+            [ /Precise\.stringFloor\s/g, 'Precise::string_floor' ],
             [ /Precise\.stringGt\s/g, 'Precise::string_gt' ],
             [ /Precise\.stringGe\s/g, 'Precise::string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise::string_lt' ],
