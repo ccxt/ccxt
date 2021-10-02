@@ -39,11 +39,12 @@ class binance extends Exchange {
                 'fetchFundingFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchIsolatedPositions' => true,
-                'fetchMarkOHLCV' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -3733,9 +3734,12 @@ class binance extends Exchange {
         } else if ($market['inverse']) {
             $method = 'dapiPublicGetPremiumIndex';
         } else {
-            throw NotSupported ($this->id . ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported($this->id . ' setMarginMode() supports linear and inverse contracts only');
         }
         $response = $this->$method (array_merge($request, $params));
+        if ($market['inverse']) {
+            $response = $response[0];
+        }
         //
         //     {
         //         "$symbol" => "BTCUSDT",
@@ -3751,6 +3755,41 @@ class binance extends Exchange {
         return $this->parse_funding_rate ($response);
     }
 
+    public function fetch_funding_rate_history($symbol, $limit = null, $since = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $method = 'fapiPublicGetFundingRate';
+        if ($market['inverse']) {
+            $method = 'dapiPublicGetFundingRate';
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "$symbol" => "BTCUSDT",
+        //         "fundingRate" => "0.00063521",
+        //         "fundingTime" => "1621267200000",
+        //     }
+        //
+        $rates = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $rates[] = array(
+                'symbol' => $this->safe_string($response[$i], 'symbol'),
+                'fundingRate' => $this->safe_number($response[$i], 'fundingRate'),
+                'timestamp' => $this->safe_number($response[$i], 'fundingTime'),
+            );
+        }
+        return $rates;
+    }
+
     public function fetch_funding_rates($symbols = null, $params = array ()) {
         $this->load_markets();
         $method = null;
@@ -3762,7 +3801,7 @@ class binance extends Exchange {
         } else if ($type === 'delivery') {
             $method = 'dapiPublicGetPremiumIndex';
         } else {
-            throw NotSupported ($this->id . ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported($this->id . ' setMarginMode() supports linear and inverse contracts only');
         }
         $response = $this->$method ($query);
         $result = array();
@@ -3781,8 +3820,8 @@ class binance extends Exchange {
         //     "$symbol" => "BTCUSDT",
         //     "$markPrice" => "45802.81129892",
         //     "$indexPrice" => "45745.47701915",
-        //     "estimatedSettlePrice" => "45133.91753671",
-        //     "lastFundingRate" => "0.00063521",
+        //     "$estimatedSettlePrice" => "45133.91753671",
+        //     "$lastFundingRate" => "0.00063521",
         //     "$interestRate" => "0.00010000",
         //     "$nextFundingTime" => "1621267200000",
         //     "time" => "1621252344001"
@@ -3794,19 +3833,23 @@ class binance extends Exchange {
         $markPrice = $this->safe_number($premiumIndex, 'markPrice');
         $indexPrice = $this->safe_number($premiumIndex, 'indexPrice');
         $interestRate = $this->safe_number($premiumIndex, 'interestRate');
-        // current funding rate
-        $fundingRate = $this->safe_number($premiumIndex, 'lastFundingRate');
+        $estimatedSettlePrice = $this->safe_number($premiumIndex, 'estimatedSettlePrice');
+        $lastFundingRate = $this->safe_number($premiumIndex, 'lastFundingRate');
         $nextFundingTime = $this->safe_integer($premiumIndex, 'nextFundingTime');
+        $lastFundingTime = $nextFundingTime - (8 * 3600000);
         return array(
             'info' => $premiumIndex,
             'symbol' => $symbol,
             'markPrice' => $markPrice,
             'indexPrice' => $indexPrice,
             'interestRate' => $interestRate,
+            'estimatedSettlePrice' => $estimatedSettlePrice,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fundingRate' => $fundingRate,
+            'lastFundingRate' => $lastFundingRate,
+            'lastFundingTimestamp' => $lastFundingTime, // subtract 8 hours
             'nextFundingTimestamp' => $nextFundingTime,
+            'lastFundingDatetime' => $this->iso8601($lastFundingTime),
             'nextFundingDatetime' => $this->iso8601($nextFundingTime),
         );
     }

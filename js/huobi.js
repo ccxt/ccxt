@@ -40,8 +40,8 @@ module.exports = class huobi extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrderTrades': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -736,8 +736,7 @@ module.exports = class huobi extends Exchange {
             request['size'] = limit; // 1-100 orders, default is 100
         }
         if (since !== undefined) {
-            request['start-date'] = this.ymd (since); // a date within 61 days from today
-            request['end-date'] = this.ymd (this.sum (since, 86400000));
+            request['start-time'] = Math.floor (since); // a date within 120 days from today
         }
         const response = await this.privateGetOrderMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);

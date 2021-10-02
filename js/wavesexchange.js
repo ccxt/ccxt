@@ -209,6 +209,7 @@ module.exports = class wavesexchange extends Exchange {
                 },
                 'public': {
                     'get': [
+                        'assets',
                         'pairs',
                         'candles/{baseId}/{quoteId}',
                         'transactions/exchange',
@@ -452,7 +453,7 @@ module.exports = class wavesexchange extends Exchange {
         const isCancelOrder = path === 'matcher/orders/{wavesAddress}/cancel';
         path = this.implodeParams (path, params);
         let url = this.urls['api'][api] + '/' + path;
-        let queryString = this.urlencode (query);
+        let queryString = this.urlencodeWithArrayRepeat (query);
         if ((api === 'private') || (api === 'forward')) {
             headers = {
                 'Accept': 'application/json',
@@ -1347,17 +1348,42 @@ module.exports = class wavesexchange extends Exchange {
         const balances = this.safeValue (totalBalance, 'balances');
         const result = {};
         let timestamp = undefined;
+        const assetIds = [];
+        const nonStandardBalances = [];
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
             const entryTimestamp = this.safeInteger (entry, 'timestamp');
             timestamp = (timestamp === undefined) ? entryTimestamp : Math.max (timestamp, entryTimestamp);
             const issueTransaction = this.safeValue (entry, 'issueTransaction');
-            const decimals = this.safeInteger (issueTransaction, 'decimals');
             const currencyId = this.safeString (entry, 'assetId');
             const balance = this.safeString (entry, 'balance');
+            if (issueTransaction === undefined) {
+                assetIds.push (currencyId);
+                nonStandardBalances.push (balance);
+                continue;
+            }
+            const decimals = this.safeInteger (issueTransaction, 'decimals');
             let code = undefined;
             if (currencyId in this.currencies_by_id) {
                 code = this.safeCurrencyCode (currencyId);
+                result[code] = this.account ();
+                result[code]['total'] = this.fromPrecision (balance, decimals);
+            }
+        }
+        const nonStandardAssets = assetIds.length;
+        if (nonStandardAssets) {
+            const request = {
+                'ids': assetIds,
+            };
+            const response = await this.publicGetAssets (request);
+            const data = this.safeValue (response, 'data');
+            for (let i = 0; i < data.length; i++) {
+                const entry = data[i];
+                const balance = nonStandardBalances[i];
+                const inner = this.safeValue (entry, 'data');
+                const decimals = this.safeInteger (inner, 'precision');
+                const ticker = this.safeString (inner, 'ticker');
+                const code = this.safeCurrencyCode (ticker);
                 result[code] = this.account ();
                 result[code]['total'] = this.fromPrecision (balance, decimals);
             }

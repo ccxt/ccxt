@@ -46,6 +46,7 @@ class bybit(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
+                'fetchFundingRate': True,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': True,
                 'fetchMarkets': True,
@@ -55,8 +56,8 @@ class bybit(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrderTrades': True,
                 'fetchOrders': True,
+                'fetchOrderTrades': True,
                 'fetchPositions': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -849,6 +850,47 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        method = 'v2PublicGetFundingPrevFundingRate'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # {
+        #     "ret_code": 0,
+        #     "ret_msg": "ok",
+        #     "ext_code": "",
+        #     "result": {
+        #         "symbol": "BTCUSD",
+        #         "funding_rate": "0.00010000",
+        #         "funding_rate_timestamp": 1577433600
+        #     },
+        #     "ext_info": null,
+        #     "time_now": "1577445586.446797",
+        #     "rate_limit_status": 119,
+        #     "rate_limit_reset_ms": 1577445586454,
+        #     "rate_limit": 120
+        # }
+        #
+        result = self.safe_value(response, 'result')
+        lastFundingRate = self.safe_number(result, 'funding_rate')
+        lastFundingTime = self.safe_integer(result, 'funding_rate_timestamp') * 1000
+        nextFundingTime = lastFundingTime + (8 * 3600000)
+        currentTime = self.milliseconds()
+        return {
+            'symbol': symbol,
+            'timestamp': currentTime,
+            'datetime': self.iso8601(currentTime),
+            'lastFundingRate': lastFundingRate,
+            'lastFundingTimestamp': lastFundingTime,
+            'nextFundingTimestamp': nextFundingTime,
+            'lastFundingDatetime': self.iso8601(lastFundingTime),
+            'nextFundingDatetime': self.iso8601(nextFundingTime),
+        }
 
     async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {

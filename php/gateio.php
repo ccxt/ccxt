@@ -40,6 +40,7 @@ class gateio extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -847,6 +848,35 @@ class gateio extends Exchange {
             'price' => 'mark',
         );
         return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_funding_rate_history($symbol, $limit = null, $since = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'contract' => $market['id'],
+            'settle' => strtolower($market['quote']),
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $method = 'publicFuturesGetSettleFundingRate';
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "fundingRate" => "0.00063521",
+        //         "fundingTime" => "1621267200000",
+        //     }
+        //
+        $rates = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $rates[] = array(
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_number($response[$i], 'r'),
+                'timestamp' => $this->safe_number($response[$i], 't'),
+            );
+        }
+        return $rates;
     }
 
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

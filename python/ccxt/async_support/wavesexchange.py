@@ -221,6 +221,7 @@ class wavesexchange(Exchange):
                 },
                 'public': {
                     'get': [
+                        'assets',
                         'pairs',
                         'candles/{baseId}/{quoteId}',
                         'transactions/exchange',
@@ -447,7 +448,7 @@ class wavesexchange(Exchange):
         isCancelOrder = path == 'matcher/orders/{wavesAddress}/cancel'
         path = self.implode_params(path, params)
         url = self.urls['api'][api] + '/' + path
-        queryString = self.urlencode(query)
+        queryString = self.urlencode_with_array_repeat(query)
         if (api == 'private') or (api == 'forward'):
             headers = {
                 'Accept': 'application/json',
@@ -1281,17 +1282,39 @@ class wavesexchange(Exchange):
         balances = self.safe_value(totalBalance, 'balances')
         result = {}
         timestamp = None
+        assetIds = []
+        nonStandardBalances = []
         for i in range(0, len(balances)):
             entry = balances[i]
             entryTimestamp = self.safe_integer(entry, 'timestamp')
             timestamp = entryTimestamp if (timestamp is None) else max(timestamp, entryTimestamp)
             issueTransaction = self.safe_value(entry, 'issueTransaction')
-            decimals = self.safe_integer(issueTransaction, 'decimals')
             currencyId = self.safe_string(entry, 'assetId')
             balance = self.safe_string(entry, 'balance')
+            if issueTransaction is None:
+                assetIds.append(currencyId)
+                nonStandardBalances.append(balance)
+                continue
+            decimals = self.safe_integer(issueTransaction, 'decimals')
             code = None
             if currencyId in self.currencies_by_id:
                 code = self.safe_currency_code(currencyId)
+                result[code] = self.account()
+                result[code]['total'] = self.from_precision(balance, decimals)
+        nonStandardAssets = len(assetIds)
+        if nonStandardAssets:
+            request = {
+                'ids': assetIds,
+            }
+            response = await self.publicGetAssets(request)
+            data = self.safe_value(response, 'data')
+            for i in range(0, len(data)):
+                entry = data[i]
+                balance = nonStandardBalances[i]
+                inner = self.safe_value(entry, 'data')
+                decimals = self.safe_integer(inner, 'precision')
+                ticker = self.safe_string(inner, 'ticker')
+                code = self.safe_currency_code(ticker)
                 result[code] = self.account()
                 result[code]['total'] = self.from_precision(balance, decimals)
         currentTimestamp = self.milliseconds()

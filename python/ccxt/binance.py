@@ -51,11 +51,12 @@ class binance(Exchange):
                 'fetchFundingFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
                 'fetchIsolatedPositions': True,
-                'fetchMarkOHLCV': True,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -3554,6 +3555,8 @@ class binance(Exchange):
         else:
             raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
         response = getattr(self, method)(self.extend(request, params))
+        if market['inverse']:
+            response = response[0]
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -3567,6 +3570,36 @@ class binance(Exchange):
         #     }
         #
         return self.parse_funding_rate(response)
+
+    def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        method = 'fapiPublicGetFundingRate'
+        if market['inverse']:
+            method = 'dapiPublicGetFundingRate'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "fundingRate": "0.00063521",
+        #         "fundingTime": "1621267200000",
+        #     }
+        #
+        rates = []
+        for i in range(0, len(response)):
+            rates.append({
+                'symbol': self.safe_string(response[i], 'symbol'),
+                'fundingRate': self.safe_number(response[i], 'fundingRate'),
+                'timestamp': self.safe_number(response[i], 'fundingTime'),
+            })
+        return rates
 
     def fetch_funding_rates(self, symbols=None, params={}):
         self.load_markets()
@@ -3608,19 +3641,23 @@ class binance(Exchange):
         markPrice = self.safe_number(premiumIndex, 'markPrice')
         indexPrice = self.safe_number(premiumIndex, 'indexPrice')
         interestRate = self.safe_number(premiumIndex, 'interestRate')
-        # current funding rate
-        fundingRate = self.safe_number(premiumIndex, 'lastFundingRate')
+        estimatedSettlePrice = self.safe_number(premiumIndex, 'estimatedSettlePrice')
+        lastFundingRate = self.safe_number(premiumIndex, 'lastFundingRate')
         nextFundingTime = self.safe_integer(premiumIndex, 'nextFundingTime')
+        lastFundingTime = nextFundingTime - (8 * 3600000)
         return {
             'info': premiumIndex,
             'symbol': symbol,
             'markPrice': markPrice,
             'indexPrice': indexPrice,
             'interestRate': interestRate,
+            'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fundingRate': fundingRate,
+            'lastFundingRate': lastFundingRate,
+            'lastFundingTimestamp': lastFundingTime,  # subtract 8 hours
             'nextFundingTimestamp': nextFundingTime,
+            'lastFundingDatetime': self.iso8601(lastFundingTime),
             'nextFundingDatetime': self.iso8601(nextFundingTime),
         }
 

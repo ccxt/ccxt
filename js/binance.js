@@ -33,11 +33,12 @@ module.exports = class binance extends Exchange {
                 'fetchFundingFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedPositions': true,
-                'fetchMarkOHLCV': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -3727,9 +3728,12 @@ module.exports = class binance extends Exchange {
         } else if (market['inverse']) {
             method = 'dapiPublicGetPremiumIndex';
         } else {
-            throw NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = await this[method] (this.extend (request, params));
+        if (market['inverse']) {
+            response = response[0];
+        }
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -3745,6 +3749,41 @@ module.exports = class binance extends Exchange {
         return this.parseFundingRate (response);
     }
 
+    async fetchFundingRateHistory (symbol, limit = undefined, since = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let method = 'fapiPublicGetFundingRate';
+        if (market['inverse']) {
+            method = 'dapiPublicGetFundingRate';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "fundingRate": "0.00063521",
+        //         "fundingTime": "1621267200000",
+        //     }
+        //
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            rates.push ({
+                'symbol': this.safeString (response[i], 'symbol'),
+                'fundingRate': this.safeNumber (response[i], 'fundingRate'),
+                'timestamp': this.safeNumber (response[i], 'fundingTime'),
+            });
+        }
+        return rates;
+    }
+
     async fetchFundingRates (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let method = undefined;
@@ -3756,7 +3795,7 @@ module.exports = class binance extends Exchange {
         } else if (type === 'delivery') {
             method = 'dapiPublicGetPremiumIndex';
         } else {
-            throw NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
         }
         const response = await this[method] (query);
         const result = [];
@@ -3788,19 +3827,23 @@ module.exports = class binance extends Exchange {
         const markPrice = this.safeNumber (premiumIndex, 'markPrice');
         const indexPrice = this.safeNumber (premiumIndex, 'indexPrice');
         const interestRate = this.safeNumber (premiumIndex, 'interestRate');
-        // current funding rate
-        const fundingRate = this.safeNumber (premiumIndex, 'lastFundingRate');
+        const estimatedSettlePrice = this.safeNumber (premiumIndex, 'estimatedSettlePrice');
+        const lastFundingRate = this.safeNumber (premiumIndex, 'lastFundingRate');
         const nextFundingTime = this.safeInteger (premiumIndex, 'nextFundingTime');
+        const lastFundingTime = nextFundingTime - (8 * 3600000);
         return {
             'info': premiumIndex,
             'symbol': symbol,
             'markPrice': markPrice,
             'indexPrice': indexPrice,
             'interestRate': interestRate,
+            'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fundingRate': fundingRate,
+            'lastFundingRate': lastFundingRate,
+            'lastFundingTimestamp': lastFundingTime, // subtract 8 hours
             'nextFundingTimestamp': nextFundingTime,
+            'lastFundingDatetime': this.iso8601 (lastFundingTime),
             'nextFundingDatetime': this.iso8601 (nextFundingTime),
         };
     }
