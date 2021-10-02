@@ -44,8 +44,9 @@ module.exports = class ftx extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': undefined,
-                'fetchFundingRate': false,
-                'fetchFundingRates': false,
+                'fetchFundingRate': undefined,
+                'fetchFundingRateHistory': true,
+                'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -993,6 +994,49 @@ module.exports = class ftx extends Exchange {
             'maker': this.safeNumber (result, 'makerFee'),
             'taker': this.safeNumber (result, 'takerFee'),
         };
+    }
+
+    async fetchFundingRateHistory (symbol, limit = undefined, since = undefined, params = {}) {
+        //
+        // Gets a history of funding rates with their timestamps
+        //  (param) symbol: Future currency pair (e.g. "BTC-PERP")
+        //  (param) limit: Not used by ftx
+        //  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  return: [{symbol, fundingRate, timestamp}]
+        //
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'future': market['id'],
+        };
+        if (since !== undefined) {
+            request['start_time'] = since / 1000;
+        }
+        const method = 'publicGetFundingRates';
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //        "success": true,
+        //        "result": [
+        //          {
+        //            "future": "BTC-PERP",
+        //            "rate": 0.0025,
+        //            "time": "2019-06-02T08:00:00+00:00"
+        //          }
+        //        ]
+        //      }
+        //
+        const result = this.safeValue (response, 'result');
+        const rates = [];
+        const length = result.length - 1;
+        for (let i = length; i >= 0; i--) {
+            rates.push ({
+                'symbol': this.safeString (result[i], 'future'),
+                'fundingRate': this.safeNumber (result[i], 'rate'),
+                'timestamp': this.parse8601 (this.safeString (result[i], 'time')),
+            });
+        }
+        return rates;
     }
 
     async fetchBalance (params = {}) {
