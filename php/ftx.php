@@ -47,8 +47,9 @@ class ftx extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => null,
-                'fetchFundingRate' => false,
-                'fetchFundingRates' => false,
+                'fetchFundingRate' => null,
+                'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => null,
                 'fetchIndexOHLCV' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -996,6 +997,49 @@ class ftx extends Exchange {
             'maker' => $this->safe_number($result, 'makerFee'),
             'taker' => $this->safe_number($result, 'takerFee'),
         );
+    }
+
+    public function fetch_funding_rate_history($symbol, $limit = null, $since = null, $params = array ()) {
+        //
+        // Gets a history of funding $rates with their timestamps
+        //  (param) $symbol => Future currency pair (e.g. "BTC-PERP")
+        //  (param) $limit => Not used by ftx
+        //  (param) $since => Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  return => [array($symbol, fundingRate, timestamp)]
+        //
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'future' => $market['id'],
+        );
+        if ($since !== null) {
+            $request['start_time'] = $since / 1000;
+        }
+        $method = 'publicGetFundingRates';
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //        "success" => true,
+        //        "$result" => array(
+        //          {
+        //            "future" => "BTC-PERP",
+        //            "rate" => 0.0025,
+        //            "time" => "2019-06-02T08:00:00+00:00"
+        //          }
+        //        )
+        //      }
+        //
+        $result = $this->safe_value($response, 'result');
+        $rates = array();
+        $length = strlen($result) - 1;
+        for ($i = $length; $i >= 0; $i--) {
+            $rates[] = array(
+                'symbol' => $this->safe_string($result[$i], 'future'),
+                'fundingRate' => $this->safe_number($result[$i], 'rate'),
+                'timestamp' => $this->parse8601($this->safe_string($result[$i], 'time')),
+            );
+        }
+        return $rates;
     }
 
     public function fetch_balance($params = array ()) {
