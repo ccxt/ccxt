@@ -33,6 +33,8 @@ module.exports = class kucoin extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFee': true,
+                'fetchFundingHistory': true,
+                'fetchFundingRateHistory': false,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchMarkets': true,
@@ -591,6 +593,89 @@ module.exports = class kucoin extends Exchange {
             'withdraw': withdrawFees,
             'deposit': {},
         };
+    }
+
+    isFuturesMethod (methodName, params) {
+        //
+        // Helper
+        // @methodName (string): The name of the method
+        // @params (dict): The parameters passed into {methodName}
+        // @return: true if the method used is meant for futures trading, false otherwise
+        //
+        const defaultType = this.safeString2 (this.options, methodName, 'defaultType', 'trade');
+        const requestedType = this.safeString (params, 'type', defaultType);
+        const accountsByType = this.safeValue (this.options, 'accountsByType');
+        const type = this.safeString (accountsByType, requestedType);
+        if (type === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' type must be one of ' + keys.join (', '));
+        }
+        params = this.omit (params, 'type');
+        return (type === 'contract') || (type === 'futures');
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // Private
+        // @param symbol (string): The pair for which the contract was traded
+        // @param since (number): The unix start time of the first funding payment requested
+        // @param limit (number): The number of results to return
+        // @param params (dict): Additional parameters to send to the API
+        // @param return: Data for the history of the accounts funding payments for futures contracts
+        //
+        if (this.isFuturesMethod ('fetchFundingHistory', params)) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+            }
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            const request = {
+                'symbol': market['id'],
+            };
+            if (since !== undefined) {
+                request['startAt'] = since;
+            }
+            if (limit !== undefined) {
+                request['maxCount'] = limit;
+            }
+            const method = 'futuresPrivateGetFundingHistory';
+            const response = await this[method] (this.extend (request, params));
+            // {
+            //     "dataList": [
+            //       {
+            //         "id": 36275152660006,                // id
+            //         "symbol": "XBTUSDM",                 // Symbol
+            //         "timePoint": 1557918000000,          // Time point (milisecond)
+            //         "fundingRate": 0.000013,             // Funding rate
+            //         "markPrice": 8058.27,                // Mark price
+            //         "positionQty": 10,                   // Position size
+            //         "positionCost": -0.001241,           // Position value at settlement period
+            //         "funding": -0.00000464,              // Settled funding fees. A positive number means that the user received the funding fee, and vice versa.
+            //         "settleCurrency": "XBT"              // Settlement currency
+            //       },
+            // }
+            const dataList = this.safeValue (response, 'dataList');
+            const fees = [];
+            for (let i = 0; i < dataList.length; i++) {
+                const timestamp = this.safeInteger (dataList[i], 'timePoint');
+                fees.push ({
+                    'info': dataList[i],
+                    'symbol': this.safeSymbol (dataList[i], 'symbol'),
+                    'code': this.safeCurrencyCode (dataList[i], 'settleCurrency'),
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                    'id': this.safeNumber (dataList[i], 'id'),
+                    'amount': this.safeNumber (dataList[i], 'funding'),
+                    'fundingRate': this.safeNumber (dataList[i], 'fundingRate'),
+                    'markPrice': this.safeNumber (dataList[i], 'markPrice'),
+                    'positionQty': this.safeNumber (dataList[i], 'positionQty'),
+                    'positionCost': this.safeNumber (dataList[i], 'positionCost'),
+                });
+            }
+            return fees;
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
+        }
     }
 
     parseTicker (ticker, market = undefined) {
