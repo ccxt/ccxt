@@ -221,6 +221,12 @@ class liquid(Exchange):
             },
             'options': {
                 'cancelOrderException': True,
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'XLM': 'Stellar',
+                    'ALGO': 'Algorand',
+                },
             },
         })
 
@@ -948,6 +954,12 @@ class liquid(Exchange):
                 request['memo_value'] = tag
             else:
                 raise NotSupported(self.id + ' withdraw() only supports a tag along the address for XRP or XLM')
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['network'] = network
+            params = self.omit(params, 'network')
         response = self.privatePostCryptoWithdrawals(self.extend(request, params))
         #
         #     {
