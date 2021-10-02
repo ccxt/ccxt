@@ -84,6 +84,21 @@ class Precise {
         return new Precise($result, $denominatorRationizer + $other->decimals);
     }
 
+    public function pow10() {
+        // this must represent a positive or negative integer
+        if ($this->decimals === null or $this->decimals === 0) {
+            assert( gmp_cmp(gmp_intval($this->integer), $this->integer) == 0 );
+            if ($this->integer >= 0) {
+                $result = gmp_pow(10, gmp_intval($this->integer));
+                return new Precise($result, 0);
+            } else {
+                return new Precise(1, gmp_intval(gmp_neg($this->integer)));
+            }
+        } else {
+            assert(false);
+        }
+    }
+    
     public function min($other) {
         return $this->lt($other) ? $this : $other;
     }
@@ -217,6 +232,13 @@ class Precise {
         return strval((new Precise($string1))->mod(new Precise($string2)));
     }
 
+    public static function string_pow10($string) {
+        if ($string === null) {
+            return null;
+        }
+        return strval((new Precise($string))->pow10());
+    }
+    
     public static function string_equals($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
             return null;
