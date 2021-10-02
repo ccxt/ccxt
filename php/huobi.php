@@ -740,7 +740,8 @@ class huobi extends Exchange {
             $request['size'] = $limit; // 1-100 orders, default is 100
         }
         if ($since !== null) {
-            $request['start-time'] = (int) floor($since); // a date within 120 days from today
+            $request['start-time'] = $since; // a date within 120 days from today
+            $request['end-time'] = $this->sum($since, 172800000); // 48 hours window
         }
         $response = $this->privateGetOrderMatchresults (array_merge($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);

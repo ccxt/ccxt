@@ -722,7 +722,8 @@ class huobi(Exchange):
         if limit is not None:
             request['size'] = limit  # 1-100 orders, default is 100
         if since is not None:
-            request['start-time'] = int(math.floor(since))  # a date within 120 days from today
+            request['start-time'] = since  # a date within 120 days from today
+            request['end-time'] = self.sum(since, 172800000)  # 48 hours window
         response = await self.privateGetOrderMatchresults(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
 
