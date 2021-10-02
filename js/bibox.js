@@ -228,6 +228,8 @@ module.exports = class bibox extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
+                'spot': spot,
                 'active': true,
                 'info': market,
                 'precision': precision,
