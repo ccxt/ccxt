@@ -25,18 +25,13 @@ console.log ('CCXT v' + ccxt.version)
         [
             'publicAPI',
             'privateAPI',
-            'futures',
             'CORS',
-            'fetchAccounts',
-            'fetchAllTradingFees',
-            'fetchBidsAsks',
             'fetchCurrencies',
             'fetchFundingFees',
             'fetchFundingRate',
             'fetchFundingRates',
             'fetchFundingRateHistory',
             'fetchIndexOHLCV',
-            'fetchL2OrderBook',
             'fetchMarkOHLCV',
             'fetchMarkets',
             'fetchOHLCV',
@@ -55,6 +50,7 @@ console.log ('CCXT v' + ccxt.version)
             'createOrder',
             'deposit',
             'editOrder',
+            'fetchAccounts',
             'fetchBalance',
             'fetchCanceledOrders',
             'fetchClosedOrder',
@@ -95,7 +91,7 @@ console.log ('CCXT v' + ccxt.version)
             let capability = exchange.has[key]
 
             if (capability === undefined) {
-                capability = exchange.id.red.bright
+                capability = exchange.id.red
                 missing += 1
             } else if (capability === false) {
                 capability = exchange.id.red.dim
@@ -119,7 +115,7 @@ console.log ('CCXT v' + ccxt.version)
         implemented.toString ().green, 'methods implemented,',
         emulated.toString ().yellow, 'emulated,',
         ignored.toString ().red.dim, 'ignored,',
-        missing.toString ().red.bright, 'missing,',
+        missing.toString ().red, 'missing,',
         total.toString (), 'total'
     )
 
