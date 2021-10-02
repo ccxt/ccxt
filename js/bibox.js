@@ -211,7 +211,7 @@ module.exports = class bibox extends Exchange {
             const symbol = base + '/' + quote;
             let type = 'spot';
             let spot = true;
-            let areaId = this.safeInteger (market, 'area_id');
+            const areaId = this.safeInteger (market, 'area_id');
             if (areaId === 16) {
                 type = undefined;
                 spot = false;
