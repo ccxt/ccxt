@@ -36,6 +36,8 @@ RUN /ccxt/composer-install.sh
 RUN apt-get update && apt-get install -y --no-install-recommends zip unzip php-zip
 RUN mv /ccxt/composer.phar /usr/local/bin/composer
 RUN composer install
+# Enable PHP assertions or the test suite is useless
+RUN sed -i -e "s/^\(zend\.assertions\) = -1\$/\1 = 1/" /etc/php/7.4/cli/php.ini  
 ## Remove apt sources
 RUN apt-get -y autoremove && apt-get clean && apt-get autoclean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
