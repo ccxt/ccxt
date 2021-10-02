@@ -111,6 +111,24 @@ class Precise {
 
     }
 
+    public function round() {
+        $fractional = $this->mod(new Precise(1, 0));
+        $whole = $this->sub($fractional);
+        if (gmp_cmp($this->integer, 0) > 0) {
+            if ($fractional->ge(new Precise(5, 1))) {
+                return $whole->add(new Precise(1, 0));
+            } else {
+                return $whole;
+            }
+        } else {
+            if ($fractional->gt(new Precise(5, 1))) {
+                return $whole->add(new Precise(1, 0));
+            } else {
+                return $whole;
+            }
+        }
+    }
+
     public function gt($other) {
         $sum = $this->sub($other);
         return gmp_cmp($sum->integer, '0') > 0;
@@ -268,6 +286,13 @@ class Precise {
             return null;
         }
         return strval((new Precise($string1))->max(new Precise($string2)));
+    }
+
+    public static function string_round($string) {
+        if ($string === null) {
+            return null;
+        }
+        return strval((new Precise($string))->round());
     }
 
     public static function string_gt($string1, $string2) {
