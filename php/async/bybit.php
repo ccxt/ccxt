@@ -30,6 +30,7 @@ class bybit extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRate' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
@@ -39,8 +40,8 @@ class bybit extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrderTrades' => true,
                 'fetchOrders' => true,
+                'fetchOrderTrades' => true,
                 'fetchPositions' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -853,6 +854,48 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $method = 'v2PublicGetFundingPrevFundingRate';
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // {
+        //     "ret_code" => 0,
+        //     "ret_msg" => "ok",
+        //     "ext_code" => "",
+        //     "$result" => array(
+        //         "$symbol" => "BTCUSD",
+        //         "funding_rate" => "0.00010000",
+        //         "funding_rate_timestamp" => 1577433600
+        //     ),
+        //     "ext_info" => null,
+        //     "time_now" => "1577445586.446797",
+        //     "rate_limit_status" => 119,
+        //     "rate_limit_reset_ms" => 1577445586454,
+        //     "rate_limit" => 120
+        // }
+        //
+        $result = $this->safe_value($response, 'result');
+        $lastFundingRate = $this->safe_number($result, 'funding_rate');
+        $lastFundingTime = $this->safe_integer($result, 'funding_rate_timestamp') * 1000;
+        $nextFundingTime = $lastFundingTime . (8 * 3600000);
+        $currentTime = $this->milliseconds();
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => $currentTime,
+            'datetime' => $this->iso8601($currentTime),
+            'lastFundingRate' => $lastFundingRate,
+            'lastFundingTimestamp' => $lastFundingTime,
+            'nextFundingTimestamp' => $nextFundingTime,
+            'lastFundingDatetime' => $this->iso8601($lastFundingTime),
+            'nextFundingDatetime' => $this->iso8601($nextFundingTime),
+        );
     }
 
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
