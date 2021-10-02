@@ -135,6 +135,17 @@ class Precise {
         return $whole;
     }
 
+    public function ceil() {
+        $fractional = $this->mod(new Precise(1, 0));
+        $whole = $this->sub($fractional);
+        if ($fractional->integer > 0) {
+            return $whole->add(new Precise(1, 0));
+        } else {
+            return $whole;
+        }
+        return $whole;
+    }
+
     public function gt($other) {
         $sum = $this->sub($other);
         return gmp_cmp($sum->integer, '0') > 0;
@@ -308,6 +319,13 @@ class Precise {
         return strval((new Precise($string))->floor());
     }
 
+    public static function string_ceil($string) {
+        if ($string === null) {
+            return null;
+        }
+        return strval((new Precise($string))->ceil());
+    }
+    
     public static function string_gt($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
             return null;
