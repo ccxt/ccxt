@@ -2368,4 +2368,4 @@ class Exchange(object):
 
     def check_side(self, side):
         if side != 'buy' and side != 'sell':
-            raise ExchangeError(self.id + ' invalid side, must be either buy or sell')
+            raise ExchangeError(self.id + ' createOrder invalid side, must be either buy or sell')

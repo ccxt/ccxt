@@ -3159,7 +3159,7 @@ class Exchange {
 
     public function check_side($side) {
         if (($side !== 'buy') && ($side !== 'sell')) {
-            throw new ExchangeError($this->id . ' invalid side, must be either buy or sell');
+            throw new ExchangeError($this->id . ' createOrder invalid side, must be either buy or sell');
         }
     }
 }
