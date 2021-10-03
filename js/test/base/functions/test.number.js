@@ -331,7 +331,6 @@ assert (decimalToPrecision ('12.3456', ROUND, '2', DECIMAL_PLACES) === '12.35');
 assert (decimalToPrecision ('12.3456', ROUND, '1', DECIMAL_PLACES) === '12.3');
 assert (decimalToPrecision ('12.3456', ROUND, '0', DECIMAL_PLACES) === '12');
 
-// a problematic case in PHP
 assert (decimalToPrecision ('10000', ROUND, 6, DECIMAL_PLACES) === '10000');
 assert (decimalToPrecision ('0.00003186', ROUND, 8, DECIMAL_PLACES) === '0.00003186');
 
