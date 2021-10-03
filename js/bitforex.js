@@ -15,6 +15,7 @@ module.exports = class bitforex extends Exchange {
             'name': 'Bitforex',
             'countries': [ 'CN' ],
             'rateLimit': 500, // https://github.com/ccxt/ccxt/issues/5054
+            'originalRateLimit': 500,
             'version': 'v1',
             'has': {
                 'cancelOrder': true,

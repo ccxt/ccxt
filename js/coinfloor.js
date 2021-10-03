@@ -14,6 +14,7 @@ module.exports = class coinfloor extends Exchange {
             'id': 'coinfloor',
             'name': 'coinfloor',
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'countries': [ 'UK' ],
             'has': {
                 'cancelOrder': true,

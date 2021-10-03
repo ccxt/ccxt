@@ -18,6 +18,7 @@ module.exports = class bybit extends Exchange {
             'version': 'v2',
             'userAgent': undefined,
             'rateLimit': 100,
+            'originalRateLimit': 100,
             'hostname': 'bybit.com', // bybit.com, bytick.com
             'has': {
                 'cancelAllOrders': true,

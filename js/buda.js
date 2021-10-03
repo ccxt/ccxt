@@ -15,6 +15,7 @@ module.exports = class buda extends Exchange {
             'name': 'Buda',
             'countries': [ 'AR', 'CL', 'CO', 'PE' ],
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'version': 'v2',
             'has': {
                 'cancelOrder': true,

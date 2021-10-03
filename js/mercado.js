@@ -15,6 +15,7 @@ module.exports = class mercado extends Exchange {
             'name': 'Mercado Bitcoin',
             'countries': [ 'BR' ], // Brazil
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'version': 'v3',
             'has': {
                 'cancelOrder': true,

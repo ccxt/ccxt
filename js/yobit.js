@@ -15,6 +15,7 @@ module.exports = class yobit extends Exchange {
             'name': 'YoBit',
             'countries': [ 'RU' ],
             'rateLimit': 3000, // responses are cached every 2 seconds
+            'originalRateLimit': 3000,
             'version': '3',
             'has': {
                 'cancelOrder': true,

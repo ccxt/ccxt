@@ -15,6 +15,7 @@ module.exports = class lykke extends Exchange {
             'countries': [ 'CH' ],
             'version': 'v1',
             'rateLimit': 200,
+            'originalRateLimit': 200,
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,

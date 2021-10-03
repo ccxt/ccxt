@@ -15,6 +15,7 @@ module.exports = class paymium extends Exchange {
             'name': 'Paymium',
             'countries': [ 'FR', 'EU' ],
             'rateLimit': 2000,
+            'originalRateLimit': 2000,
             'version': 'v1',
             'has': {
                 'cancelOrder': true,

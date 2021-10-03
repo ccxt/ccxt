@@ -15,6 +15,7 @@ module.exports = class exmo extends Exchange {
             'name': 'EXMO',
             'countries': [ 'ES', 'RU' ], // Spain, Russia
             'rateLimit': 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
+            'originalRateLimit': 350,
             'version': 'v1.1',
             'has': {
                 'cancelOrder': true,

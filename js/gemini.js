@@ -16,6 +16,7 @@ module.exports = class gemini extends Exchange {
             'name': 'Gemini',
             'countries': [ 'US' ],
             'rateLimit': 1500, // 200 for private API
+            'originalRateLimit': 1500,
             'version': 'v1',
             'has': {
                 'cancelOrder': true,

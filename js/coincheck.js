@@ -15,6 +15,7 @@ module.exports = class coincheck extends Exchange {
             'name': 'coincheck',
             'countries': [ 'JP', 'ID' ],
             'rateLimit': 1500,
+            'originalRateLimit': 1500,
             'has': {
                 'cancelOrder': true,
                 'CORS': undefined,

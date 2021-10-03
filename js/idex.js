@@ -16,6 +16,7 @@ module.exports = class idex extends Exchange {
             'name': 'IDEX',
             'countries': [ 'US' ],
             'rateLimit': 1500,
+            'originalRateLimit': 1500,
             'version': 'v2',
             'pro': true,
             'certified': true,

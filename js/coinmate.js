@@ -15,6 +15,7 @@ module.exports = class coinmate extends Exchange {
             'name': 'CoinMate',
             'countries': [ 'GB', 'CZ', 'EU' ], // UK, Czech Republic
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'has': {
                 'cancelOrder': true,
                 'CORS': true,

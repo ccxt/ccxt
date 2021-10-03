@@ -65,6 +65,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 '1M': '1M',
             },
             'rateLimit': 1500,
+            'originalRateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api': {

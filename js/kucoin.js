@@ -15,6 +15,7 @@ module.exports = class kucoin extends Exchange {
             'name': 'KuCoin',
             'countries': [ 'SC' ],
             'rateLimit': 334,
+            'originalRateLimit': 334,
             'version': 'v2',
             'certified': false,
             'pro': true,

@@ -15,6 +15,7 @@ module.exports = class oceanex extends Exchange {
             'countries': [ 'LU', 'CN', 'SG' ],
             'version': 'v1',
             'rateLimit': 3000,
+            'originalRateLimit': 3000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg',
                 'api': 'https://api.oceanex.pro',

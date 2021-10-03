@@ -119,6 +119,7 @@ class Exchange(object):
     # rate limiter settings
     enableRateLimit = True
     rateLimit = 2000  # milliseconds = seconds * 1000
+    originalRateLimit = 2000
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_proxy = None
@@ -490,6 +491,8 @@ class Exchange(object):
             time.sleep(delay / 1000.0)
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+        if self.rateLimit != self.originalRateLimit:
+            return 1
         return self.safe_value(config, 'cost', 1)
 
     def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):

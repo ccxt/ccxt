@@ -17,6 +17,7 @@ module.exports = class aax extends Exchange {
             'countries': [ 'MT' ], // Malta
             'enableRateLimit': true,
             'rateLimit': 500,
+            'originalRateLimit': 500,
             'version': 'v2',
             'hostname': 'aaxpro.com', // aax.com
             'certified': true,

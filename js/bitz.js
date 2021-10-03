@@ -15,6 +15,7 @@ module.exports = class bitz extends Exchange {
             'name': 'Bit-Z',
             'countries': [ 'HK' ],
             'rateLimit': 2000,
+            'originalRateLimit': 2000,
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
             'has': {

@@ -16,6 +16,7 @@ module.exports = class bigone extends Exchange {
             'countries': [ 'CN' ],
             'version': 'v3',
             'rateLimit': 1200, // 500 request per 10 minutes
+            'originalRateLimit': 1200,
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,

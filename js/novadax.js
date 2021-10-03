@@ -16,6 +16,7 @@ module.exports = class novadax extends Exchange {
             'name': 'NovaDAX',
             'countries': [ 'BR' ], // Brazil
             'rateLimit': 50,
+            'originalRateLimit': 50,
             'version': 'v1',
             // new metainfo interface
             'has': {

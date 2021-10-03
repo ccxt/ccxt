@@ -15,6 +15,7 @@ module.exports = class luno extends Exchange {
             'name': 'luno',
             'countries': [ 'GB', 'SG', 'ZA' ],
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'version': '1',
             'has': {
                 'cancelOrder': true,

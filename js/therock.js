@@ -15,6 +15,7 @@ module.exports = class therock extends Exchange {
             'name': 'TheRockTrading',
             'countries': [ 'MT' ],
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'version': 'v1',
             'has': {
                 'cancelOrder': true,

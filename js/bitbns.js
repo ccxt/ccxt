@@ -15,6 +15,7 @@ module.exports = class bitbns extends Exchange {
             'name': 'Bitbns',
             'countries': [ 'IN' ], // India
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'certified': false,
             'pro': false,
             // new metainfo interface

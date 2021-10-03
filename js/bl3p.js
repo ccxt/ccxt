@@ -14,6 +14,7 @@ module.exports = class bl3p extends Exchange {
             'name': 'BL3P',
             'countries': [ 'NL', 'EU' ], // Netherlands, EU
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'version': '1',
             'comment': 'An exchange market by BitonicNL',
             'has': {

@@ -15,6 +15,7 @@ module.exports = class itbit extends Exchange {
             'name': 'itBit',
             'countries': [ 'US' ],
             'rateLimit': 2000,
+            'originalRateLimit': 2000,
             'version': 'v1',
             'has': {
                 'cancelOrder': true,

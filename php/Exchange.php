@@ -1183,6 +1183,7 @@ class Exchange {
         $this->requiresWeb3 = false;
         $this->requiresEddsa = false;
         $this->rateLimit = 2000;
+        $this->originalRateLimit = 2000;
 
         $this->commonCurrencies = array(
             'XBT' => 'BTC',
@@ -1415,6 +1416,9 @@ class Exchange {
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array(), $context = array()) {
+        if ($this->rateLimit != $this->originalRateLimit) {
+            return 1;
+        }
         return $this->safe_value($config, 'cost', 1);
     }
 

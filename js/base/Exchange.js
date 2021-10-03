@@ -56,7 +56,8 @@ module.exports = class Exchange {
             'name': undefined,
             'countries': undefined,
             'enableRateLimit': true,
-            'rateLimit': 2000, // milliseconds = seconds * 1000
+            'rateLimit': 2000,
+            'originalRateLimit': 2000,
             'certified': false, // if certified by the CCXT dev team
             'pro': false, // if it is integrated with CCXT Pro for WebSocket support
             'alias': false, // whether this exchange is an alias to another exchange
@@ -563,6 +564,9 @@ module.exports = class Exchange {
 
     // eslint-disable-next-line no-unused-vars
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+        if (this.rateLimit !== this.originalRateLimit) {
+            return 1
+        }
         return this.safeValue (config, 'cost', 1);
     }
 

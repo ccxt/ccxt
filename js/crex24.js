@@ -16,6 +16,7 @@ module.exports = class crex24 extends Exchange {
             'name': 'CREX24',
             'countries': [ 'EE' ], // Estonia
             'rateLimit': 500,
+            'originalRateLimit': 500,
             'version': 'v2',
             // new metainfo interface
             'has': {

@@ -16,6 +16,7 @@ module.exports = class aofex extends Exchange {
             'name': 'AOFEX',
             'countries': [ 'GB' ],
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'hostname': 'openapi.aofex.com',
             'has': {
                 'cancelAllOrders': true,

@@ -16,6 +16,7 @@ module.exports = class hitbtc extends Exchange {
             'name': 'HitBTC',
             'countries': [ 'HK' ],
             'rateLimit': 1500,
+            'originalRateLimit': 1500,
             'version': '2',
             'pro': true,
             'has': {

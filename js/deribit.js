@@ -18,6 +18,7 @@ module.exports = class deribit extends Exchange {
             'version': 'v2',
             'userAgent': undefined,
             'rateLimit': 500,
+            'originalRateLimit': 500,
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,

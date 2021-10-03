@@ -16,6 +16,7 @@ module.exports = class coinex extends Exchange {
             'version': 'v1',
             'countries': [ 'CN' ],
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'has': {
                 'cancelOrder': true,
                 'createOrder': true,

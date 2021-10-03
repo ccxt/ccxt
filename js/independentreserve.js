@@ -14,6 +14,7 @@ module.exports = class independentreserve extends Exchange {
             'name': 'Independent Reserve',
             'countries': [ 'AU', 'NZ' ], // Australia, New Zealand
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'has': {
                 'cancelOrder': true,
                 'CORS': undefined,

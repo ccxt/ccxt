@@ -16,6 +16,7 @@ module.exports = class flowbtc extends Exchange {
             'countries': [ 'BR' ], // Brazil
             'version': 'v1',
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'has': {
                 'cancelOrder': true,
                 'CORS': undefined,

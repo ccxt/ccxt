@@ -15,6 +15,7 @@ module.exports = class bw extends Exchange {
             'name': 'BW',
             'countries': [ 'CN' ],
             'rateLimit': 1500,
+            'originalRateLimit': 1500,
             'version': 'v1',
             'has': {
                 'cancelAllOrders': undefined,

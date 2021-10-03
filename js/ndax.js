@@ -16,6 +16,7 @@ module.exports = class ndax extends Exchange {
             'name': 'NDAX',
             'countries': [ 'US' ], // United States
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'pro': true,
             'has': {
                 'cancelAllOrders': true,

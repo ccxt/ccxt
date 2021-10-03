@@ -18,6 +18,7 @@ module.exports = class bitmex extends Exchange {
             'version': 'v1',
             'userAgent': undefined,
             'rateLimit': 2000,
+            'originalRateLimit': 2000,
             'pro': true,
             'has': {
                 'cancelAllOrders': true,

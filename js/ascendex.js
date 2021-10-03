@@ -16,6 +16,7 @@ module.exports = class ascendex extends Exchange {
             'name': 'AscendEX',
             'countries': [ 'SG' ], // Singapore
             'rateLimit': 500,
+            'originalRateLimit': 500,
             'certified': true,
             // new metainfo interface
             'has': {

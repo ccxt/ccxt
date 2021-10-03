@@ -16,6 +16,7 @@ module.exports = class bithumb extends Exchange {
             'name': 'Bithumb',
             'countries': [ 'KR' ], // South Korea
             'rateLimit': 500,
+            'originalRateLimit': 500,
             'has': {
                 'cancelOrder': true,
                 'CORS': true,

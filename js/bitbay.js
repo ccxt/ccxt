@@ -15,6 +15,7 @@ module.exports = class bitbay extends Exchange {
             'name': 'BitBay',
             'countries': [ 'MT', 'EU' ], // Malta
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'has': {
                 'cancelOrder': true,
                 'CORS': true,

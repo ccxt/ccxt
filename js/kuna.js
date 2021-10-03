@@ -15,6 +15,7 @@ module.exports = class kuna extends Exchange {
             'name': 'Kuna',
             'countries': [ 'UA' ],
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'version': 'v2',
             'has': {
                 'cancelOrder': true,

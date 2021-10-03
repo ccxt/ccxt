@@ -16,6 +16,7 @@ module.exports = class ripio extends Exchange {
             'name': 'Ripio',
             'countries': [ 'AR', 'BR' ], // Argentina
             'rateLimit': 50,
+            'originalRateLimit': 50,
             'version': 'v1',
             'pro': true,
             // new metainfo interface

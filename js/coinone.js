@@ -16,6 +16,7 @@ module.exports = class coinone extends Exchange {
             'countries': [ 'KR' ], // Korea
             // 'enableRateLimit': false,
             'rateLimit': 667,
+            'originalRateLimit': 667,
             'version': 'v2',
             'has': {
                 'cancelOrder': true,

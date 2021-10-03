@@ -14,6 +14,7 @@ module.exports = class bitpanda extends Exchange {
             'name': 'Bitpanda Pro',
             'countries': [ 'AT' ], // Austria
             'rateLimit': 300,
+            'originalRateLimit': 300,
             'version': 'v1',
             // new metainfo interface
             'has': {

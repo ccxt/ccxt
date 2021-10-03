@@ -15,6 +15,7 @@ module.exports = class bitstamp1 extends Exchange {
             'name': 'Bitstamp',
             'countries': [ 'GB' ],
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'version': 'v1',
             'has': {
                 'cancelOrder': true,

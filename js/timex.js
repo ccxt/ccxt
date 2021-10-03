@@ -12,6 +12,7 @@ module.exports = class timex extends Exchange {
             'countries': [ 'AU' ],
             'version': 'v1',
             'rateLimit': 1500,
+            'originalRateLimit': 1500,
             'has': {
                 'cancelOrder': true,
                 'cancelOrders': true,

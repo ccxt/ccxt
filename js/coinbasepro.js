@@ -16,6 +16,7 @@ module.exports = class coinbasepro extends Exchange {
             'name': 'Coinbase Pro',
             'countries': [ 'US' ],
             'rateLimit': 100,
+            'originalRateLimit': 100,
             'userAgent': this.userAgents['chrome'],
             'pro': true,
             'has': {

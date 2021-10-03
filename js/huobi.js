@@ -16,6 +16,7 @@ module.exports = class huobi extends Exchange {
             'name': 'Huobi',
             'countries': [ 'CN' ],
             'rateLimit': 100,
+            'originalRateLimit': 100,
             'userAgent': this.userAgents['chrome39'],
             'certified': true,
             'version': 'v1',

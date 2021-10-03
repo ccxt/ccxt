@@ -15,6 +15,7 @@ module.exports = class bitmart extends Exchange {
             'name': 'BitMart',
             'countries': [ 'US', 'CN', 'HK', 'KR' ],
             'rateLimit': 25, // a bit slower than 50 times per second ~40 times per second
+            'originalRateLimit': 25,
             'version': 'v1',
             'certified': true,
             'pro': true,

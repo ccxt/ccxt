@@ -15,6 +15,7 @@ module.exports = class bytetrade extends Exchange {
             'name': 'ByteTrade',
             'countries': ['HK'],
             'rateLimit': 500,
+            'originalRateLimit': 500,
             'requiresWeb3': true,
             'certified': false,
             // new metainfo interface

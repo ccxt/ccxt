@@ -15,6 +15,7 @@ module.exports = class btcmarkets extends Exchange {
             'name': 'BTC Markets',
             'countries': [ 'AU' ], // Australia
             'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
+            'originalRateLimit': 1000,
             'version': 'v3',
             'has': {
                 'cancelOrder': true,

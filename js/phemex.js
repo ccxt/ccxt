@@ -16,6 +16,7 @@ module.exports = class phemex extends Exchange {
             'name': 'Phemex',
             'countries': [ 'CN' ], // China
             'rateLimit': 100,
+            'originalRateLimit': 100,
             'version': 'v1',
             'certified': false,
             'pro': true,

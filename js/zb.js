@@ -15,6 +15,7 @@ module.exports = class zb extends Exchange {
             'name': 'ZB',
             'countries': [ 'CN' ],
             'rateLimit': 100,
+            'originalRateLimit': 100,
             'version': 'v1',
             'certified': true,
             'pro': true,

@@ -16,6 +16,7 @@ module.exports = class bitflyer extends Exchange {
             'countries': [ 'JP' ],
             'version': 'v1',
             'rateLimit': 1000, // their nonce-timestamp is in seconds...
+            'originalRateLimit': 1000,
             'hostname': 'bitflyer.com', // or bitflyer.com
             'has': {
                 'cancelOrder': true,

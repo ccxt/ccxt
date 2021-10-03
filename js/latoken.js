@@ -16,6 +16,7 @@ module.exports = class latoken extends Exchange {
             'countries': [ 'KY' ], // Cayman Islands
             'version': 'v1',
             'rateLimit': 2000,
+            'originalRateLimit': 2000,
             'certified': false,
             'userAgent': this.userAgents['chrome'],
             'has': {

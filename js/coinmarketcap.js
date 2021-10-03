@@ -13,6 +13,7 @@ module.exports = class coinmarketcap extends Exchange {
             'id': 'coinmarketcap',
             'name': 'CoinMarketCap',
             'rateLimit': 10000,
+            'originalRateLimit': 10000,
             'version': 'v1',
             'countries': [ 'US' ],
             'has': {

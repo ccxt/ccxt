@@ -15,6 +15,7 @@ module.exports = class zaif extends Exchange {
             'name': 'Zaif',
             'countries': [ 'JP' ],
             'rateLimit': 2000,
+            'originalRateLimit': 2000,
             'version': '1',
             'has': {
                 'cancelOrder': true,

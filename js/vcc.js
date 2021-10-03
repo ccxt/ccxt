@@ -16,6 +16,7 @@ module.exports = class vcc extends Exchange {
             'name': 'VCC Exchange',
             'countries': [ 'VN' ], // Vietnam
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'version': 'v3',
             'has': {
                 'cancelAllOrders': true,

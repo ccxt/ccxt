@@ -15,6 +15,7 @@ module.exports = class coinbase extends Exchange {
             'name': 'Coinbase',
             'countries': [ 'US' ],
             'rateLimit': 400, // 10k calls per hour
+            'originalRateLimit': 400,
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
             'headers': {

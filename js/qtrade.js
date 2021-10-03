@@ -15,6 +15,7 @@ module.exports = class qtrade extends Exchange {
             'name': 'qTrade',
             'countries': [ 'US' ],
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg',

@@ -16,6 +16,7 @@ module.exports = class bitso extends Exchange {
             'name': 'Bitso',
             'countries': [ 'MX' ], // Mexico
             'rateLimit': 2000, // 30 requests per minute
+            'originalRateLimit': 2000,
             'version': 'v3',
             'has': {
                 'cancelOrder': true,

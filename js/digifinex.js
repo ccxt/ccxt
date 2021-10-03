@@ -16,6 +16,7 @@ module.exports = class digifinex extends Exchange {
             'countries': [ 'SG' ],
             'version': 'v3',
             'rateLimit': 900, // 300 for posts
+            'originalRateLimit': 900,
             'has': {
                 'cancelOrder': true,
                 'cancelOrders': true,

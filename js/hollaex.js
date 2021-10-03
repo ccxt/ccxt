@@ -16,6 +16,7 @@ module.exports = class hollaex extends Exchange {
             'name': 'HollaEx',
             'countries': [ 'KR' ],
             'rateLimit': 333,
+            'originalRateLimit': 333,
             'version': 'v2',
             'has': {
                 'cancelAllOrders': true,

@@ -15,6 +15,7 @@ module.exports = class btcbox extends Exchange {
             'name': 'BtcBox',
             'countries': [ 'JP' ],
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'version': 'v1',
             'has': {
                 'cancelOrder': true,

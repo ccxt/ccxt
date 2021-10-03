@@ -15,6 +15,7 @@ module.exports = class tidebit extends Exchange {
             'name': 'TideBit',
             'countries': [ 'HK' ],
             'rateLimit': 1000,
+            'originalRateLimit': 1000,
             'version': 'v2',
             'has': {
                 'cancelOrder': true,

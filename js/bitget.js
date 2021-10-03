@@ -17,6 +17,7 @@ module.exports = class bitget extends Exchange {
             'countries': [ 'SG' ],
             'version': 'v3',
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'originalRateLimit': 1000,
             'has': {
                 'cancelOrder': true,
                 'cancelOrders': true,

@@ -16,6 +16,7 @@ module.exports = class currencycom extends Exchange {
             'name': 'Currency.com',
             'countries': [ 'BY' ], // Belarus
             'rateLimit': 500,
+            'originalRateLimit': 500,
             'certified': true,
             'pro': true,
             'version': 'v1',
