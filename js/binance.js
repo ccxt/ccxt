@@ -4529,7 +4529,7 @@ module.exports = class binance extends Exchange {
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
         if (this.rateLimit !== this.defaultRateLimit) {
-            return 1;
+            return this.rateLimit / this.defaultRateLimit;
         }
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];

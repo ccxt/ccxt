@@ -1493,7 +1493,7 @@ module.exports = class bitvavo extends Exchange {
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
         if (this.rateLimit !== this.defaultRateLimit) {
-            return 1;
+            return this.rateLimit / this.defaultRateLimit;
         }
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
