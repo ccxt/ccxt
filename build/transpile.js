@@ -162,7 +162,7 @@ class Transpiler {
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.urlencodeWithArrayRepeat\s/g, '.urlencode_with_array_repeat' ],
             [ /\.call\s*\(this, /g, '(' ],
-            [ /\.checkSide/g, 'check_side' ]
+            [ /\.checkSide\s/g, '.check_side' ]
         ]
     }
 
