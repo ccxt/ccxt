@@ -210,6 +210,12 @@ module.exports = class liquid extends Exchange {
             },
             'options': {
                 'cancelOrderException': true,
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'XLM': 'Stellar',
+                    'ALGO': 'Algorand',
+                },
             },
         });
     }
@@ -996,6 +1002,13 @@ module.exports = class liquid extends Exchange {
             } else {
                 throw new NotSupported (this.id + ' withdraw() only supports a tag along the address for XRP or XLM');
             }
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['network'] = network;
+            params = this.omit (params, 'network');
         }
         const response = await this.privatePostCryptoWithdrawals (this.extend (request, params));
         //

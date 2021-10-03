@@ -215,6 +215,12 @@ class liquid extends Exchange {
             ),
             'options' => array(
                 'cancelOrderException' => true,
+                'networks' => array(
+                    'ETH' => 'ERC20',
+                    'TRX' => 'TRC20',
+                    'XLM' => 'Stellar',
+                    'ALGO' => 'Algorand',
+                ),
             ),
         ));
     }
@@ -1001,6 +1007,13 @@ class liquid extends Exchange {
             } else {
                 throw new NotSupported($this->id . ' withdraw() only supports a $tag along the $address for XRP or XLM');
             }
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['network'] = $network;
+            $params = $this->omit($params, 'network');
         }
         $response = yield $this->privatePostCryptoWithdrawals (array_merge($request, $params));
         //

@@ -214,6 +214,13 @@ class bibox extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $type = 'spot';
+            $spot = true;
+            $areaId = $this->safe_integer($market, 'area_id');
+            if ($areaId === 16) {
+                $type = null;
+                $spot = false;
+            }
             $precision = array(
                 'amount' => $this->safe_number($market, 'amount_scale'),
                 'price' => $this->safe_number($market, 'decimal'),
@@ -226,13 +233,15 @@ class bibox extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => $type,
+                'spot' => $spot,
                 'active' => true,
                 'info' => $market,
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
                         'min' => pow(10, -$precision['amount']),
-                        'max' => 1000000,
+                        'max' => null,
                     ),
                     'price' => array(
                         'min' => pow(10, -$precision['price']),
