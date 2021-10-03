@@ -357,7 +357,7 @@ class Exchange(object):
         self.userAgent = default_user_agent()
 
         described = self.describe()
-        self.defaultRateLimit = described['rateLimit']
+        self.defaultRateLimit = described.get('rateLimit', self.rateLimit)
         settings = self.deep_extend(described, config)
 
         for key in settings:

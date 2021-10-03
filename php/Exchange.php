@@ -1196,7 +1196,7 @@ class Exchange {
         $this->urlencode_glue_warning = true;
 
         $described = $this->describe();
-        $this->defaultRateLimit = $described['rateLimit'];
+        $this->defaultRateLimit = array_key_exists('rateLimit', $described) ? $described['rateLimit'] : $this->rateLimit;
         $options = array_replace_recursive($described, $options);
         if ($options) {
             foreach ($options as $key => $value) {
