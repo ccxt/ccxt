@@ -215,11 +215,15 @@ module.exports = class kraken extends Exchange {
                 'REP': 'REPV1',
             },
             'options': {
-                'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
-                'depositMethods': {},
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
+                'networks': {
+                    'ETH': 'Tether USD (ERC20)',
+                    'ERC20': 'Tether USD (ERC20)',
+                    'TRX': 'Tether USD (TRC20)',
+                    'TRC20': 'Tether USD (TRC20)',
+                },
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
@@ -1683,6 +1687,12 @@ module.exports = class kraken extends Exchange {
         const request = {
             'new': 'true',
         };
+        if ((code === 'USDT') && ('network' in params)) {
+            const networks = this.safeValue (this.options, 'networks', {});
+            const network = this.safeStringUpper (params, 'network');
+            request['method'] = this.safeString (networks, network, network);
+            params = this.omit (params, 'network');
+        }
         const response = await this.fetchDepositAddress (code, this.extend (request, params));
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
@@ -1696,23 +1706,16 @@ module.exports = class kraken extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        // eslint-disable-next-line quotes
-        let method = this.safeString (params, 'method');
-        if (method === undefined) {
-            if (this.options['cacheDepositMethodsOnFetchDepositAddress']) {
-                // cache depositMethods
-                if (!(code in this.options['depositMethods'])) {
-                    this.options['depositMethods'][code] = await this.fetchDepositMethods (code);
-                }
-                method = this.options['depositMethods'][code][0]['method'];
-            } else {
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods ("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true');
-            }
-        }
         const request = {
             'asset': currency['id'],
-            'method': method,
         };
+        // USDT is the only currency with multiple networks on kraken, you may check
+        if ((code === 'USDT') && ('network' in params)) {
+            const networks = this.safeValue (this.options, 'networks', {});
+            const network = this.safeStringUpper (params, 'network');
+            request['method'] = this.safeString (networks, network, network);
+            params = this.omit (params, 'network');
+        }
         const response = await this.privatePostDepositAddresses (this.extend (request, params)); // overwrite methods
         const result = response['result'];
         const numResults = result.length;
