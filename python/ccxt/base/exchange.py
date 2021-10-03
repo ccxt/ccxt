@@ -356,7 +356,9 @@ class Exchange(object):
         self.origin = self.uuid()
         self.userAgent = default_user_agent()
 
-        settings = self.deep_extend(self.describe(), config)
+        described = self.describe()
+        self.defaultRateLimit = described['rateLimit']
+        settings = self.deep_extend(described, config)
 
         for key in settings:
             if hasattr(self, key) and isinstance(getattr(self, key), dict):
@@ -490,6 +492,8 @@ class Exchange(object):
             time.sleep(delay / 1000.0)
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+        if self.rateLimit != self.defaultRateLimit:
+            return 1
         return self.safe_value(config, 'cost', 1)
 
     def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):

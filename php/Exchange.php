@@ -1195,7 +1195,9 @@ class Exchange {
         $this->urlencode_glue = ini_get('arg_separator.output'); // can be overrided by exchange constructor params
         $this->urlencode_glue_warning = true;
 
-        $options = array_replace_recursive($this->describe(), $options);
+        $described = $this->describe();
+        $this->defaultRateLimit = $described['rateLimit'];
+        $options = array_replace_recursive($described, $options);
         if ($options) {
             foreach ($options as $key => $value) {
                 $this->{$key} =
@@ -1415,6 +1417,9 @@ class Exchange {
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array(), $context = array()) {
+        if ($this->rateLimit !== $this->defaultRateLimit) {
+            return 1;
+        }
         return $this->safe_value($config, 'cost', 1);
     }
 

@@ -283,8 +283,12 @@ module.exports = class Exchange {
         }
         unCamelCaseProperties ()
 
+        // before merging we distinguish between our ratelimit and a user defined ratelimit
+        const described = this.describe ()
+        this.defaultRateLimit = described['rateLimit']
+
         // merge to this
-        const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig))
+        const configEntries = Object.entries (described).concat (Object.entries (userConfig))
         for (let i = 0; i < configEntries.length; i++) {
             const [property, value] = configEntries[i]
             if (value && Object.getPrototypeOf (value) === Object.prototype) {
@@ -563,7 +567,11 @@ module.exports = class Exchange {
 
     // eslint-disable-next-line no-unused-vars
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
-        return this.safeValue (config, 'cost', 1);
+        if (this.rateLimit !== this.defaultRateLimit) {
+            // what if the user changes the rateLimit
+            return 1
+        }
+        return this.safeValue (config, 'cost', 1)
     }
 
     async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
