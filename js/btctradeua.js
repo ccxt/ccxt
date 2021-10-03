@@ -322,6 +322,7 @@ module.exports = class btctradeua extends Exchange {
         if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
+        this.checkSide (side);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const method = 'privatePost' + this.capitalize (side) + 'Id';

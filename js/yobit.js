@@ -539,6 +539,7 @@ module.exports = class yobit extends Exchange {
         if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
+        this.checkSide (side);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

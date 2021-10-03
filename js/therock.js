@@ -1043,6 +1043,7 @@ module.exports = class therock extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
         await this.loadMarkets ();
         if (type === 'market') {
             price = 0;

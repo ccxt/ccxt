@@ -718,6 +718,7 @@ module.exports = class qtrade extends Exchange {
         if (type !== 'limit') {
             throw new InvalidOrder (this.id + ' createOrder() allows limit orders only');
         }
+        this.checkSide (side);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

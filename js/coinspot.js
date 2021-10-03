@@ -244,6 +244,7 @@ module.exports = class coinspot extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
         await this.loadMarkets ();
         const method = 'privatePostMy' + this.capitalize (side);
         if (type === 'market') {

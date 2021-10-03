@@ -634,6 +634,7 @@ module.exports = class bw extends Exchange {
         if (price === undefined) {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
+        this.checkSide (side);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

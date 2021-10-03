@@ -908,6 +908,7 @@ module.exports = class idex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         // https://docs.idex.io/#create-order
+        this.checkSide (side);
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);

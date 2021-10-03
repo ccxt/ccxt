@@ -1958,6 +1958,7 @@ module.exports = class bitget extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);

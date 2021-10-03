@@ -161,7 +161,8 @@ class Transpiler {
             [ /\.base16ToBinary/g, '.base16_to_binary'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.urlencodeWithArrayRepeat\s/g, '.urlencode_with_array_repeat' ],
-            [ /\.call\s*\(this, /g, '(' ]
+            [ /\.call\s*\(this, /g, '(' ],
+            [ /\.checkSide/g, 'check_side' ]
         ]
     }
 

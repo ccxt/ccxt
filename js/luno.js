@@ -534,6 +534,7 @@ module.exports = class luno extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
         await this.loadMarkets ();
         let method = 'privatePost';
         const request = {

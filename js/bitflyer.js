@@ -292,6 +292,7 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
         await this.loadMarkets ();
         const request = {
             'product_code': this.marketId (symbol),

@@ -926,6 +926,7 @@ module.exports = class kucoin extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         // required param, cannot be used twice

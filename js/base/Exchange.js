@@ -1734,4 +1734,10 @@ module.exports = class Exchange {
         }
         return [ tag, params ]
     }
+
+    checkSide (side) {
+        if ((side !== 'buy') && (side !== 'sell')) {
+            throw new ExchangeError (this.id + ' invalid side, must be either buy or sell')
+        }
+    }
 }

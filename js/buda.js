@@ -497,6 +497,7 @@ module.exports = class buda extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
         await this.loadMarkets ();
         side = (side === 'buy') ? 'Bid' : 'Ask';
         const request = {

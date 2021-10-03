@@ -2365,3 +2365,7 @@ class Exchange(object):
         if tag is None:
             tag = self.safe_string(params, 'tag')
         return [tag, params]
+
+    def check_side(self, side):
+        if side != 'buy' and side != 'sell':
+            raise ExchangeError(self.id + ' invalid side, must be either buy or sell')

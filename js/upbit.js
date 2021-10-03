@@ -855,6 +855,7 @@ module.exports = class upbit extends Exchange {
                 }
             }
         }
+        // no need for checkSide here
         let orderSide = undefined;
         if (side === 'buy') {
             orderSide = 'bid';

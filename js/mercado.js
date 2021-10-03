@@ -303,6 +303,7 @@ module.exports = class mercado extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
         await this.loadMarkets ();
         const request = {
             'coin_pair': this.marketId (symbol),

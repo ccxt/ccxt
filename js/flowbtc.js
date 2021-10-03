@@ -220,6 +220,7 @@ module.exports = class flowbtc extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
         await this.loadMarkets ();
         const orderType = (type === 'market') ? 1 : 0;
         const request = {
