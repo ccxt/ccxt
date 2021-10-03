@@ -387,7 +387,7 @@ class Exchange(object):
                     setattr(self, camelcase, attr)
 
         self.tokenBucket = self.extend({
-            'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
+            'refillRate': 1.0 / self.defaultRateLimit if self.defaultRateLimit > 0 else float('inf'),
             'delay': 0.001,
             'capacity': 1.0,
             'defaultCost': 1.0,
@@ -493,7 +493,7 @@ class Exchange(object):
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
         if self.rateLimit != self.defaultRateLimit:
-            return 1
+            return self.rateLimit / self.defaultRateLimit
         return self.safe_value(config, 'cost', 1)
 
     def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):

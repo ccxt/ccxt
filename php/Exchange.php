@@ -1212,7 +1212,7 @@ class Exchange {
             'capacity' => 1.0,
             'cost' => 1.0,
             'maxCapacity' => 1000,
-            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
+            'refillRate' => ($this->defaultRateLimit > 0) ? 1.0 / $this->defaultRateLimit : PHP_INT_MAX,
         );
 
         if ($this->urlencode_glue !== '&') {
@@ -1418,7 +1418,7 @@ class Exchange {
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array(), $context = array()) {
         if ($this->rateLimit !== $this->defaultRateLimit) {
-            return 1;
+            return $this->rateLimit / $this->defaultRateLimit;
         }
         return $this->safe_value($config, 'cost', 1);
     }

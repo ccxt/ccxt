@@ -410,7 +410,7 @@ module.exports = class Exchange {
             capacity:    1,
             cost: 1,
             maxCapacity: 1000,
-            refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE
+            refillRate: (this.defaultRateLimit > 0) ? 1 / this.defaultRateLimit : Number.MAX_VALUE
         }, this.tokenBucket)
 
         this.throttle = throttle (this.tokenBucket)
@@ -569,7 +569,7 @@ module.exports = class Exchange {
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
         if (this.rateLimit !== this.defaultRateLimit) {
             // what if the user changes the rateLimit
-            return 1
+            return this.rateLimit / this.defaultRateLimit
         }
         return this.safeValue (config, 'cost', 1)
     }
