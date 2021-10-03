@@ -39,7 +39,8 @@ const { // eslint-disable-line object-curly-newline
     , DDoSProtection
     , RequestTimeout
     , ExchangeNotAvailable
-    , RateLimitExceeded } = require ('./errors')
+    , RateLimitExceeded
+    , InvalidOrder } = require ('./errors')
 
 const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING } = functions.precisionConstants
 
@@ -1737,7 +1738,7 @@ module.exports = class Exchange {
 
     checkSide (side) {
         if ((side !== 'buy') && (side !== 'sell')) {
-            throw new ExchangeError (this.id + ' createOrder invalid side, must be either buy or sell')
+            throw new InvalidOrder (this.id + ' createOrder invalid side, must be either buy or sell')
         }
     }
 }
