@@ -1,0 +1,36 @@
+# -*- coding: utf-8 -*-
+
+import os
+import sys
+from pprint import pprint
+
+root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(root + '/python')
+
+import ccxt  # noqa: E402
+
+
+print('CCXT Version:', ccxt.__version__)
+
+exchange = ccxt.binancecoinm({
+    'apiKey': 'YOUR_API_KEY',
+    'secret': 'YOUR_SECRET',
+})
+
+markets = exchange.load_markets()
+
+exchange.verbose = True  # uncomment for debugging purposes if necessary
+
+symbol = 'EOS/USD'
+order_type = 'TAKE_PROFIT'
+side = 'sell'
+amount = YOUR_AMOUNT_HERE  # <---------- edit for your values
+price = YOUR_LIMIT_PRICE_HERE  # <------ edit for your values
+stopPrice = 25000
+params = {'stopPrice': stopPrice}
+
+try:
+    order = exchange.create_order(symbol, order_type, side, amount, price, params)
+    print(order)
+except Exception as e:
+    print(type(e).__name__, str(e))
