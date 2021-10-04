@@ -224,7 +224,7 @@ module.exports = class stex extends Exchange {
                     'TRC20': 24,
                     'TRX': 24,
                     'SOL': 25,
-                    'BEP20': 501, 
+                    'BEP20': 501,
                 },
             },
             'exceptions': {
