@@ -39,7 +39,7 @@ class bitmart(Exchange):
             'id': 'bitmart',
             'name': 'BitMart',
             'countries': ['US', 'CN', 'HK', 'KR'],
-            'rateLimit': 25,  # a bit slower than 50 times per second ~40 times per second
+            'rateLimit': 250,  # a bit slower than 50 times per second ~40 times per second
             'version': 'v1',
             'certified': True,
             'pro': True,
@@ -105,46 +105,46 @@ class bitmart(Exchange):
                     },
                     'spot': {
                         'get': {
-                            'currencies': 10,
-                            'symbols': 10,
-                            'symbols/details': 10,
-                            'ticker': 10,  # ?symbol=BTC_USDT
-                            'steps': 10,  # ?symbol=BMX_ETH
-                            'symbols/kline': 10,  # ?symbol=BMX_ETH&step=15&from=1525760116&to=1525769116
-                            'symbols/book': 10,  # ?symbol=BMX_ETH&precision=6
-                            'symbols/trades': 10,  # ?symbol=BMX_ETH
+                            'currencies': 1,
+                            'symbols': 1,
+                            'symbols/details': 1,
+                            'ticker': 1,  # ?symbol=BTC_USDT
+                            'steps': 1,  # ?symbol=BMX_ETH
+                            'symbols/kline': 1,  # ?symbol=BMX_ETH&step=15&from=1525760116&to=1525769116
+                            'symbols/book': 1,  # ?symbol=BMX_ETH&precision=6
+                            'symbols/trades': 1,  # ?symbol=BMX_ETH
                         },
                     },
                     'contract': {
                         'get': {
-                            'tickers': 5,
+                            'tickers': 0.5,
                         },
                     },
                 },
                 'private': {
                     'account': {
                         'get': {
-                            'wallet': 5,  # ?account_type=1
-                            'deposit/address': 10,  # ?currency=USDT-TRC20
-                            'withdraw/charge': 10,  # ?currency=BTC
-                            'deposit-withdraw/history': 10,  # ?limit=10&offset=1&operationType=withdraw
-                            'deposit-withdraw/detail': 10,  # ?id=1679952
+                            'wallet': 0.5,  # ?account_type=1
+                            'deposit/address': 1,  # ?currency=USDT-TRC20
+                            'withdraw/charge': 1,  # ?currency=BTC
+                            'deposit-withdraw/history': 1,  # ?limit=10&offset=1&operationType=withdraw
+                            'deposit-withdraw/detail': 1,  # ?id=1679952
                         },
                         'post': {
-                            'withdraw/apply': 10,
+                            'withdraw/apply': 1,
                         },
                     },
                     'spot': {
                         'get': {
-                            'wallet': 5,
-                            'order_detail': 1,
-                            'orders': 5,
-                            'trades': 5,
+                            'wallet': 0.5,
+                            'order_detail': 0.1,
+                            'orders': 0.5,
+                            'trades': 0.5,
                         },
                         'post': {
-                            'submit_order': 1,  # https://api-cloud.bitmart.com/spot/v1/submit_order
-                            'cancel_order': 1,  # https://api-cloud.bitmart.com/spot/v2/cancel_order
-                            'cancel_orders': 1,
+                            'submit_order': 0.1,  # https://api-cloud.bitmart.com/spot/v1/submit_order
+                            'cancel_order': 0.1,  # https://api-cloud.bitmart.com/spot/v2/cancel_order
+                            'cancel_orders': 0.1,
                         },
                     },
                 },
