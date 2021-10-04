@@ -21,12 +21,14 @@ markets = exchange.load_markets()
 
 exchange.verbose = True  # uncomment for debugging purposes if necessary
 
+# edit for your values below
+
 symbol = 'EOS/USD'
 order_type = 'TAKE_PROFIT'
 side = 'sell'
-amount = YOUR_AMOUNT_HERE  # <---------- edit for your values
-price = YOUR_LIMIT_PRICE_HERE  # <------ edit for your values
-stopPrice = 25000
+amount = YOUR_AMOUNT_HERE
+price = YOUR_LIMIT_PRICE_HERE
+stopPrice = YOUR_STOP_PRICE
 params = {'stopPrice': stopPrice}
 
 try:
