@@ -141,6 +141,12 @@ module.exports = class probit extends Exchange {
                     'limit': 'gtc',
                     'market': 'ioc',
                 },
+                'networks': {
+                    'BEP20' ''BSC',
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRON',
+                    'TRX': 'TRON',
+                },
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
@@ -1095,6 +1101,13 @@ module.exports = class probit extends Exchange {
         const currency = this.currency (code);
         if (tag === undefined) {
             tag = '';
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['platform_id'] = network;
+            params = this.omit (params, 'network');
         }
         const request = {
             'currency_id': currency['id'],
