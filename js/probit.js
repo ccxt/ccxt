@@ -1102,13 +1102,6 @@ module.exports = class probit extends Exchange {
         if (tag === undefined) {
             tag = '';
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['platform_id'] = network;
-            params = this.omit (params, 'network');
-        }
         const request = {
             'currency_id': currency['id'],
             // 'platform_id': 'ETH', // if omitted it will use the default platform for the currency
@@ -1121,6 +1114,13 @@ module.exports = class probit extends Exchange {
             // whether the amount field includes fees
             // 'include_fee': false, // makes sense only when fee_currency_id is equal to currency_id
         };
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['platform_id'] = network;
+            params = this.omit (params, 'network');
+        }
         const response = await this.privatePostWithdrawal (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseTransaction (data, currency);
