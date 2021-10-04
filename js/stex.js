@@ -215,6 +215,17 @@ module.exports = class stex extends Exchange {
             },
             'options': {
                 'parseOrderToPrecision': false,
+                'networks': {
+                    'ERC20': 5,
+                    'ETH': 5,
+                    'OMNI': 10,
+                    'XLM': 20,
+                    'BEP2': 22,
+                    'TRC20': 24,
+                    'TRX': 24,
+                    'SOL': 25,
+                    'BEP20': 501, 
+                },
             },
             'exceptions': {
                 'exact': {
@@ -1703,6 +1714,13 @@ module.exports = class stex extends Exchange {
         };
         if (tag !== undefined) {
             request['additional_address_parameter'] = tag;
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeInteger (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['protocol_id'] = network;
+            params = this.omit (params, 'network');
         }
         const response = await this.profilePostWithdraw (this.extend (request, params));
         //
