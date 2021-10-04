@@ -14,7 +14,7 @@ module.exports = class btcturk extends Exchange {
             'id': 'btcturk',
             'name': 'BTCTurk',
             'countries': [ 'TR' ], // Turkey
-            'rateLimit': 10,
+            'rateLimit': 100,
             'has': {
                 'cancelOrder': true,
                 'CORS': true,
@@ -46,30 +46,30 @@ module.exports = class btcturk extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'orderbook': 10,
-                        'ticker': 1,
-                        'trades': 10,   // ?last=COUNT (max 50)
-                        'server/exchangeinfo': 10,
+                        'orderbook': 1,
+                        'ticker': 0.1,
+                        'trades': 1,   // ?last=COUNT (max 50)
+                        'server/exchangeinfo': 1,
                     },
                 },
                 'private': {
                     'get': {
-                        'users/balances': 10,
-                        'openOrders': 10,
-                        'allOrders': 10,
-                        'users/transactions/trade': 10,
+                        'users/balances': 1,
+                        'openOrders': 1,
+                        'allOrders': 1,
+                        'users/transactions/trade': 1,
                     },
                     'post': {
-                        'order': 10,
-                        'cancelOrder': 10,
+                        'order': 1,
+                        'cancelOrder': 1,
                     },
                     'delete': {
-                        'order': 10,
+                        'order': 1,
                     },
                 },
                 'graph': {
                     'get': {
-                        'ohlcs': 10,
+                        'ohlcs': 1,
                     },
                 },
             },
