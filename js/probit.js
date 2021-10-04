@@ -142,7 +142,7 @@ module.exports = class probit extends Exchange {
                     'market': 'ioc',
                 },
                 'networks': {
-                    'BEP20' ''BSC',
+                    'BEP20': ''BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
                     'TRX': 'TRON',
