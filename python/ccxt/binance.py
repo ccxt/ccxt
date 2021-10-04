@@ -2242,6 +2242,16 @@ class binance(Exchange):
         #     TAKE_PROFIT_MARKET   stopPrice
         #     TRAILING_STOP_MARKET callbackRate
         #
+        # delivery
+        #
+        # LIMIT
+        #     MARKET               quantity
+        #     STOP                 quantity, price, stopPrice
+        #     STOP_MARKET          quantity, stopPrice
+        #     TAKE_PROFIT          quantity, price, stopPrice
+        #     TAKE_PROFIT_MARKET   quantity, stopPrice
+        #     TRAILING_STOP_MARKET callbackRate
+
         if uppercaseType == 'MARKET':
             quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', False)
             if quoteOrderQty:
