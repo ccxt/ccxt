@@ -684,6 +684,7 @@ module.exports = class binance extends Exchange {
                 'accountsByType': {
                     'main': 'MAIN',
                     'spot': 'MAIN',
+                    'funding': 'MAIN',
                     'margin': 'MARGIN',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
