@@ -2244,7 +2244,7 @@ class binance(Exchange):
         #
         # delivery
         #
-        # LIMIT
+        #     LIMIT                timeInForce, quantity, price
         #     MARKET               quantity
         #     STOP                 quantity, price, stopPrice
         #     STOP_MARKET          quantity, stopPrice
