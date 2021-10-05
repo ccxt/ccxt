@@ -59,6 +59,7 @@ class bybit(Exchange):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -798,6 +799,8 @@ class bybit(Exchange):
             method = 'v2PublicGetMarkPriceKline'
         elif price == 'index':
             method = 'v2PublicGetIndexPriceKline'
+        elif price == 'premiumIndex':
+            method = 'v2PublicGetPremiumIndexKline'
         elif market['linear']:
             method = 'publicLinearGetKline'
         response = getattr(self, method)(self.extend(request, params))
@@ -893,14 +896,26 @@ class bybit(Exchange):
         }
 
     def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        if since is None and limit is None:
+            raise ArgumentsRequired(self.id + ' fetchIndexOHLCV() requires a since argument or a limit argument')
         request = {
             'price': 'index',
         }
         return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        if since is None and limit is None:
+            raise ArgumentsRequired(self.id + ' fetchMarkOHLCV() requires a since argument or a limit argument')
         request = {
             'price': 'mark',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        if since is None and limit is None:
+            raise ArgumentsRequired(self.id + ' fetchPremiumIndexOHLCV() requires a since argument or a limit argument')
+        request = {
+            'price': 'premiumIndex',
         }
         return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 

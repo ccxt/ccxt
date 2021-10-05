@@ -47,6 +47,7 @@ class coinbase extends Exchange {
                 'fetchOrder' => null,
                 'fetchOrderBook' => null,
                 'fetchOrders' => null,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => null,
                 'fetchTime' => true,

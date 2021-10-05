@@ -42,6 +42,7 @@ class bybit extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPositions' => true,
+                'fetchPremiumIndexOHLCV' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -800,6 +801,8 @@ class bybit extends Exchange {
             $method = 'v2PublicGetMarkPriceKline';
         } else if ($price === 'index') {
             $method = 'v2PublicGetIndexPriceKline';
+        } else if ($price === 'premiumIndex') {
+            $method = 'v2PublicGetPremiumIndexKline';
         } else if ($market['linear']) {
             $method = 'publicLinearGetKline';
         }
@@ -898,6 +901,9 @@ class bybit extends Exchange {
     }
 
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        if ($since === null && $limit === null) {
+            throw new ArgumentsRequired($this->id . ' fetchIndexOHLCV() requires a $since argument or a $limit argument');
+        }
         $request = array(
             'price' => 'index',
         );
@@ -905,8 +911,21 @@ class bybit extends Exchange {
     }
 
     public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        if ($since === null && $limit === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMarkOHLCV() requires a $since argument or a $limit argument');
+        }
         $request = array(
             'price' => 'mark',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        if ($since === null && $limit === null) {
+            throw new ArgumentsRequired($this->id . ' fetchPremiumIndexOHLCV() requires a $since argument or a $limit argument');
+        }
+        $request = array(
+            'price' => 'premiumIndex',
         );
         return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
