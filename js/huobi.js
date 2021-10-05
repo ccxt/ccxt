@@ -42,6 +42,7 @@ module.exports = class huobi extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -737,7 +738,7 @@ module.exports = class huobi extends Exchange {
         }
         if (since !== undefined) {
             request['start-time'] = since; // a date within 120 days from today
-            request['end-time'] = this.sum (since, 172800000); // 48 hours window
+            // request['end-time'] = this.sum (since, 172800000); // 48 hours window
         }
         const response = await this.privateGetOrderMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);

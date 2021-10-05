@@ -66,6 +66,7 @@ class ftx(Exchange):
                 'fetchDeposits': True,
                 'fetchFundingFees': None,
                 'fetchFundingRate': None,
+                'fetchFundingHistory': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': None,
                 'fetchIndexOHLCV': True,
@@ -78,6 +79,7 @@ class ftx(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -1015,14 +1017,13 @@ class ftx(Exchange):
         #
         result = self.safe_value(response, 'result')
         rates = []
-        length = len(result) - 1
-        for i in range(length, 0):
+        for i in range(0, len(result)):
             rates.append({
                 'symbol': self.safe_string(result[i], 'future'),
                 'fundingRate': self.safe_number(result[i], 'rate'),
                 'timestamp': self.parse8601(self.safe_string(result[i], 'time')),
             })
-        return rates
+        return self.sort_by(rates, 'timestamp')
 
     def fetch_balance(self, params={}):
         self.load_markets()

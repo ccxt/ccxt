@@ -64,6 +64,7 @@ class binance(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -1894,6 +1895,16 @@ class binance(Exchange):
         #       "buyer": False
         #     }
         #
+        # {respType: FULL}
+        #
+        #     {
+        #       "price": "4000.00000000",
+        #       "qty": "1.00000000",
+        #       "commission": "4.00000000",
+        #       "commissionAsset": "USDT",
+        #       "tradeId": "1234",
+        #     }
+        #
         timestamp = self.safe_integer_2(trade, 'T', 'time')
         priceString = self.safe_string_2(trade, 'p', 'price')
         amountString = self.safe_string_2(trade, 'q', 'qty')
@@ -1904,7 +1915,7 @@ class binance(Exchange):
         costString = Precise.string_mul(priceString, amountString)
         cost = self.parse_number(costString)
         id = self.safe_string_2(trade, 't', 'a')
-        id = self.safe_string(trade, 'id', id)
+        id = self.safe_string_2(trade, 'id', 'tradeId', id)
         side = None
         orderId = self.safe_string(trade, 'orderId')
         if 'm' in trade:
@@ -2105,9 +2116,7 @@ class binance(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        filledString = self.safe_string(order, 'executedQty', '0')
-        filled = self.parse_number(filledString)
-        filledFloat = float(filledString)
+        filled = self.safe_string(order, 'executedQty', '0')
         timestamp = None
         lastTradeTimestamp = None
         if 'time' in order:
@@ -2116,24 +2125,21 @@ class binance(Exchange):
             timestamp = self.safe_integer(order, 'transactTime')
         elif 'updateTime' in order:
             if status == 'open':
-                if filledFloat > 0:
+                if Precise.string_gt(filled, '0'):
                     lastTradeTimestamp = self.safe_integer(order, 'updateTime')
                 else:
                     timestamp = self.safe_integer(order, 'updateTime')
-        averageString = self.safe_string(order, 'avgPrice')
-        average = self.parse_number(self.omit_zero(averageString))
-        priceString = self.safe_string(order, 'price')
-        price = self.parse_number(self.omit_zero(priceString))
-        amount = self.safe_number(order, 'origQty')
+        average = self.safe_string(order, 'avgPrice')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'origQty')
         # - Spot/Margin market: cummulativeQuoteQty
         # - Futures market: cumQuote.
         #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
-        cost = self.safe_number_2(order, 'cummulativeQuoteQty', 'cumQuote')
+        cost = self.safe_string_2(order, 'cummulativeQuoteQty', 'cumQuote')
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
         fills = self.safe_value(order, 'fills', [])
-        trades = self.parse_trades(fills, market)
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX')
@@ -2141,7 +2147,7 @@ class binance(Exchange):
             type = 'limit'
         stopPriceString = self.safe_string(order, 'stopPrice')
         stopPrice = self.parse_number(self.omit_zero(stopPriceString))
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -2162,8 +2168,8 @@ class binance(Exchange):
             'remaining': None,
             'status': status,
             'fee': None,
-            'trades': trades,
-        })
+            'trades': fills,
+        }, market)
 
     async def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
         request = {

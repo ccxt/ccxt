@@ -40,6 +40,7 @@ class kraken extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => true,
                 'fetchMarkets' => true,

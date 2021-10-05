@@ -48,6 +48,7 @@ class ftx extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingFees' => null,
                 'fetchFundingRate' => null,
+                'fetchFundingHistory' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => null,
                 'fetchIndexOHLCV' => true,
@@ -60,6 +61,7 @@ class ftx extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPositions' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -1031,15 +1033,14 @@ class ftx extends Exchange {
         //
         $result = $this->safe_value($response, 'result');
         $rates = array();
-        $length = strlen($result) - 1;
-        for ($i = $length; $i >= 0; $i--) {
+        for ($i = 0; $i < count($result); $i++) {
             $rates[] = array(
                 'symbol' => $this->safe_string($result[$i], 'future'),
                 'fundingRate' => $this->safe_number($result[$i], 'rate'),
                 'timestamp' => $this->parse8601($this->safe_string($result[$i], 'time')),
             );
         }
-        return $rates;
+        return $this->sort_by($rates, 'timestamp');
     }
 
     public function fetch_balance($params = array ()) {
