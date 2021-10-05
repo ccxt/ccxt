@@ -1936,6 +1936,16 @@ module.exports = class binance extends Exchange {
         //       "buyer": false
         //     }
         //
+        // { respType: FULL }
+        //
+        //     {
+        //       "price": "4000.00000000",
+        //       "qty": "1.00000000",
+        //       "commission": "4.00000000",
+        //       "commissionAsset": "USDT",
+        //       "tradeId": "1234",
+        //     }
+        //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
         const priceString = this.safeString2 (trade, 'p', 'price');
         const amountString = this.safeString2 (trade, 'q', 'qty');
@@ -1946,7 +1956,7 @@ module.exports = class binance extends Exchange {
         const costString = Precise.stringMul (priceString, amountString);
         const cost = this.parseNumber (costString);
         let id = this.safeString2 (trade, 't', 'a');
-        id = this.safeString (trade, 'id', id);
+        id = this.safeString2 (trade, 'id', 'tradeId', id);
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
         if ('m' in trade) {
@@ -2161,9 +2171,7 @@ module.exports = class binance extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const filledString = this.safeString (order, 'executedQty', '0');
-        const filled = this.parseNumber (filledString);
-        const filledFloat = parseFloat (filledString);
+        const filled = this.safeString (order, 'executedQty', '0');
         let timestamp = undefined;
         let lastTradeTimestamp = undefined;
         if ('time' in order) {
@@ -2172,27 +2180,24 @@ module.exports = class binance extends Exchange {
             timestamp = this.safeInteger (order, 'transactTime');
         } else if ('updateTime' in order) {
             if (status === 'open') {
-                if (filledFloat > 0) {
+                if (Precise.stringGt (filled, '0')) {
                     lastTradeTimestamp = this.safeInteger (order, 'updateTime');
                 } else {
                     timestamp = this.safeInteger (order, 'updateTime');
                 }
             }
         }
-        const averageString = this.safeString (order, 'avgPrice');
-        const average = this.parseNumber (this.omitZero (averageString));
-        const priceString = this.safeString (order, 'price');
-        const price = this.parseNumber (this.omitZero (priceString));
-        const amount = this.safeNumber (order, 'origQty');
+        const average = this.safeString (order, 'avgPrice');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'origQty');
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
-        const cost = this.safeNumber2 (order, 'cummulativeQuoteQty', 'cumQuote');
+        const cost = this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote');
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
         const fills = this.safeValue (order, 'fills', []);
-        const trades = this.parseTrades (fills, market);
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
@@ -2201,7 +2206,7 @@ module.exports = class binance extends Exchange {
         }
         const stopPriceString = this.safeString (order, 'stopPrice');
         const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -2222,8 +2227,8 @@ module.exports = class binance extends Exchange {
             'remaining': undefined,
             'status': status,
             'fee': undefined,
-            'trades': trades,
-        });
+            'trades': fills,
+        }, market);
     }
 
     async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
