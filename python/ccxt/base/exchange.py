@@ -2216,7 +2216,7 @@ class Exchange(object):
         string.reverse()
         return ''.join(string)
 
-    def reduce_fees_by_currency(self, fees, string):
+    def reduce_fees_by_currency(self, fees, string=False):
         reduced = {}
         for i in range(0, len(fees)):
             fee = fees[i]
