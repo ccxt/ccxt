@@ -60,6 +60,7 @@ console.log ('CCXT v' + ccxt.version)
             'createMarketOrder',
             'createMarketSellOrder',
             'createOrder',
+            'fetchPremiumIndexOHLCV',
             'deposit',
             'editOrder',
             'fetchBalance',
