@@ -800,7 +800,7 @@ module.exports = class bybit extends Exchange {
             method = 'v2PublicGetMarkPriceKline';
         } else if (price === 'index') {
             method = 'v2PublicGetIndexPriceKline';
-        } else if (price === 'premiumIndex' || price === 'premium_index' || price === 'premium-index') {
+        } else if (price === 'premiumIndex') {
             method = 'v2PublicGetPremiumIndexKline';
         } else if (market['linear']) {
             method = 'publicLinearGetKline';
