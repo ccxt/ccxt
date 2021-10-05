@@ -49,7 +49,7 @@ module.exports = class bitzlato extends Exchange {
                 // 'fetchStatus': 'emulated',
                 // 'fetchTicker': true,
                 // 'fetchTickers': undefined,
-                // 'fetchTime': undefined,
+                'fetchTime': true,
                 // 'fetchTrades': true,
                 // 'fetchTradingFee': undefined,
                 // 'fetchTradingFees': undefined,
@@ -76,74 +76,80 @@ module.exports = class bitzlato extends Exchange {
             'hostname': 'bitzlato.com',
             'urls': {
                 'logo': '',
-                'test': 'https://market-sandbox.{hostname}/api',
-                'api': 'https://market.{hostname}/api',
-                'www': 'https://market.{hostname}/',
+                'test': {
+                    'public': 'https://market-sandbox.{hostname}/api/v2/peatio/public',
+                    'private': 'https://market-sandbox.{hostname}/api/v2/peatio',
+                },
+                'api': {
+                    'public': 'https://market.{hostname}/api/v2/peatio/public',
+                    'private': 'https://market.{hostname}/api/v2/peatio',
+                },
+                'www': 'https://market.bitzlato.com/',
                 'doc': [
-                    'https://market.{hostname}/docs',
+                    'https://market.bitzlato.com/docs',
                 ],
                 'fees': '',
             },
             'api': {
                 'public': {
                     'get': [
-                        'peatio/public/withdraw_limits',
-                        'peatio/public/trading_fees',
-                        'peatio/public/timestamp',
-                        'peatio/public/member-levels',
-                        'peatio/public/markets/{market}/tickers',
-                        'peatio/public/markets/tickers',
-                        'peatio/public/markets/{market}/k-line',
-                        'peatio/public/markets/{market}/depth',
-                        'peatio/public/markets/{market}/trades',
-                        'peatio/public/markets/{market}/order-book',
-                        'peatio/public/markets',
-                        'peatio/public/currencies',
-                        'peatio/public/currencies/{id}',
+                        'withdraw_limits',
+                        'trading_fees',
+                        'timestamp',
+                        'member-levels',
+                        'markets/{market}/tickers',
+                        'markets/tickers',
+                        'markets/{market}/k-line',
+                        'markets/{market}/depth',
+                        'markets/{market}/trades',
+                        'markets/{market}/order-book',
+                        'markets',
+                        'currencies',
+                        'currencies/{id}',
                     ],
                 },
                 'private': {
                     'get': [
-                        'peatio/account/internal_transfers',
-                        'peatio/account/transactions',
-                        'peatio/account/stats/pnl',
-                        'peatio/account/withdraws',
-                        'peatio/account/withdraws/sums',
-                        'peatio/account/beneficiaries/{id}',
-                        'peatio/account/beneficiaries',
-                        'peatio/account/deposit_address/{currency}',
-                        'peatio/account/deposits/{txid}',
-                        'peatio/account/deposits',
-                        'peatio/account/balances/{currency}',
-                        'peatio/account/balances',
-                        'peatio/account/trades',
-                        'peatio/market/orders',
-                        'peatio/market/orders/{id}',
-                        'peatio/coinmarketcap/orderbook/{market_pair}',
-                        'peatio/coinmarketcap/trades/{market_pair}',
-                        'peatio/coinmarketcap/ticker',
-                        'peatio/coinmarketcap/assets',
-                        'peatio/coinmarketcap/summary',
-                        'peatio/coingecko/historical_trades',
-                        'peatio/coingecko/orderbook',
-                        'peatio/coingecko/tickers',
-                        'peatio/coingecko/pairs',
+                        'account/internal_transfers',
+                        'account/transactions',
+                        'account/stats/pnl',
+                        'account/withdraws',
+                        'account/withdraws/sums',
+                        'account/beneficiaries/{id}',
+                        'account/beneficiaries',
+                        'account/deposit_address/{currency}',
+                        'account/deposits/{txid}',
+                        'account/deposits',
+                        'account/balances/{currency}',
+                        'account/balances',
+                        'account/trades',
+                        'market/orders',
+                        'market/orders/{id}',
+                        'coinmarketcap/orderbook/{market_pair}',
+                        'coinmarketcap/trades/{market_pair}',
+                        'coinmarketcap/ticker',
+                        'coinmarketcap/assets',
+                        'coinmarketcap/summary',
+                        'coingecko/historical_trades',
+                        'coingecko/orderbook',
+                        'coingecko/tickers',
+                        'coingecko/pairs',
                     ],
                     'post': [
-                        'peatio/account/internal_transfers',
-                        'peatio/account/withdraws',
-                        'peatio/account/beneficiaries',
-                        'peatio/account/deposits/intention',
-                        'peatio/market/orders/cancel',
-                        'peatio/market/orders/{id}/cancel',
-                        'peatio/market/orders',
+                        'account/internal_transfers',
+                        'account/withdraws',
+                        'account/beneficiaries',
+                        'account/deposits/intention',
+                        'market/orders/cancel',
+                        'market/orders/{id}/cancel',
+                        'market/orders',
                     ],
                     'patch': [
-                        'peatio/account/beneficiaries/{id}/activate',
-                        'peatio/account/beneficiaries/{id}/resend_pin',
+                        'account/beneficiaries/{id}/activate',
+                        'account/beneficiaries/{id}/resend_pin',
                     ],
                     'delete': [
-                        'peatio/account/beneficiaries/{id}',
+                        'account/beneficiaries/{id}',
                     ],
                 },
             },
@@ -158,18 +164,18 @@ module.exports = class bitzlato extends Exchange {
                         'taker': [
                             [this.parseNumber ('1'), this.parseNumber ('0.002')],
                             [this.parseNumber ('2'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('3'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('4'), this.parseNumber ('0.002')],
+                            [this.parseNumber ('3'), this.parseNumber ('0.0018')],
+                            [this.parseNumber ('4'), this.parseNumber ('0.0016')],
                             [this.parseNumber ('5'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('6'), this.parseNumber ('0.002')],
+                            [this.parseNumber ('6'), this.parseNumber ('0.0')],
                         ],
                         'maker': [
                             [this.parseNumber ('1'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('2'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('3'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('4'), this.parseNumber ('0.002')],
+                            [this.parseNumber ('2'), this.parseNumber ('0.001')],
+                            [this.parseNumber ('3'), this.parseNumber ('0.0008')],
+                            [this.parseNumber ('4'), this.parseNumber ('0.0006')],
                             [this.parseNumber ('5'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('6'), this.parseNumber ('0.002')],
+                            [this.parseNumber ('6'), this.parseNumber ('0.0')],
                         ],
                     },
                 },
@@ -178,6 +184,8 @@ module.exports = class bitzlato extends Exchange {
                 },
             },
             'options': {
+              'defaultType': 'spot',
+              'timeDifference': 0,
             },
             'exceptions': {
                 'exact': {
@@ -186,6 +194,13 @@ module.exports = class bitzlato extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+      const response = await this.publicGetTimestamp (params);
+      //  "\"2021-10-05T12:34:56+00:00\""
+      const parsed = JSON.parse (response);
+      return this.parse8601 (parsed);
     }
 
     isFiat (code) {
@@ -296,6 +311,25 @@ module.exports = class bitzlato extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const query = this.omit (params, this.extractParams (path));
+        const baseUrl = this.implodeHostname (this.urls.api[api]);
+        let url = baseUrl + '/' + this.implodeParams (path, params);
+        headers = {
+          'Accept': 'application/json'
+        }
+        if (method === 'GET') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else if (method === 'POST') {
+            headers['Content-type'] = 'application/json'
+        }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            // TODO: implement authorization headers
+            headers['Authorization'] = 'Bearer ' + this.apiKey;
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
