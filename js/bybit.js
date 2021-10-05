@@ -41,6 +41,7 @@ module.exports = class bybit extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPositions': true,
+                'fetchPremiumIndexOHLCV': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -799,6 +800,8 @@ module.exports = class bybit extends Exchange {
             method = 'v2PublicGetMarkPriceKline';
         } else if (price === 'index') {
             method = 'v2PublicGetIndexPriceKline';
+        } else if (price === 'premiumIndex') {
+            method = 'v2PublicGetPremiumIndexKline';
         } else if (market['linear']) {
             method = 'publicLinearGetKline';
         }
@@ -897,6 +900,9 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        if (since === undefined && limit === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchIndexOHLCV() requires a since argument or a limit argument');
+        }
         const request = {
             'price': 'index',
         };
@@ -904,8 +910,21 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        if (since === undefined && limit === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMarkOHLCV() requires a since argument or a limit argument');
+        }
         const request = {
             'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        if (since === undefined && limit === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPremiumIndexOHLCV() requires a since argument or a limit argument');
+        }
+        const request = {
+            'price': 'premiumIndex',
         };
         return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }

@@ -73,6 +73,7 @@ console.log ('CCXT v' + ccxt.version)
             'fetchOrders',
             'fetchPosition',
             'fetchPositions',
+            'fetchPremiumIndexOHLCV',
             'fetchTradingFee',
             'fetchTradingFees',
             'fetchTransactions',
