@@ -102,6 +102,7 @@ class latoken(Exchange):
             },
             'commonCurrencies': {
                 'MT': 'Monarch',
+                'TPAY': 'Tetra Pay',
                 'TSL': 'Treasure SL',
             },
             'options': {
