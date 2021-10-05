@@ -147,6 +147,12 @@ class probit extends Exchange {
                     'limit' => 'gtc',
                     'market' => 'ioc',
                 ),
+                'networks' => array(
+                    'BEP20' => 'BSC',
+                    'ERC20' => 'ETH',
+                    'TRC20' => 'TRON',
+                    'TRX' => 'TRON',
+                ),
             ),
             'commonCurrencies' => array(
                 'AUTO' => 'Cube',
@@ -1114,6 +1120,13 @@ class probit extends Exchange {
             // whether the $amount field includes fees
             // 'include_fee' => false, // makes sense only when fee_currency_id is equal to currency_id
         );
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['platform_id'] = $network;
+            $params = $this->omit($params, 'network');
+        }
         $response = yield $this->privatePostWithdrawal (array_merge($request, $params));
         $data = $this->safe_value($response, 'data');
         return $this->parse_transaction($data, $currency);
