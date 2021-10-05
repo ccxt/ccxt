@@ -143,6 +143,7 @@ class bithumb(Exchange):
                 },
             },
             'commonCurrencies': {
+                'FTC': 'FTC2',
                 'MIR': 'MIR COIN',
                 'SOC': 'Soda Coin',
             },
