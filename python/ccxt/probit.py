@@ -175,6 +175,7 @@ class probit(Exchange):
                 'ORC': 'Oracle System',
                 'SOC': 'Soda Coin',
                 'TCT': 'Top Coin Token',
+                'TPAY': 'Tetra Pay',
                 'UNI': 'UNICORN Token',
                 'UNISWAP': 'UNI',
             },
