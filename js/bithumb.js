@@ -132,6 +132,7 @@ module.exports = class bithumb extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'FTC': 'FTC2',
                 'MIR': 'MIR COIN',
                 'SOC': 'Soda Coin',
             },
