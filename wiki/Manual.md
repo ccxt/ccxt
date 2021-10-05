@@ -706,10 +706,10 @@ exchange.number = decimal.Decimal
 // PHP
 $exchange->number = 'floatval'; // default
 
-// to parse numbers as strings
+// parse numbers as strings
 $exchange->number = 'strval';
 
-// to parse numbers as Precise objects
+// parse numbers as Precise objects
 $exchange->number = function ($string) { return new Precise($string); };
 ```
 
