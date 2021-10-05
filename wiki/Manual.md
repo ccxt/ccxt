@@ -674,6 +674,47 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - run your software in a distributed network of servers
 - ...
 
+## Number
+
+Some people may want to use arbitrary precision numbers in their scripts to avoid the floating point errors that accumulate when doing consecutive maths operations on floating point numbers.
+
+It is possible to tell CCXT how to parse numbers.
+
+```JavaScript
+// JavaScript
+exchange.number = parseFloat // default
+
+// parse numbers as strings
+exchange.number = String
+
+// parse numbers as bignumber objects
+exchange.number = require ('bignumber.js')
+```
+
+```Python
+# Python
+exchange.number = float # default
+
+# parse numbers as strings
+exchange.number = str
+
+# parse numbers as decimals
+exchange.number = decimal.Decimal
+```
+
+```PHP
+// PHP
+$exchange->number = 'floatval'; // default
+
+// to parse numbers as strings
+$exchange->number = 'strval';
+
+// to parse numbers as Precise objects
+$exchange->number = function ($string) { return new Precise($string); };
+```
+
+The next time you make any call such as `fetchOrderBook` the numbers will automatically be parsed with regard to what is specified in the `.number` property. Specifically, the constructor `.number` will be instantiated as `.number(stringNumber)` and the result is stored in the place of the default floating point numbers.
+
 # Markets
 
 - [Market Structure](#market-structure)
