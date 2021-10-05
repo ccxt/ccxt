@@ -674,7 +674,7 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - run your software in a distributed network of servers
 - ...
 
-## Number
+## Numbers
 
 Some people may want to use arbitrary precision numbers in their scripts to avoid the floating point errors that accumulate when doing consecutive maths operations on floating point numbers.
 
