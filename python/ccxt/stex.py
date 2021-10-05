@@ -225,6 +225,17 @@ class stex(Exchange):
             },
             'options': {
                 'parseOrderToPrecision': False,
+                'networks': {
+                    'ERC20': 5,
+                    'ETH': 5,
+                    'OMNI': 10,
+                    'XLM': 20,
+                    'BEP2': 22,
+                    'TRC20': 24,
+                    'TRX': 24,
+                    'SOL': 25,
+                    'BEP20': 501,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -1634,6 +1645,12 @@ class stex(Exchange):
         }
         if tag is not None:
             request['additional_address_parameter'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_integer(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['protocol_id'] = network
+            params = self.omit(params, 'network')
         response = self.profilePostWithdraw(self.extend(request, params))
         #
         #     {

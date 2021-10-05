@@ -49,6 +49,8 @@ class kucoin(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFee': True,
+                'fetchFundingHistory': True,
+                'fetchFundingRateHistory': False,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchMarkets': True,
@@ -58,6 +60,7 @@ class kucoin(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -595,6 +598,84 @@ class kucoin(Exchange):
             'withdraw': withdrawFees,
             'deposit': {},
         }
+
+    def is_futures_method(self, methodName, params):
+        #
+        # Helper
+        # @methodName(string): The name of the method
+        # @params(dict): The parameters passed into {methodName}
+        # @return: True if the method used is meant for futures trading, False otherwise
+        #
+        defaultType = self.safe_string_2(self.options, methodName, 'defaultType', 'trade')
+        requestedType = self.safe_string(params, 'type', defaultType)
+        accountsByType = self.safe_value(self.options, 'accountsByType')
+        type = self.safe_string(accountsByType, requestedType)
+        if type is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' type must be one of ' + ', '.join(keys))
+        params = self.omit(params, 'type')
+        return(type == 'contract') or (type == 'futures')
+
+    def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        #
+        # Private
+        # @param symbol(string): The pair for which the contract was traded
+        # @param since(number): The unix start time of the first funding payment requested
+        # @param limit(number): The number of results to return
+        # @param params(dict): Additional parameters to send to the API
+        # @param return: Data for the history of the accounts funding payments for futures contracts
+        #
+        if self.is_futures_method('fetchFundingHistory', params):
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+            self.load_markets()
+            market = self.market(symbol)
+            request = {
+                'symbol': market['id'],
+            }
+            if since is not None:
+                request['startAt'] = since
+            if limit is not None:
+                request['maxCount'] = limit
+            method = 'futuresPrivateGetFundingHistory'
+            response = getattr(self, method)(self.extend(request, params))
+            # {
+            #  "data": {
+            #     "dataList": [
+            #       {
+            #         "id": 36275152660006,                # id
+            #         "symbol": "XBTUSDM",                 # Symbol
+            #         "timePoint": 1557918000000,          # Time point(milisecond)
+            #         "fundingRate": 0.000013,             # Funding rate
+            #         "markPrice": 8058.27,                # Mark price
+            #         "positionQty": 10,                   # Position size
+            #         "positionCost": -0.001241,           # Position value at settlement period
+            #         "funding": -0.00000464,              # Settled funding fees. A positive number means that the user received the funding fee, and vice versa.
+            #         "settleCurrency": "XBT"              # Settlement currency
+            #       },
+            #  }
+            # }
+            data = self.safe_value(response, 'data')
+            dataList = self.safe_value(data, 'dataList')
+            fees = []
+            for i in range(0, len(dataList)):
+                timestamp = self.safe_integer(dataList[i], 'timePoint')
+                fees.append({
+                    'info': dataList[i],
+                    'symbol': self.safe_symbol(dataList[i], 'symbol'),
+                    'code': self.safe_currency_code(dataList[i], 'settleCurrency'),
+                    'timestamp': timestamp,
+                    'datetime': self.iso8601(timestamp),
+                    'id': self.safe_number(dataList[i], 'id'),
+                    'amount': self.safe_number(dataList[i], 'funding'),
+                    'fundingRate': self.safe_number(dataList[i], 'fundingRate'),
+                    'markPrice': self.safe_number(dataList[i], 'markPrice'),
+                    'positionQty': self.safe_number(dataList[i], 'positionQty'),
+                    'positionCost': self.safe_number(dataList[i], 'positionCost'),
+                })
+            return fees
+        else:
+            raise NotSupported(self.id + ' fetchFundingHistory() supports linear and inverse contracts only')
 
     def parse_ticker(self, ticker, market=None):
         #

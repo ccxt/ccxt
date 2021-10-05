@@ -94,6 +94,7 @@ module.exports = class latoken extends Exchange {
             },
             'commonCurrencies': {
                 'MT': 'Monarch',
+                'TPAY': 'Tetra Pay',
                 'TSL': 'Treasure SL',
             },
             'options': {

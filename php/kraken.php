@@ -39,6 +39,7 @@ class kraken extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => true,
                 'fetchMarkets' => true,
@@ -224,11 +225,15 @@ class kraken extends Exchange {
                 'REP' => 'REPV1',
             ),
             'options' => array(
-                'cacheDepositMethodsOnFetchDepositAddress' => true, // will issue up to two calls in fetchDepositAddress
-                'depositMethods' => array(),
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
+                'networks' => array(
+                    'ETH' => 'Tether USD (ERC20)',
+                    'ERC20' => 'Tether USD (ERC20)',
+                    'TRX' => 'Tether USD (TRC20)',
+                    'TRC20' => 'Tether USD (TRC20)',
+                ),
             ),
             'exceptions' => array(
                 'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
@@ -1692,6 +1697,12 @@ class kraken extends Exchange {
         $request = array(
             'new' => 'true',
         );
+        if (($code === 'USDT') && (is_array($params) && array_key_exists('network', $params))) {
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network');
+            $request['method'] = $this->safe_string($networks, $network, $network);
+            $params = $this->omit($params, 'network');
+        }
         $response = $this->fetch_deposit_address($code, array_merge($request, $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
@@ -1705,23 +1716,16 @@ class kraken extends Exchange {
     public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
-        // eslint-disable-next-line quotes
-        $method = $this->safe_string($params, 'method');
-        if ($method === null) {
-            if ($this->options['cacheDepositMethodsOnFetchDepositAddress']) {
-                // cache depositMethods
-                if (!(is_array($this->options['depositMethods']) && array_key_exists($code, $this->options['depositMethods']))) {
-                    $this->options['depositMethods'][$code] = $this->fetch_deposit_methods($code);
-                }
-                $method = $this->options['depositMethods'][$code][0]['method'];
-            } else {
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an extra `$method` parameter. Use fetchDepositMethods ("' . $code . '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true');
-            }
-        }
         $request = array(
             'asset' => $currency['id'],
-            'method' => $method,
         );
+        // USDT is the only $currency with multiple $networks on kraken, you may check
+        if (($code === 'USDT') && (is_array($params) && array_key_exists('network', $params))) {
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network');
+            $request['method'] = $this->safe_string($networks, $network, $network);
+            $params = $this->omit($params, 'network');
+        }
         $response = $this->privatePostDepositAddresses (array_merge($request, $params)); // overwrite methods
         $result = $response['result'];
         $numResults = is_array($result) ? count($result) : 0;

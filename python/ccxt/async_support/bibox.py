@@ -230,6 +230,12 @@ class bibox(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            type = 'spot'
+            spot = True
+            areaId = self.safe_integer(market, 'area_id')
+            if areaId == 16:
+                type = None
+                spot = False
             precision = {
                 'amount': self.safe_number(market, 'amount_scale'),
                 'price': self.safe_number(market, 'decimal'),
@@ -242,13 +248,15 @@ class bibox(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
+                'spot': spot,
                 'active': True,
                 'info': market,
                 'precision': precision,
                 'limits': {
                     'amount': {
                         'min': math.pow(10, -precision['amount']),
-                        'max': 1000000,
+                        'max': None,
                     },
                     'price': {
                         'min': math.pow(10, -precision['price']),

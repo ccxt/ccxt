@@ -65,8 +65,10 @@ class ftx(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': None,
-                'fetchFundingRate': False,
-                'fetchFundingRates': False,
+                'fetchFundingRate': None,
+                'fetchFundingHistory': True,
+                'fetchFundingRateHistory': True,
+                'fetchFundingRates': None,
                 'fetchIndexOHLCV': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -77,6 +79,7 @@ class ftx(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -982,6 +985,45 @@ class ftx(Exchange):
             'maker': self.safe_number(result, 'makerFee'),
             'taker': self.safe_number(result, 'takerFee'),
         }
+
+    async def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
+        #
+        # Gets a history of funding rates with their timestamps
+        #  (param) symbol: Future currency pair(e.g. "BTC-PERP")
+        #  (param) limit: Not used by ftx
+        #  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        #  return: [{symbol, fundingRate, timestamp}]
+        #
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'future': market['id'],
+        }
+        if since is not None:
+            request['start_time'] = since / 1000
+        method = 'publicGetFundingRates'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #        "success": True,
+        #        "result": [
+        #          {
+        #            "future": "BTC-PERP",
+        #            "rate": 0.0025,
+        #            "time": "2019-06-02T08:00:00+00:00"
+        #          }
+        #        ]
+        #      }
+        #
+        result = self.safe_value(response, 'result')
+        rates = []
+        for i in range(0, len(result)):
+            rates.append({
+                'symbol': self.safe_string(result[i], 'future'),
+                'fundingRate': self.safe_number(result[i], 'rate'),
+                'timestamp': self.parse8601(self.safe_string(result[i], 'time')),
+            })
+        return self.sort_by(rates, 'timestamp')
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

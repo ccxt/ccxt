@@ -55,6 +55,7 @@ class kraken(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchLedgerEntry': True,
                 'fetchMarkets': True,
@@ -240,11 +241,15 @@ class kraken(Exchange):
                 'REP': 'REPV1',
             },
             'options': {
-                'cacheDepositMethodsOnFetchDepositAddress': True,  # will issue up to two calls in fetchDepositAddress
-                'depositMethods': {},
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
+                'networks': {
+                    'ETH': 'Tether USD(ERC20)',
+                    'ERC20': 'Tether USD(ERC20)',
+                    'TRX': 'Tether USD(TRC20)',
+                    'TRC20': 'Tether USD(TRC20)',
+                },
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
@@ -1581,6 +1586,11 @@ class kraken(Exchange):
         request = {
             'new': 'true',
         }
+        if (code == 'USDT') and ('network' in params):
+            networks = self.safe_value(self.options, 'networks', {})
+            network = self.safe_string_upper(params, 'network')
+            request['method'] = self.safe_string(networks, network, network)
+            params = self.omit(params, 'network')
         response = await self.fetch_deposit_address(code, self.extend(request, params))
         address = self.safe_string(response, 'address')
         self.check_address(address)
@@ -1593,20 +1603,15 @@ class kraken(Exchange):
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        # eslint-disable-next-line quotes
-        method = self.safe_string(params, 'method')
-        if method is None:
-            if self.options['cacheDepositMethodsOnFetchDepositAddress']:
-                # cache depositMethods
-                if not (code in self.options['depositMethods']):
-                    self.options['depositMethods'][code] = await self.fetch_deposit_methods(code)
-                method = self.options['depositMethods'][code][0]['method']
-            else:
-                raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = True')
         request = {
             'asset': currency['id'],
-            'method': method,
         }
+        # USDT is the only currency with multiple networks on kraken, you may check
+        if (code == 'USDT') and ('network' in params):
+            networks = self.safe_value(self.options, 'networks', {})
+            network = self.safe_string_upper(params, 'network')
+            request['method'] = self.safe_string(networks, network, network)
+            params = self.omit(params, 'network')
         response = await self.privatePostDepositAddresses(self.extend(request, params))  # overwrite methods
         result = response['result']
         numResults = len(result)

@@ -218,6 +218,17 @@ class stex extends Exchange {
             ),
             'options' => array(
                 'parseOrderToPrecision' => false,
+                'networks' => array(
+                    'ERC20' => 5,
+                    'ETH' => 5,
+                    'OMNI' => 10,
+                    'XLM' => 20,
+                    'BEP2' => 22,
+                    'TRC20' => 24,
+                    'TRX' => 24,
+                    'SOL' => 25,
+                    'BEP20' => 501,
+                ),
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -1706,6 +1717,13 @@ class stex extends Exchange {
         );
         if ($tag !== null) {
             $request['additional_address_parameter'] = $tag;
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_integer($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['protocol_id'] = $network;
+            $params = $this->omit($params, 'network');
         }
         $response = $this->profilePostWithdraw (array_merge($request, $params));
         //

@@ -209,6 +209,13 @@ module.exports = class bibox extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            let type = 'spot';
+            let spot = true;
+            const areaId = this.safeInteger (market, 'area_id');
+            if (areaId === 16) {
+                type = undefined;
+                spot = false;
+            }
             const precision = {
                 'amount': this.safeNumber (market, 'amount_scale'),
                 'price': this.safeNumber (market, 'decimal'),
@@ -221,13 +228,15 @@ module.exports = class bibox extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
+                'spot': spot,
                 'active': true,
                 'info': market,
                 'precision': precision,
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -precision['amount']),
-                        'max': 1000000,
+                        'max': undefined,
                     },
                     'price': {
                         'min': Math.pow (10, -precision['price']),
