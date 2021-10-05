@@ -66,6 +66,7 @@ class ftx(Exchange):
                 'fetchDeposits': True,
                 'fetchFundingFees': None,
                 'fetchFundingRate': None,
+                'fetchFundingHistory': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': None,
                 'fetchIndexOHLCV': True,
