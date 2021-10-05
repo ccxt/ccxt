@@ -1814,9 +1814,11 @@ module.exports = class aax extends Exchange {
         //
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString (depositAddress, 'tag');
-        const rawCurrencyId = this.safeString (depositAddress, 'currency');
-        const network = this.safeString (depositAddress, 'network', '');
-        const currencyId = rawCurrencyId.slice (network.length);
+        let currencyId = this.safeString (depositAddress, 'currency');
+        const network = this.safeString (depositAddress, 'network');
+        if (network !== undefined) {
+            currencyId = currencyId.replace (network, '');
+        }
         const code = this.safeCurrencyCode (currencyId);
         return {
             'info': depositAddress,
