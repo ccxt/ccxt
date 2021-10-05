@@ -1028,15 +1028,14 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result');
         const rates = [];
-        const length = result.length - 1;
-        for (let i = length; i >= 0; i--) {
+        for (let i = 0; i < result.length; i++) {
             rates.push ({
                 'symbol': this.safeString (result[i], 'future'),
                 'fundingRate': this.safeNumber (result[i], 'rate'),
                 'timestamp': this.parse8601 (this.safeString (result[i], 'time')),
             });
         }
-        return rates;
+        return this.sortBy (rates, 'timestamp');
     }
 
     async fetchBalance (params = {}) {
