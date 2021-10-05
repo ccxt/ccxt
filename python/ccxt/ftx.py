@@ -78,6 +78,7 @@ class ftx(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,

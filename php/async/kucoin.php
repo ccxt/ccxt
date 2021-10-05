@@ -46,6 +46,7 @@ class kucoin extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,

@@ -50,6 +50,7 @@ class coinbase(Exchange):
                 'fetchOrder': None,
                 'fetchOrderBook': None,
                 'fetchOrders': None,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': None,
                 'fetchTime': True,

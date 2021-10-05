@@ -53,6 +53,7 @@ class deribit(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': None,
                 'fetchOrderTrades': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,

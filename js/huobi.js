@@ -42,6 +42,7 @@ module.exports = class huobi extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,

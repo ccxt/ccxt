@@ -155,6 +155,12 @@ class probit(Exchange):
                     'limit': 'gtc',
                     'market': 'ioc',
                 },
+                'networks': {
+                    'BEP20': 'BSC',
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRON',
+                    'TRX': 'TRON',
+                },
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
@@ -1053,6 +1059,12 @@ class probit(Exchange):
             # whether the amount field includes fees
             # 'include_fee': False,  # makes sense only when fee_currency_id is equal to currency_id
         }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['platform_id'] = network
+            params = self.omit(params, 'network')
         response = self.privatePostWithdrawal(self.extend(request, params))
         data = self.safe_value(response, 'data')
         return self.parse_transaction(data, currency)

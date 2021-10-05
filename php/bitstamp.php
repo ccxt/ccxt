@@ -41,6 +41,7 @@ class bitstamp extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,

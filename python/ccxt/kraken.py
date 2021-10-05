@@ -55,6 +55,7 @@ class kraken(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchLedgerEntry': True,
                 'fetchMarkets': True,

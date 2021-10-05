@@ -64,6 +64,7 @@ class binance(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,

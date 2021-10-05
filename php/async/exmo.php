@@ -10,7 +10,6 @@ use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\InvalidOrder;
-use \ccxt\NotSupported;
 use \ccxt\Precise;
 
 class exmo extends Exchange {
@@ -154,6 +153,12 @@ class exmo extends Exchange {
                     'percentage' => false, // fixed funding fees for crypto, see fetchFundingFees below
                 ),
             ),
+            'options' => array(
+                'networks' => array(
+                    'ETH' => 'ERC20',
+                    'TRX' => 'TRC20',
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     '40005' => '\\ccxt\\AuthenticationError', // Authorization error, incorrect signature
@@ -183,33 +188,10 @@ class exmo extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
-        if ($this->options['useWebapiForFetchingFees']) {
-            $response = yield $this->webGetEnDocsFees ($params);
-            $parts = explode('<td class="th_fees_2" colspan="2">', $response);
-            $numParts = is_array($parts) ? count($parts) : 0;
-            if ($numParts !== 2) {
-                throw new NotSupported($this->id . ' fetchTradingFees format has changed');
-            }
-            $rest = $parts[1];
-            $parts = explode('</td>', $rest);
-            $numParts = is_array($parts) ? count($parts) : 0;
-            if ($numParts < 2) {
-                throw new NotSupported($this->id . ' fetchTradingFees format has changed');
-            }
-            $fee = floatval(str_replace('%', '', $parts[0])) * 0.01;
-            $taker = $fee;
-            $maker = $fee;
-            return array(
-                // 'info' => $response,
-                'maker' => $maker,
-                'taker' => $taker,
-            );
-        } else {
-            return array(
-                'maker' => $this->fees['trading']['maker'],
-                'taker' => $this->fees['trading']['taker'],
-            );
-        }
+        return array(
+            'maker' => $this->fees['trading']['maker'],
+            'taker' => $this->fees['trading']['taker'],
+        );
     }
 
     public function parse_fixed_float_value($input) {
@@ -1202,6 +1184,13 @@ class exmo extends Exchange {
         );
         if ($tag !== null) {
             $request['invoice'] = $tag;
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['transport'] = $network;
+            $params = $this->omit($params, 'network');
         }
         $response = yield $this->privatePostWithdrawCrypt (array_merge($request, $params));
         return array(

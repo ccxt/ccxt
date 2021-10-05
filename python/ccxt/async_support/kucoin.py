@@ -58,6 +58,7 @@ class kucoin(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
