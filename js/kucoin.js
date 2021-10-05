@@ -641,6 +641,7 @@ module.exports = class kucoin extends Exchange {
             const method = 'futuresPrivateGetFundingHistory';
             const response = await this[method] (this.extend (request, params));
             // {
+            //  "data": {
             //     "dataList": [
             //       {
             //         "id": 36275152660006,                // id
@@ -653,8 +654,10 @@ module.exports = class kucoin extends Exchange {
             //         "funding": -0.00000464,              // Settled funding fees. A positive number means that the user received the funding fee, and vice versa.
             //         "settleCurrency": "XBT"              // Settlement currency
             //       },
+            //  }
             // }
-            const dataList = this.safeValue (response, 'dataList');
+            const data = this.safeValue (response, 'data');
+            const dataList = this.safeValue (data, 'dataList');
             const fees = [];
             for (let i = 0; i < dataList.length; i++) {
                 const timestamp = this.safeInteger (dataList[i], 'timePoint');
