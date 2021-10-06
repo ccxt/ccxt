@@ -1163,6 +1163,43 @@ module.exports = class gateio extends Exchange {
         };
     }
 
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        // let defaultType = 'future';
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires the argument "symbol"');
+        }
+        const market = this.market (symbol);
+        const request = this.prepareRequest (market);
+        request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const method = this.getSupportedMapping (market['type'], {
+            'swap': 'privateFuturesGetSettleAccountBook',
+            'futures': 'privateDeliveryGetSettleAccountBook',
+        });
+        const response = await this[method] (this.extend (request, params));
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const timestamp = Precise.stringMul (entry['time'], '1000');
+            result.push ({
+                'info': entry,
+                'symbol': symbol,
+                'code': this.safeCurrencyCode (entry['text']),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': undefined,
+                'amount': entry['change'],
+            });
+        }
+        return result;
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
