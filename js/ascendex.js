@@ -40,6 +40,9 @@ module.exports = class ascendex extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
+                'fetchPositions': true,
+                'setLeverage': true,
+                'setMarginMode': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -124,6 +127,8 @@ module.exports = class ascendex extends Exchange {
                     'post': [
                         'futures/transfer/deposit',
                         'futures/transfer/withdraw',
+                        'futures/leverage',
+                        'futures/margin-type',
                     ],
                 },
                 'private': {
@@ -1535,6 +1540,62 @@ module.exports = class ascendex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const transactions = this.safeValue (data, 'data', []);
         return this.parseTransactions (transactions, currency, since, limit);
+    }
+
+    async fetchPositions (params = {}) {
+        await this.loadAccounts ();
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeString (account, 'id');
+        const request = {
+            'account-group': accountGroup,
+        };
+        const method = 'accountGroupGetFuturesPosition';
+        const response = await this[method] (this.extend (request, params));
+        return response;
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 125');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        let method = undefined;
+        if (market['type'] === 'future') {
+            method = 'accountGroupPostFuturesLeverage';
+        } else {
+            throw new BadRequest (this.id + ' setLeverage() supports futures contracts only');
+        }
+        return await this[method] (this.extend (request, params));
+    }
+
+    async setMarginMode (symbol = undefined, marginType, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        if (marginType !== 'isolated' && marginType !== 'crossed') {
+            throw new BadRequest (this.id + ' marginType should be isolated or crossed');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'marginType': marginType,
+        };
+        let method = undefined;
+        if (market['type'] === 'future') {
+            method = 'accountGroupPostFuturesMarginType';
+        } else {
+            throw new BadRequest (this.id + ' setMarginMode() supports futures contracts only');
+        }
+        return await this[method] (this.extend (request, params));
     }
 
     parseTransactionStatus (status) {
