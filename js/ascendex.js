@@ -1597,10 +1597,8 @@ module.exports = class ascendex extends Exchange {
             'symbol': market['id'],
             'marginType': marginType,
         };
-        let method = undefined;
-        if (market['type'] === 'future') {
-            method = 'accountGroupPostFuturesMarginType';
-        } else {
+        const method = this.accountGroupPostFuturesMarginType;
+        if (market['type'] !== 'future') {
             throw new BadRequest (this.id + ' setMarginMode() supports futures contracts only');
         }
         return await this[method] (this.extend (request, params));
