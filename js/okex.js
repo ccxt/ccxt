@@ -29,6 +29,7 @@ module.exports = class okex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressByNetwork': true,
                 'fetchDeposits': true,
+                'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
@@ -1246,6 +1247,54 @@ module.exports = class okex extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchFundingRateHistory (symbol, limit = undefined, since = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instId': market['id'],
+        };
+        if (since !== undefined) {
+            request['after'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const method = 'publicGetPublicFundingRateHistory';
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //      "code":"0",
+        //      "msg":"",
+        //      "data":[
+        //          {
+        //              "instType":"SWAP",
+        //              "instId":"BTC-USDT-SWAP",
+        //              "fundingRate":"0.018",
+        //              "realizedRate":"0.017",
+        //              "fundingTime":"1597026383085"
+        //          },
+        //          {
+        //              "instType":"SWAP",
+        //              "instId":"BTC-USDT-SWAP",
+        //              "fundingRate":"0.018",
+        //              "realizedRate":"0.017",
+        //              "fundingTime":"1597026383085"
+        //          }
+        //      ]
+        //  }
+        //
+        const rates = [];
+        const data = this.safeValue (response, 'data');
+        for (let i = 0; i < data.length; i++) {
+            rates.push ({
+                'symbol': this.safeString (data[i], 'instId'),
+                'fundingRate': this.safeNumber (data[i], 'realizedRate'),
+                'timestamp': this.safeNumber (data[i], 'fundingTime'),
+            });
+        }
+        return rates;
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
