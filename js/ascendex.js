@@ -1562,8 +1562,12 @@ module.exports = class ascendex extends Exchange {
             throw new BadRequest (this.id + ' leverage should be between 1 and 125');
         }
         await this.loadMarkets ();
+        await this.loadAccounts ();
         const market = this.market (symbol);
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeString (account, 'id');
         const request = {
+            'account-group': accountGroup,
             'symbol': market['id'],
             'leverage': leverage,
         };
@@ -1584,8 +1588,12 @@ module.exports = class ascendex extends Exchange {
             throw new BadRequest (this.id + ' marginType should be isolated or crossed');
         }
         await this.loadMarkets ();
+        await this.loadAccounts ();
         const market = this.market (symbol);
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeString (account, 'id');
         const request = {
+            'account-group': accountGroup,
             'symbol': market['id'],
             'marginType': marginType,
         };
@@ -1666,13 +1674,16 @@ module.exports = class ascendex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '';
         let query = params;
+        const V2_API_ROUTE = ['futures/position', 'futures/margin-type', 'futures/leverage'];
+        const isV2Route = V2_API_ROUTE.includes (path);
         const accountCategory = (api === 'accountCategory');
         if (accountCategory || (api === 'accountGroup')) {
             url += this.implodeParams ('/{account-group}', params);
             query = this.omit (params, 'account-group');
         }
         const request = this.implodeParams (path, query);
-        url += '/api/pro/' + this.version;
+        const fixedVersion = isV2Route ? 'v2' : this.version;
+        url += '/api/pro/' + fixedVersion;
         if (accountCategory) {
             url += this.implodeParams ('/{account-category}', query);
             query = this.omit (query, 'account-category');
@@ -1686,7 +1697,8 @@ module.exports = class ascendex extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
-            const payload = timestamp + '+' + request;
+            const fixedRequest = isV2Route ? `v2/${request}` : request;
+            const payload = timestamp + '+' + fixedRequest;
             const hmac = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'x-auth-key': this.apiKey,
