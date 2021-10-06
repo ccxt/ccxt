@@ -45,6 +45,7 @@ module.exports = class huobi extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
@@ -317,6 +318,12 @@ module.exports = class huobi extends Exchange {
                 'BIFI': 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        const method = 'publicGetCommonTimestamp';
+        const response = await this[method] (params);
+        return this.safeInteger (response, 'data');
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {
