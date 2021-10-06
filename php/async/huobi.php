@@ -50,6 +50,7 @@ class huobi extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingLimits' => true,
                 'fetchWithdrawals' => true,
@@ -322,6 +323,11 @@ class huobi extends Exchange {
                 'BIFI' => 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             ),
         ));
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = yield $this->publicGetCommonTimestamp ($params);
+        return $this->safe_integer($response, 'data');
     }
 
     public function fetch_trading_limits($symbols = null, $params = array ()) {
