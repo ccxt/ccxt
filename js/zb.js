@@ -714,6 +714,7 @@ module.exports = class zb extends Exchange {
         if (type !== 'limit') {
             throw new InvalidOrder (this.id + ' allows limit orders only');
         }
+        this.checkSide (side);
         await this.loadMarkets ();
         const request = {
             'price': this.priceToPrecision (symbol, price),

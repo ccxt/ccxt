@@ -851,6 +851,7 @@ module.exports = class wavesexchange extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
+        this.checkSide (side);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const matcherPublicKey = await this.getMatcherPublicKey ();

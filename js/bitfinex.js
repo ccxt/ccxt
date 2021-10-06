@@ -794,6 +794,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
         await this.loadMarkets ();
         const request = {
             'symbol': this.marketId (symbol),

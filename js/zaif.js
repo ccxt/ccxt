@@ -319,6 +319,7 @@ module.exports = class zaif extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
         await this.loadMarkets ();
         if (type !== 'limit') {
             throw new ExchangeError (this.id + ' allows limit orders only');

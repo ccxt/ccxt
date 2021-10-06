@@ -3306,4 +3306,10 @@ class Exchange {
         }
         return array( $tag, $params );
     }
+
+    public function check_side($side) {
+        if (($side !== 'buy') && ($side !== 'sell')) {
+            throw new InvalidOrder($this->id . ' createOrder invalid side, must be either buy or sell');
+        }
+    }
 }

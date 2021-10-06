@@ -404,6 +404,7 @@ module.exports = class bitso extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
         await this.loadMarkets ();
         const request = {
             'book': this.marketId (symbol),

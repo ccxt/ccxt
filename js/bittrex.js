@@ -734,6 +734,7 @@ module.exports = class bittrex extends Exchange {
         // the amount of quote currency you want to spend (or receive, if selling)
         // instead of the quantity of the market currency (e.g. buy $100 USD of BTC
         // at the current market BTC price)
+        this.checkSide (side);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();

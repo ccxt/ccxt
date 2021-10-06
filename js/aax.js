@@ -852,9 +852,10 @@ module.exports = class aax extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
+        await this.loadMarkets ();
         let orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
-        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             // 'orderType': orderType, // MARKET, LIMIT, STOP, STOP-LIMIT

@@ -607,6 +607,7 @@ module.exports = class bytetrade extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
         this.checkRequiredDependencies ();
         if (this.apiKey === undefined) {
             throw new ArgumentsRequired ('createOrder() requires this.apiKey or userid in params');

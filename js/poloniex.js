@@ -1023,6 +1023,7 @@ module.exports = class poloniex extends Exchange {
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() does not accept market orders');
         }
+        this.checkSide (side);
         await this.loadMarkets ();
         const method = 'privatePost' + this.capitalize (side);
         const market = this.market (symbol);

@@ -557,6 +557,7 @@ module.exports = class cex extends Exchange {
                 }
             }
         }
+        this.checkSide (side);
         await this.loadMarkets ();
         const request = {
             'pair': this.marketId (symbol),

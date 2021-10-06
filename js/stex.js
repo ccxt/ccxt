@@ -994,6 +994,7 @@ module.exports = class stex extends Exchange {
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder allows limit orders only');
         }
+        this.checkSide (side);
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (type === 'limit') {

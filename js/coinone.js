@@ -343,6 +343,7 @@ module.exports = class coinone extends Exchange {
         if (type !== 'limit') {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
+        this.checkSide (side);
         await this.loadMarkets ();
         const request = {
             'price': price,

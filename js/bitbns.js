@@ -500,6 +500,7 @@ module.exports = class bitbns extends Exchange {
         if (type !== 'limit') {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
+        this.checkSide (side);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

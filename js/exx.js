@@ -320,6 +320,7 @@ module.exports = class exx extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkSide (side);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

@@ -205,6 +205,7 @@ module.exports = class bitstamp1 extends Exchange {
         if (symbol !== 'BTC/USD') {
             throw new ExchangeError (this.id + ' v1 supports BTC/USD orders only');
         }
+        this.checkSide (side);
         await this.loadMarkets ();
         const method = 'privatePost' + this.capitalize (side);
         const request = {

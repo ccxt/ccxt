@@ -19,6 +19,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import InvalidOrder
 
 # -----------------------------------------------------------------------------
 
@@ -2483,3 +2484,7 @@ class Exchange(object):
         if tag is None:
             tag = self.safe_string(params, 'tag')
         return [tag, params]
+
+    def check_side(self, side):
+        if side != 'buy' and side != 'sell':
+            raise InvalidOrder(self.id + ' createOrder invalid side, must be either buy or sell')
