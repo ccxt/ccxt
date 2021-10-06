@@ -321,8 +321,7 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const method = 'publicGetCommonTimestamp';
-        const response = await this[method] (params);
+        const response = await this.publicGetCommonTimestamp (params);
         return this.safeInteger (response, 'data');
     }
 
