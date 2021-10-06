@@ -1554,7 +1554,7 @@ module.exports = class ascendex extends Exchange {
         return response;
     }
 
-    async setLeverage (leverage, symbol = undefined, params = {}) {
+    async setLeverage (leverage = 1, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -1580,7 +1580,7 @@ module.exports = class ascendex extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async setMarginMode (symbol = undefined, marginType, params = {}) {
+    async setMarginMode (symbol = undefined, marginType = '', params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -1695,7 +1695,7 @@ module.exports = class ascendex extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
-            const fixedRequest = isV2Route ? `v2/${request}` : request;
+            const fixedRequest = isV2Route ? 'v2' + request : request;
             const payload = timestamp + '+' + fixedRequest;
             const hmac = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers = {
