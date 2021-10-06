@@ -21,7 +21,7 @@ module.exports = class bitzlato extends Exchange {
                 // 'cancelAllOrders': true,
                 // 'cancelOrder': true,
                 // 'cancelOrders': undefined,
-                // 'CORS': undefined,
+                'CORS': true,
                 // 'createOrder': true,
                 // 'createLimitOrder': true,
                 // 'createMarketOrder': true,
@@ -31,13 +31,13 @@ module.exports = class bitzlato extends Exchange {
                 // 'fetchBalance': true,
                 // 'fetchBidsAsks': undefined,
                 // 'fetchClosedOrders': undefined,
-                // 'fetchCurrencies': undefined,
+                'fetchCurrencies': true,
                 // 'fetchDepositAddress': undefined,
                 // 'fetchDeposits': undefined,
                 // 'fetchFundingFees': undefined,
                 // 'fetchL2OrderBook': true,
                 // 'fetchLedger': undefined,
-                // 'fetchMarkets': true,
+                'fetchMarkets': true,
                 // 'fetchMyTrades': undefined,
                 // 'fetchOHLCV': 'emulated',
                 // 'fetchOpenOrders': undefined,
@@ -46,7 +46,7 @@ module.exports = class bitzlato extends Exchange {
                 // 'fetchOrderBooks': undefined,
                 // 'fetchOrders': undefined,
                 // 'fetchOrderTrades': undefined,
-                // 'fetchStatus': 'emulated',
+                'fetchStatus': true,
                 // 'fetchTicker': true,
                 // 'fetchTickers': undefined,
                 'fetchTime': true,
@@ -90,11 +90,15 @@ module.exports = class bitzlato extends Exchange {
                 ],
                 'fees': '',
             },
+            'requiredCredentials': {
+                'apiKey': true,
+            },
             'api': {
                 'public': {
                     'get': [
                         'withdraw_limits',
                         'trading_fees',
+                        'health/ready',
                         'timestamp',
                         'member-levels',
                         'markets/{market}/tickers',
@@ -155,37 +159,47 @@ module.exports = class bitzlato extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'feeSide': 'get',
-                    'percentage': true,
-                    'tierBased': true,
                     'maker': this.parseNumber ('0.002'),
                     'taker': this.parseNumber ('0.002'),
-                    'tiers': {
-                        'taker': [
-                            [this.parseNumber ('1'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('2'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('3'), this.parseNumber ('0.0018')],
-                            [this.parseNumber ('4'), this.parseNumber ('0.0016')],
-                            [this.parseNumber ('5'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('6'), this.parseNumber ('0.0')],
-                        ],
-                        'maker': [
-                            [this.parseNumber ('1'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('2'), this.parseNumber ('0.001')],
-                            [this.parseNumber ('3'), this.parseNumber ('0.0008')],
-                            [this.parseNumber ('4'), this.parseNumber ('0.0006')],
-                            [this.parseNumber ('5'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('6'), this.parseNumber ('0.0')],
-                        ],
-                    },
+                    'percentage': true,
+                    // 'feeSide': 'get',
+                    // 'tierBased': true,
+                    // 'tiers': {
+                    //     'taker': [
+                    //         [this.parseNumber ('1'), this.parseNumber ('0.002')],
+                    //         [this.parseNumber ('2'), this.parseNumber ('0.002')],
+                    //         [this.parseNumber ('3'), this.parseNumber ('0.0018')],
+                    //         [this.parseNumber ('4'), this.parseNumber ('0.0016')],
+                    //         [this.parseNumber ('5'), this.parseNumber ('0.002')],
+                    //         [this.parseNumber ('6'), this.parseNumber ('0.0')],
+                    //     ],
+                    //     'maker': [
+                    //         [this.parseNumber ('1'), this.parseNumber ('0.002')],
+                    //         [this.parseNumber ('2'), this.parseNumber ('0.001')],
+                    //         [this.parseNumber ('3'), this.parseNumber ('0.0008')],
+                    //         [this.parseNumber ('4'), this.parseNumber ('0.0006')],
+                    //         [this.parseNumber ('5'), this.parseNumber ('0.002')],
+                    //         [this.parseNumber ('6'), this.parseNumber ('0.0')],
+                    //     ],
+                    // },
                 },
                 'funding': {
                     'withdraw': {},
                 },
             },
+            'commonCurrencies': {
+                'BNB-BEP20': 'BNB',
+                'MCR-ERC20': 'MCR',
+                'MDT-ERC20': 'MDT',
+                'USDC-ERC20': 'USDC',
+                'USDT-ERC20': 'USDT',
+            },
             'options': {
-              'defaultType': 'spot',
-              'timeDifference': 0,
+                'fetchMarkets': 'spot',
+                'currencyType': [
+                    'fiat',
+                    'coin',
+                ],
             },
             'exceptions': {
                 'exact': {
@@ -197,25 +211,148 @@ module.exports = class bitzlato extends Exchange {
     }
 
     async fetchTime (params = {}) {
-      const response = await this.publicGetTimestamp (params);
-      //  "\"2021-10-05T12:34:56+00:00\""
-      const parsed = JSON.parse (response);
-      return this.parse8601 (parsed);
-    }
-
-    isFiat (code) {
-    }
-
-    getCurrencyId (code) {
+        const response = await this.publicGetTimestamp (params);
+        //  "\"2021-10-05T12:34:56+00:00\""
+        const parsed = JSON.parse (response);
+        return this.parse8601 (parsed);
     }
 
     async fetchStatus (params = {}) {
+        const response = await this.publicGetHealthReady (params);
+        // 200
+        let status = JSON.parse (response);
+        status = (status === 200) ? 'ok' : 'maintenance';
+        this.status = {
+            'status': status,
+            'updated': this.milliseconds (),
+        };
+        return this.status;
     }
 
     async fetchMarkets (params = {}) {
+        const defaultType = this.safeString (this.options, 'fetchMarkets', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const limit = this.safeNumber (params, 'limit', 500);
+        params = this.omit (params, [ 'type', 'limit' ]);
+        const request = {
+            'type': type,
+            'limit': limit,
+        };
+        const response = await this.publicGetMarkets (this.extend (request, params));
+        // [
+        //   {
+        //     "id": "btc_usdterc20",
+        //     "symbol": "btc_usdterc20",
+        //     "name": "BTC/USDT-ERC20",
+        //     "type": "spot",
+        //     "base_unit": "btc",
+        //     "quote_unit": "usdt-erc20",
+        //     "min_price": "20000.0",
+        //     "max_price": "0.0",
+        //     "min_amount": "0.0003",
+        //     "amount_precision": 4,
+        //     "price_precision": 4,
+        //     "state": "enabled"
+        //   },
+        //   ...
+        if (!this.isArray (response)) {
+            return [];
+        }
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const id = this.safeString (market, 'id');
+            const baseId = this.safeString (market, 'base_unit');
+            const quoteId = this.safeString (market, 'quote_unit');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const active = (market['state'] === 'enabled');
+            const symbol = base + '/' + quote;
+            const minPrice = this.safeInteger (market, 'min_price');
+            const maxPrice = this.safeInteger (market, 'max_price');
+            const type = this.safeString (market, 'type');
+            const spot = (type === 'spot');
+            const precision = {
+                'amount': this.safeInteger (market, 'amount_precision'),
+                'price': this.safeInteger (market, 'price_precision'),
+            };
+            const limits = {
+                'amount': {
+                    'min': this.safeInteger (market, 'min_amount'),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': (minPrice === 0) ? undefined : minPrice,
+                    'max': (maxPrice === 0) ? undefined : maxPrice,
+                },
+            };
+            const entry = {
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'taker': this.fees['trading']['taker'],
+                'maker': this.fees['trading']['maker'],
+                'percentage': this.fees['trading']['percentage'],
+                'spot': spot,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            };
+            result.push (entry);
+        }
+        return result;
     }
 
     async fetchCurrencies (params = {}) {
+        const limit = this.safeInteger (params, 'limit', 500);
+        params = this.omit (params, 'limit');
+        const request = {
+            'limit': limit,
+        };
+        const response = await this.publicGetCurrencies(this.extend (request, params));
+        if (!this.isArray(response)) {
+            return {};
+        }
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'id');
+            const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
+            const fee = this.safeNumber (currency, 'withdraw_fee');
+            const precision = this.safeNumber (currency, 'precision');
+            const limits = {
+                'amount': {
+                    'min': this.safeNumber (currency, 'min_deposit_amount'),
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber (currency, 'min_withdraw_amount'),
+                    'max': undefined,
+                },
+            };
+            let type = this.safeString (currency, 'type');
+            type = (type === 'fiat') ? 'fiat' : 'crypto';
+            const isDepositEnabled = this.safeValue (currency, 'deposit_enabled');
+            const isWithdrawEnabled = this.safeValue (currency, 'withdraw_enabled');
+            const active = isDepositEnabled && isWithdrawEnabled;
+            result[code] = {
+                'id': id,
+                'code': code,
+                'type': type,
+                'name': name,
+                'active': active,
+                'fee': fee,
+                'precision': precision,
+                'limits': limits,
+                'info': currency,
+            };
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
@@ -244,9 +381,42 @@ module.exports = class bitzlato extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        // [
+        //     {
+        //         'info':       { ... },                  // the original decoded JSON as is
+        //         'id':        '12345-67890:09876/54321', // string trade id
+        //         'timestamp':  1502962946216,            // Unix timestamp in milliseconds
+        //         'datetime':  '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
+        //         'symbol':    'ETH/BTC',                 // symbol
+        //         'order':     '12345-67890:09876/54321', // string order id or undefined/None/null
+        //         'type':      'limit',                   // order type, 'market', 'limit' or undefined/None/null
+        //         'side':      'buy',                     // direction of the trade, 'buy' or 'sell'
+        //         'price':      0.06917684,               // float price in quote currency
+        //         'amount':     1.5,                      // amount of base currency
+        //     },
+        //     ...
+        // ]
+    }
+
+    purseTrades() {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market,
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            const timestamp = 
+            request['timestamp'] = timestamp;
+        }
+        const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
