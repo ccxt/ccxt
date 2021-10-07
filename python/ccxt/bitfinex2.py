@@ -60,6 +60,7 @@ class bitfinex2(bitfinex):
                 'fetchOrderTrades': True,
                 'fetchStatus': True,
                 'fetchTickers': True,
+                'fetchTime': False,
                 'fetchTradingFee': None,
                 'fetchTradingFees': None,
                 'fetchTransactions': True,

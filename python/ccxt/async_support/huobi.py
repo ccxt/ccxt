@@ -60,6 +60,7 @@ class huobi(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingLimits': True,
                 'fetchWithdrawals': True,
@@ -332,6 +333,10 @@ class huobi(Exchange):
                 'BIFI': 'Bitcoin File',  # conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         })
+
+    async def fetch_time(self, params={}):
+        response = await self.publicGetCommonTimestamp(params)
+        return self.safe_integer(response, 'data')
 
     async def fetch_trading_limits(self, symbols=None, params={}):
         # self method should not be called directly, use loadTradingLimits() instead

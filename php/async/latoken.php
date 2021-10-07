@@ -97,6 +97,7 @@ class latoken extends Exchange {
             ),
             'commonCurrencies' => array(
                 'MT' => 'Monarch',
+                'TPAY' => 'Tetra Pay',
                 'TSL' => 'Treasure SL',
             ),
             'options' => array(

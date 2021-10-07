@@ -635,13 +635,13 @@ The CCXT library currently supports the following 108 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg
-          :target: https://exchange.bitcoin.com/referral/da948b21d6c92d69
+          :target: https://fmfw.io/referral/da948b21d6c92d69
           :alt: bitcoincom
      
      - bitcoincom
-     - `bitcoin.com <https://exchange.bitcoin.com/referral/da948b21d6c92d69>`__
+     - `bitcoin.com <https://fmfw.io/referral/da948b21d6c92d69>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://api.exchange.bitcoin.com/api/2/explore
+          :target: https://api.fmfw.io/api/2/explore/
           :alt: API Version 2
      
      - 
@@ -1928,14 +1928,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.57.47/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.57.47/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.57.60/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.57.60/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.57.47/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.57.60/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

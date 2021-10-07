@@ -262,7 +262,7 @@ class independentreserve(Exchange):
         remaining = self.safe_number(order, 'Outstanding')
         feeRate = self.safe_number(order, 'FeePercent')
         feeCost = None
-        if feeRate is not None:
+        if feeRate is not None and filled is not None:
             feeCost = feeRate * filled
         fee = {
             'rate': feeRate,

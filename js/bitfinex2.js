@@ -44,6 +44,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchOrderTrades': true,
                 'fetchStatus': true,
                 'fetchTickers': true,
+                'fetchTime': false,
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': undefined,
                 'fetchTransactions': true,

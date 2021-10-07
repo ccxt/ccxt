@@ -1942,6 +1942,16 @@ class binance extends Exchange {
         //       "buyer" => false
         //     }
         //
+        // array( respType => FULL )
+        //
+        //     {
+        //       "$price" => "4000.00000000",
+        //       "qty" => "1.00000000",
+        //       "commission" => "4.00000000",
+        //       "commissionAsset" => "USDT",
+        //       "tradeId" => "1234",
+        //     }
+        //
         $timestamp = $this->safe_integer_2($trade, 'T', 'time');
         $priceString = $this->safe_string_2($trade, 'p', 'price');
         $amountString = $this->safe_string_2($trade, 'q', 'qty');
@@ -1952,7 +1962,7 @@ class binance extends Exchange {
         $costString = Precise::string_mul($priceString, $amountString);
         $cost = $this->parse_number($costString);
         $id = $this->safe_string_2($trade, 't', 'a');
-        $id = $this->safe_string($trade, 'id', $id);
+        $id = $this->safe_string_2($trade, 'id', 'tradeId', $id);
         $side = null;
         $orderId = $this->safe_string($trade, 'orderId');
         if (is_array($trade) && array_key_exists('m', $trade)) {
@@ -2167,9 +2177,7 @@ class binance extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $filledString = $this->safe_string($order, 'executedQty', '0');
-        $filled = $this->parse_number($filledString);
-        $filledFloat = floatval($filledString);
+        $filled = $this->safe_string($order, 'executedQty', '0');
         $timestamp = null;
         $lastTradeTimestamp = null;
         if (is_array($order) && array_key_exists('time', $order)) {
@@ -2178,27 +2186,24 @@ class binance extends Exchange {
             $timestamp = $this->safe_integer($order, 'transactTime');
         } else if (is_array($order) && array_key_exists('updateTime', $order)) {
             if ($status === 'open') {
-                if ($filledFloat > 0) {
+                if (Precise::string_gt($filled, '0')) {
                     $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
                 } else {
                     $timestamp = $this->safe_integer($order, 'updateTime');
                 }
             }
         }
-        $averageString = $this->safe_string($order, 'avgPrice');
-        $average = $this->parse_number($this->omit_zero($averageString));
-        $priceString = $this->safe_string($order, 'price');
-        $price = $this->parse_number($this->omit_zero($priceString));
-        $amount = $this->safe_number($order, 'origQty');
+        $average = $this->safe_string($order, 'avgPrice');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'origQty');
         // - Spot/Margin $market => cummulativeQuoteQty
         // - Futures $market => cumQuote.
         //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
-        $cost = $this->safe_number_2($order, 'cummulativeQuoteQty', 'cumQuote');
+        $cost = $this->safe_string_2($order, 'cummulativeQuoteQty', 'cumQuote');
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
         $fills = $this->safe_value($order, 'fills', array());
-        $trades = $this->parse_trades($fills, $market);
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'GTX');
@@ -2207,7 +2212,7 @@ class binance extends Exchange {
         }
         $stopPriceString = $this->safe_string($order, 'stopPrice');
         $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -2228,8 +2233,8 @@ class binance extends Exchange {
             'remaining' => null,
             'status' => $status,
             'fee' => null,
-            'trades' => $trades,
-        ));
+            'trades' => $fills,
+        ), $market);
     }
 
     public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

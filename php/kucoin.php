@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
+use \ccxt\NotSupported;
 
 class kucoin extends Exchange {
 
@@ -36,6 +37,8 @@ class kucoin extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFee' => true,
+                'fetchFundingHistory' => true,
+                'fetchFundingRateHistory' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
@@ -595,6 +598,92 @@ class kucoin extends Exchange {
             'withdraw' => $withdrawFees,
             'deposit' => array(),
         );
+    }
+
+    public function is_futures_method($methodName, $params) {
+        //
+        // Helper
+        // @$methodName (string) => The name of the method
+        // @$params (dict) => The parameters passed into {$methodName}
+        // @return => true if the method used is meant for futures trading, false otherwise
+        //
+        $defaultType = $this->safe_string_2($this->options, $methodName, 'defaultType', 'trade');
+        $requestedType = $this->safe_string($params, 'type', $defaultType);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType');
+        $type = $this->safe_string($accountsByType, $requestedType);
+        if ($type === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' $type must be one of ' . implode(', ', $keys));
+        }
+        $params = $this->omit($params, 'type');
+        return ($type === 'contract') || ($type === 'futures');
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        //
+        // Private
+        // @param $symbol (string) => The pair for which the contract was traded
+        // @param $since (number) => The unix start time of the first funding payment requested
+        // @param $limit (number) => The number of results to return
+        // @param $params (dict) => Additional parameters to send to the API
+        // @param return => Data for the history of the accounts funding payments for futures contracts
+        //
+        if ($this->is_futures_method('fetchFundingHistory', $params)) {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+            }
+            $this->load_markets();
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($since !== null) {
+                $request['startAt'] = $since;
+            }
+            if ($limit !== null) {
+                $request['maxCount'] = $limit;
+            }
+            $method = 'futuresPrivateGetFundingHistory';
+            $response = $this->$method (array_merge($request, $params));
+            // {
+            //  "$data" => {
+            //     "$dataList" => [
+            //       array(
+            //         "id" => 36275152660006,                // id
+            //         "$symbol" => "XBTUSDM",                 // Symbol
+            //         "timePoint" => 1557918000000,          // Time point (milisecond)
+            //         "fundingRate" => 0.000013,             // Funding rate
+            //         "markPrice" => 8058.27,                // Mark price
+            //         "positionQty" => 10,                   // Position size
+            //         "positionCost" => -0.001241,           // Position value at settlement period
+            //         "funding" => -0.00000464,              // Settled funding $fees-> A positive number means that the user received the funding fee, and vice versa.
+            //         "settleCurrency" => "XBT"              // Settlement currency
+            //       ),
+            //  }
+            // }
+            $data = $this->safe_value($response, 'data');
+            $dataList = $this->safe_value($data, 'dataList');
+            $fees = array();
+            for ($i = 0; $i < count($dataList); $i++) {
+                $timestamp = $this->safe_integer($dataList[$i], 'timePoint');
+                $fees[] = array(
+                    'info' => $dataList[$i],
+                    'symbol' => $this->safe_symbol($dataList[$i], 'symbol'),
+                    'code' => $this->safe_currency_code($dataList[$i], 'settleCurrency'),
+                    'timestamp' => $timestamp,
+                    'datetime' => $this->iso8601($timestamp),
+                    'id' => $this->safe_number($dataList[$i], 'id'),
+                    'amount' => $this->safe_number($dataList[$i], 'funding'),
+                    'fundingRate' => $this->safe_number($dataList[$i], 'fundingRate'),
+                    'markPrice' => $this->safe_number($dataList[$i], 'markPrice'),
+                    'positionQty' => $this->safe_number($dataList[$i], 'positionQty'),
+                    'positionCost' => $this->safe_number($dataList[$i], 'positionCost'),
+                );
+            }
+            return $fees;
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingHistory() supports linear and inverse contracts only');
+        }
     }
 
     public function parse_ticker($ticker, $market = null) {

@@ -63,6 +63,7 @@ class gateio(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': False,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
                 'transfer': True,
