@@ -1106,6 +1106,37 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "count":1,
+        //                     "page":1,
+        //                     "items":[
+        //                         {
+        //                             "id":"100055558128036",
+        //                             "createdAt": 1512756997000,
+        //                             "account_type":0,
+        //                             "coin_symbol":"LTC",        // Trading Token
+        //                             "currency_symbol":"BTC",    // Pricing Token
+        //                             "order_side":2,             // Trading side 1-Buy, 2-Sell
+        //                             "order_type":2,             // 2-limit order
+        //                             "price":"0.00900000",       // order price
+        //                             "amount":"1.00000000",      // order amount
+        //                             "money":"0.00900000",       // currency amount (price * amount)
+        //                             "deal_amount":"0.00000000", // deal amount
+        //                             "deal_percent":"0.00%",     // deal percentage
+        //                             "unexecuted":"0.00000000",  // unexecuted amount
+        //                             "status":3                  // Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        //                         }
+        //                     ]
+        //                 },
+        //                 "cmd":"orderpending/pendingHistoryList"
+        //             }
+        //         ]
+        //     }
+        //
         const outerResults = this.safeValue (response, 'result');
         const firstResult = this.safeValue (outerResults, 0, {});
         const innerResult = this.safeValue (firstResult, 'result', {});
@@ -1132,9 +1163,38 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
-        const results = this.safeValue (response, 'result');
-        const outerResult = this.safeValue (results, 0, {});
-        const trades = this.safeValue (outerResult, 'items', []);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "count":1,
+        //                     "page":1,
+        //                     "items":[
+        //                         {
+        //                             "id":"100055558128033",
+        //                             "createdAt": 1512756997000,
+        //                             "account_type":0,
+        //                             "coin_symbol":"LTC",
+        //                             "currency_symbol":"BTC",
+        //                             "order_side":2,
+        //                             "order_type":2,
+        //                             "price":"0.00886500",
+        //                             "amount":"1.00000000",
+        //                             "money":"0.00886500",
+        //                             "fee":0
+        //                         }
+        //                     ]
+        //                 },
+        //                 "cmd":"orderpending/orderHistoryList"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result', {});
+        const trades = this.safeValue (innerResult, 'items', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1150,20 +1210,30 @@ module.exports = class bibox extends Exchange {
         const response = await this.privatePostTransfer (request);
         //
         //     {
-        //         "result":"3Jx6RZ9TNMsAoy9NUzBwZf68QBppDruSKW","cmd":"transfer/transferIn"
+        //         "result":[
+        //             {
+        //                 "result":"3Jx6RZ9TNMsAoy9NUzBwZf68QBppDruSKW",
+        //                 "cmd":"transfer/transferIn"
+        //             }
+        //         ]
         //     }
         //
         //     {
-        //         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
+        //         "result":[
+        //             {
+        //                 "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}",
+        //                 "cmd":"transfer/transferIn"
+        //             }
+        //         ]
         //     }
         //
-        const results = this.safeValue (response, 'result');
-        const outerResult = this.safeValue (results, 0, {});
-        const result = this.safeValue (outerResult, 'result');
-        let address = result;
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result');
+        let address = innerResult;
         let tag = undefined;
-        if (this.isJsonEncodedObject (result)) {
-            const parsed = JSON.parse (result);
+        if (this.isJsonEncodedObject (innerResult)) {
+            const parsed = JSON.parse (innerResult);
             address = this.safeString (parsed, 'account');
             tag = this.safeString (parsed, 'memo');
         }
