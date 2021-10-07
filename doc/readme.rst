@@ -68,12 +68,6 @@ Sponsored Promotion
 
 
 
-.. image:: https://user-images.githubusercontent.com/1294454/134417745-7571cd63-2221-4936-8343-3c4f809bf6b6.png
-     :target: https://bit.ly/2W3IXUV
-     :alt: BitMart – 0% trading fees!
-
-
-
 .. image:: https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png
      :target: https://ccxt.pro
      :alt: CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals
@@ -234,9 +228,9 @@ Certified Cryptocurrency Exchanges
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-     - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d100%25&color=orange
+     - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d30%25&color=orange
           :target: http://www.bitmart.com/?r=rQCFLh
-          :alt: Sign up with BitMart using CCXT's referral link for a 100% discount!
+          :alt: Sign up with BitMart using CCXT's referral link for a 30% discount!
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
           :target: https://bitvavo.com/?a=24F34952F7
@@ -1916,14 +1910,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.57.67/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.57.67/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.57.68/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.57.68/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.57.67/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.57.68/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
