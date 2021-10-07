@@ -2609,6 +2609,7 @@ module.exports = class bybit extends Exchange {
             'buy_leverage': leverage,
             'sell_leverage': leverage,
         };
+        return await this[method] (this.extend (request, params));
     }
 
     async setLeverage (leverage = undefined, symbol = undefined, params = {}) {
