@@ -706,9 +706,38 @@ module.exports = class bibox extends Exchange {
             'cmd': 'transfer/transferOutList',
             'body': this.extend (request, params),
         });
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "count":1,
+        //                     "page":1,
+        //                     "items":[
+        //                         {
+        //                             "id":612867,
+        //                             "coin_symbol":"ETH",
+        //                             "chain_type":"ETH",
+        //                             "to_address":"0xd41de7a88ab5fc59edc6669f54873576be95bff1",
+        //                             "tx_id":"0xc60950596227af3f27c3a1b5911ea1c79bae53bdce67274e48a0ce87a5ef2df8",
+        //                             "addr_remark":"binance",
+        //                             "amount":"2.34550946",
+        //                             "fee":"0.00600000",
+        //                             "createdAt":1561339330000,
+        //                             "memo":"",
+        //                             "status":3
+        //                         }
+        //                     ]
+        //                 },
+        //                 "cmd":"transfer/transferOutList"
+        //             }
+        //         ]
+        //     }
+        //
         const results = this.safeValue (response, 'result');
         const firstResult = this.safeValue (results, 0, {});
-        const withdrawals = this.safeValue (firstResult, 'items', []);
+        const result = this.safeValue (firstResult, 'result', {});
+        const withdrawals = this.safeValue (result, 'items', []);
         for (let i = 0; i < withdrawals.length; i++) {
             withdrawals[i]['type'] = 'withdrawal';
         }
@@ -1016,7 +1045,9 @@ module.exports = class bibox extends Exchange {
         //         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
         //     }
         //
-        const result = this.safeString (response, 'result');
+        const results = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (results, 0, {});
+        const result = this.safeValue (firstResult, 'result');
         let address = result;
         let tag = undefined;
         if (this.isJsonEncodedObject (result)) {
