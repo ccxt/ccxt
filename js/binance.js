@@ -726,7 +726,8 @@ module.exports = class binance extends Exchange {
                     'mainnet.theoan.com': 'AION',
                     'algoexplorer.io': 'ALGO',
                     'explorer.ambrosus.com': 'AMB',
-                    'viewblock.io': 'ZIL',
+                    'viewblock.io/zilliqa': 'ZIL',
+                    'viewblock.io/arweave': 'AR',
                     'explorer.ark.io': 'ARK',
                     'atomscan.com': 'ATOM',
                     'www.mintscan.io': 'CTK',
@@ -776,7 +777,7 @@ module.exports = class binance extends Exchange {
                     'explorer.harmony.one': 'ONE',
                     'explorer.poa.network': 'POA',
                     'qtum.info': 'QTUM',
-                    'explorer.rsk.co': 'RIF',
+                    'explorer.rsk.co': 'RSK',
                     'www.oasisscan.com': 'ROSE',
                     'ravencoin.network': 'RVN',
                     'sc.tokenview.com': 'SC',
@@ -3461,7 +3462,7 @@ module.exports = class binance extends Exchange {
             const reverseNetworks = this.safeValue (this.options, 'reverseNetworks', {});
             const parts = url.split ('/');
             let topLevel = this.safeString (parts, 2);
-            if (topLevel === 'blockchair.com') {
+            if ((topLevel === 'blockchair.com') || (topLevel === 'viewblock.io')) {
                 const subLevel = this.safeString (parts, 3);
                 if (subLevel !== undefined) {
                     topLevel = topLevel + '/' + subLevel;
