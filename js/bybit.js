@@ -2561,7 +2561,7 @@ module.exports = class bybit extends Exchange {
         }
     }
 
-    async setLeverage (leverage, symbol = undefined, params = {}) {
+    async setLeverage (leverage = undefined, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -2571,13 +2571,6 @@ module.exports = class bybit extends Exchange {
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        if ((leverage < 1) || (leverage > 100)) {
-            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
-        }
-        const request = {
-            'symbol': market['id'],
-            'leverage': leverage,
-        };
         const defaultType = this.safeString (this.options, 'defaultType', 'linear');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol, defaultType);
@@ -2591,6 +2584,31 @@ module.exports = class bybit extends Exchange {
             method = 'v2PrivatePostPositionLeverageSave';
         } else if (futures) {
             method = 'privateFuturesPostPositionLeverageSave';
+        }
+        let buy_leverage = leverage;
+        let sell_leverage = leverage;
+        if (params['buy_leverage'] && params['sell_leverage'] && linear) {
+            buy_leverage = params['buy_leverage'];
+            sell_leverage = params['sell_leverage'];
+        } else if (!leverage) {
+            if (linear) {
+                throw new ArgumentsRequired (this.id + ' setLeverage() requires either the parameter leverage or params["buy_leverage"] and params["sell_leverage"] for linear contracts');
+            } else {
+                throw new ArgumentsRequired (this.id + ' setLeverage() requires parameter leverage for inverse and futures contracts');
+            }
+        }
+        if ((buy_leverage < 1) || (buy_leverage > 100) || (sell_leverage < 1) || (sell_leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage_only': true,
+        };
+        if (!linear) {
+            request['leverage'] = buy_leverage;
+        } else {
+            request['buy_leverage'] = buy_leverage;
+            request['sell_leverage'] = sell_leverage;
         }
         return await this[method] (this.extend (request, params));
     }
