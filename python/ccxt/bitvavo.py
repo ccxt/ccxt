@@ -1113,11 +1113,11 @@ class bitvavo(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
-        remaining = self.safe_number(order, 'amountRemaining')
-        filled = self.safe_number(order, 'filledAmount')
-        cost = self.safe_number(order, 'filledAmountQuote')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'amount')
+        remaining = self.safe_string(order, 'amountRemaining')
+        filled = self.safe_string(order, 'filledAmount')
+        cost = self.safe_string(order, 'filledAmountQuote')
         fee = None
         feeCost = self.safe_number(order, 'feePaid')
         if feeCost is not None:
@@ -1128,17 +1128,11 @@ class bitvavo(Exchange):
                 'currency': feeCurrencyCode,
             }
         rawTrades = self.safe_value(order, 'fills', [])
-        trades = self.parse_trades(rawTrades, market, None, None, {
-            'symbol': symbol,
-            'order': id,
-            'side': side,
-            'type': type,
-        })
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')
         # https://github.com/ccxt/ccxt/issues/8489
         stopPrice = self.safe_number(order, 'triggerPrice')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -1159,7 +1153,7 @@ class bitvavo(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
-            'trades': trades,
+            'trades': rawTrades,
         })
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
