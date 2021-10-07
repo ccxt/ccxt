@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.57.54';
+$version = '1.57.68';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.57.54';
+    const VERSION = '1.57.68';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -111,7 +111,6 @@ class Exchange {
         'coinegg',
         'coinex',
         'coinfalcon',
-        'coinfloor',
         'coinmarketcap',
         'coinmate',
         'coinone',
@@ -2977,7 +2976,7 @@ class Exchange {
                     }
                 } else {
                     $reduced[$feeCurrencyCode] = array(
-                        'cost' => $fee['cost'],
+                        'cost' => $string ? $fee['cost'] : $this->parse_number($fee['cost']),
                         'currency' => $feeCurrencyCode,
                     );
                 }
@@ -3187,6 +3186,9 @@ class Exchange {
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees, true) : $fees;
             $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            for ($i = 0; $i < $reducedLength; $i++) {
+                $reducedFees[$i]['cost'] = $this->parse_number($reducedFees[$i]['cost']);
+            }
             if (!$parseFee && ($reducedLength === 0)) {
                 $reducedFees[] = $order['fee'];
             }

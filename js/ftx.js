@@ -61,10 +61,12 @@ module.exports = class ftx extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
+                'setMarginMode': false, // FTX only supports cross margin
                 'withdraw': true,
             },
             'timeframes': {

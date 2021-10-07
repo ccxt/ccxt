@@ -49,6 +49,7 @@ class bitfinex2 extends bitfinex {
                 'fetchOrderTrades' => true,
                 'fetchStatus' => true,
                 'fetchTickers' => true,
+                'fetchTime' => false,
                 'fetchTradingFee' => null,
                 'fetchTradingFees' => null,
                 'fetchTransactions' => true,

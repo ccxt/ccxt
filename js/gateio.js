@@ -47,6 +47,7 @@ module.exports = class gateio extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
                 'transfer': true,

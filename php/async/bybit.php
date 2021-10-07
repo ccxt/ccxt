@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\Precise;
 
 class bybit extends Exchange {
@@ -50,6 +51,8 @@ class bybit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
+                'setMarginMode' => true,
+                'setLeverage' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -2561,5 +2564,104 @@ class bybit extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
+    }
+
+    public function set_margin_mode($symbol, $marginType, $params = array (), $leverage = null) {
+        //
+        // {
+        //     "ret_code" => 0,
+        //     "ret_msg" => "ok",
+        //     "ext_code" => "",
+        //     "result" => null,
+        //     "ext_info" => null,
+        //     "time_now" => "1577477968.175013",
+        //     "rate_limit_status" => 74,
+        //     "rate_limit_reset_ms" => 1577477968183,
+        //     "rate_limit" => 75
+        // }
+        //
+        yield $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        if (!$leverage) {
+            throw new ArgumentsRequired($this->id . '.setMarginMode requires arguments $symbol, $marginType, and leverage');
+        }
+        $marginType = strtoupper($marginType);
+        if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
+            throw new BadRequest($this->id . ' $marginType must be either isolated or crossed');
+        }
+        $method = null;
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'linear');
+        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
+        $linear = (($market !== null) && ($market['linear']) || ($marketType === 'linear'));
+        $inverse = (($market !== null) && ($market['swap'] && $market['inverse']) || ($marketType === 'inverse'));
+        $futures = (($market !== null) && ($market['futures']) || ($marketType === 'futures'));
+        if ($linear) {
+            $method = 'privateLinearPostPositionSwitchIsolated';
+        } else if ($inverse) {
+            $method = 'v2PrivatePostPositionSwitchIsolated';
+        } else if ($futures) {
+            $method = 'privateFuturesPostPositionSwitchIsolated';
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'is_isolated' => $marginType === 'ISOLATED',
+            'buy_leverage' => $leverage,
+            'sell_leverage' => $leverage,
+        );
+        return yield $this->$method (array_merge($request, $params));
+    }
+
+    public function set_leverage($leverage = null, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'linear');
+        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
+        $linear = $market['linear'] || ($marketType === 'linear');
+        $inverse = ($market['swap'] && $market['inverse']) || ($marketType === 'inverse');
+        $futures = $market['futures'] || ($marketType === 'futures');
+        $method = null;
+        if ($linear) {
+            $method = 'privateLinearPostPositionSetLeverage';
+        } else if ($inverse) {
+            $method = 'v2PrivatePostPositionLeverageSave';
+        } else if ($futures) {
+            $method = 'privateFuturesPostPositionLeverageSave';
+        }
+        $buy_leverage = $leverage;
+        $sell_leverage = $leverage;
+        if ($params['buy_leverage'] && $params['sell_leverage'] && $linear) {
+            $buy_leverage = $params['buy_leverage'];
+            $sell_leverage = $params['sell_leverage'];
+        } else if (!$leverage) {
+            if ($linear) {
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires either the parameter $leverage or $params["$buy_leverage"] and $params["$sell_leverage"] for $linear contracts');
+            } else {
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires parameter $leverage for $inverse and $futures contracts');
+            }
+        }
+        if (($buy_leverage < 1) || ($buy_leverage > 100) || ($sell_leverage < 1) || ($sell_leverage > 100)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage_only' => true,
+        );
+        if (!$linear) {
+            $request['leverage'] = $buy_leverage;
+        } else {
+            $request['buy_leverage'] = $buy_leverage;
+            $request['sell_leverage'] = $sell_leverage;
+        }
+        return yield $this->$method (array_merge($request, $params));
     }
 }

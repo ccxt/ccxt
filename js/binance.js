@@ -705,6 +705,22 @@ module.exports = class binance extends Exchange {
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
                 },
+                'reverseNetworks': {
+                    'tronscan.org': 'TRC20',
+                    'etherscan.io': 'ERC20',
+                    'bscscan.com': 'BSC',
+                    'explorer.binance.org': 'BEP2',
+                    'bithomp.com': 'XRP',
+                    'bloks.io': 'EOS',
+                    'stellar.expert': 'XLM',
+                    'blockchair.com/bitcoin': 'BTC',
+                    'blockchair.com/bitcoin-cash': 'BCH',
+                    'explorer.litecoin.net': 'LTC',
+                    'explorer.avax.network': 'AVAX',
+                    'solscan.io': 'SOL',
+                    'polkadot.subscan.io': 'DOT',
+                    'dashboard.internetcomputer.org': 'ICP',
+                },
                 'legalMoney': {
                     'MXN': true,
                     'UGX': true,
@@ -3362,12 +3378,30 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const address = this.safeString (response, 'address');
-        const tag = this.safeString (response, 'tag');
+        const url = this.safeString (response, 'url');
+        let impliedNetwork = undefined;
+        if (url !== undefined) {
+            const reverseNetworks = this.safeValue (this.options, 'reverseNetworks', {});
+            const parts = url.split ('/');
+            let topLevel = this.safeString (parts, 2);
+            if (topLevel === 'blockchair.com') {
+                const subLevel = this.safeString (parts, 3);
+                if (subLevel !== undefined) {
+                    topLevel = topLevel + '/' + subLevel;
+                }
+            }
+            impliedNetwork = this.safeString (reverseNetworks, topLevel);
+        }
+        let tag = this.safeString (response, 'tag', '');
+        if (tag.length === 0) {
+            tag = undefined;
+        }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': impliedNetwork,
             'info': response,
         };
     }
@@ -3734,7 +3768,7 @@ module.exports = class binance extends Exchange {
         } else if (market['inverse']) {
             method = 'dapiPublicGetPremiumIndex';
         } else {
-            throw new NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported (this.id + ' fetchFundingRate() supports linear and inverse contracts only');
         }
         let response = await this[method] (this.extend (request, params));
         if (market['inverse']) {
@@ -3801,7 +3835,7 @@ module.exports = class binance extends Exchange {
         } else if (type === 'delivery') {
             method = 'dapiPublicGetPremiumIndex';
         } else {
-            throw new NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported (this.id + ' fetchFundingRates() supports linear and inverse contracts only');
         }
         const response = await this[method] (query);
         const result = [];
@@ -4357,7 +4391,7 @@ module.exports = class binance extends Exchange {
         } else if (market['inverse']) {
             method = 'dapiPrivatePostLeverage';
         } else {
-            throw NotSupported (this.id + ' setLeverage() supports linear and inverse contracts only');
+            throw new NotSupported (this.id + ' setLeverage() supports linear and inverse contracts only');
         }
         const request = {
             'symbol': market['id'],
@@ -4366,7 +4400,7 @@ module.exports = class binance extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async setMarginMode (symbol, marginType, params = {}) {
+    async setMarginMode (symbol, marginType, params = {}, leverage = undefined) {
         //
         // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
         //
@@ -4374,6 +4408,9 @@ module.exports = class binance extends Exchange {
         //
         // { "code": 200, "msg": "success" }
         //
+        if (leverage) { // Needed because other exchanges require this argument
+            leverage = undefined;
+        }
         marginType = marginType.toUpperCase ();
         if ((marginType !== 'ISOLATED') && (marginType !== 'CROSSED')) {
             throw new BadRequest (this.id + ' marginType must be either isolated or crossed');

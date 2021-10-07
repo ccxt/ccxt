@@ -712,6 +712,22 @@ class binance extends Exchange {
                     'OMNI' => 'OMNI',
                     'EOS' => 'EOS',
                 ),
+                'reverseNetworks' => array(
+                    'tronscan.org' => 'TRC20',
+                    'etherscan.io' => 'ERC20',
+                    'bscscan.com' => 'BSC',
+                    'explorer.binance.org' => 'BEP2',
+                    'bithomp.com' => 'XRP',
+                    'bloks.io' => 'EOS',
+                    'stellar.expert' => 'XLM',
+                    'blockchair.com/bitcoin' => 'BTC',
+                    'blockchair.com/bitcoin-cash' => 'BCH',
+                    'explorer.litecoin.net' => 'LTC',
+                    'explorer.avax.network' => 'AVAX',
+                    'solscan.io' => 'SOL',
+                    'polkadot.subscan.io' => 'DOT',
+                    'dashboard.internetcomputer.org' => 'ICP',
+                ),
                 'legalMoney' => array(
                     'MXN' => true,
                     'UGX' => true,
@@ -3364,17 +3380,35 @@ class binance extends Exchange {
         //             coin => 'XRP',
         //             $address => 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
         //             $tag => '108618262',
-        //             url => 'https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh'
+        //             $url => 'https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh'
         //         }
         //     }
         //
         $address = $this->safe_string($response, 'address');
-        $tag = $this->safe_string($response, 'tag');
+        $url = $this->safe_string($response, 'url');
+        $impliedNetwork = null;
+        if ($url !== null) {
+            $reverseNetworks = $this->safe_value($this->options, 'reverseNetworks', array());
+            $parts = explode('/', $url);
+            $topLevel = $this->safe_string($parts, 2);
+            if ($topLevel === 'blockchair.com') {
+                $subLevel = $this->safe_string($parts, 3);
+                if ($subLevel !== null) {
+                    $topLevel = $topLevel . '/' . $subLevel;
+                }
+            }
+            $impliedNetwork = $this->safe_string($reverseNetworks, $topLevel);
+        }
+        $tag = $this->safe_string($response, 'tag', '');
+        if (strlen($tag) === 0) {
+            $tag = null;
+        }
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => $impliedNetwork,
             'info' => $response,
         );
     }
@@ -3741,7 +3775,7 @@ class binance extends Exchange {
         } else if ($market['inverse']) {
             $method = 'dapiPublicGetPremiumIndex';
         } else {
-            throw new NotSupported($this->id . ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported($this->id . ' fetchFundingRate() supports linear and inverse contracts only');
         }
         $response = yield $this->$method (array_merge($request, $params));
         if ($market['inverse']) {
@@ -3808,7 +3842,7 @@ class binance extends Exchange {
         } else if ($type === 'delivery') {
             $method = 'dapiPublicGetPremiumIndex';
         } else {
-            throw new NotSupported($this->id . ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported($this->id . ' fetchFundingRates() supports linear and inverse contracts only');
         }
         $response = yield $this->$method ($query);
         $result = array();
@@ -4364,7 +4398,7 @@ class binance extends Exchange {
         } else if ($market['inverse']) {
             $method = 'dapiPrivatePostLeverage';
         } else {
-            throw NotSupported ($this->id . ' setLeverage() supports linear and inverse contracts only');
+            throw new NotSupported($this->id . ' setLeverage() supports linear and inverse contracts only');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -4373,7 +4407,7 @@ class binance extends Exchange {
         return yield $this->$method (array_merge($request, $params));
     }
 
-    public function set_margin_mode($symbol, $marginType, $params = array ()) {
+    public function set_margin_mode($symbol, $marginType, $params = array (), $leverage = null) {
         //
         // array( "code" => -4048 , "msg" => "Margin type cannot be changed if there exists position." )
         //
@@ -4381,6 +4415,9 @@ class binance extends Exchange {
         //
         // array( "code" => 200, "msg" => "success" )
         //
+        if ($leverage) { // Needed because other exchanges require this argument
+            $leverage = null;
+        }
         $marginType = strtoupper($marginType);
         if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
             throw new BadRequest($this->id . ' $marginType must be either isolated or crossed');

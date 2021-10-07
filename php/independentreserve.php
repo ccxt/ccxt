@@ -275,7 +275,7 @@ class independentreserve extends Exchange {
         $remaining = $this->safe_number($order, 'Outstanding');
         $feeRate = $this->safe_number($order, 'FeePercent');
         $feeCost = null;
-        if ($feeRate !== null) {
+        if ($feeRate !== null && $filled !== null) {
             $feeCost = $feeRate * $filled;
         }
         $fee = array(

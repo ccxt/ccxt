@@ -56,6 +56,7 @@ class kraken extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
+                'setMarginMode' => false, // Kraken only supports cross margin
                 'withdraw' => true,
             ),
             'marketsByAltname' => array(),

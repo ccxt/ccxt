@@ -1564,7 +1564,7 @@ module.exports = class Exchange {
                     }
                 } else {
                     reduced[feeCurrencyCode] = {
-                        'cost': this.parseNumber (fee['cost']),
+                        'cost': string ? fee['cost'] : this.parseNumber (fee['cost']),
                         'currency': feeCurrencyCode,
                     };
                 }
@@ -1774,6 +1774,9 @@ module.exports = class Exchange {
         if (shouldParseFees) {
             const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees, true) : fees;
             const reducedLength = reducedFees.length;
+            for (let i = 0; i < reducedLength; i++) {
+                reducedFees[i]['cost'] = this.parseNumber (reducedFees[i]['cost']);
+            }
             if (!parseFee && (reducedLength === 0)) {
                 reducedFees.push (order['fee']);
             }

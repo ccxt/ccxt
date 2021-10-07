@@ -66,6 +66,8 @@ class bybit(Exchange):
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'setMarginMode': True,
+                'setLeverage': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -2431,3 +2433,90 @@ class bybit(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
+
+    def set_margin_mode(self, symbol, marginType, params={}, leverage=None):
+        #
+        # {
+        #     "ret_code": 0,
+        #     "ret_msg": "ok",
+        #     "ext_code": "",
+        #     "result": null,
+        #     "ext_info": null,
+        #     "time_now": "1577477968.175013",
+        #     "rate_limit_status": 74,
+        #     "rate_limit_reset_ms": 1577477968183,
+        #     "rate_limit": 75
+        # }
+        #
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        if not leverage:
+            raise ArgumentsRequired(self.id + '.setMarginMode requires arguments symbol, marginType, and leverage')
+        marginType = marginType.upper()
+        if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
+            raise BadRequest(self.id + ' marginType must be either isolated or crossed')
+        method = None
+        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol, defaultType)
+        linear = ((market is not None) and (market['linear']) or (marketType == 'linear'))
+        inverse = ((market is not None) and (market['swap'] and market['inverse']) or (marketType == 'inverse'))
+        futures = ((market is not None) and (market['futures']) or (marketType == 'futures'))
+        if linear:
+            method = 'privateLinearPostPositionSwitchIsolated'
+        elif inverse:
+            method = 'v2PrivatePostPositionSwitchIsolated'
+        elif futures:
+            method = 'privateFuturesPostPositionSwitchIsolated'
+        request = {
+            'symbol': market['id'],
+            'is_isolated': marginType == 'ISOLATED',
+            'buy_leverage': leverage,
+            'sell_leverage': leverage,
+        }
+        return getattr(self, method)(self.extend(request, params))
+
+    def set_leverage(self, leverage=None, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol, defaultType)
+        linear = market['linear'] or (marketType == 'linear')
+        inverse = (market['swap'] and market['inverse']) or (marketType == 'inverse')
+        futures = market['futures'] or (marketType == 'futures')
+        method = None
+        if linear:
+            method = 'privateLinearPostPositionSetLeverage'
+        elif inverse:
+            method = 'v2PrivatePostPositionLeverageSave'
+        elif futures:
+            method = 'privateFuturesPostPositionLeverageSave'
+        buy_leverage = leverage
+        sell_leverage = leverage
+        if params['buy_leverage'] and params['sell_leverage'] and linear:
+            buy_leverage = params['buy_leverage']
+            sell_leverage = params['sell_leverage']
+        elif not leverage:
+            if linear:
+                raise ArgumentsRequired(self.id + ' setLeverage() requires either the parameter leverage or params["buy_leverage"] and params["sell_leverage"] for linear contracts')
+            else:
+                raise ArgumentsRequired(self.id + ' setLeverage() requires parameter leverage for inverse and futures contracts')
+        if (buy_leverage < 1) or (buy_leverage > 100) or (sell_leverage < 1) or (sell_leverage > 100):
+            raise BadRequest(self.id + ' leverage should be between 1 and 100')
+        request = {
+            'symbol': market['id'],
+            'leverage_only': True,
+        }
+        if not linear:
+            request['leverage'] = buy_leverage
+        else:
+            request['buy_leverage'] = buy_leverage
+            request['sell_leverage'] = sell_leverage
+        return getattr(self, method)(self.extend(request, params))

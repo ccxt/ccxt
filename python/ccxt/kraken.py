@@ -72,6 +72,7 @@ class kraken(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
+                'setMarginMode': False,  # Kraken only supports cross margin
                 'withdraw': True,
             },
             'marketsByAltname': {},
