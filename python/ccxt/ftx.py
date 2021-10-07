@@ -87,6 +87,7 @@ class ftx(Exchange):
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
+                'setMarginMode': False,  # FTX only supports cross margin
                 'withdraw': True,
             },
             'timeframes': {

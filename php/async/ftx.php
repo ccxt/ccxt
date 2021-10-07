@@ -70,6 +70,7 @@ class ftx extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
+                'setMarginMode' => false, // FTX only supports cross margin
                 'withdraw' => true,
             ),
             'timeframes' => array(

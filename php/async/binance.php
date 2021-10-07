@@ -3775,7 +3775,7 @@ class binance extends Exchange {
         } else if ($market['inverse']) {
             $method = 'dapiPublicGetPremiumIndex';
         } else {
-            throw new NotSupported($this->id . ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported($this->id . ' fetchFundingRate() supports linear and inverse contracts only');
         }
         $response = yield $this->$method (array_merge($request, $params));
         if ($market['inverse']) {
@@ -3842,7 +3842,7 @@ class binance extends Exchange {
         } else if ($type === 'delivery') {
             $method = 'dapiPublicGetPremiumIndex';
         } else {
-            throw new NotSupported($this->id . ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported($this->id . ' fetchFundingRates() supports linear and inverse contracts only');
         }
         $response = yield $this->$method ($query);
         $result = array();
@@ -4407,7 +4407,7 @@ class binance extends Exchange {
         return yield $this->$method (array_merge($request, $params));
     }
 
-    public function set_margin_mode($symbol, $marginType, $params = array ()) {
+    public function set_margin_mode($symbol, $marginType, $params = array (), $leverage = null) {
         //
         // array( "code" => -4048 , "msg" => "Margin type cannot be changed if there exists position." )
         //
@@ -4415,6 +4415,9 @@ class binance extends Exchange {
         //
         // array( "code" => 200, "msg" => "success" )
         //
+        if ($leverage) { // Needed because other exchanges require this argument
+            $leverage = null;
+        }
         $marginType = strtoupper($marginType);
         if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
             throw new BadRequest($this->id . ' $marginType must be either isolated or crossed');

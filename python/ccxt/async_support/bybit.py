@@ -66,6 +66,7 @@ class bybit(Exchange):
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'setMarginMode': True,
                 'setLeverage': True,
             },
             'timeframes': {
@@ -2432,6 +2433,50 @@ class bybit(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
+
+    async def set_margin_mode(self, symbol, marginType, params={}, leverage=None):
+        #
+        # {
+        #     "ret_code": 0,
+        #     "ret_msg": "ok",
+        #     "ext_code": "",
+        #     "result": null,
+        #     "ext_info": null,
+        #     "time_now": "1577477968.175013",
+        #     "rate_limit_status": 74,
+        #     "rate_limit_reset_ms": 1577477968183,
+        #     "rate_limit": 75
+        # }
+        #
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        if not leverage:
+            raise ArgumentsRequired(self.id + '.setMarginMode requires arguments symbol, marginType, and leverage')
+        marginType = marginType.upper()
+        if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
+            raise BadRequest(self.id + ' marginType must be either isolated or crossed')
+        method = None
+        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol, defaultType)
+        linear = ((market is not None) and (market['linear']) or (marketType == 'linear'))
+        inverse = ((market is not None) and (market['swap'] and market['inverse']) or (marketType == 'inverse'))
+        futures = ((market is not None) and (market['futures']) or (marketType == 'futures'))
+        if linear:
+            method = 'privateLinearPostPositionSwitchIsolated'
+        elif inverse:
+            method = 'v2PrivatePostPositionSwitchIsolated'
+        elif futures:
+            method = 'privateFuturesPostPositionSwitchIsolated'
+        request = {
+            'symbol': market['id'],
+            'is_isolated': marginType == 'ISOLATED',
+            'buy_leverage': leverage,
+            'sell_leverage': leverage,
+        }
+        return await getattr(self, method)(self.extend(request, params))
 
     async def set_leverage(self, leverage=None, symbol=None, params={}):
         if symbol is None:

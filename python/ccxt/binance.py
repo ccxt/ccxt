@@ -3589,7 +3589,7 @@ class binance(Exchange):
         elif market['inverse']:
             method = 'dapiPublicGetPremiumIndex'
         else:
-            raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
+            raise NotSupported(self.id + ' fetchFundingRate() supports linear and inverse contracts only')
         response = getattr(self, method)(self.extend(request, params))
         if market['inverse']:
             response = response[0]
@@ -3648,7 +3648,7 @@ class binance(Exchange):
         elif type == 'delivery':
             method = 'dapiPublicGetPremiumIndex'
         else:
-            raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
+            raise NotSupported(self.id + ' fetchFundingRates() supports linear and inverse contracts only')
         response = getattr(self, method)(query)
         result = []
         for i in range(0, len(response)):
@@ -4162,7 +4162,7 @@ class binance(Exchange):
         }
         return getattr(self, method)(self.extend(request, params))
 
-    def set_margin_mode(self, symbol, marginType, params={}):
+    def set_margin_mode(self, symbol, marginType, params={}, leverage=None):
         #
         # {"code": -4048 , "msg": "Margin type cannot be changed if there exists position."}
         #
@@ -4170,6 +4170,8 @@ class binance(Exchange):
         #
         # {"code": 200, "msg": "success"}
         #
+        if leverage:  # Needed because other exchanges require self argument
+            leverage = None
         marginType = marginType.upper()
         if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
             raise BadRequest(self.id + ' marginType must be either isolated or crossed')

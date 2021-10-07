@@ -50,6 +50,7 @@ class bybit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
+                'setMarginMode' => true,
                 'setLeverage' => true,
             ),
             'timeframes' => array(
@@ -2562,6 +2563,55 @@ class bybit extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
+    }
+
+    public function set_margin_mode($symbol, $marginType, $params = array (), $leverage = null) {
+        //
+        // {
+        //     "ret_code" => 0,
+        //     "ret_msg" => "ok",
+        //     "ext_code" => "",
+        //     "result" => null,
+        //     "ext_info" => null,
+        //     "time_now" => "1577477968.175013",
+        //     "rate_limit_status" => 74,
+        //     "rate_limit_reset_ms" => 1577477968183,
+        //     "rate_limit" => 75
+        // }
+        //
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        if (!$leverage) {
+            throw new ArgumentsRequired($this->id . '.setMarginMode requires arguments $symbol, $marginType, and leverage');
+        }
+        $marginType = strtoupper($marginType);
+        if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
+            throw new BadRequest($this->id . ' $marginType must be either isolated or crossed');
+        }
+        $method = null;
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'linear');
+        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
+        $linear = (($market !== null) && ($market['linear']) || ($marketType === 'linear'));
+        $inverse = (($market !== null) && ($market['swap'] && $market['inverse']) || ($marketType === 'inverse'));
+        $futures = (($market !== null) && ($market['futures']) || ($marketType === 'futures'));
+        if ($linear) {
+            $method = 'privateLinearPostPositionSwitchIsolated';
+        } else if ($inverse) {
+            $method = 'v2PrivatePostPositionSwitchIsolated';
+        } else if ($futures) {
+            $method = 'privateFuturesPostPositionSwitchIsolated';
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'is_isolated' => $marginType === 'ISOLATED',
+            'buy_leverage' => $leverage,
+            'sell_leverage' => $leverage,
+        );
+        return $this->$method (array_merge($request, $params));
     }
 
     public function set_leverage($leverage = null, $symbol = null, $params = array ()) {
