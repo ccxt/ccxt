@@ -92,6 +92,7 @@ module.exports = class bitzlato extends Exchange {
             },
             'requiredCredentials': {
                 'apiKey': true,
+                'secret': true,
             },
             'api': {
                 'public': {
@@ -156,6 +157,9 @@ module.exports = class bitzlato extends Exchange {
                         'account/beneficiaries/{id}',
                     ],
                 },
+            },
+            'headers': {
+                'Accept': 'application/json',
             },
             'fees': {
                 'trading': {
@@ -356,6 +360,54 @@ module.exports = class bitzlato extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        const response = await this.privateGetAccountBalances (params);
+        // [
+        //   {
+        //     "currency": "string",
+        //     "balance": 0,
+        //     "locked": 0,
+        //     "deposit_address": {
+        //       "currencies": [
+        //         [
+        //           "bnb-bep20",
+        //           "btc",
+        //           "eth",
+        //           "ht-hrc20",
+        //           "mcr-erc20",
+        //           "mdt-erc20",
+        //           "usdt-erc20",
+        //           "usdc-bep20",
+        //           "usdc-erc20",
+        //           "usdc-hrc20",
+        //           "usdt-bep20",
+        //           "usdt-hrc20"
+        //         ]
+        //       ],
+        //       "address": "string",
+        //       "state": "string"
+        //     },
+        //     "enable_invoice": true
+        //   },
+        //   ...
+        // ]
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        if (!this.isArray (response)) {
+            return result;
+        }
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account =  this.account ();
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'locked');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -496,8 +548,12 @@ module.exports = class bitzlato extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            // TODO: implement authorization headers
-            headers['Authorization'] = 'Bearer ' + this.apiKey;
+            const nonce = this.nonce ();
+            const message = this.encode (nonce.toString()) + this.encode (this.apiKey);
+            const signature = this.hmac (message, this.encode (this.secret), 'sha256', 'hex');
+            headers['X-Auth-ApiKey'] = this.apiKey;
+            headers['X-Auth-Nonce'] = nonce;
+            headers['X-Auth-Signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
