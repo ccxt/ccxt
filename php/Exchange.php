@@ -3172,12 +3172,12 @@ class Exchange {
                         if ($tradeFees !== null) {
                             for ($j = 0; $j < count($tradeFees); $j++) {
                                 $tradeFee = $tradeFees[$j];
-                                $fees[] = $this->extend(array(), $tradeFee);
+                                $fees[] = array_merge(array(), $tradeFee);
                             }
                         } else {
                             $tradeFee = $this->safe_value($trade, 'fee');
                             if ($tradeFee !== null) {
-                                $this->extend(array(), $tradeFee);
+                                $fees[] = array_merge(array(), $tradeFee);
                             }
                         }
                     }
