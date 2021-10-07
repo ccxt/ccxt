@@ -2229,7 +2229,7 @@ class Exchange(object):
                         reduced[feeCurrencyCode]['cost'] = self.sum(reduced[feeCurrencyCode]['cost'], fee['cost'])
                 else:
                     reduced[feeCurrencyCode] = {
-                        'cost': fee['cost'],
+                        'cost': fee['cost'] if string else self.parse_number(fee['cost']),
                         'currency': feeCurrencyCode,
                     }
         return list(reduced.values())
@@ -2394,6 +2394,8 @@ class Exchange(object):
         if shouldParseFees:
             reducedFees = self.reduce_fees_by_currency(fees, True) if self.reduceFees else fees
             reducedLength = len(reducedFees)
+            for i in range(0, reducedLength):
+                reducedFees[i]['cost'] = self.parse_number(reducedFees[i]['cost'])
             if not parseFee and (reducedLength == 0):
                 reducedFees.append(order['fee'])
             if parseFees:
