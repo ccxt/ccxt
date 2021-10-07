@@ -690,18 +690,17 @@ module.exports = class bibox extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (limit === undefined) {
+            limit = 100;
+        }
         const request = {
             'page': 1,
+            'size': limit,
         };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        } else {
-            request['size'] = 100;
         }
         const response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferOutList',
