@@ -3383,9 +3383,12 @@ module.exports = class binance extends Exchange {
         if (url !== undefined) {
             const reverseNetworks = this.safeValue (this.options, 'reverseNetworks', {});
             const parts = url.split ('/');
-            let topLevel = parts[2];
+            let topLevel = this.safeString (parts, 2);
             if (topLevel === 'blockchair.com') {
-                topLevel = topLevel + '/' + parts[3];
+                const subLevel = this.safeString (parts, 3);
+                if (subLevel !== undefined) {
+                    topLevel = topLevel + '/' + subLevel;
+                }
             }
             impliedNetwork = this.safeString (reverseNetworks, topLevel);
         }
