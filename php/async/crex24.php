@@ -189,6 +189,7 @@ class crex24 extends Exchange {
                     'has been delisted.' => '\\ccxt\\BadSymbol', // array("errorDescription":"Instrument '$PAC-BTC' has been delisted.")
                     'is currently suspended.' => '\\ccxt\\BadSymbol', // array(is_array(BITG-BTC is currently suspended.") && array_key_exists("errorDescription":"Trading, BITG-BTC is currently suspended."))
                     'Mandatory parameter' => '\\ccxt\\BadRequest', // array("errorDescription":"Mandatory parameter 'feeCurrency' is missing.")
+                    'can not trade' => '\\ccxt\\AccountSuspended', // array("errorDescription":"User 123456 can not trade")
                 ),
             ),
         ));
