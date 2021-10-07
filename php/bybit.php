@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 
 class bybit extends Exchange {
 
@@ -49,6 +50,7 @@ class bybit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
+                'setLeverage' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -2560,5 +2562,57 @@ class bybit extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
+    }
+
+    public function set_leverage($leverage = null, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        } else {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'linear');
+        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
+        $linear = (($market !== null) && ($market['linear']) || ($marketType === 'linear'));
+        $inverse = (($market !== null) && ($market['swap'] && $market['inverse']) || ($marketType === 'inverse'));
+        $futures = (($market !== null) && ($market['futures']) || ($marketType === 'futures'));
+        $method = null;
+        if ($linear) {
+            $method = 'privateLinearPostPositionSetLeverage';
+        } else if ($inverse) {
+            $method = 'v2PrivatePostPositionLeverageSave';
+        } else if ($futures) {
+            $method = 'privateFuturesPostPositionLeverageSave';
+        }
+        $buy_leverage = $leverage;
+        $sell_leverage = $leverage;
+        if ($params['buy_leverage'] && $params['sell_leverage'] && $linear) {
+            $buy_leverage = $params['buy_leverage'];
+            $sell_leverage = $params['sell_leverage'];
+        } else if (!$leverage) {
+            if ($linear) {
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires either the parameter $leverage or $params["$buy_leverage"] and $params["$sell_leverage"] for $linear contracts');
+            } else {
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires parameter $leverage for $inverse and $futures contracts');
+            }
+        }
+        if (($buy_leverage < 1) || ($buy_leverage > 100) || ($sell_leverage < 1) || ($sell_leverage > 100)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage_only' => true,
+        );
+        if (!$linear) {
+            $request['leverage'] = $buy_leverage;
+        } else {
+            $request['buy_leverage'] = $buy_leverage;
+            $request['sell_leverage'] = $sell_leverage;
+        }
+        return $this->$method (array_merge($request, $params));
     }
 }
