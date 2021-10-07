@@ -625,35 +625,37 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostTransfer (request);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "total_btc":"0.00000298",
+        //                     "total_cny":"0.99",
+        //                     "total_usd":"0.16",
+        //                     "assets_list":[
+        //                         {"coin_symbol":"BTC","BTCValue":"0.00000252","CNYValue":"0.84","USDValue":"0.14","balance":"0.00000252","freeze":"0.00000000"},
+        //                         {"coin_symbol":"LTC","BTCValue":"0.00000023","CNYValue":"0.07","USDValue":"0.01","balance":"0.00006765","freeze":"0.00000000"},
+        //                         {"coin_symbol":"USDT","BTCValue":"0.00000023","CNYValue":"0.08","USDValue":"0.01","balance":"0.01252100","freeze":"0.00000000"}
+        //                     ]
+        //                 },
+        //                 "cmd":"transfer/assets"
+        //             }
+        //         ]
+        //     }
+        //
         const results = this.safeValue (response, 'result');
         const firstResult = this.safeValue (results, 0, {});
         const balances = this.safeValue (firstResult, 'result');
-        const result = { 'info': balances };
-        let indexed = undefined;
-        if ('assets_list' in balances) {
-            indexed = this.indexBy (balances['assets_list'], 'coin_symbol');
-        } else {
-            indexed = balances;
-        }
-        const keys = Object.keys (indexed);
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            let code = id.toUpperCase ();
-            if (code.indexOf ('TOTAL_') >= 0) {
-                code = code.slice (6);
-            }
-            if (code in this.currencies_by_id) {
-                code = this.currencies_by_id[code]['code'];
-            }
+        const result = { 'info': response };
+        const assetsList = this.safeValue (balances, 'assets_list', []);
+        for (let i = 0; i < assetsList.length; i++) {
+            const balance = assetsList[i];
+            const currencyId = this.safeString (balance, 'coin_symbol');
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            const balance = indexed[id];
-            if (typeof balance === 'string') {
-                account['free'] = balance;
-                account['total'] = balance;
-            } else {
-                account['free'] = this.safeString (balance, 'balance');
-                account['used'] = this.safeString (balance, 'freeze');
-            }
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'freeze');
             result[code] = account;
         }
         return this.parseBalance (result);
