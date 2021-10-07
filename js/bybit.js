@@ -2609,6 +2609,7 @@ module.exports = class bybit extends Exchange {
             'buy_leverage': leverage,
             'sell_leverage': leverage,
         };
+    }
 
     async setLeverage (leverage = undefined, symbol = undefined, params = {}) {
         if (symbol === undefined) {
