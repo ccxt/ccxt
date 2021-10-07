@@ -2563,13 +2563,12 @@ module.exports = class bybit extends Exchange {
     }
 
     async setLeverage (leverage = undefined, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        } else {
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
+        await this.loadMarkets ();
+        let market = undefined;
+        const market = this.market (symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         const defaultType = this.safeString (this.options, 'defaultType', 'linear');
