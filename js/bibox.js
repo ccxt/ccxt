@@ -142,7 +142,7 @@ module.exports = class bibox extends Exchange {
                 'TERN': 'Ternio-ERC20',
             },
             'options': {
-                'fetchCurrencies': 'fetch_currencies_public', // or 'fetch_currencies_private' with apiKey and secret
+                'fetchCurrencies': 'fetchCurrenciesPrivate', // or 'fetchCurrenciesPrivate' with apiKey and secret
             },
         });
     }
@@ -455,7 +455,7 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const method = this.safeString (this.options, 'fetchCurrencies', 'fetch_currencies_public');
+        const method = this.safeString (this.options, 'fetchCurrencies', 'fetchCurrenciesPublic');
         return await this[method] (params);
     }
 
@@ -531,45 +531,56 @@ module.exports = class bibox extends Exchange {
         //     {
         //         "result":[
         //             {
-        //                 "totalBalance":"14.57582269",
-        //                 "balance":"14.57582269",
-        //                 "freeze":"0.00000000",
-        //                 "id":60,
-        //                 "symbol":"USDT",
-        //                 "icon_url":"/appimg/USDT_icon.png",
-        //                 "describe_url":"[{\"lang\":\"zh-cn\",\"link\":\"https://bibox.zendesk.com/hc/zh-cn/articles/115004798234\"},{\"lang\":\"en-ww\",\"link\":\"https://bibox.zendesk.com/hc/en-us/articles/115004798234\"}]",
-        //                 "name":"USDT",
-        //                 "enable_withdraw":1,
-        //                 "enable_deposit":1,
-        //                 "enable_transfer":1,
-        //                 "confirm_count":2,
-        //                 "is_erc20":1,
-        //                 "forbid_info":null,
-        //                 "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"USDT 是 Tether 公司推出的基于稳定价值货币美元（USD）的代币 Tether USD（简称USDT），1USDT=1美元，用户可以随时使用 USDT 与 USD 进行1:1的兑换。\"},{\"lang\":\"en-ww\",\"text\":\"USDT is a cryptocurrency asset issued on the Bitcoin blockchain via the Omni Layer Protocol. Each USDT unit is backed by a U.S Dollar held in the reserves of the Tether Limited and can be redeemed through the Tether Platform.\"}]",
-        //                 "total_amount":4776930644,
-        //                 "supply_amount":4642367414,
-        //                 "price":"--",
-        //                 "contract_father":"OMNI",
-        //                 "supply_time":"--",
-        //                 "comment":null,
-        //                 "contract":"31",
-        //                 "original_decimals":8,
-        //                 "deposit_type":0,
-        //                 "hasCobo":0,
-        //                 "BTCValue":"0.00126358",
-        //                 "CNYValue":"100.93381445",
-        //                 "USDValue":"14.57524654",
-        //                 "children":[
-        //                     {"type":"OMNI","symbol":"USDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":2},
-        //                     {"type":"TRC20","symbol":"tUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20},
-        //                     {"type":"ERC20","symbol":"eUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":25}
-        //                 ]
-        //             },
-        //         ],
-        //         "cmd":"transfer/coinList"
+        //                 "result":[
+        //                     {
+        //                         "totalBalance":"14.60987476",
+        //                         "balance":"14.60987476",
+        //                         "freeze":"0.00000000",
+        //                         "id":60,
+        //                         "symbol":"USDT",
+        //                         "icon_url":"/appimg/USDT_icon.png",
+        //                         "describe_url":"[{\"lang\":\"zh-cn\",\"link\":\"https://bibox.zendesk.com/hc/zh-cn/articles/115004798234\"},{\"lang\":\"en-ww\",\"link\":\"https://bibox.zendesk.com/hc/en-us/articles/115004798234\"}]",
+        //                         "name":"USDT",
+        //                         "enable_withdraw":1,
+        //                         "enable_deposit":1,
+        //                         "enable_transfer":1,
+        //                         "confirm_count":2,
+        //                         "is_erc20":1,
+        //                         "forbid_info":null,
+        //                         "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"USDT 是 Tether 公司推出的基于稳定价值货币美元（USD）的代币 Tether USD（简称USDT），1USDT=1美元，用户可以随时使用 USDT 与 USD 进行1:1的兑换。\"},{\"lang\":\"en-ww\",\"text\":\"USDT is a cryptocurrency asset issued on the Bitcoin blockchain via the Omni Layer Protocol. Each USDT unit is backed by a U.S Dollar held in the reserves of the Tether Limited and can be redeemed through the Tether Platform.\"}]",
+        //                         "total_amount":4776930644,
+        //                         "supply_amount":4642367414,
+        //                         "price":"--",
+        //                         "contract_father":"OMNI",
+        //                         "supply_time":"--",
+        //                         "comment":null,
+        //                         "chain_type":"OMNI",
+        //                         "general_name":"USDT",
+        //                         "contract":"31",
+        //                         "original_decimals":8,
+        //                         "deposit_type":0,
+        //                         "hasCobo":0,
+        //                         "BTCValue":"0.00027116",
+        //                         "CNYValue":"90.36087919",
+        //                         "USDValue":"14.61090236",
+        //                         "children":[
+        //                             {"type":"ERC20","symbol":"eUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":13},
+        //                             {"type":"TRC20","symbol":"tUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20},
+        //                             {"type":"OMNI","symbol":"USDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":2},
+        //                             {"type":"HECO","symbol":"hUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":12},
+        //                             {"type":"BSC(BEP20)","symbol":"bUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":5},
+        //                             {"type":"HPB","symbol":"pUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20}
+        //                         ]
+        //                     }
+        //                 ],
+        //                 "cmd":"transfer/coinList"
+        //             }
+        //         ]
         //     }
         //
-        const currencies = this.safeValue (response, 'result');
+        const results = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (results, 0, {});
+        const currencies = this.safeValue (firstResult, 'result');
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -614,7 +625,9 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostTransfer (request);
-        const balances = this.safeValue (response, 'result');
+        const results = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (results, 0, {});
+        const balances = this.safeValue (firstResult, 'result');
         const result = { 'info': balances };
         let indexed = undefined;
         if ('assets_list' in balances) {
@@ -1111,15 +1124,6 @@ module.exports = class bibox extends Exchange {
         }
         if (!('result' in response)) {
             throw new ExchangeError (this.id + ' ' + body);
-        }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
-        if (method === 'GET') {
-            return response;
-        } else {
-            return response['result'][0];
         }
     }
 };
