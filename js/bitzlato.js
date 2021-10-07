@@ -28,7 +28,7 @@ module.exports = class bitzlato extends Exchange {
                 // 'createDepositAddress': undefined,
                 // 'deposit': undefined,
                 // 'editOrder': 'emulated',
-                // 'fetchBalance': true,
+                'fetchBalance': true,
                 // 'fetchBidsAsks': undefined,
                 // 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
@@ -42,7 +42,7 @@ module.exports = class bitzlato extends Exchange {
                 // 'fetchOHLCV': 'emulated',
                 // 'fetchOpenOrders': undefined,
                 // 'fetchOrder': undefined,
-                // 'fetchOrderBook': true,
+                'fetchOrderBook': true,
                 // 'fetchOrderBooks': undefined,
                 // 'fetchOrders': undefined,
                 // 'fetchOrderTrades': undefined,
@@ -200,6 +200,7 @@ module.exports = class bitzlato extends Exchange {
             },
             'options': {
                 'fetchMarkets': 'spot',
+                'orderBookLimit': 100,
                 'currencyType': [
                     'fiat',
                     'coin',
@@ -418,6 +419,22 @@ module.exports = class bitzlato extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['bids_limit'] = limit;
+            request['asks_limit'] = limit;
+        } else {
+            const defaultLimit = this.options['orderBookLimit'];
+            request['bids_limit'] = defaultLimit;
+            request['asks_limit'] = defaultLimit;
+        }
+        const response = await this.publicGetMarketsMarketOrderBook (this.extend (request, params));
+        const timestamp = undefined;
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'remaining_volume');
     }
 
     parseTicker (ticker, market = undefined) {
