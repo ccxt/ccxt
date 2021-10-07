@@ -119,7 +119,6 @@ module.exports = class ascendex extends Exchange {
                         'margin/risk',
                         'transfer',
                         'futures/collateral-balance',
-                        'futures/position',
                         'futures/risk',
                         'futures/funding-payments',
                         'order/hist',
@@ -127,8 +126,6 @@ module.exports = class ascendex extends Exchange {
                     'post': [
                         'futures/transfer/deposit',
                         'futures/transfer/withdraw',
-                        'futures/leverage',
-                        'futures/margin-type',
                     ],
                 },
                 'private': {
@@ -137,6 +134,17 @@ module.exports = class ascendex extends Exchange {
                         'wallet/transactions',
                         'wallet/deposit/address', // not documented
                     ],
+                },
+                'v2': {
+                    'accountGroup': {
+                        'get': [
+                            'futures/position',
+                        ],
+                        'post': [
+                            'futures/leverage',
+                            'futures/margin-type',
+                        ],
+                    },
                 },
             },
             'fees': {
@@ -1549,7 +1557,7 @@ module.exports = class ascendex extends Exchange {
         const request = {
             'account-group': accountGroup,
         };
-        const response = await this.accountGroupGetFuturesPosition (this.extend (request, params));
+        const response = await this.v2AccountGroupGetFuturesPosition (this.extend (request, params));
         return response;
     }
 
@@ -1573,7 +1581,7 @@ module.exports = class ascendex extends Exchange {
         if (market['type'] !== 'future') {
             throw new BadRequest (this.id + ' setLeverage() supports futures contracts only');
         }
-        return await this.accountGroupPostFuturesLeverage (this.extend (request, params));
+        return await this.v2AccountGroupPostFuturesLeverage (this.extend (request, params));
     }
 
     async setMarginMode (symbol = undefined, marginType = '', params = {}) {
@@ -1596,7 +1604,7 @@ module.exports = class ascendex extends Exchange {
         if (market['type'] !== 'future') {
             throw new BadRequest (this.id + ' setMarginMode() supports futures contracts only');
         }
-        return await this.accountGroupPostFuturesMarginType (this.extend (request, params));
+        return await this.v2AccountGroupPostFuturesMarginType (this.extend (request, params));
     }
 
     parseTransactionStatus (status) {
@@ -1667,16 +1675,24 @@ module.exports = class ascendex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '';
         let query = params;
-        const V2_API_ROUTE = ['futures/position', 'futures/margin-type', 'futures/leverage'];
-        const isV2Route = V2_API_ROUTE.includes (path);
-        const accountCategory = (api === 'accountCategory');
-        if (accountCategory || (api === 'accountGroup')) {
+        let mainApi = api;
+        let subApi = '';
+        if (Array.isArray (api)) {
+            subApi = api[1];
+            mainApi = api[0];
+        }
+        const accountCategory = (api === 'accountCategory' || subApi === 'accountCategory');
+        if (accountCategory || (api === 'accountGroup' || subApi === 'accountGroup')) {
             url += this.implodeParams ('/{account-group}', params);
             query = this.omit (params, 'account-group');
         }
-        const request = this.implodeParams (path, query);
-        const fixedVersion = isV2Route ? 'v2' : this.version;
-        url += '/api/pro/' + fixedVersion;
+        let request = this.implodeParams (path, query);
+        url += '/api/pro';
+        if (api === 'v2' || mainApi === 'v2') {
+            request = 'v2/' + request;
+        } else {
+            url += '/' + this.version;
+        }
         if (accountCategory) {
             url += this.implodeParams ('/{account-category}', query);
             query = this.omit (query, 'account-category');
@@ -1690,8 +1706,7 @@ module.exports = class ascendex extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
-            const fixedRequest = isV2Route ? 'v2' + request : request;
-            const payload = timestamp + '+' + fixedRequest;
+            const payload = timestamp + '+' + request;
             const hmac = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'x-auth-key': this.apiKey,
