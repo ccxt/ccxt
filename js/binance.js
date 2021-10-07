@@ -4374,6 +4374,9 @@ module.exports = class binance extends Exchange {
         //
         // { "code": 200, "msg": "success" }
         //
+        if (leverage) { // Needed because other exchanges require this argument
+            leverage = undefined;
+        }
         marginType = marginType.toUpperCase ();
         if ((marginType !== 'ISOLATED') && (marginType !== 'CROSSED')) {
             throw new BadRequest (this.id + ' marginType must be either isolated or crossed');
