@@ -2610,7 +2610,7 @@ module.exports = class bybit extends Exchange {
             'sell_leverage': leverage,
         };
 
-      async setLeverage (leverage = undefined, symbol = undefined, params = {}) {
+    async setLeverage (leverage = undefined, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
