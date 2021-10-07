@@ -2386,17 +2386,12 @@ class Exchange(object):
                         if tradeFees is not None:
                             for j in range(0, len(tradeFees)):
                                 tradeFee = tradeFees[j]
-                                fees.append({
-                                    'cost': self.parse_number(tradeFee['cost']),
-                                    'currency': tradeFee['currency'],
-                                })
+                                self.extend({}, tradeFee)
                         else:
                             tradeFee = self.safe_value(trade, 'fee')
                             if tradeFee is not None:
-                                fees.append({
-                                    'cost': self.parse_number(tradeFee['cost']),
-                                    'currency': tradeFee['currency'],
-                                })
+                                self.extend({}, tradeFee)
+
         if shouldParseFees:
             reducedFees = self.reduce_fees_by_currency(fees, True) if self.reduceFees else fees
             reducedLength = len(reducedFees)

@@ -1759,18 +1759,12 @@ module.exports = class Exchange {
                         if (tradeFees !== undefined) {
                             for (let j = 0; j < tradeFees.length; j++) {
                                 const tradeFee = tradeFees[j];
-                                fees.push ({
-                                    'cost': this.parseNumber (tradeFee['cost']),
-                                    'currency': tradeFee['currency'],
-                                });
+                                fees.push (this.extend ({}, tradeFee));
                             }
                         } else {
                             const tradeFee = this.safeValue (trade, 'fee');
                             if (tradeFee !== undefined) {
-                                fees.push ({
-                                    'cost': this.parseNumber (tradeFee['cost']),
-                                    'currency': tradeFee['currency'],
-                                });
+                                fees.push (this.extend ({}, tradeFee));
                             }
                         }
                     }
