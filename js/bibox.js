@@ -1271,9 +1271,22 @@ module.exports = class bibox extends Exchange {
             'cmd': 'transfer/transferOut',
             'body': this.extend (request, params),
         });
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result": 228, // withdrawal id
+        //                 "cmd":"transfer/transferOut"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const id = this.safeValue (firstResult, 'result');
         return {
             'info': response,
-            'id': undefined,
+            'id': id,
         };
     }
 
@@ -1296,8 +1309,33 @@ module.exports = class bibox extends Exchange {
                 }, params),
             };
             const response = await this.privatePostTransfer (request);
-            info[code] = response;
-            withdrawFees[code] = this.safeNumber (response['result'], 'withdraw_fee');
+            //     {
+            //         "result":[
+            //             {
+            //                 "result":[
+            //                     {
+            //                         "coin_symbol":"ETH",
+            //                         "is_active":1,
+            //                         "original_decimals":18,
+            //                         "enable_deposit":1,
+            //                         "enable_withdraw":1,
+            //                         "withdraw_fee":0.008,
+            //                         "withdraw_min":0.05,
+            //                         "deposit_avg_spent":173700,
+            //                         "withdraw_avg_spent":322600
+            //                     }
+            //                 ],
+            //                 "cmd":"transfer/coinConfig"
+            //             }
+            //         ]
+            //     }
+            //
+            const outerResults = this.safeValue (response, 'result', []);
+            const firstOuterResult = this.safeValue (outerResults, 0, {});
+            const innerResults = this.safeValue (firstOuterResult, 'result', []);
+            const firstInnerResult = this.safeValue (innerResults, 0, {});
+            info[code] = firstInnerResult;
+            withdrawFees[code] = this.safeNumber (firstInnerResult, 'withdraw_fee');
         }
         return {
             'info': info,
