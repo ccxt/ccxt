@@ -663,24 +663,25 @@ module.exports = class bibox extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = undefined;
+        if (limit === undefined) {
+            limit = 100;
+        }
         const request = {
             'page': 1,
+            'size': limit,
         };
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        } else {
-            request['size'] = 100;
         }
         const response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferInList',
             'body': this.extend (request, params),
         });
-        const deposits = this.safeValue (response['result'], 'items', []);
+        const results = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (results, 0, {});
+        const deposits = this.safeValue (firstResult, 'items', []);
         for (let i = 0; i < deposits.length; i++) {
             deposits[i]['type'] = 'deposit';
         }
@@ -689,10 +690,10 @@ module.exports = class bibox extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = undefined;
         const request = {
             'page': 1,
         };
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
@@ -706,7 +707,9 @@ module.exports = class bibox extends Exchange {
             'cmd': 'transfer/transferOutList',
             'body': this.extend (request, params),
         });
-        const withdrawals = this.safeValue (response['result'], 'items', []);
+        const results = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (results, 0, {});
+        const withdrawals = this.safeValue (firstResult, 'items', []);
         for (let i = 0; i < withdrawals.length; i++) {
             withdrawals[i]['type'] = 'withdrawal';
         }
