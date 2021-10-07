@@ -1289,17 +1289,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 1
      
    * - UK
-     - .. image:: https://user-images.githubusercontent.com/51840849/87153925-ef265e80-c2c0-11ea-91b5-020c804b90e0.jpg
-          :target: https://www.coinfloor.co.uk
-          :alt: coinfloor
-     
-     - coinfloor
-     - `coinfloor <https://www.coinfloor.co.uk>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://github.com/coinfloor/api
-          :alt: API Version *
-     
-   * - UK
      - .. image:: https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg
           :target: https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0
           :alt: coinmate
