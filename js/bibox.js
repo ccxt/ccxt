@@ -827,7 +827,9 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
-        return response;
+        const results = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (results, 0, {});
+        return firstResult;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
