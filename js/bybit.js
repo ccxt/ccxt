@@ -2560,4 +2560,38 @@ module.exports = class bybit extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        } else {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
+        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
+        const marketType = this.safeString (marketTypes, symbol, defaultType);
+        const linear = ((market !== undefined) && (market['linear']) || (marketType === 'linear'));
+        const inverse = ((market !== undefined) && (market['swap'] && market['inverse']) || (marketType === 'inverse'));
+        const futures = ((market !== undefined) && (market['futures']) || (marketType === 'futures'));
+        let method = undefined;
+        if (linear) {
+            method = 'privateLinearPostPositionSetLeverage';
+        } else if (inverse) {
+            method = 'v2PrivatePostPositionLeverageSave';
+        } else if (futures) {
+            method = 'privateFuturesPostPositionLeverageSave';
+        }
+        return await this[method] (this.extend (request, params));
+    }
 };
