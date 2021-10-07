@@ -48,6 +48,7 @@ module.exports = class bybit extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
+                'setMarginMode': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -2559,5 +2560,54 @@ module.exports = class bybit extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+    }
+
+    async setMarginMode (symbol, marginType, params = {}, leverage = undefined) {
+        //
+        // {
+        //     "ret_code": 0,
+        //     "ret_msg": "ok",
+        //     "ext_code": "",
+        //     "result": null,
+        //     "ext_info": null,
+        //     "time_now": "1577477968.175013",
+        //     "rate_limit_status": 74,
+        //     "rate_limit_reset_ms": 1577477968183,
+        //     "rate_limit": 75
+        // }
+        //
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (!leverage) {
+            throw new ArgumentsRequired (this.id + '.setMarginMode requires arguments symbol, marginType, and leverage');
+        }
+        marginType = marginType.toUpperCase ();
+        if ((marginType !== 'ISOLATED') && (marginType !== 'CROSSED')) {
+            throw new BadRequest (this.id + ' marginType must be either isolated or crossed');
+        }
+        let method = undefined;
+        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
+        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
+        const marketType = this.safeString (marketTypes, symbol, defaultType);
+        const linear = ((market !== undefined) && (market['linear']) || (marketType === 'linear'));
+        const inverse = ((market !== undefined) && (market['swap'] && market['inverse']) || (marketType === 'inverse'));
+        const futures = ((market !== undefined) && (market['futures']) || (marketType === 'futures'));
+        if (linear) {
+            method = 'privateLinearPostPositionSwitchIsolated';
+        } else if (inverse) {
+            method = 'v2PrivatePostPositionSwitchIsolated';
+        } else if (futures) {
+            method = 'privateFuturesPostPositionSwitchIsolated';
+        }
+        const request = {
+            'symbol': market['id'],
+            'is_isolated': marginType === 'ISOLATED',
+            'buy_leverage': leverage,
+            'sell_leverage': leverage,
+        };
+        return await this[method] (this.extend (request, params));
     }
 };
