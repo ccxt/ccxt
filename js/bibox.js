@@ -579,8 +579,8 @@ module.exports = class bibox extends Exchange {
         //     }
         //
         const results = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (results, 0, {});
-        const currencies = this.safeValue (firstResult, 'result');
+        const outerResult = this.safeValue (results, 0, {});
+        const currencies = this.safeValue (outerResult, 'result');
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -645,10 +645,10 @@ module.exports = class bibox extends Exchange {
         //     }
         //
         const results = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (results, 0, {});
-        const balances = this.safeValue (firstResult, 'result');
+        const outerResult = this.safeValue (results, 0, {});
+        const innerResult = this.safeValue (outerResult, 'result');
         const result = { 'info': response };
-        const assetsList = this.safeValue (balances, 'assets_list', []);
+        const assetsList = this.safeValue (innerResult, 'assets_list', []);
         for (let i = 0; i < assetsList.length; i++) {
             const balance = assetsList[i];
             const currencyId = this.safeString (balance, 'coin_symbol');
@@ -679,9 +679,41 @@ module.exports = class bibox extends Exchange {
             'cmd': 'transfer/transferInList',
             'body': this.extend (request, params),
         });
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "count":2,
+        //                     "page":1,
+        //                     "items":[
+        //                         {
+        //                             "coin_symbol":"ETH",                        // token
+        //                             "to_address":"xxxxxxxxxxxxxxxxxxxxxxxxxx",  // address
+        //                             "amount":"1.00000000",                      // amount
+        //                             "confirmCount":"15",                        // the acknowledgment number
+        //                             "createdAt":1540641511000,
+        //                             "status":2                                 // status,  1-deposit is in process，2-deposit finished，3-deposit failed
+        //                         },
+        //                         {
+        //                             "coin_symbol":"BIX",
+        //                             "to_address":"xxxxxxxxxxxxxxxxxxxxxxxxxx",
+        //                             "amount":"1.00000000",
+        //                             "confirmCount":"15",
+        //                             "createdAt":1540622460000,
+        //                             "status":2
+        //                         }
+        //                     ]
+        //                 },
+        //                 "cmd":"transfer/transferInList"
+        //             }
+        //         ]
+        //     }
+        //
         const results = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (results, 0, {});
-        const deposits = this.safeValue (firstResult, 'items', []);
+        const outerResult = this.safeValue (results, 0, {});
+        const innerResult = this.safeValue (outerResult, 'result', {});
+        const deposits = this.safeValue (innerResult, 'items', []);
         for (let i = 0; i < deposits.length; i++) {
             deposits[i]['type'] = 'deposit';
         }
@@ -735,9 +767,9 @@ module.exports = class bibox extends Exchange {
         //     }
         //
         const results = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (results, 0, {});
-        const result = this.safeValue (firstResult, 'result', {});
-        const withdrawals = this.safeValue (result, 'items', []);
+        const outerResult = this.safeValue (results, 0, {});
+        const innerResult = this.safeValue (outerResult, 'result', {});
+        const withdrawals = this.safeValue (innerResult, 'items', []);
         for (let i = 0; i < withdrawals.length; i++) {
             withdrawals[i]['type'] = 'withdrawal';
         }
@@ -840,8 +872,8 @@ module.exports = class bibox extends Exchange {
         };
         const response = await this.privatePostOrderpending (request);
         const results = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (results, 0, {});
-        const id = this.safeValue (firstResult, 'result');
+        const outerResult = this.safeValue (results, 0, {});
+        const id = this.safeValue (outerResult, 'result');
         return {
             'info': response,
             'id': id,
@@ -857,8 +889,8 @@ module.exports = class bibox extends Exchange {
         };
         const response = await this.privatePostOrderpending (request);
         const results = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (results, 0, {});
-        return firstResult;
+        const outerResult = this.safeValue (results, 0, {});
+        return outerResult;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -872,8 +904,8 @@ module.exports = class bibox extends Exchange {
         };
         const response = await this.privatePostOrderpending (request);
         const results = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (results, 0, {});
-        const order = this.safeValue (firstResult, 'result');
+        const outerResult = this.safeValue (results, 0, {});
+        const order = this.safeValue (outerResult, 'result');
         if (this.isEmpty (order)) {
             throw new OrderNotFound (this.id + ' order ' + id + ' not found');
         }
@@ -974,8 +1006,8 @@ module.exports = class bibox extends Exchange {
         };
         const response = await this.privatePostOrderpending (request);
         const results = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (results, 0, {});
-        const orders = this.safeValue (firstResult, 'items', []);
+        const outerResult = this.safeValue (results, 0, {});
+        const orders = this.safeValue (outerResult, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -996,8 +1028,8 @@ module.exports = class bibox extends Exchange {
         };
         const response = await this.privatePostOrderpending (request);
         const results = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (results, 0, {});
-        const orders = this.safeValue (firstResult, 'items', []);
+        const outerResult = this.safeValue (results, 0, {});
+        const orders = this.safeValue (outerResult, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1021,8 +1053,8 @@ module.exports = class bibox extends Exchange {
         };
         const response = await this.privatePostOrderpending (request);
         const results = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (results, 0, {});
-        const trades = this.safeValue (firstResult, 'items', []);
+        const outerResult = this.safeValue (results, 0, {});
+        const trades = this.safeValue (outerResult, 'items', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1046,8 +1078,8 @@ module.exports = class bibox extends Exchange {
         //     }
         //
         const results = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (results, 0, {});
-        const result = this.safeValue (firstResult, 'result');
+        const outerResult = this.safeValue (results, 0, {});
+        const result = this.safeValue (outerResult, 'result');
         let address = result;
         let tag = undefined;
         if (this.isJsonEncodedObject (result)) {
