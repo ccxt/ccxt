@@ -721,7 +721,7 @@ module.exports = class binance extends Exchange {
                     'solscan.io': 'SOL',
                     'polkadot.subscan.io': 'DOT',
                     'dashboard.internetcomputer.org': 'ICP',
-                    'explorer.chiliz.com': 'PSG',
+                    'explorer.chiliz.com': 'CHZ',
                     'cardanoscan.io': 'ADA',
                     'mainnet.theoan.com': 'AION',
                     'algoexplorer.io': 'ALGO',
