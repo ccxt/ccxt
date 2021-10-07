@@ -723,6 +723,22 @@ class binance(Exchange):
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
                 },
+                'reverseNetworks': {
+                    'tronscan.org': 'TRC20',
+                    'etherscan.io': 'ERC20',
+                    'bscscan.com': 'BSC',
+                    'explorer.binance.org': 'BEP2',
+                    'bithomp.com': 'XRP',
+                    'bloks.io': 'EOS',
+                    'stellar.expert': 'XLM',
+                    'blockchair.com/bitcoin': 'BTC',
+                    'blockchair.com/bitcoin-cash': 'BCH',
+                    'explorer.litecoin.net': 'LTC',
+                    'explorer.avax.network': 'AVAX',
+                    'solscan.io': 'SOL',
+                    'polkadot.subscan.io': 'DOT',
+                    'dashboard.internetcomputer.org': 'ICP',
+                },
                 'legalMoney': {
                     'MXN': True,
                     'UGX': True,
@@ -3204,12 +3220,26 @@ class binance(Exchange):
         #     }
         #
         address = self.safe_string(response, 'address')
-        tag = self.safe_string(response, 'tag')
+        url = self.safe_string(response, 'url')
+        impliedNetwork = None
+        if url is not None:
+            reverseNetworks = self.safe_value(self.options, 'reverseNetworks', {})
+            parts = url.split('/')
+            topLevel = self.safe_string(parts, 2)
+            if topLevel == 'blockchair.com':
+                subLevel = self.safe_string(parts, 3)
+                if subLevel is not None:
+                    topLevel = topLevel + '/' + subLevel
+            impliedNetwork = self.safe_string(reverseNetworks, topLevel)
+        tag = self.safe_string(response, 'tag', '')
+        if len(tag) == 0:
+            tag = None
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': impliedNetwork,
             'info': response,
         }
 
