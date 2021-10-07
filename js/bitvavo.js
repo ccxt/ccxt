@@ -1153,11 +1153,11 @@ module.exports = class bitvavo extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'amount');
-        const remaining = this.safeNumber (order, 'amountRemaining');
-        const filled = this.safeNumber (order, 'filledAmount');
-        const cost = this.safeNumber (order, 'filledAmountQuote');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'amount');
+        const remaining = this.safeString (order, 'amountRemaining');
+        const filled = this.safeString (order, 'filledAmount');
+        const cost = this.safeString (order, 'filledAmountQuote');
         let fee = undefined;
         const feeCost = this.safeNumber (order, 'feePaid');
         if (feeCost !== undefined) {
@@ -1169,17 +1169,11 @@ module.exports = class bitvavo extends Exchange {
             };
         }
         const rawTrades = this.safeValue (order, 'fills', []);
-        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-            'symbol': symbol,
-            'order': id,
-            'side': side,
-            'type': type,
-        });
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = this.safeValue (order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         const stopPrice = this.safeNumber (order, 'triggerPrice');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1200,7 +1194,7 @@ module.exports = class bitvavo extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
-            'trades': trades,
+            'trades': rawTrades,
         });
     }
 
