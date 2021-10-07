@@ -991,7 +991,9 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
-        const trades = this.safeValue (response['result'], 'items', []);
+        const results = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (results, 0, {});
+        const trades = this.safeValue (firstResult, 'items', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
