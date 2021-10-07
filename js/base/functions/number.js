@@ -98,17 +98,36 @@ function precisionFromString (string) {
 
 /*  ------------------------------------------------------------------------ */
 
-const decimalToPrecisionP = (x, roundingMode
+const decimalToPrecision = (x, roundingMode
                              , numPrecisionDigits
                              , countingMode       = DECIMAL_PLACES
                              , paddingMode        = NO_PADDING) => {
 
-	if (!(x instanceof Precise)) {
-		throw new Error ('x must be a Precise object')
-	}
-	if (!(numPrecisionDigits instanceof Precise)) {
-		throw new Error ('numPrecisionDigits must be a Precise object')
-	}
+    if (typeof numPrecisionDigits === 'string') {
+        numPrecisionDigits = new Precise (numPrecisionDigits)
+    } else if (Number.isInteger (numPrecisionDigits)) {
+	    numPrecisionDigits = new Precise (BigInt (numPrecisionDigits), 0)
+    } else if (Number.isFinite (numPrecisionDigits)) {
+	    // Occurrences of this should be eliminated and replaced by strings instead.
+        // ASSUME that the precision is specified to two decimal places.
+        let exponent = Math.floor (Math.log10 (numPrecisionDigits))-1
+	    const mantissa = Math.round (numPrecisionDigits / Math.pow (10, exponent))
+        numPrecisionDigits = new Precise (BigInt (mantissa), -exponent)
+    } else if (numPrecisionDigits instanceof Precise) {
+	    // do nothing
+    } else {
+	    assert (false)
+    }
+
+    if (typeof x === 'string') {
+        x = new Precise (x)
+    } else if (Number.isInteger (x)) {
+	    x = new Precise (BigInt (x), 0)
+    } else if (x instanceof Precise) {
+	    // do nothing
+    } else {
+	    assert (false)
+    }
 
     if (countingMode === TICK_SIZE) {
         if (numPrecisionDigits.integer <= Bzero) {
@@ -263,40 +282,6 @@ const decimalToPrecisionP = (x, roundingMode
 	}
 	
 	return result
-}
-
-const decimalToPrecision = (x, roundingMode
-                             , numPrecisionDigits
-                             , countingMode       = DECIMAL_PLACES
-                             , paddingMode        = NO_PADDING) => {
-
-    if (typeof numPrecisionDigits === 'string') {
-        numPrecisionDigits = new Precise (numPrecisionDigits)
-    } else if (Number.isInteger (numPrecisionDigits)) {
-	    numPrecisionDigits = new Precise (BigInt (numPrecisionDigits), 0)
-    } else if (Number.isFinite (numPrecisionDigits)) {
-	    // Occurrences of this should be eliminated and replaced by strings instead.
-        // ASSUME that the precision is specified to two decimal places.
-        let exponent = Math.floor (Math.log10 (numPrecisionDigits))-1
-	    const mantissa = Math.round (numPrecisionDigits / Math.pow (10, exponent))
-        numPrecisionDigits = new Precise (BigInt (mantissa), -exponent)
-    } else if (numPrecisionDigits instanceof Precise) {
-	    // do nothing
-    } else {
-	    assert (false)
-    }
-
-    if (typeof x === 'string') {
-        x = new Precise (x)
-    } else if (Number.isInteger (x)) {
-	    x = new Precise (BigInt (x), 0)
-    } else if (x instanceof Precise) {
-	    // do nothing
-    } else {
-	    assert (false)
-    }
-
-	return decimalToPrecisionP (x, roundingMode, numPrecisionDigits, countingMode, paddingMode)
 }
 
 function omitZero (stringNumber) {
