@@ -842,7 +842,9 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
-        const order = this.safeValue (response, 'result');
+        const results = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (results, 0, {});
+        const order = this.safeValue (firstResult, 'result');
         if (this.isEmpty (order)) {
             throw new OrderNotFound (this.id + ' order ' + id + ' not found');
         }
