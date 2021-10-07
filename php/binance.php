@@ -4397,7 +4397,7 @@ class binance extends Exchange {
         } else if ($market['inverse']) {
             $method = 'dapiPrivatePostLeverage';
         } else {
-            throw NotSupported ($this->id . ' setLeverage() supports linear and inverse contracts only');
+            throw new NotSupported($this->id . ' setLeverage() supports linear and inverse contracts only');
         }
         $request = array(
             'symbol' => $market['id'],
