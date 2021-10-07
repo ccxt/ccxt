@@ -61,7 +61,7 @@ class bitmart extends Exchange {
                 'doc' => 'https://developer-pro.bitmart.com/',
                 'referral' => array(
                     'url' => 'http://www.bitmart.com/?r=rQCFLh',
-                    'discount' => 1.0,
+                    'discount' => 0.3,
                 ),
                 'fees' => 'https://www.bitmart.com/fee/en',
             ),
