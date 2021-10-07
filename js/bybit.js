@@ -2575,9 +2575,9 @@ module.exports = class bybit extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'linear');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol, defaultType);
-        const linear = ((market !== undefined) && (market['linear']) || (marketType === 'linear'));
-        const inverse = ((market !== undefined) && (market['swap'] && market['inverse']) || (marketType === 'inverse'));
-        const futures = ((market !== undefined) && (market['futures']) || (marketType === 'futures'));
+        const linear = market['linear'] || (marketType === 'linear');
+        const inverse = (market['swap'] && market['inverse']) || (marketType === 'inverse');
+        const futures = market['futures'] || (marketType === 'futures');
         let method = undefined;
         if (linear) {
             method = 'privateLinearPostPositionSetLeverage';
