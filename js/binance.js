@@ -705,6 +705,22 @@ module.exports = class binance extends Exchange {
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
                 },
+                'reverseNetworks': {
+                    'tronscan.org': 'TRC20',
+                    'etherscan.io': 'ERC20',
+                    'bscscan.com': 'BSC',
+                    'explorer.binance.org': 'BEP2',
+                    'bithomp.com': 'XRP',
+                    'bloks.io': 'EOS',
+                    'stellar.expert': 'XLM',
+                    'blockchair.com/bitcoin': 'BTC',
+                    'blockchair.com/bitcoin-cash': 'BCH',
+                    'explorer.litecoin.net': 'LTC',
+                    'explorer.avax.network': 'AVAX',
+                    'solscan.io': 'SOL',
+                    'polkadot.subscan.io': 'DOT',
+                    'dashboard.internetcomputer.org': 'ICP',
+                },
                 'legalMoney': {
                     'MXN': true,
                     'UGX': true,
@@ -3362,12 +3378,30 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const address = this.safeString (response, 'address');
-        const tag = this.safeString (response, 'tag');
+        const url = this.safeString (response, 'url');
+        let impliedNetwork = undefined;
+        if (url !== undefined) {
+            const reverseNetworks = this.safeValue (this.options, 'reverseNetworks', {});
+            const parts = url.split ('/');
+            let topLevel = this.safeString (parts, 2);
+            if (topLevel === 'blockchair.com') {
+                const subLevel = this.safeString (parts, 3);
+                if (subLevel !== undefined) {
+                    topLevel = topLevel + '/' + subLevel;
+                }
+            }
+            impliedNetwork = this.safeString (reverseNetworks, topLevel);
+        }
+        let tag = this.safeString (response, 'tag', '');
+        if (tag.length === 0) {
+            tag = undefined;
+        }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': impliedNetwork,
             'info': response,
         };
     }
