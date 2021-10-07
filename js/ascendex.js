@@ -1549,8 +1549,7 @@ module.exports = class ascendex extends Exchange {
         const request = {
             'account-group': accountGroup,
         };
-        const method = 'accountGroupGetFuturesPosition';
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.accountGroupGetFuturesPosition (this.extend (request, params));
         return response;
     }
 
@@ -1571,13 +1570,10 @@ module.exports = class ascendex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        let method = undefined;
-        if (market['type'] === 'future') {
-            method = 'accountGroupPostFuturesLeverage';
-        } else {
+        if (market['type'] !== 'future') {
             throw new BadRequest (this.id + ' setLeverage() supports futures contracts only');
         }
-        return await this[method] (this.extend (request, params));
+        return await this.accountGroupPostFuturesLeverage (this.extend (request, params));
     }
 
     async setMarginMode (symbol = undefined, marginType = '', params = {}) {
@@ -1597,11 +1593,10 @@ module.exports = class ascendex extends Exchange {
             'symbol': market['id'],
             'marginType': marginType,
         };
-        const method = this.accountGroupPostFuturesMarginType;
         if (market['type'] !== 'future') {
             throw new BadRequest (this.id + ' setMarginMode() supports futures contracts only');
         }
-        return await this[method] (this.extend (request, params));
+        return await this.accountGroupPostFuturesMarginType (this.extend (request, params));
     }
 
     parseTransactionStatus (status) {
