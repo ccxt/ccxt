@@ -22,7 +22,7 @@ module.exports = class bitzlato extends Exchange {
                 // 'cancelOrder': true,
                 // 'cancelOrders': undefined,
                 'CORS': true,
-                // 'createOrder': true,
+                'createOrder': true,
                 // 'createLimitOrder': true,
                 // 'createMarketOrder': true,
                 // 'createDepositAddress': undefined,
@@ -35,7 +35,6 @@ module.exports = class bitzlato extends Exchange {
                 // 'fetchDepositAddress': undefined,
                 // 'fetchDeposits': undefined,
                 // 'fetchFundingFees': undefined,
-                // 'fetchL2OrderBook': true,
                 // 'fetchLedger': undefined,
                 'fetchMarkets': true,
                 // 'fetchMyTrades': undefined,
@@ -56,7 +55,6 @@ module.exports = class bitzlato extends Exchange {
                 // 'fetchTradingLimits': undefined,
                 // 'fetchTransactions': undefined,
                 // 'fetchWithdrawals': undefined,
-                // 'signIn': undefined,
                 // 'withdraw': undefined,
             },
             'timeframes': {
@@ -433,6 +431,86 @@ module.exports = class bitzlato extends Exchange {
             request['asks_limit'] = defaultLimit;
         }
         const response = await this.publicGetMarketsMarketOrderBook (this.extend (request, params));
+        // [
+        //   {
+        //     "asks": [
+        //       {
+        //         "id": 0,
+        //         "uuid": "string",
+        //         "side": "string",
+        //         "ord_type": "string",
+        //         "price": 0,
+        //         "avg_price": 0,
+        //         "state": "string",
+        //         "market": "string",
+        //         "market_type": "string",
+        //         "created_at": "string",
+        //         "updated_at": "string",
+        //         "origin_volume": 0,
+        //         "remaining_volume": 0,
+        //         "executed_volume": 0,
+        //         "maker_fee": 0,
+        //         "taker_fee": 0,
+        //         "trades_count": 0,
+        //         "trades": [
+        //           {
+        //             "id": "string",
+        //             "price": 0,
+        //             "amount": 0,
+        //             "total": 0,
+        //             "fee_currency": 0,
+        //             "fee": 0,
+        //             "fee_amount": 0,
+        //             "market": "string",
+        //             "market_type": "string",
+        //             "created_at": "string",
+        //             "taker_type": "string",
+        //             "side": "string",
+        //             "order_id": 0
+        //           }
+        //         ]
+        //       }
+        //     ],
+        //     "bids": [
+        //       {
+        //         "id": 0,
+        //         "uuid": "string",
+        //         "side": "string",
+        //         "ord_type": "string",
+        //         "price": 0,
+        //         "avg_price": 0,
+        //         "state": "string",
+        //         "market": "string",
+        //         "market_type": "string",
+        //         "created_at": "string",
+        //         "updated_at": "string",
+        //         "origin_volume": 0,
+        //         "remaining_volume": 0,
+        //         "executed_volume": 0,
+        //         "maker_fee": 0,
+        //         "taker_fee": 0,
+        //         "trades_count": 0,
+        //         "trades": [
+        //           {
+        //             "id": "string",
+        //             "price": 0,
+        //             "amount": 0,
+        //             "total": 0,
+        //             "fee_currency": 0,
+        //             "fee": 0,
+        //             "fee_amount": 0,
+        //             "market": "string",
+        //             "market_type": "string",
+        //             "created_at": "string",
+        //             "taker_type": "string",
+        //             "side": "string",
+        //             "order_id": 0
+        //           }
+        //         ]
+        //       }
+        //     ]
+        //   }
+        // ]
         const timestamp = undefined;
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'remaining_volume');
     }
@@ -492,12 +570,119 @@ module.exports = class bitzlato extends Exchange {
     }
 
     parseOrderStatus (status) {
+        const statuses = {
+            'wait': 'open',
+            'done': 'closed',
+            'cancel': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
+        // {
+        //   "id": 0,
+        //   "uuid": "string",
+        //   "side": "string",
+        //   "ord_type": "string",
+        //   "price": 0,
+        //   "avg_price": 0,
+        //   "state": "string",
+        //   "market": "string",
+        //   "market_type": "string",
+        //   "created_at": "string",
+        //   "updated_at": "string",
+        //   "origin_volume": 0,
+        //   "remaining_volume": 0,
+        //   "executed_volume": 0,
+        //   "maker_fee": 0,
+        //   "taker_fee": 0,
+        //   "trades_count": 0,
+        //   "trades": [
+        //     {
+        //       "id": "string",
+        //       "price": 0,
+        //       "amount": 0,
+        //       "total": 0,
+        //       "fee_currency": 0,
+        //       "fee": 0,
+        //       "fee_amount": 0,
+        //       "market": "string",
+        //       "market_type": "string",
+        //       "created_at": "string",
+        //       "taker_type": "string",
+        //       "side": "string",
+        //       "order_id": 0
+        //     }
+        //   ]
+        // }
+        const id = this.safeString (order, 'id');
+        const createdAt = this.safeString (order, 'created_at');
+        const updatedAt = this.safeString (order, 'updated_at');
+        const timestamp = this.parse8601 (createdAt);
+        const lastTradeTimestamp = this.parse8601 (updatedAt);
+        if (market === undefined) {
+            const marketId = this.safeString (order, 'market');
+            market = this.markets_by_id[marketId];
+        }
+        const symbol = market['symbol'];
+        const type = this.safeString (order, 'ord_type');
+        const side = this.safeString (order, 'side');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'origin_volume');
+        const filled = this.safeNumber (order, 'executed_volume');
+        const remaining = this.safeNumber (order, 'remaining_volume');
+        const average = this.safeNumber (order, 'avg_price');
+        const trades = this.safeValue (order, 'trades', []);
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'cliendOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': undefined,
+            'average': average,
+            'status': status,
+            'fee': undefined,
+            'trades': this.parseTrades (trades),
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const volume = this.amountToPrecision (symbol, amount);
+        if (type === 'limit') {
+            price = this.priceToPrecision (symbol, price);
+        }
+        const request = {
+            'market': marketId,
+            'side': side,
+            'volume': volume,
+            'ord_type': type,
+            'price': price,
+        };
+        // {
+        //   "market": "btc_usdterc20",
+        //   "side": "sell",
+        //   "volume": 0,
+        //   "ord_type": "limit",
+        //   "price": 0
+        // }
+        const response = await this.privatePostMarketOrders(this.extend (request, params));
+        return this.parseOrder (response, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -562,6 +747,7 @@ module.exports = class bitzlato extends Exchange {
             }
         } else if (method === 'POST') {
             headers['Content-type'] = 'application/json'
+            body = this.json (query);
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
