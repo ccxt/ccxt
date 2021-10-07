@@ -810,9 +810,12 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
+        const results = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (results, 0, {});
+        const id = this.safeValue (firstResult, 'result');
         return {
             'info': response,
-            'id': this.safeString (response, 'result'),
+            'id': id,
         };
     }
 
