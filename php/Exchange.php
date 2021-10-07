@@ -3187,6 +3187,9 @@ class Exchange {
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees, true) : $fees;
             $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            for ($i = 0; $i < $reducedLength; $i++) {
+                $reducedFees[$i]['cost'] = $this->parse_number($reducedFees[$i]['cost']);
+            }
             if (!$parseFee && ($reducedLength === 0)) {
                 $reducedFees[] = $order['fee'];
             }
