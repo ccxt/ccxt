@@ -1155,11 +1155,11 @@ class bitvavo extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'orderType');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'amount');
-        $remaining = $this->safe_number($order, 'amountRemaining');
-        $filled = $this->safe_number($order, 'filledAmount');
-        $cost = $this->safe_number($order, 'filledAmountQuote');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'amount');
+        $remaining = $this->safe_string($order, 'amountRemaining');
+        $filled = $this->safe_string($order, 'filledAmount');
+        $cost = $this->safe_string($order, 'filledAmountQuote');
         $fee = null;
         $feeCost = $this->safe_number($order, 'feePaid');
         if ($feeCost !== null) {
@@ -1171,17 +1171,11 @@ class bitvavo extends Exchange {
             );
         }
         $rawTrades = $this->safe_value($order, 'fills', array());
-        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-            'symbol' => $symbol,
-            'order' => $id,
-            'side' => $side,
-            'type' => $type,
-        ));
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = $this->safe_value($order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         $stopPrice = $this->safe_number($order, 'triggerPrice');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -1202,7 +1196,7 @@ class bitvavo extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
-            'trades' => $trades,
+            'trades' => $rawTrades,
         ));
     }
 
