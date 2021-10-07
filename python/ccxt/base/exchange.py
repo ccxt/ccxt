@@ -2229,7 +2229,7 @@ class Exchange(object):
                         reduced[feeCurrencyCode]['cost'] = self.sum(reduced[feeCurrencyCode]['cost'], fee['cost'])
                 else:
                     reduced[feeCurrencyCode] = {
-                        'cost': fee['cost'],
+                        'cost': fee['cost'] if string else self.parse_number(fee['cost']),
                         'currency': feeCurrencyCode,
                     }
         return list(reduced.values())
@@ -2386,11 +2386,17 @@ class Exchange(object):
                         if tradeFees is not None:
                             for j in range(0, len(tradeFees)):
                                 tradeFee = tradeFees[j]
-                                fees.append(self.extend({}, tradeFee))
+                                fees.append({
+                                    'cost': self.parse_number(tradeFee['cost']),
+                                    'currency': tradeFee['currency'],
+                                })
                         else:
                             tradeFee = self.safe_value(trade, 'fee')
                             if tradeFee is not None:
-                                fees.append(self.extend({}, tradeFee))
+                                fees.append({
+                                    'cost': self.parse_number(tradeFee['cost']),
+                                    'currency': tradeFee['currency'],
+                                })
         if shouldParseFees:
             reducedFees = self.reduce_fees_by_currency(fees, True) if self.reduceFees else fees
             reducedLength = len(reducedFees)

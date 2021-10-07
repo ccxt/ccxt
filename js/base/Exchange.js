@@ -1564,7 +1564,7 @@ module.exports = class Exchange {
                     }
                 } else {
                     reduced[feeCurrencyCode] = {
-                        'cost': this.parseNumber (fee['cost']),
+                        'cost': string ? fee['cost'] : this.parseNumber (fee['cost']),
                         'currency': feeCurrencyCode,
                     };
                 }
@@ -1759,12 +1759,18 @@ module.exports = class Exchange {
                         if (tradeFees !== undefined) {
                             for (let j = 0; j < tradeFees.length; j++) {
                                 const tradeFee = tradeFees[j];
-                                fees.push (this.extend ({}, tradeFee));
+                                fees.push ({
+                                    'cost': this.parseNumber (tradeFee['cost']),
+                                    'currency': tradeFee['currency'],
+                                });
                             }
                         } else {
                             const tradeFee = this.safeValue (trade, 'fee');
                             if (tradeFee !== undefined) {
-                                fees.push (this.extend ({}, tradeFee));
+                                fees.push ({
+                                    'cost': this.parseNumber (tradeFee['cost']),
+                                    'currency': tradeFee['currency'],
+                                });
                             }
                         }
                     }

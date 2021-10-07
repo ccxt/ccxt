@@ -2977,7 +2977,7 @@ class Exchange {
                     }
                 } else {
                     $reduced[$feeCurrencyCode] = array(
-                        'cost' => $fee['cost'],
+                        'cost' => $string ? $fee['cost'] : $this->parse_number($fee['cost']),
                         'currency' => $feeCurrencyCode,
                     );
                 }
@@ -3172,12 +3172,18 @@ class Exchange {
                         if ($tradeFees !== null) {
                             for ($j = 0; $j < count($tradeFees); $j++) {
                                 $tradeFee = $tradeFees[$j];
-                                $fees[] = array_merge(array(), $tradeFee);
+                                $fees[] = array(
+                                    'cost' => $this->parse_number($tradeFee['cost']),
+                                    'currency' => $tradeFee['currency'],
+                                );
                             }
                         } else {
                             $tradeFee = $this->safe_value($trade, 'fee');
                             if ($tradeFee !== null) {
-                                $fees[] = array_merge(array(), $tradeFee);
+                                $fees[] = array(
+                                    'cost' => $this->parse_number($tradeFee['cost']),
+                                    'currency' => $tradeFee['currency'],
+                                );
                             }
                         }
                     }
