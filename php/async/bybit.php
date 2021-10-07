@@ -2566,21 +2566,19 @@ class bybit extends Exchange {
     }
 
     public function set_leverage($leverage = null, $symbol = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        } else {
+        if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         $defaultType = $this->safe_string($this->options, 'defaultType', 'linear');
         $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
         $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
-        $linear = (($market !== null) && ($market['linear']) || ($marketType === 'linear'));
-        $inverse = (($market !== null) && ($market['swap'] && $market['inverse']) || ($marketType === 'inverse'));
-        $futures = (($market !== null) && ($market['futures']) || ($marketType === 'futures'));
+        $linear = $market['linear'] || ($marketType === 'linear');
+        $inverse = ($market['swap'] && $market['inverse']) || ($marketType === 'inverse');
+        $futures = $market['futures'] || ($marketType === 'futures');
         $method = null;
         if ($linear) {
             $method = 'privateLinearPostPositionSetLeverage';

@@ -2434,20 +2434,18 @@ class bybit(Exchange):
             raise ExchangeError(feedback)  # unknown message
 
     def set_leverage(self, leverage=None, symbol=None, params={}):
-        self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        else:
+        if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         defaultType = self.safe_string(self.options, 'defaultType', 'linear')
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
         marketType = self.safe_string(marketTypes, symbol, defaultType)
-        linear = ((market is not None) and (market['linear']) or (marketType == 'linear'))
-        inverse = ((market is not None) and (market['swap'] and market['inverse']) or (marketType == 'inverse'))
-        futures = ((market is not None) and (market['futures']) or (marketType == 'futures'))
+        linear = market['linear'] or (marketType == 'linear')
+        inverse = (market['swap'] and market['inverse']) or (marketType == 'inverse')
+        futures = market['futures'] or (marketType == 'futures')
         method = None
         if linear:
             method = 'privateLinearPostPositionSetLeverage'
