@@ -215,9 +215,9 @@ class liquid(Exchange):
                 'product_disabled': BadSymbol,  # {"errors":{"order":["product_disabled"]}}
             },
             'commonCurrencies': {
-                'WIN': 'WCOIN',
                 'HOT': 'HOT Token',
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
+                'TON': 'Tokamak Network',
             },
             'options': {
                 'cancelOrderException': True,
