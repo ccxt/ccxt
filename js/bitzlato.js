@@ -18,17 +18,14 @@ module.exports = class bitzlato extends Exchange {
             'version': 'v2',
             'rateLimit': 1000,
             'has': {
-                // 'cancelAllOrders': true,
-                // 'cancelOrder': true,
-                // 'cancelOrders': undefined,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
                 'CORS': true,
                 'createOrder': true,
                 // 'createDepositAddress': undefined,
                 // 'deposit': undefined,
-                // 'editOrder': 'emulated',
                 'fetchBalance': true,
                 // 'fetchBidsAsks': undefined,
-                // 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
                 // 'fetchDepositAddress': undefined,
                 // 'fetchDeposits': undefined,
@@ -37,11 +34,12 @@ module.exports = class bitzlato extends Exchange {
                 'fetchMarkets': true,
                 // 'fetchMyTrades': undefined,
                 // 'fetchOHLCV': 'emulated',
-                // 'fetchOpenOrders': undefined,
                 // 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 // 'fetchOrderBooks': undefined,
-                // 'fetchOrders': undefined,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 // 'fetchOrderTrades': undefined,
                 'fetchStatus': true,
                 // 'fetchTicker': true,
@@ -153,9 +151,6 @@ module.exports = class bitzlato extends Exchange {
                         'account/beneficiaries/{id}',
                     ],
                 },
-            },
-            'headers': {
-                'Accept': 'application/json',
             },
             'fees': {
                 'trading': {
@@ -549,6 +544,7 @@ module.exports = class bitzlato extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
+            'cost': cost,
         };
     }
 
@@ -712,9 +708,30 @@ module.exports = class bitzlato extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'market_type': 'spot',
+        };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.privatePostMarketOrdersCancel (this.extend (request, params));
+        return response;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.privatePostMarketOrdersIdCancel (this.extend (request, params));
+        const order = this.parseOrder (response);
+        const status = this.safeString (order, 'status');
+        if (status === 'closed' || status === 'canceled') {
+            throw new OrderNotFound (this.id + ' ' + this.json (order));
+        }
+        return order;
     }
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
@@ -723,10 +740,37 @@ module.exports = class bitzlato extends Exchange {
     async fetchClosedOrder (id, symbol = undefined, params = {}) {
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let marketId = undefined;
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            marketId = market['id'];
+        }
+        const request = {
+            'market': marketId,
+            'market_type': 'spot',
+            'order_by': 'asc',
+        };
+        if (since !== undefined) {
+            request['time_from'] = parseInt (since / 1000);
+        }
+        const response = await this.privateGetMarketOrders (this.extend (request, params));
+        return this.parseOrders (response);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'state': 'wait',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'state': 'done',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
