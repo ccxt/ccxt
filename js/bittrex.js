@@ -217,8 +217,9 @@ module.exports = class bittrex extends Exchange {
                 // 'createOrderMethod': 'create_order_v1',
             },
             'commonCurrencies': {
-                'REPV2': 'REP',
                 'MER': 'Mercury', // conflict with Mercurial Finance
+                'REPV2': 'REP',
+                'TON': 'Tokamak Network',
             },
         });
     }
