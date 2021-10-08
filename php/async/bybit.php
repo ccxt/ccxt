@@ -2566,7 +2566,7 @@ class bybit extends Exchange {
         }
     }
 
-    public function set_margin_mode($symbol, $marginType, $params = array (), $leverage = null) {
+    public function set_margin_mode($symbol, $marginType, $params = array ()) {
         //
         // {
         //     "ret_code" => 0,
@@ -2580,25 +2580,23 @@ class bybit extends Exchange {
         //     "rate_limit" => 75
         // }
         //
-        yield $this->load_markets();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        if (!$leverage) {
-            throw new ArgumentsRequired($this->id . '.setMarginMode requires arguments $symbol, $marginType, and leverage');
+        $leverage = $this->safe_value($params, 'leverage');
+        if ($leverage === null) {
+            throw new ArgumentsRequired($this->id . '.setMarginMode requires a $leverage parameter');
         }
         $marginType = strtoupper($marginType);
         if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
             throw new BadRequest($this->id . ' $marginType must be either isolated or crossed');
         }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
         $method = null;
         $defaultType = $this->safe_string($this->options, 'defaultType', 'linear');
         $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
         $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
-        $linear = (($market !== null) && ($market['linear']) || ($marketType === 'linear'));
-        $inverse = (($market !== null) && ($market['swap'] && $market['inverse']) || ($marketType === 'inverse'));
-        $futures = (($market !== null) && ($market['futures']) || ($marketType === 'futures'));
+        $linear = $market['linear'] || ($marketType === 'linear');
+        $inverse = ($market['swap'] && $market['inverse']) || ($marketType === 'inverse');
+        $futures = $market['futures'] || ($marketType === 'futures');
         if ($linear) {
             $method = 'privateLinearPostPositionSwitchIsolated';
         } else if ($inverse) {
@@ -2606,9 +2604,10 @@ class bybit extends Exchange {
         } else if ($futures) {
             $method = 'privateFuturesPostPositionSwitchIsolated';
         }
+        $isIsolated = ($marginType === 'ISOLATED');
         $request = array(
             'symbol' => $market['id'],
-            'is_isolated' => $marginType === 'ISOLATED',
+            'is_isolated' => $isIsolated,
             'buy_leverage' => $leverage,
             'sell_leverage' => $leverage,
         );
