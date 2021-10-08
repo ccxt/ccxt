@@ -2,7 +2,7 @@
 
 const ccxt = require ('../../ccxt')
 
-console.log ('CCXT Version:', ccxt.__version__)
+console.log ('CCXT Version:', ccxt.version)
 
 // https://github.com/ccxt/ccxt/issues/10179
 
