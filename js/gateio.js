@@ -305,7 +305,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'spot',
+                'defaultType': 'swap',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -2008,16 +2008,65 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type = 'limit', side, amount, price = undefined, params = {}) {
+        //
+        // :param (str) symbol: base/quote currency pair
+        // :param (str) type: Order type (limit, market, ...)
+        // :param (str) side: buy or sell
+        // :param (number) amount: Amount of base currency ordered
+        // :param (number) price: Price of the base currency using quote currency
+        // :param (dict) params:
+        //          - type: market type (spot, futures, ...)
+        //          - reduceOnly
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currency_pair': market['id'],
-            'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
-            'side': side,
-        };
-        const response = await this.privateSpotPostOrders (this.extend (request, params));
+        const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
+        const marketType = this.safeString (params, 'type', defaultType);
+        const future = market['future'];
+        const swap = market['swap'];
+        const request = this.prepareRequest (market);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        params = this.omit (params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if ((marketType !== 'future') && (marketType !== 'swap')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
+            }
+            request['reduce_only'] = reduceOnly;
+        }
+        if (future || swap) {
+            if (side === 'sell') {
+                amount = 0 - amount;
+            }
+            request['size'] = this.parseNumber (this.amountToPrecision (symbol, amount));
+            request['settle'] = market['settleId'];
+        } else {
+            request['side'] = side;
+            request['type'] = type;
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            request['account'] = marketType;
+            // if (margin) {
+            //     if (entering trade) {
+            //         request['auto_borrow'] = true;
+            //     } else if (exiting trade) {
+            //         request['auto_repay'] = true;
+            //     }
+            // }
+        }
+        if (type === 'limit') {
+            if (!price) {
+                throw new ArgumentsRequired ('Argument price is required for ' + this.id + '.createOrder for limit orders');
+            }
+            request['price'] = this.priceToPrecision (symbol, price);
+        } else if (future || swap) {
+            request['price'] = 0;
+        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateSpotPostOrders',
+            // 'margin': 'privateSpotPostOrders',
+            'swap': 'privateFuturesPostSettleOrders',
+            'future': 'privateDeliveryPostSettleOrders',
+        });
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
