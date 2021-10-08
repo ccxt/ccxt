@@ -2578,8 +2578,8 @@ module.exports = class bybit extends Exchange {
         // }
         //
         const leverage = this.safeValue (params, 'leverage');
-        if ((symbol === undefined) || (leverage === undefined)) {
-            throw new ArgumentsRequired (this.id + '.setMarginMode requires a symbol argument and a leverage param');
+        if (leverage === undefined) {
+            throw new ArgumentsRequired (this.id + '.setMarginMode requires a leverage parameter');
         }
         marginType = marginType.toUpperCase ();
         if ((marginType !== 'ISOLATED') && (marginType !== 'CROSSED')) {
