@@ -1724,7 +1724,7 @@ class okex(Exchange):
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         defaultType = self.safe_string(self.options, 'defaultType')
-        options = self.safe_string(self.options, 'fetchClosedOrders', {})
+        options = self.safe_value(self.options, 'fetchClosedOrders', {})
         type = self.safe_string(options, 'type', defaultType)
         type = self.safe_string(params, 'type', type)
         params = self.omit(params, 'type')

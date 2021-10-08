@@ -1781,7 +1781,7 @@ class okex extends Exchange {
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $options = $this->safe_string($this->options, 'fetchClosedOrders', array());
+        $options = $this->safe_value($this->options, 'fetchClosedOrders', array());
         $type = $this->safe_string($options, 'type', $defaultType);
         $type = $this->safe_string($params, 'type', $type);
         $params = $this->omit($params, 'type');
