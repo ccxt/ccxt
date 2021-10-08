@@ -102,6 +102,7 @@ module.exports = class bitforex extends Exchange {
                 'HBC': 'Hybrid Bank Cash',
                 'IQ': 'IQ.Cash',
                 'MIR': 'MIR COIN',
+                'TON': 'To The Moon',
                 'UOS': 'UOS Network',
             },
             'exceptions': {
