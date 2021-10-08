@@ -23,8 +23,6 @@ module.exports = class bitzlato extends Exchange {
                 // 'cancelOrders': undefined,
                 'CORS': true,
                 'createOrder': true,
-                // 'createLimitOrder': true,
-                // 'createMarketOrder': true,
                 // 'createDepositAddress': undefined,
                 // 'deposit': undefined,
                 // 'editOrder': 'emulated',
@@ -49,7 +47,7 @@ module.exports = class bitzlato extends Exchange {
                 // 'fetchTicker': true,
                 // 'fetchTickers': undefined,
                 'fetchTime': true,
-                // 'fetchTrades': true,
+                'fetchTrades': true,
                 // 'fetchTradingFee': undefined,
                 // 'fetchTradingFees': undefined,
                 // 'fetchTradingLimits': undefined,
@@ -316,8 +314,8 @@ module.exports = class bitzlato extends Exchange {
         const request = {
             'limit': limit,
         };
-        const response = await this.publicGetCurrencies(this.extend (request, params));
-        if (!this.isArray(response)) {
+        const response = await this.publicGetCurrencies (this.extend (request, params));
+        if (!this.isArray (response)) {
             return {};
         }
         const result = {};
@@ -401,7 +399,7 @@ module.exports = class bitzlato extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const account =  this.account ();
+            const account = this.account ();
             account['free'] = this.safeString (balance, 'balance');
             account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
@@ -528,42 +526,69 @@ module.exports = class bitzlato extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        // [
-        //     {
-        //         'info':       { ... },                  // the original decoded JSON as is
-        //         'id':        '12345-67890:09876/54321', // string trade id
-        //         'timestamp':  1502962946216,            // Unix timestamp in milliseconds
-        //         'datetime':  '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
-        //         'symbol':    'ETH/BTC',                 // symbol
-        //         'order':     '12345-67890:09876/54321', // string order id or undefined/None/null
-        //         'type':      'limit',                   // order type, 'market', 'limit' or undefined/None/null
-        //         'side':      'buy',                     // direction of the trade, 'buy' or 'sell'
-        //         'price':      0.06917684,               // float price in quote currency
-        //         'amount':     1.5,                      // amount of base currency
-        //     },
-        //     ...
-        // ]
-    }
-
-    purseTrades() {
+        const id = this.safeString (trade, 'id');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
+        const cost = this.safeNumber (trade, 'total');
+        const timestamp = this.safeTimestamp (trade, 'created_at');
+        const side = this.safeString (trade, 'side');
+        const order = this.safeString (trade, 'order_id');
+        const marketId = this.safeString (trade, 'market');
+        if (market === undefined) {
+            market = this.markets_by_id[marketId];
+        }
+        const symbol = market['symbol'];
+        return {
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'order': order,
+            'side': side,
+            'price': price,
+            'amount': amount,
+        };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market,
-        }
+            'market': market['id'],
+            'order_by': 'asc',
+        };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            const timestamp = 
+            const timestamp = parseInt (since / 1000);
             request['timestamp'] = timestamp;
         }
         const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data);
+        // [
+        //   {
+        //     "id": "string",
+        //     "price": 0,
+        //     "amount": 0,
+        //     "total": 0,
+        //     "fee_currency": 0,
+        //     "fee": 0,
+        //     "fee_amount": 0,
+        //     "market": "string",
+        //     "market_type": "string",
+        //     "created_at": "string",
+        //     "taker_type": "string",
+        //     "side": "string",
+        //     "order_id": 0
+        //   },
+        // ...
+        // ]
+        if (!this.isArray (response)) {
+            return [];
+        }
+        return this.parseTrades (response, market);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
@@ -572,6 +597,7 @@ module.exports = class bitzlato extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             'wait': 'open',
+            'pending': 'open',
             'done': 'closed',
             'cancel': 'canceled',
         };
@@ -681,7 +707,7 @@ module.exports = class bitzlato extends Exchange {
         //   "ord_type": "limit",
         //   "price": 0
         // }
-        const response = await this.privatePostMarketOrders(this.extend (request, params));
+        const response = await this.privatePostMarketOrders (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -739,20 +765,20 @@ module.exports = class bitzlato extends Exchange {
         const baseUrl = this.implodeHostname (this.urls.api[api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         headers = {
-          'Accept': 'application/json'
-        }
+            'Accept': 'application/json',
+        };
         if (method === 'GET') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else if (method === 'POST') {
-            headers['Content-type'] = 'application/json'
+            headers['Content-type'] = 'application/json';
             body = this.json (query);
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ();
-            const message = this.encode (nonce.toString()) + this.encode (this.apiKey);
+            const message = this.encode (nonce.toString ()) + this.encode (this.apiKey);
             const signature = this.hmac (message, this.encode (this.secret), 'sha256', 'hex');
             headers['X-Auth-ApiKey'] = this.apiKey;
             headers['X-Auth-Nonce'] = nonce;
