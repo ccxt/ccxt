@@ -93,17 +93,12 @@ module.exports = class bitforex extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'ACE': 'ACE Entertainment',
-                'BDP': 'BidiPass',
                 'CAPP': 'Crypto Application Token',
                 'CREDIT': 'TerraCredit',
                 'CTC': 'Culture Ticket Chain',
-                'GOT': 'GoNetwork',
-                'HBC': 'Hybrid Bank Cash',
                 'IQ': 'IQ.Cash',
                 'MIR': 'MIR COIN',
                 'TON': 'To The Moon',
-                'UOS': 'UOS Network',
             },
             'exceptions': {
                 '1003': BadSymbol, // {"success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error"}
