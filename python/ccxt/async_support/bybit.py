@@ -2434,7 +2434,7 @@ class bybit(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
 
-    async def set_margin_mode(self, symbol, marginType, params={}, leverage=None):
+    async def set_margin_mode(self, symbol, marginType, params={}):
         #
         # {
         #     "ret_code": 0,
@@ -2448,31 +2448,31 @@ class bybit(Exchange):
         #     "rate_limit": 75
         # }
         #
-        await self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        if not leverage:
-            raise ArgumentsRequired(self.id + '.setMarginMode requires arguments symbol, marginType, and leverage')
+        leverage = self.safe_value(params, 'leverage')
+        if leverage is None:
+            raise ArgumentsRequired(self.id + '.setMarginMode requires a leverage parameter')
         marginType = marginType.upper()
         if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
             raise BadRequest(self.id + ' marginType must be either isolated or crossed')
+        await self.load_markets()
+        market = self.market(symbol)
         method = None
         defaultType = self.safe_string(self.options, 'defaultType', 'linear')
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
         marketType = self.safe_string(marketTypes, symbol, defaultType)
-        linear = ((market is not None) and (market['linear']) or (marketType == 'linear'))
-        inverse = ((market is not None) and (market['swap'] and market['inverse']) or (marketType == 'inverse'))
-        futures = ((market is not None) and (market['futures']) or (marketType == 'futures'))
+        linear = market['linear'] or (marketType == 'linear')
+        inverse = (market['swap'] and market['inverse']) or (marketType == 'inverse')
+        futures = market['futures'] or (marketType == 'futures')
         if linear:
             method = 'privateLinearPostPositionSwitchIsolated'
         elif inverse:
             method = 'v2PrivatePostPositionSwitchIsolated'
         elif futures:
             method = 'privateFuturesPostPositionSwitchIsolated'
+        isIsolated = (marginType == 'ISOLATED')
         request = {
             'symbol': market['id'],
-            'is_isolated': marginType == 'ISOLATED',
+            'is_isolated': isIsolated,
             'buy_leverage': leverage,
             'sell_leverage': leverage,
         }
