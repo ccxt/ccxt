@@ -1777,7 +1777,7 @@ module.exports = class okex extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString (this.options, 'defaultType');
-        const options = this.safeString (this.options, 'fetchClosedOrders', {});
+        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
         let type = this.safeString (options, 'type', defaultType);
         type = this.safeString (params, 'type', type);
         params = this.omit (params, 'type');
