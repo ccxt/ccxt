@@ -32,19 +32,18 @@ module.exports = class bitzlato extends Exchange {
                 // 'fetchFundingFees': undefined,
                 // 'fetchLedger': undefined,
                 'fetchMarkets': true,
-                // 'fetchMyTrades': undefined,
                 // 'fetchOHLCV': 'emulated',
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                // 'fetchOrderTrades': undefined,
                 'fetchStatus': true,
                 // 'fetchTicker': true,
                 // 'fetchTickers': undefined,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchMyTrades': true,
                 // 'fetchTradingFee': undefined,
                 // 'fetchTradingFees': undefined,
                 // 'fetchTradingLimits': undefined,
@@ -120,7 +119,7 @@ module.exports = class bitzlato extends Exchange {
                         'account/deposits',
                         'account/balances/{currency}',
                         'account/balances',
-                        'account/trades',
+                        'market/trades',
                         'market/orders',
                         'market/orders/{id}',
                         'coinmarketcap/orderbook/{market_pair}',
@@ -520,7 +519,8 @@ module.exports = class bitzlato extends Exchange {
         const price = this.safeNumber (trade, 'price');
         const amount = this.safeNumber (trade, 'amount');
         const cost = this.safeNumber (trade, 'total');
-        const timestamp = this.safeTimestamp (trade, 'created_at');
+        const createdAt = this.safeString (trade, 'created_at');
+        const timestamp = this.parse8601 (createdAt);
         const side = this.safeString (trade, 'side');
         const order = this.safeString (trade, 'order_id');
         const marketId = this.safeString (trade, 'market');
@@ -770,10 +770,22 @@ module.exports = class bitzlato extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-    }
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'market_type': 'spot',
+            'order_by': 'asc',
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['time_from'] = parseInt (since / 1000);
+        }
+        const response = await this.privateGetMarketTrades (this.extend (request, params));
+        return this.parseTrades (response, market);
     }
 
     async createDepositAddress (code, params = {}) {
