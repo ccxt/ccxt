@@ -55,7 +55,7 @@ module.exports = class ascendex extends Exchange {
                 '1w': '1w',
                 '1M': '1m',
             },
-            'version': 'v1',
+            'version': 'v2',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg',
                 'api': 'https://ascendex.com',
@@ -71,67 +71,106 @@ module.exports = class ascendex extends Exchange {
                 },
             },
             'api': {
-                'public': {
-                    'get': [
-                        'assets',
-                        'products',
-                        'ticker',
-                        'barhist/info',
-                        'barhist',
-                        'depth',
-                        'trades',
-                        'cash/assets', // not documented
-                        'cash/products', // not documented
-                        'margin/assets', // not documented
-                        'margin/products', // not documented
-                        'futures/collateral',
-                        'futures/contracts',
-                        'futures/ref-px',
-                        'futures/market-data',
-                        'futures/funding-rates',
-                    ],
+                'v1': {
+                    'public': {
+                        'get': [
+                            'assets',
+                            'products',
+                            'ticker',
+                            'barhist/info',
+                            'barhist',
+                            'depth',
+                            'trades',
+                            'cash/assets', // not documented
+                            'cash/products', // not documented
+                            'margin/assets', // not documented
+                            'margin/products', // not documented
+                            'futures/collateral',
+                            'futures/contracts',
+                            'futures/ref-px',
+                            'futures/market-data',
+                            'futures/funding-rates',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'info',
+                            'wallet/transactions',
+                            'wallet/deposit/address', // not documented
+                        ],
+                        'accountCategory': {
+                            'get': [
+                                'balance',
+                                'order/open',
+                                'order/status',
+                                'order/hist/current',
+                                'risk',
+                            ],
+                            'post': [
+                                'order',
+                                'order/batch',
+                            ],
+                            'delete': [
+                                'order',
+                                'order/all',
+                                'order/batch',
+                            ],
+                        },
+                        'accountGroup': {
+                            'get': [
+                                'cash/balance',
+                                'margin/balance',
+                                'margin/risk',
+                                'transfer',
+                                'futures/collateral-balance',
+                                'futures/position',
+                                'futures/risk',
+                                'futures/funding-payments',
+                                'order/hist',
+                            ],
+                            'post': [
+                                'futures/transfer/deposit',
+                                'futures/transfer/withdraw',
+                            ],
+                        },
+                    },
                 },
-                'accountCategory': {
-                    'get': [
-                        'balance',
-                        'order/open',
-                        'order/status',
-                        'order/hist/current',
-                        'risk',
-                    ],
-                    'post': [
-                        'order',
-                        'order/batch',
-                    ],
-                    'delete': [
-                        'order',
-                        'order/all',
-                        'order/batch',
-                    ],
-                },
-                'accountGroup': {
-                    'get': [
-                        'cash/balance',
-                        'margin/balance',
-                        'margin/risk',
-                        'transfer',
-                        'futures/collateral-balance',
-                        'futures/position',
-                        'futures/risk',
-                        'futures/funding-payments',
-                        'order/hist',
-                    ],
-                    'post': [
-                        'futures/transfer/deposit',
-                        'futures/transfer/withdraw',
-                    ],
-                },
-                'private': {
-                    'get': [
-                        'info',
-                        'wallet/transactions',
-                        'wallet/deposit/address', // not documented
-                    ],
+                'v2': {
+                    'public': {
+                        'get': [
+                            'futures/contract',
+                            'futures/collateral',
+                            'futures/pricing-data',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'account/info',
+                        ],
+                        'accountGroup': {
+                            'get': [
+                                'futures/position',
+                                'futures/free-margin',
+                                'futures/order/hist/current',
+                                'futures/order/status',
+                            ],
+                            'post': [
+                                'futures/isolated-position-margin',
+                                'futures/margin-type',
+                                'futures/leverage',
+                                'futures/transfer/deposit',
+                                'futures/transfer/withdraw',
+                                'futures/order',
+                                'futures/order/batch',
+                                'futures/order/open',
+                            ],
+                            'delete': [
+                                'futures/order',
+                                'futures/order/batch',
+                                'futures/order/all',
+                            ],
+                        },
+                    },
                 },
             },
             'fees': {
@@ -146,7 +185,7 @@ module.exports = class ascendex extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'account-category': 'cash', // 'cash'/'margin'/'futures'
-                'account-group': undefined,
+                'account-group': 8, // undefined,
                 'fetchClosedOrders': {
                     'method': 'accountGroupGetOrderHist', // 'accountGroupGetAccountCategoryOrderHistCurrent'
                 },
@@ -233,7 +272,7 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const assets = await this.publicGetAssets (params);
+        const assets = await this.v1PublicGetAssets (params);
         //
         //     {
         //         "code":0,
@@ -250,7 +289,7 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const margin = await this.publicGetMarginAssets (params);
+        const margin = await this.v1PublicGetMarginAssets (params);
         //
         //     {
         //         "code":0,
@@ -270,7 +309,7 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const cash = await this.publicGetCashAssets (params);
+        const cash = await this.v1PublicGetCashAssets (params);
         //
         //     {
         //         "code":0,
@@ -333,7 +372,7 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const products = await this.publicGetProducts (params);
+        const products = await this.v1PublicGetProducts (params);
         //
         //     {
         //         "code":0,
@@ -354,7 +393,7 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const cash = await this.publicGetCashProducts (params);
+        const cash = await this.v1PublicGetCashProducts (params);
         //
         //     {
         //         "code":0,
@@ -383,7 +422,7 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const futures = await this.publicGetFuturesContracts (params);
+        const futures = await this.v1PublicGetFuturesContracts (params);
         //
         //     {
         //         "code":0,
@@ -521,9 +560,9 @@ module.exports = class ascendex extends Exchange {
         const request = {
             'account-group': accountGroup,
         };
-        let method = 'accountCategoryGetBalance';
+        let method = 'v1PrivateAccountCategoryGetBalance';
         if (accountCategory === 'futures') {
-            method = 'accountGroupGetFuturesCollateralBalance';
+            method = 'v1PrivateAccountGroupGetFuturesCollateralBalance';
         } else {
             request['account-category'] = accountCategory;
         }
@@ -594,7 +633,7 @@ module.exports = class ascendex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetDepth (this.extend (request, params));
+        const response = await this.v1PublicGetDepth (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -679,7 +718,7 @@ module.exports = class ascendex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const response = await this.v1PublicGetTicker (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -707,7 +746,7 @@ module.exports = class ascendex extends Exchange {
             const marketIds = this.marketIds (symbols);
             request['symbol'] = marketIds.join (',');
         }
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const response = await this.v1PublicGetTicker (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -780,7 +819,7 @@ module.exports = class ascendex extends Exchange {
         } else if (limit !== undefined) {
             request['n'] = limit; // max 500
         }
-        const response = await this.publicGetBarhist (this.extend (request, params));
+        const response = await this.v1PublicGetBarhist (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -856,7 +895,7 @@ module.exports = class ascendex extends Exchange {
         if (limit !== undefined) {
             request['n'] = limit; // max 100
         }
-        const response = await this.publicGetTrades (this.extend (request, params));
+        const response = await this.v1PublicGetTrades (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -1039,7 +1078,7 @@ module.exports = class ascendex extends Exchange {
                 params = this.omit (params, 'stopPrice');
             }
         }
-        const response = await this.accountCategoryPostOrder (this.extend (request, params));
+        const response = await this.v1PrivateAccountCategoryPostOrder (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1078,7 +1117,7 @@ module.exports = class ascendex extends Exchange {
             'account-category': accountCategory,
             'orderId': id,
         };
-        const response = await this.accountCategoryGetOrderStatus (this.extend (request, params));
+        const response = await this.v1PrivateAccountCategoryGetOrderStatus (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1415,7 +1454,7 @@ module.exports = class ascendex extends Exchange {
         const request = {
             'asset': currency['id'],
         };
-        const response = await this.privateGetWalletDepositAddress (this.extend (request, params));
+        const response = await this.v1PrivateGetWalletDepositAddress (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -1603,22 +1642,30 @@ module.exports = class ascendex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const version = api[0];
+        const access = api[1];
+        const type = this.safeString (api, 2);
         let url = '';
         let query = params;
-        const accountCategory = (api === 'accountCategory');
-        if (accountCategory || (api === 'accountGroup')) {
+        const accountCategory = (type === 'accountCategory');
+        if (accountCategory || (type === 'accountGroup')) {
             url += this.implodeParams ('/{account-group}', params);
             query = this.omit (params, 'account-group');
         }
-        const request = this.implodeParams (path, query);
-        url += '/api/pro/' + this.version;
+        let request = this.implodeParams (path, query);
+        url += '/api/pro/';
+        if (version === 'v2') {
+            request = version + '/' + request;
+        } else {
+            url += version;
+        }
         if (accountCategory) {
             url += this.implodeParams ('/{account-category}', query);
             query = this.omit (query, 'account-category');
         }
         url += '/' + request;
         query = this.omit (query, this.extractParams (path));
-        if (api === 'public') {
+        if (access === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
