@@ -2362,7 +2362,7 @@ class Exchange(object):
                 'order': order['id'],
             })
             self.number = oldNumber
-            if isinstance(trades, list):
+            if isinstance(trades, list) and len(trades):
                 if parseFilled:
                     filled = '0'
                 if parseCost:
