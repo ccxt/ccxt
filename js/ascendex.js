@@ -42,6 +42,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
+                'setMarginMode': true,
             },
             'timeframes': {
                 '1m': '1',
