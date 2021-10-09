@@ -771,7 +771,7 @@ class binance extends Exchange {
                     'kmdexplorer.io' => 'KMD',
                     'kusama.subscan.io' => 'KSM',
                     'explorer.lto.network' => 'LTO',
-                    'polygonscan.com' => 'MATIC',
+                    'polygonscan.com' => 'POLYGON',
                     'explorer.ont.io' => 'ONT',
                     'minaexplorer.com' => 'MINA',
                     'nanolooker.com' => 'NANO',
