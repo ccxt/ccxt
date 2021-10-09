@@ -109,6 +109,8 @@ class ascendex(Exchange):
                             'info',
                             'wallet/transactions',
                             'wallet/deposit/address',  # not documented
+                            'data/balance/snapshot',
+                            'data/balance/history',
                         ],
                         'accountCategory': {
                             'get': [
@@ -150,6 +152,7 @@ class ascendex(Exchange):
                 'v2': {
                     'public': {
                         'get': [
+                            'assets',
                             'futures/contract',
                             'futures/collateral',
                             'futures/pricing-data',
@@ -161,6 +164,7 @@ class ascendex(Exchange):
                         ],
                         'accountGroup': {
                             'get': [
+                                'order/hist',
                                 'futures/position',
                                 'futures/free-margin',
                                 'futures/order/hist/current',
@@ -175,6 +179,8 @@ class ascendex(Exchange):
                                 'futures/order',
                                 'futures/order/batch',
                                 'futures/order/open',
+                                'subuser/subuser-transfer',
+                                'subuser/subuser-transfer-hist',
                             ],
                             'delete': [
                                 'futures/order',
@@ -1654,6 +1660,8 @@ class ascendex(Exchange):
             url += self.implode_params('/{account-category}', query)
             query = self.omit(query, 'account-category')
         url += '/' + request
+        if (version == 'v1') and (request == 'cash/balance') or (request == 'margin/balance'):
+            request = 'balance'
         query = self.omit(query, self.extract_params(path))
         if access == 'public':
             if query:

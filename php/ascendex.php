@@ -104,6 +104,8 @@ class ascendex extends Exchange {
                             'info',
                             'wallet/transactions',
                             'wallet/deposit/address', // not documented
+                            'data/balance/snapshot',
+                            'data/balance/history',
                         ),
                         'accountCategory' => array(
                             'get' => array(
@@ -145,6 +147,7 @@ class ascendex extends Exchange {
                 'v2' => array(
                     'public' => array(
                         'get' => array(
+                            'assets',
                             'futures/contract',
                             'futures/collateral',
                             'futures/pricing-data',
@@ -156,6 +159,7 @@ class ascendex extends Exchange {
                         ),
                         'accountGroup' => array(
                             'get' => array(
+                                'order/hist',
                                 'futures/position',
                                 'futures/free-margin',
                                 'futures/order/hist/current',
@@ -170,6 +174,8 @@ class ascendex extends Exchange {
                                 'futures/order',
                                 'futures/order/batch',
                                 'futures/order/open',
+                                'subuser/subuser-transfer',
+                                'subuser/subuser-transfer-hist',
                             ),
                             'delete' => array(
                                 'futures/order',
@@ -1725,6 +1731,9 @@ class ascendex extends Exchange {
             $query = $this->omit($query, 'account-category');
         }
         $url .= '/' . $request;
+        if (($version === 'v1') && ($request === 'cash/balance') || ($request === 'margin/balance')) {
+            $request = 'balance';
+        }
         $query = $this->omit($query, $this->extract_params($path));
         if ($access === 'public') {
             if ($query) {
