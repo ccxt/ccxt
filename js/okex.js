@@ -482,6 +482,7 @@ module.exports = class okex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'defaultNetwork': 'ERC20',
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
@@ -2195,22 +2196,6 @@ module.exports = class okex extends Exchange {
             'ccy': currency['id'],
         };
         const response = await this.privateGetAssetDepositAddress (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const parsed = this.parseDepositAddress (data[i]);
-            result[parsed['network']] = parsed;
-        }
-        return result;
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'ccy': currency['id'],
-        };
-        const response = await this.privateGetAssetDepositAddress (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -2233,12 +2218,26 @@ module.exports = class okex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const addressesByCode = this.parseDepositAddresses (data);
-        const address = this.safeValue (addressesByCode, code);
-        if (address === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const parsed = this.parseDepositAddress (data[i], currency);
+            result[parsed['network']] = parsed;
         }
-        return address;
+        return result;
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        const result = await this.fetchNetworkDepositAddress (code, params);
+        const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+        const rawNetwork = this.safeStringUpper (params, 'network', defaultNetwork);
+        const networks = this.safeValue (this.options, 'networks', {});
+        const network = this.safeString (networks, rawNetwork, rawNetwork);
+        if (network in result) {
+            return result[network];
+        } else {
+            const values = Object.values (result);
+            return this.safeValue (values, 0);
+        }
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
