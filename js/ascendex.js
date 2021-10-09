@@ -34,7 +34,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -187,7 +187,7 @@ module.exports = class ascendex extends Exchange {
                 'account-category': 'cash', // 'cash'/'margin'/'futures'
                 'account-group': 8, // undefined,
                 'fetchClosedOrders': {
-                    'method': 'accountGroupGetOrderHist', // 'accountGroupGetAccountCategoryOrderHistCurrent'
+                    'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
             },
             'exceptions': {
@@ -1167,7 +1167,7 @@ module.exports = class ascendex extends Exchange {
             'account-group': accountGroup,
             'account-category': accountCategory,
         };
-        const response = await this.accountCategoryGetOrderOpen (this.extend (request, params));
+        const response = await this.v1PrivateAccountCategoryGetOrderOpen (this.extend (request, params));
         //
         //     {
         //         "ac": "CASH",
@@ -1238,8 +1238,8 @@ module.exports = class ascendex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.safeValue (options, 'method', 'accountGroupGetOrderHist');
-        if (method === 'accountGroupGetOrderHist') {
+        const method = this.safeValue (options, 'method', 'v1PrivateAccountGroupGetOrderHist');
+        if (method === 'v1PrivateAccountGroupGetOrderHist') {
             if (accountCategory !== undefined) {
                 request['category'] = accountCategory;
             }
@@ -1353,7 +1353,7 @@ module.exports = class ascendex extends Exchange {
             request['id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'id' ]);
         }
-        const response = await this.accountCategoryDeleteOrder (this.extend (request, params));
+        const response = await this.v1PrivateAccountCategoryDeleteOrder (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1397,7 +1397,7 @@ module.exports = class ascendex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.accountCategoryDeleteOrderAll (this.extend (request, params));
+        const response = await this.v1PrivateAccountCategoryDeleteOrderAll (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1545,7 +1545,7 @@ module.exports = class ascendex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateGetWalletTransactions (this.extend (request, params));
+        const response = await this.v1PrivateGetWalletTransactions (this.extend (request, params));
         //
         //     {
         //         code: 0,
