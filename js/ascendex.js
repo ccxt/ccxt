@@ -102,8 +102,6 @@ module.exports = class ascendex extends Exchange {
                             'wallet/deposit/address', // not documented
                             'data/balance/snapshot',
                             'data/balance/history',
-                            'cash/balance',
-                            'margin/balance',
                         ],
                         'accountCategory': {
                             'get': [
@@ -1729,6 +1727,9 @@ module.exports = class ascendex extends Exchange {
             query = this.omit (query, 'account-category');
         }
         url += '/' + request;
+        if ((version === 'v1') && (request === 'cash/balance') || (request === 'margin/balance')) {
+            request = 'balance';
+        }
         query = this.omit (query, this.extractParams (path));
         if (access === 'public') {
             if (Object.keys (query).length) {
