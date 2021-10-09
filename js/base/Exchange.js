@@ -1729,7 +1729,7 @@ module.exports = class Exchange {
                 'order': order['id'],
             });
             this.number = oldNumber;
-            if (Array.isArray (trades)) {
+            if (Array.isArray (trades) && trades.length) {
                 if (parseFilled) {
                     filled = '0';
                 }

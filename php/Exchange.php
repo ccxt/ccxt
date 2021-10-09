@@ -3141,7 +3141,7 @@ class Exchange {
                 'order' => $order['id'],
             ));
             $this->number = $oldNumber;
-            if (is_array($trades)) {
+            if (is_array($trades) && count($trades)) {
                 if ($parseFilled) {
                     $filled = '0';
                 }
