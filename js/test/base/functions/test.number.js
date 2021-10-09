@@ -388,9 +388,17 @@ assert (decimalToPrecision ('0.0001', ROUND, '1', SIGNIFICANT_DIGITS) === '0.000
 
 assert (decimalToPrecision ('123.0000987654', ROUND, 7, SIGNIFICANT_DIGITS) === '123.0001');
 assert (decimalToPrecision ('123.0000987654', ROUND, 6, SIGNIFICANT_DIGITS) === '123');
+assert (decimalToPrecision ('123.0000987654', ROUND, 2, SIGNIFICANT_DIGITS) === '120');
+assert (decimalToPrecision ('127.0000987654', ROUND, 2, SIGNIFICANT_DIGITS) === '130');
+assert (decimalToPrecision ('123.0000987654', ROUND, 1, SIGNIFICANT_DIGITS) === '100');
+assert (decimalToPrecision ('177.0000987654', ROUND, 1, SIGNIFICANT_DIGITS) === '200');
 
 assert (decimalToPrecision ('123.0000987654', ROUND, '7', SIGNIFICANT_DIGITS) === '123.0001');
 assert (decimalToPrecision ('123.0000987654', ROUND, '6', SIGNIFICANT_DIGITS) === '123');
+assert (decimalToPrecision ('123.0000987654', ROUND, '2', SIGNIFICANT_DIGITS) === '120');
+assert (decimalToPrecision ('127.0000987654', ROUND, '2', SIGNIFICANT_DIGITS) === '130');
+assert (decimalToPrecision ('123.0000987654', ROUND, '1', SIGNIFICANT_DIGITS) === '100');
+assert (decimalToPrecision ('177.0000987654', ROUND, '1', SIGNIFICANT_DIGITS) === '200');
 
 assert (decimalToPrecision ('0.00098765', ROUND, 2, SIGNIFICANT_DIGITS) === '0.00099');
 assert (decimalToPrecision ('0.00098765', ROUND, 2, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '0.00099');
