@@ -27,6 +27,7 @@ module.exports = class okex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': undefined, // see below
                 'fetchDepositAddress': true,
+                'fetchNetworkDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
@@ -2195,6 +2196,7 @@ module.exports = class okex extends Exchange {
         const request = {
             'ccy': currency['id'],
         };
+        params = this.omit (params, 'network');
         const response = await this.privateGetAssetDepositAddress (this.extend (request, params));
         //
         //     {
