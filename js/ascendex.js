@@ -187,7 +187,7 @@ module.exports = class ascendex extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'account-category': 'cash', // 'cash'/'margin'/'futures'
-                'account-group': 8, // undefined,
+                'account-group': undefined,
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
@@ -1665,7 +1665,7 @@ module.exports = class ascendex extends Exchange {
         await this.loadAccounts ();
         const market = this.market (symbol);
         if (market['type'] !== 'future') {
-            throw new BadRequest (this.id + ' setLeverage() supports futures contracts only');
+            throw new BadSymbol (this.id + ' setLeverage() supports futures contracts only');
         }
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
@@ -1675,6 +1675,26 @@ module.exports = class ascendex extends Exchange {
             'leverage': leverage,
         };
         return await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
+    }
+
+    async setMarginMode (symbol, marginType = '', params = {}) {
+        if (marginType !== 'isolated' && marginType !== 'crossed') {
+            throw new BadRequest (this.id + ' setMarginMode() marginType argument should be isolated or crossed');
+        }
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const market = this.market (symbol);
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeString (account, 'id');
+        const request = {
+            'account-group': accountGroup,
+            'symbol': market['id'],
+            'marginType': marginType,
+        };
+        if (market['type'] !== 'future') {
+            throw new BadSymbol (this.id + ' setMarginMode() supports futures contracts only');
+        }
+        return await this.v2PrivateAccountGroupPostFuturesMarginType (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
