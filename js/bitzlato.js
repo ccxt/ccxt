@@ -34,9 +34,8 @@ module.exports = class bitzlato extends Exchange {
                 'fetchMarkets': true,
                 // 'fetchMyTrades': undefined,
                 // 'fetchOHLCV': 'emulated',
-                // 'fetchOrder': undefined,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
-                // 'fetchOrderBooks': undefined,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -405,10 +404,6 @@ module.exports = class bitzlato extends Exchange {
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOrder is not implemented yet');
-    }
-
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -734,10 +729,12 @@ module.exports = class bitzlato extends Exchange {
         return order;
     }
 
-    async fetchOpenOrder (id, symbol = undefined, params = {}) {
-    }
-
-    async fetchClosedOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        const request = {
+            'id': id,
+        };
+        const response = await this.privateGetMarketOrdersId (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
