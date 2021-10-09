@@ -100,6 +100,10 @@ module.exports = class ascendex extends Exchange {
                             'info',
                             'wallet/transactions',
                             'wallet/deposit/address', // not documented
+                            'data/balance/snapshot',
+                            'data/balance/history',
+                            'cash/balance',
+                            'margin/balance',
                         ],
                         'accountCategory': {
                             'get': [
@@ -141,6 +145,7 @@ module.exports = class ascendex extends Exchange {
                 'v2': {
                     'public': {
                         'get': [
+                            'assets',
                             'futures/contract',
                             'futures/collateral',
                             'futures/pricing-data',
@@ -152,6 +157,7 @@ module.exports = class ascendex extends Exchange {
                         ],
                         'accountGroup': {
                             'get': [
+                                'order/hist',
                                 'futures/position',
                                 'futures/free-margin',
                                 'futures/order/hist/current',
@@ -166,6 +172,8 @@ module.exports = class ascendex extends Exchange {
                                 'futures/order',
                                 'futures/order/batch',
                                 'futures/order/open',
+                                'subuser/subuser-transfer',
+                                'subuser/subuser-transfer-hist',
                             ],
                             'delete': [
                                 'futures/order',
