@@ -820,7 +820,6 @@ module.exports = class okex extends Exchange {
                     'fee': this.safeNumber (chain, 'minFee'),
                     'precision': undefined,
                     'limits': {
-                        'amount': { 'min': undefined, 'max': undefined },
                         'withdraw': {
                             'min': this.safeNumber (chain, 'minWd'),
                             'max': undefined,
