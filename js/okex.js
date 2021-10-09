@@ -2158,24 +2158,55 @@ module.exports = class okex extends Exchange {
         //         "selected":true
         //     }
         //
+        //     {
+        //       "chain": "ETH-OKExChain",
+        //       "ctAddr": "72315c",
+        //       "ccy": "ETH",
+        //       "to": "6",
+        //       "addr": "0x1c9f2244d1ccaa060bd536827c18925db10db102",
+        //       "selected": true
+        //     }
+        //
         const address = this.safeString (depositAddress, 'addr');
         let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
         tag = this.safeString (depositAddress, 'memo', tag);
         const currencyId = this.safeString (depositAddress, 'ccy');
         const code = this.safeCurrencyCode (currencyId);
+        const chain = this.safeString (depositAddress, 'chain');
+        let network = undefined;
+        if (chain.indexOf ('-') > -1) {
+            const parts = chain.split ('-');
+            network = this.safeStringUpper (parts, 1);
+        }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': network,
             'info': depositAddress,
         };
     }
 
+    async fetchNetworkDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'ccy': currency['id'],
+        };
+        const response = await this.privateGetAssetDepositAddress (this.extend (request, params));
+        const data = this.safeValue (response, 'data', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const parsed = this.parseDepositAddress (data[i]);
+            result[parsed['network']] = parsed;
+        }
+        return result;
+    }
+
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const parts = code.split ('-');
-        const currency = this.currency (parts[0]);
+        const currency = this.currency (code);
         const request = {
             'ccy': currency['id'],
         };
