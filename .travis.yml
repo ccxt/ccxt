@@ -2,6 +2,8 @@ language: python
 dist: focal
 python:
 - '3.7'
+php:
+  - 7.4
 before_install:
 - set -e
 - ". $HOME/.nvm/nvm.sh"
