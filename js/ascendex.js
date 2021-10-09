@@ -41,6 +41,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -1651,6 +1652,29 @@ module.exports = class ascendex extends Exchange {
             'account-group': accountGroup,
         };
         return await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+        }
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const market = this.market (symbol);
+        if (market['type'] !== 'future') {
+            throw new BadRequest (this.id + ' setLeverage() supports futures contracts only');
+        }
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeString (account, 'id');
+        const request = {
+            'account-group': accountGroup,
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        return await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
