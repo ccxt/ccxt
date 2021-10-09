@@ -1,5 +1,5 @@
 language: python
-dist: bionic
+dist: focal
 python:
 - '3.7'
 before_install:
