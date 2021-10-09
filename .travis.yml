@@ -18,12 +18,12 @@ before_install:
 - rm -rf node_modules
 - npm install
 - git checkout package.json package-lock.json
-- sudo -H pip3 install --upgrade setuptools
-- sudo -H pip3 install --upgrade pip wheel requests pyopenssl
-- sudo -H pip3 install --ignore-installed six
-- sudo -H pip3 install --upgrade tox twine
-- pip3 install --upgrade setuptools
-- pip3 install --upgrade aiohttp requests cryptography pyopenssl
+- sudo -H pip install --upgrade setuptools
+- sudo -H pip install --upgrade pip wheel requests pyopenssl
+- sudo -H pip install --ignore-installed six
+- sudo -H pip install --upgrade tox twine
+- pip install --upgrade setuptools
+- pip install --upgrade aiohttp requests cryptography pyopenssl
 - git pull --tags
 - phpenv global 7.4.2
 - composer install
