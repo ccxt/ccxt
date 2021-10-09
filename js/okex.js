@@ -794,38 +794,54 @@ module.exports = class okex extends Exchange {
         const result = {};
         const dataByCurrencyId = this.groupBy (data, 'ccy');
         const currencyIds = Object.keys (dataByCurrencyId);
+        const precision = this.parseNumber ('0.00000001'); // default precision, todo: fix "magic constants"
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
             const chains = dataByCurrencyId[currencyId];
-            const first = this.safeValue (chains, 0);
-            const id = this.safeString (first, 'ccy');
-            const code = this.safeCurrencyCode (id);
-            const precision = 0.00000001; // default precision, todo: fix "magic constants"
-            let name = this.safeString (first, 'name');
-            if ((name !== undefined) && (name.length < 1)) {
-                name = undefined;
+            const networks = {};
+            let currencyActive = false;
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const canDeposit = this.safeValue (chain, 'canDep');
+                const canWithdraw = this.safeValue (chain, 'canWd');
+                const canInternal = this.safeValue (chain, 'canInternal');
+                const active = (canDeposit && canWithdraw && canInternal) ? true : false;
+                currencyActive = currencyActive || active;
+                const chainName = this.safeString (chain, 'chain');
+                let network = undefined;
+                if (chainName.indexOf ('-') > -1) {
+                    const parts = chainName.split ('-');
+                    network = this.safeStringUpper (parts, 1, chainName);
+                }
+                networks[network] = {
+                    'info': chain,
+                    'active': active,
+                    'fee': this.safeNumber (chain, 'minFee'),
+                    'precision': undefined,
+                    'limits': {
+                        'amount': { 'min': undefined, 'max': undefined },
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'minWd'),
+                            'max': undefined,
+                        },
+                    },
+                };
             }
-            const canDeposit = this.safeValue (first, 'canDep');
-            const canWithdraw = this.safeValue (first, 'canWd');
-            const canInternal = this.safeValue (first, 'canInternal');
-            const active = (canDeposit && canWithdraw && canInternal) ? true : false;
             result[code] = {
-                'id': id,
                 'code': code,
-                'info': chains,
-                'type': undefined,
-                'name': name,
-                'active': active,
-                'fee': this.safeNumber (first, 'minFee'),
+                'id': currencyId,
+                'name': undefined,
+                'active': currencyActive,
+                'fee': undefined,
                 'precision': precision,
-                'networks': chains,
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': {
-                        'min': this.safeNumber (first, 'ccy'),
+                    'amount': {
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
+                'networks': networks,
             };
         }
         return result;
