@@ -1450,13 +1450,12 @@ module.exports = class huobi extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         const result = await this.fetchNetworkDepositAddress (code, params);
-        const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+        const defaultNetwork = this.safeStringUpper (this.options, 'defaultNetwork', 'ERC20');
         const rawNetwork = this.safeStringUpper (params, 'network', defaultNetwork);
         const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeString (networks, rawNetwork, rawNetwork);
-        const networkUpper = network.toUpperCase ();
-        if (networkUpper in result) {
-            return result[networkUpper];
+        const network = this.safeStringUpper (networks, rawNetwork, rawNetwork);
+        if (network in result) {
+            return result[network];
         } else {
             const values = Object.values (result);
             return this.safeValue (values, 0);
