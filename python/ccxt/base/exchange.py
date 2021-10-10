@@ -1824,14 +1824,14 @@ class Exchange(object):
             result.append(self.extend(self.parse_ticker(values[i]), params))
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_deposit_addresses(self, addresses, codes=None):
+    def parse_deposit_addresses(self, addresses, codes=None, indexed=True):
         result = []
         for i in range(0, len(addresses)):
             address = self.parse_deposit_address(addresses[i])
             result.append(address)
         if codes:
             result = self.filter_by_array(result, 'currency', codes)
-        return self.index_by(result, 'currency')
+        return self.index_by(result, 'currency') if indexed else result
 
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
