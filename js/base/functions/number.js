@@ -37,8 +37,7 @@ const precisionConstants = {
     NO_PADDING,
     PAD_WITH_ZERO,
 }
-const Precise = require ('../Precise');
-const zero = new Precise('0')
+const Precise = require ('../Precise')
 const Bzero = BigInt(0)
 
 /*  ------------------------------------------------------------------------ */
