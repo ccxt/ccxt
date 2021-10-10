@@ -25,7 +25,7 @@ module.exports = class okex extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': undefined, // see below
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddressByNetwork': true,
                 'fetchDeposits': true,
