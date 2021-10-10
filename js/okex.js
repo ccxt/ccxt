@@ -487,7 +487,7 @@ module.exports = class okex extends Exchange {
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
-                    'OMNI': 'Omini',
+                    'OMNI': 'Omni',
                 },
                 'fetchOHLCV': {
                     'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
