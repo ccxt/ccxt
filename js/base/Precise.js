@@ -4,6 +4,9 @@ const zero = BigInt (0)
 const minusOne = BigInt (-1)
 const base = BigInt (10)
 
+var _oneP
+var _halfP
+
 class Precise {
     constructor (number, decimals = undefined) {
         if (decimals === undefined) {
@@ -118,17 +121,17 @@ class Precise {
     }
 
     round () {
-        let fractional = this.mod (new Precise(BigInt(1),0))
+        let fractional = this.mod (_oneP)
         let whole = this.sub (fractional)
         if (this.integer > zero) {
-            if (fractional.ge (new Precise (BigInt(5),1))) {
-                return whole.add (new Precise(BigInt(1),0))
+            if (fractional.ge (_halfP)) {
+                return whole.add (_oneP)
             } else {
                 return whole
             }
         } else {
-            if (fractional.gt (new Precise (BigInt(5),1))) {
-                return whole.add (new Precise(BigInt(1),0))
+            if (fractional.gt (_halfP)) {
+                return whole.add (_oneP)
             } else {
                 return whole
             }
@@ -136,16 +139,16 @@ class Precise {
     }
 
     floor () {
-        const fractional = this.mod (new Precise(BigInt(1),0))
+        const fractional = this.mod (_oneP)
         const whole = this.sub (fractional)
         return whole
     }
 
     ceil () {
-        const fractional = this.mod (new Precise(BigInt(1),0))
+        const fractional = this.mod (_oneP)
         const whole = this.sub (fractional)
         if ( fractional.integer > 0 ) {
-            return whole.add (new Precise(BigInt(1),0))
+            return whole.add (_oneP)
         } else {
             return whole
         }
@@ -368,5 +371,8 @@ class Precise {
         return (new Precise (string1)).le (new Precise (string2))
     }
 }
+
+_oneP = new Precise(BigInt(1), 0)
+_halfP = new Precise(BigInt(5), 1)
 
 module.exports = Precise;
