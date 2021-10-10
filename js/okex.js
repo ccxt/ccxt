@@ -812,7 +812,7 @@ module.exports = class okex extends Exchange {
                 let network = undefined;
                 if (chainName.indexOf ('-') > -1) {
                     const parts = chainName.split ('-');
-                    network = this.safeStringUpper (parts, 1, chainName);
+                    network = this.safeString (parts, 1, chainName);
                 }
                 networks[network] = {
                     'info': chain,
