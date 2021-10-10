@@ -2193,7 +2193,7 @@ module.exports = class okex extends Exchange {
         let network = undefined;
         if (chain.indexOf ('-') > -1) {
             const parts = chain.split ('-');
-            network = this.safeStringUpper (parts, 1);
+            network = this.safeString (parts, 1);
         }
         this.checkAddress (address);
         return {
