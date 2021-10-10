@@ -1235,7 +1235,7 @@ module.exports = class Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseDepositAddresses (addresses, codes = undefined) {
+    parseDepositAddresses (addresses, codes = undefined, indexed = true) {
         let result = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.parseDepositAddress (addresses[i]);
@@ -1244,7 +1244,7 @@ module.exports = class Exchange {
         if (codes) {
             result = this.filterByArray (result, 'currency', codes);
         }
-        return this.indexBy (result, 'currency');
+        return indexed ? this.indexBy (result, 'currency') : result;
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
