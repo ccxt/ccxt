@@ -112,12 +112,6 @@ const decimalToPrecision = (x, roundingMode
 	var result = ''
 	var hasDot = null
 	var numPrecisionDigitsNum = null
-	if (typeof x !== 'string') {
-        throw new Error ('x must be a string')
-	}
-	//if (x.match(regExpNonScientificNumber) === null) {
-    //    throw new Error ('x must be a string representing a number in non-scientific notation')
-	//}
 
 	/*  handle tick size */
     if (countingMode === TICK_SIZE) {
@@ -136,7 +130,20 @@ const decimalToPrecision = (x, roundingMode
 	        throw new Error ('numPrecisionDigits must be a string or a Number')
 	    }
 	
-		var xP = new Precise (x)
+		var xP = null
+	    if (typeof x === 'string') {
+	        xP = new Precise (x)
+	    } else if (Number.isInteger (x)) {
+		    xP = new Precise (BigInt (x), 0)
+	    } else if (Number.isFinite (x)) {
+		    // Occurrences of this should be eliminated and replaced by strings instead.
+	        let exponent = Math.floor (Math.log10 (numPrecisionDigits))-15+1
+		    const mantissa = Math.round (numPrecisionDigits / Math.pow (10, exponent))
+	        xP = new Precise (BigInt (mantissa), -exponent)
+	        xP.reduce ()
+	    } else {
+	        throw new Error ('x must be a string or a Number')
+	    }
         const newNumPrecisionDigits = numPrecisionDigitsP.decimals > 0 ? numPrecisionDigitsP.decimals : 0
         const remainder = xP.mod (numPrecisionDigitsP)
         if (remainder.integer != Bzero) {
@@ -156,6 +163,15 @@ const decimalToPrecision = (x, roundingMode
 		countingMode = DECIMAL_PLACES
         // return decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode)
     } else {
+		if (Number.isFinite(x)) {
+			x = numberToString(x)
+		} else if (typeof x !== 'string') {
+	        throw new Error ('x must be a string or a Number')
+		}
+		//if (x.match(/^-?[0-9]+(\.[0-9]*)?$/) === null) {
+	    //    throw new Error ('x must be a string representing a number in non-scientific notation')
+		//}
+		
 		if (typeof numPrecisionDigits === 'string') {
 			numPrecisionDigitsNum = Number(numPrecisionDigits)
 	    } else if (Number.isFinite (numPrecisionDigits)) {
