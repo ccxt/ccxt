@@ -2200,7 +2200,8 @@ module.exports = class okex extends Exchange {
         let network = undefined;
         if (chain.indexOf ('-') > -1) {
             const parts = chain.split ('-');
-            network = this.safeString (parts, 1);
+            const networkId = this.safeString (parts, 1);
+            network = this.safeNetwork (networkId);
         }
         this.checkAddress (address);
         return {
