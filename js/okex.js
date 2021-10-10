@@ -27,7 +27,7 @@ module.exports = class okex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': undefined, // see below
                 'fetchDepositAddress': true,
-                'fetchNetworkDepositAddress': true,
+                'fetchDepositAddressNetworks': true,
                 'fetchDeposits': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
@@ -2205,13 +2205,12 @@ module.exports = class okex extends Exchange {
         };
     }
 
-    async fetchNetworkDepositAddress (code, params = {}) {
+    async fetchDepositAddressNetworks (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'ccy': currency['id'],
         };
-        params = this.omit (params, 'network');
         const response = await this.privateGetAssetDepositAddress (this.extend (request, params));
         //
         //     {
@@ -2235,16 +2234,12 @@ module.exports = class okex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const parsed = this.parseDepositAddress (data[i], currency);
-            result[parsed['network']] = parsed;
-        }
-        return result;
+        const parsed = this.parseDepositAddresses (data[i]);
+        return this.indexBy (parsed, 'network');
     }
 
     async fetchDepositAddress (code, params = {}) {
-        const result = await this.fetchNetworkDepositAddress (code, params);
+        const result = await this.fetchDepositAddressNetworks (code, params);
         const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
         const rawNetwork = this.safeStringUpper (params, 'network', defaultNetwork);
         const networks = this.safeValue (this.options, 'networks', {});
