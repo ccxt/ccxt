@@ -23,14 +23,12 @@ module.exports = class bitzlato extends Exchange {
                 'CORS': true,
                 'createOrder': true,
                 // 'createDepositAddress': undefined,
+                // 'fetchDepositAddress': undefined,
                 // 'deposit': undefined,
                 'fetchBalance': true,
                 // 'fetchBidsAsks': undefined,
                 'fetchCurrencies': true,
-                // 'fetchDepositAddress': undefined,
-                // 'fetchDeposits': undefined,
                 // 'fetchFundingFees': undefined,
-                // 'fetchLedger': undefined,
                 'fetchMarkets': true,
                 // 'fetchOHLCV': 'emulated',
                 'fetchOrder': true,
@@ -47,7 +45,8 @@ module.exports = class bitzlato extends Exchange {
                 // 'fetchTradingFee': undefined,
                 // 'fetchTradingFees': undefined,
                 // 'fetchTradingLimits': undefined,
-                // 'fetchTransactions': undefined,
+                'fetchTransactions': true,
+                // 'fetchDeposits': true,
                 // 'fetchWithdrawals': undefined,
                 // 'withdraw': undefined,
             },
@@ -794,13 +793,65 @@ module.exports = class bitzlato extends Exchange {
     async fetchDepositAddress (code, params = {}) {
     }
 
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    }
+
     parseTransactionStatus (status) {
     }
 
     parseTransaction (transaction, currency = undefined) {
+        const createdAt = this.safeString (transaction, 'created_at');
+        const updatedAt = this.safeString (transaction, 'updated_at');
+        if (currency === undefined) {
+            currency = this.safeString (transaction, 'currency');
+            currency = this.safeCurrencyCode (currency);
+        }
+        const timestamp = this.parse8601 (createdAt);
+        const updated = this.parse8601 (updatedAt);
+        const txid = this.safeString (transation, 'txid');
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'addressFrom': addressFrom,
+            'address': addressTo,
+            'addressTo': addressTo,
+            'tagFrom': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
+            },
+        };
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        // [
+        //   {
+        //     address: '0x6fe5a2e4c137d7dc178bdaacfb8cda15b2181665',
+        //     currency: 'bnb',
+        //     amount: '1.000000000000000000',
+        //     fee: '0.000000000000000000',
+        //     txid: '0x6076decd3239e87cde86fd5de9366c08e489243eb976de29b424a27bfaa46032',
+        //     state: 'dispatched',
+        //     note: null,
+        //     confirmations: '39957',
+        //     created_at: '2021-10-09T08:08:46+03:00',
+        //     updated_at: '2021-10-09T08:09:07+03:00',
+        //     type: 'Deposit'
+        //   },
+        //   ...
+        // ]
+
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
