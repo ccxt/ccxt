@@ -282,9 +282,12 @@ module.exports = class kucoin extends Exchange {
                     '400007': AuthenticationError,
                     '400008': NotSupported,
                     '400100': BadRequest,
+                    '400500': PermissionDenied, // {"code":"400500","msg":"Your located country/region is currently not supported for the trading of this token"}
                     '411100': AccountSuspended,
                     '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
                     '500000': ExchangeError,
+
+
                 },
                 'broad': {
                     'Exceeded the access frequency': RateLimitExceeded,
