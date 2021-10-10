@@ -198,9 +198,9 @@ class ndax(Exchange):
                 'secret': True,
                 'uid': True,
                 # these credentials are required for signIn() and withdraw()
-                # 'login': True,
-                # 'password': True,
-                # 'twofa': True,
+                'login': True,
+                'password': True,
+                'twofa': True,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
