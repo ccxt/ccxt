@@ -131,8 +131,8 @@ const decimalToPrecision = (x, roundingMode
 		    xP = new Precise (BigInt (x), 0)
 	    } else if (Number.isFinite (x)) {
 		    // Occurrences of this should be eliminated and replaced by strings instead.
-	        let exponent = Math.floor (Math.log10 (numPrecisionDigits))-15+1
-		    const mantissa = Math.round (numPrecisionDigits / Math.pow (10, exponent))
+	        let exponent = Math.floor (Math.log10 (Math.abs (x)))-15+1
+		    const mantissa = Math.round (x / Math.pow (10, exponent))
 	        xP = new Precise (BigInt (mantissa), -exponent)
 	        xP.reduce ()
 	    } else {
