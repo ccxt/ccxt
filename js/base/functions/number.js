@@ -19,12 +19,12 @@ const ROUND      = 0                // rounding mode
     , ROUND_UP   = 2
     , ROUND_DOWN = 3
 
-const DECIMAL_PLACES     = 0        // digits counting mode
-    , SIGNIFICANT_DIGITS = 1
-    , TICK_SIZE = 2
+const DECIMAL_PLACES     = 10        // digits counting mode
+    , SIGNIFICANT_DIGITS = 11
+    , TICK_SIZE = 12
 
-const NO_PADDING    = 0             // zero-padding mode
-    , PAD_WITH_ZERO = 1
+const NO_PADDING    = 20             // zero-padding mode
+    , PAD_WITH_ZERO = 21
 
 const precisionConstants = {
     ROUND,
