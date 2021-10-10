@@ -2,7 +2,7 @@
 
 import os
 import sys
-import from asyncio import get_event_loop, gather
+from asyncio import get_event_loop, gather
 
 # -----------------------------------------------------------------------------
 
