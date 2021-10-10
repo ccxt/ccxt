@@ -817,22 +817,22 @@ module.exports = class okex extends Exchange {
                 if (chainName.indexOf ('-') > -1) {
                     const parts = chainName.split ('-');
                     networkId = this.safeString (parts, 1, chainName);
-                }
-                const network = this.safeNetwork (networkId);
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'active': active,
-                    'fee': this.safeNumber (chain, 'minFee'),
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (chain, 'minWd'),
-                            'max': undefined,
+                    const network = this.safeNetwork (networkId);
+                    networks[network] = {
+                        'info': chain,
+                        'id': networkId,
+                        'network': network,
+                        'active': active,
+                        'fee': this.safeNumber (chain, 'minFee'),
+                        'precision': undefined,
+                        'limits': {
+                            'withdraw': {
+                                'min': this.safeNumber (chain, 'minWd'),
+                                'max': undefined,
+                            },
                         },
-                    },
-                };
+                    };
+                }
             }
             result[code] = {
                 'code': code,
