@@ -22,10 +22,10 @@ print('CCXT Version:', ccxt.__version__)
 
 
 async def fetch_ohlcv(exchange, symbol, timeframe, limit):
-
+    since = None
     while True:
         try:
-            ohlcv = await exchange.fetch_ohlcv(symbol, timeframe, limit)
+            ohlcv = await exchange.fetch_ohlcv(symbol, timeframe, since, limit)
             if len(ohlcv):
                 first_candle = ohlcv[0]
                 datetime = exchange.iso8601(first_candle[0])
