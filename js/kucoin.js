@@ -286,8 +286,6 @@ module.exports = class kucoin extends Exchange {
                     '411100': AccountSuspended,
                     '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
                     '500000': ExchangeError,
-
-
                 },
                 'broad': {
                     'Exceeded the access frequency': RateLimitExceeded,
