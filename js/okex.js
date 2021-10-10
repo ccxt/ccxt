@@ -2234,7 +2234,8 @@ module.exports = class okex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const parsed = this.parseDepositAddresses (data, [ code ], false);
+        const filtered = this.filterBy (data, 'selected', true);
+        const parsed = this.parseDepositAddresses (filtered, [ code ], false);
         return this.indexBy (parsed, 'network');
     }
 
