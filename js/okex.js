@@ -27,7 +27,7 @@ module.exports = class okex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': undefined, // see below
                 'fetchDepositAddress': true,
-                'fetchDepositAddressNetworks': true,
+                'fetchDepositAddressByNetwork': true,
                 'fetchDeposits': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
@@ -2205,7 +2205,7 @@ module.exports = class okex extends Exchange {
         };
     }
 
-    async fetchDepositAddressNetworks (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -2240,7 +2240,7 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        const result = await this.fetchDepositAddressNetworks (code, params);
+        const result = await this.fetchDepositAddressesByNetwork (code, params);
         const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
         const rawNetwork = this.safeStringUpper (params, 'network', defaultNetwork);
         const networks = this.safeValue (this.options, 'networks', {});
