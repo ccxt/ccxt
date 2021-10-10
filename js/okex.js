@@ -759,6 +759,10 @@ module.exports = class okex extends Exchange {
         return this.parseMarkets (data);
     }
 
+    safeNetwork (networkId) {
+        return networkId;
+    }
+
     async fetchCurrencies (params = {}) {
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
@@ -809,13 +813,16 @@ module.exports = class okex extends Exchange {
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = currencyActive || active;
                 const chainName = this.safeString (chain, 'chain');
-                let network = undefined;
+                let networkId = undefined;
                 if (chainName.indexOf ('-') > -1) {
                     const parts = chainName.split ('-');
-                    network = this.safeString (parts, 1, chainName);
+                    networkId = this.safeString (parts, 1, chainName);
                 }
+                const network = this.safeNetwork (networkId);
                 networks[network] = {
                     'info': chain,
+                    'id': networkId,
+                    'network': network,
                     'active': active,
                     'fee': this.safeNumber (chain, 'minFee'),
                     'precision': undefined,
