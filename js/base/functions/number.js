@@ -115,9 +115,9 @@ const decimalToPrecision = (x, roundingMode
 	if (typeof x !== 'string') {
         throw new Error ('x must be a string')
 	}
-	if (x.match(regExpNonScientificNumber) === null) {
-        throw new Error ('x must be a string representing a number in non-scientific notation')
-	}
+	//if (x.match(regExpNonScientificNumber) === null) {
+    //    throw new Error ('x must be a string representing a number in non-scientific notation')
+	//}
 
 	/*  handle tick size */
     if (countingMode === TICK_SIZE) {
