@@ -2021,7 +2021,7 @@ class Exchange {
             $result[] = $address;
         }
         if ($codes) {
-            $result = $this->filter_by_array($result, 'currency', $codes);
+            $result = $this->filter_by_array($result, 'currency', $codes, false);
         }
         return $indexed ? $this->index_by($result, 'currency') : $result;
     }

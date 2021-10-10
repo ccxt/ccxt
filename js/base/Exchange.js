@@ -1242,7 +1242,7 @@ module.exports = class Exchange {
             result.push (address);
         }
         if (codes) {
-            result = this.filterByArray (result, 'currency', codes);
+            result = this.filterByArray (result, 'currency', codes, false);
         }
         return indexed ? this.indexBy (result, 'currency') : result;
     }

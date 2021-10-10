@@ -1830,7 +1830,7 @@ class Exchange(object):
             address = self.parse_deposit_address(addresses[i])
             result.append(address)
         if codes:
-            result = self.filter_by_array(result, 'currency', codes)
+            result = self.filter_by_array(result, 'currency', codes, False)
         return self.index_by(result, 'currency') if indexed else result
 
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
