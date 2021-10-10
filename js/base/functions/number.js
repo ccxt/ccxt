@@ -98,12 +98,6 @@ function precisionFromString (string) {
 
 /*  ------------------------------------------------------------------------ */
 
-const regExpNonScientificNumber = new RegExp(/^-?[0-9]+(\.[0-9]*)?$/)
-const regExpTrailingZeros = new RegExp(/0*$/)
-const regExpTrailingDecimalPoint = new RegExp(/\.$/)
-const regExpNonZeroDigit = new RegExp(/[1-9]/)
-
-
 const decimalToPrecision = (x, roundingMode
                              , numPrecisionDigits
                              , countingMode       = DECIMAL_PLACES
@@ -206,12 +200,9 @@ const decimalToPrecision = (x, roundingMode
 			lastDigitPos--
 		}
 	} else if (countingMode === SIGNIFICANT_DIGITS) {
-		var match = x.match(regExpNonZeroDigit)
-		var firstDigitPos
-		if (match === null) {
-			firstDigitPos = x.length
-		} else {
-			firstDigitPos = match.index
+		var firstDigitPos = 0
+		while ((firstDigitPos < x.length) && (x[firstDigitPos] < '1') || (x[firstDigitPos] > '9')) {
+			firstDigitPos++
 		}
 		lastDigitPos = firstDigitPos + numPrecisionDigitsNum
 		if ((firstDigitPos < pointIndex) && (lastDigitPos < pointIndex)) {
@@ -299,7 +290,13 @@ const decimalToPrecision = (x, roundingMode
 			return '0'
 		}
 		if (hasDot) {
-			result = result.replace (regExpTrailingZeros, "")
+			var trailingZeroInd = result.length
+			while ((trailingZeroInd > 0) && (result[trailingZeroInd-1] === '0')) {
+				trailingZeroInd--
+			}
+			if (trailingZeroInd < result.length) {
+				result = result.slice (0, trailingZeroInd)
+			}
 		}
 	} else if (paddingMode === PAD_WITH_ZERO) {
 		if (result.length < lastDigitPos) {
@@ -312,7 +309,9 @@ const decimalToPrecision = (x, roundingMode
 		assert(false)
 	}
 	if (hasDot) {
-		result = result.replace (regExpTrailingDecimalPoint, "")
+		if ((result.length > 0) && (result[result.length-1] === '.')) {
+			result = result.slice (0, result.length - 1)
+		}
 	}
 	if ((result === "-0") || (result === '-0.' + '0'.repeat (Math.max(result.length-3,0)))) {
 		result = '0'
