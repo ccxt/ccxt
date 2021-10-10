@@ -14,17 +14,17 @@ var assert = require('assert');
 
             decimalToPrecision ('123.456', ROUND, 2, DECIMAL_PLACES)                     */
 
-const ROUND      = 0                // rounding mode
-    , TRUNCATE   = 1
-    , ROUND_UP   = 2
-    , ROUND_DOWN = 3
+const ROUND      = 1                // rounding mode
+    , TRUNCATE   = 2
+    , ROUND_UP   = 4
+    , ROUND_DOWN = 8
 
-const DECIMAL_PLACES     = 10        // digits counting mode
-    , SIGNIFICANT_DIGITS = 11
-    , TICK_SIZE = 12
+const DECIMAL_PLACES     = 16        // digits counting mode
+    , SIGNIFICANT_DIGITS = 32
+    , TICK_SIZE = 64
 
-const NO_PADDING    = 20             // zero-padding mode
-    , PAD_WITH_ZERO = 21
+const NO_PADDING    = 128             // zero-padding mode
+    , PAD_WITH_ZERO = 256
 
 const precisionConstants = {
     ROUND,
