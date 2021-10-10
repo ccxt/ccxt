@@ -193,9 +193,9 @@ class ndax extends Exchange {
                 'secret' => true,
                 'uid' => true,
                 // these credentials are required for signIn() and withdraw()
-                // 'login' => true,
-                // 'password' => true,
-                // 'twofa' => true,
+                'login' => true,
+                'password' => true,
+                'twofa' => true,
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
