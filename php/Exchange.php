@@ -2014,7 +2014,7 @@ class Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_deposit_addresses($addresses, $codes = null) {
+    public function parse_deposit_addresses($addresses, $codes = null, $indexed = true) {
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
             $address = $this->parse_deposit_address($addresses[$i]);
@@ -2023,7 +2023,7 @@ class Exchange {
         if ($codes) {
             $result = $this->filter_by_array($result, 'currency', $codes);
         }
-        return $this->index_by($result, 'currency');
+        return $indexed ? $this->index_by($result, 'currency') : $result;
     }
 
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
