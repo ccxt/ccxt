@@ -760,10 +760,11 @@ module.exports = class okex extends Exchange {
     }
 
     safeNetwork (networkId) {
-        const reverseNetworks = {
+        const networksById = {
             'Bitcoin': 'BTC',
+            'Omni': 'OMNI',
         };
-        return this.safeString (reverseNetworks, networkId, networkId);
+        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchCurrencies (params = {}) {
