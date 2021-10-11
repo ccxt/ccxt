@@ -797,6 +797,32 @@ module.exports = class bitzlato extends Exchange {
     }
 
     parseTransactionStatus (status) {
+        // 'ok', 'pending', 'failed', 'canceled'
+        const statuses = {
+            'accepted': 'pending',
+            'canceled': 'canceled',
+            'confirming': 'pending',
+            'dispatched': 'ok',
+            'errored': 'failed',
+            'failed': 'failed',
+            'invoiced': 'pending',
+            'prepared': 'pending',
+            'processing': 'pending',
+            'rejected': 'failed',
+            'skipped': 'pending',
+            'submitted': 'pending',
+            'succeed': 'ok',
+            'transfering': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransactionType (type) {
+        const types = {
+            'Deposit': 'deposit',
+            'Withdraw': 'withdrawal',
+        };
+        return this.safeString (types, type, type);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -808,33 +834,55 @@ module.exports = class bitzlato extends Exchange {
         }
         const timestamp = this.parse8601 (createdAt);
         const updated = this.parse8601 (updatedAt);
-        const txid = this.safeString (transation, 'txid');
+        const txid = this.safeString (transaction, 'txid');
+        const state = this.safeString (transaction, 'state');
+        const status = this.parseTransactionStatus (state);
+        const comment = this.safeString (transaction, 'note');
+        const addressTo = this.safeString (transaction, 'address');
+        const fee = this.safeNumber (transaction, 'fee');
+        const amount = this.safeNumber (transaction, 'amount');
+        const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         return {
             'info': transaction,
-            'id': undefined,
+            'id': txid,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'addressFrom': addressFrom,
+            'addressFrom': undefined,
             'address': addressTo,
             'addressTo': addressTo,
             'tagFrom': undefined,
-            'tag': tag,
-            'tagTo': tag,
+            'tag': comment,
+            'tagTo': comment,
             'type': type,
             'amount': amount,
-            'currency': code,
+            'currency': currency,
             'status': status,
             'updated': updated,
+            'comment': comment,
             'fee': {
-                'currency': code,
-                'cost': feeCost,
+                'currency': currency,
+                'cost': fee,
                 'rate': undefined,
             },
         };
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['time_from'] = parseInt (since / 1000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetAccountTransactions (this.extend (request, params));
         // [
         //   {
         //     address: '0x6fe5a2e4c137d7dc178bdaacfb8cda15b2181665',
@@ -851,7 +899,7 @@ module.exports = class bitzlato extends Exchange {
         //   },
         //   ...
         // ]
-
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
