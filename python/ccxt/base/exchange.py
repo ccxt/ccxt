@@ -2484,4 +2484,6 @@ class Exchange(object):
             tag = None
         if tag is None:
             tag = self.safe_string(params, 'tag')
+            if tag is not None:
+                params = self.omit(params, 'tag')
         return [tag, params]
