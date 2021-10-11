@@ -986,9 +986,12 @@ module.exports = class bitfinex2 extends bitfinex {
             symbol = this.currency (currency)['id'];
         }
         const status = this.parseOrderStatus (this.safeString (offer, 11));
-        const notify = (this.safeString (offer, 14) === 'false') ? false : true;
-        const renew = (this.safeString (offer, 16) === 'false') ? false : true;
-        const hidden = (this.safeInteger (offer, 15) === 0) ? false : true;
+        let notify = this.safeString (offer, 14);
+        notify = (notify === 'false') ? false : true;
+        let renew = this.safeString (offer, 16);
+        renew = (renew === 'false') ? false : true;
+        let hidden = this.safeInteger (offer, 15);
+        hidden = (hidden === 0) ? false : true;
         return {
             'MTS': this.safeNumber (offer, 0),
             'type': this.safeString (offer, 1),
@@ -1036,9 +1039,12 @@ module.exports = class bitfinex2 extends bitfinex {
             symbol = this.currency (currency)['id'];
         }
         const status = this.parseOrderStatus (this.safeString (offer, 8));
-        const notify = (this.safeInteger (offer, 11) === 0) ? false : true;
-        const hidden = (this.safeInteger (offer, 12) === 0) ? false : true;
-        const renew = (this.safeInteger (offer, 13) === 0) ? false : true;
+        let notify = this.safeInteger (offer, 11);
+        notify = (notify === 0) ? false : true;
+        let hidden = this.safeInteger (offer, 12);
+        hidden = (hidden === 0) ? false : true;
+        let renew = this.safeInteger (offer, 13);
+        renew = (renew === 0) ? false : true;
         return {
             'id': this.safeInteger (offer, 0),
             'symbol': symbol,
