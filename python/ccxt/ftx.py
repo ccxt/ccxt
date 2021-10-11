@@ -2043,4 +2043,5 @@ class ftx(Exchange):
         if since is not None:
             request['startTime'] = since
         response = getattr(self, method)(self.extend(request, params))
-        return self.parse_incomes(response, market, since, limit)
+        result = self.safe_value(response, 'result', [])
+        return self.parse_incomes(result, market, since, limit)
