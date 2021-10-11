@@ -46,8 +46,8 @@ module.exports = class bitzlato extends Exchange {
                 // 'fetchTradingFees': undefined,
                 // 'fetchTradingLimits': undefined,
                 'fetchTransactions': true,
-                // 'fetchDeposits': true,
-                // 'fetchWithdrawals': undefined,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
                 // 'withdraw': undefined,
             },
             'timeframes': {
@@ -793,9 +793,6 @@ module.exports = class bitzlato extends Exchange {
     async fetchDepositAddress (code, params = {}) {
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-    }
-
     parseTransactionStatus (status) {
         // 'ok', 'pending', 'failed', 'canceled'
         const statuses = {
@@ -828,12 +825,13 @@ module.exports = class bitzlato extends Exchange {
     parseTransaction (transaction, currency = undefined) {
         const createdAt = this.safeString (transaction, 'created_at');
         const updatedAt = this.safeString (transaction, 'updated_at');
+        const timestamp = this.parse8601 (createdAt);
+        const updated = this.parse8601 (updatedAt);
         if (currency === undefined) {
             currency = this.safeString (transaction, 'currency');
             currency = this.safeCurrencyCode (currency);
         }
-        const timestamp = this.parse8601 (createdAt);
-        const updated = this.parse8601 (updatedAt);
+        const id = this.safeString (transaction, 'id', 'tid');
         const txid = this.safeString (transaction, 'txid');
         const state = this.safeString (transaction, 'state');
         const status = this.parseTransactionStatus (state);
@@ -844,7 +842,7 @@ module.exports = class bitzlato extends Exchange {
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         return {
             'info': transaction,
-            'id': txid,
+            'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -868,10 +866,12 @@ module.exports = class bitzlato extends Exchange {
         };
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactionsByType (type = undefined, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request = {
+            'order_by': 'asc',
+        };
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -882,7 +882,33 @@ module.exports = class bitzlato extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAccountTransactions (this.extend (request, params));
+        let method = 'privateGetAccountTransactions';
+        if (type === 'deposit') {
+            method = 'privateGetAccountDeposits';
+        } else if (type === 'withdrawal') {
+            method = 'privateGetAccountWithdraws';
+        }
+        const response = await this[method] (this.extend (request, params));
+        if (!this.isArray (response)) {
+            return [];
+        }
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            if (type === 'deposit') {
+                item['type'] = 'deposit';
+                item['updated_at'] = item['completed_at'];
+            } else if (type === 'withdrawal') {
+                item['type'] = 'withdrawal';
+                item['address'] = item['rid'];
+                item['txid'] = item['blockchain_txid'];
+            }
+            result.push (item);
+        }
+        return this.parseTransactions (result, currency, since, limit);
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         // [
         //   {
         //     address: '0x6fe5a2e4c137d7dc178bdaacfb8cda15b2181665',
@@ -899,13 +925,78 @@ module.exports = class bitzlato extends Exchange {
         //   },
         //   ...
         // ]
-        return this.parseTransactions (response, currency, since, limit);
+        return await this.fetchTransactionsByType (undefined, code, since, limit, params);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        // [
+        //   {
+        //     "id": 0,
+        //     "currency": "string",
+        //     "amount": 0,
+        //     "fee": 0,
+        //     "txid": "string",
+        //     "confirmations": 0,
+        //     "state": "string",
+        //     "transfer_type": "string",
+        //     "transfer_links": [
+        //       [
+        //         {
+        //           "title": "telegram",
+        //           "url": "https://t.me/BTC_STAGE_BOT?start=b_0f8c3db61f223ea9df072fd37e0b6315"
+        //         },
+        //         {
+        //           "title": "web",
+        //           "url": "https://s-www.lgk.one/p2p/?start=b_0f8c3db61f223ea9df072fd37e0b6315"
+        //         }
+        //       ]
+        //     ],
+        //     "created_at": "string",
+        //     "completed_at": "string",
+        //     "tid": "string",
+        //     "invoice_expires_at": "string"
+        //   },
+        // ...
+        // ]
+        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        // [
+        //   {
+        //     "id": 0,
+        //     "currency": "string",
+        //     "type": "string",
+        //     "amount": "string",
+        //     "fee": 0,
+        //     "blockchain_txid": "string",
+        //     "rid": "string",
+        //     "state": "string",
+        //     "confirmations": 0,
+        //     "note": "string",
+        //     "transfer_type": "string",
+        //     "created_at": "string",
+        //     "updated_at": "string",
+        //     "done_at": "string",
+        //     "transfer_links": [
+        //       [
+        //         {
+        //           "title": "telegram",
+        //           "url": "https://t.me/BTC_STAGE_BOT?start=b_0f8c3db61f223ea9df072fd37e0b6315"
+        //         },
+        //         {
+        //           "title": "web",
+        //           "url": "https://s-www.lgk.one/p2p/?start=b_0f8c3db61f223ea9df072fd37e0b6315"
+        //         }
+        //       ]
+        //     ]
+        //   },
+        //   ...
+        // ]
+        return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-    }
-
-    async fetchPositions (symbols = undefined, params = {}) {
     }
 
     nonce () {
