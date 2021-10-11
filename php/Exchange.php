@@ -3111,7 +3111,7 @@ class Exchange {
         ));
     }
 
-    public function safe_order2($order, $market) {
+    public function safe_order2($order, $market = null) {
         // parses numbers as strings
         // it is important pass the $trades as unparsed $rawTrades
         $amount = $this->omit_zero($this->safe_string($order, 'amount'));
