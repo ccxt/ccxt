@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } = require ('./base/errors');
-const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -24,10 +23,9 @@ module.exports = class bitzlato extends Exchange {
                 'createOrder': true,
                 'fetchDepositAddress': true,
                 'fetchBalance': true,
-                // 'fetchBidsAsks': undefined,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
-                // 'fetchOHLCV': 'emulated',
+                'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -148,26 +146,6 @@ module.exports = class bitzlato extends Exchange {
                     'maker': this.parseNumber ('0.002'),
                     'taker': this.parseNumber ('0.002'),
                     'percentage': true,
-                    // 'feeSide': 'get',
-                    // 'tierBased': true,
-                    // 'tiers': {
-                    //     'taker': [
-                    //         [this.parseNumber ('1'), this.parseNumber ('0.002')],
-                    //         [this.parseNumber ('2'), this.parseNumber ('0.002')],
-                    //         [this.parseNumber ('3'), this.parseNumber ('0.0018')],
-                    //         [this.parseNumber ('4'), this.parseNumber ('0.0016')],
-                    //         [this.parseNumber ('5'), this.parseNumber ('0.002')],
-                    //         [this.parseNumber ('6'), this.parseNumber ('0.0')],
-                    //     ],
-                    //     'maker': [
-                    //         [this.parseNumber ('1'), this.parseNumber ('0.002')],
-                    //         [this.parseNumber ('2'), this.parseNumber ('0.001')],
-                    //         [this.parseNumber ('3'), this.parseNumber ('0.0008')],
-                    //         [this.parseNumber ('4'), this.parseNumber ('0.0006')],
-                    //         [this.parseNumber ('5'), this.parseNumber ('0.002')],
-                    //         [this.parseNumber ('6'), this.parseNumber ('0.0')],
-                    //     ],
-                    // },
                 },
                 'funding': {
                     'withdraw': {},
@@ -391,9 +369,6 @@ module.exports = class bitzlato extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
-    }
-
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -628,7 +603,38 @@ module.exports = class bitzlato extends Exchange {
         return this.parseTrades (response, market);
     }
 
+    parseOHLCV (ohlcv, market = undefined) {
+        return [
+            this.safeTimestamp (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 30;
+        }
+        const request = {
+            'market': market['id'],
+            'period': this.timeframes[timeframe],
+            'limit': limit,
+        };
+        if (since !== undefined) {
+            request['time_from'] = parseInt (since / 1000);
+        }
+        const response = await this.publicGetMarketsMarketKLine (this.extend (request, params));
+        // [
+        //   [ 1633392000, 0.01, 7.924, 0.001, 7.8372, 0.9783 ],
+        //   [ 1633435200, 7.8062, 7.8928, 7.7999, 7.8818, 0.9011 ],
+        //   [ 1633478400, 7.8818, 7.8818, 7.8818, 7.8818, 0 ],
+        // ]
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseOrderStatus (status) {
