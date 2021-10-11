@@ -22,13 +22,10 @@ module.exports = class bitzlato extends Exchange {
                 'cancelOrder': true,
                 'CORS': true,
                 'createOrder': true,
-                // 'createDepositAddress': undefined,
-                // 'fetchDepositAddress': undefined,
-                // 'deposit': undefined,
+                'fetchDepositAddress': true,
                 'fetchBalance': true,
                 // 'fetchBidsAsks': undefined,
                 'fetchCurrencies': true,
-                // 'fetchFundingFees': undefined,
                 'fetchMarkets': true,
                 // 'fetchOHLCV': 'emulated',
                 'fetchOrder': true,
@@ -37,18 +34,15 @@ module.exports = class bitzlato extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchStatus': true,
-                // 'fetchTicker': true,
-                // 'fetchTickers': undefined,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchMyTrades': true,
-                // 'fetchTradingFee': undefined,
-                // 'fetchTradingFees': undefined,
-                // 'fetchTradingLimits': undefined,
                 'fetchTransactions': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
-                // 'withdraw': undefined,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -502,12 +496,53 @@ module.exports = class bitzlato extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        const timestamp = this.safeTimestamp (ticker, 'at');
+        ticker = this.safeValue (ticker, 'ticker', {});
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const lastString = this.safeString (ticker, 'last');
+        const openString = this.safeString (ticker, 'open');
+        const changeString = Precise.stringSub (lastString, openString);
+        const relChangeString = Precise.stringDiv (changeString, openString);
+        const last = this.parseNumber (lastString);
+        const open = this.parseNumber (openString);
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': undefined,
+            'ask': undefined,
+            'bidVolume': undefined,
+            'askVolume': undefined,
+            'vwap': this.safeNumber (ticker, 'avg_price'),
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.parseNumber (changeString),
+            'percentage': this.parseNumber (Precise.stringMul (relChangeString, '100')),
+            'average': this.parseNumber (Precise.stringDiv (Precise.stringAdd (lastString, openString), '2')),
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.publicGetMarketsMarketTickers (this.extend (request, params));
+        return this.parseTicker (response, market);
     }
 
     parseSymbol (marketId) {
@@ -787,10 +822,20 @@ module.exports = class bitzlato extends Exchange {
         return this.parseTrades (response, market);
     }
 
-    async createDepositAddress (code, params = {}) {
-    }
-
     async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetAccountDepositAddressCurrency (this.extend (request, params));
+        const address = this.safeString (response, 'address');
+        return {
+            'currency': code,
+            'address': this.checkAddress (address),
+            'tag': undefined,
+            'info': response,
+        };
     }
 
     parseTransactionStatus (status) {
@@ -997,6 +1042,28 @@ module.exports = class bitzlato extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const id = this.safeString (params, 'id');
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires and extra `id` param (benericiary id from this.privateGetAccountBeneficiares() method)');
+        }
+        params = this.omit (params, 'id');
+        const otp = this.totp (this.totpSecret);
+        const request = {
+            'otp': otp,
+            'beneficiary_id': id,
+            'currency': currency,
+            'amount': amount,
+            'note': tag,
+        };
+        const response = await this.privatePostAccountWithdraws (this.extend (request, params));
+        return {
+            'info': response,
+            'id': undefined,
+        };
     }
 
     nonce () {
