@@ -978,7 +978,7 @@ module.exports = class bitfinex2 extends bitfinex {
 
     parseCancelFunding (offer) {
         if (offer.length === 0) {
-            return offer;
+            throw new ExchangeError ('returned empty response');
         }
         const currency = this.safeString (offer, 4);
         let symbol = undefined;
