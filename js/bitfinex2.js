@@ -1068,12 +1068,11 @@ module.exports = class bitfinex2 extends bitfinex {
     async fundingOffers (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        let currency = undefined;
         let response = undefined;
         if (symbol === undefined) {
             response = await this.privatePostAuthRFundingOffers (this.extend (request, params));
         } else {
-            currency = this.currency (symbol);
+            const currency = this.currency (symbol);
             request['symbol'] = currency['id'];
             response = await this.privatePostAuthRFundingOffersSymbol (this.extend (request, params));
         }
