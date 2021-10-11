@@ -1109,7 +1109,8 @@ class bitvavo(Exchange):
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_integer(order, 'created')
         marketId = self.safe_string(order, 'market')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
@@ -1154,7 +1155,7 @@ class bitvavo(Exchange):
             'status': status,
             'fee': fee,
             'trades': rawTrades,
-        })
+        }, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
