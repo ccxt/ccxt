@@ -49,6 +49,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchTradingFees': undefined,
                 'fetchTransactions': true,
                 'withdraw': true,
+                'fundingOffers': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -957,6 +958,60 @@ module.exports = class bitfinex2 extends bitfinex {
         //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseFundingOffer (offer = undefined) {
+        if (offer.length === 0) {
+            return offer;
+        }
+        const currency = this.safeString (offer, 1);
+        let symbol = undefined;
+        if (currency !== undefined) {
+            symbol = this.currency (currency)['id'];
+        }
+        const status = this.parseOrderStatus (this.safeString (offer, 8));
+        const notify = (this.safeInteger (offer, 11) === 0) ? false : true;
+        const hidden = (this.safeInteger (offer, 12) === 0) ? false : true;
+        const renew = (this.safeInteger (offer, 13) === 0) ? false : true;
+        return {
+            'id': this.safeInteger (offer, 0),
+            'symbol': symbol,
+            'timestamp': this.safeNumber (offer, 2),
+            'updated': this.safeNumber (offer, 3),
+            'amount': this.safeNumber (offer, 4),
+            'amountOrig': this.safeNumber (offer, 5),
+            'offerType': this.safeString (offer, 6),
+            'flags': this.safeValue (offer, 7, []),
+            'offerStatus': status,
+            'rate': this.safeNumber (offer, 9),
+            'period': this.safeInteger (offer, 10),
+            'notify': notify,
+            'hidden': hidden,
+            'renew': renew,
+        };
+    }
+
+    parseFundingOffers (offers = undefined, params = {}) {
+        if (Array.isArray (offers)) {
+            return Object.values (offers).map ((offer) => this.extend (this.parseFundingOffer (offer), params));
+        } else {
+            return Object.entries (offers).map (([ offer ]) => this.extend (this.parseFundingOffer (this.extend (offer)), params));
+        }
+    }
+
+    async fundingOffers (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        let response = undefined;
+        if (symbol === undefined) {
+            response = await this.privatePostAuthRFundingOffers (this.extend (request, params));
+        } else {
+            currency = this.currency (symbol);
+            request['symbol'] = currency['id'];
+            response = await this.privatePostAuthRFundingOffersSymbol (this.extend (request, params));
+        }
+        return this.parseFundingOffer (response);
     }
 
     parseOrderStatus (status) {
