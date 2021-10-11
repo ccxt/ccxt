@@ -1883,6 +1883,9 @@ module.exports = class Exchange {
         }
         if (tag === undefined) {
             tag = this.safeString (params, 'tag')
+            if (tag !== undefined) {
+                params = this.omit (params, 'tag');
+            }
         }
         return [ tag, params ]
     }
