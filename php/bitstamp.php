@@ -182,6 +182,8 @@ class bitstamp extends Exchange {
                         'axs_address/',
                         'sand_withdrawal/',
                         'sand_address/',
+                        'hbar_withdrawal/',
+                        'hbar_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -1521,7 +1523,7 @@ class bitstamp extends Exchange {
                 if ($tag !== null) {
                     $request['destination_tag'] = $tag;
                 }
-            } else if ($code === 'XLM') {
+            } else if ($code === 'XLM' || $code === 'HBAR') {
                 if ($tag !== null) {
                     $request['memo_id'] = $tag;
                 }
