@@ -3305,7 +3305,10 @@ class Exchange {
         }
         if ($tag === null) {
             $tag = $this->safe_string($params, 'tag');
+            if ($tag !== null) {
+                $params = $this->omit($params, 'tag');
+            }
         }
-        return array( $tag, $params );
+        return array($tag, $params);
     }
 }
