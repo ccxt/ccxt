@@ -2131,6 +2131,7 @@ module.exports = class ftx extends Exchange {
             request['startTime'] = since;
         }
         const response = await this[method] (this.extend (request, params));
-        return this.parseIncomes (response, market, since, limit);
+        const result = this.safeValue (response, 'result', []);
+        return this.parseIncomes (result, market, since, limit);
     }
 };
