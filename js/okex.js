@@ -485,6 +485,7 @@ module.exports = class okex extends Exchange {
             'options': {
                 'defaultNetwork': 'ERC20',
                 'networks': {
+                    'BTC': 'Bitcoin',
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'OMNI': 'Omni',
@@ -760,7 +761,10 @@ module.exports = class okex extends Exchange {
     }
 
     safeNetwork (networkId) {
-        return networkId;
+        const reverseNetworks = {
+            'Bitcoin': 'BTC',
+        };
+        return this.safeString (reverseNetworks, networkId, networkId);
     }
 
     async fetchCurrencies (params = {}) {
@@ -2249,18 +2253,28 @@ module.exports = class okex extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         const response = await this.fetchDepositAddressesByNetwork (code, params);
-        const rawNetwork = this.safeString (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeString (networks, rawNetwork, rawNetwork);
-        if (network !== undefined) {
-            const result = this.safeValue (response, network);
+        const network = this.safeString (params, 'network');
+        let result = undefined;
+        if (network === undefined) {
+            result = this.safeValue (response, code);
             if (result === undefined) {
-                throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code + ', create it first');
+                const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+                result = this.safeValue (response, defaultNetwork);
+                if (result === undefined) {
+                    const values = Object.values (response);
+                    result = this.safeValue (values, 0);
+                    if (result === undefined) {
+                        throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code + ', create it first');
+                    }
+                }
             }
             return result;
         }
-        const values = Object.values (response);
-        return this.safeValue (values, 0);
+        result = this.safeValue (response, network);
+        if (result === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code + ', create it first');
+        }
+        return result;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -2273,7 +2287,7 @@ module.exports = class okex extends Exchange {
         }
         const fee = this.safeString (params, 'fee');
         if (fee === undefined) {
-            throw new ArgumentsRequired (this.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
+            throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
         }
         const request = {
             'ccy': currency['id'],
