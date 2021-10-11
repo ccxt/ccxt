@@ -906,12 +906,11 @@ module.exports = class huobi extends Exchange {
                 const networkId = this.safeString (chain, 'chain');
                 let network = this.safeString (chain, 'baseChainProtocol');
                 const huobiToken = 'h' + currencyId;
-                if (huobiToken === networkId) {
-                    network = 'ERC20';
-                } else if (network === undefined) {
-                    const displayName = this.safeString (chain, 'displayName');
-                    if (displayName === code) {
-                        network = displayName;
+                if (network === undefined) {
+                    if (huobiToken === networkId) {
+                        network = 'ERC20';
+                    } else {
+                        network = this.safeString (chain, 'displayName');
                     }
                 }
                 const minWithdraw = this.safeNumber (chain, 'minWithdrawAmt');
