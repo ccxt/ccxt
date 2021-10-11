@@ -891,7 +891,7 @@ class idex(Exchange):
         }
         priceString = None
         typeLower = type.lower()
-        limitOrder = typeLower.find('limit') > -1
+        limitOrder = typeLower.find('limit') >= 0
         if type in limitTypeEnums:
             typeEnum = limitTypeEnums[type]
             priceString = self.price_to_precision(symbol, price)

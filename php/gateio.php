@@ -612,7 +612,7 @@ class gateio extends Exchange {
         $addressField = $this->safe_string($response, 'address');
         $tag = null;
         $address = null;
-        if (mb_strpos($addressField, ' ') > -1) {
+        if (mb_strpos($addressField, ' ') !== false) {
             $splitted = explode(' ', $addressField);
             $address = $splitted[0];
             $tag = $splitted[1];
