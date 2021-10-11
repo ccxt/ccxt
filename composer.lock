@@ -268,16 +268,6 @@
                 "promise",
                 "reactphp"
             ],
-            "funding": [
-                {
-                    "url": "https://github.com/WyriHaximus",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/clue",
-                    "type": "github"
-                }
-            ],
             "time": "2021-02-02T06:47:52+00:00"
         },
         {
@@ -344,16 +334,6 @@
                 "dns-resolver",
                 "reactphp"
             ],
-            "funding": [
-                {
-                    "url": "https://github.com/WyriHaximus",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/clue",
-                    "type": "github"
-                }
-            ],
             "time": "2021-07-11T12:40:34+00:00"
         },
         {
@@ -417,16 +397,6 @@
             "keywords": [
                 "asynchronous",
                 "event-loop"
-            ],
-            "funding": [
-                {
-                    "url": "https://github.com/WyriHaximus",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/clue",
-                    "type": "github"
-                }
             ],
             "time": "2021-07-11T12:31:24+00:00"
         },
@@ -507,16 +477,6 @@
                 "reactphp",
                 "server",
                 "streaming"
-            ],
-            "funding": [
-                {
-                    "url": "https://github.com/WyriHaximus",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/clue",
-                    "type": "github"
-                }
             ],
             "time": "2021-08-04T12:24:55+00:00"
         },
@@ -689,16 +649,6 @@
                 "timeout",
                 "timer"
             ],
-            "funding": [
-                {
-                    "url": "https://github.com/WyriHaximus",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/clue",
-                    "type": "github"
-                }
-            ],
             "time": "2021-07-11T13:08:51+00:00"
         },
         {
@@ -769,16 +719,6 @@
                 "reactphp",
                 "stream"
             ],
-            "funding": [
-                {
-                    "url": "https://github.com/WyriHaximus",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/clue",
-                    "type": "github"
-                }
-            ],
             "time": "2021-08-03T12:37:06+00:00"
         },
         {
@@ -846,16 +786,6 @@
                 "readable",
                 "stream",
                 "writable"
-            ],
-            "funding": [
-                {
-                    "url": "https://github.com/WyriHaximus",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/clue",
-                    "type": "github"
-                }
             ],
             "time": "2021-07-11T12:37:55+00:00"
         },
@@ -1161,20 +1091,6 @@
             "support": {
                 "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.23.1"
             },
-            "funding": [
-                {
-                    "url": "https://symfony.com/sponsor",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/fabpot",
-                    "type": "github"
-                },
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
-                    "type": "tidelift"
-                }
-            ],
             "time": "2021-05-27T12:26:48+00:00"
         }
     ],
@@ -1194,6 +1110,5 @@
         "ext-openssl": "*",
         "ext-gmp": "*"
     },
-    "platform-dev": [],
-    "plugin-api-version": "1.1.0"
+    "platform-dev": []
 }

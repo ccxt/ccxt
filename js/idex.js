@@ -932,7 +932,7 @@ module.exports = class idex extends Exchange {
         };
         let priceString = undefined;
         const typeLower = type.toLowerCase ();
-        const limitOrder = typeLower.indexOf ('limit') > -1;
+        const limitOrder = typeLower.indexOf ('limit') >= 0;
         if (type in limitTypeEnums) {
             typeEnum = limitTypeEnums[type];
             priceString = this.priceToPrecision (symbol, price);
