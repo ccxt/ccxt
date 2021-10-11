@@ -485,7 +485,6 @@ module.exports = class okex extends Exchange {
             'options': {
                 'defaultNetwork': 'ERC20',
                 'networks': {
-                    'BTC': 'Bitcoin',
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'OMNI': 'Omni',
@@ -2253,7 +2252,9 @@ module.exports = class okex extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         const response = await this.fetchDepositAddressesByNetwork (code, params);
-        const network = this.safeString (params, 'network');
+        const rawNetwork = this.safeString (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        const network = this.safeString (networks, rawNetwork, rawNetwork);
         let result = undefined;
         if (network === undefined) {
             result = this.safeValue (response, code);
@@ -2264,7 +2265,7 @@ module.exports = class okex extends Exchange {
                     const values = Object.values (response);
                     result = this.safeValue (values, 0);
                     if (result === undefined) {
-                        throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code + ', create it first');
+                        throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
                     }
                 }
             }
@@ -2272,7 +2273,7 @@ module.exports = class okex extends Exchange {
         }
         result = this.safeValue (response, network);
         if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code + ', create it first');
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
         }
         return result;
     }
