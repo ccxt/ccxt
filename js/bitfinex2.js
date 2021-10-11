@@ -50,6 +50,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchTransactions': true,
                 'withdraw': true,
                 'fundingOffers': true,
+                'cancelFundingOffer': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -958,6 +959,56 @@ module.exports = class bitfinex2 extends bitfinex {
         //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseCancelFunding (offer) {
+        if (offer.length === 0) {
+            return offer;
+        }
+        const currency = this.safeString (offer, 4);
+        let symbol = undefined;
+        if (currency !== undefined) {
+            symbol = this.currency (currency)['id'];
+        }
+        const status = this.parseOrderStatus (this.safeString (offer, 11));
+        const notify = (this.safeString (offer, 14) === 'false') ? false : true;
+        const renew = (this.safeString (offer, 16) === 'false') ? false : true;
+        const hidden = (this.safeInteger (offer, 15) === 0) ? false : true;
+        return {
+            'MTS': this.safeNumber (offer, 0),
+            'type': this.safeString (offer, 1),
+            'messageId': this.safeInteger (offer, 2),
+            'id': this.safeInteger (offer, 3),
+            'symbol': symbol,
+            'created': this.safeNumber (offer, 5),
+            'updated': this.safeNumber (offer, 6),
+            'amount': this.safeNumber (offer, 7),
+            'amountOrig': this.safeNumber (offer, 8),
+            'offerType': this.safeString (offer, 9),
+            'flags': this.safeValue (offer, 10, []),
+            'offerStatus': status,
+            'rate': this.safeNumber (offer, 12),
+            'period': this.safeInteger (offer, 13),
+            'notify': notify,
+            'hidden': hidden,
+            'renew': renew,
+            'code': this.safeInteger (offer, 17),
+            'status': this.safeString (offer, 18),
+            'text': this.safeString (offer, 19),
+        };
+    }
+
+    async cancelFundingOffer (id = undefined, params = {}) {
+        let request = undefined;
+        if (id !== undefined) {
+            request = {
+                'id': parseInt (id),
+            };
+        } else {
+            throw new ArgumentsRequired (this.id + " canceling an offer requires 'id'");
+        }
+        const response = await this.privatePostAuthWFundingOfferCancel (this.extend (request, params));
+        return this.parseCancelFunding (response);
     }
 
     parseFundingOffer (offer = undefined) {
