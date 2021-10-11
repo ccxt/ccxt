@@ -2248,17 +2248,19 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        const result = await this.fetchDepositAddressesByNetwork (code, params);
-        const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
-        const rawNetwork = this.safeStringUpper (params, 'network', defaultNetwork);
+        const response = await this.fetchDepositAddressesByNetwork (code, params);
+        const rawNetwork = this.safeString (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
-        if (network in result) {
-            return result[network];
-        } else {
-            const values = Object.values (result);
-            return this.safeValue (values, 0);
+        if (network !== undefined) {
+            const result = this.safeValue (response, network);
+            if (result === undefined) {
+                throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code + ', create it first');
+            }
+            return result;
         }
+        const values = Object.values (response);
+        return this.safeValue (values, 0);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
