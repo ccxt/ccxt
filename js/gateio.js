@@ -31,6 +31,7 @@ module.exports = class gateio extends Exchange {
             },
             'has': {
                 'cancelOrder': true,
+                'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
