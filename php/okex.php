@@ -28,8 +28,9 @@ class okex extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchCurrencies' => null, // see below
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddressByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
@@ -485,10 +486,11 @@ class okex extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'defaultNetwork' => 'ERC20',
                 'networks' => array(
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
-                    'OMNI' => 'Omini',
+                    'OMNI' => 'Omni',
                 ),
                 'fetchOHLCV' => array(
                     'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
@@ -760,6 +762,15 @@ class okex extends Exchange {
         return $this->parse_markets($data);
     }
 
+    public function safe_network($networkId) {
+        $networksById = array(
+            'Bitcoin' => 'BTC',
+            'Omni' => 'OMNI',
+            'TRON' => 'TRC20',
+        );
+        return $this->safe_string($networksById, $networkId, $networkId);
+    }
+
     public function fetch_currencies($params = array ()) {
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
@@ -781,11 +792,11 @@ class okex extends Exchange {
         //                 "$canInternal":true,
         //                 "canWd":true,
         //                 "ccy":"USDT",
-        //                 "chain":"USDT-ERC20",
+        //                 "$chain":"USDT-ERC20",
         //                 "maxFee":"40",
         //                 "minFee":"20",
         //                 "minWd":"2",
-        //                 "$name":""
+        //                 "name":""
         //             }
         //         ),
         //         "msg":""
@@ -795,38 +806,55 @@ class okex extends Exchange {
         $result = array();
         $dataByCurrencyId = $this->group_by($data, 'ccy');
         $currencyIds = is_array($dataByCurrencyId) ? array_keys($dataByCurrencyId) : array();
+        $precision = $this->parse_number('0.00000001'); // default $precision, todo => fix "magic constants"
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
             $chains = $dataByCurrencyId[$currencyId];
-            $first = $this->safe_value($chains, 0);
-            $id = $this->safe_string($first, 'ccy');
-            $code = $this->safe_currency_code($id);
-            $precision = 0.00000001; // default $precision, todo => fix "magic constants"
-            $name = $this->safe_string($first, 'name');
-            if (($name !== null) && (strlen($name) < 1)) {
-                $name = null;
+            $networks = array();
+            $currencyActive = false;
+            for ($j = 0; $j < count($chains); $j++) {
+                $chain = $chains[$j];
+                $canDeposit = $this->safe_value($chain, 'canDep');
+                $canWithdraw = $this->safe_value($chain, 'canWd');
+                $canInternal = $this->safe_value($chain, 'canInternal');
+                $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
+                $currencyActive = $currencyActive || $active;
+                $networkId = $this->safe_string($chain, 'chain');
+                if (mb_strpos($networkId, '-') !== false) {
+                    $parts = explode('-', $networkId);
+                    $networkId = $this->safe_string($parts, 1, $networkId);
+                    $network = $this->safe_network($networkId);
+                    $networks[$network] = array(
+                        'info' => $chain,
+                        'id' => $networkId,
+                        'network' => $network,
+                        'active' => $active,
+                        'fee' => $this->safe_number($chain, 'minFee'),
+                        'precision' => null,
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $this->safe_number($chain, 'minWd'),
+                                'max' => null,
+                            ),
+                        ),
+                    );
+                }
             }
-            $canDeposit = $this->safe_value($first, 'canDep');
-            $canWithdraw = $this->safe_value($first, 'canWd');
-            $canInternal = $this->safe_value($first, 'canInternal');
-            $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
             $result[$code] = array(
-                'id' => $id,
                 'code' => $code,
-                'info' => $chains,
-                'type' => null,
-                'name' => $name,
-                'active' => $active,
-                'fee' => $this->safe_number($first, 'minFee'),
+                'id' => $currencyId,
+                'name' => null,
+                'active' => $currencyActive,
+                'fee' => null,
                 'precision' => $precision,
-                'networks' => $chains,
                 'limits' => array(
-                    'amount' => array( 'min' => null, 'max' => null ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($first, 'ccy'),
+                    'amount' => array(
+                        'min' => null,
                         'max' => null,
                     ),
                 ),
+                'networks' => $networks,
             );
         }
         return $result;
@@ -2161,24 +2189,40 @@ class okex extends Exchange {
         //         "selected":true
         //     }
         //
+        //     {
+        //       "$chain" => "ETH-OKExChain",
+        //       "ctAddr" => "72315c",
+        //       "ccy" => "ETH",
+        //       "to" => "6",
+        //       "addr" => "0x1c9f2244d1ccaa060bd536827c18925db10db102",
+        //       "selected" => true
+        //     }
+        //
         $address = $this->safe_string($depositAddress, 'addr');
         $tag = $this->safe_string_2($depositAddress, 'tag', 'pmtId');
         $tag = $this->safe_string($depositAddress, 'memo', $tag);
         $currencyId = $this->safe_string($depositAddress, 'ccy');
         $code = $this->safe_currency_code($currencyId);
+        $chain = $this->safe_string($depositAddress, 'chain');
+        $network = null;
+        if (mb_strpos($chain, '-') > -1) {
+            $parts = explode('-', $chain);
+            $networkId = $this->safe_string($parts, 1);
+            $network = $this->safe_network($networkId);
+        }
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => $network,
             'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
         $this->load_markets();
-        $parts = explode('-', $code);
-        $currency = $this->currency($parts[0]);
+        $currency = $this->currency($code);
         $request = array(
             'ccy' => $currency['id'],
         );
@@ -2205,12 +2249,41 @@ class okex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $addressesByCode = $this->parse_deposit_addresses($data);
-        $address = $this->safe_value($addressesByCode, $code);
-        if ($address === null) {
-            throw new InvalidAddress($this->id . ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
+        $filtered = $this->filter_by($data, 'selected', true);
+        $parsed = $this->parse_deposit_addresses($filtered, array( $code ), false);
+        return $this->index_by($parsed, 'network');
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        $response = $this->fetch_deposit_addresses_by_network($code, $params);
+        $rawNetwork = $this->safe_string($params, 'network');
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string($networks, $rawNetwork, $rawNetwork);
+        $result = null;
+        if ($network === null) {
+            $result = $this->safe_value($response, $code);
+            if ($result === null) {
+                $alias = $this->safe_string($networks, $code, $code);
+                $result = $this->safe_value($response, $alias);
+                if ($result === null) {
+                    $defaultNetwork = $this->safe_string($this->options, 'defaultNetwork', 'ERC20');
+                    $result = $this->safe_value($response, $defaultNetwork);
+                    if ($result === null) {
+                        $values = is_array($response) ? array_values($response) : array();
+                        $result = $this->safe_value($values, 0);
+                        if ($result === null) {
+                            throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find deposit address for ' . $code);
+                        }
+                    }
+                }
+            }
+            return $result;
         }
-        return $address;
+        $result = $this->safe_value($response, $network);
+        if ($result === null) {
+            throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find ' . $network . ' deposit address for ' . $code);
+        }
+        return $result;
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
@@ -2223,7 +2296,7 @@ class okex extends Exchange {
         }
         $fee = $this->safe_string($params, 'fee');
         if ($fee === null) {
-            throw new ArgumentsRequired($this->id . " withdraw() requires a `$fee` string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set '0'. Withdrawing to external digital asset $address requires $network $transaction $fee->");
+            throw new ArgumentsRequired($this->id . " withdraw() requires a 'fee' string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set '0'. Withdrawing to external digital asset $address requires $network $transaction $fee->");
         }
         $request = array(
             'ccy' => $currency['id'],
