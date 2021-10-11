@@ -198,6 +198,8 @@ class bitstamp(Exchange):
                         'axs_address/',
                         'sand_withdrawal/',
                         'sand_address/',
+                        'hbar_withdrawal/',
+                        'hbar_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -1423,7 +1425,7 @@ class bitstamp(Exchange):
             if code == 'XRP':
                 if tag is not None:
                     request['destination_tag'] = tag
-            elif code == 'XLM':
+            elif code == 'XLM' or code == 'HBAR':
                 if tag is not None:
                     request['memo_id'] = tag
             request['address'] = address
