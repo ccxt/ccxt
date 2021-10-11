@@ -1,6 +1,7 @@
 import decimal
 import numbers
 import math
+# import re
 from ccxt.base.precise import Precise
 
 __all__ = [
@@ -18,167 +19,173 @@ __all__ = [
 
 
 # rounding mode
-TRUNCATE = 0
 ROUND = 1
-ROUND_UP = 2
-ROUND_DOWN = 3
+TRUNCATE = 2
+ROUND_UP = 4
+ROUND_DOWN = 8
 
 # digits counting mode
-DECIMAL_PLACES = 2
-SIGNIFICANT_DIGITS = 3
-TICK_SIZE = 4
+DECIMAL_PLACES = 16
+SIGNIFICANT_DIGITS = 32
+TICK_SIZE = 64
 
 # padding mode
-NO_PADDING = 5
-PAD_WITH_ZERO = 6
-
-
-def decimal_to_precision_p(x, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
-    assert isinstance(x, Precise)
-    assert precision is not None
-    assert isinstance(precision, Precise)
-    if counting_mode == TICK_SIZE:
-        if precision.integer <= 0:
-            raise ValueError('TICK_SIZE cant be used with negative or zero precision')
-
-    if precision.integer < 0:
-        toNearest = precision.neg().pow10()
-        if rounding_mode == ROUND:
-            return str(x.div(toNearest).round().mul(toNearest))
-        elif rounding_mode == TRUNCATE:
-            if x.integer >= 0:
-                return str(x.div(toNearest).floor().mul(toNearest))
-            else:
-                return str(x.div(toNearest).ceil().mul(toNearest))
-
-    # handle tick size
-    if counting_mode == TICK_SIZE:
-        precision.reduce()
-        newprecision = precision.decimals if precision.decimals > 0 else 0
-        remainder = x.mod(precision)
-        if remainder.integer != 0:
-            if rounding_mode == ROUND:
-                x = x.div(precision).round().mul(precision)
-            elif rounding_mode == TRUNCATE:
-                if x.integer >= 0:
-                    x = x.div(precision).floor().mul(precision)
-                else:
-                    x = x.div(precision).ceil().mul(precision)
-        rounding_mode = ROUND
-        precision = Precise(newprecision, 0)
-        counting_mode = DECIMAL_PLACES
-        # return decimal_to_precision(x, ROUND, newprecision, DECIMAL_PLACES, padding_mode)
-
-    assert((counting_mode == DECIMAL_PLACES) or (counting_mode == SIGNIFICANT_DIGITS))
-    assert(precision.decimals <= 0)
-    precision_int = precision.integer * (precision.base ** precision.decimals)
-    assert((rounding_mode == ROUND) or (rounding_mode == TRUNCATE))
-
-    result = ''
-
-    if rounding_mode == ROUND:
-        if counting_mode == DECIMAL_PLACES:
-            to_nearest = precision.neg().pow10()
-        elif counting_mode == SIGNIFICANT_DIGITS:
-            if x.integer == 0:
-                assert(x.decimals == 0)
-                significant_position = 0
-            else:
-                significant_position = len(str(abs(x.integer))) - x.decimals
-            precision_digits = significant_position - precision_int
-            to_nearest = Precise(precision_digits, 0).pow10()
-        x = x.div(to_nearest).round().mul(to_nearest)
-        rounding_mode = TRUNCATE
-
-    x.reduce()
-    sign = '-' if x.integer < 0 else ''
-    integer_string = str(abs(x.integer))
-    integer_array = list(integer_string.rjust(x.decimals, '0'))
-    index = len(integer_array) - x.decimals
-    if index == 0:
-        item = '0.'
-    else:
-        item = '.'
-
-    assert(rounding_mode == TRUNCATE)
-    if counting_mode == DECIMAL_PLACES:
-        adjustment_digits = precision_int - x.decimals
-    elif counting_mode == SIGNIFICANT_DIGITS:
-        if integer_string == "0":
-            assert(x.decimals == 0)
-            significant_position = 0
-        else:
-            significant_position = len(integer_string) - x.decimals
-        adjustment_digits = (precision_int - significant_position) - x.decimals
-    if adjustment_digits > 0:
-        if padding_mode == NO_PADDING:
-            adjustment_digits = max(-x.decimals, 0)
-        if adjustment_digits != 0:
-            integer_array = integer_array + list("".rjust(adjustment_digits, '0'))
-    elif adjustment_digits < 0:
-        if -adjustment_digits <= x.decimals:
-            integer_array = integer_array[0:adjustment_digits]
-        else:
-            if len(integer_array) == -adjustment_digits:
-                count = len(integer_array) - x.decimals - 1
-                integer_array = integer_array[0:count]
-                index = index - count
-                integer_array[0] = '0'
-            else:
-                ibegin = len(integer_array) + adjustment_digits
-                iend = len(integer_array) - max(x.decimals, 0)
-                for i in range(ibegin, iend):
-                    integer_array[i] = '0'
-            if x.decimals > 0:
-                integer_array = integer_array[0:-x.decimals]
-            elif x.decimals < 0:
-                integer_array = integer_array + list("".rjust(-x.decimals, '0'))
-    integer_array.insert(index, item)
-    result = sign + ''.join(integer_array)
-
-    has_dot = '.' in result
-    if padding_mode == NO_PADDING:
-        if ((result == '') and (precision_int == 0)):
-            return '0'
-        if has_dot:
-            result = result.rstrip('0')
-    if has_dot:
-        result = result.rstrip('.')
-    if ((result == "-0") or (result == '-0.' + ('0' * max(len(result) - 3, 0)))):
-        result = result[1:]
-
-    return result
+NO_PADDING = 128
+PAD_WITH_ZERO = 256
 
 
 def decimal_to_precision(x, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
     assert precision is not None
 
-    if isinstance(precision, str):
-        precision = Precise(precision)
-    elif isinstance(precision, numbers.Integral):
-        precision = Precise(precision, 0)
-    elif isinstance(precision, float):
-        # Occurrences of this should be eliminated and replaced by strings instead.
-        # ASSUME that the precision is specified to two decimal places.
-        exponent = math.floor(math.log10(precision)) - 1
-        mantissa = round(precision / math.pow(10, exponent))
-        precision = Precise(mantissa, -exponent)
+    # handle tick size
+    if counting_mode == TICK_SIZE:
+        if isinstance(precision, str):
+            precision_p = Precise(precision)
+        elif isinstance(precision, numbers.Integral):
+            precision_p = Precise(precision, 0)
+        elif isinstance(precision, float):
+            # Occurrences of this should be eliminated and replaced by strings instead.
+            exponent = math.floor(math.log10(precision)) - 15 + 1
+            mantissa = round(precision / math.pow(10, exponent))
+            precision_p = Precise(mantissa, -exponent)
+            precision_p.reduce()
+        else:
+            raise ValueError('precision must be a string number or a number')
+        if precision_p.integer <= 0:
+            raise ValueError('TICK_SIZE cant be used with negative or zero precision')
+        if isinstance(x, str):
+            x_p = Precise(x)
+        elif isinstance(x, numbers.Integral):
+            x_p = Precise(x, 0)
+        elif isinstance(x, float):
+            # Occurrences of this should be eliminated and replaced by strings instead.
+            exponent = math.floor(math.log10(math.abs(x))) - 15 + 1
+            mantissa = round(x / math.pow(10, exponent))
+            x_p = Precise(mantissa, -exponent)
+            x_p.reduce()
+        else:
+            raise ValueError('x must be a string number or a number')
+        new_precision = precision_p.decimals if precision_p.decimals > 0 else 0
+        remainder_p = x_p.mod(precision_p)
+        if remainder_p.integer != 0:
+            if rounding_mode == ROUND:
+                x_p = x_p.div(precision_p).round().mul(precision_p)
+            elif rounding_mode == TRUNCATE:
+                if x_p.integer >= 0:
+                    x_p = x_p.div(precision_p).floor().mul(precision_p)
+                else:
+                    x_p = x_p.div(precision_p).ceil().mul(precision_p)
+        x = str(x_p)
+        rounding_mode = ROUND
+        precision_num = new_precision
+        counting_mode = DECIMAL_PLACES
+        # return decimal_to_precision(x, ROUND, newprecision, DECIMAL_PLACES, padding_mode)
     else:
-        assert isinstance(precision, Precise)
-
-    if isinstance(x, str):
-        x = Precise(x)
-    elif isinstance(x, numbers.Integral):
-        x = Precise(x, 0)
-    elif isinstance(x, float):
-        # Occurrences of this should be eliminated and replaced by strings instead.
-        # FIXME I suspect there is a bug here because a floating point number is passed to BigInt
-        # without checking if there is a fractional component.
-        x = Precise(x, 0)
+        if isinstance(x, float) or isinstance(x, numbers.Integral):
+            x = str(x)
+        elif not isinstance(x, str):
+            raise ValueError('x must be a string number or a number')
+        # assert re.fullmatch('-?[0-9]+(\.[0-9]*)?', x)
+        if isinstance(precision, str):
+            # if not re.fullmatch('-?[0-9]+', precision):
+            #    raise ValueError('precision must be a string integer or a integer')
+            precision_num = int(precision)
+        elif isinstance(precision, numbers.Integral):
+            precision_num = precision
+        else:
+            raise ValueError('precision must be a string integer or a integer')
+    if counting_mode == SIGNIFICANT_DIGITS:
+        if precision_num < 0:
+            raise ValueError('SIGNIFICANT_DIGITS cant be used with negative precision')
+        if precision_num == 0:
+            return '0'
+    point_index = x.find('.')
+    if point_index == -1:
+        point_index = len(x)
+    first_digit_pos = 0
+    while first_digit_pos < len(x) and (x[first_digit_pos] < '1' or x[first_digit_pos] > '9'):
+        first_digit_pos += 1
+    if counting_mode == DECIMAL_PLACES:
+        last_digit_pos = point_index + precision_num
+        if last_digit_pos < point_index:
+            last_digit_pos -= 1
+    elif counting_mode == SIGNIFICANT_DIGITS:
+        last_digit_pos = first_digit_pos + precision_num
+        if (first_digit_pos < point_index and last_digit_pos < point_index) or first_digit_pos > point_index:
+            last_digit_pos -= 1
     else:
-        assert isinstance(x, Precise)
-
-    return decimal_to_precision_p(x, rounding_mode, precision, counting_mode, padding_mode)
+        assert False
+    char_array = list(x)
+    if rounding_mode == ROUND:
+        p = last_digit_pos
+        p2 = p + 1
+        if point_index == p2 and point_index != len(char_array):
+            p2 += 1
+        carry = 0
+        while (p >= 0 and p < len(char_array) and char_array[p] != '-') or p2 >= 0:
+            if p >= len(char_array):
+                break
+            if p2 >= len(char_array) or ord(char_array[p2]) - ord('0') + 10 * carry < 5:
+                break
+            carry = 1
+            if p == -1:
+                char_array.insert(p + 1, chr(ord('0') + carry))
+                p += 1
+                point_index += 1
+                if counting_mode == DECIMAL_PLACES:
+                    last_digit_pos += 1
+                break
+            elif ord(char_array[p]) - ord('0') + carry <= 9:
+                char_array[p] = chr(ord(char_array[p]) + carry)
+                if p < first_digit_pos:
+                    delta = p - first_digit_pos
+                    first_digit_pos += delta
+                    if counting_mode == SIGNIFICANT_DIGITS:
+                        last_digit_pos += delta
+                break
+            char_array[p] = '0'
+            p2 = p
+            p -= 1
+            if p != -1 and char_array[p] == '.':
+                p -= 1
+            if p == -1 or char_array[p] == '-':
+                char_array.insert(p + 1, chr(ord('0') + carry))
+                p += 1
+                point_index += 1
+                if counting_mode == DECIMAL_PLACES:
+                    last_digit_pos += 1
+                break
+        if last_digit_pos < 0 or (last_digit_pos < len(char_array) and char_array[last_digit_pos] == '-'):
+            return '0'
+        for p in range(last_digit_pos + 1, len(char_array)):
+            if p != point_index:
+                char_array[p] = '0'
+    elif rounding_mode == TRUNCATE:
+        if last_digit_pos < 0 or (last_digit_pos < len(char_array) and char_array[last_digit_pos] == '-'):
+            return '0'
+        for p in range(last_digit_pos + 1, point_index):
+            char_array[p] = '0'
+    else:
+        assert False
+    result = ''.join(char_array[0:max(point_index, last_digit_pos + 1)])
+    has_dot = '.' in result
+    if padding_mode == NO_PADDING:
+        if (len(result) == 0) and (precision_num == 0):
+            return '0'
+        if has_dot:
+            result = result.rstrip('0')
+    elif padding_mode == PAD_WITH_ZERO:
+        if len(result) < last_digit_pos:
+            if point_index == len(result):
+                result += '.'
+            result += '0' * (last_digit_pos - len(result) + 1)
+    else:
+        assert False
+    if has_dot:
+        result = result.rstrip('.')
+    if ((result == "-0") or (result == '-0.' + ('0' * max(len(result) - 3, 0)))):
+        result = result[1:]
+    return result
 
 
 def number_to_string(x):
