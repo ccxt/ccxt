@@ -108,16 +108,12 @@ class bitforex(Exchange):
                 },
             },
             'commonCurrencies': {
-                'ACE': 'ACE Entertainment',
-                'BDP': 'BidiPass',
                 'CAPP': 'Crypto Application Token',
                 'CREDIT': 'TerraCredit',
                 'CTC': 'Culture Ticket Chain',
-                'GOT': 'GoNetwork',
-                'HBC': 'Hybrid Bank Cash',
                 'IQ': 'IQ.Cash',
                 'MIR': 'MIR COIN',
-                'UOS': 'UOS Network',
+                'TON': 'To The Moon',
             },
             'exceptions': {
                 '1003': BadSymbol,  # {"success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error"}

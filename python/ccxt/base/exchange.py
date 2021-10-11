@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.57.68'
+__version__ = '1.57.93'
 
 # -----------------------------------------------------------------------------
 
@@ -1824,14 +1824,14 @@ class Exchange(object):
             result.append(self.extend(self.parse_ticker(values[i]), params))
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_deposit_addresses(self, addresses, codes=None):
+    def parse_deposit_addresses(self, addresses, codes=None, indexed=True):
         result = []
         for i in range(0, len(addresses)):
             address = self.parse_deposit_address(addresses[i])
             result.append(address)
         if codes:
-            result = self.filter_by_array(result, 'currency', codes)
-        return self.index_by(result, 'currency')
+            result = self.filter_by_array(result, 'currency', codes, False)
+        return self.index_by(result, 'currency') if indexed else result
 
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
@@ -2362,7 +2362,7 @@ class Exchange(object):
                 'order': order['id'],
             })
             self.number = oldNumber
-            if isinstance(trades, list):
+            if isinstance(trades, list) and len(trades):
                 if parseFilled:
                     filled = '0'
                 if parseCost:
@@ -2484,4 +2484,6 @@ class Exchange(object):
             tag = None
         if tag is None:
             tag = self.safe_string(params, 'tag')
+            if tag is not None:
+                params = self.omit(params, 'tag')
         return [tag, params]

@@ -95,16 +95,12 @@ class bitforex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
-                'ACE' => 'ACE Entertainment',
-                'BDP' => 'BidiPass',
                 'CAPP' => 'Crypto Application Token',
                 'CREDIT' => 'TerraCredit',
                 'CTC' => 'Culture Ticket Chain',
-                'GOT' => 'GoNetwork',
-                'HBC' => 'Hybrid Bank Cash',
                 'IQ' => 'IQ.Cash',
                 'MIR' => 'MIR COIN',
-                'UOS' => 'UOS Network',
+                'TON' => 'To The Moon',
             ),
             'exceptions' => array(
                 '1003' => '\\ccxt\\BadSymbol', // array("success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error")

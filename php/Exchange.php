@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.57.68';
+$version = '1.57.93';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.57.68';
+    const VERSION = '1.57.93';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2014,16 +2014,16 @@ class Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_deposit_addresses($addresses, $codes = null) {
+    public function parse_deposit_addresses($addresses, $codes = null, $indexed = true) {
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
             $address = $this->parse_deposit_address($addresses[$i]);
             $result[] = $address;
         }
         if ($codes) {
-            $result = $this->filter_by_array($result, 'currency', $codes);
+            $result = $this->filter_by_array($result, 'currency', $codes, false);
         }
-        return $this->index_by($result, 'currency');
+        return $indexed ? $this->index_by($result, 'currency') : $result;
     }
 
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
@@ -3141,7 +3141,7 @@ class Exchange {
                 'order' => $order['id'],
             ));
             $this->number = $oldNumber;
-            if (is_array($trades)) {
+            if (is_array($trades) && count($trades)) {
                 if ($parseFilled) {
                     $filled = '0';
                 }
@@ -3305,7 +3305,10 @@ class Exchange {
         }
         if ($tag === null) {
             $tag = $this->safe_string($params, 'tag');
+            if ($tag !== null) {
+                $params = $this->omit($params, 'tag');
+            }
         }
-        return array( $tag, $params );
+        return array($tag, $params);
     }
 }

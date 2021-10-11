@@ -195,6 +195,7 @@ class crex24(Exchange):
                     'has been delisted.': BadSymbol,  # {"errorDescription":"Instrument '$PAC-BTC' has been delisted."}
                     'is currently suspended.': BadSymbol,  # {"errorDescription":"Trading in BITG-BTC is currently suspended."}
                     'Mandatory parameter': BadRequest,  # {"errorDescription":"Mandatory parameter 'feeCurrency' is missing."}
+                    'can not trade': AccountSuspended,  # {"errorDescription":"User 123456 can not trade"}
                 },
             },
         })

@@ -47,6 +47,7 @@ class gateio(Exchange):
             },
             'has': {
                 'cancelOrder': True,
+                'createMarketOrder': False,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
@@ -288,6 +289,7 @@ class gateio(Exchange):
                 'RAI': 'Rai Reflex Index',  # conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
+                'TON': 'TONToken',
                 'VAI': 'VAIOT',
             },
             'options': {
@@ -615,7 +617,7 @@ class gateio(Exchange):
         addressField = self.safe_string(response, 'address')
         tag = None
         address = None
-        if addressField.find(' ') > -1:
+        if addressField.find(' ') >= 0:
             splitted = addressField.split(' ')
             address = splitted[0]
             tag = splitted[1]

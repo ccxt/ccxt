@@ -2135,6 +2135,7 @@ class ftx extends Exchange {
             $request['startTime'] = $since;
         }
         $response = yield $this->$method (array_merge($request, $params));
-        return $this->parse_incomes ($response, $market, $since, $limit);
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_incomes ($result, $market, $since, $limit);
     }
 }

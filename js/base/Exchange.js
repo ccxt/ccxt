@@ -1235,16 +1235,16 @@ module.exports = class Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseDepositAddresses (addresses, codes = undefined) {
+    parseDepositAddresses (addresses, codes = undefined, indexed = true) {
         let result = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.parseDepositAddress (addresses[i]);
             result.push (address);
         }
         if (codes) {
-            result = this.filterByArray (result, 'currency', codes);
+            result = this.filterByArray (result, 'currency', codes, false);
         }
-        return this.indexBy (result, 'currency');
+        return indexed ? this.indexBy (result, 'currency') : result;
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1729,7 +1729,7 @@ module.exports = class Exchange {
                 'order': order['id'],
             });
             this.number = oldNumber;
-            if (Array.isArray (trades)) {
+            if (Array.isArray (trades) && trades.length) {
                 if (parseFilled) {
                     filled = '0';
                 }
@@ -1883,6 +1883,9 @@ module.exports = class Exchange {
         }
         if (tag === undefined) {
             tag = this.safeString (params, 'tag')
+            if (tag !== undefined) {
+                params = this.omit (params, 'tag');
+            }
         }
         return [ tag, params ]
     }

@@ -44,8 +44,9 @@ class okex(Exchange):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': None,  # see below
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddressByNetwork': True,
                 'fetchDeposits': True,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': True,
@@ -501,10 +502,11 @@ class okex(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'defaultNetwork': 'ERC20',
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
-                    'OMNI': 'Omini',
+                    'OMNI': 'Omni',
                 },
                 'fetchOHLCV': {
                     'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
@@ -761,6 +763,14 @@ class okex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_markets(data)
 
+    def safe_network(self, networkId):
+        networksById = {
+            'Bitcoin': 'BTC',
+            'Omni': 'OMNI',
+            'TRON': 'TRC20',
+        }
+        return self.safe_string(networksById, networkId, networkId)
+
     def fetch_currencies(self, params={}):
         # self endpoint requires authentication
         # while fetchCurrencies is a public API method by design
@@ -795,37 +805,53 @@ class okex(Exchange):
         result = {}
         dataByCurrencyId = self.group_by(data, 'ccy')
         currencyIds = list(dataByCurrencyId.keys())
+        precision = self.parse_number('0.00000001')  # default precision, todo: fix "magic constants"
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
             chains = dataByCurrencyId[currencyId]
-            first = self.safe_value(chains, 0)
-            id = self.safe_string(first, 'ccy')
-            code = self.safe_currency_code(id)
-            precision = 0.00000001  # default precision, todo: fix "magic constants"
-            name = self.safe_string(first, 'name')
-            if (name is not None) and (len(name) < 1):
-                name = None
-            canDeposit = self.safe_value(first, 'canDep')
-            canWithdraw = self.safe_value(first, 'canWd')
-            canInternal = self.safe_value(first, 'canInternal')
-            active = True if (canDeposit and canWithdraw and canInternal) else False
+            networks = {}
+            currencyActive = False
+            for j in range(0, len(chains)):
+                chain = chains[j]
+                canDeposit = self.safe_value(chain, 'canDep')
+                canWithdraw = self.safe_value(chain, 'canWd')
+                canInternal = self.safe_value(chain, 'canInternal')
+                active = True if (canDeposit and canWithdraw and canInternal) else False
+                currencyActive = currencyActive or active
+                networkId = self.safe_string(chain, 'chain')
+                if networkId.find('-') >= 0:
+                    parts = networkId.split('-')
+                    networkId = self.safe_string(parts, 1, networkId)
+                    network = self.safe_network(networkId)
+                    networks[network] = {
+                        'info': chain,
+                        'id': networkId,
+                        'network': network,
+                        'active': active,
+                        'fee': self.safe_number(chain, 'minFee'),
+                        'precision': None,
+                        'limits': {
+                            'withdraw': {
+                                'min': self.safe_number(chain, 'minWd'),
+                                'max': None,
+                            },
+                        },
+                    }
             result[code] = {
-                'id': id,
                 'code': code,
-                'info': chains,
-                'type': None,
-                'name': name,
-                'active': active,
-                'fee': self.safe_number(first, 'minFee'),
+                'id': currencyId,
+                'name': None,
+                'active': currencyActive,
+                'fee': None,
                 'precision': precision,
-                'networks': chains,
                 'limits': {
-                    'amount': {'min': None, 'max': None},
-                    'withdraw': {
-                        'min': self.safe_number(first, 'ccy'),
+                    'amount': {
+                        'min': None,
                         'max': None,
                     },
                 },
+                'networks': networks,
             }
         return result
 
@@ -1724,7 +1750,7 @@ class okex(Exchange):
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         defaultType = self.safe_string(self.options, 'defaultType')
-        options = self.safe_string(self.options, 'fetchClosedOrders', {})
+        options = self.safe_value(self.options, 'fetchClosedOrders', {})
         type = self.safe_string(options, 'type', defaultType)
         type = self.safe_string(params, 'type', type)
         params = self.omit(params, 'type')
@@ -2090,23 +2116,38 @@ class okex(Exchange):
         #         "selected":true
         #     }
         #
+        #     {
+        #       "chain": "ETH-OKExChain",
+        #       "ctAddr": "72315c",
+        #       "ccy": "ETH",
+        #       "to": "6",
+        #       "addr": "0x1c9f2244d1ccaa060bd536827c18925db10db102",
+        #       "selected": True
+        #     }
+        #
         address = self.safe_string(depositAddress, 'addr')
         tag = self.safe_string_2(depositAddress, 'tag', 'pmtId')
         tag = self.safe_string(depositAddress, 'memo', tag)
         currencyId = self.safe_string(depositAddress, 'ccy')
         code = self.safe_currency_code(currencyId)
+        chain = self.safe_string(depositAddress, 'chain')
+        network = None
+        if chain.find('-') > -1:
+            parts = chain.split('-')
+            networkId = self.safe_string(parts, 1)
+            network = self.safe_network(networkId)
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': network,
             'info': depositAddress,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_addresses_by_network(self, code, params={}):
         self.load_markets()
-        parts = code.split('-')
-        currency = self.currency(parts[0])
+        currency = self.currency(code)
         request = {
             'ccy': currency['id'],
         }
@@ -2133,11 +2174,34 @@ class okex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        addressesByCode = self.parse_deposit_addresses(data)
-        address = self.safe_value(addressesByCode, code)
-        if address is None:
-            raise InvalidAddress(self.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')
-        return address
+        filtered = self.filter_by(data, 'selected', True)
+        parsed = self.parse_deposit_addresses(filtered, [code], False)
+        return self.index_by(parsed, 'network')
+
+    def fetch_deposit_address(self, code, params={}):
+        response = self.fetch_deposit_addresses_by_network(code, params)
+        rawNetwork = self.safe_string(params, 'network')
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string(networks, rawNetwork, rawNetwork)
+        result = None
+        if network is None:
+            result = self.safe_value(response, code)
+            if result is None:
+                alias = self.safe_string(networks, code, code)
+                result = self.safe_value(response, alias)
+                if result is None:
+                    defaultNetwork = self.safe_string(self.options, 'defaultNetwork', 'ERC20')
+                    result = self.safe_value(response, defaultNetwork)
+                    if result is None:
+                        values = list(response.values())
+                        result = self.safe_value(values, 0)
+                        if result is None:
+                            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find deposit address for ' + code)
+            return result
+        result = self.safe_value(response, network)
+        if result is None:
+            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
+        return result
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -2148,7 +2212,7 @@ class okex(Exchange):
             address = address + ':' + tag
         fee = self.safe_string(params, 'fee')
         if fee is None:
-            raise ArgumentsRequired(self.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
+            raise ArgumentsRequired(self.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
         request = {
             'ccy': currency['id'],
             'toAddr': address,
