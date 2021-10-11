@@ -763,6 +763,7 @@ module.exports = class okex extends Exchange {
         const networksById = {
             'Bitcoin': 'BTC',
             'Omni': 'OMNI',
+            'TRON': 'TRC20',
         };
         return this.safeString (networksById, networkId, networkId);
     }
@@ -2259,13 +2260,17 @@ module.exports = class okex extends Exchange {
         if (network === undefined) {
             result = this.safeValue (response, code);
             if (result === undefined) {
-                const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
-                result = this.safeValue (response, defaultNetwork);
+                const alias = this.safeString (networks, code, code);
+                result = this.safeValue (response, alias);
                 if (result === undefined) {
-                    const values = Object.values (response);
-                    result = this.safeValue (values, 0);
+                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+                    result = this.safeValue (response, defaultNetwork);
                     if (result === undefined) {
-                        throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
+                        const values = Object.values (response);
+                        result = this.safeValue (values, 0);
+                        if (result === undefined) {
+                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
+                        }
                     }
                 }
             }
