@@ -122,6 +122,9 @@ const decimalToPrecision = (x, roundingMode
 	    } else {
 	        throw new Error ('numPrecisionDigits must be a string or a Number')
 	    }
+		if (numPrecisionDigitsP.integer <= Bzero) {
+			throw new Error ('TICK_SIZE cant be used with negative or zero numPrecisionDigits')
+		}
 	
 		var xP = null
 	    if (typeof x === 'string') {
@@ -167,14 +170,12 @@ const decimalToPrecision = (x, roundingMode
 		
 		if (typeof numPrecisionDigits === 'string') {
 			numPrecisionDigitsNum = Number(numPrecisionDigits)
-	    } else if (Number.isFinite (numPrecisionDigits)) {
+	    } else if (Number.isInteger (numPrecisionDigits)) {
 			numPrecisionDigitsNum = numPrecisionDigits
 	    } else {
-	        throw new Error ('numPrecisionDigits must be a string or a Number')
+	        throw new Error ('numPrecisionDigits must be a string or an integer Number')
 	    }
 	}
-
-	assert ((countingMode === DECIMAL_PLACES) || (countingMode === SIGNIFICANT_DIGITS))
 
 	if ( numPrecisionDigitsNum % 1 !== 0 ) {
         throw new Error ('numPrecisionDigits must be an integer for DECIMAL_PLACES and SIGNIFICANT_DIGITS')
@@ -192,6 +193,10 @@ const decimalToPrecision = (x, roundingMode
 	if (pointIndex === -1) {
 		pointIndex = x.length
 	}
+	var firstDigitPos = 0
+	while ((firstDigitPos < x.length) && (x[firstDigitPos] < '1') || (x[firstDigitPos] > '9')) {
+		firstDigitPos++
+	}
 	var lastDigitPos = null
 	if (countingMode === DECIMAL_PLACES) {
 		lastDigitPos = pointIndex + numPrecisionDigitsNum
@@ -199,14 +204,8 @@ const decimalToPrecision = (x, roundingMode
 			lastDigitPos--
 		}
 	} else if (countingMode === SIGNIFICANT_DIGITS) {
-		var firstDigitPos = 0
-		while ((firstDigitPos < x.length) && (x[firstDigitPos] < '1') || (x[firstDigitPos] > '9')) {
-			firstDigitPos++
-		}
 		lastDigitPos = firstDigitPos + numPrecisionDigitsNum
-		if ((firstDigitPos < pointIndex) && (lastDigitPos < pointIndex)) {
-			lastDigitPos--
-		} else if (firstDigitPos > pointIndex) {
+		if (((firstDigitPos < pointIndex) && (lastDigitPos < pointIndex)) || (firstDigitPos > pointIndex)) {
 			lastDigitPos--
 		}
 	} else {
@@ -220,7 +219,7 @@ const decimalToPrecision = (x, roundingMode
 			p2++
 		}
 		var carry = 0
-		while (((p >= 0) && (charArray[p] != '-')) || (p2 >= 0)) {
+		while (((p >= 0) && (p < charArray.length) && (charArray[p] != '-')) || (p2 >= 0)) {
 			if (p >= charArray.length) {
 				break
 			}
@@ -263,7 +262,7 @@ const decimalToPrecision = (x, roundingMode
 				break
 			}
 		}
-		if ((lastDigitPos < 0) || (charArray[lastDigitPos] === '-')) {
+		if ((lastDigitPos < 0) || ((lastDigitPos < charArray.length) && (charArray[lastDigitPos] === '-'))) {
 			return '0'
 		}
 		for (p = charArray.length-1; p > lastDigitPos; --p) {
@@ -271,7 +270,6 @@ const decimalToPrecision = (x, roundingMode
 				charArray[p] = '0'
 			}
 		}
-		result = charArray.splice (0, Math.max (pointIndex, lastDigitPos+1)).join ('')
 	} else if (roundingMode === TRUNCATE) {
 		if ((lastDigitPos < 0) || ((lastDigitPos < charArray.length) && (charArray[lastDigitPos] === '-'))) {
 			return '0'
@@ -279,13 +277,13 @@ const decimalToPrecision = (x, roundingMode
 		for (var p=lastDigitPos+1; p<pointIndex; ++p) {
 			charArray[p] = '0'
 		}
-		result = charArray.splice (0, Math.max (pointIndex, lastDigitPos+1)).join ('')
 	} else {
 		assert(false)
 	}
+	result = charArray.splice (0, Math.max (pointIndex, lastDigitPos+1)).join ('')
 	hasDot = result.includes('.')
 	if (paddingMode === NO_PADDING) {
-		if ((result === '') && (numPrecisionDigitsNum === 0)) {
+		if ((result.length === 0) && (numPrecisionDigitsNum === 0)) {
 			return '0'
 		}
 		if (hasDot) {
@@ -313,7 +311,7 @@ const decimalToPrecision = (x, roundingMode
 		}
 	}
 	if ((result === "-0") || (result === '-0.' + '0'.repeat (Math.max(result.length-3,0)))) {
-		result = '0'
+		result = result.slice (1)
 	}
 	return result
 }
