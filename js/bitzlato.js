@@ -533,6 +533,18 @@ module.exports = class bitzlato extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetMarketsTickers (params);
+        const ids = Object.keys (response);
+        const result = {};
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
+            const ticker = response[id];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
