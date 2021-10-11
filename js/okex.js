@@ -25,8 +25,9 @@ module.exports = class okex extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': undefined, // see below
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddressByNetwork': true,
                 'fetchDeposits': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
@@ -482,10 +483,11 @@ module.exports = class okex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'defaultNetwork': 'ERC20',
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
-                    'OMNI': 'Omini',
+                    'OMNI': 'Omni',
                 },
                 'fetchOHLCV': {
                     'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
@@ -757,6 +759,15 @@ module.exports = class okex extends Exchange {
         return this.parseMarkets (data);
     }
 
+    safeNetwork (networkId) {
+        const networksById = {
+            'Bitcoin': 'BTC',
+            'Omni': 'OMNI',
+            'TRON': 'TRC20',
+        };
+        return this.safeString (networksById, networkId, networkId);
+    }
+
     async fetchCurrencies (params = {}) {
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
@@ -792,38 +803,55 @@ module.exports = class okex extends Exchange {
         const result = {};
         const dataByCurrencyId = this.groupBy (data, 'ccy');
         const currencyIds = Object.keys (dataByCurrencyId);
+        const precision = this.parseNumber ('0.00000001'); // default precision, todo: fix "magic constants"
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
             const chains = dataByCurrencyId[currencyId];
-            const first = this.safeValue (chains, 0);
-            const id = this.safeString (first, 'ccy');
-            const code = this.safeCurrencyCode (id);
-            const precision = 0.00000001; // default precision, todo: fix "magic constants"
-            let name = this.safeString (first, 'name');
-            if ((name !== undefined) && (name.length < 1)) {
-                name = undefined;
+            const networks = {};
+            let currencyActive = false;
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const canDeposit = this.safeValue (chain, 'canDep');
+                const canWithdraw = this.safeValue (chain, 'canWd');
+                const canInternal = this.safeValue (chain, 'canInternal');
+                const active = (canDeposit && canWithdraw && canInternal) ? true : false;
+                currencyActive = currencyActive || active;
+                let networkId = this.safeString (chain, 'chain');
+                if (networkId.indexOf ('-') >= 0) {
+                    const parts = networkId.split ('-');
+                    networkId = this.safeString (parts, 1, networkId);
+                    const network = this.safeNetwork (networkId);
+                    networks[network] = {
+                        'info': chain,
+                        'id': networkId,
+                        'network': network,
+                        'active': active,
+                        'fee': this.safeNumber (chain, 'minFee'),
+                        'precision': undefined,
+                        'limits': {
+                            'withdraw': {
+                                'min': this.safeNumber (chain, 'minWd'),
+                                'max': undefined,
+                            },
+                        },
+                    };
+                }
             }
-            const canDeposit = this.safeValue (first, 'canDep');
-            const canWithdraw = this.safeValue (first, 'canWd');
-            const canInternal = this.safeValue (first, 'canInternal');
-            const active = (canDeposit && canWithdraw && canInternal) ? true : false;
             result[code] = {
-                'id': id,
                 'code': code,
-                'info': chains,
-                'type': undefined,
-                'name': name,
-                'active': active,
-                'fee': this.safeNumber (first, 'minFee'),
+                'id': currencyId,
+                'name': undefined,
+                'active': currencyActive,
+                'fee': undefined,
                 'precision': precision,
-                'networks': chains,
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': {
-                        'min': this.safeNumber (first, 'ccy'),
+                    'amount': {
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
+                'networks': networks,
             };
         }
         return result;
@@ -2158,24 +2186,40 @@ module.exports = class okex extends Exchange {
         //         "selected":true
         //     }
         //
+        //     {
+        //       "chain": "ETH-OKExChain",
+        //       "ctAddr": "72315c",
+        //       "ccy": "ETH",
+        //       "to": "6",
+        //       "addr": "0x1c9f2244d1ccaa060bd536827c18925db10db102",
+        //       "selected": true
+        //     }
+        //
         const address = this.safeString (depositAddress, 'addr');
         let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
         tag = this.safeString (depositAddress, 'memo', tag);
         const currencyId = this.safeString (depositAddress, 'ccy');
         const code = this.safeCurrencyCode (currencyId);
+        const chain = this.safeString (depositAddress, 'chain');
+        let network = undefined;
+        if (chain.indexOf ('-') > -1) {
+            const parts = chain.split ('-');
+            const networkId = this.safeString (parts, 1);
+            network = this.safeNetwork (networkId);
+        }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': network,
             'info': depositAddress,
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code, params = {}) {
         await this.loadMarkets ();
-        const parts = code.split ('-');
-        const currency = this.currency (parts[0]);
+        const currency = this.currency (code);
         const request = {
             'ccy': currency['id'],
         };
@@ -2202,12 +2246,41 @@ module.exports = class okex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const addressesByCode = this.parseDepositAddresses (data);
-        const address = this.safeValue (addressesByCode, code);
-        if (address === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
+        const filtered = this.filterBy (data, 'selected', true);
+        const parsed = this.parseDepositAddresses (filtered, [ code ], false);
+        return this.indexBy (parsed, 'network');
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        const response = await this.fetchDepositAddressesByNetwork (code, params);
+        const rawNetwork = this.safeString (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        const network = this.safeString (networks, rawNetwork, rawNetwork);
+        let result = undefined;
+        if (network === undefined) {
+            result = this.safeValue (response, code);
+            if (result === undefined) {
+                const alias = this.safeString (networks, code, code);
+                result = this.safeValue (response, alias);
+                if (result === undefined) {
+                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+                    result = this.safeValue (response, defaultNetwork);
+                    if (result === undefined) {
+                        const values = Object.values (response);
+                        result = this.safeValue (values, 0);
+                        if (result === undefined) {
+                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
+                        }
+                    }
+                }
+            }
+            return result;
         }
-        return address;
+        result = this.safeValue (response, network);
+        if (result === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
+        }
+        return result;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -2220,7 +2293,7 @@ module.exports = class okex extends Exchange {
         }
         const fee = this.safeString (params, 'fee');
         if (fee === undefined) {
-            throw new ArgumentsRequired (this.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
+            throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
         }
         const request = {
             'ccy': currency['id'],
