@@ -49,6 +49,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [CCXT Pro](https://ccxt.pro) – a professional addon to CCXT with support for WebSocket streams.
 
+[Blockpit](https://www.blockpit.io) – Tax reporting and portfolio tracking for Cryptocurrencies, Cryptoderivates and DeFi.
+
 [Freqtrade](https://www.freqtrade.io) – leading opensource cryptocurrency algorithmic trading software based on CCXT!
 
 [Enigma Catalyst](https://blog.enigma.co/enigma-announces-catalyst-0-4-our-biggest-release-yet-fa31a5ffa4b1) – The major effort towards decentralized exchanges integrates ccxt!
