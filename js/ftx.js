@@ -2125,7 +2125,8 @@ module.exports = class ftx extends Exchange {
         const amount = this.safeNumber (income, 'payment');
         const code = this.safeCurrencyCode ('USD');
         const id = this.safeString (income, 'id');
-        const timestamp = this.safeInteger (income, 'time');
+        const time = this.safeString (income, 'time');
+        const timestamp = this.parse8601 (time);
         const rate = this.safe_number (income, 'rate');
         return {
             'info': income,
