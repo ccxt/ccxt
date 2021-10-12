@@ -1672,67 +1672,40 @@ class ftx(Exchange):
     async def fetch_positions(self, symbols=None, params={}):
         await self.load_markets()
         request = {
-            # 'showAvgPrice': False,
+            'showAvgPrice': True,
         }
-        response = await self.privateGetAccount(self.extend(request, params))
+        response = await self.privateGetPositions(self.extend(request, params))
         #
         #     {
-        #       "success": True,
-        #       "result": {
-        #         "username": "spam.revelli@gmail.com",
-        #         "collateral": "1068.8443756202948",
-        #         "freeCollateral": "1048.4120570454713",
-        #         "totalAccountValue": "1070.3126628702948",
-        #         "totalPositionSize": "273.28",
-        #         "initialMarginRequirement": "0.02",
-        #         "maintenanceMarginRequirement": "0.006",
-        #         "marginFraction": "3.9165422382548845",
-        #         "openMarginFraction": "3.85640243356803",
-        #         "liquidating": False,
-        #         "backstopProvider": False,
-        #         "takerFee": "0.000865",
-        #         "makerFee": "0.00039",
-        #         "leverage": "50.0",
-        #         "positionLimit": "2500000.0",
-        #         "positionLimitUsed": "1369.55",
-        #         "useFttCollateral": True,
-        #         "chargeInterestOnNegativeUsd": False,
-        #         "spotMarginEnabled": False,
-        #         "spotLendingEnabled": False
-        #         "positions": [
-        #           {
-        #             "future": "XMR-PERP",
-        #             "size": "1.0",
-        #             "side": "buy",
-        #             "netSize": "1.0",
-        #             "longOrderSize": "0.0",
-        #             "shortOrderSize": "0.0",
-        #             "cost": "273.28",
-        #             "entryPrice": "273.28",
-        #             "unrealizedPnl": "0.0",
-        #             "realizedPnl": "1.46828725",
-        #             "initialMarginRequirement": "0.02",
-        #             "maintenanceMarginRequirement": "0.006",
-        #             "openSize": "0.0",
-        #             "collateralUsed": "5.4656",
-        #             "estimatedLiquidationPrice": "0.0"
-        #           },
+        #         "success": True,
+        #         "result": [
+        #             {
+        #                 "cost": -31.7906,
+        #                 "entryPrice": 138.22,
+        #                 "estimatedLiquidationPrice": 152.1,
+        #                 "future": "ETH-PERP",
+        #                 "initialMarginRequirement": 0.1,
+        #                 "longOrderSize": 1744.55,
+        #                 "maintenanceMarginRequirement": 0.04,
+        #                 "netSize": -0.23,
+        #                 "openSize": 1744.32,
+        #                 "realizedPnl": 3.39441714,
+        #                 "shortOrderSize": 1732.09,
+        #                 "recentAverageOpenPrice": 278.98,
+        #                 "recentPnl": 2.44,
+        #                 "recentBreakEvenPrice": 278.98,
+        #                 "side": "sell",
+        #                 "size": 0.23,
+        #                 "unrealizedPnl": 0,
+        #                 "collateralUsed": 3.17906
+        #             }
         #         ]
-        #       }
-        #    }
+        #     }
         #
-        result = self.safe_value(response, 'result', {})
-        leverage = self.safe_string(result, 'leverage')
-        collateral = self.safe_string(result, 'freeCollateral')
-        positions = self.safe_value(result, 'positions', [])
+        result = self.safe_value(response, 'result', [])
         results = []
-        for i in range(0, len(positions)):
-            position = positions[i]
-            extended = self.extend(position, {
-                'leverage': leverage,
-                'collateral': collateral,
-            })
-            results.append(self.parse_position(extended))
+        for i in range(0, len(result)):
+            results.append(self.parse_position(result[i]))
         return results
 
     def parse_position(self, position):
@@ -1755,20 +1728,34 @@ class ftx(Exchange):
         #     "estimatedLiquidationPrice": null
         #   }
         #
-        collateral = self.safe_string(position, 'collateral')
         contractsString = self.safe_string(position, 'size')
         rawSide = self.safe_string(position, 'side')
         side = 'long' if (rawSide == 'buy') else 'short'
         symbol = self.safe_string(position, 'future')
-        liquidationPrice = self.safe_number(position, 'estimatedLiquidationPrice')
+        liquidationPriceString = self.safe_string(position, 'estimatedLiquidationPrice')
         initialMarginPercentage = self.safe_string(position, 'initialMarginRequirement')
-        initialMargin = self.safe_string(position, 'collateralUsed')
+        leverage = int(Precise.string_div('1', initialMarginPercentage, 0))
         # on ftx the entryPrice is actually the mark price
         markPriceString = self.safe_string(position, 'entryPrice')
         notionalString = Precise.string_mul(contractsString, markPriceString)
+        initialMargin = Precise.string_mul(notionalString, initialMarginPercentage)
         maintenanceMarginPercentageString = self.safe_string(position, 'maintenanceMarginRequirement')
         maintenanceMarginString = Precise.string_mul(notionalString, maintenanceMarginPercentageString)
-        leverage = self.safe_integer(position, 'leverage')
+        unrealizedPnlString = self.safe_string(position, 'recentPnl')
+        percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMargin, 4), '100'))
+        entryPriceString = self.safe_string(position, 'recentAverageOpenPrice')
+        difference = None
+        collateral = None
+        marginRatio = None
+        if (entryPriceString is not None) and (Precise.string_gt(liquidationPriceString, '0')):
+            # collateral = maintenanceMargin ±((markPrice - liquidationPrice) * size)
+            if side == 'long':
+                difference = Precise.string_sub(markPriceString, liquidationPriceString)
+            else:
+                difference = Precise.string_sub(liquidationPriceString, markPriceString)
+            loss = Precise.string_mul(difference, contractsString)
+            collateral = Precise.string_add(loss, maintenanceMarginString)
+            marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateral, 4))
         # ftx has a weird definition of realizedPnl
         # it keeps the historical record of the realizedPnl per contract forever
         # so we cannot use self data
@@ -1777,23 +1764,23 @@ class ftx(Exchange):
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
-            'initialMargin': initialMargin,
-            'initialMarginPercentage': initialMarginPercentage,
+            'initialMargin': self.parse_number(initialMargin),
+            'initialMarginPercentage': self.parse_number(initialMarginPercentage),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
             'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentageString),
             'entryPrice': None,
             'notional': self.parse_number(notionalString),
             'leverage': leverage,
-            'unrealizedPnl': None,
+            'unrealizedPnl': self.parse_number(unrealizedPnlString),
             'contracts': self.parse_number(contractsString),
             'contractSize': self.parse_number('1'),
-            'marginRatio': None,
-            'liquidationPrice': liquidationPrice,
+            'marginRatio': marginRatio,
+            'liquidationPrice': self.parse_number(liquidationPriceString),
             'markPrice': self.parse_number(markPriceString),
             'collateral': self.parse_number(collateral),
             'marginType': 'cross',
             'side': side,
-            'percentage': None,
+            'percentage': percentage,
         }
 
     async def fetch_deposit_address(self, code, params={}):

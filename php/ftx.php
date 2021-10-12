@@ -1735,67 +1735,40 @@ class ftx extends Exchange {
     public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            // 'showAvgPrice' => false,
+            'showAvgPrice' => true,
         );
-        $response = $this->privateGetAccount (array_merge($request, $params));
+        $response = $this->privateGetPositions (array_merge($request, $params));
         //
         //     {
-        //       "success" => true,
-        //       "$result" => {
-        //         "username" => "spam.revelli@gmail.com",
-        //         "$collateral" => "1068.8443756202948",
-        //         "freeCollateral" => "1048.4120570454713",
-        //         "totalAccountValue" => "1070.3126628702948",
-        //         "totalPositionSize" => "273.28",
-        //         "initialMarginRequirement" => "0.02",
-        //         "maintenanceMarginRequirement" => "0.006",
-        //         "marginFraction" => "3.9165422382548845",
-        //         "openMarginFraction" => "3.85640243356803",
-        //         "liquidating" => false,
-        //         "backstopProvider" => false,
-        //         "takerFee" => "0.000865",
-        //         "makerFee" => "0.00039",
-        //         "$leverage" => "50.0",
-        //         "positionLimit" => "2500000.0",
-        //         "positionLimitUsed" => "1369.55",
-        //         "useFttCollateral" => true,
-        //         "chargeInterestOnNegativeUsd" => false,
-        //         "spotMarginEnabled" => false,
-        //         "spotLendingEnabled" => false
-        //         "$positions" => array(
-        //           array(
-        //             "future" => "XMR-PERP",
-        //             "size" => "1.0",
-        //             "side" => "buy",
-        //             "netSize" => "1.0",
-        //             "longOrderSize" => "0.0",
-        //             "shortOrderSize" => "0.0",
-        //             "cost" => "273.28",
-        //             "entryPrice" => "273.28",
-        //             "unrealizedPnl" => "0.0",
-        //             "realizedPnl" => "1.46828725",
-        //             "initialMarginRequirement" => "0.02",
-        //             "maintenanceMarginRequirement" => "0.006",
-        //             "openSize" => "0.0",
-        //             "collateralUsed" => "5.4656",
-        //             "estimatedLiquidationPrice" => "0.0"
-        //           ),
+        //         "success" => true,
+        //         "$result" => array(
+        //             {
+        //                 "cost" => -31.7906,
+        //                 "entryPrice" => 138.22,
+        //                 "estimatedLiquidationPrice" => 152.1,
+        //                 "future" => "ETH-PERP",
+        //                 "initialMarginRequirement" => 0.1,
+        //                 "longOrderSize" => 1744.55,
+        //                 "maintenanceMarginRequirement" => 0.04,
+        //                 "netSize" => -0.23,
+        //                 "openSize" => 1744.32,
+        //                 "realizedPnl" => 3.39441714,
+        //                 "shortOrderSize" => 1732.09,
+        //                 "recentAverageOpenPrice" => 278.98,
+        //                 "recentPnl" => 2.44,
+        //                 "recentBreakEvenPrice" => 278.98,
+        //                 "side" => "sell",
+        //                 "size" => 0.23,
+        //                 "unrealizedPnl" => 0,
+        //                 "collateralUsed" => 3.17906
+        //             }
         //         )
-        //       }
-        //    }
+        //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $leverage = $this->safe_string($result, 'leverage');
-        $collateral = $this->safe_string($result, 'freeCollateral');
-        $positions = $this->safe_value($result, 'positions', array());
         $results = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $position = $positions[$i];
-            $extended = array_merge($position, array(
-                'leverage' => $leverage,
-                'collateral' => $collateral,
-            ));
-            $results[] = $this->parse_position($extended);
+        for ($i = 0; $i < count($result); $i++) {
+            $results[] = $this->parse_position($result[$i]);
         }
         return $results;
     }
@@ -1820,20 +1793,36 @@ class ftx extends Exchange {
         //     "estimatedLiquidationPrice" => null
         //   }
         //
-        $collateral = $this->safe_string($position, 'collateral');
         $contractsString = $this->safe_string($position, 'size');
         $rawSide = $this->safe_string($position, 'side');
         $side = ($rawSide === 'buy') ? 'long' : 'short';
         $symbol = $this->safe_string($position, 'future');
-        $liquidationPrice = $this->safe_number($position, 'estimatedLiquidationPrice');
+        $liquidationPriceString = $this->safe_string($position, 'estimatedLiquidationPrice');
         $initialMarginPercentage = $this->safe_string($position, 'initialMarginRequirement');
-        $initialMargin = $this->safe_string($position, 'collateralUsed');
+        $leverage = intval(Precise::string_div('1', $initialMarginPercentage, 0));
         // on ftx the entryPrice is actually the mark price
         $markPriceString = $this->safe_string($position, 'entryPrice');
         $notionalString = Precise::string_mul($contractsString, $markPriceString);
+        $initialMargin = Precise::string_mul($notionalString, $initialMarginPercentage);
         $maintenanceMarginPercentageString = $this->safe_string($position, 'maintenanceMarginRequirement');
         $maintenanceMarginString = Precise::string_mul($notionalString, $maintenanceMarginPercentageString);
-        $leverage = $this->safe_integer($position, 'leverage');
+        $unrealizedPnlString = $this->safe_string($position, 'recentPnl');
+        $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMargin, 4), '100'));
+        $entryPriceString = $this->safe_string($position, 'recentAverageOpenPrice');
+        $difference = null;
+        $collateral = null;
+        $marginRatio = null;
+        if (($entryPriceString !== null) && (Precise::string_gt($liquidationPriceString, '0'))) {
+            // $collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
+            if ($side === 'long') {
+                $difference = Precise::string_sub($markPriceString, $liquidationPriceString);
+            } else {
+                $difference = Precise::string_sub($liquidationPriceString, $markPriceString);
+            }
+            $loss = Precise::string_mul($difference, $contractsString);
+            $collateral = Precise::string_add($loss, $maintenanceMarginString);
+            $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateral, 4));
+        }
         // ftx has a weird definition of realizedPnl
         // it keeps the historical record of the realizedPnl per contract forever
         // so we cannot use this data
@@ -1842,23 +1831,23 @@ class ftx extends Exchange {
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
-            'initialMargin' => $initialMargin,
-            'initialMarginPercentage' => $initialMarginPercentage,
+            'initialMargin' => $this->parse_number($initialMargin),
+            'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
             'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentageString),
             'entryPrice' => null,
             'notional' => $this->parse_number($notionalString),
             'leverage' => $leverage,
-            'unrealizedPnl' => null,
+            'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
             'contracts' => $this->parse_number($contractsString),
             'contractSize' => $this->parse_number('1'),
-            'marginRatio' => null,
-            'liquidationPrice' => $liquidationPrice,
+            'marginRatio' => $marginRatio,
+            'liquidationPrice' => $this->parse_number($liquidationPriceString),
             'markPrice' => $this->parse_number($markPriceString),
             'collateral' => $this->parse_number($collateral),
             'marginType' => 'cross',
             'side' => $side,
-            'percentage' => null,
+            'percentage' => $percentage,
         );
     }
 
