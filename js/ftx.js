@@ -1737,49 +1737,30 @@ module.exports = class ftx extends Exchange {
         const response = await this.privateGetPositions (this.extend (request, params));
         //
         //     {
-        //       "success": true,
-        //       "result": {
-        //         "username": "spam.revelli@gmail.com",
-        //         "collateral": "1068.8443756202948",
-        //         "freeCollateral": "1048.4120570454713",
-        //         "totalAccountValue": "1070.3126628702948",
-        //         "totalPositionSize": "273.28",
-        //         "initialMarginRequirement": "0.02",
-        //         "maintenanceMarginRequirement": "0.006",
-        //         "marginFraction": "3.9165422382548845",
-        //         "openMarginFraction": "3.85640243356803",
-        //         "liquidating": false,
-        //         "backstopProvider": false,
-        //         "takerFee": "0.000865",
-        //         "makerFee": "0.00039",
-        //         "leverage": "50.0",
-        //         "positionLimit": "2500000.0",
-        //         "positionLimitUsed": "1369.55",
-        //         "useFttCollateral": true,
-        //         "chargeInterestOnNegativeUsd": false,
-        //         "spotMarginEnabled": false,
-        //         "spotLendingEnabled": false
-        //         "positions": [
-        //           {
-        //             "future": "XMR-PERP",
-        //             "size": "1.0",
-        //             "side": "buy",
-        //             "netSize": "1.0",
-        //             "longOrderSize": "0.0",
-        //             "shortOrderSize": "0.0",
-        //             "cost": "273.28",
-        //             "entryPrice": "273.28",
-        //             "unrealizedPnl": "0.0",
-        //             "realizedPnl": "1.46828725",
-        //             "initialMarginRequirement": "0.02",
-        //             "maintenanceMarginRequirement": "0.006",
-        //             "openSize": "0.0",
-        //             "collateralUsed": "5.4656",
-        //             "estimatedLiquidationPrice": "0.0"
-        //           },
+        //         "success": true,
+        //         "result": [
+        //             {
+        //                 "cost": -31.7906,
+        //                 "entryPrice": 138.22,
+        //                 "estimatedLiquidationPrice": 152.1,
+        //                 "future": "ETH-PERP",
+        //                 "initialMarginRequirement": 0.1,
+        //                 "longOrderSize": 1744.55,
+        //                 "maintenanceMarginRequirement": 0.04,
+        //                 "netSize": -0.23,
+        //                 "openSize": 1744.32,
+        //                 "realizedPnl": 3.39441714,
+        //                 "shortOrderSize": 1732.09,
+        //                 "recentAverageOpenPrice": 278.98,
+        //                 "recentPnl": 2.44,
+        //                 "recentBreakEvenPrice": 278.98,
+        //                 "side": "sell",
+        //                 "size": 0.23,
+        //                 "unrealizedPnl": 0,
+        //                 "collateralUsed": 3.17906
+        //             }
         //         ]
-        //       }
-        //    }
+        //     }
         //
         const result = this.safeValue (response, 'result', []);
         const array = [];
