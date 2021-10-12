@@ -2039,7 +2039,8 @@ class ftx(Exchange):
         amount = self.safe_number(income, 'payment')
         code = self.safe_currency_code('USD')
         id = self.safe_string(income, 'id')
-        timestamp = self.safe_integer(income, 'time')
+        time = self.safe_string(income, 'time')
+        timestamp = self.parse8601(time)
         rate = self.safe_number(income, 'rate')
         return {
             'info': income,

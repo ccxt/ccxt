@@ -2119,7 +2119,7 @@ class ftx extends Exchange {
         //       "future" => "ETH-PERP",
         //        "$id" => 33830,
         //        "payment" => 0.0441342,
-        //        "time" => "2019-05-15T18:00:00+00:00",
+        //        "$time" => "2019-05-15T18:00:00+00:00",
         //        "$rate" => 0.0001
         //   }
         //
@@ -2128,7 +2128,8 @@ class ftx extends Exchange {
         $amount = $this->safe_number($income, 'payment');
         $code = $this->safe_currency_code('USD');
         $id = $this->safe_string($income, 'id');
-        $timestamp = $this->safe_integer($income, 'time');
+        $time = $this->safe_string($income, 'time');
+        $timestamp = $this->parse8601($time);
         $rate = $this->safe_number($income, 'rate');
         return array(
             'info' => $income,
