@@ -1734,87 +1734,129 @@ module.exports = class ftx extends Exchange {
         const request = {
             // 'showAvgPrice': false,
         };
-        const response = await this.privateGetPositions (this.extend (request, params));
+        const response = await this.privateGetAccount (this.extend (request, params));
         //
         //     {
-        //         "success": true,
-        //         "result": [
-        //             {
-        //                 "cost": -31.7906,
-        //                 "entryPrice": 138.22,
-        //                 "estimatedLiquidationPrice": 152.1,
-        //                 "future": "ETH-PERP",
-        //                 "initialMarginRequirement": 0.1,
-        //                 "longOrderSize": 1744.55,
-        //                 "maintenanceMarginRequirement": 0.04,
-        //                 "netSize": -0.23,
-        //                 "openSize": 1744.32,
-        //                 "realizedPnl": 3.39441714,
-        //                 "shortOrderSize": 1732.09,
-        //                 "side": "sell",
-        //                 "size": 0.23,
-        //                 "unrealizedPnl": 0,
-        //                 "collateralUsed": 3.17906
-        //             }
+        //       "success": true,
+        //       "result": {
+        //         "username": "spam.revelli@gmail.com",
+        //         "collateral": "1068.8443756202948",
+        //         "freeCollateral": "1048.4120570454713",
+        //         "totalAccountValue": "1070.3126628702948",
+        //         "totalPositionSize": "273.28",
+        //         "initialMarginRequirement": "0.02",
+        //         "maintenanceMarginRequirement": "0.006",
+        //         "marginFraction": "3.9165422382548845",
+        //         "openMarginFraction": "3.85640243356803",
+        //         "liquidating": false,
+        //         "backstopProvider": false,
+        //         "takerFee": "0.000865",
+        //         "makerFee": "0.00039",
+        //         "leverage": "50.0",
+        //         "positionLimit": "2500000.0",
+        //         "positionLimitUsed": "1369.55",
+        //         "useFttCollateral": true,
+        //         "chargeInterestOnNegativeUsd": false,
+        //         "spotMarginEnabled": false,
+        //         "spotLendingEnabled": false
+        //         "positions": [
+        //           {
+        //             "future": "XMR-PERP",
+        //             "size": "1.0",
+        //             "side": "buy",
+        //             "netSize": "1.0",
+        //             "longOrderSize": "0.0",
+        //             "shortOrderSize": "0.0",
+        //             "cost": "273.28",
+        //             "entryPrice": "273.28",
+        //             "unrealizedPnl": "0.0",
+        //             "realizedPnl": "1.46828725",
+        //             "initialMarginRequirement": "0.02",
+        //             "maintenanceMarginRequirement": "0.006",
+        //             "openSize": "0.0",
+        //             "collateralUsed": "5.4656",
+        //             "estimatedLiquidationPrice": "0.0"
+        //           },
         //         ]
-        //     }
-        //
-        // todo unify parsePosition/parsePositions
-        return this.safeValue (response, 'result', []);
-    }
-
-    async fetchAccountPositions (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetAccount (params);
-        //
-        //     {
-        //         "result":{
-        //             "backstopProvider":false,
-        //             "chargeInterestOnNegativeUsd":false,
-        //             "collateral":2830.2567913677476,
-        //             "freeCollateral":2829.670741867416,
-        //             "initialMarginRequirement":0.05,
-        //             "leverage":20.0,
-        //             "liquidating":false,
-        //             "maintenanceMarginRequirement":0.03,
-        //             "makerFee":0.0,
-        //             "marginFraction":null,
-        //             "openMarginFraction":null,
-        //             "positionLimit":null,
-        //             "positionLimitUsed":null,
-        //             "positions":[
-        //                 {
-        //                     "collateralUsed":0.0,
-        //                     "cost":0.0,
-        //                     "entryPrice":null,
-        //                     "estimatedLiquidationPrice":null,
-        //                     "future":"XRP-PERP",
-        //                     "initialMarginRequirement":0.05,
-        //                     "longOrderSize":0.0,
-        //                     "maintenanceMarginRequirement":0.03,
-        //                     "netSize":0.0,
-        //                     "openSize":0.0,
-        //                     "realizedPnl":0.016,
-        //                     "shortOrderSize":0.0,
-        //                     "side":"buy",
-        //                     "size":0.0,
-        //                     "unrealizedPnl":0.0,
-        //                 }
-        //             ],
-        //             "spotLendingEnabled":false,
-        //             "spotMarginEnabled":false,
-        //             "takerFee":0.0007,
-        //             "totalAccountValue":2830.2567913677476,
-        //             "totalPositionSize":0.0,
-        //             "useFttCollateral":true,
-        //             "username":"igor.kroitor@gmail.com"
-        //         },
-        //         "success":true
-        //     }
+        //       }
+        //    }
         //
         const result = this.safeValue (response, 'result', {});
-        // todo unify parsePosition/parsePositions
-        return this.safeValue (result, 'positions', []);
+        const leverage = this.safeString (result, 'leverage');
+        const collateral = this.safeString (result, 'freeCollateral');
+        const positions = this.safeValue (result, 'positions', []);
+        const results = [];
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const extended = this.extend (position, {
+                'leverage': leverage,
+                'collateral': collateral,
+            });
+            results.push (this.parsePosition (extended));
+        }
+        return results;
+    }
+
+    parsePosition (position) {
+        //
+        //   {
+        //     "future": "XMR-PERP",
+        //     "size": "0.0",
+        //     "side": "buy",
+        //     "netSize": "0.0",
+        //     "longOrderSize": "0.0",
+        //     "shortOrderSize": "0.0",
+        //     "cost": "0.0",
+        //     "entryPrice": null,
+        //     "unrealizedPnl": "0.0",
+        //     "realizedPnl": "0.0",
+        //     "initialMarginRequirement": "0.02",
+        //     "maintenanceMarginRequirement": "0.006",
+        //     "openSize": "0.0",
+        //     "collateralUsed": "0.0",
+        //     "estimatedLiquidationPrice": null
+        //   }
+        //
+        const collateral = this.safeString (position, 'collateral');
+        const contractsString = this.safeString (position, 'size');
+        const rawSide = this.safeString (position, 'side');
+        const side = (rawSide === 'buy') ? 'long' : 'short';
+        const symbol = this.safeString (position, 'future');
+        const liquidationPrice = this.safeNumber (position, 'estimatedLiquidationPrice');
+        const initialMarginPercentage = this.safeString (position, 'initialMarginRequirement');
+        const initialMargin = this.safeString (position, 'collateralUsed');
+        // on ftx the entryPrice is actually the mark price
+        const markPriceString = this.safeString (position, 'entryPrice');
+        const notionalString = Precise.stringMul (contractsString, markPriceString);
+        const maintenanceMarginPercentageString = this.safeString (position, 'maintenanceMarginRequirement');
+        const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
+        const leverage = this.safeInteger (position, 'leverage');
+        // ftx has a weird definition of realizedPnl
+        // it keeps the historical record of the realizedPnl per contract forever
+        // so we cannot use this data
+        return {
+            'info': position,
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'initialMargin': initialMargin,
+            'initialMarginPercentage': initialMarginPercentage,
+            'maintenanceMargin': this.parseNumber (maintenanceMarginString),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
+            'entryPrice': undefined,
+            'notional': this.parseNumber (notionalString),
+            'leverage': leverage,
+            'unrealizedPnl': undefined,
+            'contracts': this.parseNumber (contractsString),
+            'contractSize': this.parseNumber ('1'),
+            'marginRatio': undefined,
+            'liquidationPrice': liquidationPrice,
+            'markPrice': this.parseNumber (markPriceString),
+            'collateral': this.parseNumber (collateral),
+            'marginType': 'cross',
+            'side': side,
+            'percentage': undefined,
+        };
     }
 
     async fetchDepositAddress (code, params = {}) {
