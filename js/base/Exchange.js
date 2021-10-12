@@ -1699,7 +1699,7 @@ module.exports = class Exchange {
         });
     }
 
-    safeOrder2 (order, market) {
+    safeOrder2 (order, market = undefined) {
         // parses numbers as strings
         // it is important pass the trades as unparsed rawTrades
         let amount = this.omitZero (this.safeString (order, 'amount'));

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.57.94';
+$version = '1.57.98';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.57.94';
+    const VERSION = '1.57.98';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1215,7 +1215,7 @@ class Exchange {
 
         if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
-                throw new ExchangeError(this . id . ' warning! The glue symbol for HTTP queries ' .
+                throw new ExchangeError($this->id . ' warning! The glue symbol for HTTP queries ' .
                     ' is changed from its default value & to ' . $this->urlencode_glue . ' in php.ini' .
                     ' (arg_separator.output) or with a call to ini_set prior to this message. If that' .
                     ' was the intent, you can acknowledge this warning and silence it by setting' .
@@ -3111,7 +3111,7 @@ class Exchange {
         ));
     }
 
-    public function safe_order2($order, $market) {
+    public function safe_order2($order, $market = null) {
         // parses numbers as strings
         // it is important pass the $trades as unparsed $rawTrades
         $amount = $this->omit_zero($this->safe_string($order, 'amount'));

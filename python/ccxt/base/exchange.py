@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.57.94'
+__version__ = '1.57.98'
 
 # -----------------------------------------------------------------------------
 
@@ -2332,7 +2332,7 @@ class Exchange(object):
             'remaining': remaining,
         })
 
-    def safe_order2(self, order, market):
+    def safe_order2(self, order, market=None):
         # parses numbers as strings
         # it is important pass the trades as unparsed rawTrades
         amount = self.omit_zero(self.safe_string(order, 'amount'))

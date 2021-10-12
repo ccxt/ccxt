@@ -177,6 +177,8 @@ module.exports = class bitstamp extends Exchange {
                         'axs_address/',
                         'sand_withdrawal/',
                         'sand_address/',
+                        'hbar_withdrawal/',
+                        'hbar_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -1516,7 +1518,7 @@ module.exports = class bitstamp extends Exchange {
                 if (tag !== undefined) {
                     request['destination_tag'] = tag;
                 }
-            } else if (code === 'XLM') {
+            } else if (code === 'XLM' || code === 'HBAR') {
                 if (tag !== undefined) {
                     request['memo_id'] = tag;
                 }

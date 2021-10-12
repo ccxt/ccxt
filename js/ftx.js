@@ -1786,7 +1786,7 @@ module.exports = class ftx extends Exchange {
         for (let i = 0; i < result.length; i++) {
             array.push (this.parsePosition (result[i]));
         }
-        return array;
+        return results;
     }
 
     parsePosition (position) {
