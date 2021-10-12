@@ -181,10 +181,10 @@ const decimalToPrecision = (x, roundingMode
         throw new Error ('numPrecisionDigits must be an integer for DECIMAL_PLACES and SIGNIFICANT_DIGITS')
 	}
     if (countingMode === SIGNIFICANT_DIGITS) {
-        if (numPrecisionDigits < 0) {
+        if (numPrecisionDigitsNum < 0) {
             throw new Error ('SIGNIFICANT_DIGITS cant be used with negative numPrecisionDigits')
         }
-		if (numPrecisionDigits === 0) {
+		if (numPrecisionDigitsNum === 0) {
 			return '0'
 		}
     }
@@ -194,7 +194,7 @@ const decimalToPrecision = (x, roundingMode
 		pointIndex = x.length
 	}
 	var firstDigitPos = 0
-	while ((firstDigitPos < x.length) && (x[firstDigitPos] < '1') || (x[firstDigitPos] > '9')) {
+	while ((firstDigitPos < x.length) && ((x[firstDigitPos] < '1') || (x[firstDigitPos] > '9'))) {
 		firstDigitPos++
 	}
 	var lastDigitPos = null
@@ -215,7 +215,7 @@ const decimalToPrecision = (x, roundingMode
 	if (roundingMode === ROUND) {
 		var p = lastDigitPos
 		var p2 = p+1
-		if ((pointIndex == p2) && (pointIndex !== x.length)) {
+		if ((pointIndex == p2) && (pointIndex !== charArray.length)) {
 			p2++
 		}
 		var carry = 0
