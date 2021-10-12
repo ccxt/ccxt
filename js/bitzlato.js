@@ -482,9 +482,12 @@ module.exports = class bitzlato extends Exchange {
         const lastString = this.safeString (ticker, 'last');
         const openString = this.safeString (ticker, 'open');
         const changeString = Precise.stringSub (lastString, openString);
-        const relChangeString = Precise.stringDiv (changeString, openString);
         const last = this.parseNumber (lastString);
         const open = this.parseNumber (openString);
+        let relChangeString = '0.0';
+        if (open !== 0) {
+            relChangeString = Precise.stringDiv (changeString, openString);
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -541,9 +544,13 @@ module.exports = class bitzlato extends Exchange {
         const cost = this.safeNumber (trade, 'total');
         const createdAt = this.safeString (trade, 'created_at');
         const timestamp = this.parse8601 (createdAt);
-        const side = this.safeString (trade, 'side');
         const order = this.safeString (trade, 'order_id');
         const marketId = this.safeString (trade, 'market');
+        let side = this.safeString (trade, 'side');
+        if (side === undefined) {
+            const takerType = this.safeString (trade, 'taker_type');
+            side = (takerType === 'buy') ? 'sell' : 'buy';
+        }
         if (market === undefined) {
             market = this.markets_by_id[marketId];
         }
@@ -560,6 +567,7 @@ module.exports = class bitzlato extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
+            'takerOrMaker': undefined,
         };
     }
 
@@ -599,7 +607,14 @@ module.exports = class bitzlato extends Exchange {
         if (!this.isArray (response)) {
             return [];
         }
-        return this.parseTrades (response, market);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const createdAt = this.safeTimestamp (item, 'created_at');
+            item['created_at'] = this.iso8601 (createdAt);
+            result.push (item);
+        }
+        return this.parseTrades (result, market);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
