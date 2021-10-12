@@ -39,19 +39,19 @@ use Exception;
 $version = '1.78.4';
 
 // rounding mode
-const TRUNCATE = 0;
 const ROUND = 1;
-const ROUND_UP = 2;
-const ROUND_DOWN = 3;
+const TRUNCATE = 2;
+const ROUND_UP = 4;
+const ROUND_DOWN = 8;
 
 // digits counting mode
-const DECIMAL_PLACES = 0;
-const SIGNIFICANT_DIGITS = 1;
-const TICK_SIZE = 2;
+const DECIMAL_PLACES = 16;
+const SIGNIFICANT_DIGITS = 32;
+const TICK_SIZE = 64;
 
 // padding mode
-const NO_PADDING = 0;
-const PAD_WITH_ZERO = 1;
+const NO_PADDING = 128;
+const PAD_WITH_ZERO = 256;
 
 class Exchange {
 
@@ -2866,141 +2866,197 @@ class Exchange {
         }
     }
 
-    public static function decimal_to_precision_p($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
-        assert(get_class($x) === 'ccxt\\Precise');
-        assert($numPrecisionDigits !== null);
-        assert(get_class($numPrecisionDigits) === 'ccxt\\Precise');
-        
-        if ($countingMode === TICK_SIZE) {
-            if ($numPrecisionDigits->integer <= 0) {
-                throw new BaseError('TICK_SIZE cant be used with negative or zero precision');
-            }
-        }
-
-        if ($numPrecisionDigits->integer < 0) {
-            $toNearest = $numPrecisionDigits->neg()->pow10();
-            if ($roundingMode == ROUND) {
-                return strval($x->div($toNearest)->round()->mul($toNearest));
-            } elseif ($roundingMode == TRUNCATE) {
-                if ($x->integer >= 0) {
-                    return strval($x->div($toNearest)->floor()->mul($toNearest));
-                } else {
-                    return strval($x->div($toNearest)->ceil()->mul($toNearest));
-                }
-            }
-        }
+    public static function decimal_to_precision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
+        assert( $numPrecisionDigits !== null );
         
         // handle tick size
         if ($countingMode === TICK_SIZE) {
-            $numPrecisionDigits->reduce();
-            $newprecision = gmp_cmp($numPrecisionDigits->decimals, 0) > 0 ? $numPrecisionDigits->decimals : 0;
-            $remainder = $x->mod($numPrecisionDigits);
-            if (gmp_cmp($remainder->integer, 0) != 0) {
+            if (is_string($numPrecisionDigits)) {
+                $numPrecisionDigitsP = new Precise($numPrecisionDigits);
+            } elseif (is_int($numPrecisionDigits)) {
+                $numPrecisionDigitsP = new Precise($numPrecisionDigits, 0);
+            } elseif (is_float($numPrecisionDigits)) {
+                // Occurrences of this should be eliminated and replaced by strings instead.
+                $exponent = intval(floor( log10($numPrecisionDigits) ) - 15 + 1);
+                $mantissa = intval(round($numPrecisionDigits / pow(10, $exponent) ));
+                $numPrecisionDigitsP = new Precise($mantissa, -$exponent);
+                $numPrecisionDigitsP->reduce();
+            } else {
+                throw new BaseError('numPrecisionDigits must be a string or a number');
+            }
+            if (gmp_cmp($numPrecisionDigitsP->integer, 0) <= 0) {
+                throw new BaseError('TICK_SIZE cant be used with negative or zero numPrecisionDigits');
+            }
+            
+            if (is_string($x)) {
+                $xP = new Precise($x);
+            } elseif (is_int($x)) {
+                $xP = new Precise($x, 0);
+            } elseif (is_float($x)) {
+                // Occurrences of this should be eliminated and replaced by strings instead.
+                $exponent = intval(floor( log10( abs($x) ) ) - 15 + 1);
+                $mantissa = intval(round($x / pow(10, $exponent) ));
+                $xP = new Precise($mantissa, -$exponent);
+            } else {
+                throw new BaseError('x must be a string or a number');
+            }
+            
+            $newNumPrecisionDigits = gmp_cmp($numPrecisionDigitsP->decimals, 0) > 0 ? $numPrecisionDigitsP->decimals : 0;
+            $remainderP = $xP->mod($numPrecisionDigitsP);
+            if (gmp_cmp($remainderP->integer, 0) != 0) {
                 if ($roundingMode === ROUND) {
-                    $x = $x->div($numPrecisionDigits)->round()->mul($numPrecisionDigits);
+                    $xP = $xP->div($numPrecisionDigitsP)->round()->mul($numPrecisionDigitsP);
                 } elseif ($roundingMode === TRUNCATE) {
-                    if ($x->integer >= 0) {
-                        $x = $x->div($numPrecisionDigits)->floor()->mul($numPrecisionDigits);
+                    if ($xP->integer >= 0) {
+                        $xP = $xP->div($numPrecisionDigitsP)->floor()->mul($numPrecisionDigitsP);
                     } else {
-                        $x = $x->div($numPrecisionDigits)->ceil()->mul($numPrecisionDigits);
+                        $xP = $xP->div($numPrecisionDigitsP)->ceil()->mul($numPrecisionDigitsP);
                     }
                 }
             }
+            $x = strval($xP);
             $roundingMode = ROUND;
-            $numPrecisionDigits = new Precise($newprecision, 0);
+            $numPrecisionDigitsNum = $newNumPrecisionDigits;
             $countingMode = DECIMAL_PLACES;
-            // return static::decimal_to_precision_p($x, ROUND, $newprecision, DECIMAL_PLACES, padding_mode);
-        }
-        
-        assert(($countingMode === DECIMAL_PLACES) or ($countingMode === SIGNIFICANT_DIGITS));
-        assert($numPrecisionDigits->decimals <= 0);
-        $numPrecisionDigitsInt = gmp_intval($numPrecisionDigits->integer) * (10 ** -$numPrecisionDigits->decimals);
-        assert(($roundingMode === ROUND) or ($roundingMode === TRUNCATE));
-        
-        $result = '';
-        
-        if ($roundingMode === ROUND) {
-            if ($countingMode === DECIMAL_PLACES) {
-                $toNearest = $numPrecisionDigits->neg()->pow10();
-            } elseif ($countingMode === SIGNIFICANT_DIGITS) {
-                if (gmp_cmp($x->integer, 0) == 0) {
-                    assert($x->decimals === 0);
-                    $significantPosition = 0;
-                } else {
-                    $significantPosition = strlen(gmp_strval(gmp_abs($x->integer))) - $x->decimals;
-                }
-                $precisionDigits = $significantPosition - $numPrecisionDigitsInt;
-                $toNearest = (new Precise($precisionDigits, 0))->pow10();
-            }
-            $x = $x->div($toNearest)->round()->mul($toNearest);
-            $roundingMode = TRUNCATE;
-        }
-        
-        $x->reduce();
-        $sign = gmp_sign($x->integer) === -1 ? '-' : '';
-        $integerString = gmp_strval(gmp_abs($x->integer));
-        $integerArray = str_split(str_pad($integerString, $x->decimals, '0', STR_PAD_LEFT));
-        $index = count($integerArray) - $x->decimals;
-        if ($index === 0) {
-            // if we are adding to the front
-            $item = '0.';
+            // return static::decimal_to_precision_p($xP, ROUND, $newNumPrecisionDigits, DECIMAL_PLACES, padding_mode);
         } else {
-            $item = '.';
+            if (is_float($x) or is_int($x)) {
+                $x = strval($x);
+            } elseif (!is_string($x)) {
+                throw new BaseError('x must be a string or a number');
+            }
+            
+            if (preg_match('/^-?[0-9]+(\.[0-9]*)?$/', $x) != 1) {
+                throw new BaseError('x must be a string representing a number in non-scientific notation');
+            }
+            
+            if (is_string($numPrecisionDigits)) {
+                $numPrecisionDigitsNum = intval($numPrecisionDigits);
+            } else if (is_int($numPrecisionDigits)) {
+                $numPrecisionDigitsNum = $numPrecisionDigits;
+            } else {
+                throw new BaseError('numPrecisionDigits must be a string or a number');
+            }
         }
         
-        assert($roundingMode === TRUNCATE);
+        if ($countingMode === SIGNIFICANT_DIGITS) {
+            if ($numPrecisionDigitsNum < 0) {
+                throw new BaseError('SIGNIFICANT_DIGITS cant be used with negative numPrecisionDigits');
+            }
+            if ($numPrecisionDigitsNum == 0) {
+                return '0';
+            }
+        }
+        
+        $pointIndex = strpos( $x, '.');
+        if ($pointIndex === false) {
+            $pointIndex = strlen($x);
+        }
+        $firstDigitPos = 0;
+        while (($firstDigitPos < strlen($x)) and (($x[$firstDigitPos] < '1') or ($x[$firstDigitPos] > '9'))) {
+            $firstDigitPos++;
+        }
         if ($countingMode === DECIMAL_PLACES) {
-            $adjustmentDigits = $numPrecisionDigitsInt - $x->decimals;
+            $lastDigitPos = $pointIndex + $numPrecisionDigitsNum;
+            if ($lastDigitPos < $pointIndex) {
+                $lastDigitPos--;
+            }
         } elseif ($countingMode === SIGNIFICANT_DIGITS) {
-            if (strcmp($integerString, "0") === 0) {
-                assert($x->decimals === 0);
-                $significantPosition = 0;
-            } else {
-                $significantPosition = strlen($integerString) - $x->decimals;
+            $lastDigitPos = $firstDigitPos + $numPrecisionDigitsNum;
+            if ((($firstDigitPos < $pointIndex) and ($lastDigitPos < $pointIndex)) or ($firstDigitPos > $pointIndex)) {
+                $lastDigitPos--;
             }
-            $adjustmentDigits = ($numPrecisionDigitsInt - $significantPosition) - $x->decimals;
+        } else {
+            assert(false);
         }
-        if ($adjustmentDigits > 0) {
-            if ($paddingMode === NO_PADDING) {
-                $adjustmentDigits = max(-$x->decimals, 0);
-            }
-            if ($adjustmentDigits != 0) {
-                $integerArray = array_merge($integerArray, str_split(str_pad("", $adjustmentDigits, '0')));
-            }
-        } elseif ($adjustmentDigits < 0) {
-            if (-$adjustmentDigits <= $x->decimals) {
-                array_splice($integerArray, $adjustmentDigits);
-            } else {
-                if (count($integerArray) === -$adjustmentDigits) {
-                    $count = count($integerArray) - $x->decimals - 1;
-                    array_splice($integerArray, 0, $count);
-                    $index -= $count;
-                    $integerArray[0] = '0';
-                } else {
-                    $ibegin = count($integerArray) + $adjustmentDigits;
-                    $iend = count($integerArray) - max($x->decimals, 0);
-                    for ($i=$ibegin; $i<$iend; ++$i) {
-                        $integerArray[$i] = '0';
-                    }
-                }
-                if ($x->decimals > 0) {
-                    array_splice($integerArray, -$x->decimals);
-                } elseif ($x->decimals < 0) {
-                    $integerArray = array_merge($integerArray, str_split(str_pad("", -$x->decimals, '0')));
-                }
-            }
-        }
-        array_splice($integerArray, $index, 0, $item);
-        $result = $sign . implode('', $integerArray);
         
+        $charArray = str_split($x);
+        if ($roundingMode === ROUND) {
+            $p = $lastDigitPos;
+            $p2 = $p + 1;
+            if (($pointIndex == $p2) and ($pointIndex != count($charArray))) {
+                $p2++;
+            }
+            $carry = 0;
+            while ((($p >= 0) and ($p < count($charArray)) and ($charArray[$p] != '-')) or ($p2 >= 0)) {
+                if ($p >= count($charArray)) {
+                    break;
+                }
+                if (($p2 >= count($charArray)) or (ord($charArray[$p2]) - ord('0') + 10 * $carry < 5 )) {
+                    break;
+                }
+                $carry = 1;
+                if ($p == -1) {
+                    array_splice($charArray, $p+1, 0, chr(ord('0') + $carry));
+                    $p++;
+                    $pointIndex++;
+                    if ($countingMode === DECIMAL_PLACES) {
+                        $lastDigitPos++;
+                    }
+                    break;
+                } elseif (ord($charArray[$p]) - ord('0') + $carry <= 9) {
+                    $charArray[$p] = chr(ord($charArray[$p]) + $carry);
+                    if ($p < $firstDigitPos) {
+                        $delta = $p - $firstDigitPos;
+                        $firstDigitPos += $delta;
+                        if ($countingMode == SIGNIFICANT_DIGITS) {
+                            $lastDigitPos += $delta;
+                        }
+                    }
+                    break;
+                }
+                $charArray[$p] = '0';
+                $p2 = $p;
+                $p--;
+                if (($p !== -1) and ($charArray[$p] === '.')) {
+                    $p--;
+                }
+                if (($p === -1) or ($charArray[$p] === '-')) {
+                    array_splice($charArray, $p+1, 0, chr(ord('0') + $carry));
+                    $p++;
+                    $pointIndex++;
+                    if ($countingMode === DECIMAL_PLACES) {
+                        $lastDigitPos++;
+                    }
+                    break;
+                }
+            }
+            if (($lastDigitPos < 0) or (($lastDigitPos < count($charArray)) and ($charArray[$lastDigitPos] == '-'))) {
+                return '0';
+            }
+            for ($p = count($charArray); $p > $lastDigitPos; $p--) {
+                if ($p != $pointIndex) {
+                    $charArray[$p] = '0';
+                }
+            }
+        } elseif ($roundingMode === TRUNCATE) {
+            if (($lastDigitPos < 0) or (($lastDigitPos < count($charArray)) and ($charArray[$lastDigitPos] === '-'))) {
+                return '0';
+            }
+            for ($p = $lastDigitPos+1; $p < $pointIndex; $p++) {
+                $charArray[$p] = '0';
+            }
+        } else {
+            assert(false);
+        }
+        $result = implode('', array_slice($charArray, 0, max($pointIndex, $lastDigitPos+1)));
         $hasDot = (false !== strpos($result, '.'));
         if ($paddingMode === NO_PADDING) {
-            if (($result === '') && ($numPrecisionDigitsInt === 0)) {
+            if ((strlen($result) === 0) and ($numPrecisionDigitsNum === 0)) {
                 return '0';
             }
             if ($hasDot) {
                 $result = rtrim($result, '0');
             }
+        } else if ($paddingMode === PAD_WITH_ZERO) {
+            if (strlen($result) < $lastDigitPos) {
+                if ($pointIndex === strlen($result)) {
+                    $result .= '.';
+                }
+                $result .= str_repeat('0', $lastDigitPos - strlen($result) + 1);
+            }
+        } else {
+            assert(false);
         }
         if ($hasDot) {
             $result = rtrim($result, '.');
@@ -3010,34 +3066,6 @@ class Exchange {
         }
         
         return $result;
-    }
-
-    public static function decimal_to_precision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
-        assert( $numPrecisionDigits !== null );
-        
-        if (is_string($numPrecisionDigits)) {
-            $numPrecisionDigits = new Precise($numPrecisionDigits);
-        } elseif (is_int($numPrecisionDigits)) {
-            $numPrecisionDigits = new Precise($numPrecisionDigits, 0);
-        } elseif (is_float($numPrecisionDigits)) {
-            // Occurrences of this should be eliminated and replaced by strings instead.
-            // ASSUME that the precision is specified to two decimal places.
-            $exponent = intval(floor( log10($numPrecisionDigits) ) - 1);
-            $mantissa = intval(round($numPrecisionDigits / pow(10, $exponent) ));
-            $numPrecisionDigits = new Precise($mantissa, -$exponent);
-        } else {
-            assert(get_class($numPrecisionDigits) === 'ccxt\\Precise');
-        }
-        
-        if (is_string($x)) {
-            $x = new Precise($x);
-        } elseif (is_int($x)) {
-            $x = new Precise($x, 0);
-        } else {
-            assert(get_class($x) === 'ccxt\\Precise');
-        }
-
-        return static::decimal_to_precision_p($x, $roundingMode, $numPrecisionDigits, $countingMode, $paddingMode);
     }
     
     public static function number_to_string($x) {
