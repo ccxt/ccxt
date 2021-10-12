@@ -1786,7 +1786,7 @@ module.exports = class ftx extends Exchange {
         for (let i = 0; i < result.length; i++) {
             array.push (this.parsePosition (result[i]));
         }
-        return results;
+        return result;
     }
 
     parsePosition (position) {
@@ -1829,7 +1829,7 @@ module.exports = class ftx extends Exchange {
         let collateral = undefined;
         let marginRatio = undefined;
         if ((entryPriceString !== undefined) && (Precise.stringGt (liquidationPriceString, '0'))) {
-            // collateral = maintenanceMargin ± (markPrice - liquidationPrice) * size))
+            // collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
             if (side === 'long') {
                 difference = Precise.stringSub (markPriceString, liquidationPriceString);
             } else {
