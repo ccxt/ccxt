@@ -222,7 +222,7 @@ module.exports = class bitzlato extends Exchange {
         //     "state": "enabled"
         //   },
         //   ...
-        if (!this.isArray (response)) {
+        if (!Array.isArray (response)) {
             return [];
         }
         const result = [];
@@ -281,7 +281,7 @@ module.exports = class bitzlato extends Exchange {
             'limit': limit,
         };
         const response = await this.publicGetCurrencies (this.extend (request, params));
-        if (!this.isArray (response)) {
+        if (!Array.isArray (response)) {
             return {};
         }
         const result = {};
@@ -358,7 +358,7 @@ module.exports = class bitzlato extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        if (!this.isArray (response)) {
+        if (!Array.isArray (response)) {
             return result;
         }
         for (let i = 0; i < response.length; i++) {
@@ -604,7 +604,7 @@ module.exports = class bitzlato extends Exchange {
         //   },
         // ...
         // ]
-        if (!this.isArray (response)) {
+        if (!Array.isArray (response)) {
             return [];
         }
         const result = [];
@@ -966,7 +966,7 @@ module.exports = class bitzlato extends Exchange {
             method = 'privateGetAccountWithdraws';
         }
         const response = await this[method] (this.extend (request, params));
-        if (!this.isArray (response)) {
+        if (!Array.isArray (response)) {
             return [];
         }
         const result = [];
@@ -1108,7 +1108,7 @@ module.exports = class bitzlato extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        const baseUrl = this.implodeHostname (this.urls.api[api]);
+        const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         headers = {
             'Accept': 'application/json',
