@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } = require ('./base/errors');
+const { DDoSProtection, ArgumentsRequired, OrderNotFound, InsufficientFunds, AuthenticationError, InvalidOrder } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -167,10 +167,12 @@ module.exports = class bitzlato extends Exchange {
                 ],
             },
             'exceptions': {
-                'exact': {
-                },
-                'broad': {
-                },
+                'market.account.insufficient_balance': InsufficientFunds,
+                'market.order.invalid_side': InvalidOrder,
+                'market.order.invalid_type': InvalidOrder,
+                'market.order.non_positive_volume': InvalidOrder,
+                'market.order.not_positive_price': InvalidOrder,
+                'market.order.invaild_id_or_uuid': OrderNotFound, // not a typo
             },
         });
     }
@@ -1060,6 +1062,10 @@ module.exports = class bitzlato extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        const secret = this.options['totpSecret'];
+        if (secret === undefined) {
+            throw new AuthenticationError (this.id + ' option.totpSecret is required to withdraw funds');
+        }
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -1069,11 +1075,11 @@ module.exports = class bitzlato extends Exchange {
             throw new ArgumentsRequired (this.id + ' withdraw() requires and extra `id` param (benericiary id from this.privateGetAccountBeneficiares() method)');
         }
         params = this.omit (params, 'id');
-        const otp = this.totp (this.totpSecret);
+        const otp = this.totp (secret);
         const request = {
             'otp': otp,
             'beneficiary_id': id,
-            'currency': currency,
+            'currency': currency['id'],
             'amount': amount,
             'note': tag,
         };
@@ -1115,6 +1121,18 @@ module.exports = class bitzlato extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if ((code === 418) || (code === 429)) {
+            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
+        }
+        if (response === undefined) {
+            return; // fallback
+        }
+        if (code === 422) {
+            const feedback = this.id + ' ' + body;
+            const errors = this.safeValue (response, 'errors', []);
+            const errorCode = this.safeString (errors, 0);
+            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+        }
     }
 };
