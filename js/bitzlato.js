@@ -534,9 +534,6 @@ module.exports = class bitzlato extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseSymbol (marketId) {
-    }
-
     parseTrade (trade, market = undefined) {
         const id = this.safeString (trade, 'id');
         const price = this.safeNumber (trade, 'price');
@@ -1111,8 +1108,8 @@ module.exports = class bitzlato extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
-            const message = this.encode (nonce.toString ()) + this.encode (this.apiKey);
+            const nonce = this.nonce ().toString ();
+            const message = this.encode (nonce) + this.encode (this.apiKey);
             const signature = this.hmac (message, this.encode (this.secret), 'sha256', 'hex');
             headers['X-Auth-ApiKey'] = this.apiKey;
             headers['X-Auth-Nonce'] = nonce;
