@@ -1732,9 +1732,9 @@ module.exports = class ftx extends Exchange {
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            // 'showAvgPrice': false,
+            'showAvgPrice': true,
         };
-        const response = await this.privateGetAccount (this.extend (request, params));
+        const response = await this.privateGetPositions (this.extend (request, params));
         //
         //     {
         //       "success": true,
@@ -1781,18 +1781,10 @@ module.exports = class ftx extends Exchange {
         //       }
         //    }
         //
-        const result = this.safeValue (response, 'result', {});
-        const leverage = this.safeString (result, 'leverage');
-        const collateral = this.safeString (result, 'freeCollateral');
-        const positions = this.safeValue (result, 'positions', []);
+        const result = this.safeValue (response, 'result', []);
         const array = [];
-        for (let i = 0; i < positions.length; i++) {
-            const position = positions[i];
-            const extended = this.extend (position, {
-                'leverage': leverage,
-                'collateral': collateral,
-            });
-            array.push (this.parsePosition (extended));
+        for (let i = 0; i < result.length; i++) {
+            array.push (this.parsePosition (result[i]));
         }
         return array;
     }
@@ -1817,20 +1809,36 @@ module.exports = class ftx extends Exchange {
         //     "estimatedLiquidationPrice": null
         //   }
         //
-        const collateral = this.safeString (position, 'collateral');
         const contractsString = this.safeString (position, 'size');
         const rawSide = this.safeString (position, 'side');
         const side = (rawSide === 'buy') ? 'long' : 'short';
         const symbol = this.safeString (position, 'future');
-        const liquidationPrice = this.safeNumber (position, 'estimatedLiquidationPrice');
+        const liquidationPriceString = this.safeString (position, 'estimatedLiquidationPrice');
         const initialMarginPercentage = this.safeString (position, 'initialMarginRequirement');
-        const initialMargin = this.safeString (position, 'collateralUsed');
+        const leverage = parseInt (Precise.stringDiv ('1', initialMarginPercentage, 0));
         // on ftx the entryPrice is actually the mark price
         const markPriceString = this.safeString (position, 'entryPrice');
         const notionalString = Precise.stringMul (contractsString, markPriceString);
+        const initialMargin = Precise.stringMul (notionalString, initialMarginPercentage);
         const maintenanceMarginPercentageString = this.safeString (position, 'maintenanceMarginRequirement');
         const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
-        const leverage = this.safeInteger (position, 'leverage');
+        const unrealizedPnlString = this.safeString (position, 'recentPnl');
+        const percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMargin, 4), '100'));
+        const entryPriceString = this.safeString (position, 'recentAverageOpenPrice');
+        let difference = undefined;
+        let collateral = undefined;
+        let marginRatio = undefined;
+        if ((entryPriceString !== undefined) && (Precise.stringGt (liquidationPriceString, '0'))) {
+            // collateral = maintenanceMargin ± (markPrice - liquidationPrice) * size))
+            if (side === 'long') {
+                difference = Precise.stringSub (markPriceString, liquidationPriceString);
+            } else {
+                difference = Precise.stringSub (liquidationPriceString, markPriceString);
+            }
+            const loss = Precise.stringMul (difference, contractsString);
+            collateral = Precise.stringAdd (loss, maintenanceMarginString);
+            marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateral, 4));
+        }
         // ftx has a weird definition of realizedPnl
         // it keeps the historical record of the realizedPnl per contract forever
         // so we cannot use this data
@@ -1839,23 +1847,23 @@ module.exports = class ftx extends Exchange {
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'initialMargin': initialMargin,
-            'initialMarginPercentage': initialMarginPercentage,
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
             'entryPrice': undefined,
             'notional': this.parseNumber (notionalString),
             'leverage': leverage,
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.parseNumber (unrealizedPnlString),
             'contracts': this.parseNumber (contractsString),
             'contractSize': this.parseNumber ('1'),
-            'marginRatio': undefined,
-            'liquidationPrice': liquidationPrice,
+            'marginRatio': marginRatio,
+            'liquidationPrice': this.parseNumber (liquidationPriceString),
             'markPrice': this.parseNumber (markPriceString),
             'collateral': this.parseNumber (collateral),
             'marginType': 'cross',
             'side': side,
-            'percentage': undefined,
+            'percentage': percentage,
         };
     }
 
