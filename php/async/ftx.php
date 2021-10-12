@@ -1738,87 +1738,129 @@ class ftx extends Exchange {
         $request = array(
             // 'showAvgPrice' => false,
         );
-        $response = yield $this->privateGetPositions (array_merge($request, $params));
+        $response = yield $this->privateGetAccount (array_merge($request, $params));
         //
         //     {
-        //         "success" => true,
-        //         "result" => array(
-        //             {
-        //                 "cost" => -31.7906,
-        //                 "entryPrice" => 138.22,
-        //                 "estimatedLiquidationPrice" => 152.1,
-        //                 "future" => "ETH-PERP",
-        //                 "initialMarginRequirement" => 0.1,
-        //                 "longOrderSize" => 1744.55,
-        //                 "maintenanceMarginRequirement" => 0.04,
-        //                 "netSize" => -0.23,
-        //                 "openSize" => 1744.32,
-        //                 "realizedPnl" => 3.39441714,
-        //                 "shortOrderSize" => 1732.09,
-        //                 "side" => "sell",
-        //                 "size" => 0.23,
-        //                 "unrealizedPnl" => 0,
-        //                 "collateralUsed" => 3.17906
-        //             }
+        //       "success" => true,
+        //       "$result" => {
+        //         "username" => "spam.revelli@gmail.com",
+        //         "$collateral" => "1068.8443756202948",
+        //         "freeCollateral" => "1048.4120570454713",
+        //         "totalAccountValue" => "1070.3126628702948",
+        //         "totalPositionSize" => "273.28",
+        //         "initialMarginRequirement" => "0.02",
+        //         "maintenanceMarginRequirement" => "0.006",
+        //         "marginFraction" => "3.9165422382548845",
+        //         "openMarginFraction" => "3.85640243356803",
+        //         "liquidating" => false,
+        //         "backstopProvider" => false,
+        //         "takerFee" => "0.000865",
+        //         "makerFee" => "0.00039",
+        //         "$leverage" => "50.0",
+        //         "positionLimit" => "2500000.0",
+        //         "positionLimitUsed" => "1369.55",
+        //         "useFttCollateral" => true,
+        //         "chargeInterestOnNegativeUsd" => false,
+        //         "spotMarginEnabled" => false,
+        //         "spotLendingEnabled" => false
+        //         "$positions" => array(
+        //           array(
+        //             "future" => "XMR-PERP",
+        //             "size" => "1.0",
+        //             "side" => "buy",
+        //             "netSize" => "1.0",
+        //             "longOrderSize" => "0.0",
+        //             "shortOrderSize" => "0.0",
+        //             "cost" => "273.28",
+        //             "entryPrice" => "273.28",
+        //             "unrealizedPnl" => "0.0",
+        //             "realizedPnl" => "1.46828725",
+        //             "initialMarginRequirement" => "0.02",
+        //             "maintenanceMarginRequirement" => "0.006",
+        //             "openSize" => "0.0",
+        //             "collateralUsed" => "5.4656",
+        //             "estimatedLiquidationPrice" => "0.0"
+        //           ),
         //         )
-        //     }
-        //
-        // todo unify parsePosition/parsePositions
-        return $this->safe_value($response, 'result', array());
-    }
-
-    public function fetch_account_positions($symbols = null, $params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->privateGetAccount ($params);
-        //
-        //     {
-        //         "$result":{
-        //             "backstopProvider":false,
-        //             "chargeInterestOnNegativeUsd":false,
-        //             "collateral":2830.2567913677476,
-        //             "freeCollateral":2829.670741867416,
-        //             "initialMarginRequirement":0.05,
-        //             "leverage":20.0,
-        //             "liquidating":false,
-        //             "maintenanceMarginRequirement":0.03,
-        //             "makerFee":0.0,
-        //             "marginFraction":null,
-        //             "openMarginFraction":null,
-        //             "positionLimit":null,
-        //             "positionLimitUsed":null,
-        //             "positions":array(
-        //                 array(
-        //                     "collateralUsed":0.0,
-        //                     "cost":0.0,
-        //                     "entryPrice":null,
-        //                     "estimatedLiquidationPrice":null,
-        //                     "future":"XRP-PERP",
-        //                     "initialMarginRequirement":0.05,
-        //                     "longOrderSize":0.0,
-        //                     "maintenanceMarginRequirement":0.03,
-        //                     "netSize":0.0,
-        //                     "openSize":0.0,
-        //                     "realizedPnl":0.016,
-        //                     "shortOrderSize":0.0,
-        //                     "side":"buy",
-        //                     "size":0.0,
-        //                     "unrealizedPnl":0.0,
-        //                 }
-        //             ),
-        //             "spotLendingEnabled":false,
-        //             "spotMarginEnabled":false,
-        //             "takerFee":0.0007,
-        //             "totalAccountValue":2830.2567913677476,
-        //             "totalPositionSize":0.0,
-        //             "useFttCollateral":true,
-        //             "username":"igor.kroitor@gmail.com"
-        //         ),
-        //         "success":true
-        //     }
+        //       }
+        //    }
         //
         $result = $this->safe_value($response, 'result', array());
-        // todo unify parsePosition/parsePositions
-        return $this->safe_value($result, 'positions', array());
+        $leverage = $this->safe_string($result, 'leverage');
+        $collateral = $this->safe_string($result, 'freeCollateral');
+        $positions = $this->safe_value($result, 'positions', array());
+        $results = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $position = $positions[$i];
+            $extended = array_merge($position, array(
+                'leverage' => $leverage,
+                'collateral' => $collateral,
+            ));
+            $results[] = $this->parse_position($extended);
+        }
+        return $results;
+    }
+
+    public function parse_position($position) {
+        //
+        //   {
+        //     "future" => "XMR-PERP",
+        //     "size" => "0.0",
+        //     "$side" => "buy",
+        //     "netSize" => "0.0",
+        //     "longOrderSize" => "0.0",
+        //     "shortOrderSize" => "0.0",
+        //     "cost" => "0.0",
+        //     "entryPrice" => null,
+        //     "unrealizedPnl" => "0.0",
+        //     "realizedPnl" => "0.0",
+        //     "initialMarginRequirement" => "0.02",
+        //     "maintenanceMarginRequirement" => "0.006",
+        //     "openSize" => "0.0",
+        //     "collateralUsed" => "0.0",
+        //     "estimatedLiquidationPrice" => null
+        //   }
+        //
+        $collateral = $this->safe_string($position, 'collateral');
+        $contractsString = $this->safe_string($position, 'size');
+        $rawSide = $this->safe_string($position, 'side');
+        $side = ($rawSide === 'buy') ? 'long' : 'short';
+        $symbol = $this->safe_string($position, 'future');
+        $liquidationPrice = $this->safe_number($position, 'estimatedLiquidationPrice');
+        $initialMarginPercentage = $this->safe_string($position, 'initialMarginRequirement');
+        $initialMargin = $this->safe_string($position, 'collateralUsed');
+        // on ftx the entryPrice is actually the mark price
+        $markPriceString = $this->safe_string($position, 'entryPrice');
+        $notionalString = Precise::string_mul($contractsString, $markPriceString);
+        $maintenanceMarginPercentageString = $this->safe_string($position, 'maintenanceMarginRequirement');
+        $maintenanceMarginString = Precise::string_mul($notionalString, $maintenanceMarginPercentageString);
+        $leverage = $this->safe_integer($position, 'leverage');
+        // ftx has a weird definition of realizedPnl
+        // it keeps the historical record of the realizedPnl per contract forever
+        // so we cannot use this data
+        return array(
+            'info' => $position,
+            'symbol' => $symbol,
+            'timestamp' => null,
+            'datetime' => null,
+            'initialMargin' => $initialMargin,
+            'initialMarginPercentage' => $initialMarginPercentage,
+            'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
+            'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentageString),
+            'entryPrice' => null,
+            'notional' => $this->parse_number($notionalString),
+            'leverage' => $leverage,
+            'unrealizedPnl' => null,
+            'contracts' => $this->parse_number($contractsString),
+            'contractSize' => $this->parse_number('1'),
+            'marginRatio' => null,
+            'liquidationPrice' => $liquidationPrice,
+            'markPrice' => $this->parse_number($markPriceString),
+            'collateral' => $this->parse_number($collateral),
+            'marginType' => 'cross',
+            'side' => $side,
+            'percentage' => null,
+        );
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
