@@ -1763,11 +1763,11 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        const array = [];
+        const results = [];
         for (let i = 0; i < result.length; i++) {
-            array.push (this.parsePosition (result[i]));
+            results.push (this.parsePosition (result[i]));
         }
-        return result;
+        return results;
     }
 
     parsePosition (position) {
