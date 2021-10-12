@@ -1785,16 +1785,16 @@ module.exports = class ftx extends Exchange {
         const leverage = this.safeString (result, 'leverage');
         const collateral = this.safeString (result, 'freeCollateral');
         const positions = this.safeValue (result, 'positions', []);
-        const array = [];
+        const results = [];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const extended = this.extend (position, {
                 'leverage': leverage,
                 'collateral': collateral,
             });
-            array.push (this.parsePosition (extended));
+            results.push (this.parsePosition (extended));
         }
-        return array;
+        return results;
     }
 
     parsePosition (position) {
