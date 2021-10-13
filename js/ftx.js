@@ -1292,8 +1292,12 @@ module.exports = class ftx extends Exchange {
                 request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
             }
         } else if (type === 'trailingStop') {
+            const trailValue = this.safeNumber (params, 'trailValue', price);
+            if (trailValue === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a trailValue parameter or a price argument (negative or positive) for a ' + type + ' order');
+            }
             method = 'privatePostConditionalOrders';
-            request['trailValue'] = parseFloat (this.priceToPrecision (symbol, price)); // negative for "sell", positive for "buy"
+            request['trailValue'] = parseFloat (this.priceToPrecision (symbol, trailValue)); // negative for "sell", positive for "buy"
         } else {
             throw new InvalidOrder (this.id + ' createOrder () does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported');
         }
