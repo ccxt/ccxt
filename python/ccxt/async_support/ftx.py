@@ -1264,8 +1264,11 @@ class ftx(Exchange):
             if price is not None:
                 request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
         elif type == 'trailingStop':
+            trailValue = self.safe_number(params, 'trailValue', price)
+            if trailValue is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a trailValue parameter or a price argument(negative or positive) for a ' + type + ' order')
             method = 'privatePostConditionalOrders'
-            request['trailValue'] = float(self.price_to_precision(symbol, price))  # negative for "sell", positive for "buy"
+            request['trailValue'] = float(self.price_to_precision(symbol, trailValue))  # negative for "sell", positive for "buy"
         else:
             raise InvalidOrder(self.id + ' createOrder() does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported')
         response = await getattr(self, method)(self.extend(request, params))
