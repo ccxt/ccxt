@@ -1064,11 +1064,15 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseFundingOffers (offers = undefined, params = {}) {
+        let result = [];
         if (Array.isArray (offers)) {
-            return Object.values (offers).map ((offer) => this.extend (this.parseFundingOffer (offer), params));
+            for (let i = 0; i < offers.length; i++) {
+                result.push (this.parseFundingOffer (offers[i]));
+            }
         } else {
-            return Object.entries (offers).map (([ offer ]) => this.extend (this.parseFundingOffer (this.extend (offer)), params));
+            result = this.parseFundingOffer (offers);
         }
+        return result;
     }
 
     async fundingOffers (symbol = undefined, params = {}) {
