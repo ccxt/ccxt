@@ -30,6 +30,7 @@ module.exports = class mexc extends Exchange {
                 'fetchDepositAddressByNetwork': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -561,11 +562,11 @@ module.exports = class mexc extends Exchange {
         //         "create_time":1633984904000
         //     }
         //
-        const timestamp = this.safeInteger2 (trade, 'trade_time', 'create_time');
+        const timestamp = this.safeInteger2 (trade, 'create_time', 'trade_time');
         const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '_')
-        const priceString = this.safeString (trade, 'trade_price');
-        const amountString = this.safeString (trade, 'trade_quantity');
+        const symbol = this.safeSymbol (marketId, market, '_');
+        const priceString = this.safeString (trade, 'price', 'trade_price');
+        const amountString = this.safeString (trade, 'quantity', 'trade_quantity');
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
@@ -587,6 +588,8 @@ module.exports = class mexc extends Exchange {
             };
         }
         const orderId = this.safeString (trade, 'order_id');
+        const isTaker = this.safeValue (trade, 'is_taker', true);
+        const takerOrMaker = isTaker ? 'taker' : 'maker';
         return {
             'info': trade,
             'id': id,
@@ -596,7 +599,7 @@ module.exports = class mexc extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -1031,21 +1034,6 @@ module.exports = class mexc extends Exchange {
         //
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
         //
-        // fetchOrder
-        //
-        //     {
-        //         "id":"2ff3163e8617443cb9c6fc19d42b1ca4",
-        //         "symbol":"ETH_USDT",
-        //         "price":"3420",
-        //         "quantity":"0.01",
-        //         "state":"CANCELED",
-        //         "type":"BID",
-        //         "deal_quantity":"0",
-        //         "deal_amount":"0",
-        //         "create_time":1633988662000,
-        //         "order_type":"LIMIT_ORDER"
-        //     }
-        //
         // fetchOpenOrders
         //
         //     {
@@ -1060,6 +1048,21 @@ module.exports = class mexc extends Exchange {
         //         "create_time":1633989029039,
         //         "client_order_id":"",
         //         "order_type":"LIMIT_ORDER"
+        //     }
+        //
+        // fetchClosedOrders, fetchCanceledOrders, fetchOrder
+        //
+        //     {
+        //         "id":"d798765285374222990bbd14decb86cd",
+        //         "symbol":"USDC_USDT",
+        //         "price":"0.9988",
+        //         "quantity":"150",
+        //         "state":"FILLED", // CANCELED
+        //         "type":"ASK", // BID
+        //         "deal_quantity":"150",
+        //         "deal_amount":"149.955",
+        //         "create_time":1633984904000,
+        //         "order_type":"MARKET_ORDER" // LIMIT_ORDER
         //     }
         //
         // cancelOrder
@@ -1089,7 +1092,7 @@ module.exports = class mexc extends Exchange {
         if (bidOrAsk === 'BID') {
             side = 'buy';
         } else if (bidOrAsk === 'ASK') {
-            side = 'ask';
+            side = 'sell';
         }
         status = this.parseOrderStatus (state);
         let clientOrderId = this.safeString (order, 'client_order_id');
@@ -1097,9 +1100,7 @@ module.exports = class mexc extends Exchange {
             clientOrderId = undefined;
         }
         let orderType = this.safeStringLower (order, 'order_type');
-        if (orderType === 'limit_order') {
-            orderType = 'limit';
-        }
+        orderType = orderType.replace ('_order', '');
         return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1307,7 +1308,8 @@ module.exports = class mexc extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTrades (response, market, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1320,13 +1322,7 @@ module.exports = class mexc extends Exchange {
             'order_id': id,
         };
         const response = await this.spotPrivateGetOrderDealDetail (this.extend (request, params));
-        const numOrders = response.length;
-        if (numOrders > 0) {
-            return this.parseTrades (response, market, since, limit);
-        }
-        throw new OrderNotFound (this.id + ' order ' + id + ' not found, ' + this.id + '.fetchOrderTrades() requires an exchange-specific order id, you need to grab it from order["info"]["id"]');
     }
-
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ section, access ] = api;
