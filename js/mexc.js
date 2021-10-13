@@ -49,8 +49,8 @@ module.exports = class mexc extends Exchange {
                 'logo': '',
                 'api': {
                     'spot': {
-                        'public': 'https://www.mxc.com/open/api',
-                        'private': 'https://www.mexc.com/open/api',
+                        'public': 'https://www.mxc.com/open/api/v2',
+                        'private': 'https://www.mexc.com/open/api/v2',
                     },
                     'contract': {
                         'public': 'https://contract.mexc.com/api/v1/contract',
@@ -941,7 +941,7 @@ module.exports = class mexc extends Exchange {
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
-            this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
+            params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
             request['client_order_id'] = clientOrderId;
         }
         const response = await this.spotPrivatePostOrderPlace (this.extend (request, params));
@@ -956,6 +956,7 @@ module.exports = class mexc extends Exchange {
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_ids');
         if (clientOrderId !== undefined) {
+            params = this.omit (params, [ 'clientOrderId', 'client_order_ids' ]);
             request['client_order_ids'] = clientOrderId;
         } else {
             request['order_ids'] = id;
@@ -1196,7 +1197,8 @@ module.exports = class mexc extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const section = this.safeString (api, 0);
         const access = this.safeString (api, 1);
-        let url = this.urls['api'][section][access] + '/' + this.version + '/' + path;
+        let url = this.urls['api'][section][access] + '/' + this.implodeParams (path, params);
+        params = this.omit (params, this.extractParams (path));
         if (access === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
