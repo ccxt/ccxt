@@ -448,7 +448,7 @@ module.exports = class mexc extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'time');
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, '_');
         const baseVolume = this.safeNumber (ticker, 'volume');
         const open = this.safeNumber (ticker, 'open');
         const last = this.safeNumber (ticker, 'last');
@@ -547,11 +547,23 @@ module.exports = class mexc extends Exchange {
         //
         // private fetchMyTrades
         //
-        //     ...
+        //     {
+        //         "id":"b160b8f072d9403e96289139d5544809",
+        //         "symbol":"USDC_USDT",
+        //         "quantity":"150",
+        //         "price":"0.9997",
+        //         "amount":"149.955",
+        //         "fee":"0.29991",
+        //         "trade_type":"ASK",
+        //         "order_id":"d798765285374222990bbd14decb86cd",
+        //         "is_taker":true,
+        //         "fee_currency":"USDT",
+        //         "create_time":1633984904000
+        //     }
         //
-        const timestamp = this.safeInteger (trade, 'trade_time');
-        market = this.safeMarket (undefined, market);
-        const symbol = market['symbol'];
+        const timestamp = this.safeInteger2 (trade, 'trade_time', 'create_time');
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '_')
         const priceString = this.safeString (trade, 'trade_price');
         const amountString = this.safeString (trade, 'trade_quantity');
         const price = this.parseNumber (priceString);
@@ -563,11 +575,22 @@ module.exports = class mexc extends Exchange {
         } else {
             side = 'sell';
         }
-        const id = this.safeString (trade, 'trade_time');
+        const id = this.safeString (trade, 'id', 'trade_time');
+        const feeCost = this.safeNumber (trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'fee_currency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        const orderId = this.safeString (trade, 'order_id');
         return {
             'info': trade,
             'id': id,
-            'order': undefined,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -577,7 +600,7 @@ module.exports = class mexc extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -1060,7 +1083,7 @@ module.exports = class mexc extends Exchange {
         const remaining = this.safeString (order, 'remain_quantity');
         const filled = this.safeString (order, 'deal_quantity');
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, '_');
         let side = undefined;
         const bidOrAsk = this.safeString (order, 'type');
         if (bidOrAsk === 'BID') {
