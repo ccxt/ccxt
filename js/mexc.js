@@ -134,36 +134,36 @@ module.exports = class mexc extends Exchange {
                 'spot': {
                     'public': {
                         'get': [
-                            'market/symbols', // this fetchMarkets
-                            'market/coin/list', // fetchCurrencies
-                            'common/timestamp', // fetchTime
-                            'common/ping', // fetchStatus
-                            'market/ticker', // fetchTicker BTC/USDT
-                            'market/depth', // fetchOrderBook ETH/USDT
-                            'market/deals', // fetchTrades ETH/BTC
-                            'market/kline', // fetchOHLCV
+                            'market/symbols',
+                            'market/coin/list',
+                            'common/timestamp',
+                            'common/ping',
+                            'market/ticker',
+                            'market/depth',
+                            'market/deals',
+                            'market/kline',
                         ],
                     },
                     'private': {
                         'get': [
-                            'account/info', // fetchBalance
-                            'order/open_orders', // fetchOpenOrders
-                            'order/list', // fetchClosedOrders
-                            'order/query', // fetchOrder
+                            'account/info',
+                            'order/open_orders',
+                            'order/list',
+                            'order/query',
                             'order/deals',
                             'order/deal_detail',
-                            'asset/deposit/address/list', // fetchDepositAddress
-                            'asset/deposit/list', // fetchDeposits
+                            'asset/deposit/address/list',
+                            'asset/deposit/list',
                             'asset/address/list',
-                            'asset/withdraw/list', // fetchWithdrawals
+                            'asset/withdraw/list',
                         ],
                         'post': [
-                            'order/place', // createOrder
+                            'order/place',
                             'order/place_batch',
                         ],
                         'delete': [
-                            'order/cancel', // cancelOrder
-                            'order/cancel_by_symbol', // cancelAllOrders
+                            'order/cancel',
+                            'order/cancel_by_symbol',
                         ],
                     },
                 },
@@ -1244,6 +1244,27 @@ module.exports = class mexc extends Exchange {
         //     }
         //
         return response;
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'start_time': since, // default 7 days, max 30 days
+            // 'limit': limit, // default 50, max 1000
+        };
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.spotPrivateGetOrderDeals (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
