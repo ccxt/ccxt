@@ -605,7 +605,7 @@ module.exports = class mexc extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'foobarrency': 'foobarzoo', // currency['id'],
+            'currency': currency['id'],
         };
         const response = await this.privateGetAssetDepositAddressList (this.extend (request, params));
         //
