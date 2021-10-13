@@ -212,7 +212,14 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.spotPublicGetCommonTimestamp (params);
+        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        let method = 'spotPublicGetCommonTimestamp';
+        if (type === 'contract') {
+            method = 'contractPublicGetPing';
+        }
+        const response = await this[method] (query);
         //
         // spot
         //
