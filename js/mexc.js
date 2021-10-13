@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -156,7 +157,6 @@ module.exports = class mexc extends Exchange {
                             'order/deal_detail': 1,
                             'asset/deposit/address/list': 2,
                             'asset/deposit/list': 2,
-
                             'asset/address/list': 2,
                             'asset/withdraw/list': 2,
                         },
@@ -171,6 +171,7 @@ module.exports = class mexc extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -181,6 +182,7 @@ module.exports = class mexc extends Exchange {
             },
             'options': {
                 'defaultType': 'spot',
+                'fetchMarkets': [ 'spot', 'contract' ],
                 'networks': {
                 },
             },
@@ -330,7 +332,125 @@ module.exports = class mexc extends Exchange {
         return result;
     }
 
+    async fetchMarketsByType (type, params = {}) {
+        const method = 'fetch_' + type + '_markets';
+        return await this[method] (params);
+    }
+
     async fetchMarkets (params = {}) {
+        const types = this.safeValue (this.options, 'fetchMarkets');
+        let result = [];
+        for (let i = 0; i < types.length; i++) {
+            const markets = await this.fetchMarketsByType (types[i], params);
+            result = this.arrayConcat (result, markets);
+        }
+        return result;
+    }
+
+    async fetchContractMarkets (params = {}) {
+        const response = await this.contractPublicGetDetail (params);
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "symbol":"BTC_USDT",
+        //                 "displayName":"BTC_USDT永续",
+        //                 "displayNameEn":"BTC_USDT SWAP",
+        //                 "positionOpenType":3,
+        //                 "baseCoin":"BTC",
+        //                 "quoteCoin":"USDT",
+        //                 "settleCoin":"USDT",
+        //                 "contractSize":0.0001,
+        //                 "minLeverage":1,
+        //                 "maxLeverage":125,
+        //                 "priceScale":2,
+        //                 "volScale":0,
+        //                 "amountScale":4,
+        //                 "priceUnit":0.5,
+        //                 "volUnit":1,
+        //                 "minVol":1,
+        //                 "maxVol":1000000,
+        //                 "bidLimitPriceRate":0.1,
+        //                 "askLimitPriceRate":0.1,
+        //                 "takerFeeRate":0.0006,
+        //                 "makerFeeRate":0.0002,
+        //                 "maintenanceMarginRate":0.004,
+        //                 "initialMarginRate":0.008,
+        //                 "riskBaseVol":10000,
+        //                 "riskIncrVol":200000,
+        //                 "riskIncrMmr":0.004,
+        //                 "riskIncrImr":0.004,
+        //                 "riskLevelLimit":5,
+        //                 "priceCoefficientVariation":0.1,
+        //                 "indexOrigin":["BINANCE","GATEIO","HUOBI","MXC"],
+        //                 "state":0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        //                 "isNew":false,
+        //                 "isHot":true,
+        //                 "isHidden":false
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'baseCoin');
+            const quoteId = this.safeString (market, 'quoteCoin');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = id;
+            const precision = {
+                'price': this.safeNumber (market, 'priceUnit'),
+                'amount': this.safeNumber (market, 'volUnit'),
+            };
+            const taker = this.safeNumber (market, 'takerFeeRate');
+            const maker = this.safeNumber (market, 'makerFeeRate');
+            const state = this.safeString (market, 'state');
+            const active = (state === '0');
+            const type = 'swap';
+            const swap = true;
+            const spot = false;
+            const contractSize = this.safeString (market, 'contractSize');
+            result.push (this.extend (this.fees['trading'], {
+                'info': market,
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'type': type,
+                'swap': swap,
+                'spot': spot,
+                'contractSize': contractSize,
+                'active': active,
+                'taker': taker,
+                'maker': maker,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': this.safeNumber (market, 'minVol'),
+                        'max': this.safeNumber (market, 'maxVol'),
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            }));
+        }
+        return result;
+    }
+
+    async fetchSpotMarkets (params = {}) {
         const response = await this.spotPublicGetMarketSymbols (params);
         //
         //     {
@@ -364,14 +484,21 @@ module.exports = class mexc extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const priceScale = this.safeInteger (market, 'price_scale');
+            const quantityScale = this.safeInteger (market, 'quantity_scale');
+            const pricePrecision = 1 / Math.pow (10, priceScale);
+            const quantityPrecision = 1 / Math.pow (10, quantityScale);
             const precision = {
-                'price': this.safeInteger (market, 'price_scale'),
-                'amount': this.safeInteger (market, 'quantity_scale'),
+                'price': pricePrecision,
+                'amount': quantityPrecision,
             };
             const taker = this.safeNumber (market, 'taker_fee_rate');
             const maker = this.safeNumber (market, 'maker_fee_rate');
             const state = this.safeString (market, 'state');
             const active = (state === 'ENABLED');
+            const type = 'spot';
+            const swap = false;
+            const spot = true;
             result.push (this.extend (this.fees['trading'], {
                 'info': market,
                 'id': id,
@@ -380,6 +507,9 @@ module.exports = class mexc extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
+                'swap': swap,
+                'spot': spot,
                 'active': active,
                 'taker': taker,
                 'maker': maker,
@@ -481,14 +611,26 @@ module.exports = class mexc extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
-        if (limit === undefined) {
-            limit = 100;
+        let method = undefined;
+        if (market['spot']) {
+            method = 'spotPublicGetMarketDepth';
+            if (limit === undefined) {
+                limit = 100; // the spot api requires a limit
+            }
+            request['depth'] = limit;
+        } else {
+            method = 'contractPublicGetDepthSymbol';
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
         }
-        request['depth'] = limit; // default 100, max 2000
-        const response = await this.spotPublicGetMarketDepth (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         "code":200,
@@ -507,8 +649,32 @@ module.exports = class mexc extends Exchange {
         //         }
         //     }
         //
+        // contract
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":{
+        //             "asks":[
+        //                 [3445.7,48379,1],
+        //                 [3445.75,34994,1],
+        //                 [3445.8,68634,2],
+        //             ],
+        //             "bids":[
+        //                 [3445.55,44081,1],
+        //                 [3445.5,24857,1],
+        //                 [3445.45,50272,1],
+        //             ],
+        //             "version":2827730444,
+        //             "timestamp":1634117846232
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data', {});
-        const orderbook = this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 'price', 'quantity');
+        const priceKey = market['spot'] ? 'price' : 0;
+        const amountKey = market['spot'] ? 'quantity' : 1;
+        const timestamp = this.safeInteger (data, 'timestamp');
+        const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
         orderbook['nonce'] = this.safeInteger (data, 'version');
         return orderbook;
     }
