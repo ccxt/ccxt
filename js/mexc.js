@@ -407,7 +407,7 @@ module.exports = class mexc extends Exchange {
             const quoteId = this.safeString (market, 'quoteCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = id;
+            const symbol = base + '/' + quote;
             const precision = {
                 'price': this.safeNumber (market, 'priceUnit'),
                 'amount': this.safeNumber (market, 'volUnit'),
@@ -800,9 +800,17 @@ module.exports = class mexc extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100
+            request['limit'] = limit; // default 100, max 100
         }
-        const response = await this.spotPublicGetMarketDeals (this.extend (request, params));
+        let method = undefined;
+        if (market['spot']) {
+            method = 'spotPublicGetMarketDeals';
+        } else if (market['swap']) {
+            method = 'contractPublicGetDealsSymbol';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         "code":200,
@@ -810,6 +818,18 @@ module.exports = class mexc extends Exchange {
         //             {"trade_time":1633381766725,"trade_price":"0.068981","trade_quantity":"0.005","trade_type":"BID"},
         //             {"trade_time":1633381732705,"trade_price":"0.068979","trade_quantity":"0.006","trade_type":"BID"},
         //             {"trade_time":1633381694604,"trade_price":"0.068975","trade_quantity":"0.011","trade_type":"ASK"},
+        //         ]
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":[
+        //             {"p":3598.85,"v":52,"T":1,"O":2,"M":2,"t":1634169038038},
+        //             {"p":3599.2,"v":15,"T":2,"O":3,"M":1,"t":1634169035603},
+        //             {"p":3600.15,"v":229,"T":2,"O":1,"M":2,"t":1634169026354},
         //         ]
         //     }
         //
@@ -821,11 +841,24 @@ module.exports = class mexc extends Exchange {
         //
         // public fetchTrades
         //
+        //     spot
+        //
         //     {
         //         "trade_time":1633381766725,
         //         "trade_price":"0.068981",
         //         "trade_quantity":"0.005",
         //         "trade_type":"BID"
+        //     }
+        //
+        //     contract
+        //
+        //     {
+        //         "p":3598.85,
+        //         "v":52,
+        //         "T":1, // 1 buy, 2 sell
+        //         "O":2, // 1 opens a position, 2 does not open a position
+        //         "M":2, // self-trading, 1 yes, 2 no
+        //         "t":1634169038038
         //     }
         //
         // private fetchMyTrades, fetchOrderTrades
@@ -844,11 +877,14 @@ module.exports = class mexc extends Exchange {
         //         "create_time":1633984904000
         //     }
         //
-        const timestamp = this.safeInteger2 (trade, 'create_time', 'trade_time');
+        let timestamp = this.safeInteger2 (trade, 'create_time', 'trade_time');
+        timestamp = this.safeInteger (trade, 't', timestamp);
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const priceString = this.safeString2 (trade, 'price', 'trade_price');
-        const amountString = this.safeString2 (trade, 'quantity', 'trade_quantity');
+        let priceString = this.safeString2 (trade, 'price', 'trade_price');
+        priceString = this.safeString (trade, 'p');
+        let amountString = this.safeString2 (trade, 'quantity', 'trade_quantity');
+        amountString = this.safeString (trade, 'v');
         let costString = this.safeString (trade, 'amount');
         if (costString === undefined) {
             costString = Precise.stringMul (priceString, amountString);
@@ -856,13 +892,14 @@ module.exports = class mexc extends Exchange {
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (costString);
-        let side = this.safeString (trade, 'trade_type');
-        if (side === 'BID') {
+        let side = this.safeString2 (trade, 'trade_type', 'T');
+        if ((side === 'BID') || (side === '1')) {
             side = 'buy';
-        } else {
+        } else if ((side === 'ASK') || (side === '2')) {
             side = 'sell';
         }
-        const id = this.safeString2 (trade, 'id', 'trade_time');
+        let id = this.safeString2 (trade, 'id', 'trade_time');
+        id = this.safeString (trade, 't', id);
         const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
