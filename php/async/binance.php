@@ -934,14 +934,16 @@ class binance extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
-        $type = $this->safe_string_2($this->options, 'fetchTime', 'defaultType', 'spot');
+        $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $query = $this->omit($params, 'type');
         $method = 'publicGetTime';
         if ($type === 'future') {
             $method = 'fapiPublicGetTime';
         } else if ($type === 'delivery') {
             $method = 'dapiPublicGetTime';
         }
-        $response = yield $this->$method ($params);
+        $response = yield $this->$method ($query);
         return $this->safe_integer($response, 'serverTime');
     }
 

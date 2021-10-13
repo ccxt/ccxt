@@ -940,13 +940,15 @@ class binance(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     def fetch_time(self, params={}):
-        type = self.safe_string_2(self.options, 'fetchTime', 'defaultType', 'spot')
+        defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
         method = 'publicGetTime'
         if type == 'future':
             method = 'fapiPublicGetTime'
         elif type == 'delivery':
             method = 'dapiPublicGetTime'
-        response = getattr(self, method)(params)
+        response = getattr(self, method)(query)
         return self.safe_integer(response, 'serverTime')
 
     def load_time_difference(self, params={}):
