@@ -19,22 +19,26 @@ module.exports = class mexc extends Exchange {
             'rateLimit': 1500,
             'version': 'v2',
             'has': {
-                'fetchMarkets': true,
-                'fetchTime': true,
-                'fetchStatus': true,
-                'fetchCurrencies': true,
-                'fetchTicker': true,
-                'fetchOrderBook': true,
-                'fetchOHLCV': true,
-                'fetchTrades': true,
-                'fetchBalance': true,
-                'fetchDepositAddressByNetwork': true,
-                'fetchDepositAddress': true,
-                'fetchDeposits': true,
-                'fetchWIthdrawals': true,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
                 'createOrder': true,
-                'fetchOpenOrders': true,
+                'fetchBalance': true,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDepositAddressByNetwork': true,
+                'fetchDeposits': true,
+                'fetchMarkets': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchStatus': true,
+                'fetchTicker': true,
+                'fetchTime': true,
+                'fetchTrades': true,
+                'fetchWIthdrawals': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -173,6 +177,7 @@ module.exports = class mexc extends Exchange {
                 },
             },
             'options': {
+                'defaultType': 'spot',
                 'networks': {
                 },
             },
@@ -209,9 +214,19 @@ module.exports = class mexc extends Exchange {
     async fetchTime (params = {}) {
         const response = await this.spotPublicGetCommonTimestamp (params);
         //
+        // spot
+        //
         //     {
         //         "code":200,
         //         "data":1633375641837
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":1634095541710
         //     }
         //
         return this.safeInteger (response, 'data');
@@ -1033,10 +1048,10 @@ module.exports = class mexc extends Exchange {
         }
         const state = this.safeString (order, 'state');
         const timestamp = this.safeInteger (order, 'create_time');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'quantity');
-        const remaining = this.safeNumber (order, 'remain_quantity');
-        const filled = this.safeNumber (order, 'deal_quantity');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'quantity');
+        const remaining = this.safeString (order, 'remain_quantity');
+        const filled = this.safeString (order, 'deal_quantity');
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         let side = undefined;
@@ -1055,7 +1070,7 @@ module.exports = class mexc extends Exchange {
         if (orderType === 'limit_order') {
             orderType = 'limit';
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
@@ -1194,9 +1209,38 @@ module.exports = class mexc extends Exchange {
         return await this.fetchOrdersByState ('FILLED', symbol, since, limit, params);
     }
 
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.spotPrivateDeleteOrderCancelBySymbol (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "data": [
+        //             {
+        //                 "msg": "success",
+        //                 "order_id": "75ecf99feef04538b78e4622beaba6eb",
+        //                 "client_order_id": "a9329e86f2094b0d8b58e92c25029554"
+        //             },
+        //             {
+        //                 "msg": "success",
+        //                 "order_id": "139413c48f8b4c018f452ce796586bcf"
+        //             },
+        //             {
+        //                 "msg": "success",
+        //                 "order_id": "b58ef34c570e4917981f276d44091484"
+        //             }
+        //         ]
+        //     }
+        //
+        return response;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const section = this.safeString (api, 0);
-        const access = this.safeString (api, 1);
+        const [ section, access ] = api;
         let url = this.urls['api'][section][access] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (access === 'public') {
@@ -1234,8 +1278,21 @@ module.exports = class mexc extends Exchange {
         if (response === undefined) {
             return;
         }
+        //     {"code":10232,"msg":"The currency not exist"}
+        //     {"code":10216,"msg":"No available deposit address"}
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":1634095541710
+        //     }
+        //
+        const success = this.safeValue (response, 'success', false);
+        if (success === true) {
+            return;
+        }
         const responseCode = this.safeString (response, 'code');
-        if (responseCode !== '200') {
+        if ((responseCode !== '200') && (responseCode !== '0')) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError (feedback);
