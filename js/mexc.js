@@ -885,7 +885,7 @@ module.exports = class mexc extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_ids');
         if (clientOrderId !== undefined) {
             request['client_order_ids'] = clientOrderId;
         } else {
@@ -1092,9 +1092,9 @@ module.exports = class mexc extends Exchange {
         return this.parseOrder (firstOrder);
     }
 
-    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByState requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1103,7 +1103,7 @@ module.exports = class mexc extends Exchange {
             // 'start_time': since, // default 7 days, max 30 days
             // 'limit': limit, // default 50, max 1000
             // 'trade_type': 'BID', // BID / ASK
-            'states': 'CANCELED', // NEW, FILLED, PARTIALLY_FILLED, CANCELED, PARTIALLY_CANCELED
+            'states': state, // NEW, FILLED, PARTIALLY_FILLED, CANCELED, PARTIALLY_CANCELED
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1116,28 +1116,12 @@ module.exports = class mexc extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByState ('CANCELED', symbol, since, limit, params);
+    }
+
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            // 'start_time': since, // default 7 days, max 30 days
-            // 'limit': limit, // default 50, max 1000
-            // 'trade_type': 'BID', // BID / ASK
-            'states': 'FILLED', // NEW, FILLED, PARTIALLY_FILLED, CANCELED, PARTIALLY_CANCELED
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        if (since !== undefined) {
-            request['start_time'] = since;
-        }
-        const response = await this.privateGetOrderList (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
-        return this.parseOrders (data, market, since, limit);
+        return await this.fetchOrdersByState ('FILLED', symbol, since, limit, params);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1164,7 +1148,6 @@ module.exports = class mexc extends Exchange {
                     auth += this.urlencode (params);
                     url += '?' + auth;
                 }
-                // headers['Content-Type'] = 'application/json';
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
             auth = this.apiKey + timestamp + auth;
