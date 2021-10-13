@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
+const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, NotSupported } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -181,8 +181,7 @@ module.exports = class mexc extends Exchange {
                 },
             },
             'options': {
-                'defaultType': 'spot',
-                'fetchMarkets': [ 'spot', 'contract' ],
+                'defaultType': 'swap', // spot, swap
                 'networks': {
                 },
             },
@@ -338,13 +337,19 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const types = this.safeValue (this.options, 'fetchMarkets');
-        let result = [];
-        for (let i = 0; i < types.length; i++) {
-            const markets = await this.fetchMarketsByType (types[i], params);
-            result = this.arrayConcat (result, markets);
+        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        const spot = (type === 'spot');
+        const swap = (type === 'swap');
+        if (!spot && !swap) {
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
         }
-        return result;
+        if (spot) {
+            return await this.fetchSpotMarkets (query);
+        } else if (swap) {
+            return await this.fetchContractMarkets (query);
+        }
     }
 
     async fetchContractMarkets (params = {}) {
@@ -533,13 +538,61 @@ module.exports = class mexc extends Exchange {
         return result;
     }
 
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        if (type !== 'swap') {
+            throw new NotSupported (this.id + ' fetchTickers() is supported for swap markets only');
+        }
+        const response = await this.contractPublicGetTicker (query);
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "symbol":"NKN_USDT",
+        //                 "lastPrice":0.36199,
+        //                 "bid1":0.35908,
+        //                 "ask1":0.36277,
+        //                 "volume24":657754,
+        //                 "amount24":239024.53998,
+        //                 "holdVol":149969,
+        //                 "lower24Price":0.34957,
+        //                 "high24Price":0.37689,
+        //                 "riseFallRate":0.0117,
+        //                 "riseFallValue":0.00419,
+        //                 "indexPrice":0.36043,
+        //                 "fairPrice":0.36108,
+        //                 "fundingRate":0.000535,
+        //                 "maxBidPrice":0.43251,
+        //                 "minAskPrice":0.28834,
+        //                 "timestamp":1634163352075
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTickers (data, symbols);
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
-        const response = await this.spotPublicGetMarketTicker (this.extend (request, params));
+        let method = undefined;
+        if (market['spot']) {
+            method = 'spotPublicGetMarketTicker';
+        } else if (market['swap']) {
+            method = 'contractPublicGetTicker';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         "code":200,
@@ -559,12 +612,45 @@ module.exports = class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const ticker = this.safeValue (data, 0);
-        return this.parseTicker (ticker, market);
+        // contract
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":{
+        //             "symbol":"ETH_USDT",
+        //             "lastPrice":3581.3,
+        //             "bid1":3581.25,
+        //             "ask1":3581.5,
+        //             "volume24":4045530,
+        //             "amount24":141331823.5755,
+        //             "holdVol":5832946,
+        //             "lower24Price":3413.4,
+        //             "high24Price":3588.7,
+        //             "riseFallRate":0.0275,
+        //             "riseFallValue":95.95,
+        //             "indexPrice":3580.7852,
+        //             "fairPrice":3581.08,
+        //             "fundingRate":0.000063,
+        //             "maxBidPrice":3938.85,
+        //             "minAskPrice":3222.7,
+        //             "timestamp":1634162885016
+        //         }
+        //     }
+        //
+        if (market['spot']) {
+            const data = this.safeValue (response, 'data', []);
+            const ticker = this.safeValue (data, 0);
+            return this.parseTicker (ticker, market);
+        } else if (market['swap']) {
+            const data = this.safeValue (response, 'data', {});
+            return this.parseTicker (data, market);
+        }
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        // spot
         //
         //     {
         //         "symbol":"BTC_USDT",
@@ -579,32 +665,60 @@ module.exports = class mexc extends Exchange {
         //         "change_rate":"0.0109265"
         //     }
         //
-        const timestamp = this.safeInteger (ticker, 'time');
+        // contract
+        //
+        //     {
+        //         "symbol":"ETH_USDT",
+        //         "lastPrice":3581.3,
+        //         "bid1":3581.25,
+        //         "ask1":3581.5,
+        //         "volume24":4045530,
+        //         "amount24":141331823.5755,
+        //         "holdVol":5832946,
+        //         "lower24Price":3413.4,
+        //         "high24Price":3588.7,
+        //         "riseFallRate":0.0275,
+        //         "riseFallValue":95.95,
+        //         "indexPrice":3580.7852,
+        //         "fairPrice":3581.08,
+        //         "fundingRate":0.000063,
+        //         "maxBidPrice":3938.85,
+        //         "minAskPrice":3222.7,
+        //         "timestamp":1634162885016
+        //     }
+        //
+        const timestamp = this.safeInteger2 (ticker, 'time', 'timestamp');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const baseVolume = this.safeNumber (ticker, 'volume');
+        const baseVolume = this.safeNumber2 (ticker, 'volume', 'volume24');
+        const quoteVolume = this.safeNumber (ticker, 'amount24');
         const open = this.safeNumber (ticker, 'open');
-        const last = this.safeNumber (ticker, 'last');
+        const lastString = this.safeString2 (ticker, 'last', 'lastPrice');
+        const last = this.parseNumber (lastString);
+        const change = this.safeNumber (ticker, 'riseFallValue');
+        const riseFallRate = this.safeString (ticker, 'riseFallRate');
+        const percentageString = Precise.stringAdd (riseFallRate, '1');
+        const percentage = this.parseNumber (percentageString);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeNumber2 (ticker, 'high', 'high24Price'),
+            'low': this.safeNumber2 (ticker, 'low', 'lower24Price'),
+            'bid': this.safeNumber2 (ticker, 'bid', 'bid1'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeNumber2 (ticker, 'ask', 'ask1'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
-            'quoteVolume': undefined,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);
     }
@@ -622,7 +736,7 @@ module.exports = class mexc extends Exchange {
                 limit = 100; // the spot api requires a limit
             }
             request['depth'] = limit;
-        } else {
+        } else if (market['swap']) {
             method = 'contractPublicGetDepthSymbol';
             if (limit !== undefined) {
                 request['limit'] = limit;
