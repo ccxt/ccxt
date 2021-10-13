@@ -711,6 +711,7 @@ class binance extends Exchange {
                     'BEP20' => 'BSC',
                     'OMNI' => 'OMNI',
                     'EOS' => 'EOS',
+                    'SPL' => 'SOL',
                 ),
                 'reverseNetworks' => array(
                     'tronscan.org' => 'TRC20',
