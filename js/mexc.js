@@ -48,8 +48,14 @@ module.exports = class mexc extends Exchange {
             'urls': {
                 'logo': '',
                 'api': {
-                    'public': 'https://www.mxc.com/open/api',
-                    'private': 'https://www.mexc.com/open/api',
+                    'spot': {
+                        'public': 'https://www.mxc.com/open/api',
+                        'private': 'https://www.mexc.com/open/api',
+                    },
+                    'contract': {
+                        'public': 'https://contract.mexc.com/api/v1/contract',
+                        'private': 'https://contract.mexc.com/api/v1/private',
+                    },
                 },
                 'www': 'https://www.mexc.com/',
                 'doc': [
@@ -60,39 +66,102 @@ module.exports = class mexc extends Exchange {
                 ],
             },
             'api': {
-                'public': {
-                    'get': [
-                        'market/symbols', // this fetchMarkets
-                        'market/coin/list', // fetchCurrencies
-                        'common/timestamp', // fetchTime
-                        'common/ping', // fetchStatus
-                        'market/ticker', // fetchTicker BTC/USDT
-                        'market/depth', // fetchOrderBook ETH/USDT
-                        'market/deals', // fetchTrades ETH/BTC
-                        'market/kline', // fetchOHLCV
-                    ],
+                'contract': {
+                    'public': {
+                        'get': [
+                            'ping',
+                            'detail',
+                            'support_currencies',
+                            'depth/{symbol}',
+                            'depth_commits/{symbol}/{limit}',
+                            'index_price/{symbol}',
+                            'fair_price/{symbol}',
+                            'funding_rate/{symbol}',
+                            'kline/{symbol}',
+                            'kline/index_price/{symbol}',
+                            'kline/fair_price/{symbol}',
+                            'deals/{symbol}',
+                            'ticker',
+                            'risk_reverse',
+                            'risk_reverse/history',
+                            'funding_rate/history',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'account/assets',
+                            'account/asset/{currency}',
+                            'account/transfer_record',
+                            'position/list/history_positions',
+                            'position/open_positions',
+                            'position/funding_records',
+                            'order/list/open_orders/{symbol}',
+                            'order/list/history_orders',
+                            'order/external/{symbol}/{external_oid}',
+                            'order/get/{order_id}',
+                            'order/batch_query',
+                            'order/deal_details/{order_id}',
+                            'order/list/order_deals',
+                            'planorder/list/orders',
+                            'stoporder/list/orders',
+                            'stoporder/order_details/{stop_order_id}',
+                            'account/risk_limit',
+                            'account/tiered_fee_rate',
+                        ],
+                        'post': [
+                            'position/change_margin',
+                            'position/change_leverage',
+                            'order/submit',
+                            'order/submit_batch',
+                            'order/cancel',
+                            'order/cancel_with_external',
+                            'order/cancel_all',
+                            'account/change_risk_level',
+                            'planorder/place',
+                            'planorder/cancel',
+                            'planorder/cancel_all',
+                            'stoporder/cancel',
+                            'stoporder/cancel_all',
+                            'stoporder/change_price',
+                            'stoporder/change_plan_price',
+                        ],
+                    },
                 },
-                'private': {
-                    'get': [
-                        'account/info', // fetchBalance
-                        'order/open_orders', // fetchOpenOrders
-                        'order/list', // fetchClosedOrders
-                        'order/query', // fetchOrder
-                        'order/deals',
-                        'order/deal_detail',
-                        'asset/deposit/address/list', // fetchDepositAddress
-                        'asset/deposit/list', // fetchDeposits
-                        'asset/address/list',
-                        'asset/withdraw/list', // fetchWithdrawals
-                    ],
-                    'post': [
-                        'order/place', // createOrder
-                        'order/place_batch',
-                    ],
-                    'delete': [
-                        'order/cancel', // cancelOrder
-                        'order/cancel_by_symbol', // cancelAllOrders
-                    ],
+                'spot': {
+                    'public': {
+                        'get': [
+                            'market/symbols', // this fetchMarkets
+                            'market/coin/list', // fetchCurrencies
+                            'common/timestamp', // fetchTime
+                            'common/ping', // fetchStatus
+                            'market/ticker', // fetchTicker BTC/USDT
+                            'market/depth', // fetchOrderBook ETH/USDT
+                            'market/deals', // fetchTrades ETH/BTC
+                            'market/kline', // fetchOHLCV
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'account/info', // fetchBalance
+                            'order/open_orders', // fetchOpenOrders
+                            'order/list', // fetchClosedOrders
+                            'order/query', // fetchOrder
+                            'order/deals',
+                            'order/deal_detail',
+                            'asset/deposit/address/list', // fetchDepositAddress
+                            'asset/deposit/list', // fetchDeposits
+                            'asset/address/list',
+                            'asset/withdraw/list', // fetchWithdrawals
+                        ],
+                        'post': [
+                            'order/place', // createOrder
+                            'order/place_batch',
+                        ],
+                        'delete': [
+                            'order/cancel', // cancelOrder
+                            'order/cancel_by_symbol', // cancelAllOrders
+                        ],
+                    },
                 },
             },
             'fees': {
@@ -138,7 +207,7 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetCommonTimestamp (params);
+        const response = await this.spotPublicGetCommonTimestamp (params);
         //
         //     {
         //         "code":200,
@@ -149,7 +218,7 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.publicGetCommonPing (params);
+        const response = await this.spotPublicGetCommonPing (params);
         //
         // { "code":200 }
         //
@@ -165,7 +234,7 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetMarketCoinList (params);
+        const response = await this.spotPublicGetMarketCoinList (params);
         //
         //     {
         //         "code":200,
@@ -237,7 +306,7 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetMarketSymbols (params);
+        const response = await this.spotPublicGetMarketSymbols (params);
         //
         //     {
         //         "code":200,
@@ -315,7 +384,7 @@ module.exports = class mexc extends Exchange {
         const request = {
             'symbol': this.marketId (symbol),
         };
-        const response = await this.publicGetMarketTicker (this.extend (request, params));
+        const response = await this.spotPublicGetMarketTicker (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -394,7 +463,7 @@ module.exports = class mexc extends Exchange {
             limit = 100;
         }
         request['depth'] = limit; // default 100, max 2000
-        const response = await this.publicGetMarketDepth (this.extend (request, params));
+        const response = await this.spotPublicGetMarketDepth (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -428,7 +497,7 @@ module.exports = class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const response = await this.publicGetMarketDeals (this.extend (request, params));
+        const response = await this.spotPublicGetMarketDeals (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -503,7 +572,7 @@ module.exports = class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const response = await this.publicGetMarketKline (this.extend (request, params));
+        const response = await this.spotPublicGetMarketKline (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -542,7 +611,7 @@ module.exports = class mexc extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccountInfo (params);
+        const response = await this.spotPrivateGetAccountInfo (params);
         //
         //     {
         //         code: "200",
@@ -607,7 +676,7 @@ module.exports = class mexc extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateGetAssetDepositAddressList (this.extend (request, params));
+        const response = await this.spotPrivateGetAssetDepositAddressList (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -686,7 +755,7 @@ module.exports = class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAssetDepositList (this.extend (request, params));
+        const response = await this.spotPrivateGetAssetDepositList (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -739,7 +808,7 @@ module.exports = class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAssetWithdrawList (this.extend (request, params));
+        const response = await this.spotPrivateGetAssetWithdrawList (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -875,7 +944,7 @@ module.exports = class mexc extends Exchange {
             this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
             request['client_order_id'] = clientOrderId;
         }
-        const response = await this.privatePostOrderPlace (this.extend (request, params));
+        const response = await this.spotPrivatePostOrderPlace (this.extend (request, params));
         //
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
         //
@@ -891,7 +960,7 @@ module.exports = class mexc extends Exchange {
         } else {
             request['order_ids'] = id;
         }
-        const response = await this.privateDeleteOrderCancel (this.extend (request, params));
+        const response = await this.spotPrivateDeleteOrderCancel (this.extend (request, params));
         //
         //    {"code":200,"data":{"965245851c444078a11a7d771323613b":"success"}}
         //
@@ -1021,7 +1090,7 @@ module.exports = class mexc extends Exchange {
             // 'limit': limit, // default 50, max 1000
             // 'trade_type': 'BID', // BID / ASK
         };
-        const response = await this.privateGetOrderOpenOrders (this.extend (request, params));
+        const response = await this.spotPrivateGetOrderOpenOrders (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -1064,7 +1133,7 @@ module.exports = class mexc extends Exchange {
         const request = {
             'order_ids': id,
         };
-        const response = await this.privateGetOrderQuery (this.extend (request, params));
+        const response = await this.spotPrivateGetOrderQuery (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -1111,7 +1180,7 @@ module.exports = class mexc extends Exchange {
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        const response = await this.privateGetOrderList (this.extend (request, params));
+        const response = await this.spotPrivateGetOrderList (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
@@ -1125,8 +1194,10 @@ module.exports = class mexc extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.version + '/' + path;
-        if (api === 'public') {
+        const section = this.safeString (api, 0);
+        const access = this.safeString (api, 1);
+        let url = this.urls['api'][section][access] + '/' + this.version + '/' + path;
+        if (access === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
