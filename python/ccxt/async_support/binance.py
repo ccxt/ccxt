@@ -722,6 +722,7 @@ class binance(Exchange):
                     'BEP20': 'BSC',
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
+                    'SPL': 'SOL',
                 },
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
