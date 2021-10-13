@@ -1264,8 +1264,46 @@ module.exports = class mexc extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.spotPrivateGetOrderDeals (this.extend (request, params));
+        //
+        //     {
+        //         "code":200,
+        //         "data":[
+        //             {
+        //                 "id":"b160b8f072d9403e96289139d5544809",
+        //                 "symbol":"USDC_USDT",
+        //                 "quantity":"150",
+        //                 "price":"0.9997",
+        //                 "amount":"149.955",
+        //                 "fee":"0.29991",
+        //                 "trade_type":"ASK",
+        //                 "order_id":"d798765285374222990bbd14decb86cd",
+        //                 "is_taker":true,
+        //                 "fee_currency":"USDT",
+        //                 "create_time":1633984904000
+        //             }
+        //         ]
+        //     }
+        //
         return this.parseTrades (response, market, since, limit);
     }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'order_id': id,
+        };
+        const response = await this.spotPrivateGetOrderDealDetail (this.extend (request, params));
+        const numOrders = response.length;
+        if (numOrders > 0) {
+            return this.parseTrades (response, market, since, limit);
+        }
+        throw new OrderNotFound (this.id + ' order ' + id + ' not found, ' + this.id + '.fetchOrderTrades() requires an exchange-specific order id, you need to grab it from order["info"]["id"]');
+    }
+
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ section, access ] = api;
