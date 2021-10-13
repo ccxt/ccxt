@@ -16,7 +16,7 @@ module.exports = class mexc extends Exchange {
             'id': 'mexc',
             'name': 'MEXC Global',
             'countries': [ 'SC' ], // Seychelles
-            'rateLimit': 1500,
+            'rateLimit': 50, // default rate limit is 20 times per second
             'version': 'v2',
             'has': {
                 'cancelAllOrders': true,
@@ -135,38 +135,39 @@ module.exports = class mexc extends Exchange {
                 },
                 'spot': {
                     'public': {
-                        'get': [
-                            'market/symbols',
-                            'market/coin/list',
-                            'common/timestamp',
-                            'common/ping',
-                            'market/ticker',
-                            'market/depth',
-                            'market/deals',
-                            'market/kline',
-                        ],
+                        'get': {
+                            'market/symbols': 1,
+                            'market/coin/list': 2,
+                            'common/timestamp': 1,
+                            'common/ping': 1,
+                            'market/ticker': 1,
+                            'market/depth': 1,
+                            'market/deals': 1,
+                            'market/kline': 1,
+                        },
                     },
                     'private': {
-                        'get': [
-                            'account/info',
-                            'order/open_orders',
-                            'order/list',
-                            'order/query',
-                            'order/deals',
-                            'order/deal_detail',
-                            'asset/deposit/address/list',
-                            'asset/deposit/list',
-                            'asset/address/list',
-                            'asset/withdraw/list',
-                        ],
-                        'post': [
-                            'order/place',
-                            'order/place_batch',
-                        ],
-                        'delete': [
-                            'order/cancel',
-                            'order/cancel_by_symbol',
-                        ],
+                        'get': {
+                            'account/info': 1,
+                            'order/open_orders': 1,
+                            'order/list': 1,
+                            'order/query': 1,
+                            'order/deals': 1,
+                            'order/deal_detail': 1,
+                            'asset/deposit/address/list': 2,
+                            'asset/deposit/list': 2,
+
+                            'asset/address/list': 2,
+                            'asset/withdraw/list': 2,
+                        },
+                        'post': {
+                            'order/place': 1,
+                            'order/place_batch': 1,
+                        },
+                        'delete': {
+                            'order/cancel': 1,
+                            'order/cancel_by_symbol': 1,
+                        },
                     },
                 },
             },
@@ -533,7 +534,7 @@ module.exports = class mexc extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, market, since, limit); // plural
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -566,8 +567,8 @@ module.exports = class mexc extends Exchange {
         const timestamp = this.safeInteger2 (trade, 'create_time', 'trade_time');
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const priceString = this.safeString (trade, 'price', 'trade_price');
-        const amountString = this.safeString (trade, 'quantity', 'trade_quantity');
+        const priceString = this.safeString2 (trade, 'price', 'trade_price');
+        const amountString = this.safeString2 (trade, 'quantity', 'trade_quantity');
         let costString = this.safeString (trade, 'amount');
         if (costString === undefined) {
             costString = Precise.stringMul (priceString, amountString);
@@ -581,7 +582,7 @@ module.exports = class mexc extends Exchange {
         } else {
             side = 'sell';
         }
-        const id = this.safeString (trade, 'id', 'trade_time');
+        const id = this.safeString2 (trade, 'id', 'trade_time');
         const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
