@@ -35,6 +35,7 @@ module.exports = class mexc extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrderTrades': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTime': true,
@@ -546,7 +547,7 @@ module.exports = class mexc extends Exchange {
         //         "trade_type":"BID"
         //     }
         //
-        // private fetchMyTrades
+        // private fetchMyTrades, fetchOrderTrades
         //
         //     {
         //         "id":"b160b8f072d9403e96289139d5544809",
@@ -567,9 +568,13 @@ module.exports = class mexc extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '_');
         const priceString = this.safeString (trade, 'price', 'trade_price');
         const amountString = this.safeString (trade, 'quantity', 'trade_quantity');
+        let costString = this.safeString (trade, 'amount');
+        if (costString === undefined) {
+            costString = Precise.stringMul (priceString, amountString);
+        }
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const cost = this.parseNumber (costString);
         let side = this.safeString (trade, 'trade_type');
         if (side === 'BID') {
             side = 'buy';
@@ -1322,6 +1327,28 @@ module.exports = class mexc extends Exchange {
             'order_id': id,
         };
         const response = await this.spotPrivateGetOrderDealDetail (this.extend (request, params));
+        //
+        //     {
+        //         "code":200,
+        //         "data":[
+        //             {
+        //                 "id":"b160b8f072d9403e96289139d5544809",
+        //                 "symbol":"USDC_USDT",
+        //                 "quantity":"150",
+        //                 "price":"0.9997",
+        //                 "amount":"149.955",
+        //                 "fee":"0.29991",
+        //                 "trade_type":"ASK",
+        //                 "order_id":"d798765285374222990bbd14decb86cd",
+        //                 "is_taker":true,
+        //                 "fee_currency":"USDT",
+        //                 "create_time":1633984904000
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
