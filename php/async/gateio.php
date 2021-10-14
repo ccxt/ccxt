@@ -42,7 +42,9 @@ class gateio extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -544,6 +546,188 @@ class gateio extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'contract' => $market['id'],
+            'settle' => strtolower($market['quote']),
+        );
+        $response = yield $this->publicFuturesGetSettleContractsContract (array_merge($request, $params));
+        //
+        // array(
+        //     {
+        //       "name" => "BTC_USDT",
+        //       "type" => "direct",
+        //       "quanto_multiplier" => "0.0001",
+        //       "ref_discount_rate" => "0",
+        //       "order_price_deviate" => "0.5",
+        //       "maintenance_rate" => "0.005",
+        //       "mark_type" => "index",
+        //       "last_price" => "38026",
+        //       "mark_price" => "37985.6",
+        //       "index_price" => "37954.92",
+        //       "funding_rate_indicative" => "0.000219",
+        //       "mark_price_round" => "0.01",
+        //       "funding_offset" => 0,
+        //       "in_delisting" => false,
+        //       "risk_limit_base" => "1000000",
+        //       "interest_rate" => "0.0003",
+        //       "order_price_round" => "0.1",
+        //       "order_size_min" => 1,
+        //       "ref_rebate_rate" => "0.2",
+        //       "funding_interval" => 28800,
+        //       "risk_limit_step" => "1000000",
+        //       "leverage_min" => "1",
+        //       "leverage_max" => "100",
+        //       "risk_limit_max" => "8000000",
+        //       "maker_fee_rate" => "-0.00025",
+        //       "taker_fee_rate" => "0.00075",
+        //       "funding_rate" => "0.002053",
+        //       "order_size_max" => 1000000,
+        //       "funding_next_apply" => 1610035200,
+        //       "short_users" => 977,
+        //       "config_change_time" => 1609899548,
+        //       "trade_size" => 28530850594,
+        //       "position_size" => 5223816,
+        //       "long_users" => 455,
+        //       "funding_impact_value" => "60000",
+        //       "orders_limit" => 50,
+        //       "trade_id" => 10851092,
+        //       "orderbook_id" => 2129638396
+        //     }
+        //   )
+        //
+        return $this->parse_funding_rate($response);
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $settle = $this->safe_string($params, 'settle');  // TODO => Save $settle in markets?
+        $request = array(
+            'settle' => strtolower($settle),
+        );
+        $response = yield $this->publicFuturesGetSettleContracts (array_merge($request, $params));
+        //
+        // array(
+        //     {
+        //       "name" => "BTC_USDT",
+        //       "type" => "direct",
+        //       "quanto_multiplier" => "0.0001",
+        //       "ref_discount_rate" => "0",
+        //       "order_price_deviate" => "0.5",
+        //       "maintenance_rate" => "0.005",
+        //       "mark_type" => "index",
+        //       "last_price" => "38026",
+        //       "mark_price" => "37985.6",
+        //       "index_price" => "37954.92",
+        //       "funding_rate_indicative" => "0.000219",
+        //       "mark_price_round" => "0.01",
+        //       "funding_offset" => 0,
+        //       "in_delisting" => false,
+        //       "risk_limit_base" => "1000000",
+        //       "interest_rate" => "0.0003",
+        //       "order_price_round" => "0.1",
+        //       "order_size_min" => 1,
+        //       "ref_rebate_rate" => "0.2",
+        //       "funding_interval" => 28800,
+        //       "risk_limit_step" => "1000000",
+        //       "leverage_min" => "1",
+        //       "leverage_max" => "100",
+        //       "risk_limit_max" => "8000000",
+        //       "maker_fee_rate" => "-0.00025",
+        //       "taker_fee_rate" => "0.00075",
+        //       "funding_rate" => "0.002053",
+        //       "order_size_max" => 1000000,
+        //       "funding_next_apply" => 1610035200,
+        //       "short_users" => 977,
+        //       "config_change_time" => 1609899548,
+        //       "trade_size" => 28530850594,
+        //       "position_size" => 5223816,
+        //       "long_users" => 455,
+        //       "funding_impact_value" => "60000",
+        //       "orders_limit" => 50,
+        //       "trade_id" => 10851092,
+        //       "orderbook_id" => 2129638396
+        //     }
+        //   )
+        //
+        $result = $this->parse_funding_rates($response);
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //     {
+        //       "name" => "BTC_USDT",
+        //       "type" => "direct",
+        //       "quanto_multiplier" => "0.0001",
+        //       "ref_discount_rate" => "0",
+        //       "order_price_deviate" => "0.5",
+        //       "maintenance_rate" => "0.005",
+        //       "mark_type" => "index",
+        //       "last_price" => "38026",
+        //       "mark_price" => "37985.6",
+        //       "index_price" => "37954.92",
+        //       "funding_rate_indicative" => "0.000219",
+        //       "mark_price_round" => "0.01",
+        //       "funding_offset" => 0,
+        //       "in_delisting" => false,
+        //       "risk_limit_base" => "1000000",
+        //       "interest_rate" => "0.0003",
+        //       "order_price_round" => "0.1",
+        //       "order_size_min" => 1,
+        //       "ref_rebate_rate" => "0.2",
+        //       "funding_interval" => 28800,
+        //       "risk_limit_step" => "1000000",
+        //       "leverage_min" => "1",
+        //       "leverage_max" => "100",
+        //       "risk_limit_max" => "8000000",
+        //       "maker_fee_rate" => "-0.00025",
+        //       "taker_fee_rate" => "0.00075",
+        //       "funding_rate" => "0.002053",
+        //       "order_size_max" => 1000000,
+        //       "funding_next_apply" => 1610035200,
+        //       "short_users" => 977,
+        //       "config_change_time" => 1609899548,
+        //       "trade_size" => 28530850594,
+        //       "position_size" => 5223816,
+        //       "long_users" => 455,
+        //       "funding_impact_value" => "60000",
+        //       "orders_limit" => 50,
+        //       "trade_id" => 10851092,
+        //       "orderbook_id" => 2129638396
+        //     }
+        //
+        $marketId = $this->safe_string($contract, 'name');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $markPrice = $this->safe_number($contract, 'mark_price');
+        $indexPrice = $this->safe_number($contract, 'index_price');
+        $interestRate = $this->safe_number($contract, 'interest_rate');
+        $fundingRate = $this->safe_string($contract, 'funding_rate');
+        $fundingInterval = $this->safe_string($contract, 'funding_interval') * 1000;
+        $nextFundingTime = $this->safe_integer($contract, 'funding_next_apply') * 1000;
+        $previousFundingTime = ($this->safe_number($contract, 'funding_next_apply') * 1000) - $fundingInterval;
+        $fundingRateIndicative = $this->safe_number($contract, 'funding_rate_indicative');
+        $timestamp = $this->milliseconds();
+        return array(
+            'info' => $contract,
+            'symbol' => $symbol,
+            'markPrice' => $markPrice,
+            'indexPrice' => $indexPrice,
+            'interestRate' => $interestRate,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'previousFundingRate' => $fundingRate,
+            'nextFundingRate' => $fundingRateIndicative,
+            'previousFundingTimestamp' => $previousFundingTime,
+            'nextFundingTimestamp' => $nextFundingTime,
+            'previousFundingDatetime' => $this->iso8601($previousFundingTime),
+            'nextFundingDatetime' => $this->iso8601($nextFundingTime),
+        );
     }
 
     public function fetch_network_deposit_address($code, $params = array ()) {
