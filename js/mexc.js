@@ -53,7 +53,7 @@ module.exports = class mexc extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg',
                 'api': {
                     'spot': {
                         'public': 'https://www.mxc.com/open/api/v2',
@@ -317,41 +317,83 @@ module.exports = class mexc extends Exchange {
             const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'full_name');
-            const coins = this.safeValue (currency, 'coins', []);
-            let active = undefined;
-            let precision = undefined;
-            let fee = undefined;
-            let withdrawMin = undefined;
-            let withdrawMax = undefined;
-            const coinsLength = coins.length;
-            if (coinsLength > 1) {
-                const lastCoin = this.safeValue (coins, coinsLength - 1);
-                fee = this.safeFloat (lastCoin, 'fee');
-                const isDepositEnabled = this.safeValue (lastCoin, 'is_deposit_enabled', false);
-                const isWithdrawEnabled = this.safeValue (lastCoin, 'is_withdraw_enabled', false);
-                active = (isDepositEnabled && isWithdrawEnabled);
-                precision = this.safeInteger (lastCoin, 'precision');
-                withdrawMin = this.safeNumber (lastCoin, 'withdraw_limit_min');
-                withdrawMax = this.safeNumber (lastCoin, 'withdraw_limit_max');
+            let currencyActive = undefined;
+            let currencyPrecision = undefined;
+            let currencyFee = undefined;
+            let currencyWithdrawMin = undefined;
+            let currencyWithdrawMax = undefined;
+            const networks = {};
+            const chains = this.safeValue (currency, 'coins', []);
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'chain');
+                const network = this.safeNetwork (networkId);
+                const isDepositEnabled = this.safeValue (chain, 'is_deposit_enabled', false);
+                const isWithdrawEnabled = this.safeValue (chain, 'is_withdraw_enabled', false);
+                const active = (isDepositEnabled && isWithdrawEnabled);
+                currencyActive = currencyActive || active;
+                const precisionDigits = this.safeInteger (chain, 'precision');
+                const precision = 1 / Math.pow (10, precisionDigits);
+                const withdrawMin = this.safeString (chain, 'withdraw_limit_min');
+                const withdrawMax = this.safeString (chain, 'withdraw_limit_max');
+                currencyWithdrawMin = currencyWithdrawMin || withdrawMin;
+                currencyWithdrawMax = currencyWithdrawMax || withdrawMax;
+                if (Precise.stringGt (currencyWithdrawMin, withdrawMin)) {
+                    currencyWithdrawMin = withdrawMin;
+                }
+                if (Precise.stringLt (currencyWithdrawMax, withdrawMax)) {
+                    currencyWithdrawMax = withdrawMax;
+                }
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': active,
+                    'fee': this.safeNumber (chain, 'fee'),
+                    'precision': precision,
+                    'limits': {
+                        'withdraw': {
+                            'min': withdrawMin,
+                            'max': withdrawMax,
+                        },
+                    },
+                };
             }
+            const chainsLength = chains.length;
+            if (chainsLength === 1) {
+                const lastChain = this.safeValue (chains, chainsLength - 1, {});
+                currencyFee = this.safeFloat (lastChain, 'fee');
+                const currencyPrecisionDigits = this.safeInteger (lastChain, 'precision');
+                currencyPrecision = 1 / Math.pow (10, currencyPrecisionDigits);
+            }
+            // for (let j = 0; j < chains.length; j++) {
+            //     const canDeposit = this.safeValue (chain, 'canDep');
+            //     const canWithdraw = this.safeValue (chain, 'canWd');
+            //     const canInternal = this.safeValue (chain, 'canInternal');
+            //     const active = (canDeposit && canWithdraw && canInternal) ? true : false;
+            //     if (networkId.indexOf ('-') >= 0) {
+            //         const parts = networkId.split ('-');
+            //         networkId = this.safeString (parts, 1, networkId);
+            // }
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
-                'active': active,
-                'fee': fee,
-                'precision': precision,
+                'active': currencyActive,
+                'fee': currencyFee,
+                'precision': currencyPrecision,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': withdrawMin,
-                        'max': withdrawMax,
+                        'min': currencyWithdrawMin,
+                        'max': currencyWithdrawMax,
                     },
                 },
+                'networks': networks,
             };
         }
         return result;
@@ -1118,9 +1160,14 @@ module.exports = class mexc extends Exchange {
     }
 
     safeNetwork (networkId) {
+        networkId = networkId.split (' ');
+        networkId = networkId.join ('');
         const networksById = {
+            'ETH': 'ERC20',
+            'BEP20(BSC)': 'BEP20',
             'ERC-20': 'ERC20',
             'TRX': 'TRC20',
+            'TRC-20': 'TRC20',
         };
         return this.safeString (networksById, networkId, networkId);
     }
@@ -1181,8 +1228,9 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        const response = await this.fetchDepositAddressesByNetwork (code, params);
         const rawNetwork = this.safeString (params, 'network');
+        params = this.omit ('network');
+        const response = await this.fetchDepositAddressesByNetwork (code, params);
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         let result = undefined;
