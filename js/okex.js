@@ -2957,6 +2957,71 @@ module.exports = class okex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    parseFundingRate (fundingRate, market = undefined) {
+        //
+        //     {
+        //       "fundingRate": "0.00027815",
+        //       "fundingTime": "1634256000000",
+        //       "instId": "BTC-USD-SWAP",
+        //       "instType": "SWAP",
+        //       "nextFundingRate": "0.00017",
+        //       "nextFundingTime": "1634284800000"
+        //     }
+        //
+        const previousFundingRate = this.safeNumber (fundingRate, 'fundingRate');
+        const previousFundingTimestamp = this.safeInteger (fundingRate, 'fundingTime');
+        const marketId = this.safeString (fundingRate, 'instId');
+        const symbol = this.safeSymbol (marketId, market);
+        const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
+        const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'nextFundingTime');
+        // https://www.okex.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
+        // > The current interest is 0.
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'previousFundingRate': previousFundingRate,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
+            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instId': market['id'],
+        };
+        const response = await this.publicGetPublicFundingRate (this.extend (request, params));
+        //
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "fundingRate": "0.00027815",
+        //           "fundingTime": "1634256000000",
+        //           "instId": "BTC-USD-SWAP",
+        //           "instType": "SWAP",
+        //           "nextFundingRate": "0.00017",
+        //           "nextFundingTime": "1634284800000"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const entry = this.safeValue (data, 0, {});
+        return this.parseFundingRate (entry, market);
+    }
+
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return; // fallback to default error handler
