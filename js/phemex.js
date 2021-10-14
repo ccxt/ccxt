@@ -391,7 +391,7 @@ module.exports = class phemex extends Exchange {
             inverse = true;
         }
         const linear = !inverse;
-        const symbol = (id[0] === 'u') ? id : (base + '/' + quote); // fix for uBTCUSD inverse
+        const symbol = (inverse) ? id : (base + '/' + quote); // fix for uBTCUSD inverse
         const precision = {
             'amount': this.safeNumber (market, 'lotSize'),
             'price': this.safeNumber (market, 'tickSize'),
