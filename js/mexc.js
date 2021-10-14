@@ -12,8 +12,6 @@ const Precise = require ('./base/Precise');
 module.exports = class mexc extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'apiKey': 'mx0Eqv4eQDrQc9f5j1',
-            'secret': '4041ab43e2bb44b09033549b12502384',
             'id': 'mexc',
             'name': 'MEXC Global',
             'countries': [ 'SC' ], // Seychelles
@@ -73,6 +71,7 @@ module.exports = class mexc extends Exchange {
                 'fees': [
                     'https://www.mexc.com/fee',
                 ],
+                'referral': 'https://m.mexc.com/auth/signup?inviteCode=1FQ1G',
             },
             'api': {
                 'contract': {
@@ -206,7 +205,7 @@ module.exports = class mexc extends Exchange {
                         '1M': 'Month1',
                     },
                 },
-                'defaultType': 'swap', // spot, swap
+                'defaultType': 'spot', // spot, swap
                 'networks': {
                 },
             },
@@ -218,6 +217,7 @@ module.exports = class mexc extends Exchange {
                     '401': AuthenticationError, // Invalid signature, fail to pass the validation
                     '429': RateLimitExceeded, // too many requests, rate limit rule is violated
                     '1000': PermissionDenied, // {"success":false,"code":1000,"message":"Please open contract account first!"}
+                    '1002': InvalidOrder, // {"success":false,"code":1002,"message":"Contract not allow place order!"}
                     '10072': AuthenticationError, // Invalid access key
                     '10073': AuthenticationError, // Invalid request time
                     '10216': InvalidAddress, // {"code":10216,"msg":"No available deposit address"}
@@ -446,6 +446,8 @@ module.exports = class mexc extends Exchange {
             const swap = true;
             const spot = false;
             const contractSize = this.safeString (market, 'contractSize');
+            const linear = true;
+            const inverse = false;
             result.push (this.extend (this.fees['trading'], {
                 'info': market,
                 'id': id,
@@ -458,6 +460,8 @@ module.exports = class mexc extends Exchange {
                 'swap': swap,
                 'spot': spot,
                 'contractSize': contractSize,
+                'linear': linear,
+                'inverse': inverse,
                 'active': active,
                 'taker': taker,
                 'maker': maker,
@@ -1015,7 +1019,7 @@ module.exports = class mexc extends Exchange {
             return this.parseOHLCVs (data, market, timeframe, since, limit);
         } else if (market['swap']) {
             const data = this.safeValue (response, 'data', {});
-            const result = this.convertTradingViewToOHLCV (data, 'time', 'open', 'high', 'low', 'close', 'vol')
+            const result = this.convertTradingViewToOHLCV (data, 'time', 'open', 'high', 'low', 'close', 'vol');
             return this.parseOHLCVs (result, market, timeframe, since, limit);
         }
     }
@@ -1442,7 +1446,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            return await this.createSpotOrder (symbol, type, side, amount, price, params);
+        } else if (market['swap']) {
+            return await this.createSwapOrder (symbol, type, side, amount, price, params);
+        }
     }
 
     async createSpotOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1485,16 +1495,21 @@ module.exports = class mexc extends Exchange {
         if (openType === undefined) {
             throw new ArgumentsRequired (this.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin');
         }
-        if ((type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
-            throw new InvalidOrder (this.id + ' createSwapOrder() order type must be 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
+        if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
+            throw new InvalidOrder (this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
+        }
+        if (type === 'limit') {
+            type = 1;
+        } else if (type === 'market') {
+            type = 6;
         }
         if ((side !== 1) && (side !== 2) && (side !== 3) && (side !== 4)) {
             throw new InvalidOrder (this.id + ' createSwapOrder() order side must be 1 open long, 2 close short, 3 open short or 4 close long');
         }
         const request = {
             'symbol': market['id'],
-            'price': this.priceToPrecision (symbol, price),
-            'vol': this.amountToPrecision (symbol, amount),
+            'price': parseFloat (this.priceToPrecision (symbol, price)),
+            'vol': parseFloat (this.amountToPrecision (symbol, amount)),
             // 'leverage': int, // required for isolated margin
             'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
             //
@@ -1565,7 +1580,13 @@ module.exports = class mexc extends Exchange {
         //
         // createOrder
         //
+        // spot
+        //
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
+        //
+        // swap / contract
+        //
+        //     { "success": true, "code": 0, "data": 102057569836905984 }
         //
         // fetchOpenOrders
         //
@@ -1882,7 +1903,7 @@ module.exports = class mexc extends Exchange {
     async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
         const positionId = this.safeInteger (params, 'positionId');
         if (positionId === undefined) {
-            throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionId parameter')
+            throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionId parameter');
         }
         await this.loadMarkets ();
         const request = {
@@ -1910,7 +1931,7 @@ module.exports = class mexc extends Exchange {
     async setLeverage (leverage, symbol = undefined, params = {}) {
         const positionId = this.safeInteger (params, 'positionId');
         if (positionId === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter')
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter');
         }
         await this.loadMarkets ();
         const request = {
