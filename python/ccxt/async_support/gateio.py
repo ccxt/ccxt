@@ -53,7 +53,9 @@ class gateio(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposits': True,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -551,6 +553,185 @@ class gateio(Exchange):
                 'limits': self.limits,
             }
         return result
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'contract': market['id'],
+            'settle': market['quote'].lower(),
+        }
+        response = await self.publicFuturesGetSettleContractsContract(self.extend(request, params))
+        #
+        # [
+        #     {
+        #       "name": "BTC_USDT",
+        #       "type": "direct",
+        #       "quanto_multiplier": "0.0001",
+        #       "ref_discount_rate": "0",
+        #       "order_price_deviate": "0.5",
+        #       "maintenance_rate": "0.005",
+        #       "mark_type": "index",
+        #       "last_price": "38026",
+        #       "mark_price": "37985.6",
+        #       "index_price": "37954.92",
+        #       "funding_rate_indicative": "0.000219",
+        #       "mark_price_round": "0.01",
+        #       "funding_offset": 0,
+        #       "in_delisting": False,
+        #       "risk_limit_base": "1000000",
+        #       "interest_rate": "0.0003",
+        #       "order_price_round": "0.1",
+        #       "order_size_min": 1,
+        #       "ref_rebate_rate": "0.2",
+        #       "funding_interval": 28800,
+        #       "risk_limit_step": "1000000",
+        #       "leverage_min": "1",
+        #       "leverage_max": "100",
+        #       "risk_limit_max": "8000000",
+        #       "maker_fee_rate": "-0.00025",
+        #       "taker_fee_rate": "0.00075",
+        #       "funding_rate": "0.002053",
+        #       "order_size_max": 1000000,
+        #       "funding_next_apply": 1610035200,
+        #       "short_users": 977,
+        #       "config_change_time": 1609899548,
+        #       "trade_size": 28530850594,
+        #       "position_size": 5223816,
+        #       "long_users": 455,
+        #       "funding_impact_value": "60000",
+        #       "orders_limit": 50,
+        #       "trade_id": 10851092,
+        #       "orderbook_id": 2129638396
+        #     }
+        #   ]
+        #
+        return self.parse_funding_rate(response)
+
+    async def fetch_funding_rates(self, symbols=None, params={}):
+        await self.load_markets()
+        settle = self.safe_string(params, 'settle')  # TODO: Save settle in markets?
+        request = {
+            'settle': settle.lower(),
+        }
+        response = await self.publicFuturesGetSettleContracts(self.extend(request, params))
+        #
+        # [
+        #     {
+        #       "name": "BTC_USDT",
+        #       "type": "direct",
+        #       "quanto_multiplier": "0.0001",
+        #       "ref_discount_rate": "0",
+        #       "order_price_deviate": "0.5",
+        #       "maintenance_rate": "0.005",
+        #       "mark_type": "index",
+        #       "last_price": "38026",
+        #       "mark_price": "37985.6",
+        #       "index_price": "37954.92",
+        #       "funding_rate_indicative": "0.000219",
+        #       "mark_price_round": "0.01",
+        #       "funding_offset": 0,
+        #       "in_delisting": False,
+        #       "risk_limit_base": "1000000",
+        #       "interest_rate": "0.0003",
+        #       "order_price_round": "0.1",
+        #       "order_size_min": 1,
+        #       "ref_rebate_rate": "0.2",
+        #       "funding_interval": 28800,
+        #       "risk_limit_step": "1000000",
+        #       "leverage_min": "1",
+        #       "leverage_max": "100",
+        #       "risk_limit_max": "8000000",
+        #       "maker_fee_rate": "-0.00025",
+        #       "taker_fee_rate": "0.00075",
+        #       "funding_rate": "0.002053",
+        #       "order_size_max": 1000000,
+        #       "funding_next_apply": 1610035200,
+        #       "short_users": 977,
+        #       "config_change_time": 1609899548,
+        #       "trade_size": 28530850594,
+        #       "position_size": 5223816,
+        #       "long_users": 455,
+        #       "funding_impact_value": "60000",
+        #       "orders_limit": 50,
+        #       "trade_id": 10851092,
+        #       "orderbook_id": 2129638396
+        #     }
+        #   ]
+        #
+        result = self.parse_funding_rates(response)
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #     {
+        #       "name": "BTC_USDT",
+        #       "type": "direct",
+        #       "quanto_multiplier": "0.0001",
+        #       "ref_discount_rate": "0",
+        #       "order_price_deviate": "0.5",
+        #       "maintenance_rate": "0.005",
+        #       "mark_type": "index",
+        #       "last_price": "38026",
+        #       "mark_price": "37985.6",
+        #       "index_price": "37954.92",
+        #       "funding_rate_indicative": "0.000219",
+        #       "mark_price_round": "0.01",
+        #       "funding_offset": 0,
+        #       "in_delisting": False,
+        #       "risk_limit_base": "1000000",
+        #       "interest_rate": "0.0003",
+        #       "order_price_round": "0.1",
+        #       "order_size_min": 1,
+        #       "ref_rebate_rate": "0.2",
+        #       "funding_interval": 28800,
+        #       "risk_limit_step": "1000000",
+        #       "leverage_min": "1",
+        #       "leverage_max": "100",
+        #       "risk_limit_max": "8000000",
+        #       "maker_fee_rate": "-0.00025",
+        #       "taker_fee_rate": "0.00075",
+        #       "funding_rate": "0.002053",
+        #       "order_size_max": 1000000,
+        #       "funding_next_apply": 1610035200,
+        #       "short_users": 977,
+        #       "config_change_time": 1609899548,
+        #       "trade_size": 28530850594,
+        #       "position_size": 5223816,
+        #       "long_users": 455,
+        #       "funding_impact_value": "60000",
+        #       "orders_limit": 50,
+        #       "trade_id": 10851092,
+        #       "orderbook_id": 2129638396
+        #     }
+        #
+        marketId = self.safe_string(contract, 'name')
+        symbol = self.safe_symbol(marketId, market)
+        markPrice = self.safe_number(contract, 'mark_price')
+        indexPrice = self.safe_number(contract, 'index_price')
+        interestRate = self.safe_number(contract, 'interest_rate')
+        fundingRate = self.safe_string(contract, 'funding_rate')
+        fundingInterval = self.safe_string(contract, 'funding_interval') * 1000
+        nextFundingTime = self.safe_integer(contract, 'funding_next_apply') * 1000
+        previousFundingTime = (self.safe_number(contract, 'funding_next_apply') * 1000) - fundingInterval
+        fundingRateIndicative = self.safe_number(contract, 'funding_rate_indicative')
+        timestamp = self.milliseconds()
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'interestRate': interestRate,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'previousFundingRate': fundingRate,
+            'nextFundingRate': fundingRateIndicative,
+            'previousFundingTimestamp': previousFundingTime,
+            'nextFundingTimestamp': nextFundingTime,
+            'previousFundingDatetime': self.iso8601(previousFundingTime),
+            'nextFundingDatetime': self.iso8601(nextFundingTime),
+        }
 
     async def fetch_network_deposit_address(self, code, params={}):
         await self.load_markets()

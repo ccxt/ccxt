@@ -2032,18 +2032,17 @@ module.exports = class mexc extends Exchange {
             headers = {
                 'ApiKey': this.apiKey,
                 'Request-Time': timestamp,
+                'Content-Type': 'application/json',
             };
             if (method === 'POST') {
                 auth = this.json (params);
                 body = auth;
-                headers['Content-Type'] = 'application/json';
             } else {
                 params = this.keysort (params);
                 if (Object.keys (params).length) {
                     auth += this.urlencode (params);
                     url += '?' + auth;
                 }
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
             auth = this.apiKey + timestamp + auth;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');

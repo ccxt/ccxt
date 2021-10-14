@@ -3874,7 +3874,7 @@ class binance extends Exchange {
         //         "time" => "1621252344001"
         //     }
         //
-        return $this->parse_funding_rate ($response);
+        return $this->parse_funding_rate($response);
     }
 
     public function fetch_funding_rate_history($symbol, $limit = null, $since = null, $params = array ()) {
@@ -3929,7 +3929,7 @@ class binance extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
-            $parsed = $this->parse_funding_rate ($entry);
+            $parsed = $this->parse_funding_rate($entry);
             $result[] = $parsed;
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
@@ -3943,7 +3943,7 @@ class binance extends Exchange {
         //     "$markPrice" => "45802.81129892",
         //     "$indexPrice" => "45745.47701915",
         //     "$estimatedSettlePrice" => "45133.91753671",
-        //     "$lastFundingRate" => "0.00063521",
+        //     "lastFundingRate" => "0.00063521",
         //     "$interestRate" => "0.00010000",
         //     "$nextFundingTime" => "1621267200000",
         //     "time" => "1621252344001"
@@ -3956,9 +3956,9 @@ class binance extends Exchange {
         $indexPrice = $this->safe_number($premiumIndex, 'indexPrice');
         $interestRate = $this->safe_number($premiumIndex, 'interestRate');
         $estimatedSettlePrice = $this->safe_number($premiumIndex, 'estimatedSettlePrice');
-        $lastFundingRate = $this->safe_number($premiumIndex, 'lastFundingRate');
+        $nextFundingRate = $this->safe_number($premiumIndex, 'lastFundingRate');
         $nextFundingTime = $this->safe_integer($premiumIndex, 'nextFundingTime');
-        $lastFundingTime = $nextFundingTime - (8 * 3600000);
+        $previousFundingTime = $nextFundingTime - (8 * 3600000);
         return array(
             'info' => $premiumIndex,
             'symbol' => $symbol,
@@ -3968,10 +3968,11 @@ class binance extends Exchange {
             'estimatedSettlePrice' => $estimatedSettlePrice,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastFundingRate' => $lastFundingRate,
-            'lastFundingTimestamp' => $lastFundingTime, // subtract 8 hours
+            'previousFundingRate' => null,
+            'nextFundingRate' => $nextFundingRate,
+            'previousFundingTimestamp' => $previousFundingTime, // subtract 8 hours
             'nextFundingTimestamp' => $nextFundingTime,
-            'lastFundingDatetime' => $this->iso8601($lastFundingTime),
+            'previousFundingDatetime' => $this->iso8601($previousFundingTime),
             'nextFundingDatetime' => $this->iso8601($nextFundingTime),
         );
     }

@@ -3949,9 +3949,9 @@ module.exports = class binance extends Exchange {
         const indexPrice = this.safeNumber (premiumIndex, 'indexPrice');
         const interestRate = this.safeNumber (premiumIndex, 'interestRate');
         const estimatedSettlePrice = this.safeNumber (premiumIndex, 'estimatedSettlePrice');
-        const lastFundingRate = this.safeNumber (premiumIndex, 'lastFundingRate');
+        const nextFundingRate = this.safeNumber (premiumIndex, 'lastFundingRate');
         const nextFundingTime = this.safeInteger (premiumIndex, 'nextFundingTime');
-        const lastFundingTime = nextFundingTime - (8 * 3600000);
+        const previousFundingTime = nextFundingTime - (8 * 3600000);
         return {
             'info': premiumIndex,
             'symbol': symbol,
@@ -3961,10 +3961,11 @@ module.exports = class binance extends Exchange {
             'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastFundingRate': lastFundingRate,
-            'lastFundingTimestamp': lastFundingTime, // subtract 8 hours
+            'previousFundingRate': undefined,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTime, // subtract 8 hours
             'nextFundingTimestamp': nextFundingTime,
-            'lastFundingDatetime': this.iso8601 (lastFundingTime),
+            'previousFundingDatetime': this.iso8601 (previousFundingTime),
             'nextFundingDatetime': this.iso8601 (nextFundingTime),
         };
     }
