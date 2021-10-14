@@ -149,7 +149,7 @@ class Precise:
         if string1 is None or string2 is None:
             return None
         string2_precise = Precise(string2)
-        if string2.integer == 0:
+        if string2_precise.integer == 0:
             return None
         return str(Precise(string1).div(string2_precise, precision))
 
