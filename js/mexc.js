@@ -1398,39 +1398,8 @@ module.exports = class mexc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.contractPrivateGetPositionOpenPositions (this.extend (request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "code": 0,
-        //         "data": [
-        //             {
-        //                 "positionId": 1394650,
-        //                 "symbol": "ETH_USDT",
-        //                 "positionType": 1,
-        //                 "openType": 1,
-        //                 "state": 1,
-        //                 "holdVol": 1,
-        //                 "frozenVol": 0,
-        //                 "closeVol": 0,
-        //                 "holdAvgPrice": 1217.3,
-        //                 "openAvgPrice": 1217.3,
-        //                 "closeAvgPrice": 0,
-        //                 "liquidatePrice": 1211.2,
-        //                 "oim": 0.1290338,
-        //                 "im": 0.1290338,
-        //                 "holdFee": 0,
-        //                 "realised": -0.0073,
-        //                 "leverage": 100,
-        //                 "createTime": 1609991676000,
-        //                 "updateTime": 1609991676000,
-        //                 "autoAddIm": false
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data', []);
-        const firstPosition = this.safeValue (data, 0);
+        const response = await this.fetchPositions (this.extend (request, params));
+        const firstPosition = this.safeValue (response, 0);
         return firstPosition;
     }
 
