@@ -1534,7 +1534,7 @@ class Exchange(object):
             raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
 
     def parse_funding_rate(self, contract, market=None):
-        raise NotSupported(self.id + "parse_funding_rate has not been implemented")
+        raise NotSupported(self.id + ' parse_funding_rate() not supported yet')
 
     def parse_funding_rates(self, response, market=None, since=None, limit=None):
         parsed = [self.parse_funding_rate(res, market) for res in response]
