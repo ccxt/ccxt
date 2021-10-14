@@ -1384,7 +1384,7 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + "parseFundingRate has not been implemented")
     }
 
-    parseFundingRates (response, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseFundingRates (response, market = undefined, since = undefined, limit = undefined) {
         const parsed = response.map ((res) => this.parseFundingRate (res, market))
         const sorted = this.sortBy (parsed, 0)
         const tail = since === undefined

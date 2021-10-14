@@ -1777,7 +1777,7 @@ class Exchange {
         throw new NotSupported($this->id . ' fetch_funding_rate not supported yet');
     }
 
-    public function parse_funding_rates($response, $market = null, $timeframe = 60, $since = null, $limit = null) {
+    public function parse_funding_rates($response, $market = null, $since = null, $limit = null) {
         $response = is_array($response) ? array_values($response) : array();
         $parsed = array();
         foreach ($response as $res) {
