@@ -704,6 +704,7 @@ module.exports = class binance extends Exchange {
                     'BEP20': 'BSC',
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
+                    'SPL': 'SOL',
                 },
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
@@ -927,14 +928,16 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const type = this.safeString2 (this.options, 'fetchTime', 'defaultType', 'spot');
+        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
         let method = 'publicGetTime';
         if (type === 'future') {
             method = 'fapiPublicGetTime';
         } else if (type === 'delivery') {
             method = 'dapiPublicGetTime';
         }
-        const response = await this[method] (params);
+        const response = await this[method] (query);
         return this.safeInteger (response, 'serverTime');
     }
 
@@ -1374,11 +1377,11 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         let method = 'privateGetAccount';
         if (type === 'future') {
-            const options = this.safeValue (this.options, 'future', {});
+            const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
         } else if (type === 'delivery') {
-            const options = this.safeValue (this.options, 'delivery', {});
+            const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
         } else if (type === 'margin') {

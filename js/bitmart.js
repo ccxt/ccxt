@@ -2163,7 +2163,7 @@ module.exports = class bitmart extends Exchange {
         };
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.currenc (code);
+            currency = this.currency (code);
             request['currency'] = currency['id'];
         }
         const response = await this.privateAccountGetDepositWithdrawHistory (this.extend (request, params));

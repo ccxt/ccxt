@@ -169,7 +169,11 @@ class Precise {
         if (($string1 === null) || ($string2 === null)) {
             return null;
         }
-        return strval((new Precise($string1))->div(new Precise($string2), $precision));
+        $string2_precise = new Precise($string2);
+        if (gmp_cmp($string2_precise->integer, '0') === 0) {
+            return null;
+        }
+        return strval((new Precise($string1))->div($string2_precise, $precision));
     }
 
     public static function string_add($string1, $string2) {
