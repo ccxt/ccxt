@@ -328,6 +328,8 @@ class Exchange {
         'safeMarket' => 'safe_market',
         'safeSymbol' => 'safe_symbol',
         'filterBySymbol' => 'filter_by_symbol',
+        'parseFundingRate' => 'parse_funding_rate',
+        'parseFundingRates' => 'parse_funding_rates',
         'parseOHLCV' => 'parse_ohlcv',
         'parseOHLCVs' => 'parse_ohlc_vs',
         'editLimitBuyOrder' => 'edit_limit_buy_order',
@@ -1769,6 +1771,21 @@ class Exchange {
         }
         $this->accountsById = static::index_by($this->accounts, 'id');
         return $this->accounts;
+    }
+
+    public function parse_funding_rate($response, $market = null) {
+        throw new NotSupported($this->id . ' parse_funding_rate() not supported yet');
+    }
+
+    public function parse_funding_rates($response, $market = null, $since = null, $limit = null) {
+        $response = is_array($response) ? array_values($response) : array();
+        $parsed = array();
+        foreach ($response as $res) {
+            $parsed[] = $this->parse_funding_rate($res, $market);
+        }
+        $sorted = $this->sort_by($parsed, 0);
+        $tail = $since === null;
+        return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
