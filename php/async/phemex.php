@@ -394,7 +394,7 @@ class phemex extends Exchange {
             $inverse = true;
         }
         $linear = !$inverse;
-        $symbol = ($id[0] === 'u') ? $id : ($base . '/' . $quote); // fix for uBTCUSD $inverse
+        $symbol = ($inverse) ? $id : ($base . '/' . $quote); // fix for uBTCUSD $inverse
         $precision = array(
             'amount' => $this->safe_number($market, 'lotSize'),
             'price' => $this->safe_number($market, 'tickSize'),
