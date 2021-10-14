@@ -2997,6 +2997,9 @@ module.exports = class okex extends Exchange {
     async fetchFundingRate (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new ExchangeError (this.id + ' fetchFundingRate is only valid for swap markets');
+        }
         const request = {
             'instId': market['id'],
         };
