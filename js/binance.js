@@ -1377,11 +1377,11 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         let method = 'privateGetAccount';
         if (type === 'future') {
-            const options = this.safeValue (this.options, 'future', {});
+            const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
         } else if (type === 'delivery') {
-            const options = this.safeValue (this.options, 'delivery', {});
+            const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
         } else if (type === 'margin') {
