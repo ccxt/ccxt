@@ -37,6 +37,9 @@ PAD_WITH_ZERO = 256
 def decimal_to_precision(x, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
     assert precision is not None
 
+    if x is None:
+        raise ValueError('x is None, but it must be a string number or a number')
+
     # handle tick size
     if counting_mode == TICK_SIZE:
         if isinstance(precision, str):

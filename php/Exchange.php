@@ -2869,6 +2869,10 @@ class Exchange {
     public static function decimal_to_precision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
         assert( $numPrecisionDigits !== null );
         
+        if ($x === null) {
+            throw new BaseError('x is null, but it must be a string number or a number');
+        }
+        
         // handle tick size
         if ($countingMode === TICK_SIZE) {
             if (is_string($numPrecisionDigits)) {
@@ -2882,7 +2886,7 @@ class Exchange {
                 $numPrecisionDigitsP = new Precise($mantissa, -$exponent);
                 $numPrecisionDigitsP->reduce();
             } else {
-                throw new BaseError('numPrecisionDigits must be a string or a number');
+                throw new BaseError('numPrecisionDigits must be a string number or a number');
             }
             if (gmp_cmp($numPrecisionDigitsP->integer, 0) <= 0) {
                 throw new BaseError('TICK_SIZE cant be used with negative or zero numPrecisionDigits');
@@ -2898,7 +2902,7 @@ class Exchange {
                 $mantissa = intval(round($x / pow(10, $exponent) ));
                 $xP = new Precise($mantissa, -$exponent);
             } else {
-                throw new BaseError('x must be a string or a number');
+                throw new BaseError('x must be a string number or a number');
             }
             
             $newNumPrecisionDigits = gmp_cmp($numPrecisionDigitsP->decimals, 0) > 0 ? $numPrecisionDigitsP->decimals : 0;

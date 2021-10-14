@@ -106,6 +106,10 @@ const decimalToPrecision = (x, roundingMode
 	var hasDot = null
 	var numPrecisionDigitsNum = null
 
+	if (x === null) {
+		throw new Error('x is null, but it must be a string number or a number')
+	}
+
 	/*  handle tick size */
     if (countingMode === TICK_SIZE) {
 		var numPrecisionDigitsP = null
@@ -120,7 +124,7 @@ const decimalToPrecision = (x, roundingMode
 	        numPrecisionDigitsP = new Precise (BigInt (mantissa), -exponent)
 	        numPrecisionDigitsP.reduce ()
 	    } else {
-	        throw new Error ('numPrecisionDigits must be a string or a Number')
+	        throw new Error ('numPrecisionDigits must be a string number or a Number')
 	    }
 		if (numPrecisionDigitsP.integer <= Bzero) {
 			throw new Error ('TICK_SIZE cant be used with negative or zero numPrecisionDigits')
@@ -138,7 +142,7 @@ const decimalToPrecision = (x, roundingMode
 	        xP = new Precise (BigInt (mantissa), -exponent)
 	        xP.reduce ()
 	    } else {
-	        throw new Error ('x must be a string or a Number')
+	        throw new Error ('x must be a string number or a Number')
 	    }
         const newNumPrecisionDigits = numPrecisionDigitsP.decimals > 0 ? numPrecisionDigitsP.decimals : 0
         const remainder = xP.mod (numPrecisionDigitsP)
