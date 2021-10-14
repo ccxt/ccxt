@@ -700,8 +700,8 @@ module.exports = class gateio extends Exchange {
                 'quote': quote,
                 'symbol': base + '/' + quote,
                 // Fee is in %, so divide by 100
-                'taker': Precise.stringDiv (takerPercent, '100'),
-                'maker': Precise.stringDiv (makerPercent, '100'),
+                'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
+                'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
             };
             // let fees = this.fees;
             if (isDerivative) {
