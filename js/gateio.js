@@ -689,8 +689,8 @@ module.exports = class gateio extends Exchange {
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const takerPercent = this.safeNumber2 (market, 'fee', 'taker_fee_rate');
-            const makerPercent = this.safeNumber (market, 'maker_fee_rate', takerPercent);
+            const takerPercent = this.safeString2 (market, 'fee', 'taker_fee_rate');
+            const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
             const resultItem = {
                 'market': response[i],
                 'id': id,
