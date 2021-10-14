@@ -367,22 +367,15 @@ module.exports = class mexc extends Exchange {
                     },
                 };
             }
-            const chainsLength = chains.length;
-            if (chainsLength === 1) {
-                const lastChain = this.safeValue (chains, chainsLength - 1, {});
-                currencyFee = this.safeFloat (lastChain, 'fee');
-                const currencyPrecisionDigits = this.safeInteger (lastChain, 'precision');
-                currencyPrecision = 1 / Math.pow (10, currencyPrecisionDigits);
+            const networkKeys = Object.keys (networks);
+            const networkKeysLength = networkKeys.length;
+            if ((networkKeysLength === 1) || ('NONE' in networks)) {
+                const defaultNetwork = this.safeValue (networks, 'NONE', networkKeysLength - 1);
+                if (defaultNetwork !== undefined) {
+                    currencyFee = defaultNetwork['fee'];
+                    currencyPrecision = defaultNetwork['precision'];
+                }
             }
-            // for (let j = 0; j < chains.length; j++) {
-            //     const canDeposit = this.safeValue (chain, 'canDep');
-            //     const canWithdraw = this.safeValue (chain, 'canWd');
-            //     const canInternal = this.safeValue (chain, 'canInternal');
-            //     const active = (canDeposit && canWithdraw && canInternal) ? true : false;
-            //     if (networkId.indexOf ('-') >= 0) {
-            //         const parts = networkId.split ('-');
-            //         networkId = this.safeString (parts, 1, networkId);
-            // }
             result[code] = {
                 'id': id,
                 'code': code,
