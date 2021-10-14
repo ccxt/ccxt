@@ -44,7 +44,7 @@ module.exports = class ftx extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': undefined,
-                'fetchFundingRate': undefined,
+                'fetchFundingRate': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': undefined,
