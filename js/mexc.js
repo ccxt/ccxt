@@ -181,6 +181,29 @@ module.exports = class mexc extends Exchange {
                 },
             },
             'options': {
+                'timeframes': {
+                    'spot': {
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1h',
+                        '1d': '1d',
+                        '1M': '1M',
+                    },
+                    'contract': {
+                        '1m': 'Min1',
+                        '5m': 'Min5',
+                        '15m': 'Min15',
+                        '30m': 'Min30',
+                        '1h': 'Min60',
+                        '4h': 'Hour4',
+                        '8h': 'Hour8',
+                        '1d': 'Day1',
+                        '1w': 'Week1',
+                        '1M': 'Month1',
+                    },
+                },
                 'defaultType': 'swap', // spot, swap
                 'networks': {
                 },
@@ -612,7 +635,7 @@ module.exports = class mexc extends Exchange {
         //         ]
         //     }
         //
-        // contract
+        // swap / contract
         //
         //     {
         //         "success":true,
@@ -763,7 +786,7 @@ module.exports = class mexc extends Exchange {
         //         }
         //     }
         //
-        // contract
+        // swap / contract
         //
         //     {
         //         "success":true,
@@ -821,7 +844,7 @@ module.exports = class mexc extends Exchange {
         //         ]
         //     }
         //
-        // contract
+        // swap / contract
         //
         //     {
         //         "success":true,
@@ -850,7 +873,7 @@ module.exports = class mexc extends Exchange {
         //         "trade_type":"BID"
         //     }
         //
-        //     contract
+        //     swap / contract
         //
         //     {
         //         "p":3598.85,
@@ -933,17 +956,31 @@ module.exports = class mexc extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, market['type'], {});
         const request = {
             'symbol': market['id'],
-            'interval': this.timeframes[timeframe],
+            'interval': timeframes[timeframe],
         };
-        if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000);
+        let method = undefined;
+        if (market['spot']) {
+            method = 'spotPublicGetMarketKline';
+            if (since !== undefined) {
+                request['start_time'] = parseInt (since / 1000);
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit; // default 100
+            }
+        } else if (market['swap']) {
+            method = 'contractPublicGetKlineSymbol';
+            if (since !== undefined) {
+                request['start'] = parseInt (since / 1000);
+            }
+            // request['end'] = this.seconds ();
         }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 100
-        }
-        const response = await this.spotPublicGetMarketKline (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         "code":200,
@@ -954,11 +991,35 @@ module.exports = class mexc extends Exchange {
         //         ],
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        // swap / contract
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":{
+        //             "time":[1634052300,1634052360,1634052420],
+        //             "open":[3492.2,3491.3,3495.65],
+        //             "close":[3491.3,3495.65,3495.2],
+        //             "high":[3495.85,3496.55,3499.4],
+        //             "low":[3491.15,3490.9,3494.2],
+        //             "vol":[1740.0,351.0,314.0],
+        //             "amount":[60793.623,12260.4885,10983.1375],
+        //         }
+        //     }
+        //
+        if (market['spot']) {
+            const data = this.safeValue (response, 'data', []);
+            return this.parseOHLCVs (data, market, timeframe, since, limit);
+        } else if (market['swap']) {
+            const data = this.safeValue (response, 'data', {});
+            const result = this.convertTradingViewToOHLCV (data, 'time', 'open', 'high', 'low', 'close', 'vol')
+            return this.parseOHLCVs (result, market, timeframe, since, limit);
+        }
     }
 
     parseOHLCV (ohlcv, market = undefined) {
+        //
+        // the ordering in spot candles is OCHLV
         //
         //     [
         //         1633377000, // 0 timestamp (unix seconds)
@@ -970,12 +1031,14 @@ module.exports = class mexc extends Exchange {
         //         "29434.259665989997", // 6 quote volume
         //     ]
         //
+        // the ordering in swap / contract candles is OHLCV
+        //
         return [
             this.safeTimestamp (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, market['spot'] ? 3 : 2),
+            this.safeNumber (ohlcv, market['spot'] ? 4 : 3),
+            this.safeNumber (ohlcv, market['spot'] ? 2 : 4),
             this.safeNumber (ohlcv, 5),
         ];
     }
