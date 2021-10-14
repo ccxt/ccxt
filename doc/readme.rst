@@ -355,6 +355,22 @@ Certified Cryptocurrency Exchanges
           :alt: CCXT Pro
      
      - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg
+          :target: https://m.mexc.com/auth/signup?inviteCode=1FQ1G
+          :alt: mexc
+     
+     - mexc
+     - `MEXC Global <https://m.mexc.com/auth/signup?inviteCode=1FQ1G>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://mxcdevelop.github.io/APIDoc/
+          :alt: API Version 2
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
           :target: https://www.okex.com/join/1888677
           :alt: okex
@@ -1514,7 +1530,10 @@ The CCXT library currently supports the following 108 cryptocurrency exchange ma
           :target: https://mxcdevelop.github.io/APIDoc/
           :alt: API Version 2
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/87460810-1dd06c00-c616-11ea-9276-956f400d6ffa.jpg
           :target: https://mixcoins.com
@@ -1922,14 +1941,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.58.12/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.58.12/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.58.13/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.58.13/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.58.12/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.58.13/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

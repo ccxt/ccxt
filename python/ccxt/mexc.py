@@ -31,6 +31,7 @@ class mexc(Exchange):
             'countries': ['SC'],  # Seychelles
             'rateLimit': 50,  # default rate limit is 20 times per second
             'version': 'v2',
+            'certified': True,
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,

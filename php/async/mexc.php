@@ -23,6 +23,7 @@ class mexc extends Exchange {
             'countries' => array( 'SC' ), // Seychelles
             'rateLimit' => 50, // default rate limit is 20 times per second
             'version' => 'v2',
+            'certified' => true,
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
