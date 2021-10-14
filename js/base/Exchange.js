@@ -1384,11 +1384,8 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' parseFundingRate() not supported yet')
     }
 
-    parseFundingRates (response, market = undefined, since = undefined, limit = undefined) {
-        const parsed = response.map ((res) => this.parseFundingRate (res, market))
-        const sorted = this.sortBy (parsed, 0)
-        const tail = since === undefined
-        return this.filterBySinceLimit (sorted, since, limit, 0, tail)
+    parseFundingRates (response, market = undefined) {
+        return response.map ((res) => this.parseFundingRate (res, market))
     }
 
     parseOHLCV (ohlcv, market = undefined) {

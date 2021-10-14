@@ -3867,7 +3867,7 @@ module.exports = class binance extends Exchange {
         //         "time": "1621252344001"
         //     }
         //
-        return this.parseFundingRate (response);
+        return this.parseFundingRate (response, market);
     }
 
     async fetchFundingRateHistory (symbol, limit = undefined, since = undefined, params = {}) {

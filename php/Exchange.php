@@ -1778,15 +1778,13 @@ class Exchange {
         throw new NotSupported($this->id . ' parse_funding_rate() not supported yet');
     }
 
-    public function parse_funding_rates($response, $market = null, $since = null, $limit = null) {
+    public function parse_funding_rates($response, $market = null) {
         $response = is_array($response) ? array_values($response) : array();
         $parsed = array();
         foreach ($response as $res) {
             $parsed[] = $this->parse_funding_rate($res, $market);
         }
-        $sorted = $this->sort_by($parsed, 0);
-        $tail = $since === null;
-        return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
+        return $parsed;
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
