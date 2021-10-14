@@ -1533,6 +1533,15 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
 
+    def parse_funding_rate(self, contract, market=None):
+        raise NotSupported(self.id + "parse_funding_rate has not been implemented")
+
+    def parse_funding_rates(self, response, market=None, timeframe='1m', since=None, limit=None):
+        parsed = [self.parse_funding_rate(res, market) for res in response]
+        sorted = self.sort_by(parsed, 0)
+        tail = since is None
+        return self.filter_by_since_limit(sorted, since, limit, 0, tail)
+
     def parse_ohlcv(self, ohlcv, market=None):
         if isinstance(ohlcv, list):
             return [
