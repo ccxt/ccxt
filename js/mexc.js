@@ -1048,8 +1048,12 @@ module.exports = class mexc extends Exchange {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        let method = 'spotPrivateGetAccountInfo';
-        if (type === 'swap') {
+        const spot = (type === 'spot');
+        const swap = (type === 'swap');
+        let method = undefined;
+        if (spot) {
+            method = 'spotPrivateGetAccountInfo';
+        } else if (swap) {
             method = 'contractPrivateGetAccountAssets';
         }
         const query = this.omit (params, 'type');
@@ -1066,7 +1070,15 @@ module.exports = class mexc extends Exchange {
         //
         // swap / contract
         //
-
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":[
+        //             {"currency":"BSV","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0},
+        //             {"currency":"BCH","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0},
+        //             {"currency":"CRV","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0},
+        //         ]
+        //     }
         //
         const data = this.safeValue (response, 'data', {});
         const result = {
@@ -1074,15 +1086,27 @@ module.exports = class mexc extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const currencyIds = Object.keys (data);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (data, currencyId, {});
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'frozen');
-            result[code] = account;
+        if (spot) {
+            const currencyIds = Object.keys (data);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const code = this.safeCurrencyCode (currencyId);
+                const balance = this.safeValue (data, currencyId, {});
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'available');
+                account['used'] = this.safeString (balance, 'frozen');
+                result[code] = account;
+            }
+        } else {
+            for (let i = 0; i < data.length; i++) {
+                const balance = data[i];
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'availableBalance');
+                account['used'] = this.safeString (balance, 'frozenBalance');
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
