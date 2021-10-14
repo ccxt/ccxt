@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, NotSupported } = require ('./base/errors');
+const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, NotSupported, PermissionDenied } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -215,6 +215,7 @@ module.exports = class mexc extends Exchange {
                     '400': BadRequest, // Invalid parameter
                     '401': AuthenticationError, // Invalid signature, fail to pass the validation
                     '429': RateLimitExceeded, // too many requests, rate limit rule is violated
+                    '1000': PermissionDenied, // {"success":false,"code":1000,"message":"Please open contract account first!"}
                     '10072': AuthenticationError, // Invalid access key
                     '10073': AuthenticationError, // Invalid request time
                     '10216': InvalidAddress, // {"code":10216,"msg":"No available deposit address"}
@@ -1045,7 +1046,16 @@ module.exports = class mexc extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.spotPrivateGetAccountInfo (params);
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        let method = 'spotPrivateGetAccountInfo';
+        if (type === 'swap') {
+            method = 'contractPrivateGetAccountAssets';
+        }
+        const query = this.omit (params, 'type');
+        const response = await this[method] (query);
+        //
+        // spot
         //
         //     {
         //         code: "200",
@@ -1053,6 +1063,10 @@ module.exports = class mexc extends Exchange {
         //             USDC: { frozen: "0", available: "150" }
         //         }
         //     }
+        //
+        // swap / contract
+        //
+
         //
         const data = this.safeValue (response, 'data', {});
         const result = {
