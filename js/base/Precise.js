@@ -177,7 +177,7 @@ class Precise {
             return undefined
         }
         const string2Precise = new Precise (string2)
-        if (string2Precise.equals (zero)) {
+        if (string2Precise.integer === zero) {
             return undefined
         }
         return (new Precise (string1)).div (string2Precise, precision).toString ()
