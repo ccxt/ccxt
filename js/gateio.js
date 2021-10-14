@@ -602,7 +602,7 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         const settle = this.safeString (params, 'settle');  // TODO: Save settle in markets?
         const request = {
-            'settle': settle,
+            'settle': settle.toLowerCase (),
         };
         const response = await this.publicFuturesGetSettleContracts (this.extend (request, params));
         //
@@ -716,9 +716,8 @@ module.exports = class gateio extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastFundingRate': undefined,
-            'currentFundingRate': fundingRate,
-            'nextEstimatedFundingRate': fundingRateIndicative,
+            'previousFundingRate': fundingRate,
+            'nextFundingRate': fundingRateIndicative,
             'lastFundingTimestamp': lastFundingTime,
             'nextFundingTimestamp': nextFundingTime,
             'lastFundingDatetime': this.iso8601 (lastFundingTime),
