@@ -370,7 +370,7 @@ module.exports = class mexc extends Exchange {
             const networkKeys = Object.keys (networks);
             const networkKeysLength = networkKeys.length;
             if ((networkKeysLength === 1) || ('NONE' in networks)) {
-                const defaultNetwork = this.safeValue (networks, 'NONE', networkKeysLength - 1);
+                const defaultNetwork = this.safeValue2 (networks, 'NONE', networkKeysLength - 1);
                 if (defaultNetwork !== undefined) {
                     currencyFee = defaultNetwork['fee'];
                     currencyPrecision = defaultNetwork['precision'];
