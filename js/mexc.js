@@ -1443,33 +1443,11 @@ module.exports = class mexc extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
 
+    }
 
-        let method = 'privatePostOrder';
-        if (orderType === 'future') {
-            method = 'fapiPrivatePostOrder';
-        } else if (orderType === 'delivery') {
-            method = 'dapiPrivatePostOrder';
-        } else if (orderType === 'margin') {
-            method = 'sapiPostMarginOrder';
-        }
-        // the next 5 lines are added to support for testing orders
-        if (market['spot']) {
-            const test = this.safeValue (params, 'test', false);
-            if (test) {
-                method += 'Test';
-            }
-            params = this.omit (params, 'test');
-        }
-        const uppercaseType = type.toUpperCase ();
-        const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
-        if (!this.inArray (uppercaseType, validOrderTypes)) {
-            throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
-        }
-
+    async createSpotOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-
-
         let orderSide = undefined;
         if (side === 'buy') {
             orderSide = 'BID';
@@ -1494,6 +1472,60 @@ module.exports = class mexc extends Exchange {
         }
         params = this.omit (params, [ 'type', 'clientOrderId', 'client_order_id' ]);
         const response = await this.spotPrivatePostOrderPlace (this.extend (request, params));
+        //
+        //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
+        //
+        return this.parseOrder (response, market);
+    }
+
+    async createSwapOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const openType = this.safeInteger (params, 'openType');
+        if (openType === undefined) {
+            throw new ArgumentsRequired (this.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin');
+        }
+        if ((type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
+            throw new InvalidOrder (this.id + ' createSwapOrder() order type must be 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
+        }
+        if ((side !== 1) && (side !== 2) && (side !== 3) && (side !== 4)) {
+            throw new InvalidOrder (this.id + ' createSwapOrder() order side must be 1 open long, 2 close short, 3 open short or 4 close long');
+        }
+        const request = {
+            'symbol': market['id'],
+            'price': this.priceToPrecision (symbol, price),
+            'vol': this.amountToPrecision (symbol, amount),
+            // 'leverage': int, // required for isolated margin
+            'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
+            //
+            // supported order types
+            //
+            //     1 limit
+            //     2 post only maker (PO)
+            //     3 transact or cancel instantly (IOC)
+            //     4 transact completely or cancel completely (FOK)
+            //     5 market orders
+            //     6 convert market price to current price
+            //
+            'type': type,
+            'openType': openType, // 1 isolated, 2 cross
+            // 'positionId': 1394650, // long, filling in this parameter when closing a position is recommended
+            // 'externalOid': clientOrderId,
+            // 'stopLossPrice': this.priceToPrecision (symbol, stopLossPrice),
+            // 'takeProfitPrice': this.priceToPrecision (symbol, takeProfitPrice),
+        };
+        if (openType === 1) {
+            const leverage = this.safeInteger (params, 'leverage');
+            if (leverage === undefined) {
+                throw new ArgumentsRequired (this.id + ' createSwapOrder() requires a leverage parameter for isolated margin orders');
+            }
+        }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'externalOid');
+        if (clientOrderId !== undefined) {
+            request['externalOid'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'clientOrderId', 'externalOid' ]);
+        const response = await this.contractPrivatePostOrderSubmit (this.extend (request, params));
         //
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
         //
@@ -1845,6 +1877,47 @@ module.exports = class mexc extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
+        const positionId = this.safeInteger (params, 'positionId');
+        if (positionId === undefined) {
+            throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionId parameter')
+        }
+        await this.loadMarkets ();
+        const request = {
+            'positionId': positionId,
+            'amount': amount,
+            'type': addOrReduce,
+        };
+        const response = await this.contractPrivatePostPositionChangeMargin (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0
+        //     }
+        return response;
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'SUB', params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'ADD', params);
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        const positionId = this.safeInteger (params, 'positionId');
+        if (positionId === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter')
+        }
+        await this.loadMarkets ();
+        const request = {
+            'positionId': positionId,
+            'leverage': leverage,
+        };
+        return await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
