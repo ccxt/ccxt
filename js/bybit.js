@@ -890,10 +890,17 @@ module.exports = class bybit extends Exchange {
         const nextFundingTime = lastFundingTime + (8 * 3600000);
         const currentTime = this.milliseconds ();
         return {
+            'info': result,
             'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
             'timestamp': currentTime,
             'datetime': this.iso8601 (currentTime),
             'lastFundingRate': lastFundingRate,
+            'currentFundingRate': undefined,
+            'nextEstimatedFundingRate': undefined,
             'lastFundingTimestamp': lastFundingTime,
             'nextFundingTimestamp': nextFundingTime,
             'lastFundingDatetime': this.iso8601 (lastFundingTime),
