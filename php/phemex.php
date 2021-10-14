@@ -384,16 +384,16 @@ class phemex extends Exchange {
         $quoteId = $this->safe_string($market, 'quoteCurrency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $base . '/' . $quote;
         $type = $this->safe_string_lower($market, 'type');
         $inverse = false;
         $spot = false;
         $swap = true;
-        $settlementCurrencyId = $this->safe_string($market, 'settlementCurrency');
+        $settlementCurrencyId = $this->safe_string($market, 'settleCurrency');
         if ($settlementCurrencyId !== $quoteId) {
             $inverse = true;
         }
         $linear = !$inverse;
+        $symbol = ($id[0] === 'u') ? $id : ($base . '/' . $quote); // fix for uBTCUSD $inverse
         $precision = array(
             'amount' => $this->safe_number($market, 'lotSize'),
             'price' => $this->safe_number($market, 'tickSize'),
