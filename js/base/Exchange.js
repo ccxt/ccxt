@@ -1380,6 +1380,17 @@ module.exports = class Exchange {
         return ((symbol !== undefined) ? array.filter ((entry) => entry.symbol === symbol) : array)
     }
 
+    parseFundingRate (contract, market = undefined) {
+        throw new NotSupported (this.id + "parseFundingRate has not been implemented")
+    }
+
+    parseFundingRates (response, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        const parsed = response.map ((res) => this.parseFundingRate (res, market))
+        const sorted = this.sortBy (parsed, 0)
+        const tail = since === undefined
+        return this.filterBySinceLimit (sorted, since, limit, 0, tail)
+    }
+
     parseOHLCV (ohlcv, market = undefined) {
         return Array.isArray (ohlcv) ? ohlcv.slice (0, 6) : ohlcv
     }
