@@ -1369,11 +1369,11 @@ class binance(Exchange):
         type = self.safe_string(params, 'type', defaultType)
         method = 'privateGetAccount'
         if type == 'future':
-            options = self.safe_value(self.options, 'future', {})
+            options = self.safe_value(self.options, type, {})
             fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
             method = self.safe_string(fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount')
         elif type == 'delivery':
-            options = self.safe_value(self.options, 'delivery', {})
+            options = self.safe_value(self.options, type, {})
             fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
             method = self.safe_string(fetchBalanceOptions, 'method', 'dapiPrivateGetAccount')
         elif type == 'margin':

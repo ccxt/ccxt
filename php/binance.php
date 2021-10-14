@@ -1383,11 +1383,11 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         $method = 'privateGetAccount';
         if ($type === 'future') {
-            $options = $this->safe_value($this->options, 'future', array());
+            $options = $this->safe_value($this->options, $type, array());
             $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
             $method = $this->safe_string($fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
         } else if ($type === 'delivery') {
-            $options = $this->safe_value($this->options, 'delivery', array());
+            $options = $this->safe_value($this->options, $type, array());
             $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
             $method = $this->safe_string($fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
         } else if ($type === 'margin') {
