@@ -1381,7 +1381,7 @@ module.exports = class Exchange {
     }
 
     parseFundingRate (contract, market = undefined) {
-        throw new NotSupported (this.id + "parseFundingRate has not been implemented")
+        throw new NotSupported (this.id + ' parseFundingRate() is not implemented')
     }
 
     parseFundingRates (response, market = undefined, since = undefined, limit = undefined) {
