@@ -37,7 +37,9 @@ module.exports = class gateio extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -539,6 +541,136 @@ module.exports = class gateio extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchFundingRates (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const settle = this.safeString (params, 'settle');  // TODO: Save settle in markets?
+        const request = {
+            'settle': settle,
+        };
+        const response = await this.publicFuturesGetSettleContracts (this.extend (request, params));
+        //
+        // [
+        //     {
+        //       "name": "BTC_USDT",
+        //       "type": "direct",
+        //       "quanto_multiplier": "0.0001",
+        //       "ref_discount_rate": "0",
+        //       "order_price_deviate": "0.5",
+        //       "maintenance_rate": "0.005",
+        //       "mark_type": "index",
+        //       "last_price": "38026",
+        //       "mark_price": "37985.6",
+        //       "index_price": "37954.92",
+        //       "funding_rate_indicative": "0.000219",
+        //       "mark_price_round": "0.01",
+        //       "funding_offset": 0,
+        //       "in_delisting": false,
+        //       "risk_limit_base": "1000000",
+        //       "interest_rate": "0.0003",
+        //       "order_price_round": "0.1",
+        //       "order_size_min": 1,
+        //       "ref_rebate_rate": "0.2",
+        //       "funding_interval": 28800,
+        //       "risk_limit_step": "1000000",
+        //       "leverage_min": "1",
+        //       "leverage_max": "100",
+        //       "risk_limit_max": "8000000",
+        //       "maker_fee_rate": "-0.00025",
+        //       "taker_fee_rate": "0.00075",
+        //       "funding_rate": "0.002053",
+        //       "order_size_max": 1000000,
+        //       "funding_next_apply": 1610035200,
+        //       "short_users": 977,
+        //       "config_change_time": 1609899548,
+        //       "trade_size": 28530850594,
+        //       "position_size": 5223816,
+        //       "long_users": 455,
+        //       "funding_impact_value": "60000",
+        //       "orders_limit": 50,
+        //       "trade_id": 10851092,
+        //       "orderbook_id": 2129638396
+        //     }
+        //   ]
+        //
+        const result = this.parseFundingRates (response);
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //       "name": "BTC_USDT",
+        //       "type": "direct",
+        //       "quanto_multiplier": "0.0001",
+        //       "ref_discount_rate": "0",
+        //       "order_price_deviate": "0.5",
+        //       "maintenance_rate": "0.005",
+        //       "mark_type": "index",
+        //       "last_price": "38026",
+        //       "mark_price": "37985.6",
+        //       "index_price": "37954.92",
+        //       "funding_rate_indicative": "0.000219",
+        //       "mark_price_round": "0.01",
+        //       "funding_offset": 0,
+        //       "in_delisting": false,
+        //       "risk_limit_base": "1000000",
+        //       "interest_rate": "0.0003",
+        //       "order_price_round": "0.1",
+        //       "order_size_min": 1,
+        //       "ref_rebate_rate": "0.2",
+        //       "funding_interval": 28800,
+        //       "risk_limit_step": "1000000",
+        //       "leverage_min": "1",
+        //       "leverage_max": "100",
+        //       "risk_limit_max": "8000000",
+        //       "maker_fee_rate": "-0.00025",
+        //       "taker_fee_rate": "0.00075",
+        //       "funding_rate": "0.002053",
+        //       "order_size_max": 1000000,
+        //       "funding_next_apply": 1610035200,
+        //       "short_users": 977,
+        //       "config_change_time": 1609899548,
+        //       "trade_size": 28530850594,
+        //       "position_size": 5223816,
+        //       "long_users": 455,
+        //       "funding_impact_value": "60000",
+        //       "orders_limit": 50,
+        //       "trade_id": 10851092,
+        //       "orderbook_id": 2129638396
+        //     }
+        //
+        const marketId = this.safeString (contract, 'name');
+        const symbol = this.safeSymbol (marketId, market);
+        const markPrice = this.safeNumber (contract, 'mark_price');
+        const indexPrice = this.safeNumber (contract, 'index_price');
+        const interestRate = this.safeNumber (contract, 'interest_rate');
+        const fundingRate = this.safeString (contract, 'funding_rate');
+        const fundingInterval = this.safeString (contract, 'funding_interval') * 1000;
+        const nextFundingTime = this.safeInteger (contract, 'funding_next_apply') * 1000;
+        const lastFundingTime = (this.safeNumber (contract, 'funding_next_apply') * 1000) - fundingInterval;
+        const fundingRateIndicative = this.safeNumber (contract, 'funding_rate_indicative');
+        const markPriceRound = this.safeNumber (contract, 'mark_price_round');
+        const fundingOffset = this.safeNumber (contract, 'funding_offset');
+        const fundingImpactValue = this.safeNumber (contract, 'funding_impact_value');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'interestRate': interestRate,
+            'currentFundingRate': fundingRate,
+            'nextEstimatedFundingRate': fundingRateIndicative,
+            'lastFundingTimestamp': lastFundingTime,
+            'nextFundingTimestamp': nextFundingTime,
+            'lastFundingDatetime': this.iso8601 (lastFundingTime),
+            'nextFundingDatetime': this.iso8601 (nextFundingTime),
+            'funding_interval': fundingInterval,
+            'markPriceRound': markPriceRound,
+            'fundingOffset': fundingOffset,
+            'fundingImpactValue': fundingImpactValue,
+        };
     }
 
     async fetchNetworkDepositAddress (code, params = {}) {
