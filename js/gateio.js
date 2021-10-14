@@ -697,7 +697,7 @@ module.exports = class gateio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const taker = this.safeNumber2 (market, 'fee', 'taker_fee_rate') / 100;
             const maker = this.safeNumber (market, 'maker_fee_rate', taker * 100) / 100;
-            const res = {
+            const result_item = {
                 'market': response[i],
                 'id': id,
                 'baseId': baseId,
@@ -711,10 +711,10 @@ module.exports = class gateio extends Exchange {
             };
             // let fees = this.fees;
             if (isDerivative) {
-                res['contractSize'] = this.safeString (market, 'contractSize', '1');
-                res['contractType'] = future ? 'Perpetual' : this.safeString (market, 'cycle');
+                result_item['contractSize'] = this.safeString (market, 'contractSize', '1');
+                result_item['contractType'] = future ? 'Perpetual' : this.safeString (market, 'cycle');
                 // fees = this.fees[type]; //TODO
-                res['limits'] = {
+                result_item['limits'] = {
                     'leverage': {
                         'min': this.safeNumber (market, 'leverage_min'),
                         'max': this.safeNumber (market, 'leverage_max'),
@@ -725,10 +725,10 @@ module.exports = class gateio extends Exchange {
                     },
                 };
                 if (delivery) {
-                    res['expiry'] = this.safeInteger (market, 'expire_time');
-                    res['inverse'] = true;
+                    result_item['expiry'] = this.safeInteger (market, 'expire_time');
+                    result_item['inverse'] = true;
                 } else {
-                    res['linear'] = true;
+                    result_item['linear'] = true;
                 }
             } else {
                 const amountPrecision = this.safeString (market, 'amount_precision');
@@ -740,10 +740,9 @@ module.exports = class gateio extends Exchange {
                     'amount': parseInt (amountPrecision),
                     'price': parseInt (pricePrecision),
                 };
-                res['tradeStatus'] = tradeStatus;
-                res['active'] = tradeStatus === 'tradable';
-                res['precision'] = precision;
-                res['limits'] = {
+                result_item['active'] = tradeStatus === 'tradable';
+                result_item['precision'] = precision;
+                result_item['limits'] = {
                     'amount': {
                         'min': this.parseNumber (amountLimit),
                         'max': undefined,
@@ -758,7 +757,7 @@ module.exports = class gateio extends Exchange {
                     },
                 };
             }
-            result.push (res);
+            result.push (result_item);
         }
         return result;
     }
