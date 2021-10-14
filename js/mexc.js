@@ -912,9 +912,9 @@ module.exports = class mexc extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         let priceString = this.safeString2 (trade, 'price', 'trade_price');
-        priceString = this.safeString (trade, 'p');
+        priceString = this.safeString (trade, 'p', priceString);
         let amountString = this.safeString2 (trade, 'quantity', 'trade_quantity');
-        amountString = this.safeString (trade, 'v');
+        amountString = this.safeString (trade, 'v', amountString);
         let costString = this.safeString (trade, 'amount');
         if (costString === undefined) {
             costString = Precise.stringMul (priceString, amountString);
