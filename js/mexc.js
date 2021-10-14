@@ -20,6 +20,7 @@ module.exports = class mexc extends Exchange {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
@@ -42,6 +43,7 @@ module.exports = class mexc extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWIthdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -164,6 +166,7 @@ module.exports = class mexc extends Exchange {
                         'post': {
                             'order/place': 1,
                             'order/place_batch': 1,
+                            'asset/withdraw': 1,
                         },
                         'delete': {
                             'order/cancel': 1,
@@ -207,6 +210,11 @@ module.exports = class mexc extends Exchange {
                 },
                 'defaultType': 'spot', // spot, swap
                 'networks': {
+                    'TRX': 'TRC-20',
+                    'TRC20': 'TRC-20',
+                    'ETH': 'ERC-20',
+                    'ERC20': 'ERC-20',
+                    'BEP20': 'BEP20(BSC)',
                 },
             },
             'commonCurrencies': {
@@ -1160,14 +1168,16 @@ module.exports = class mexc extends Exchange {
     }
 
     safeNetwork (networkId) {
-        networkId = networkId.split (' ');
-        networkId = networkId.join ('');
+        if (networkId.indexOf ('BSC') >= 0) {
+            return 'BEP20';
+        }
+        const parts = networkId.split (' ');
+        networkId = parts.join ('');
+        networkId = networkId.replace ('-20', '20');
         const networksById = {
             'ETH': 'ERC20',
             'BEP20(BSC)': 'BEP20',
-            'ERC-20': 'ERC20',
             'TRX': 'TRC20',
-            'TRC-20': 'TRC20',
         };
         return this.safeString (networksById, networkId, networkId);
     }
@@ -1987,6 +1997,31 @@ module.exports = class mexc extends Exchange {
             'leverage': leverage,
         };
         return await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString2 (params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        if (tag !== undefined) {
+            address += ':' + tag;
+        }
+        const request = {
+            'currency': currency['id'],
+            'address': address,
+            'amount': amount,
+        };
+        if (network !== undefined) {
+            request['chain'] = network;
+            params = this.omit (params, [ 'network', 'chain' ]);
+        }
+        const response = await this.spotPrivatePostAssetWithdraw (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransaction (data, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
