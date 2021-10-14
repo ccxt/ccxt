@@ -532,28 +532,29 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        // :param params['type']: 'spot', 'margin', 'future' or 'delivery'
+        // :param params['settle']: The quote currency
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         const spot = (type === 'spot');
         const margin = (type === 'margin');
-        const future = (type === 'future');
-        const delivery = (type === 'delivery');
-        const isDerivative = future || delivery;
-        if (!spot && !margin && !future && !delivery) {
+        const linear = (type === 'future' || type === 'linear');
+        const inverse = (type === 'delivery' || type === 'inverse');
+        const isDerivative = linear || inverse;
+        if (!spot && !margin && !linear && !inverse) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
         }
         if (isDerivative) {
-            if (!('settle' in params)) {
-                throw new ArgumentsRequired (this.id + 'fetchMarkets requires a settle currency("BTC" or "USDT") with defaultType: future');
-            } else {
-                query['settle'] = params['settle'];
+            query['settle'] = inverse ? 'usdt' : 'btc';
+            if ('settle' in params) {
+                query['settle'] = params['settle'].toLowerCase ();
             }
         }
         let method = 'publicSpotGetCurrencyPairs';
-        if (future) {
+        if (linear) {
             method = 'publicFuturesGetSettleContracts';
-        } else if (delivery) {
+        } else if (inverse) {
             method = 'publicDeliveryGetSettleContracts';
         } else if (margin) {
             method = 'publicMarginGetCurrencyPairs';
@@ -706,7 +707,7 @@ module.exports = class gateio extends Exchange {
             // let fees = this.fees;
             if (isDerivative) {
                 resultItem['contractSize'] = this.safeString (market, 'contractSize', '1');
-                resultItem['contractType'] = future ? 'Perpetual' : this.safeString (market, 'cycle');
+                resultItem['contractType'] = linear ? 'Perpetual' : this.safeString (market, 'cycle');
                 // fees = this.fees[type]; //TODO
                 resultItem['limits'] = {
                     'leverage': {
@@ -718,7 +719,7 @@ module.exports = class gateio extends Exchange {
                         'max': this.safeNumber (market, 'order_size_max'),
                     },
                 };
-                if (delivery) {
+                if (inverse) {
                     resultItem['expiry'] = this.safeInteger (market, 'expire_time');
                     resultItem['inverse'] = true;
                 } else {
