@@ -296,6 +296,10 @@ module.exports = class gateio extends Exchange {
                     'delivery': 'delivery',
                 },
                 'defaultType': 'spot',
+                'settlementCurrencies': [
+                    'btc',
+                    'usdt',
+                ],
             },
             'fees': {
                 'trading': {
@@ -558,7 +562,7 @@ module.exports = class gateio extends Exchange {
             method = 'publicMarginGetCurrencyPairs';
         }
         if (futures || delivery) {
-            const settles = ['usdt', 'btc'];
+            const settles = this.safeValue (this.options, 'settleCurrencies', ['usdt']);
             for (let i = 0; i < settles.length; i++) {
                 query['settle'] = settles[i];
                 response = await this[method] (query);
