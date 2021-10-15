@@ -44,7 +44,7 @@ module.exports = class ftx extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': undefined,
-                'fetchFundingRate': undefined,
+                'fetchFundingRate': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': undefined,
@@ -2156,7 +2156,6 @@ module.exports = class ftx extends Exchange {
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const method = 'private_get_funding_payments';
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -2166,8 +2165,73 @@ module.exports = class ftx extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privateGetFundingPayments (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         return this.parseIncomes (result, market, since, limit);
+    }
+
+    parseFundingRate (fundingRate, market = undefined) {
+        //
+        // perp
+        //     {
+        //       "volume": "71294.7636",
+        //       "nextFundingRate": "0.000033",
+        //       "nextFundingTime": "2021-10-14T20:00:00+00:00",
+        //       "openInterest": "47142.994"
+        //     }
+        //
+        // delivery
+        //     {
+        //       "volume": "4998.727",
+        //       "predictedExpirationPrice": "3798.820141757",
+        //       "openInterest": "48307.96"
+        //     }
+        //
+        const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
+        const nextFundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
+        const nextFundingRateTimestamp = this.parse8601 (nextFundingRateDatetimeRaw);
+        let previousFundingTimestamp = undefined;
+        if (nextFundingRateTimestamp !== undefined) {
+            previousFundingTimestamp = nextFundingRateTimestamp - 3600000;
+        }
+        const estimatedSettlePrice = this.safeNumber (fundingRate, 'predictedExpirationPrice');
+        return {
+            'info': fundingRate,
+            'symbol': market['symbol'],
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': estimatedSettlePrice,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'previousFundingRate': undefined,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
+            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'future_name': market['id'],
+        };
+        const response = await this.publicGetFuturesFutureNameStats (this.extend (request, params));
+        //
+        //     {
+        //       "success": true,
+        //       "result": {
+        //         "volume": "71294.7636",
+        //         "nextFundingRate": "0.000033",
+        //         "nextFundingTime": "2021-10-14T20:00:00+00:00",
+        //         "openInterest": "47142.994"
+        //       }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseFundingRate (result, market);
     }
 };
