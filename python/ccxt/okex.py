@@ -2188,10 +2188,11 @@ class okex(Exchange):
         return self.index_by(parsed, 'network')
 
     def fetch_deposit_address(self, code, params={}):
-        response = self.fetch_deposit_addresses_by_network(code, params)
         rawNetwork = self.safe_string(params, 'network')
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string(networks, rawNetwork, rawNetwork)
+        params = self.omit(params, 'network')
+        response = self.fetch_deposit_addresses_by_network(code, params)
         result = None
         if network is None:
             result = self.safe_value(response, code)
