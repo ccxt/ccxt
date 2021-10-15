@@ -1419,26 +1419,35 @@ class okex(Exchange):
         else:
             request['clOrdId'] = clientOrderId
             params = self.omit(params, ['clOrdId', 'clientOrderId'])
+        request['sz'] = self.amount_to_precision(symbol, amount)
         if type == 'market':
-            # for market buy it requires the amount of quote currency to spend
-            if side == 'buy':
-                notional = self.safe_number(params, 'sz')
-                createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
-                if createMarketBuyOrderRequiresPrice:
-                    if price is not None:
-                        if notional is None:
-                            notional = amount * price
-                    elif notional is None:
-                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter(the exchange-specific behaviour)")
+            if market['type'] == 'spot' and side == 'buy':
+                # spot market buy: "sz" can refer either to base currency units or to quote currency units
+                # see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
+                defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
+                tgtCcy = self.safe_string(params, 'tgtCcy', defaultTgtCcy)
+                if tgtCcy == 'quote_ccy':
+                    # quote_ccy: sz refers to units of quote currency
+                    request['tgtCcy'] = 'quote_ccy'
+                    notional = self.safe_number(params, 'sz')
+                    createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
+                    if createMarketBuyOrderRequiresPrice:
+                        if price is not None:
+                            if notional is None:
+                                notional = amount * price
+                        elif notional is None:
+                            raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter(the exchange-specific behaviour)")
+                    else:
+                        notional = amount if (notional is None) else notional
+                    precision = market['precision']['price']
+                    request['sz'] = self.decimal_to_precision(notional, TRUNCATE, precision, self.precisionMode)
                 else:
-                    notional = amount if (notional is None) else notional
-                precision = market['precision']['price']
-                request['sz'] = self.decimal_to_precision(notional, TRUNCATE, precision, self.precisionMode)
-            else:
-                request['sz'] = self.amount_to_precision(symbol, amount)
+                    # base_ccy: sz refers to units of base currency
+                    request['tgtCcy'] = 'base_ccy'
+                params = self.omit(params, ['tgtCcy'])
         else:
+            # non-market orders
             request['px'] = self.price_to_precision(symbol, price)
-            request['sz'] = self.amount_to_precision(symbol, amount)
         extendedRequest = None
         defaultMethod = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')  # or privatePostTradeOrder
         if defaultMethod == 'privatePostTradeOrder':

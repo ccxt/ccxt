@@ -1456,30 +1456,40 @@ class okex extends Exchange {
             $request['clOrdId'] = $clientOrderId;
             $params = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
         }
+        $request['sz'] = $this->amount_to_precision($symbol, $amount);
         if ($type === 'market') {
-            // for $market buy it requires the $amount of quote currency to spend
-            if ($side === 'buy') {
-                $notional = $this->safe_number($params, 'sz');
-                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                if ($createMarketBuyOrderRequiresPrice) {
-                    if ($price !== null) {
-                        if ($notional === null) {
-                            $notional = $amount * $price;
+            if ($market['type'] === 'spot' && $side === 'buy') {
+                // spot $market buy => "sz" can refer either to base currency units or to quote currency units
+                // see documentation => https://www.okex.com/docs-v5/en/#rest-api-trade-place-$order
+                $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
+                $tgtCcy = $this->safe_string($params, 'tgtCcy', $defaultTgtCcy);
+                if ($tgtCcy === 'quote_ccy') {
+                    // quote_ccy => sz refers to units of quote currency
+                    $request['tgtCcy'] = 'quote_ccy';
+                    $notional = $this->safe_number($params, 'sz');
+                    $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+                    if ($createMarketBuyOrderRequiresPrice) {
+                        if ($price !== null) {
+                            if ($notional === null) {
+                                $notional = $amount * $price;
+                            }
+                        } else if ($notional === null) {
+                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
                         }
-                    } else if ($notional === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
+                    } else {
+                        $notional = ($notional === null) ? $amount : $notional;
                     }
+                    $precision = $market['precision']['price'];
+                    $request['sz'] = $this->decimal_to_precision($notional, TRUNCATE, $precision, $this->precisionMode);
                 } else {
-                    $notional = ($notional === null) ? $amount : $notional;
+                    // base_ccy => sz refers to units of base currency
+                    $request['tgtCcy'] = 'base_ccy';
                 }
-                $precision = $market['precision']['price'];
-                $request['sz'] = $this->decimal_to_precision($notional, TRUNCATE, $precision, $this->precisionMode);
-            } else {
-                $request['sz'] = $this->amount_to_precision($symbol, $amount);
+                $params = $this->omit($params, array( 'tgtCcy' ));
             }
         } else {
+            // non-$market orders
             $request['px'] = $this->price_to_precision($symbol, $price);
-            $request['sz'] = $this->amount_to_precision($symbol, $amount);
         }
         $extendedRequest = null;
         $defaultMethod = $this->safe_string($this->options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder
