@@ -1432,10 +1432,11 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        const response = await this.fetchDepositAddressesByNetwork (code, params);
         const rawNetwork = this.safeStringUpper (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeStringUpper (networks, rawNetwork, rawNetwork);
+        params = this.omit (params, 'network');
+        const response = await this.fetchDepositAddressesByNetwork (code, params);
         let result = undefined;
         if (network === undefined) {
             result = this.safeValue (response, code);
