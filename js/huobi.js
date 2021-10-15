@@ -1364,12 +1364,12 @@ module.exports = class huobi extends Exchange {
     }
 
     safeNetwork (networkId) {
-        const lastCharacter = networkId[networkId.length - 1];
+        const lastCharacterIndex = networkId.length - 1;
+        const lastCharacter = networkId[lastCharacterIndex];
         if (lastCharacter === '1') {
-            networkId = networkId.slice (0, networkId.length - 1);
+            networkId = networkId.slice (0, lastCharacterIndex);
         }
-        const networksById = {
-        };
+        const networksById = {};
         return this.safeString (networksById, networkId, networkId);
     }
 
@@ -1382,7 +1382,6 @@ module.exports = class huobi extends Exchange {
         //         chain: "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
         //     }
         //
-        // process.exit ();
         const address = this.safeString (depositAddress, 'address');
         let tag = this.safeString (depositAddress, 'addressTag');
         if (tag === '') {
