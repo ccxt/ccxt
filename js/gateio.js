@@ -569,10 +569,10 @@ module.exports = class gateio extends Exchange {
         }
         if (futures || delivery) {
             const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
-            const marketOptions = this.safeValue (options, 'fetchMarchets', {});
-            const settles = this.safeValue (marketOptions, 'settlementCurrencies', ['usdt']);
-            for (let i = 0; i < settles.length; i++) {
-                query['settle'] = settles[i];
+            const fetchMarketsContractOptions = this.safeValue (options, 'fetchMarchets', {});
+            const settlementCurrencies = this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', ['usdt']);
+            for (let i = 0; i < settlementCurrencies.length; i++) {
+                query['settle'] = settlementCurrencies[i];
                 response = await this[method] (query);
                 //  Futures
                 //      [
@@ -664,7 +664,7 @@ module.exports = class gateio extends Exchange {
                 //        ]
                 //
                 for (let i = 0; i < response.length; i++) {
-                    result.push (this.parseMarket (response[i], type, settles[i]));
+                    result.push (this.parseMarket (response[i], type, settlementCurrencies[i]));
                 }
             }
         } else {
