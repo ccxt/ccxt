@@ -2156,7 +2156,6 @@ module.exports = class ftx extends Exchange {
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const method = 'privateGetFundingPayments';
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -2166,7 +2165,7 @@ module.exports = class ftx extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privateGetFundingPayments (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         return this.parseIncomes (result, market, since, limit);
     }
