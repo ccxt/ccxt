@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -493,7 +493,7 @@ module.exports = class okex extends Exchange {
                     'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
-                'createMarketBuyOrderRequiresPrice': false,
+                'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot', 'futures', 'swap' ], // spot, futures, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 // 'fetchBalance': {
@@ -1455,11 +1455,37 @@ module.exports = class okex extends Exchange {
         request['sz'] = this.amountToPrecision (symbol, amount);
         if (type === 'market') {
             if (market['type'] === 'spot' && side === 'buy') {
-                // for spot market buy, tell OKEx that "sz" refers to the base currency units
+                // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
-                request['tgtCcy'] = 'base_ccy';
+
+                const tgtCcy = this.safeString (params, 'tgtCcy', 'base_ccy');
+                if (tgtCcy === 'quote_ccy') {
+                    // quote_ccy: sz refers to units of quote currency
+                    request['tgtCcy'] = 'quote_ccy';
+
+                    let notional = this.safeNumber (params, 'sz');
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    if (createMarketBuyOrderRequiresPrice) {
+                        if (price !== undefined) {
+                            if (notional === undefined) {
+                                notional = amount * price;
+                            }
+                        } else if (notional === undefined) {
+                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
+                        }
+                    } else {
+                        notional = (notional === undefined) ? amount : notional;
+                    }
+                    const precision = market['precision']['price'];
+                    request['sz'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
+                } else {
+                    // base_ccy: sz refers to units of base currency
+                    request['tgtCcy'] = 'base_ccy';
+                }
+                params = this.omit (params, [ 'tgtCcy' ]);
             }
         } else {
+            // non-market orders
             request['px'] = this.priceToPrecision (symbol, price);
         }
         let extendedRequest = undefined;
