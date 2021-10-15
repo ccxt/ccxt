@@ -652,7 +652,7 @@ module.exports = class gateio extends Exchange {
                 //        ]
                 //
                 for (let i = 0; i < response.length; i++) {
-                    result.push (this.parseMarket (response[i], type));
+                    result.push (this.parseMarket (response[i], type, settles[i]));
                 }
             }
         } else {
@@ -694,10 +694,9 @@ module.exports = class gateio extends Exchange {
         return result;
     }
 
-    parseMarket (market, type) {
+    parseMarket (market, type, settleCurrency) {
         const id = this.safeString2 (market, 'id', 'name');
         const spot = (type === 'spot');
-        const margin = (type === 'margin');
         const futures = (type === 'future');
         const swap = (type === 'swap');
         const option = (type === 'option');
@@ -708,8 +707,8 @@ module.exports = class gateio extends Exchange {
         } else {
             [ baseId, quoteId ] = id.split ('_');
         }
-        const linear = futures;
-        const inverse = !linear && !spot && !margin;
+        const linear = quoteId === settleCurrency;
+        const inverse = baseId === settleCurrency;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = spot ? (base + '/' + quote) : id;
