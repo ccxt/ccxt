@@ -903,16 +903,23 @@ module.exports = class huobi extends Exchange {
             let currencyActive = false;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const networkId = this.safeString (chain, 'chain');
+                let networkId = this.safeString (chain, 'chain');
                 let network = this.safeString (chain, 'baseChainProtocol');
+                console.log ({ currencyId, code, networkId, x: networkId.replace (currencyId, '') });
+                if (code === 'TRX') {
+                    console.log (entry);
+                    process.exit ();
+                }
+                // let networkId = this.safeString (chain, 'baseChainProtocol');
                 const huobiToken = 'h' + currencyId;
-                if (network === undefined) {
+                if (networkId === undefined) {
                     if (huobiToken === networkId) {
                         network = 'ERC20';
                     } else {
                         network = this.safeString (chain, 'displayName');
                     }
                 }
+                network = this.safeNetwork (networkId);
                 const minWithdraw = this.safeNumber (chain, 'minWithdrawAmt');
                 const maxWithdraw = this.safeNumber (chain, 'maxWithdrawAmt');
                 const withdraw = this.safeString (chain, 'withdrawStatus');
@@ -952,6 +959,7 @@ module.exports = class huobi extends Exchange {
                 'networks': networks,
             };
         }
+        process.exit ();
         return result;
     }
 
@@ -1361,27 +1369,38 @@ module.exports = class huobi extends Exchange {
         return this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']);
     }
 
+    safeNetwork (networkId) {
+        // networkId = (currency === undefined) ? networkId :
+        const networksById = {
+        };
+        return this.safeString (networksById, networkId, networkId);
+    }
+
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
         //         currency: "usdt",
         //         address: "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
         //         addressTag: "",
-        //         chain: "usdterc20/trc20usdt/hrc20usdt/usdt/algousdt"
+        //         chain: "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
         //     }
         //
+        // process.exit ();
         const address = this.safeString (depositAddress, 'address');
         let tag = this.safeString (depositAddress, 'addressTag');
         if (tag === '') {
             tag = undefined;
         }
         const currencyId = this.safeString (depositAddress, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
         const code = this.safeCurrencyCode (currencyId, currency);
-        const chain = this.safeString (depositAddress, 'chain');
+        const networkId = this.safeString (depositAddress, 'chain');
+        // const network = this.safeNetwork (networkId);
         const networks = this.safeValue (currency, 'networks', {});
-        const networksByChain = this.indexBy (networks, 'id');
-        const networkValue = this.safeValue (networksByChain, chain, chain);
+        const networksById = this.indexBy (networks, 'id');
+        const networkValue = this.safeValue (networksById, networkId, networkId);
         const network = this.safeString (networkValue, 'network');
+        console.log ({ networkId, network, networksById });
         this.checkAddress (address);
         return {
             'currency': code,
@@ -1412,14 +1431,17 @@ module.exports = class huobi extends Exchange {
         //         ]
         //     }
         //
+        // const data = this.safeValue (response, 'data', []);
+        // const result = {};
+        // for (let i = 0; i < data.length; i++) {
+        //     const entry = data[i];
+        //     const parsed = this.parseDepositAddress (entry, currency);
+        //     result[parsed['network']] = parsed;
+        // }
+        // return result;
         const data = this.safeValue (response, 'data', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const parsed = this.parseDepositAddress (entry, currency);
-            result[parsed['network']] = parsed;
-        }
-        return result;
+        const parsed = this.parseDepositAddresses (data, [ code ], false);
+        return this.indexBy (parsed, 'network');
     }
 
     async fetchDepositAddress (code, params = {}) {
