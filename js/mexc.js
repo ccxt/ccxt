@@ -340,13 +340,13 @@ module.exports = class mexc extends Exchange {
                 const isDepositEnabled = this.safeValue (chain, 'is_deposit_enabled', false);
                 const isWithdrawEnabled = this.safeValue (chain, 'is_withdraw_enabled', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
-                currencyActive = currencyActive || active;
+                currencyActive = (currencyActive === undefined) ? active : currencyActive;
                 const precisionDigits = this.safeInteger (chain, 'precision');
                 const precision = 1 / Math.pow (10, precisionDigits);
                 const withdrawMin = this.safeString (chain, 'withdraw_limit_min');
                 const withdrawMax = this.safeString (chain, 'withdraw_limit_max');
-                currencyWithdrawMin = currencyWithdrawMin || withdrawMin;
-                currencyWithdrawMax = currencyWithdrawMax || withdrawMax;
+                currencyWithdrawMin = (currencyWithdrawMin === undefined) ? withdrawMin : currencyWithdrawMin;
+                currencyWithdrawMax = (currencyWithdrawMax === undefined) ? withdrawMax : currencyWithdrawMax;
                 if (Precise.stringGt (currencyWithdrawMin, withdrawMin)) {
                     currencyWithdrawMin = withdrawMin;
                 }
