@@ -33,7 +33,7 @@ module.exports = class huobi extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchNetworkDepositAddress': true,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -903,23 +903,17 @@ module.exports = class huobi extends Exchange {
             let currencyActive = false;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                let networkId = this.safeString (chain, 'chain');
-                let network = this.safeString (chain, 'baseChainProtocol');
-                console.log ({ currencyId, code, networkId, x: networkId.replace (currencyId, '') });
-                if (code === 'TRX') {
-                    console.log (entry);
-                    process.exit ();
-                }
-                // let networkId = this.safeString (chain, 'baseChainProtocol');
+                const networkId = this.safeString (chain, 'chain');
+                let baseChainProtocol = this.safeString (chain, 'baseChainProtocol');
                 const huobiToken = 'h' + currencyId;
-                if (networkId === undefined) {
+                if (baseChainProtocol === undefined) {
                     if (huobiToken === networkId) {
-                        network = 'ERC20';
+                        baseChainProtocol = 'ERC20';
                     } else {
-                        network = this.safeString (chain, 'displayName');
+                        baseChainProtocol = this.safeString (chain, 'displayName');
                     }
                 }
-                network = this.safeNetwork (networkId);
+                const network = this.safeNetwork (baseChainProtocol);
                 const minWithdraw = this.safeNumber (chain, 'minWithdrawAmt');
                 const maxWithdraw = this.safeNumber (chain, 'maxWithdrawAmt');
                 const withdraw = this.safeString (chain, 'withdrawStatus');
@@ -944,6 +938,7 @@ module.exports = class huobi extends Exchange {
                 };
             }
             result[code] = {
+                'info': undefined,
                 'code': code,
                 'id': currencyId,
                 'active': currencyActive,
@@ -959,7 +954,6 @@ module.exports = class huobi extends Exchange {
                 'networks': networks,
             };
         }
-        process.exit ();
         return result;
     }
 
@@ -1370,7 +1364,10 @@ module.exports = class huobi extends Exchange {
     }
 
     safeNetwork (networkId) {
-        // networkId = (currency === undefined) ? networkId :
+        const lastCharacter = networkId[networkId.length - 1];
+        if (lastCharacter === '1') {
+            networkId = networkId.slice (0, networkId.length - 1);
+        }
         const networksById = {
         };
         return this.safeString (networksById, networkId, networkId);
@@ -1395,12 +1392,10 @@ module.exports = class huobi extends Exchange {
         currency = this.safeCurrency (currencyId, currency);
         const code = this.safeCurrencyCode (currencyId, currency);
         const networkId = this.safeString (depositAddress, 'chain');
-        // const network = this.safeNetwork (networkId);
         const networks = this.safeValue (currency, 'networks', {});
         const networksById = this.indexBy (networks, 'id');
         const networkValue = this.safeValue (networksById, networkId, networkId);
         const network = this.safeString (networkValue, 'network');
-        console.log ({ networkId, network, networksById });
         this.checkAddress (address);
         return {
             'currency': code,
@@ -1411,7 +1406,7 @@ module.exports = class huobi extends Exchange {
         };
     }
 
-    async fetchNetworkDepositAddress (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
