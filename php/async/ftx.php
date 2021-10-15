@@ -48,7 +48,7 @@ class ftx extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => null,
-                'fetchFundingRate' => null,
+                'fetchFundingRate' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => null,
@@ -2160,7 +2160,6 @@ class ftx extends Exchange {
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $method = 'private_get_funding_payments';
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -2170,8 +2169,73 @@ class ftx extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = yield $this->privateGetFundingPayments (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_incomes ($result, $market, $since, $limit);
+    }
+
+    public function parse_funding_rate($fundingRate, $market = null) {
+        //
+        // perp
+        //     {
+        //       "volume" => "71294.7636",
+        //       "$nextFundingRate" => "0.000033",
+        //       "nextFundingTime" => "2021-10-14T20:00:00+00:00",
+        //       "openInterest" => "47142.994"
+        //     }
+        //
+        // delivery
+        //     {
+        //       "volume" => "4998.727",
+        //       "predictedExpirationPrice" => "3798.820141757",
+        //       "openInterest" => "48307.96"
+        //     }
+        //
+        $nextFundingRate = $this->safe_number($fundingRate, 'nextFundingRate');
+        $nextFundingRateDatetimeRaw = $this->safe_string($fundingRate, 'nextFundingTime');
+        $nextFundingRateTimestamp = $this->parse8601($nextFundingRateDatetimeRaw);
+        $previousFundingTimestamp = null;
+        if ($nextFundingRateTimestamp !== null) {
+            $previousFundingTimestamp = $nextFundingRateTimestamp - 3600000;
+        }
+        $estimatedSettlePrice = $this->safe_number($fundingRate, 'predictedExpirationPrice');
+        return array(
+            'info' => $fundingRate,
+            'symbol' => $market['symbol'],
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => $this->parse_number('0'),
+            'estimatedSettlePrice' => $estimatedSettlePrice,
+            'timestamp' => null,
+            'datetime' => null,
+            'previousFundingRate' => null,
+            'nextFundingRate' => $nextFundingRate,
+            'previousFundingTimestamp' => $previousFundingTimestamp, // subtract 8 hours
+            'nextFundingTimestamp' => $nextFundingRateTimestamp,
+            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
+            'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+        );
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'future_name' => $market['id'],
+        );
+        $response = yield $this->publicGetFuturesFutureNameStats (array_merge($request, $params));
+        //
+        //     {
+        //       "success" => true,
+        //       "$result" => {
+        //         "volume" => "71294.7636",
+        //         "nextFundingRate" => "0.000033",
+        //         "nextFundingTime" => "2021-10-14T20:00:00+00:00",
+        //         "openInterest" => "47142.994"
+        //       }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_funding_rate($result, $market);
     }
 }

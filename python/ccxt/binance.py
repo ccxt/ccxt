@@ -3686,7 +3686,7 @@ class binance(Exchange):
         #         "time": "1621252344001"
         #     }
         #
-        return self.parse_funding_rate(response)
+        return self.parse_funding_rate(response, market)
 
     def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
         self.load_markets()

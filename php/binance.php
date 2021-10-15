@@ -3873,7 +3873,7 @@ class binance extends Exchange {
         //         "time" => "1621252344001"
         //     }
         //
-        return $this->parse_funding_rate($response);
+        return $this->parse_funding_rate($response, $market);
     }
 
     public function fetch_funding_rate_history($symbol, $limit = null, $since = null, $params = array ()) {
