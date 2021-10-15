@@ -1274,10 +1274,10 @@ module.exports = class huobi extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         const response = await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
         //
-        //     let response = {
+        //     {
         //         'status': 'ok',
         //         'data': '10138899000',
-        //     };
+        //     }
         //
         return this.extend (this.parseOrder (response), {
             'id': id,
