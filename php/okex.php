@@ -2265,10 +2265,11 @@ class okex extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        $response = $this->fetch_deposit_addresses_by_network($code, $params);
         $rawNetwork = $this->safe_string($params, 'network');
         $networks = $this->safe_value($this->options, 'networks', array());
         $network = $this->safe_string($networks, $rawNetwork, $rawNetwork);
+        $params = $this->omit($params, 'network');
+        $response = $this->fetch_deposit_addresses_by_network($code, $params);
         $result = null;
         if ($network === null) {
             $result = $this->safe_value($response, $code);
