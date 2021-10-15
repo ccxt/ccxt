@@ -2838,6 +2838,71 @@ class okex(Exchange):
             headers['OK-ACCESS-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
+    def parse_funding_rate(self, fundingRate, market=None):
+        #
+        #     {
+        #       "fundingRate": "0.00027815",
+        #       "fundingTime": "1634256000000",
+        #       "instId": "BTC-USD-SWAP",
+        #       "instType": "SWAP",
+        #       "nextFundingRate": "0.00017",
+        #       "nextFundingTime": "1634284800000"
+        #     }
+        #
+        previousFundingRate = self.safe_number(fundingRate, 'fundingRate')
+        previousFundingTimestamp = self.safe_integer(fundingRate, 'fundingTime')
+        marketId = self.safe_string(fundingRate, 'instId')
+        symbol = self.safe_symbol(marketId, market)
+        nextFundingRate = self.safe_number(fundingRate, 'nextFundingRate')
+        nextFundingRateTimestamp = self.safe_integer(fundingRate, 'nextFundingTime')
+        # https://www.okex.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
+        # > The current interest is 0.
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': self.parse_number('0'),
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'previousFundingRate': previousFundingRate,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp,  # subtract 8 hours
+            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
+            'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
+        }
+
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise ExchangeError(self.id + ' fetchFundingRate is only valid for swap markets')
+        request = {
+            'instId': market['id'],
+        }
+        response = self.publicGetPublicFundingRate(self.extend(request, params))
+        #
+        #     {
+        #       "code": "0",
+        #       "data": [
+        #         {
+        #           "fundingRate": "0.00027815",
+        #           "fundingTime": "1634256000000",
+        #           "instId": "BTC-USD-SWAP",
+        #           "instType": "SWAP",
+        #           "nextFundingRate": "0.00017",
+        #           "nextFundingTime": "1634284800000"
+        #         }
+        #       ],
+        #       "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        entry = self.safe_value(data, 0, {})
+        return self.parse_funding_rate(entry, market)
+
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
             return  # fallback to default error handler

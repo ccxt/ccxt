@@ -2961,6 +2961,74 @@ class okex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function parse_funding_rate($fundingRate, $market = null) {
+        //
+        //     {
+        //       "$fundingRate" => "0.00027815",
+        //       "fundingTime" => "1634256000000",
+        //       "instId" => "BTC-USD-SWAP",
+        //       "instType" => "SWAP",
+        //       "$nextFundingRate" => "0.00017",
+        //       "nextFundingTime" => "1634284800000"
+        //     }
+        //
+        $previousFundingRate = $this->safe_number($fundingRate, 'fundingRate');
+        $previousFundingTimestamp = $this->safe_integer($fundingRate, 'fundingTime');
+        $marketId = $this->safe_string($fundingRate, 'instId');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $nextFundingRate = $this->safe_number($fundingRate, 'nextFundingRate');
+        $nextFundingRateTimestamp = $this->safe_integer($fundingRate, 'nextFundingTime');
+        // https://www.okex.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
+        // > The current interest is 0.
+        return array(
+            'info' => $fundingRate,
+            'symbol' => $symbol,
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => $this->parse_number('0'),
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'previousFundingRate' => $previousFundingRate,
+            'nextFundingRate' => $nextFundingRate,
+            'previousFundingTimestamp' => $previousFundingTimestamp, // subtract 8 hours
+            'nextFundingTimestamp' => $nextFundingRateTimestamp,
+            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
+            'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+        );
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new ExchangeError($this->id . ' fetchFundingRate is only valid for swap markets');
+        }
+        $request = array(
+            'instId' => $market['id'],
+        );
+        $response = yield $this->publicGetPublicFundingRate (array_merge($request, $params));
+        //
+        //     {
+        //       "code" => "0",
+        //       "$data" => array(
+        //         {
+        //           "fundingRate" => "0.00027815",
+        //           "fundingTime" => "1634256000000",
+        //           "instId" => "BTC-USD-SWAP",
+        //           "instType" => "SWAP",
+        //           "nextFundingRate" => "0.00017",
+        //           "nextFundingTime" => "1634284800000"
+        //         }
+        //       ),
+        //       "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $entry = $this->safe_value($data, 0, array());
+        return $this->parse_funding_rate($entry, $market);
+    }
+
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // fallback to default $error handler
