@@ -1636,7 +1636,8 @@ module.exports = class okex extends Exchange {
         let cost = undefined;
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
         // see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
-        const tgtCcy = this.safeString (order, 'tgtCcy', 'base_ccy');
+        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
+        const tgtCcy = this.safeString (order, 'tgtCcy', defaultTgtCcy);
         if (side === 'buy' && type === 'market' && market['spot'] && tgtCcy === 'quote_ccy') {
             // "sz" refers to the cost
             cost = this.safeNumber (order, 'sz');
