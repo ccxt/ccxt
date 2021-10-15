@@ -816,7 +816,7 @@ module.exports = class okex extends Exchange {
                 const canWithdraw = this.safeValue (chain, 'canWd');
                 const canInternal = this.safeValue (chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
-                currencyActive = currencyActive || active;
+                currencyActive = (currencyActive === undefined) ? active : currencyActive;
                 let networkId = this.safeString (chain, 'chain');
                 if (networkId.indexOf ('-') >= 0) {
                     const parts = networkId.split ('-');
