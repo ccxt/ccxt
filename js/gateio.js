@@ -554,6 +554,8 @@ module.exports = class gateio extends Exchange {
         const margin = (type === 'margin');
         const futures = (type === 'future');
         const delivery = (type === 'delivery');
+        const swap = (type === 'swap');
+        const option = (type === 'option');
         if (!spot && !margin && !futures && !delivery) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
         }
@@ -571,8 +573,9 @@ module.exports = class gateio extends Exchange {
             const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
             const fetchMarketsContractOptions = this.safeValue (options, 'fetchMarchets', {});
             const settlementCurrencies = this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', ['usdt']);
-            for (let i = 0; i < settlementCurrencies.length; i++) {
-                query['settle'] = settlementCurrencies[i];
+            for (let c = 0; c < settlementCurrencies.length; c++) {
+                const settle = settlementCurrencies[c];
+                query['settle'] = settle;
                 response = await this[method] (query);
                 //  Futures
                 //      [
@@ -664,7 +667,55 @@ module.exports = class gateio extends Exchange {
                 //        ]
                 //
                 for (let i = 0; i < response.length; i++) {
-                    result.push (this.parseMarket (response[i], type, settlementCurrencies[i]));
+                    const market = response[i];
+                    const id = this.safeString (market, 'name');
+                    const underlying = this.safeString (market, 'underlying');
+                    let [ baseId, quoteId ] = [undefined, undefined];
+                    if (underlying) {
+                        [ baseId, quoteId ] = underlying.split ('_');
+                    } else {
+                        [ baseId, quoteId ] = id.split ('_');
+                    }
+                    const linear = quoteId.toLowerCase () === settle;
+                    const inverse = baseId.toLowerCase () === settle;
+                    const base = this.safeCurrencyCode (baseId);
+                    const quote = this.safeCurrencyCode (quoteId);
+                    const symbol = id;
+                    const takerPercent = this.safeString (market, 'taker_fee_rate');
+                    const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
+                    result.push ({
+                        'info': market,
+                        'id': id,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                        'base': base,
+                        'quote': quote,
+                        'symbol': symbol,
+                        'type': type,
+                        'spot': spot,
+                        'futures': futures,
+                        'swap': swap,
+                        'option': option,
+                        'linear': linear,
+                        'inverse': inverse,
+                        // Fee is in %, so divide by 100
+                        'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
+                        'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
+                        'contractSize': this.safeString (market, 'contractSize', '1'),
+                        'contractType': linear ? 'Perpetual' : this.safeString (market, 'cycle'),
+                        'limits': {
+                            'leverage': {
+                                'min': this.safeNumber (market, 'leverage_min'),
+                                'max': this.safeNumber (market, 'leverage_max'),
+                            },
+                            'amount': {
+                                'min': this.safeNumber (market, 'order_size_min'),
+                                'max': this.safeNumber (market, 'order_size_max'),
+                            },
+                        },
+                        'expiry': this.safeInteger (market, 'expire_time'),
+                        'fees': this.fees[type],
+                    });
                 }
             }
         } else {
@@ -700,95 +751,64 @@ module.exports = class gateio extends Exchange {
             //       ]
             //
             for (let i = 0; i < response.length; i++) {
-                result.push (this.parseMarket (response[i], type));
+                const market = response[i];
+                const id = this.safeString (market, 'id');
+                const spot = (type === 'spot');
+                const futures = (type === 'future');
+                const swap = (type === 'swap');
+                const option = (type === 'option');
+                const [ baseId, quoteId ] = id.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                const symbol = base + '/' + quote;
+                const takerPercent = this.safeString (market, 'fee');
+                const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
+                const amountPrecision = this.safeString (market, 'amount_precision');
+                const pricePrecision = this.safeString (market, 'precision');
+                const amountLimit = this.parsePrecision (amountPrecision);
+                const priceLimit = this.parsePrecision (pricePrecision);
+                const tradeStatus = this.safeString (market, 'trade_status');
+                result.push ({
+                    'info': market,
+                    'id': id,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'base': base,
+                    'quote': quote,
+                    'symbol': symbol,
+                    'type': type,
+                    'spot': spot,
+                    'futures': futures,
+                    'swap': swap,
+                    'option': option,
+                    'linear': false,
+                    'inverse': false,
+                    // Fee is in %, so divide by 100
+                    'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
+                    'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
+                    'precision': {
+                        'amount': parseInt (amountPrecision),
+                        'price': parseInt (pricePrecision),
+                    },
+                    'active': tradeStatus === 'tradable',
+                    'limits': {
+                        'amount': {
+                            'min': this.parseNumber (amountLimit),
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': this.parseNumber (priceLimit),
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': this.safeNumber (market, 'min_quote_amount'),
+                            'max': undefined,
+                        },
+                    },
+                });
             }
         }
         return result;
-    }
-
-    parseMarket (market, type, settleCurrency) {
-        const id = this.safeString2 (market, 'id', 'name');
-        const spot = (type === 'spot');
-        const futures = (type === 'future');
-        const swap = (type === 'swap');
-        const option = (type === 'option');
-        const underlying = this.safeString (market, 'underlying');
-        let [ baseId, quoteId ] = [undefined, undefined];
-        if (underlying) {
-            [ baseId, quoteId ] = underlying.split ('_');
-        } else {
-            [ baseId, quoteId ] = id.split ('_');
-        }
-        const linear = quoteId === settleCurrency;
-        const inverse = baseId === settleCurrency;
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        const symbol = spot ? (base + '/' + quote) : id;
-        const takerPercent = this.safeString2 (market, 'fee', 'taker_fee_rate');
-        const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
-        const resultItem = {
-            'info': market,
-            'id': id,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'base': base,
-            'quote': quote,
-            'symbol': symbol,
-            'type': type,
-            'spot': spot,
-            'futures': futures,
-            'swap': swap,
-            'option': option,
-            'linear': linear,
-            'inverse': inverse,
-            // Fee is in %, so divide by 100
-            'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
-            'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
-        };
-        // let fees = this.fees;
-        if (linear || inverse) {
-            resultItem['contractSize'] = this.safeString (market, 'contractSize', '1');
-            resultItem['contractType'] = linear ? 'Perpetual' : this.safeString (market, 'cycle');
-            // fees = this.fees[type]; //TODO
-            resultItem['limits'] = {
-                'leverage': {
-                    'min': this.safeNumber (market, 'leverage_min'),
-                    'max': this.safeNumber (market, 'leverage_max'),
-                },
-                'amount': {
-                    'min': this.safeNumber (market, 'order_size_min'),
-                    'max': this.safeNumber (market, 'order_size_max'),
-                },
-            };
-            resultItem['expiry'] = this.safeInteger (market, 'expire_time');
-        } else {
-            const amountPrecision = this.safeString (market, 'amount_precision');
-            const pricePrecision = this.safeString (market, 'precision');
-            const amountLimit = this.parsePrecision (amountPrecision);
-            const priceLimit = this.parsePrecision (pricePrecision);
-            const tradeStatus = this.safeString (market, 'trade_status');
-            const precision = {
-                'amount': parseInt (amountPrecision),
-                'price': parseInt (pricePrecision),
-            };
-            resultItem['active'] = tradeStatus === 'tradable';
-            resultItem['precision'] = precision;
-            resultItem['limits'] = {
-                'amount': {
-                    'min': this.parseNumber (amountLimit),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': this.parseNumber (priceLimit),
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': this.safeNumber (market, 'min_quote_amount'),
-                    'max': undefined,
-                },
-            };
-        }
-        return resultItem;
     }
 
     async fetchCurrencies (params = {}) {
