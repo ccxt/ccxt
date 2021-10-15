@@ -369,7 +369,7 @@ module.exports = class kraken extends Exchange {
                     },
                     'leverage': {
                         'min': 1,
-                        'max': Math.max (leverage_buy),
+                        'max': Math.max.apply ([1], leverage_buy),
                     },
                 },
             });
