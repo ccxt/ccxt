@@ -1780,11 +1780,12 @@ class Exchange {
 
     public function parse_funding_rates($response, $market = null) {
         $response = is_array($response) ? array_values($response) : array();
-        $parsed = array();
-        foreach ($response as $res) {
-            $parsed[] = $this->parse_funding_rate($res, $market);
+        $result = array();
+        foreach ($response as $entry) {
+            $parsed = $this->parse_funding_rate($entry, $market);
+            $result[$parsed['symbol']] = $parsed;
         }
-        return $parsed;
+        return $result;
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

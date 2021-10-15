@@ -1385,7 +1385,12 @@ module.exports = class Exchange {
     }
 
     parseFundingRates (response, market = undefined) {
-        return response.map ((res) => this.parseFundingRate (res, market))
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const parsed = this.parseFundingRate (response[i], market);
+            result[parsed['symbol']] = parsed;
+        }
+        return result;
     }
 
     parseOHLCV (ohlcv, market = undefined) {
