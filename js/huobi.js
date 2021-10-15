@@ -919,7 +919,7 @@ module.exports = class huobi extends Exchange {
                 const withdraw = this.safeString (chain, 'withdrawStatus');
                 const deposit = this.safeString (chain, 'depositStatus');
                 const active = (withdraw === 'allowed') && (deposit === 'allowed');
-                currencyActive = currencyActive || active;
+                currencyActive = (currencyActive === undefined) ? active : currencyActive;
                 const precision = this.safeInteger (chain, 'withdrawPrecision');
                 const fee = this.safeNumber (chain, 'transactFeeWithdraw');
                 networks[network] = {
