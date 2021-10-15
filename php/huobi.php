@@ -924,7 +924,7 @@ class huobi extends Exchange {
                 $withdraw = $this->safe_string($chain, 'withdrawStatus');
                 $deposit = $this->safe_string($chain, 'depositStatus');
                 $active = ($withdraw === 'allowed') && ($deposit === 'allowed');
-                $currencyActive = $currencyActive || $active;
+                $currencyActive = ($currencyActive === null) ? $active : $currencyActive;
                 $precision = $this->safe_integer($chain, 'withdrawPrecision');
                 $fee = $this->safe_number($chain, 'transactFeeWithdraw');
                 $networks[$network] = array(

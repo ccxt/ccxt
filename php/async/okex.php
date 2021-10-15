@@ -820,7 +820,7 @@ class okex extends Exchange {
                 $canWithdraw = $this->safe_value($chain, 'canWd');
                 $canInternal = $this->safe_value($chain, 'canInternal');
                 $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
-                $currencyActive = $currencyActive || $active;
+                $currencyActive = ($currencyActive === null) ? $active : $currencyActive;
                 $networkId = $this->safe_string($chain, 'chain');
                 if (mb_strpos($networkId, '-') !== false) {
                     $parts = explode('-', $networkId);

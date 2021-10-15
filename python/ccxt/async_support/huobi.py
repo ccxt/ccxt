@@ -893,7 +893,7 @@ class huobi(Exchange):
                 withdraw = self.safe_string(chain, 'withdrawStatus')
                 deposit = self.safe_string(chain, 'depositStatus')
                 active = (withdraw == 'allowed') and (deposit == 'allowed')
-                currencyActive = currencyActive or active
+                currencyActive = active if (currencyActive is None) else currencyActive
                 precision = self.safe_integer(chain, 'withdrawPrecision')
                 fee = self.safe_number(chain, 'transactFeeWithdraw')
                 networks[network] = {

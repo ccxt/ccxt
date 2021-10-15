@@ -818,7 +818,7 @@ class okex(Exchange):
                 canWithdraw = self.safe_value(chain, 'canWd')
                 canInternal = self.safe_value(chain, 'canInternal')
                 active = True if (canDeposit and canWithdraw and canInternal) else False
-                currencyActive = currencyActive or active
+                currencyActive = active if (currencyActive is None) else currencyActive
                 networkId = self.safe_string(chain, 'chain')
                 if networkId.find('-') >= 0:
                     parts = networkId.split('-')

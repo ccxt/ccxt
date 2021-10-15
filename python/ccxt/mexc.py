@@ -349,13 +349,13 @@ class mexc(Exchange):
                 isDepositEnabled = self.safe_value(chain, 'is_deposit_enabled', False)
                 isWithdrawEnabled = self.safe_value(chain, 'is_withdraw_enabled', False)
                 active = (isDepositEnabled and isWithdrawEnabled)
-                currencyActive = currencyActive or active
+                currencyActive = active if (currencyActive is None) else currencyActive
                 precisionDigits = self.safe_integer(chain, 'precision')
                 precision = 1 / math.pow(10, precisionDigits)
                 withdrawMin = self.safe_string(chain, 'withdraw_limit_min')
                 withdrawMax = self.safe_string(chain, 'withdraw_limit_max')
-                currencyWithdrawMin = currencyWithdrawMin or withdrawMin
-                currencyWithdrawMax = currencyWithdrawMax or withdrawMax
+                currencyWithdrawMin = withdrawMin if (currencyWithdrawMin is None) else currencyWithdrawMin
+                currencyWithdrawMax = withdrawMax if (currencyWithdrawMax is None) else currencyWithdrawMax
                 if Precise.string_gt(currencyWithdrawMin, withdrawMin):
                     currencyWithdrawMin = withdrawMin
                 if Precise.string_lt(currencyWithdrawMax, withdrawMax):

@@ -345,13 +345,13 @@ class mexc extends Exchange {
                 $isDepositEnabled = $this->safe_value($chain, 'is_deposit_enabled', false);
                 $isWithdrawEnabled = $this->safe_value($chain, 'is_withdraw_enabled', false);
                 $active = ($isDepositEnabled && $isWithdrawEnabled);
-                $currencyActive = $currencyActive || $active;
+                $currencyActive = ($currencyActive === null) ? $active : $currencyActive;
                 $precisionDigits = $this->safe_integer($chain, 'precision');
                 $precision = 1 / pow(10, $precisionDigits);
                 $withdrawMin = $this->safe_string($chain, 'withdraw_limit_min');
                 $withdrawMax = $this->safe_string($chain, 'withdraw_limit_max');
-                $currencyWithdrawMin = $currencyWithdrawMin || $withdrawMin;
-                $currencyWithdrawMax = $currencyWithdrawMax || $withdrawMax;
+                $currencyWithdrawMin = ($currencyWithdrawMin === null) ? $withdrawMin : $currencyWithdrawMin;
+                $currencyWithdrawMax = ($currencyWithdrawMax === null) ? $withdrawMax : $currencyWithdrawMax;
                 if (Precise::string_gt($currencyWithdrawMin, $withdrawMin)) {
                     $currencyWithdrawMin = $withdrawMin;
                 }
