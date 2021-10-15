@@ -1426,21 +1426,13 @@ module.exports = class huobi extends Exchange {
         //         ]
         //     }
         //
-        // const data = this.safeValue (response, 'data', []);
-        // const result = {};
-        // for (let i = 0; i < data.length; i++) {
-        //     const entry = data[i];
-        //     const parsed = this.parseDepositAddress (entry, currency);
-        //     result[parsed['network']] = parsed;
-        // }
-        // return result;
         const data = this.safeValue (response, 'data', []);
         const parsed = this.parseDepositAddresses (data, [ code ], false);
         return this.indexBy (parsed, 'network');
     }
 
     async fetchDepositAddress (code, params = {}) {
-        const response = await this.fetchNetworkDepositAddress (code, params);
+        const response = await this.fetchDepositAddressesByNetwork (code, params);
         const rawNetwork = this.safeStringUpper (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeStringUpper (networks, rawNetwork, rawNetwork);
