@@ -1457,12 +1457,11 @@ module.exports = class okex extends Exchange {
             if (market['type'] === 'spot' && side === 'buy') {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
-
-                const tgtCcy = this.safeString (params, 'tgtCcy', 'base_ccy');
+                const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
+                const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
                 if (tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
                     request['tgtCcy'] = 'quote_ccy';
-
                     let notional = this.safeNumber (params, 'sz');
                     const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
                     if (createMarketBuyOrderRequiresPrice) {
