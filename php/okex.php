@@ -1637,9 +1637,15 @@ class okex extends Exchange {
         $feeCostString = $this->safe_string($order, 'fee');
         $amount = null;
         $cost = null;
-        if ($side === 'buy' && $type === 'market') {
+        // spot $market buy => "sz" can refer either to base currency units or to quote currency units
+        // see documentation => https://www.okex.com/docs-v5/en/#rest-api-trade-place-$order
+        $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
+        $tgtCcy = $this->safe_string($order, 'tgtCcy', $defaultTgtCcy);
+        if ($side === 'buy' && $type === 'market' && $market['spot'] && $tgtCcy === 'quote_ccy') {
+            // "sz" refers to the $cost
             $cost = $this->safe_number($order, 'sz');
         } else {
+            // "sz" refers to the trade currency $amount
             $amount = $this->safe_number($order, 'sz');
         }
         $fee = null;
