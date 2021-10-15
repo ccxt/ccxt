@@ -530,17 +530,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 1
      
    * - Hong Kong
-     - .. image:: https://user-images.githubusercontent.com/51840849/87443304-fec5e000-c5fd-11ea-98f8-ba8e67f7eaff.jpg
-          :target: https://u.bitz.com/register?invite_code=1429193
-          :alt: bitz
-     
-     - bitz
-     - `Bit-Z <https://u.bitz.com/register?invite_code=1429193>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://apidocv2.bitz.plus/en/
-          :alt: API Version 2
-     
-   * - Hong Kong
      - .. image:: https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg
           :target: https://www.byte-trade.com
           :alt: bytetrade

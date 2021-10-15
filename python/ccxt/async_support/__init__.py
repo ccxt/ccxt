@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.58.16'
+__version__ = '1.58.17'
 
 # -----------------------------------------------------------------------------
 
@@ -80,7 +80,6 @@ from ccxt.async_support.bitstamp import bitstamp                          # noqa
 from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.async_support.bittrex import bittrex                            # noqa: F401
 from ccxt.async_support.bitvavo import bitvavo                            # noqa: F401
-from ccxt.async_support.bitz import bitz                                  # noqa: F401
 from ccxt.async_support.bl3p import bl3p                                  # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                          # noqa: F401
 from ccxt.async_support.btcbox import btcbox                              # noqa: F401
@@ -194,7 +193,6 @@ exchanges = [
     'bitstamp1',
     'bittrex',
     'bitvavo',
-    'bitz',
     'bl3p',
     'btcalpha',
     'btcbox',
