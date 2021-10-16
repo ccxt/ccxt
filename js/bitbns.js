@@ -85,6 +85,8 @@ module.exports = class bitbns extends Exchange {
                         'cancelOrder/{symbol}',
                         'cancelStopLossOrder/{symbol}',
                         'listExecutedOrders/{symbol}',
+                        'placeMarketOrder/{symbol}',
+                        'placeMarketOrderQnty/{symbol}',
                     ],
                 },
                 'v2': {
@@ -497,8 +499,8 @@ module.exports = class bitbns extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
+        if (type !== 'limit' && type !== 'market') {
+            throw new ExchangeError (this.id + ' allows limit and market orders only');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -506,7 +508,6 @@ module.exports = class bitbns extends Exchange {
             'side': side.toUpperCase (),
             'symbol': market['uppercaseId'],
             'quantity': this.amountToPrecision (symbol, amount),
-            'rate': this.priceToPrecision (symbol, price),
             // 'target_rate': this.priceToPrecision (symbol, targetRate),
             // 't_rate': this.priceToPrecision (symbol, stopPrice),
             // 'trail_rate': this.priceToPrecision (symbol, trailRate),
@@ -514,7 +515,17 @@ module.exports = class bitbns extends Exchange {
             // To Place Stoploss Buy or Sell Order use rate & t_rate
             // To Place Bracket Buy or Sell Order use rate , t_rate, target_rate & trail_rate
         };
-        const response = await this.v2PostOrders (this.extend (request, params));
+        if (type === 'limit') {
+            request['rate'] = this.priceToPrecision (symbol, price);
+            const response = await this.v2PostOrders (this.extend (request, params));
+            return this.parseOrder (response, market);
+        } else if (type === 'market') {
+            request['market'] = market['quoteId'];
+            const response = await this.v1PostPlaceMarketOrderQntySymbol (this.extend (request, params));
+            return this.parseOrder (response, market);
+        } else {
+            throw new ExchangeError (this.id + ' allows limit and market orders only');
+        }
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",
@@ -524,7 +535,6 @@ module.exports = class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
