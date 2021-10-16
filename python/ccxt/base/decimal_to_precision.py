@@ -34,28 +34,28 @@ NO_PADDING = 128
 PAD_WITH_ZERO = 256
 
 
-def decimal_to_precision(x, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
-    assert precision is not None
+def decimal_to_precision(x, rounding_mode=ROUND, num_precision_digits=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
+    assert num_precision_digits is not None
 
     if x is None:
         raise ValueError('x is None, but it must be a string number or a number')
 
     # handle tick size
     if counting_mode == TICK_SIZE:
-        if isinstance(precision, str):
-            precision_p = Precise(precision)
-        elif isinstance(precision, numbers.Integral):
-            precision_p = Precise(precision, 0)
-        elif isinstance(precision, float):
+        if isinstance(num_precision_digits, str):
+            precision_p = Precise(num_precision_digits)
+        elif isinstance(num_precision_digits, numbers.Integral):
+            precision_p = Precise(num_precision_digits, 0)
+        elif isinstance(num_precision_digits, float):
             # Occurrences of this should be eliminated and replaced by strings instead.
-            exponent = math.floor(math.log10(precision)) - 15 + 1
-            mantissa = round(precision / math.pow(10, exponent))
+            exponent = math.floor(math.log10(num_precision_digits)) - 15 + 1
+            mantissa = round(num_precision_digits / math.pow(10, exponent))
             precision_p = Precise(mantissa, -exponent)
             precision_p.reduce()
         else:
-            raise ValueError('precision must be a string number or a number')
+            raise ValueError('num_precision_digits must be a string number or a number')
         if precision_p.integer <= 0:
-            raise ValueError('TICK_SIZE cant be used with negative or zero precision')
+            raise ValueError('TICK_SIZE cant be used with negative or zero num_precision_digits')
         if isinstance(x, str):
             x_p = Precise(x)
         elif isinstance(x, numbers.Integral):
@@ -68,7 +68,7 @@ def decimal_to_precision(x, rounding_mode=ROUND, precision=None, counting_mode=D
             x_p.reduce()
         else:
             raise ValueError('x must be a string number or a number')
-        new_precision = precision_p.decimals if precision_p.decimals > 0 else 0
+        new_num_precision_digits = precision_p.decimals if precision_p.decimals > 0 else 0
         remainder_p = x_p.mod(precision_p)
         if remainder_p.integer != 0:
             if rounding_mode == ROUND:
@@ -80,7 +80,7 @@ def decimal_to_precision(x, rounding_mode=ROUND, precision=None, counting_mode=D
                     x_p = x_p.div(precision_p).ceil().mul(precision_p)
         x = str(x_p)
         rounding_mode = ROUND
-        precision_num = new_precision
+        num_precision_digits_num = new_num_precision_digits
         counting_mode = DECIMAL_PLACES
         # return decimal_to_precision(x, ROUND, newprecision, DECIMAL_PLACES, padding_mode)
     else:
@@ -89,18 +89,18 @@ def decimal_to_precision(x, rounding_mode=ROUND, precision=None, counting_mode=D
         elif not isinstance(x, str):
             raise ValueError('x must be a string number or a number')
         # assert re.fullmatch('-?[0-9]+(\.[0-9]*)?', x)
-        if isinstance(precision, str):
-            # if not re.fullmatch('-?[0-9]+', precision):
-            #    raise ValueError('precision must be a string integer or a integer')
-            precision_num = int(precision)
-        elif isinstance(precision, numbers.Integral):
-            precision_num = precision
+        if isinstance(num_precision_digits, str):
+            # if not re.fullmatch('-?[0-9]+', num_precision_digits):
+            #    raise ValueError('num_precision_digits must be a string integer or a integer')
+            num_precision_digits_num = int(num_precision_digits)
+        elif isinstance(num_precision_digits, numbers.Integral):
+            num_precision_digits_num = num_precision_digits
         else:
-            raise ValueError('precision must be a string integer or a integer')
+            raise ValueError('num_precision_digits must be a string integer or a integer')
     if counting_mode == SIGNIFICANT_DIGITS:
-        if precision_num < 0:
-            raise ValueError('SIGNIFICANT_DIGITS cant be used with negative precision')
-        if precision_num == 0:
+        if num_precision_digits_num < 0:
+            raise ValueError('SIGNIFICANT_DIGITS cant be used with negative num_precision_digits')
+        if num_precision_digits_num == 0:
             return '0'
     point_index = x.find('.')
     if point_index == -1:
@@ -109,11 +109,11 @@ def decimal_to_precision(x, rounding_mode=ROUND, precision=None, counting_mode=D
     while first_digit_pos < len(x) and (x[first_digit_pos] < '1' or x[first_digit_pos] > '9'):
         first_digit_pos += 1
     if counting_mode == DECIMAL_PLACES:
-        last_digit_pos = point_index + precision_num
+        last_digit_pos = point_index + num_precision_digits_num
         if last_digit_pos < point_index:
             last_digit_pos -= 1
     elif counting_mode == SIGNIFICANT_DIGITS:
-        last_digit_pos = first_digit_pos + precision_num
+        last_digit_pos = first_digit_pos + num_precision_digits_num
         if (first_digit_pos < point_index and last_digit_pos < point_index) or first_digit_pos > point_index:
             last_digit_pos -= 1
     else:
@@ -173,7 +173,7 @@ def decimal_to_precision(x, rounding_mode=ROUND, precision=None, counting_mode=D
     result = ''.join(char_array[0:max(point_index, last_digit_pos + 1)])
     has_dot = '.' in result
     if padding_mode == NO_PADDING:
-        if (len(result) == 0) and (precision_num == 0):
+        if (len(result) == 0) and (num_precision_digits_num == 0):
             return '0'
         if has_dot:
             result = result.rstrip('0')
