@@ -243,7 +243,8 @@ class gemini(Exchange):
             amountPrecisionParts = amountPrecisionString.split(' ')
             amountPrecision = self.safe_number(amountPrecisionParts, 0)
             idLength = len(marketId) - 0
-            quoteId = marketId[idLength - 3:idLength]
+            startingIndex = idLength - 3
+            quoteId = marketId[startingIndex:idLength]
             quote = self.safe_currency_code(quoteId)
             pricePrecisionString = cells[3].replace('<td>', '')
             pricePrecisionParts = pricePrecisionString.split(' ')

@@ -1212,16 +1212,29 @@ class gateio extends Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $request = array(
-            'currency_pair' => $market['id'],
-        );
-        $response = $this->publicSpotGetTickers (array_merge($request, $params));
+        $method = 'publicSpotGetTickers';
+        $id = $market['id'];
+        $request = array();
+        $linear = $market['linear'];
+        $inverse = $market['inverse'];
+        if ($linear || $inverse) {
+            $request['contract'] = $id;
+            $request['settle'] = $market['baseId'];
+            if ($market['linear']) {
+                $method = 'publicFuturesGetTickers';
+            } else {
+                $method = 'publicDeliveryGetTickers';
+            }
+        } else {
+            $request['currency_pair'] = $id;
+        }
+        $response = $this->$method (array_merge($request, $params));
         $ticker = $this->safe_value($response, 0);
         return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_ticker($ticker, $market = null) {
-        //
+        //  SPOT
         //     {
         //       "currency_pair" => "KFC_USDT",
         //       "$last" => "7.255",
@@ -1234,15 +1247,36 @@ class gateio extends Exchange {
         //       "low_24h" => "7.095"
         //     }
         //
-        $marketId = $this->safe_string($ticker, 'currency_pair');
+        //  LINEAR/DELIVERY
+        //
+        //   {
+        //     "contract" => "BTC_USDT",
+        //     "$last" => "6432",
+        //     "low_24h" => "6278",
+        //     "high_24h" => "6790",
+        //     "change_percentage" => "4.43",
+        //     "total_size" => "32323904",
+        //     "volume_24h" => "184040233284",
+        //     "volume_24h_btc" => "28613220",
+        //     "volume_24h_usd" => "184040233284",
+        //     "volume_24h_base" => "28613220",
+        //     "volume_24h_quote" => "184040233284",
+        //     "volume_24h_settle" => "28613220",
+        //     "mark_price" => "6534",
+        //     "funding_rate" => "0.0001",
+        //     "funding_rate_indicative" => "0.0001",
+        //     "index_price" => "6531"
+        //   }
+        //
+        $marketId = $this->safe_string_2($ticker, 'currency_pair', 'contract');
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_number($ticker, 'last');
         $ask = $this->safe_number($ticker, 'lowest_ask');
         $bid = $this->safe_number($ticker, 'highest_bid');
         $high = $this->safe_number($ticker, 'high_24h');
         $low = $this->safe_number($ticker, 'low_24h');
-        $baseVolume = $this->safe_number($ticker, 'base_volume');
-        $quoteVolume = $this->safe_number($ticker, 'quote_volume');
+        $baseVolume = $this->safe_number($ticker, 'base_volume', 'volume_24h_base');
+        $quoteVolume = $this->safe_number($ticker, 'quote_volume', 'volume_24h_quote');
         $percentage = $this->safe_number($ticker, 'change_percentage');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -1270,7 +1304,27 @@ class gateio extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicSpotGetTickers ($params);
+        $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $params = $this->omit($params, 'type');
+        $method = 'publicSpotGetTickers';
+        $request = array();
+        $linear = $type === 'future';
+        $inverse = $type === 'delivery';
+        if ($linear || $inverse) {
+            if ($linear) {
+                if (!$params['settle']) {
+                    $request['settle'] = 'usdt';
+                }
+                $method = 'publicFuturesGetSettleTickers';
+            } else {
+                if (!$params['settle']) {
+                    $request['settle'] = 'btc';
+                }
+                $method = 'publicDeliveryGetSettleTickers';
+            }
+        }
+        $response = $this->$method (array_merge($request, $params));
         return $this->parse_tickers($response, $symbols);
     }
 

@@ -1588,9 +1588,15 @@ class okex(Exchange):
         feeCostString = self.safe_string(order, 'fee')
         amount = None
         cost = None
-        if side == 'buy' and type == 'market':
+        # spot market buy: "sz" can refer either to base currency units or to quote currency units
+        # see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
+        defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
+        tgtCcy = self.safe_string(order, 'tgtCcy', defaultTgtCcy)
+        if side == 'buy' and type == 'market' and market['spot'] and tgtCcy == 'quote_ccy':
+            # "sz" refers to the cost
             cost = self.safe_number(order, 'sz')
         else:
+            # "sz" refers to the trade currency amount
             amount = self.safe_number(order, 'sz')
         fee = None
         if feeCostString is not None:

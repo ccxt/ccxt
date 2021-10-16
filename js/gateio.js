@@ -1208,16 +1208,29 @@ module.exports = class gateio extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currency_pair': market['id'],
-        };
-        const response = await this.publicSpotGetTickers (this.extend (request, params));
+        let method = 'publicSpotGetTickers';
+        const id = market['id'];
+        const request = {};
+        const linear = market['linear'];
+        const inverse = market['inverse'];
+        if (linear || inverse) {
+            request['contract'] = id;
+            request['settle'] = market['baseId'];
+            if (market['linear']) {
+                method = 'publicFuturesGetTickers';
+            } else {
+                method = 'publicDeliveryGetTickers';
+            }
+        } else {
+            request['currency_pair'] = id;
+        }
+        const response = await this[method] (this.extend (request, params));
         const ticker = this.safeValue (response, 0);
         return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
-        //
+        //  SPOT
         //     {
         //       "currency_pair": "KFC_USDT",
         //       "last": "7.255",
@@ -1230,15 +1243,36 @@ module.exports = class gateio extends Exchange {
         //       "low_24h": "7.095"
         //     }
         //
-        const marketId = this.safeString (ticker, 'currency_pair');
+        //  LINEAR/DELIVERY
+        //
+        //   {
+        //     "contract": "BTC_USDT",
+        //     "last": "6432",
+        //     "low_24h": "6278",
+        //     "high_24h": "6790",
+        //     "change_percentage": "4.43",
+        //     "total_size": "32323904",
+        //     "volume_24h": "184040233284",
+        //     "volume_24h_btc": "28613220",
+        //     "volume_24h_usd": "184040233284",
+        //     "volume_24h_base": "28613220",
+        //     "volume_24h_quote": "184040233284",
+        //     "volume_24h_settle": "28613220",
+        //     "mark_price": "6534",
+        //     "funding_rate": "0.0001",
+        //     "funding_rate_indicative": "0.0001",
+        //     "index_price": "6531"
+        //   }
+        //
+        const marketId = this.safeString2 (ticker, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber (ticker, 'last');
         const ask = this.safeNumber (ticker, 'lowest_ask');
         const bid = this.safeNumber (ticker, 'highest_bid');
         const high = this.safeNumber (ticker, 'high_24h');
         const low = this.safeNumber (ticker, 'low_24h');
-        const baseVolume = this.safeNumber (ticker, 'base_volume');
-        const quoteVolume = this.safeNumber (ticker, 'quote_volume');
+        const baseVolume = this.safeNumber (ticker, 'base_volume', 'volume_24h_base');
+        const quoteVolume = this.safeNumber (ticker, 'quote_volume', 'volume_24h_quote');
         const percentage = this.safeNumber (ticker, 'change_percentage');
         return this.safeTicker ({
             'symbol': symbol,
@@ -1266,7 +1300,27 @@ module.exports = class gateio extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicSpotGetTickers (params);
+        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        let method = 'publicSpotGetTickers';
+        const request = {};
+        const linear = type === 'future';
+        const inverse = type === 'delivery';
+        if (linear || inverse) {
+            if (linear) {
+                if (!params['settle']) {
+                    request['settle'] = 'usdt';
+                }
+                method = 'publicFuturesGetSettleTickers';
+            } else {
+                if (!params['settle']) {
+                    request['settle'] = 'btc';
+                }
+                method = 'publicDeliveryGetSettleTickers';
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
         return this.parseTickers (response, symbols);
     }
 
