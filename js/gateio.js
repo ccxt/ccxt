@@ -1207,13 +1207,50 @@ module.exports = class gateio extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currency_pair': market['id'],
+        const id = market['id'];
+        let request = {
+            'currency_pair': id,
         };
+        let method = 'publicSpotGetOrderBook';
+        if (market['futures']) {
+            request = {
+                'contract': id,
+                'settle': market['quoteId'],
+            };
+            method = 'publicFuturesGetSettleOrderBook';
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
         }
-        const response = await this.publicSpotGetOrderBook (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // SPOT
+        // {
+        //     "current": 1634345973275,
+        //     "update": 1634345973271,
+        //     "asks": [
+        //         ["2.2241","12449.827"],
+        //         ["2.2242","200"],
+        //         ["2.2244","826.931"],
+        //         ["2.2248","3876.107"],
+        //         ["2.225","2377.252"],
+        //         ["2.22509","439.484"],
+        //         ["2.2251","1489.313"],
+        //         ["2.2253","714.582"],
+        //         ["2.2254","1349.784"],
+        //         ["2.2256","234.701"]],"bids":[["2.2236","32.465"],
+        //         ["2.2232","243.983"],
+        //         ["2.2231","32.207"],
+        //         ["2.223","449.827"],
+        //         ["2.2228","7.918"],
+        //         ["2.2227","12703.482"],
+        //         ["2.2226","143.033"],
+        //         ["2.2225","143.027"],
+        //         ["2.2224","1369.352"],
+        //         ["2.2223","756.063"]
+        //     ]
+        // }
+        // FUTURES
         const timestamp = this.safeInteger (response, 'current');
         return this.parseOrderBook (response, symbol, timestamp);
     }
