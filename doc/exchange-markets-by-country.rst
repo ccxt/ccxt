@@ -591,9 +591,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - bitbns
      - `Bitbns <https://ref.bitbns.com/1090961>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://bitbns.com/trade/#/api-trading/
-          :alt: API Version *
+          :alt: API Version 2
      
    * - Indonesia
      - .. image:: https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg
