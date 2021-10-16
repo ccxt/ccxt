@@ -527,7 +527,7 @@ class ascendex(Exchange):
         accountGroup = self.safe_string(self.options, 'account-group')
         response = None
         if accountGroup is None:
-            response = await self.privateGetInfo(params)
+            response = await self.v1PrivateGetInfo(params)
             #
             #     {
             #         "code":0,

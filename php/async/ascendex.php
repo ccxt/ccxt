@@ -530,7 +530,7 @@ class ascendex extends Exchange {
         $accountGroup = $this->safe_string($this->options, 'account-group');
         $response = null;
         if ($accountGroup === null) {
-            $response = yield $this->privateGetInfo ($params);
+            $response = yield $this->v1PrivateGetInfo ($params);
             //
             //     {
             //         "code":0,
