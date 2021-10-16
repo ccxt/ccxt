@@ -1197,15 +1197,26 @@ class gateio(Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'currency_pair': market['id'],
-        }
-        response = await self.publicSpotGetTickers(self.extend(request, params))
+        method = 'publicSpotGetTickers'
+        id = market['id']
+        request = {}
+        linear = market['linear']
+        inverse = market['inverse']
+        if linear or inverse:
+            request['contract'] = id
+            request['settle'] = market['baseId']
+            if market['linear']:
+                method = 'publicFuturesGetTickers'
+            else:
+                method = 'publicDeliveryGetTickers'
+        else:
+            request['currency_pair'] = id
+        response = await getattr(self, method)(self.extend(request, params))
         ticker = self.safe_value(response, 0)
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
-        #
+        #  SPOT
         #     {
         #       "currency_pair": "KFC_USDT",
         #       "last": "7.255",
@@ -1218,15 +1229,36 @@ class gateio(Exchange):
         #       "low_24h": "7.095"
         #     }
         #
-        marketId = self.safe_string(ticker, 'currency_pair')
+        #  LINEAR/DELIVERY
+        #
+        #   {
+        #     "contract": "BTC_USDT",
+        #     "last": "6432",
+        #     "low_24h": "6278",
+        #     "high_24h": "6790",
+        #     "change_percentage": "4.43",
+        #     "total_size": "32323904",
+        #     "volume_24h": "184040233284",
+        #     "volume_24h_btc": "28613220",
+        #     "volume_24h_usd": "184040233284",
+        #     "volume_24h_base": "28613220",
+        #     "volume_24h_quote": "184040233284",
+        #     "volume_24h_settle": "28613220",
+        #     "mark_price": "6534",
+        #     "funding_rate": "0.0001",
+        #     "funding_rate_indicative": "0.0001",
+        #     "index_price": "6531"
+        #   }
+        #
+        marketId = self.safe_string_2(ticker, 'currency_pair', 'contract')
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_number(ticker, 'last')
         ask = self.safe_number(ticker, 'lowest_ask')
         bid = self.safe_number(ticker, 'highest_bid')
         high = self.safe_number(ticker, 'high_24h')
         low = self.safe_number(ticker, 'low_24h')
-        baseVolume = self.safe_number(ticker, 'base_volume')
-        quoteVolume = self.safe_number(ticker, 'quote_volume')
+        baseVolume = self.safe_number(ticker, 'base_volume', 'volume_24h_base')
+        quoteVolume = self.safe_number(ticker, 'quote_volume', 'volume_24h_quote')
         percentage = self.safe_number(ticker, 'change_percentage')
         return self.safe_ticker({
             'symbol': symbol,
@@ -1253,7 +1285,23 @@ class gateio(Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        response = await self.publicSpotGetTickers(params)
+        defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        method = 'publicSpotGetTickers'
+        request = {}
+        linear = type == 'future'
+        inverse = type == 'delivery'
+        if linear or inverse:
+            if linear:
+                if not params['settle']:
+                    request['settle'] = 'usdt'
+                method = 'publicFuturesGetSettleTickers'
+            else:
+                if not params['settle']:
+                    request['settle'] = 'btc'
+                method = 'publicDeliveryGetSettleTickers'
+        response = await getattr(self, method)(self.extend(request, params))
         return self.parse_tickers(response, symbols)
 
     async def fetch_balance(self, params={}):
