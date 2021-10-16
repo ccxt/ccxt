@@ -362,6 +362,7 @@ class Exchange {
         'safeNumber2' => 'safe_number2',
         'parsePrecision' => 'parse_precision',
         'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
+        'maxInArray' => 'max_in_array',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -3327,4 +3328,13 @@ class Exchange {
         }
         return array($tag, $params);
     }
+
+    public function max_in_array($arr) {
+        /**
+            Returns the maximum number from an array
+            :param arr: Array of numbers
+        */
+        return max ($arr);
+    }
+
 }
