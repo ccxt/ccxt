@@ -680,7 +680,7 @@ module.exports = class gateio extends Exchange {
                     const inverse = baseId.toLowerCase () === settle;
                     const base = this.safeCurrencyCode (baseId);
                     const quote = this.safeCurrencyCode (quoteId);
-                    const symbol = id;
+                    const symbol = base + '/' + quote;
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
                     result.push ({
