@@ -110,7 +110,6 @@ module.exports = class gemini extends Exchange {
                         'v1/notionalbalances/{currency}',
                         'v1/transfers',
                         'v1/addresses/{network}',
-                        'v1/deposit/{currency}/newAddress',
                         'v1/deposit/{network}/newAddress',
                         'v1/withdraw/{currency}',
                         'v1/account/transfer/{currency}',
@@ -814,6 +813,10 @@ module.exports = class gemini extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
+            const apiKey = this.apiKey;
+            if (apiKey.indexOf ('account') < 0) {
+                throw new AuthenticationError (this.id + ' sign() requires an account-key, master-keys are not-supported');
+            }
             const nonce = this.nonce ();
             const request = this.extend ({
                 'request': url,
