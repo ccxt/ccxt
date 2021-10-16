@@ -339,7 +339,7 @@ module.exports = class kraken extends Exchange {
                 'price': this.safeInteger (market, 'pair_decimals'),
             };
             const minAmount = this.safeNumber (market, 'ordermin');
-            const leverageBuy = this.safeValue (market, 'leverage_buy', [1]);
+            const leverageBuy = this.safeValue (market, 'leverage_buy', []);
             const leverageBuyLength = leverageBuy.length;
             const maxleverage = this.safeValue (leverageBuy, leverageBuyLength - 1, 1); 
             result.push ({
