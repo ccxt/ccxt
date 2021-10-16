@@ -1207,15 +1207,16 @@ module.exports = class gateio extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const futures = market['futures'];
         const id = market['id'];
         let request = {
             'currency_pair': id,
         };
         let method = 'publicSpotGetOrderBook';
-        if (market['futures']) {
+        if (futures) {
             request = {
                 'contract': id,
-                'settle': market['quoteId'],
+                'settle': market['quoteId'].toLowerCase (),
             };
             method = 'publicFuturesGetSettleOrderBook';
         }
@@ -1238,7 +1239,9 @@ module.exports = class gateio extends Exchange {
         //         ["2.2251","1489.313"],
         //         ["2.2253","714.582"],
         //         ["2.2254","1349.784"],
-        //         ["2.2256","234.701"]],"bids":[["2.2236","32.465"],
+        //         ["2.2256","234.701"]],
+        //      "bids":[
+        //         ["2.2236","32.465"],
         //         ["2.2232","243.983"],
         //         ["2.2231","32.207"],
         //         ["2.223","449.827"],
@@ -1250,9 +1253,52 @@ module.exports = class gateio extends Exchange {
         //         ["2.2223","756.063"]
         //     ]
         // }
-        // FUTURES
+        // FUTURE
+        // {
+        //     "current": 1634350208.745,
+        //     "asks": [
+        //         {"s":24909,"p":"61264.8"},
+        //         {"s":81,"p":"61266.6"},
+        //         {"s":2000,"p":"61267.6"},
+        //         {"s":490,"p":"61270.2"},
+        //         {"s":12,"p":"61270.4"},
+        //         {"s":11782,"p":"61273.2"},
+        //         {"s":14666,"p":"61273.3"},
+        //         {"s":22541,"p":"61273.4"},
+        //         {"s":33,"p":"61273.6"},
+        //         {"s":11980,"p":"61274.5"}
+        //     ],
+        //     "bids": [
+        //         {"s":41844,"p":"61264.7"},
+        //         {"s":13783,"p":"61263.3"},
+        //         {"s":1143,"p":"61259.8"},
+        //         {"s":81,"p":"61258.7"},
+        //         {"s":2471,"p":"61257.8"},
+        //         {"s":2471,"p":"61257.7"},
+        //         {"s":2471,"p":"61256.5"},
+        //         {"s":3,"p":"61254.2"},
+        //         {"s":114,"p":"61252.4"},
+        //         {"s":14372,"p":"61248.6"}
+        //     ],
+        //     "update": 1634350208.724
+        // }
         const timestamp = this.safeInteger (response, 'current');
-        return this.parseOrderBook (response, symbol, timestamp);
+        const result = JSON.parse (JSON.stringify (response));
+        if (futures) {
+            const bids = [];
+            const asks = [];
+            for (let i = 0; i < response['bids'].length; i++) {
+                const bid = response['bids'][i];
+                bids.push ([bid['p'], bid['s']]);
+            }
+            for (let i = 0; i < response['asks'].length; i++) {
+                const ask = response['asks'][i];
+                asks.push ([ask['p'], ask['s']]);
+            }
+            result['bids'] = bids;
+            result['asks'] = asks;
+        }
+        return this.parseOrderBook (result, symbol, timestamp);
     }
 
     async fetchTicker (symbol, params = {}) {
