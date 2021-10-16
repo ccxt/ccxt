@@ -20,6 +20,7 @@ class bitbns extends Exchange {
             'rateLimit' => 1000,
             'certified' => false,
             'pro' => false,
+            'version' => 'v2',
             // new metainfo interface
             'has' => array(
                 'cancelOrder' => true,
@@ -88,6 +89,8 @@ class bitbns extends Exchange {
                         'cancelOrder/{symbol}',
                         'cancelStopLossOrder/{symbol}',
                         'listExecutedOrders/{symbol}',
+                        'placeMarketOrder/{symbol}',
+                        'placeMarketOrderQnty/{symbol}',
                     ),
                 ),
                 'v2' => array(
@@ -500,8 +503,8 @@ class bitbns extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type !== 'limit') {
-            throw new ExchangeError($this->id . ' allows limit orders only');
+        if ($type !== 'limit' && $type !== 'market') {
+            throw new ExchangeError($this->id . ' allows limit and $market orders only');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -509,7 +512,6 @@ class bitbns extends Exchange {
             'side' => strtoupper($side),
             'symbol' => $market['uppercaseId'],
             'quantity' => $this->amount_to_precision($symbol, $amount),
-            'rate' => $this->price_to_precision($symbol, $price),
             // 'target_rate' => $this->price_to_precision($symbol, targetRate),
             // 't_rate' => $this->price_to_precision($symbol, stopPrice),
             // 'trail_rate' => $this->price_to_precision($symbol, trailRate),
@@ -517,7 +519,16 @@ class bitbns extends Exchange {
             // To Place Stoploss Buy or Sell Order use rate & t_rate
             // To Place Bracket Buy or Sell Order use rate , t_rate, target_rate & trail_rate
         );
-        $response = yield $this->v2PostOrders (array_merge($request, $params));
+        $method = 'v2PostOrders';
+        if ($type === 'limit') {
+            $request['rate'] = $this->price_to_precision($symbol, $price);
+        } else if ($type === 'market') {
+            $method = 'v1PostPlaceMarketOrderQntySymbol';
+            $request['market'] = $market['quoteId'];
+        } else {
+            throw new ExchangeError($this->id . ' allows limit and $market orders only');
+        }
+        $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",
