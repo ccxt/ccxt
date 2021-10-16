@@ -2497,10 +2497,3 @@ class Exchange(object):
             if tag is not None:
                 params = self.omit(params, 'tag')
         return [tag, params]
-
-    def max_in_array(arr):
-        """
-            Returns the maximum number from an array
-            :param arr: Array of numbers
-        """
-        return max(arr)

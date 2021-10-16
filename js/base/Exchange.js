@@ -1902,12 +1902,4 @@ module.exports = class Exchange {
         }
         return [ tag, params ]
     }
-
-    maxInArray (arr) {
-        /**
-            Returns the maximum number from an array
-            :param arr: Array of numbers
-        */
-        return Math.max (...arr);
-    }
 }
