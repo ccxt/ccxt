@@ -359,6 +359,9 @@ class kraken(Exchange):
                 'price': self.safe_integer(market, 'pair_decimals'),
             }
             minAmount = self.safe_number(market, 'ordermin')
+            leverageBuy = self.safe_value(market, 'leverage_buy', [])
+            leverageBuyLength = len(leverageBuy)
+            maxLeverage = self.safe_value(leverageBuy, leverageBuyLength - 1, 1)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -385,6 +388,10 @@ class kraken(Exchange):
                     'cost': {
                         'min': 0,
                         'max': None,
+                    },
+                    'leverage': {
+                        'min': 1,
+                        'max': maxLeverage,
                     },
                 },
             })

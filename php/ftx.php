@@ -487,6 +487,10 @@ class ftx extends Exchange {
                         'min' => null,
                         'max' => null,
                     ),
+                    'leverage' => array(
+                        'min' => 1,
+                        'max' => 20,
+                    ),
                 ),
                 'info' => $market,
             );

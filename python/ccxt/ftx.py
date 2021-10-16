@@ -502,6 +502,10 @@ class ftx(Exchange):
                         'min': None,
                         'max': None,
                     },
+                    'leverage': {
+                        'min': 1,
+                        'max': 20,
+                    },
                 },
                 'info': market,
             })

@@ -348,6 +348,9 @@ class kraken extends Exchange {
                 'price' => $this->safe_integer($market, 'pair_decimals'),
             );
             $minAmount = $this->safe_number($market, 'ordermin');
+            $leverageBuy = $this->safe_value($market, 'leverage_buy', array());
+            $leverageBuyLength = is_array($leverageBuy) ? count($leverageBuy) : 0;
+            $maxLeverage = $this->safe_value($leverageBuy, $leverageBuyLength - 1, 1);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -374,6 +377,10 @@ class kraken extends Exchange {
                     'cost' => array(
                         'min' => 0,
                         'max' => null,
+                    ),
+                    'leverage' => array(
+                        'min' => 1,
+                        'max' => $maxLeverage,
                     ),
                 ),
             );
