@@ -17,6 +17,7 @@ module.exports = class bitbns extends Exchange {
             'rateLimit': 1000,
             'certified': false,
             'pro': false,
+            'version': 'v2',
             // new metainfo interface
             'has': {
                 'cancelOrder': true,
@@ -515,17 +516,16 @@ module.exports = class bitbns extends Exchange {
             // To Place Stoploss Buy or Sell Order use rate & t_rate
             // To Place Bracket Buy or Sell Order use rate , t_rate, target_rate & trail_rate
         };
+        let method = 'v2PostOrders';
         if (type === 'limit') {
             request['rate'] = this.priceToPrecision (symbol, price);
-            const response = await this.v2PostOrders (this.extend (request, params));
-            return this.parseOrder (response, market);
         } else if (type === 'market') {
+            method = 'v1PostPlaceMarketOrderQntySymbol';
             request['market'] = market['quoteId'];
-            const response = await this.v1PostPlaceMarketOrderQntySymbol (this.extend (request, params));
-            return this.parseOrder (response, market);
         } else {
             throw new ExchangeError (this.id + ' allows limit and market orders only');
         }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",
@@ -535,6 +535,7 @@ module.exports = class bitbns extends Exchange {
         //         "code":200
         //     }
         //
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
