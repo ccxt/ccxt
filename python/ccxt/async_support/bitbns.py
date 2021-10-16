@@ -92,8 +92,6 @@ class bitbns(Exchange):
                         'cancelOrder/{symbol}',
                         'cancelStopLossOrder/{symbol}',
                         'listExecutedOrders/{symbol}',
-                        'placeMarketOrder/{symbol}',
-                        'placeMarketOrderQnty/{symbol}',
                     ],
                 },
                 'v2': {
@@ -489,14 +487,15 @@ class bitbns(Exchange):
         })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type != 'limit' and type != 'market':
-            raise ExchangeError(self.id + ' allows limit and market orders only')
+        if type != 'limit':
+            raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'side': side.upper(),
             'symbol': market['uppercaseId'],
             'quantity': self.amount_to_precision(symbol, amount),
+            'rate': self.price_to_precision(symbol, price),
             # 'target_rate': self.price_to_precision(symbol, targetRate),
             # 't_rate': self.price_to_precision(symbol, stopPrice),
             # 'trail_rate': self.price_to_precision(symbol, trailRate),
@@ -504,16 +503,7 @@ class bitbns(Exchange):
             # To Place Stoploss Buy or Sell Order use rate & t_rate
             # To Place Bracket Buy or Sell Order use rate , t_rate, target_rate & trail_rate
         }
-        if type == 'limit':
-            request['rate'] = self.price_to_precision(symbol, price)
-            response = await self.v2PostOrders(self.extend(request, params))
-            return self.parse_order(response, market)
-        elif type == 'market':
-            request['market'] = market['quoteId']
-            response = await self.v1PostPlaceMarketOrderQntySymbol(self.extend(request, params))
-            return self.parse_order(response, market)
-        else:
-            raise ExchangeError(self.id + ' allows limit and market orders only')
+        response = await self.v2PostOrders(self.extend(request, params))
         #
         #     {
         #         "data":"Successfully placed bid to purchase currency",
@@ -523,6 +513,7 @@ class bitbns(Exchange):
         #         "code":200
         #     }
         #
+        return self.parse_order(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
