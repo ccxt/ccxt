@@ -811,6 +811,19 @@ module.exports = class gateio extends Exchange {
         return result;
     }
 
+    baseRequest (market) {
+        if (market['type'] === 'future' || market['type'] === 'swap') {
+            return {
+                'contract': market['id'],
+                'settle': market['baseId'],
+            };
+        } else {
+            return {
+                'currency_pair': market['id'],
+            };
+        }
+    }
+
     async fetchCurrencies (params = {}) {
         const response = await this.publicSpotGetCurrencies (params);
         //
