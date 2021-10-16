@@ -53,7 +53,9 @@ class gateio(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposits': True,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -292,6 +294,11 @@ class gateio(Exchange):
                 'TON': 'TONToken',
                 'VAI': 'VAIOT',
             },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'password': True,
+            },
             'options': {
                 'networks': {
                     'TRC20': 'TRX',
@@ -303,6 +310,17 @@ class gateio(Exchange):
                     'margin': 'margin',
                     'futures': 'futures',
                     'delivery': 'delivery',
+                },
+                'defaultType': 'spot',
+                'future': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': ['usdt', 'btc'],
+                    },
+                },
+                'delivery': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': ['usdt', 'btc'],
+                    },
                 },
             },
             'fees': {
@@ -351,6 +369,100 @@ class gateio(Exchange):
                             [self.parse_number('20000'), self.parse_number('0.00065')],
                             [self.parse_number('40000'), self.parse_number('0.00065')],
                             [self.parse_number('75000'), self.parse_number('0.00065')],
+                        ],
+                    },
+                },
+                'future': {
+                    'tierBased': True,
+                    'feeSide': 'base',
+                    'percentage': True,
+                    'maker': self.parse_number('0.0'),
+                    'taker': self.parse_number('0.0005'),
+                    'tiers': {
+                        'maker': [
+                            self.parse_number('0.0000'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00008'),
+                            self.parse_number('-0.01000'),
+                            self.parse_number('-0.01002'),
+                            self.parse_number('-0.01005'),
+                            self.parse_number('-0.02000'),
+                            self.parse_number('-0.02005'),
+                        ],
+                        'taker': [
+                            [self.parse_number('0.00050'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00048'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00046'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00044'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00042'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00040'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00038'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00036'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00034'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00032'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
+                        ],
+                    },
+                },
+                'delivery': {
+                    'tierBased': True,
+                    'feeSide': 'base',
+                    'percentage': True,
+                    'maker': self.parse_number('0.0'),
+                    'taker': self.parse_number('0.0005'),
+                    'tiers': {
+                        'maker': [
+                            self.parse_number('0.0000'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00005'),
+                            self.parse_number('-0.00008'),
+                            self.parse_number('-0.01000'),
+                            self.parse_number('-0.01002'),
+                            self.parse_number('-0.01005'),
+                            self.parse_number('-0.02000'),
+                            self.parse_number('-0.02005'),
+                        ],
+                        'taker': [
+                            [self.parse_number('0.00050'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00048'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00046'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00044'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00042'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00040'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00038'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00036'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00034'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00032'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
+                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
                         ],
                     },
                 },
@@ -448,71 +560,262 @@ class gateio(Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.publicSpotGetCurrencyPairs(params)
-        #
-        #     {
-        #       "id": "DEGO_USDT",
-        #       "base": "DEGO",
-        #       "quote": "USDT",
-        #       "fee": "0.2",
-        #       "min_quote_amount": "1",
-        #       "amount_precision": "4",
-        #       "precision": "4",
-        #       "trade_status": "tradable",
-        #       "sell_start": "0",
-        #       "buy_start": "0"
-        #     }
-        #
+        # :param params['type']: 'spot', 'margin', 'future' or 'delivery'
+        # :param params['settle']: The quote currency
+        defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        spot = (type == 'spot')
+        margin = (type == 'margin')
+        futures = (type == 'future')
+        delivery = (type == 'delivery')
+        swap = (type == 'swap')
+        option = (type == 'option')
+        if not spot and not margin and not futures and not delivery:
+            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'delivery' or 'future'")  # eslint-disable-line quotes
+        response = None
         result = []
-        for i in range(0, len(response)):
-            entry = response[i]
-            id = self.safe_string(entry, 'id')
-            baseId = self.safe_string(entry, 'base')
-            quoteId = self.safe_string(entry, 'quote')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            # Fee is in %, so divide by 100
-            taker = self.safe_number(entry, 'fee') / 100
-            maker = taker
-            tradeStatus = self.safe_string(entry, 'trade_status')
-            active = tradeStatus == 'tradable'
-            amountPrecision = self.safe_string(entry, 'amount_precision')
-            pricePrecision = self.safe_string(entry, 'precision')
-            amountLimit = self.parse_precision(amountPrecision)
-            priceLimit = self.parse_precision(pricePrecision)
-            limits = {
-                'amount': {
-                    'min': self.parse_number(amountLimit),
-                    'max': None,
-                },
-                'price': {
-                    'min': self.parse_number(priceLimit),
-                    'max': None,
-                },
-                'cost': {
-                    'min': self.safe_number(entry, 'min_quote_amount'),
-                    'max': None,
-                },
-            }
-            precision = {
-                'amount': int(amountPrecision),
-                'price': int(pricePrecision),
-            }
-            result.append({
-                'info': entry,
-                'id': id,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'base': base,
-                'quote': quote,
-                'symbol': symbol,
-                'limits': limits,
-                'precision': precision,
-                'active': active,
-                'maker': maker,
-                'taker': taker,
-            })
+        method = 'publicSpotGetCurrencyPairs'
+        if futures:
+            method = 'publicFuturesGetSettleContracts'
+        elif delivery:
+            method = 'publicDeliveryGetSettleContracts'
+        elif margin:
+            method = 'publicMarginGetCurrencyPairs'
+        if futures or delivery:
+            options = self.safe_value(self.options, type, {})  # ['BTC', 'USDT'] unified codes
+            fetchMarketsContractOptions = self.safe_value(options, 'fetchMarchets', {})
+            settlementCurrencies = self.safe_value(fetchMarketsContractOptions, 'settlementCurrencies', ['usdt'])
+            for c in range(0, len(settlementCurrencies)):
+                settle = settlementCurrencies[c]
+                query['settle'] = settle
+                response = await getattr(self, method)(query)
+                #  Futures
+                #      [
+                #          {
+                #              "name": "BTC_USDT",
+                #              "type": "direct",
+                #              "quanto_multiplier": "0.0001",
+                #              "ref_discount_rate": "0",
+                #              "order_price_deviate": "0.5",
+                #              "maintenance_rate": "0.005",
+                #              "mark_type": "index",
+                #              "last_price": "38026",
+                #              "mark_price": "37985.6",
+                #              "index_price": "37954.92",
+                #              "funding_rate_indicative": "0.000219",
+                #              "mark_price_round": "0.01",
+                #              "funding_offset": 0,
+                #              "in_delisting": False,
+                #              "risk_limit_base": "1000000",
+                #              "interest_rate": "0.0003",
+                #              "order_price_round": "0.1",
+                #              "order_size_min": 1,
+                #              "ref_rebate_rate": "0.2",
+                #              "funding_interval": 28800,
+                #              "risk_limit_step": "1000000",
+                #              "leverage_min": "1",
+                #              "leverage_max": "100",
+                #              "risk_limit_max": "8000000",
+                #              "maker_fee_rate": "-0.00025",
+                #              "taker_fee_rate": "0.00075",
+                #              "funding_rate": "0.002053",
+                #              "order_size_max": 1000000,
+                #              "funding_next_apply": 1610035200,
+                #              "short_users": 977,
+                #              "config_change_time": 1609899548,
+                #              "trade_size": 28530850594,
+                #              "position_size": 5223816,
+                #              "long_users": 455,
+                #              "funding_impact_value": "60000",
+                #              "orders_limit": 50,
+                #              "trade_id": 10851092,
+                #              "orderbook_id": 2129638396
+                #          }
+                #      ]
+                #
+                #  Delivery
+                #      [
+                #          {
+                #            "name": "BTC_USDT_20200814",
+                #            "underlying": "BTC_USDT",
+                #            "cycle": "WEEKLY",
+                #            "type": "direct",
+                #            "quanto_multiplier": "0.0001",
+                #            "mark_type": "index",
+                #            "last_price": "9017",
+                #            "mark_price": "9019",
+                #            "index_price": "9005.3",
+                #            "basis_rate": "0.185095",
+                #            "basis_value": "13.7",
+                #            "basis_impact_value": "100000",
+                #            "settle_price": "0",
+                #            "settle_price_interval": 60,
+                #            "settle_price_duration": 1800,
+                #            "settle_fee_rate": "0.0015",
+                #            "expire_time": 1593763200,
+                #            "order_price_round": "0.1",
+                #            "mark_price_round": "0.1",
+                #            "leverage_min": "1",
+                #            "leverage_max": "100",
+                #            "maintenance_rate": "1000000",
+                #            "risk_limit_base": "140.726652109199",
+                #            "risk_limit_step": "1000000",
+                #            "risk_limit_max": "8000000",
+                #            "maker_fee_rate": "-0.00025",
+                #            "taker_fee_rate": "0.00075",
+                #            "ref_discount_rate": "0",
+                #            "ref_rebate_rate": "0.2",
+                #            "order_price_deviate": "0.5",
+                #            "order_size_min": 1,
+                #            "order_size_max": 1000000,
+                #            "orders_limit": 50,
+                #            "orderbook_id": 63,
+                #            "trade_id": 26,
+                #            "trade_size": 435,
+                #            "position_size": 130,
+                #            "config_change_time": 1593158867,
+                #            "in_delisting": False
+                #          }
+                #        ]
+                #
+                for i in range(0, len(response)):
+                    market = response[i]
+                    id = self.safe_string(market, 'name')
+                    underlying = self.safe_string(market, 'underlying')
+                    baseId, quoteId = [None, None]
+                    if underlying:
+                        baseId, quoteId = underlying.split('_')
+                    else:
+                        baseId, quoteId = id.split('_')
+                    linear = quoteId.lower() == settle
+                    inverse = baseId.lower() == settle
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
+                    symbol = id
+                    takerPercent = self.safe_string(market, 'taker_fee_rate')
+                    makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
+                    result.append({
+                        'info': market,
+                        'id': id,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                        'base': base,
+                        'quote': quote,
+                        'symbol': symbol,
+                        'type': type,
+                        'spot': spot,
+                        'futures': futures,
+                        'swap': swap,
+                        'option': option,
+                        'linear': linear,
+                        'inverse': inverse,
+                        # Fee is in %, so divide by 100
+                        'taker': self.parse_number(Precise.string_div(takerPercent, '100')),
+                        'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
+                        'contractSize': self.safe_string(market, 'contractSize', '1'),
+                        'contractType': 'Perpetual' if linear else self.safe_string(market, 'cycle'),
+                        'limits': {
+                            'leverage': {
+                                'min': self.safe_number(market, 'leverage_min'),
+                                'max': self.safe_number(market, 'leverage_max'),
+                            },
+                            'amount': {
+                                'min': self.safe_number(market, 'order_size_min'),
+                                'max': self.safe_number(market, 'order_size_max'),
+                            },
+                        },
+                        'expiry': self.safe_integer(market, 'expire_time'),
+                        'fees': self.fees[type],
+                    })
+        else:
+            response = await getattr(self, method)(query)
+            #
+            #  Spot
+            #      [
+            #           {
+            #             "id": "DEGO_USDT",
+            #             "base": "DEGO",
+            #             "quote": "USDT",
+            #             "fee": "0.2",
+            #             "min_quote_amount": "1",
+            #             "amount_precision": "4",
+            #             "precision": "4",
+            #             "trade_status": "tradable",
+            #             "sell_start": "0",
+            #             "buy_start": "0"
+            #           }
+            #      ]
+            #
+            #  Margin
+            #      [
+            #         {
+            #           "id": "ETH_USDT",
+            #           "base": "ETH",
+            #           "quote": "USDT",
+            #           "leverage": 3,
+            #           "min_base_amount": "0.01",
+            #           "min_quote_amount": "100",
+            #           "max_quote_amount": "1000000"
+            #         }
+            #       ]
+            #
+            for i in range(0, len(response)):
+                market = response[i]
+                id = self.safe_string(market, 'id')
+                spot = (type == 'spot')
+                futures = (type == 'future')
+                swap = (type == 'swap')
+                option = (type == 'option')
+                baseId, quoteId = id.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+                takerPercent = self.safe_string(market, 'fee')
+                makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
+                amountPrecision = self.safe_string(market, 'amount_precision')
+                pricePrecision = self.safe_string(market, 'precision')
+                amountLimit = self.parse_precision(amountPrecision)
+                priceLimit = self.parse_precision(pricePrecision)
+                tradeStatus = self.safe_string(market, 'trade_status')
+                result.append({
+                    'info': market,
+                    'id': id,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'base': base,
+                    'quote': quote,
+                    'symbol': symbol,
+                    'type': type,
+                    'spot': spot,
+                    'futures': futures,
+                    'swap': swap,
+                    'option': option,
+                    'linear': False,
+                    'inverse': False,
+                    # Fee is in %, so divide by 100
+                    'taker': self.parse_number(Precise.string_div(takerPercent, '100')),
+                    'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
+                    'precision': {
+                        'amount': int(amountPrecision),
+                        'price': int(pricePrecision),
+                    },
+                    'active': tradeStatus == 'tradable',
+                    'limits': {
+                        'amount': {
+                            'min': self.parse_number(amountLimit),
+                            'max': None,
+                        },
+                        'price': {
+                            'min': self.parse_number(priceLimit),
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': self.safe_number(market, 'min_quote_amount'),
+                            'max': None,
+                        },
+                    },
+                })
         return result
 
     async def fetch_currencies(self, params={}):
@@ -551,6 +854,185 @@ class gateio(Exchange):
                 'limits': self.limits,
             }
         return result
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'contract': market['id'],
+            'settle': market['quote'].lower(),
+        }
+        response = await self.publicFuturesGetSettleContractsContract(self.extend(request, params))
+        #
+        # [
+        #     {
+        #       "name": "BTC_USDT",
+        #       "type": "direct",
+        #       "quanto_multiplier": "0.0001",
+        #       "ref_discount_rate": "0",
+        #       "order_price_deviate": "0.5",
+        #       "maintenance_rate": "0.005",
+        #       "mark_type": "index",
+        #       "last_price": "38026",
+        #       "mark_price": "37985.6",
+        #       "index_price": "37954.92",
+        #       "funding_rate_indicative": "0.000219",
+        #       "mark_price_round": "0.01",
+        #       "funding_offset": 0,
+        #       "in_delisting": False,
+        #       "risk_limit_base": "1000000",
+        #       "interest_rate": "0.0003",
+        #       "order_price_round": "0.1",
+        #       "order_size_min": 1,
+        #       "ref_rebate_rate": "0.2",
+        #       "funding_interval": 28800,
+        #       "risk_limit_step": "1000000",
+        #       "leverage_min": "1",
+        #       "leverage_max": "100",
+        #       "risk_limit_max": "8000000",
+        #       "maker_fee_rate": "-0.00025",
+        #       "taker_fee_rate": "0.00075",
+        #       "funding_rate": "0.002053",
+        #       "order_size_max": 1000000,
+        #       "funding_next_apply": 1610035200,
+        #       "short_users": 977,
+        #       "config_change_time": 1609899548,
+        #       "trade_size": 28530850594,
+        #       "position_size": 5223816,
+        #       "long_users": 455,
+        #       "funding_impact_value": "60000",
+        #       "orders_limit": 50,
+        #       "trade_id": 10851092,
+        #       "orderbook_id": 2129638396
+        #     }
+        #   ]
+        #
+        return self.parse_funding_rate(response)
+
+    async def fetch_funding_rates(self, symbols=None, params={}):
+        await self.load_markets()
+        settle = self.safe_string(params, 'settle')  # TODO: Save settle in markets?
+        request = {
+            'settle': settle.lower(),
+        }
+        response = await self.publicFuturesGetSettleContracts(self.extend(request, params))
+        #
+        # [
+        #     {
+        #       "name": "BTC_USDT",
+        #       "type": "direct",
+        #       "quanto_multiplier": "0.0001",
+        #       "ref_discount_rate": "0",
+        #       "order_price_deviate": "0.5",
+        #       "maintenance_rate": "0.005",
+        #       "mark_type": "index",
+        #       "last_price": "38026",
+        #       "mark_price": "37985.6",
+        #       "index_price": "37954.92",
+        #       "funding_rate_indicative": "0.000219",
+        #       "mark_price_round": "0.01",
+        #       "funding_offset": 0,
+        #       "in_delisting": False,
+        #       "risk_limit_base": "1000000",
+        #       "interest_rate": "0.0003",
+        #       "order_price_round": "0.1",
+        #       "order_size_min": 1,
+        #       "ref_rebate_rate": "0.2",
+        #       "funding_interval": 28800,
+        #       "risk_limit_step": "1000000",
+        #       "leverage_min": "1",
+        #       "leverage_max": "100",
+        #       "risk_limit_max": "8000000",
+        #       "maker_fee_rate": "-0.00025",
+        #       "taker_fee_rate": "0.00075",
+        #       "funding_rate": "0.002053",
+        #       "order_size_max": 1000000,
+        #       "funding_next_apply": 1610035200,
+        #       "short_users": 977,
+        #       "config_change_time": 1609899548,
+        #       "trade_size": 28530850594,
+        #       "position_size": 5223816,
+        #       "long_users": 455,
+        #       "funding_impact_value": "60000",
+        #       "orders_limit": 50,
+        #       "trade_id": 10851092,
+        #       "orderbook_id": 2129638396
+        #     }
+        #   ]
+        #
+        result = self.parse_funding_rates(response)
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #     {
+        #       "name": "BTC_USDT",
+        #       "type": "direct",
+        #       "quanto_multiplier": "0.0001",
+        #       "ref_discount_rate": "0",
+        #       "order_price_deviate": "0.5",
+        #       "maintenance_rate": "0.005",
+        #       "mark_type": "index",
+        #       "last_price": "38026",
+        #       "mark_price": "37985.6",
+        #       "index_price": "37954.92",
+        #       "funding_rate_indicative": "0.000219",
+        #       "mark_price_round": "0.01",
+        #       "funding_offset": 0,
+        #       "in_delisting": False,
+        #       "risk_limit_base": "1000000",
+        #       "interest_rate": "0.0003",
+        #       "order_price_round": "0.1",
+        #       "order_size_min": 1,
+        #       "ref_rebate_rate": "0.2",
+        #       "funding_interval": 28800,
+        #       "risk_limit_step": "1000000",
+        #       "leverage_min": "1",
+        #       "leverage_max": "100",
+        #       "risk_limit_max": "8000000",
+        #       "maker_fee_rate": "-0.00025",
+        #       "taker_fee_rate": "0.00075",
+        #       "funding_rate": "0.002053",
+        #       "order_size_max": 1000000,
+        #       "funding_next_apply": 1610035200,
+        #       "short_users": 977,
+        #       "config_change_time": 1609899548,
+        #       "trade_size": 28530850594,
+        #       "position_size": 5223816,
+        #       "long_users": 455,
+        #       "funding_impact_value": "60000",
+        #       "orders_limit": 50,
+        #       "trade_id": 10851092,
+        #       "orderbook_id": 2129638396
+        #     }
+        #
+        marketId = self.safe_string(contract, 'name')
+        symbol = self.safe_symbol(marketId, market)
+        markPrice = self.safe_number(contract, 'mark_price')
+        indexPrice = self.safe_number(contract, 'index_price')
+        interestRate = self.safe_number(contract, 'interest_rate')
+        fundingRate = self.safe_string(contract, 'funding_rate')
+        fundingInterval = self.safe_string(contract, 'funding_interval') * 1000
+        nextFundingTime = self.safe_integer(contract, 'funding_next_apply') * 1000
+        previousFundingTime = (self.safe_number(contract, 'funding_next_apply') * 1000) - fundingInterval
+        fundingRateIndicative = self.safe_number(contract, 'funding_rate_indicative')
+        timestamp = self.milliseconds()
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'interestRate': interestRate,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'previousFundingRate': fundingRate,
+            'nextFundingRate': fundingRateIndicative,
+            'previousFundingTimestamp': previousFundingTime,
+            'nextFundingTimestamp': nextFundingTime,
+            'previousFundingDatetime': self.iso8601(previousFundingTime),
+            'nextFundingDatetime': self.iso8601(nextFundingTime),
+        }
 
     async def fetch_network_deposit_address(self, code, params={}):
         await self.load_markets()
@@ -715,15 +1197,26 @@ class gateio(Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'currency_pair': market['id'],
-        }
-        response = await self.publicSpotGetTickers(self.extend(request, params))
+        method = 'publicSpotGetTickers'
+        id = market['id']
+        request = {}
+        linear = market['linear']
+        inverse = market['inverse']
+        if linear or inverse:
+            request['contract'] = id
+            request['settle'] = market['baseId']
+            if market['linear']:
+                method = 'publicFuturesGetTickers'
+            else:
+                method = 'publicDeliveryGetTickers'
+        else:
+            request['currency_pair'] = id
+        response = await getattr(self, method)(self.extend(request, params))
         ticker = self.safe_value(response, 0)
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
-        #
+        #  SPOT
         #     {
         #       "currency_pair": "KFC_USDT",
         #       "last": "7.255",
@@ -736,15 +1229,36 @@ class gateio(Exchange):
         #       "low_24h": "7.095"
         #     }
         #
-        marketId = self.safe_string(ticker, 'currency_pair')
+        #  LINEAR/DELIVERY
+        #
+        #   {
+        #     "contract": "BTC_USDT",
+        #     "last": "6432",
+        #     "low_24h": "6278",
+        #     "high_24h": "6790",
+        #     "change_percentage": "4.43",
+        #     "total_size": "32323904",
+        #     "volume_24h": "184040233284",
+        #     "volume_24h_btc": "28613220",
+        #     "volume_24h_usd": "184040233284",
+        #     "volume_24h_base": "28613220",
+        #     "volume_24h_quote": "184040233284",
+        #     "volume_24h_settle": "28613220",
+        #     "mark_price": "6534",
+        #     "funding_rate": "0.0001",
+        #     "funding_rate_indicative": "0.0001",
+        #     "index_price": "6531"
+        #   }
+        #
+        marketId = self.safe_string_2(ticker, 'currency_pair', 'contract')
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_number(ticker, 'last')
         ask = self.safe_number(ticker, 'lowest_ask')
         bid = self.safe_number(ticker, 'highest_bid')
         high = self.safe_number(ticker, 'high_24h')
         low = self.safe_number(ticker, 'low_24h')
-        baseVolume = self.safe_number(ticker, 'base_volume')
-        quoteVolume = self.safe_number(ticker, 'quote_volume')
+        baseVolume = self.safe_number(ticker, 'base_volume', 'volume_24h_base')
+        quoteVolume = self.safe_number(ticker, 'quote_volume', 'volume_24h_quote')
         percentage = self.safe_number(ticker, 'change_percentage')
         return self.safe_ticker({
             'symbol': symbol,
@@ -771,7 +1285,23 @@ class gateio(Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        response = await self.publicSpotGetTickers(params)
+        defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        method = 'publicSpotGetTickers'
+        request = {}
+        linear = type == 'future'
+        inverse = type == 'delivery'
+        if linear or inverse:
+            if linear:
+                if not params['settle']:
+                    request['settle'] = 'usdt'
+                method = 'publicFuturesGetSettleTickers'
+            else:
+                if not params['settle']:
+                    request['settle'] = 'btc'
+                method = 'publicDeliveryGetSettleTickers'
+        response = await getattr(self, method)(self.extend(request, params))
         return self.parse_tickers(response, symbols)
 
     async def fetch_balance(self, params={}):

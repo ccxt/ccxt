@@ -2168,7 +2168,7 @@ class bitmart extends Exchange {
         );
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currenc ($code);
+            $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
         $response = yield $this->privateAccountGetDepositWithdrawHistory (array_merge($request, $params));

@@ -392,15 +392,15 @@ class phemex(Exchange):
         quoteId = self.safe_string(market, 'quoteCurrency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
         type = self.safe_string_lower(market, 'type')
         inverse = False
         spot = False
         swap = True
-        settlementCurrencyId = self.safe_string(market, 'settlementCurrency')
+        settlementCurrencyId = self.safe_string(market, 'settleCurrency')
         if settlementCurrencyId != quoteId:
             inverse = True
         linear = not inverse
+        symbol = id if (inverse) else (base + '/' + quote)  # fix for uBTCUSD inverse
         precision = {
             'amount': self.safe_number(market, 'lotSize'),
             'price': self.safe_number(market, 'tickSize'),

@@ -65,7 +65,7 @@ class ftx(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': None,
-                'fetchFundingRate': None,
+                'fetchFundingRate': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': None,
@@ -2066,7 +2066,6 @@ class ftx(Exchange):
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        method = 'private_get_funding_payments'
         request = {}
         market = None
         if symbol is not None:
@@ -2074,6 +2073,68 @@ class ftx(Exchange):
             request['future'] = market['id']
         if since is not None:
             request['startTime'] = since
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await self.privateGetFundingPayments(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
         return self.parse_incomes(result, market, since, limit)
+
+    def parse_funding_rate(self, fundingRate, market=None):
+        #
+        # perp
+        #     {
+        #       "volume": "71294.7636",
+        #       "nextFundingRate": "0.000033",
+        #       "nextFundingTime": "2021-10-14T20:00:00+00:00",
+        #       "openInterest": "47142.994"
+        #     }
+        #
+        # delivery
+        #     {
+        #       "volume": "4998.727",
+        #       "predictedExpirationPrice": "3798.820141757",
+        #       "openInterest": "48307.96"
+        #     }
+        #
+        nextFundingRate = self.safe_number(fundingRate, 'nextFundingRate')
+        nextFundingRateDatetimeRaw = self.safe_string(fundingRate, 'nextFundingTime')
+        nextFundingRateTimestamp = self.parse8601(nextFundingRateDatetimeRaw)
+        previousFundingTimestamp = None
+        if nextFundingRateTimestamp is not None:
+            previousFundingTimestamp = nextFundingRateTimestamp - 3600000
+        estimatedSettlePrice = self.safe_number(fundingRate, 'predictedExpirationPrice')
+        return {
+            'info': fundingRate,
+            'symbol': market['symbol'],
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': self.parse_number('0'),
+            'estimatedSettlePrice': estimatedSettlePrice,
+            'timestamp': None,
+            'datetime': None,
+            'previousFundingRate': None,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp,  # subtract 8 hours
+            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
+            'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
+        }
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'future_name': market['id'],
+        }
+        response = await self.publicGetFuturesFutureNameStats(self.extend(request, params))
+        #
+        #     {
+        #       "success": True,
+        #       "result": {
+        #         "volume": "71294.7636",
+        #         "nextFundingRate": "0.000033",
+        #         "nextFundingTime": "2021-10-14T20:00:00+00:00",
+        #         "openInterest": "47142.994"
+        #       }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_funding_rate(result, market)

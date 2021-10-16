@@ -882,18 +882,24 @@ class bybit(Exchange):
         # }
         #
         result = self.safe_value(response, 'result')
-        lastFundingRate = self.safe_number(result, 'funding_rate')
-        lastFundingTime = self.safe_integer(result, 'funding_rate_timestamp') * 1000
-        nextFundingTime = lastFundingTime + (8 * 3600000)
+        nextFundingRate = self.safe_number(result, 'funding_rate')
+        previousFundingTime = self.safe_integer(result, 'funding_rate_timestamp') * 1000
+        nextFundingTime = previousFundingTime + (8 * 3600000)
         currentTime = self.milliseconds()
         return {
+            'info': result,
             'symbol': symbol,
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),
-            'lastFundingRate': lastFundingRate,
-            'lastFundingTimestamp': lastFundingTime,
+            'previousFundingRate': None,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTime,
             'nextFundingTimestamp': nextFundingTime,
-            'lastFundingDatetime': self.iso8601(lastFundingTime),
+            'previousFundingDatetime': self.iso8601(previousFundingTime),
             'nextFundingDatetime': self.iso8601(nextFundingTime),
         }
 

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.58.5'
+__version__ = '1.58.25'
 
 # ----------------------------------------------------------------------------
 
@@ -98,7 +98,6 @@ from ccxt.bitstamp import bitstamp                          # noqa: F401
 from ccxt.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.bittrex import bittrex                            # noqa: F401
 from ccxt.bitvavo import bitvavo                            # noqa: F401
-from ccxt.bitz import bitz                                  # noqa: F401
 from ccxt.bl3p import bl3p                                  # noqa: F401
 from ccxt.btcalpha import btcalpha                          # noqa: F401
 from ccxt.btcbox import btcbox                              # noqa: F401
@@ -153,6 +152,7 @@ from ccxt.liquid import liquid                              # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
 from ccxt.lykke import lykke                                # noqa: F401
 from ccxt.mercado import mercado                            # noqa: F401
+from ccxt.mexc import mexc                                  # noqa: F401
 from ccxt.mixcoins import mixcoins                          # noqa: F401
 from ccxt.ndax import ndax                                  # noqa: F401
 from ccxt.novadax import novadax                            # noqa: F401
@@ -211,7 +211,6 @@ exchanges = [
     'bitstamp1',
     'bittrex',
     'bitvavo',
-    'bitz',
     'bl3p',
     'btcalpha',
     'btcbox',
@@ -266,6 +265,7 @@ exchanges = [
     'luno',
     'lykke',
     'mercado',
+    'mexc',
     'mixcoins',
     'ndax',
     'novadax',

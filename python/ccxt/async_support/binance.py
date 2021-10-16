@@ -722,6 +722,7 @@ class binance(Exchange):
                     'BEP20': 'BSC',
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
+                    'SPL': 'SOL',
                 },
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
@@ -1368,11 +1369,11 @@ class binance(Exchange):
         type = self.safe_string(params, 'type', defaultType)
         method = 'privateGetAccount'
         if type == 'future':
-            options = self.safe_value(self.options, 'future', {})
+            options = self.safe_value(self.options, type, {})
             fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
             method = self.safe_string(fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount')
         elif type == 'delivery':
-            options = self.safe_value(self.options, 'delivery', {})
+            options = self.safe_value(self.options, type, {})
             fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
             method = self.safe_string(fetchBalanceOptions, 'method', 'dapiPrivateGetAccount')
         elif type == 'margin':
@@ -3685,7 +3686,7 @@ class binance(Exchange):
         #         "time": "1621252344001"
         #     }
         #
-        return self.parse_funding_rate(response)
+        return self.parse_funding_rate(response, market)
 
     async def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
         await self.load_markets()
@@ -3758,9 +3759,9 @@ class binance(Exchange):
         indexPrice = self.safe_number(premiumIndex, 'indexPrice')
         interestRate = self.safe_number(premiumIndex, 'interestRate')
         estimatedSettlePrice = self.safe_number(premiumIndex, 'estimatedSettlePrice')
-        lastFundingRate = self.safe_number(premiumIndex, 'lastFundingRate')
+        nextFundingRate = self.safe_number(premiumIndex, 'lastFundingRate')
         nextFundingTime = self.safe_integer(premiumIndex, 'nextFundingTime')
-        lastFundingTime = nextFundingTime - (8 * 3600000)
+        previousFundingTime = nextFundingTime - (8 * 3600000)
         return {
             'info': premiumIndex,
             'symbol': symbol,
@@ -3770,10 +3771,11 @@ class binance(Exchange):
             'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastFundingRate': lastFundingRate,
-            'lastFundingTimestamp': lastFundingTime,  # subtract 8 hours
+            'previousFundingRate': None,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTime,  # subtract 8 hours
             'nextFundingTimestamp': nextFundingTime,
-            'lastFundingDatetime': self.iso8601(lastFundingTime),
+            'previousFundingDatetime': self.iso8601(previousFundingTime),
             'nextFundingDatetime': self.iso8601(nextFundingTime),
         }
 

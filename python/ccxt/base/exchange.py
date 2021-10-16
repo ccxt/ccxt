@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.58.5'
+__version__ = '1.58.25'
 
 # -----------------------------------------------------------------------------
 
@@ -1532,6 +1532,16 @@ class Exchange(object):
                 return deposit_address
         else:
             raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
+
+    def parse_funding_rate(self, contract, market=None):
+        raise NotSupported(self.id + ' parse_funding_rate() not supported yet')
+
+    def parse_funding_rates(self, response, market=None):
+        result = {}
+        for entry in response:
+            parsed = self.parse_funding_rate(entry, market)
+            result[parsed['symbol']] = parsed
+        return result
 
     def parse_ohlcv(self, ohlcv, market=None):
         if isinstance(ohlcv, list):

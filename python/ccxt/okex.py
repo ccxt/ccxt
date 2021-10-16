@@ -818,7 +818,7 @@ class okex(Exchange):
                 canWithdraw = self.safe_value(chain, 'canWd')
                 canInternal = self.safe_value(chain, 'canInternal')
                 active = True if (canDeposit and canWithdraw and canInternal) else False
-                currencyActive = currencyActive or active
+                currencyActive = active if (currencyActive is None) else currencyActive
                 networkId = self.safe_string(chain, 'chain')
                 if networkId.find('-') >= 0:
                     parts = networkId.split('-')
@@ -1419,26 +1419,35 @@ class okex(Exchange):
         else:
             request['clOrdId'] = clientOrderId
             params = self.omit(params, ['clOrdId', 'clientOrderId'])
+        request['sz'] = self.amount_to_precision(symbol, amount)
         if type == 'market':
-            # for market buy it requires the amount of quote currency to spend
-            if side == 'buy':
-                notional = self.safe_number(params, 'sz')
-                createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
-                if createMarketBuyOrderRequiresPrice:
-                    if price is not None:
-                        if notional is None:
-                            notional = amount * price
-                    elif notional is None:
-                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter(the exchange-specific behaviour)")
+            if market['type'] == 'spot' and side == 'buy':
+                # spot market buy: "sz" can refer either to base currency units or to quote currency units
+                # see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
+                defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
+                tgtCcy = self.safe_string(params, 'tgtCcy', defaultTgtCcy)
+                if tgtCcy == 'quote_ccy':
+                    # quote_ccy: sz refers to units of quote currency
+                    request['tgtCcy'] = 'quote_ccy'
+                    notional = self.safe_number(params, 'sz')
+                    createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
+                    if createMarketBuyOrderRequiresPrice:
+                        if price is not None:
+                            if notional is None:
+                                notional = amount * price
+                        elif notional is None:
+                            raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter(the exchange-specific behaviour)")
+                    else:
+                        notional = amount if (notional is None) else notional
+                    precision = market['precision']['price']
+                    request['sz'] = self.decimal_to_precision(notional, TRUNCATE, precision, self.precisionMode)
                 else:
-                    notional = amount if (notional is None) else notional
-                precision = market['precision']['price']
-                request['sz'] = self.decimal_to_precision(notional, TRUNCATE, precision, self.precisionMode)
-            else:
-                request['sz'] = self.amount_to_precision(symbol, amount)
+                    # base_ccy: sz refers to units of base currency
+                    request['tgtCcy'] = 'base_ccy'
+                params = self.omit(params, ['tgtCcy'])
         else:
+            # non-market orders
             request['px'] = self.price_to_precision(symbol, price)
-            request['sz'] = self.amount_to_precision(symbol, amount)
         extendedRequest = None
         defaultMethod = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')  # or privatePostTradeOrder
         if defaultMethod == 'privatePostTradeOrder':
@@ -1579,9 +1588,15 @@ class okex(Exchange):
         feeCostString = self.safe_string(order, 'fee')
         amount = None
         cost = None
-        if side == 'buy' and type == 'market':
+        # spot market buy: "sz" can refer either to base currency units or to quote currency units
+        # see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
+        defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
+        tgtCcy = self.safe_string(order, 'tgtCcy', defaultTgtCcy)
+        if side == 'buy' and type == 'market' and market['spot'] and tgtCcy == 'quote_ccy':
+            # "sz" refers to the cost
             cost = self.safe_number(order, 'sz')
         else:
+            # "sz" refers to the trade currency amount
             amount = self.safe_number(order, 'sz')
         fee = None
         if feeCostString is not None:
@@ -2179,10 +2194,11 @@ class okex(Exchange):
         return self.index_by(parsed, 'network')
 
     def fetch_deposit_address(self, code, params={}):
-        response = self.fetch_deposit_addresses_by_network(code, params)
         rawNetwork = self.safe_string(params, 'network')
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string(networks, rawNetwork, rawNetwork)
+        params = self.omit(params, 'network')
+        response = self.fetch_deposit_addresses_by_network(code, params)
         result = None
         if network is None:
             result = self.safe_value(response, code)
@@ -2837,6 +2853,71 @@ class okex(Exchange):
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['OK-ACCESS-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def parse_funding_rate(self, fundingRate, market=None):
+        #
+        #     {
+        #       "fundingRate": "0.00027815",
+        #       "fundingTime": "1634256000000",
+        #       "instId": "BTC-USD-SWAP",
+        #       "instType": "SWAP",
+        #       "nextFundingRate": "0.00017",
+        #       "nextFundingTime": "1634284800000"
+        #     }
+        #
+        previousFundingRate = self.safe_number(fundingRate, 'fundingRate')
+        previousFundingTimestamp = self.safe_integer(fundingRate, 'fundingTime')
+        marketId = self.safe_string(fundingRate, 'instId')
+        symbol = self.safe_symbol(marketId, market)
+        nextFundingRate = self.safe_number(fundingRate, 'nextFundingRate')
+        nextFundingRateTimestamp = self.safe_integer(fundingRate, 'nextFundingTime')
+        # https://www.okex.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
+        # > The current interest is 0.
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': self.parse_number('0'),
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'previousFundingRate': previousFundingRate,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp,  # subtract 8 hours
+            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
+            'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
+        }
+
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise ExchangeError(self.id + ' fetchFundingRate is only valid for swap markets')
+        request = {
+            'instId': market['id'],
+        }
+        response = self.publicGetPublicFundingRate(self.extend(request, params))
+        #
+        #     {
+        #       "code": "0",
+        #       "data": [
+        #         {
+        #           "fundingRate": "0.00027815",
+        #           "fundingTime": "1634256000000",
+        #           "instId": "BTC-USD-SWAP",
+        #           "instType": "SWAP",
+        #           "nextFundingRate": "0.00017",
+        #           "nextFundingTime": "1634284800000"
+        #         }
+        #       ],
+        #       "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        entry = self.safe_value(data, 0, {})
+        return self.parse_funding_rate(entry, market)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

@@ -885,18 +885,24 @@ module.exports = class bybit extends Exchange {
         // }
         //
         const result = this.safeValue (response, 'result');
-        const lastFundingRate = this.safeNumber (result, 'funding_rate');
-        const lastFundingTime = this.safeInteger (result, 'funding_rate_timestamp') * 1000;
-        const nextFundingTime = lastFundingTime + (8 * 3600000);
+        const nextFundingRate = this.safeNumber (result, 'funding_rate');
+        const previousFundingTime = this.safeInteger (result, 'funding_rate_timestamp') * 1000;
+        const nextFundingTime = previousFundingTime + (8 * 3600000);
         const currentTime = this.milliseconds ();
         return {
+            'info': result,
             'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
             'timestamp': currentTime,
             'datetime': this.iso8601 (currentTime),
-            'lastFundingRate': lastFundingRate,
-            'lastFundingTimestamp': lastFundingTime,
+            'previousFundingRate': undefined,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTime,
             'nextFundingTimestamp': nextFundingTime,
-            'lastFundingDatetime': this.iso8601 (lastFundingTime),
+            'previousFundingDatetime': this.iso8601 (previousFundingTime),
             'nextFundingDatetime': this.iso8601 (nextFundingTime),
         };
     }

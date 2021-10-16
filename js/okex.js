@@ -816,7 +816,7 @@ module.exports = class okex extends Exchange {
                 const canWithdraw = this.safeValue (chain, 'canWd');
                 const canInternal = this.safeValue (chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
-                currencyActive = currencyActive || active;
+                currencyActive = (currencyActive === undefined) ? active : currencyActive;
                 let networkId = this.safeString (chain, 'chain');
                 if (networkId.indexOf ('-') >= 0) {
                     const parts = networkId.split ('-');
@@ -1452,30 +1452,40 @@ module.exports = class okex extends Exchange {
             request['clOrdId'] = clientOrderId;
             params = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
         }
+        request['sz'] = this.amountToPrecision (symbol, amount);
         if (type === 'market') {
-            // for market buy it requires the amount of quote currency to spend
-            if (side === 'buy') {
-                let notional = this.safeNumber (params, 'sz');
-                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
-                if (createMarketBuyOrderRequiresPrice) {
-                    if (price !== undefined) {
-                        if (notional === undefined) {
-                            notional = amount * price;
+            if (market['type'] === 'spot' && side === 'buy') {
+                // spot market buy: "sz" can refer either to base currency units or to quote currency units
+                // see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
+                const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
+                const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
+                if (tgtCcy === 'quote_ccy') {
+                    // quote_ccy: sz refers to units of quote currency
+                    request['tgtCcy'] = 'quote_ccy';
+                    let notional = this.safeNumber (params, 'sz');
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    if (createMarketBuyOrderRequiresPrice) {
+                        if (price !== undefined) {
+                            if (notional === undefined) {
+                                notional = amount * price;
+                            }
+                        } else if (notional === undefined) {
+                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
                         }
-                    } else if (notional === undefined) {
-                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
+                    } else {
+                        notional = (notional === undefined) ? amount : notional;
                     }
+                    const precision = market['precision']['price'];
+                    request['sz'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
                 } else {
-                    notional = (notional === undefined) ? amount : notional;
+                    // base_ccy: sz refers to units of base currency
+                    request['tgtCcy'] = 'base_ccy';
                 }
-                const precision = market['precision']['price'];
-                request['sz'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
-            } else {
-                request['sz'] = this.amountToPrecision (symbol, amount);
+                params = this.omit (params, [ 'tgtCcy' ]);
             }
         } else {
+            // non-market orders
             request['px'] = this.priceToPrecision (symbol, price);
-            request['sz'] = this.amountToPrecision (symbol, amount);
         }
         let extendedRequest = undefined;
         const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder
@@ -1624,9 +1634,15 @@ module.exports = class okex extends Exchange {
         const feeCostString = this.safeString (order, 'fee');
         let amount = undefined;
         let cost = undefined;
-        if (side === 'buy' && type === 'market') {
+        // spot market buy: "sz" can refer either to base currency units or to quote currency units
+        // see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
+        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
+        const tgtCcy = this.safeString (order, 'tgtCcy', defaultTgtCcy);
+        if (side === 'buy' && type === 'market' && market['spot'] && tgtCcy === 'quote_ccy') {
+            // "sz" refers to the cost
             cost = this.safeNumber (order, 'sz');
         } else {
+            // "sz" refers to the trade currency amount
             amount = this.safeNumber (order, 'sz');
         }
         let fee = undefined;
@@ -2252,10 +2268,11 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        const response = await this.fetchDepositAddressesByNetwork (code, params);
         const rawNetwork = this.safeString (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
+        params = this.omit (params, 'network');
+        const response = await this.fetchDepositAddressesByNetwork (code, params);
         let result = undefined;
         if (network === undefined) {
             result = this.safeValue (response, code);
@@ -2955,6 +2972,74 @@ module.exports = class okex extends Exchange {
             headers['OK-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    parseFundingRate (fundingRate, market = undefined) {
+        //
+        //     {
+        //       "fundingRate": "0.00027815",
+        //       "fundingTime": "1634256000000",
+        //       "instId": "BTC-USD-SWAP",
+        //       "instType": "SWAP",
+        //       "nextFundingRate": "0.00017",
+        //       "nextFundingTime": "1634284800000"
+        //     }
+        //
+        const previousFundingRate = this.safeNumber (fundingRate, 'fundingRate');
+        const previousFundingTimestamp = this.safeInteger (fundingRate, 'fundingTime');
+        const marketId = this.safeString (fundingRate, 'instId');
+        const symbol = this.safeSymbol (marketId, market);
+        const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
+        const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'nextFundingTime');
+        // https://www.okex.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
+        // > The current interest is 0.
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'previousFundingRate': previousFundingRate,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
+            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new ExchangeError (this.id + ' fetchFundingRate is only valid for swap markets');
+        }
+        const request = {
+            'instId': market['id'],
+        };
+        const response = await this.publicGetPublicFundingRate (this.extend (request, params));
+        //
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "fundingRate": "0.00027815",
+        //           "fundingTime": "1634256000000",
+        //           "instId": "BTC-USD-SWAP",
+        //           "instType": "SWAP",
+        //           "nextFundingRate": "0.00017",
+        //           "nextFundingTime": "1634284800000"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const entry = this.safeValue (data, 0, {});
+        return this.parseFundingRate (entry, market);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

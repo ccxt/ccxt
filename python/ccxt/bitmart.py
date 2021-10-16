@@ -2072,7 +2072,7 @@ class bitmart(Exchange):
         }
         currency = None
         if code is not None:
-            currency = self.currenc(code)
+            currency = self.currency(code)
             request['currency'] = currency['id']
         response = self.privateAccountGetDepositWithdrawHistory(self.extend(request, params))
         #

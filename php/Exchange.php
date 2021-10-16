@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.58.5';
+$version = '1.58.25';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.58.5';
+    const VERSION = '1.58.25';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -91,7 +91,6 @@ class Exchange {
         'bitstamp1',
         'bittrex',
         'bitvavo',
-        'bitz',
         'bl3p',
         'btcalpha',
         'btcbox',
@@ -146,6 +145,7 @@ class Exchange {
         'luno',
         'lykke',
         'mercado',
+        'mexc',
         'mixcoins',
         'ndax',
         'novadax',
@@ -328,6 +328,8 @@ class Exchange {
         'safeMarket' => 'safe_market',
         'safeSymbol' => 'safe_symbol',
         'filterBySymbol' => 'filter_by_symbol',
+        'parseFundingRate' => 'parse_funding_rate',
+        'parseFundingRates' => 'parse_funding_rates',
         'parseOHLCV' => 'parse_ohlcv',
         'parseOHLCVs' => 'parse_ohlc_vs',
         'editLimitBuyOrder' => 'edit_limit_buy_order',
@@ -1769,6 +1771,20 @@ class Exchange {
         }
         $this->accountsById = static::index_by($this->accounts, 'id');
         return $this->accounts;
+    }
+
+    public function parse_funding_rate($response, $market = null) {
+        throw new NotSupported($this->id . ' parse_funding_rate() not supported yet');
+    }
+
+    public function parse_funding_rates($response, $market = null) {
+        $response = is_array($response) ? array_values($response) : array();
+        $result = array();
+        foreach ($response as $entry) {
+            $parsed = $this->parse_funding_rate($entry, $market);
+            $result[$parsed['symbol']] = $parsed;
+        }
+        return $result;
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

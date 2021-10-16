@@ -454,7 +454,6 @@ declare module 'ccxt' {
     export class bitstamp1 extends Exchange {}
     export class bittrex extends Exchange {}
     export class bitvavo extends Exchange {}
-    export class bitz extends Exchange {}
     export class bl3p extends Exchange {}
     export class btcalpha extends Exchange {}
     export class btcbox extends Exchange {}
@@ -509,6 +508,7 @@ declare module 'ccxt' {
     export class luno extends Exchange {}
     export class lykke extends Exchange {}
     export class mercado extends Exchange {}
+    export class mexc extends Exchange {}
     export class mixcoins extends Exchange {}
     export class ndax extends Exchange {}
     export class novadax extends Exchange {}
@@ -569,7 +569,6 @@ declare module 'ccxt' {
         | 'bitstamp1'
         | 'bittrex'
         | 'bitvavo'
-        | 'bitz'
         | 'bl3p'
         | 'btcalpha'
         | 'btcbox'
@@ -624,6 +623,7 @@ declare module 'ccxt' {
         | 'luno'
         | 'lykke'
         | 'mercado'
+        | 'mexc'
         | 'mixcoins'
         | 'ndax'
         | 'novadax'

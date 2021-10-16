@@ -1380,6 +1380,19 @@ module.exports = class Exchange {
         return ((symbol !== undefined) ? array.filter ((entry) => entry.symbol === symbol) : array)
     }
 
+    parseFundingRate (contract, market = undefined) {
+        throw new NotSupported (this.id + ' parseFundingRate() not supported yet')
+    }
+
+    parseFundingRates (response, market = undefined) {
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const parsed = this.parseFundingRate (response[i], market);
+            result[parsed['symbol']] = parsed;
+        }
+        return result;
+    }
+
     parseOHLCV (ohlcv, market = undefined) {
         return Array.isArray (ohlcv) ? ohlcv.slice (0, 6) : ohlcv
     }

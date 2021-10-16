@@ -382,16 +382,16 @@ module.exports = class phemex extends Exchange {
         const quoteId = this.safeString (market, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
         const type = this.safeStringLower (market, 'type');
         let inverse = false;
         const spot = false;
         const swap = true;
-        const settlementCurrencyId = this.safeString (market, 'settlementCurrency');
+        const settlementCurrencyId = this.safeString (market, 'settleCurrency');
         if (settlementCurrencyId !== quoteId) {
             inverse = true;
         }
         const linear = !inverse;
+        const symbol = (inverse) ? id : (base + '/' + quote); // fix for uBTCUSD inverse
         const precision = {
             'amount': this.safeNumber (market, 'lotSize'),
             'price': this.safeNumber (market, 'tickSize'),

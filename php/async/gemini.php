@@ -231,7 +231,8 @@ class gemini extends Exchange {
             $amountPrecisionParts = explode(' ', $amountPrecisionString);
             $amountPrecision = $this->safe_number($amountPrecisionParts, 0);
             $idLength = strlen($marketId) - 0;
-            $quoteId = mb_substr($marketId, $idLength - 3, $idLength - $idLength - 3);
+            $startingIndex = $idLength - 3;
+            $quoteId = mb_substr($marketId, $startingIndex, $idLength - $startingIndex);
             $quote = $this->safe_currency_code($quoteId);
             $pricePrecisionString = str_replace('<td>', '', $cells[3]);
             $pricePrecisionParts = explode(' ', $pricePrecisionString);

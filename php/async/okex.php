@@ -820,7 +820,7 @@ class okex extends Exchange {
                 $canWithdraw = $this->safe_value($chain, 'canWd');
                 $canInternal = $this->safe_value($chain, 'canInternal');
                 $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
-                $currencyActive = $currencyActive || $active;
+                $currencyActive = ($currencyActive === null) ? $active : $currencyActive;
                 $networkId = $this->safe_string($chain, 'chain');
                 if (mb_strpos($networkId, '-') !== false) {
                     $parts = explode('-', $networkId);
@@ -1456,30 +1456,40 @@ class okex extends Exchange {
             $request['clOrdId'] = $clientOrderId;
             $params = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
         }
+        $request['sz'] = $this->amount_to_precision($symbol, $amount);
         if ($type === 'market') {
-            // for $market buy it requires the $amount of quote currency to spend
-            if ($side === 'buy') {
-                $notional = $this->safe_number($params, 'sz');
-                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                if ($createMarketBuyOrderRequiresPrice) {
-                    if ($price !== null) {
-                        if ($notional === null) {
-                            $notional = $amount * $price;
+            if ($market['type'] === 'spot' && $side === 'buy') {
+                // spot $market buy => "sz" can refer either to base currency units or to quote currency units
+                // see documentation => https://www.okex.com/docs-v5/en/#rest-api-trade-place-$order
+                $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
+                $tgtCcy = $this->safe_string($params, 'tgtCcy', $defaultTgtCcy);
+                if ($tgtCcy === 'quote_ccy') {
+                    // quote_ccy => sz refers to units of quote currency
+                    $request['tgtCcy'] = 'quote_ccy';
+                    $notional = $this->safe_number($params, 'sz');
+                    $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+                    if ($createMarketBuyOrderRequiresPrice) {
+                        if ($price !== null) {
+                            if ($notional === null) {
+                                $notional = $amount * $price;
+                            }
+                        } else if ($notional === null) {
+                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
                         }
-                    } else if ($notional === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
+                    } else {
+                        $notional = ($notional === null) ? $amount : $notional;
                     }
+                    $precision = $market['precision']['price'];
+                    $request['sz'] = $this->decimal_to_precision($notional, TRUNCATE, $precision, $this->precisionMode);
                 } else {
-                    $notional = ($notional === null) ? $amount : $notional;
+                    // base_ccy => sz refers to units of base currency
+                    $request['tgtCcy'] = 'base_ccy';
                 }
-                $precision = $market['precision']['price'];
-                $request['sz'] = $this->decimal_to_precision($notional, TRUNCATE, $precision, $this->precisionMode);
-            } else {
-                $request['sz'] = $this->amount_to_precision($symbol, $amount);
+                $params = $this->omit($params, array( 'tgtCcy' ));
             }
         } else {
+            // non-$market orders
             $request['px'] = $this->price_to_precision($symbol, $price);
-            $request['sz'] = $this->amount_to_precision($symbol, $amount);
         }
         $extendedRequest = null;
         $defaultMethod = $this->safe_string($this->options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder
@@ -1628,9 +1638,15 @@ class okex extends Exchange {
         $feeCostString = $this->safe_string($order, 'fee');
         $amount = null;
         $cost = null;
-        if ($side === 'buy' && $type === 'market') {
+        // spot $market buy => "sz" can refer either to base currency units or to quote currency units
+        // see documentation => https://www.okex.com/docs-v5/en/#rest-api-trade-place-$order
+        $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
+        $tgtCcy = $this->safe_string($order, 'tgtCcy', $defaultTgtCcy);
+        if ($side === 'buy' && $type === 'market' && $market['spot'] && $tgtCcy === 'quote_ccy') {
+            // "sz" refers to the $cost
             $cost = $this->safe_number($order, 'sz');
         } else {
+            // "sz" refers to the trade currency $amount
             $amount = $this->safe_number($order, 'sz');
         }
         $fee = null;
@@ -2256,10 +2272,11 @@ class okex extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        $response = yield $this->fetch_deposit_addresses_by_network($code, $params);
         $rawNetwork = $this->safe_string($params, 'network');
         $networks = $this->safe_value($this->options, 'networks', array());
         $network = $this->safe_string($networks, $rawNetwork, $rawNetwork);
+        $params = $this->omit($params, 'network');
+        $response = yield $this->fetch_deposit_addresses_by_network($code, $params);
         $result = null;
         if ($network === null) {
             $result = $this->safe_value($response, $code);
@@ -2959,6 +2976,74 @@ class okex extends Exchange {
             $headers['OK-ACCESS-SIGN'] = $signature;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function parse_funding_rate($fundingRate, $market = null) {
+        //
+        //     {
+        //       "$fundingRate" => "0.00027815",
+        //       "fundingTime" => "1634256000000",
+        //       "instId" => "BTC-USD-SWAP",
+        //       "instType" => "SWAP",
+        //       "$nextFundingRate" => "0.00017",
+        //       "nextFundingTime" => "1634284800000"
+        //     }
+        //
+        $previousFundingRate = $this->safe_number($fundingRate, 'fundingRate');
+        $previousFundingTimestamp = $this->safe_integer($fundingRate, 'fundingTime');
+        $marketId = $this->safe_string($fundingRate, 'instId');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $nextFundingRate = $this->safe_number($fundingRate, 'nextFundingRate');
+        $nextFundingRateTimestamp = $this->safe_integer($fundingRate, 'nextFundingTime');
+        // https://www.okex.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
+        // > The current interest is 0.
+        return array(
+            'info' => $fundingRate,
+            'symbol' => $symbol,
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => $this->parse_number('0'),
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'previousFundingRate' => $previousFundingRate,
+            'nextFundingRate' => $nextFundingRate,
+            'previousFundingTimestamp' => $previousFundingTimestamp, // subtract 8 hours
+            'nextFundingTimestamp' => $nextFundingRateTimestamp,
+            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
+            'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+        );
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new ExchangeError($this->id . ' fetchFundingRate is only valid for swap markets');
+        }
+        $request = array(
+            'instId' => $market['id'],
+        );
+        $response = yield $this->publicGetPublicFundingRate (array_merge($request, $params));
+        //
+        //     {
+        //       "code" => "0",
+        //       "$data" => array(
+        //         {
+        //           "fundingRate" => "0.00027815",
+        //           "fundingTime" => "1634256000000",
+        //           "instId" => "BTC-USD-SWAP",
+        //           "instType" => "SWAP",
+        //           "nextFundingRate" => "0.00017",
+        //           "nextFundingTime" => "1634284800000"
+        //         }
+        //       ),
+        //       "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $entry = $this->safe_value($data, 0, array());
+        return $this->parse_funding_rate($entry, $market);
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
