@@ -525,7 +525,7 @@ module.exports = class ascendex extends Exchange {
         let accountGroup = this.safeString (this.options, 'account-group');
         let response = undefined;
         if (accountGroup === undefined) {
-            response = await this.privateGetInfo (params);
+            response = await this.v1PrivateGetInfo (params);
             //
             //     {
             //         "code":0,
