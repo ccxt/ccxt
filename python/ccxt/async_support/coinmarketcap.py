@@ -183,6 +183,8 @@ class coinmarketcap(Exchange):
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': market,
+                    'type': 'spot',
+                    'spot': True,
                     'active': None,
                     'precision': self.precision,
                     'limits': self.limits,

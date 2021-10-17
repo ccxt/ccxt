@@ -131,6 +131,8 @@ class coinone(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
             })
         return result

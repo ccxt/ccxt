@@ -252,6 +252,8 @@ class coinex(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'taker': self.safe_number(market, 'taker_fee_rate'),
                 'maker': self.safe_number(market, 'maker_fee_rate'),

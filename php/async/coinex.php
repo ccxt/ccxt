@@ -247,6 +247,8 @@ class coinex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'taker' => $this->safe_number($market, 'taker_fee_rate'),
                 'maker' => $this->safe_number($market, 'maker_fee_rate'),

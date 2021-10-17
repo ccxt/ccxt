@@ -323,6 +323,8 @@ class crex24(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': precision,
                 'maker': maker,
