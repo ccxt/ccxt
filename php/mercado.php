@@ -160,6 +160,8 @@ class mercado extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => null,
                 'info' => $coin,
                 'precision' => $precision,

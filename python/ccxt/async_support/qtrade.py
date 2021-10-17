@@ -193,6 +193,8 @@ class qtrade(Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': precision,
                 'taker': self.safe_number(market, 'taker_fee'),

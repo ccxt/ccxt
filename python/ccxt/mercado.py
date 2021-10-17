@@ -160,6 +160,8 @@ class mercado(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': None,
                 'info': coin,
                 'precision': precision,

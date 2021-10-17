@@ -183,6 +183,8 @@ class qtrade extends Exchange {
                 'quoteId' => $quoteId,
                 'base' => $base,
                 'quote' => $quote,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'precision' => $precision,
                 'taker' => $this->safe_number($market, 'taker_fee'),

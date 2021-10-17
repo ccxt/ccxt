@@ -53,12 +53,12 @@ class mixcoins extends Exchange {
                 ),
             ),
             'markets' => array(
-                'BTC/USDT' => array( 'id' => 'btc_usdt', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT', 'baseId' => 'btc', 'quoteId' => 'usdt', 'maker' => 0.0015, 'taker' => 0.0025 ),
-                'ETH/BTC' => array( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc', 'maker' => 0.001, 'taker' => 0.0015 ),
-                'BCH/BTC' => array( 'id' => 'bch_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'bch', 'quoteId' => 'btc', 'maker' => 0.001, 'taker' => 0.0015 ),
-                'LSK/BTC' => array( 'id' => 'lsk_btc', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC', 'baseId' => 'lsk', 'quoteId' => 'btc', 'maker' => 0.0015, 'taker' => 0.0025 ),
-                'BCH/USDT' => array( 'id' => 'bch_usdt', 'symbol' => 'BCH/USDT', 'base' => 'BCH', 'quote' => 'USDT', 'baseId' => 'bch', 'quoteId' => 'usdt', 'maker' => 0.001, 'taker' => 0.0015 ),
-                'ETH/USDT' => array( 'id' => 'eth_usdt', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT', 'baseId' => 'eth', 'quoteId' => 'usdt', 'maker' => 0.001, 'taker' => 0.0015 ),
+                'BTC/USDT' => array( 'id' => 'btc_usdt', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT', 'baseId' => 'btc', 'quoteId' => 'usdt', 'maker' => 0.0015, 'taker' => 0.0025, 'type' => 'spot', 'spot' => true ),
+                'ETH/BTC' => array( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc', 'maker' => 0.001, 'taker' => 0.0015, 'type' => 'spot', 'spot' => true ),
+                'BCH/BTC' => array( 'id' => 'bch_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'bch', 'quoteId' => 'btc', 'maker' => 0.001, 'taker' => 0.0015, 'type' => 'spot', 'spot' => true ),
+                'LSK/BTC' => array( 'id' => 'lsk_btc', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC', 'baseId' => 'lsk', 'quoteId' => 'btc', 'maker' => 0.0015, 'taker' => 0.0025, 'type' => 'spot', 'spot' => true ),
+                'BCH/USDT' => array( 'id' => 'bch_usdt', 'symbol' => 'BCH/USDT', 'base' => 'BCH', 'quote' => 'USDT', 'baseId' => 'bch', 'quoteId' => 'usdt', 'maker' => 0.001, 'taker' => 0.0015, 'type' => 'spot', 'spot' => true ),
+                'ETH/USDT' => array( 'id' => 'eth_usdt', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT', 'baseId' => 'eth', 'quoteId' => 'usdt', 'maker' => 0.001, 'taker' => 0.0015, 'type' => 'spot', 'spot' => true ),
             ),
         ));
     }
