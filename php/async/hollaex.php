@@ -207,6 +207,8 @@ class hollaex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'precision' => array(
                     'price' => $this->safe_number($market, 'increment_price'),

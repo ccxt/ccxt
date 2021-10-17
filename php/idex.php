@@ -199,6 +199,8 @@ class idex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'info' => $entry,
                 'precision' => $precision,

@@ -198,12 +198,14 @@ class indodax(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
+                'active': active,
                 'taker': taker,
                 'percentage': True,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-                'active': active,
             })
         return result
 

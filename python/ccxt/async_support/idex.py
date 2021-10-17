@@ -204,6 +204,8 @@ class idex(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'info': entry,
                 'precision': precision,

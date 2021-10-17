@@ -196,12 +196,14 @@ class indodax extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
+                'active' => $active,
                 'taker' => $taker,
                 'percentage' => true,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
-                'active' => $active,
             );
         }
         return $result;

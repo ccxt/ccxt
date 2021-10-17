@@ -128,6 +128,8 @@ class independentreserve extends Exchange {
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
                     'info' => $id,
+                    'type' => 'spot',
+                    'spot' => true,
                     'active' => null,
                     'precision' => $this->precision,
                     'limits' => array(

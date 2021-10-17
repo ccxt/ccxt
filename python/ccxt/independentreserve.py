@@ -126,6 +126,8 @@ class independentreserve(Exchange):
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': id,
+                    'type': 'spot',
+                    'spot': True,
                     'active': None,
                     'precision': self.precision,
                     'limits': {
