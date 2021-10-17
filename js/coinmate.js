@@ -221,6 +221,8 @@ module.exports = class coinmate extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': undefined,
                 'maker': fees['maker'],
                 'taker': fees['taker'],
