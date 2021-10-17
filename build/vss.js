@@ -10,7 +10,7 @@ const fs           = require ('fs')
 const log          = require ('ololog')
 const ansi         = require ('ansicolor').nice
 const { execSync } = require ('child_process')
-const { incrementVersionPatchNumber, vss } = require ('ccxt/build/vss.js')
+const { vss } = require ('ccxt/build/vss.js')
 
 // ----------------------------------------------------------------------------
 
@@ -18,8 +18,6 @@ function vssEverything () {
 
     let { version } = require ('../package.json')
 
-    log.bright ('Old version: '.dim, version)
-    version = incrementVersionPatchNumber (version)
     log.bright ('New version: '.cyan, version)
 
     vss ('./ccxt.pro.js',                     "const version = '{version}'", version)
@@ -53,7 +51,6 @@ if (require.main === module) {
 // ============================================================================
 
 module.exports = {
-    incrementVersionPatchNumber,
     vss,
     vssEverything,
 }
