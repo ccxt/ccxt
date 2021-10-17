@@ -697,7 +697,9 @@ module.exports = class bitstamp extends Exchange {
 
     parseTradingFee (balances, symbol) {
         const market = this.market (symbol);
-        const tradeFee = this.parseNumber( Precise.stringDiv (this.safeString (balances, market['id'] + '_fee'), '100'));
+        const feeString = this.safeString (balances, market['id'] + '_fee');
+        const dividedFeeString = Precise.stringDiv (feeString, '100');
+        const tradeFee = this.parseNumber (dividedFeeString);
         return {
             'symbol': symbol,
             'maker': tradeFee,
