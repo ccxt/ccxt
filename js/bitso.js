@@ -218,6 +218,8 @@ module.exports = class bitso extends Exchange {
                 'info': market,
                 'limits': limits,
                 'precision': precision,
+                'type': 'spot',
+                'spot': true,
                 'active': undefined,
             }, fee));
         }
