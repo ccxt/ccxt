@@ -470,7 +470,6 @@ module.exports = class kraken extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        this.checkRequiredCredentials ();
         const response = await this.privatePostTradeVolume (params);
         const tradedVolume = this.safeNumber (response['result'], 'volume');
         const tiers = this.fees['trading']['tiers'];
