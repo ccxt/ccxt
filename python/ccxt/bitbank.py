@@ -186,6 +186,8 @@ class bitbank(Exchange):
                 'quote': quote,
                 'precision': precision,
                 'limits': limits,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'maker': maker,
                 'taker': taker,

@@ -181,6 +181,8 @@ class bithumb(Exchange):
                     'base': base,
                     'quote': quote,
                     'info': market,
+                    'type': 'spot',
+                    'spot': True,
                     'active': active,
                     'precision': {
                         'amount': 4,

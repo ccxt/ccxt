@@ -292,6 +292,8 @@ class bitbay(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'precision': precision,
+                'type': 'spot',
+                'spot': True,
                 'active': None,
                 'maker': maker,
                 'taker': taker,
