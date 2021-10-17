@@ -205,6 +205,8 @@ module.exports = class hollaex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': {
                     'price': this.safeNumber (market, 'increment_price'),
