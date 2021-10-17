@@ -189,7 +189,6 @@ module.exports = class bw extends Exchange {
             const fee = this.safeNumber (market, 'defaultFee');
             result.push ({
                 'id': id,
-                'active': active,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
@@ -198,6 +197,9 @@ module.exports = class bw extends Exchange {
                 'quoteId': quoteId,
                 'baseNumericId': baseNumericId,
                 'quoteNumericId': quoteNumericId,
+                'type': 'spot',
+                'spot': true,
+                'active': active,
                 'maker': fee,
                 'taker': fee,
                 'info': market,
