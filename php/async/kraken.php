@@ -480,7 +480,6 @@ class kraken extends Exchange {
 
     public function fetch_trading_fees($params = array ()) {
         yield $this->load_markets();
-        $this->check_required_credentials();
         $response = yield $this->privatePostTradeVolume ($params);
         $tradedVolume = $this->safe_number($response['result'], 'volume');
         $tiers = $this->fees['trading']['tiers'];
