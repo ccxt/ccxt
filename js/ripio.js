@@ -179,12 +179,14 @@ module.exports = class ripio extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
+                'active': active,
                 'precision': precision,
                 'maker': maker,
                 'taker': taker,
                 'limits': limits,
                 'info': market,
-                'active': active,
             });
         }
         return result;
