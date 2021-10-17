@@ -25,6 +25,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class bitstamp(Exchange):
@@ -673,7 +674,9 @@ class bitstamp(Exchange):
 
     def parse_trading_fee(self, balances, symbol):
         market = self.market(symbol)
-        tradeFee = self.safe_number(balances, market['id'] + '_fee')
+        feeString = self.safe_string(balances, market['id'] + '_fee')
+        dividedFeeString = Precise.string_div(feeString, '100')
+        tradeFee = self.parse_number(dividedFeeString)
         return {
             'symbol': symbol,
             'maker': tradeFee,
