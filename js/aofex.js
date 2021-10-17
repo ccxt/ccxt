@@ -207,6 +207,8 @@ module.exports = class aofex extends Exchange {
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': true,
                 'active': undefined,
                 'maker': makerFee,
                 'taker': takerFee,
