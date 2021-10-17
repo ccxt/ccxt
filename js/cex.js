@@ -330,6 +330,9 @@ module.exports = class cex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
+                'active': undefined,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -345,7 +348,6 @@ module.exports = class cex extends Exchange {
                         'max': undefined,
                     },
                 },
-                'active': undefined,
             });
         }
         return result;
