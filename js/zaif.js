@@ -172,6 +172,8 @@ module.exports = class zaif extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': true, // can trade or not
                 'precision': precision,
                 'taker': taker,
