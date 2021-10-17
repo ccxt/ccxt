@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\NotSupported;
 
@@ -112,7 +113,6 @@ class gemini extends Exchange {
                         'v1/notionalbalances/{currency}',
                         'v1/transfers',
                         'v1/addresses/{network}',
-                        'v1/deposit/{currency}/newAddress',
                         'v1/deposit/{network}/newAddress',
                         'v1/withdraw/{currency}',
                         'v1/account/transfer/{currency}',
@@ -816,6 +816,10 @@ class gemini extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
             $this->check_required_credentials();
+            $apiKey = $this->apiKey;
+            if (mb_strpos($apiKey, 'account') === false) {
+                throw new AuthenticationError($this->id . ' sign() requires an account-key, master-keys are not-supported');
+            }
             $nonce = $this->nonce();
             $request = array_merge(array(
                 'request' => $url,
