@@ -43,7 +43,6 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchOrder': undefined,
                 'fetchOrderTrades': true,
                 'fetchStatus': true,
-                'platformStatus': true,
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTradingFee': undefined,
@@ -353,20 +352,6 @@ module.exports = class bitfinex2 extends bitfinex {
             'updated': this.milliseconds (),
         });
         return this.status;
-    }
-
-    async platformStatus (params = {}) {
-        //
-        //    [1] // operative
-        //    [0] // maintenance
-        //
-        const response = await this.publicGetPlatformStatus (params);
-        const s = this.safeInteger (response, 0);
-        const status = {
-            'status': s,
-            'updated': this.milliseconds (),
-        };
-        return status;
     }
 
     async fetchMarkets (params = {}) {
