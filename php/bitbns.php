@@ -44,7 +44,7 @@ class bitbns extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
                 'api' => array(
-                    'ccxt' => 'https://bitbns.com/order',
+                    'www' => 'https://bitbns.com',
                     'v1' => 'https://api.bitbns.com/api/trade/v1',
                     'v2' => 'https://api.bitbns.com/api/trade/v2',
                 ),
@@ -56,11 +56,12 @@ class bitbns extends Exchange {
                 'fees' => 'https://bitbns.com/fees',
             ),
             'api' => array(
-                'ccxt' => array(
+                'www' => array(
                     'get' => array(
-                        'fetchMarkets',
-                        'fetchTickers',
-                        'fetchOrderbook',
+                        'order/fetchMarkets',
+                        'order/fetchTickers',
+                        'order/fetchOrderbook',
+                        'exchangeData/ohlc', // ?coin=${coin_name}&page=${page}
                     ),
                 ),
                 'v1' => array(
@@ -78,12 +79,15 @@ class bitbns extends Exchange {
                         'orderStatus/{symbol}',
                         'depositHistory/{symbol}',
                         'withdrawHistory/{symbol}',
+                        'withdrawHistoryAll/{symbol}',
+                        'depositHistoryAll/{symbol}',
                         'listOpenOrders/{symbol}',
                         'listOpenStopOrders/{symbol}',
                         'getCoinAddress/{symbol}',
                         'placeSellOrder/{symbol}',
                         'placeBuyOrder/{symbol}',
                         'buyStopLoss/{symbol}',
+                        'sellStopLoss/{symbol}',
                         'placeSellOrder/{symbol}',
                         'cancelOrder/{symbol}',
                         'cancelStopLossOrder/{symbol}',
@@ -148,7 +152,7 @@ class bitbns extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $response = $this->ccxtGetFetchMarkets ($params);
+        $response = $this->wwwGetOrderFetchMarkets ($params);
         //
         //     array(
         //         array(
@@ -232,7 +236,7 @@ class bitbns extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
-        $response = $this->ccxtGetFetchOrderbook (array_merge($request, $params));
+        $response = $this->wwwGetOrderFetchOrderbook (array_merge($request, $params));
         //
         //     {
         //         "bids":[
@@ -315,7 +319,7 @@ class bitbns extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->ccxtGetFetchTickers ($params);
+        $response = $this->wwwGetOrderFetchTickers ($params);
         //
         //     {
         //         "BTC/INR":{

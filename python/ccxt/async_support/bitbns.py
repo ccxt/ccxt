@@ -49,7 +49,7 @@ class bitbns(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
                 'api': {
-                    'ccxt': 'https://bitbns.com/order',
+                    'www': 'https://bitbns.com',
                     'v1': 'https://api.bitbns.com/api/trade/v1',
                     'v2': 'https://api.bitbns.com/api/trade/v2',
                 },
@@ -61,11 +61,12 @@ class bitbns(Exchange):
                 'fees': 'https://bitbns.com/fees',
             },
             'api': {
-                'ccxt': {
+                'www': {
                     'get': [
-                        'fetchMarkets',
-                        'fetchTickers',
-                        'fetchOrderbook',
+                        'order/fetchMarkets',
+                        'order/fetchTickers',
+                        'order/fetchOrderbook',
+                        'exchangeData/ohlc',  # ?coin=${coin_name}&page=${page}
                     ],
                 },
                 'v1': {
@@ -83,12 +84,15 @@ class bitbns(Exchange):
                         'orderStatus/{symbol}',
                         'depositHistory/{symbol}',
                         'withdrawHistory/{symbol}',
+                        'withdrawHistoryAll/{symbol}',
+                        'depositHistoryAll/{symbol}',
                         'listOpenOrders/{symbol}',
                         'listOpenStopOrders/{symbol}',
                         'getCoinAddress/{symbol}',
                         'placeSellOrder/{symbol}',
                         'placeBuyOrder/{symbol}',
                         'buyStopLoss/{symbol}',
+                        'sellStopLoss/{symbol}',
                         'placeSellOrder/{symbol}',
                         'cancelOrder/{symbol}',
                         'cancelStopLossOrder/{symbol}',
@@ -150,7 +154,7 @@ class bitbns(Exchange):
         return self.status
 
     async def fetch_markets(self, params={}):
-        response = await self.ccxtGetFetchMarkets(params)
+        response = await self.wwwGetOrderFetchMarkets(params)
         #
         #     [
         #         {
@@ -231,7 +235,7 @@ class bitbns(Exchange):
         }
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
-        response = await self.ccxtGetFetchOrderbook(self.extend(request, params))
+        response = await self.wwwGetOrderFetchOrderbook(self.extend(request, params))
         #
         #     {
         #         "bids":[
@@ -312,7 +316,7 @@ class bitbns(Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        response = await self.ccxtGetFetchTickers(params)
+        response = await self.wwwGetOrderFetchTickers(params)
         #
         #     {
         #         "BTC/INR":{
