@@ -341,6 +341,8 @@ class yobit(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'taker': takerFee,
                 'maker': makerFee,

@@ -200,6 +200,8 @@ class vcc(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': {
                     'price': self.safe_integer(precision, 'price'),

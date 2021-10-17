@@ -329,6 +329,8 @@ class upbit(Exchange):
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
+            'type': 'spot',
+            'spot': True,
             'active': active,
             'precision': precision,
             'maker': fee,

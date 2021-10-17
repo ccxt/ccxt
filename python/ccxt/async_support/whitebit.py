@@ -168,6 +168,8 @@ class whitebit(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': {
                     'amount': self.safe_integer(market, 'stockPrec'),

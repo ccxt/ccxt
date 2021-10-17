@@ -160,6 +160,8 @@ class whitebit extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'precision' => array(
                     'amount' => $this->safe_integer($market, 'stockPrec'),

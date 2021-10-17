@@ -175,6 +175,8 @@ class zaif(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': True,  # can trade or not
                 'precision': precision,
                 'taker': taker,

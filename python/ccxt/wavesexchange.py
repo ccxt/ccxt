@@ -380,6 +380,9 @@ class wavesexchange(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
+                'active': None,
                 'info': entry,
                 'precision': precision,
             })
