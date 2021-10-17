@@ -181,6 +181,8 @@ module.exports = class qtrade extends Exchange {
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': precision,
                 'taker': this.safeNumber (market, 'taker_fee'),
