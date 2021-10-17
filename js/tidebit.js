@@ -165,6 +165,8 @@ module.exports = class tidebit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': true,
                 'active': undefined,
                 'precision': this.precision,
                 'limits': this.limits,
