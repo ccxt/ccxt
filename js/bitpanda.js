@@ -333,6 +333,7 @@ module.exports = class bitpanda extends Exchange {
             const state = this.safeString (market, 'state');
             const active = (state === 'ACTIVE');
             result.push ({
+                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -341,7 +342,8 @@ module.exports = class bitpanda extends Exchange {
                 'quoteId': quoteId,
                 'precision': precision,
                 'limits': limits,
-                'info': market,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
             });
         }
