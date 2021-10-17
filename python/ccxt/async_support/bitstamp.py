@@ -338,6 +338,8 @@ class bitstamp(Exchange):
                 'quoteId': quoteId,
                 'symbolId': symbolId,
                 'info': market,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': precision,
                 'limits': {

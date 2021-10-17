@@ -120,6 +120,8 @@ class btcalpha(Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
                 'precision': precision,
                 'limits': {
