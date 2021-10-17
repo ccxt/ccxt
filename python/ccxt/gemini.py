@@ -131,7 +131,6 @@ class gemini(Exchange):
                         'v1/notionalbalances/{currency}',
                         'v1/transfers',
                         'v1/addresses/{network}',
-                        'v1/deposit/{currency}/newAddress',
                         'v1/deposit/{network}/newAddress',
                         'v1/withdraw/{currency}',
                         'v1/account/transfer/{currency}',
@@ -787,6 +786,9 @@ class gemini(Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
             self.check_required_credentials()
+            apiKey = self.apiKey
+            if apiKey.find('account') < 0:
+                raise AuthenticationError(self.id + ' sign() requires an account-key, master-keys are not-supported')
             nonce = self.nonce()
             request = self.extend({
                 'request': url,
