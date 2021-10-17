@@ -485,6 +485,8 @@ module.exports = class kucoin extends Exchange {
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': precision,
                 'limits': limits,
