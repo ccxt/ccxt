@@ -427,6 +427,7 @@ module.exports = class delta extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'type': type,
+                'spot': false,
                 'option': option,
                 'swap': swap,
                 'future': future,
