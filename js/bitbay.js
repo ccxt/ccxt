@@ -281,6 +281,8 @@ module.exports = class bitbay extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'precision': precision,
+                'type': 'spot',
+                'spot': true,
                 'active': undefined,
                 'maker': maker,
                 'taker': taker,
