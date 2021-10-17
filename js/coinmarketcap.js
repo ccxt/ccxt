@@ -185,6 +185,8 @@ module.exports = class coinmarketcap extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': market,
+                    'type': 'spot',
+                    'spot': true,
                     'active': undefined,
                     'precision': this.precision,
                     'limits': this.limits,
