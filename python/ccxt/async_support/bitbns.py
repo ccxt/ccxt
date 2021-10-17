@@ -66,7 +66,10 @@ class bitbns(Exchange):
                         'order/fetchMarkets',
                         'order/fetchTickers',
                         'order/fetchOrderbook',
+                        'order/getTickerWithVolume',
                         'exchangeData/ohlc',  # ?coin=${coin_name}&page=${page}
+                        'exchangeData/orderBook',
+                        'exchangeData/tradedetails',
                     ],
                 },
                 'v1': {
