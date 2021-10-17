@@ -211,6 +211,8 @@ class bitbns(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': True,
                 'active': None,
                 'precision': precision,
                 'limits': {

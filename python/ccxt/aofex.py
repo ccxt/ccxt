@@ -217,6 +217,8 @@ class aofex(Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': True,
                 'active': None,
                 'maker': makerFee,
                 'taker': takerFee,

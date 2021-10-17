@@ -210,6 +210,8 @@ class bitbns extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => null,
                 'precision' => $precision,
                 'limits' => array(

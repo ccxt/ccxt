@@ -181,6 +181,8 @@ class bitbank extends Exchange {
                 'quote' => $quote,
                 'precision' => $precision,
                 'limits' => $limits,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'maker' => $maker,
                 'taker' => $taker,
