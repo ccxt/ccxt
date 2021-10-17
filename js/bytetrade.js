@@ -258,6 +258,8 @@ module.exports = class bytetrade extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': {
                     'amount': this.safeInteger (precision, 'amount'),
