@@ -480,7 +480,6 @@ class kraken(Exchange):
 
     def fetch_trading_fees(self, params={}):
         self.load_markets()
-        self.check_required_credentials()
         response = self.privatePostTradeVolume(params)
         tradedVolume = self.safe_number(response['result'], 'volume')
         tiers = self.fees['trading']['tiers']
