@@ -100,6 +100,9 @@ module.exports = class flowbtc extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
+                'active': undefined,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -116,7 +119,6 @@ module.exports = class flowbtc extends Exchange {
                     },
                 },
                 'info': market,
-                'active': undefined,
             };
         }
         return result;
