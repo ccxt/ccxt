@@ -364,6 +364,8 @@ class kraken extends Exchange {
                 'altname' => $market['altname'],
                 'maker' => $maker,
                 'taker' => $taker,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => true,
                 'precision' => $precision,
                 'limits' => array(

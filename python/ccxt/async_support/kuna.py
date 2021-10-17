@@ -153,6 +153,9 @@ class kuna(Exchange):
                         'quote': quote,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'type': 'spot',
+                        'spot': True,
+                        'active': None,
                         'precision': {
                             'amount': None,
                             'price': None,
@@ -171,7 +174,6 @@ class kuna(Exchange):
                                 'max': None,
                             },
                         },
-                        'active': None,
                         'info': None,
                     })
         return markets

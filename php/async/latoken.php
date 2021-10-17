@@ -197,6 +197,8 @@ class latoken extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => null, // assuming true
                 'precision' => $precision,
                 'limits' => $limits,

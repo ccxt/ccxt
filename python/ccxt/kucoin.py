@@ -495,6 +495,8 @@ class kucoin(Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': precision,
                 'limits': limits,

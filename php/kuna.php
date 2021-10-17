@@ -154,6 +154,9 @@ class kuna extends Exchange {
                         'quote' => $quote,
                         'baseId' => $baseId,
                         'quoteId' => $quoteId,
+                        'type' => 'spot',
+                        'spot' => true,
+                        'active' => null,
                         'precision' => array(
                             'amount' => null,
                             'price' => null,
@@ -172,7 +175,6 @@ class kuna extends Exchange {
                                 'max' => null,
                             ),
                         ),
-                        'active' => null,
                         'info' => null,
                     );
                 }

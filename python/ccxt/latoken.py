@@ -199,6 +199,8 @@ class latoken(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': None,  # assuming True
                 'precision': precision,
                 'limits': limits,

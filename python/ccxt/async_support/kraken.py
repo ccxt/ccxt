@@ -374,6 +374,8 @@ class kraken(Exchange):
                 'altname': market['altname'],
                 'maker': maker,
                 'taker': taker,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
                 'precision': precision,
                 'limits': {
