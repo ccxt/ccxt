@@ -177,6 +177,8 @@ module.exports = class therock extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': market,
+                    'type': 'spot',
+                    'spot': true,
                     'active': true,
                     'maker': maker,
                     'taker': taker,
