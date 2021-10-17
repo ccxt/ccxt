@@ -192,6 +192,8 @@ class btcturk extends Exchange {
                 'quoteId' => $quoteId,
                 'limits' => $limits,
                 'precision' => $precision,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
             );
         }

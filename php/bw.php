@@ -191,7 +191,6 @@ class bw extends Exchange {
             $fee = $this->safe_number($market, 'defaultFee');
             $result[] = array(
                 'id' => $id,
-                'active' => $active,
                 'numericId' => $numericId,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -200,6 +199,9 @@ class bw extends Exchange {
                 'quoteId' => $quoteId,
                 'baseNumericId' => $baseNumericId,
                 'quoteNumericId' => $quoteNumericId,
+                'type' => 'spot',
+                'spot' => true,
+                'active' => $active,
                 'maker' => $fee,
                 'taker' => $fee,
                 'info' => $market,

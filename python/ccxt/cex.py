@@ -342,6 +342,9 @@ class cex(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
+                'active': None,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -357,7 +360,6 @@ class cex(Exchange):
                         'max': None,
                     },
                 },
-                'active': None,
             })
         return result
 

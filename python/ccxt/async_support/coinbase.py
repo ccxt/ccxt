@@ -536,6 +536,8 @@ class coinbase(Exchange):
                         'quote': quote,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'type': 'spot',
+                        'spot': True,
                         'active': None,
                         'info': quoteCurrency,
                         'precision': {

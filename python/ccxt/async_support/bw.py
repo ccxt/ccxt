@@ -195,7 +195,6 @@ class bw(Exchange):
             fee = self.safe_number(market, 'defaultFee')
             result.append({
                 'id': id,
-                'active': active,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
@@ -204,6 +203,9 @@ class bw(Exchange):
                 'quoteId': quoteId,
                 'baseNumericId': baseNumericId,
                 'quoteNumericId': quoteNumericId,
+                'type': 'spot',
+                'spot': True,
+                'active': active,
                 'maker': fee,
                 'taker': fee,
                 'info': market,
