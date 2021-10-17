@@ -21,6 +21,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelFundingOffer': true,
                 'CORS': undefined,
                 'createDepositAddress': true,
                 'createLimitOrder': true,
@@ -34,6 +35,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchFundingFees': undefined,
+                'fetchFundingOffers': true,
                 'fetchIndexOHLCV': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -49,8 +51,6 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchTradingFees': undefined,
                 'fetchTransactions': true,
                 'withdraw': true,
-                'fundingOffers': true,
-                'cancelFundingOffer': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1060,7 +1060,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return result;
     }
 
-    async fundingOffers (symbol = undefined, params = {}) {
+    async fetchFundingOffers (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let response = undefined;
