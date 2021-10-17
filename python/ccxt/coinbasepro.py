@@ -336,6 +336,9 @@ class coinbasepro(Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': True,
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -348,7 +351,6 @@ class coinbasepro(Exchange):
                         'max': self.safe_number(market, 'max_market_funds'),
                     },
                 },
-                'active': active,
                 'info': market,
             }))
         return result

@@ -193,6 +193,8 @@ class btcturk(Exchange):
                 'quoteId': quoteId,
                 'limits': limits,
                 'precision': precision,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
             })
         return result

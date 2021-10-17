@@ -324,6 +324,9 @@ class coinbasepro extends Exchange {
                 'quoteId' => $quoteId,
                 'base' => $base,
                 'quote' => $quote,
+                'type' => 'spot',
+                'spot' => true,
+                'active' => $active,
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
@@ -336,7 +339,6 @@ class coinbasepro extends Exchange {
                         'max' => $this->safe_number($market, 'max_market_funds'),
                     ),
                 ),
-                'active' => $active,
                 'info' => $market,
             ));
         }
