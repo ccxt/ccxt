@@ -372,6 +372,9 @@ module.exports = class wavesexchange extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
+                'active': undefined,
                 'info': entry,
                 'precision': precision,
             });
