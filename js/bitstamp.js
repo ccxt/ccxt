@@ -318,6 +318,8 @@ module.exports = class bitstamp extends Exchange {
                 'quoteId': quoteId,
                 'symbolId': symbolId,
                 'info': market,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': precision,
                 'limits': {
