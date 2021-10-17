@@ -496,6 +496,7 @@ module.exports = class bitfinex extends Exchange {
                 'quoteId': quoteId,
                 'active': true,
                 'type': 'spot',
+                'spot': true,
                 'margin': margin,
                 'precision': precision,
                 'limits': limits,
