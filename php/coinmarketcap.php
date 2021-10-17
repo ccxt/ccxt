@@ -187,6 +187,8 @@ class coinmarketcap extends Exchange {
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
                     'info' => $market,
+                    'type' => 'spot',
+                    'spot' => true,
                     'active' => null,
                     'precision' => $this->precision,
                     'limits' => $this->limits,

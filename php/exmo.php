@@ -426,6 +426,8 @@ class exmo extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => true,
                 'taker' => $taker,
                 'maker' => $maker,

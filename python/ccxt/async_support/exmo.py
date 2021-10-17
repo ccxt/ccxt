@@ -423,6 +423,8 @@ class exmo(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
                 'taker': taker,
                 'maker': maker,

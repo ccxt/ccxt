@@ -427,6 +427,7 @@ class delta(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'type': type,
+                'spot': False,
                 'option': option,
                 'swap': swap,
                 'future': future,
