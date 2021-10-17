@@ -148,6 +148,8 @@ class oceanex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => true,
                 'info' => $market,
                 'precision' => array(

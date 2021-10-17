@@ -356,6 +356,8 @@ class lykke(Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
                 'info': market,
                 'precision': precision,

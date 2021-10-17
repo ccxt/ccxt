@@ -321,6 +321,8 @@ class poloniex extends Exchange {
                 'quoteId' => $quoteId,
                 'base' => $base,
                 'quote' => $quote,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'limits' => $limits,
                 'info' => $market,

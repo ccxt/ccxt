@@ -325,6 +325,8 @@ class poloniex(Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'limits': limits,
                 'info': market,

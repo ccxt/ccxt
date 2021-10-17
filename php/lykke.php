@@ -371,6 +371,8 @@ class lykke extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => true,
                 'info' => $market,
                 'precision' => $precision,
