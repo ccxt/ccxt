@@ -158,6 +158,8 @@ module.exports = class whitebit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': {
                     'amount': this.safeInteger (market, 'stockPrec'),
