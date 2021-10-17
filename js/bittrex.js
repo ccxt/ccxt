@@ -280,6 +280,8 @@ module.exports = class bittrex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'info': market,
                 'precision': precision,
