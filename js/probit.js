@@ -229,6 +229,8 @@ module.exports = class probit extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': precision,
                 'taker': this.parseNumber (taker),
