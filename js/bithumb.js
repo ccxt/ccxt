@@ -175,6 +175,8 @@ module.exports = class bithumb extends Exchange {
                     'base': base,
                     'quote': quote,
                     'info': market,
+                    'type': 'spot',
+                    'spot': true,
                     'active': active,
                     'precision': {
                         'amount': 4,
