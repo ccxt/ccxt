@@ -220,6 +220,8 @@ class bitso extends Exchange {
                 'info' => $market,
                 'limits' => $limits,
                 'precision' => $precision,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => null,
             ), $fee);
         }

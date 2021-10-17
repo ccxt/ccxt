@@ -300,6 +300,8 @@ class bittrex(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'info': market,
                 'precision': precision,

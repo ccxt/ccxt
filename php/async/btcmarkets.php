@@ -341,6 +341,8 @@ class btcmarkets extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => null,
                 'maker' => $fees['maker'],
                 'taker' => $fees['taker'],

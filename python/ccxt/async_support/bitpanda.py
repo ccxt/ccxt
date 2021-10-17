@@ -340,6 +340,7 @@ class bitpanda(Exchange):
             state = self.safe_string(market, 'state')
             active = (state == 'ACTIVE')
             result.append({
+                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -348,7 +349,8 @@ class bitpanda(Exchange):
                 'quoteId': quoteId,
                 'precision': precision,
                 'limits': limits,
-                'info': market,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
             })
         return result

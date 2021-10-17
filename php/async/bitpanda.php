@@ -336,6 +336,7 @@ class bitpanda extends Exchange {
             $state = $this->safe_string($market, 'state');
             $active = ($state === 'ACTIVE');
             $result[] = array(
+                'info' => $market,
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -344,7 +345,8 @@ class bitpanda extends Exchange {
                 'quoteId' => $quoteId,
                 'precision' => $precision,
                 'limits' => $limits,
-                'info' => $market,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
             );
         }

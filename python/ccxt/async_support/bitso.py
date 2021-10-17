@@ -226,6 +226,8 @@ class bitso(Exchange):
                 'info': market,
                 'limits': limits,
                 'precision': precision,
+                'type': 'spot',
+                'spot': True,
                 'active': None,
             }, fee))
         return result
