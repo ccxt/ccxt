@@ -157,6 +157,8 @@ module.exports = class mercado extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': undefined,
                 'info': coin,
                 'precision': precision,
