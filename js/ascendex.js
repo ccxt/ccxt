@@ -1730,6 +1730,10 @@ module.exports = class ascendex extends Exchange {
         if ((version === 'v1') && (request === 'cash/balance') || (request === 'margin/balance')) {
             request = 'balance';
         }
+        if ((request === 'v2/subuser/subuser-transfer') || (request === 'v2/subuser/subuser-transfer-hist')) {
+            const parts = request.split ('/');
+            request = parts[2];
+        }
         query = this.omit (query, this.extractParams (path));
         if (access === 'public') {
             if (Object.keys (query).length) {
