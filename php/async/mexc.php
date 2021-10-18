@@ -483,7 +483,7 @@ class mexc extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteCoin');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
+            $symbol = $id;
             $precision = array(
                 'price' => $this->safe_number($market, 'priceUnit'),
                 'amount' => $this->safe_number($market, 'volUnit'),
