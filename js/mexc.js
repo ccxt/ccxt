@@ -219,6 +219,7 @@ module.exports = class mexc extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'SIN': 'Sin City Token',
             },
             'exceptions': {
                 'exact': {
