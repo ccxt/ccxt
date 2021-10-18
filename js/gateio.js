@@ -548,7 +548,7 @@ module.exports = class gateio extends Exchange {
         // :param params['type']: 'spot', 'margin', 'future' or 'delivery'
         // :param params['settle']: The quote currency
         const result = [];
-        const types = ['spot', 'future', 'delivery'];
+        const types = [ 'spot', 'future', 'delivery' ];
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
             const query = this.omit (params, 'type');
@@ -573,7 +573,7 @@ module.exports = class gateio extends Exchange {
             if (futures || delivery) {
                 const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
                 const fetchMarketsContractOptions = this.safeValue (options, 'fetchMarchets', {});
-                const settlementCurrencies = this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', ['usdt']);
+                const settlementCurrencies = this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', [ 'usdt' ]);
                 for (let c = 0; c < settlementCurrencies.length; c++) {
                     const settle = settlementCurrencies[c];
                     query['settle'] = settle;
