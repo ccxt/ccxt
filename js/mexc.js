@@ -477,7 +477,7 @@ module.exports = class mexc extends Exchange {
             const quoteId = this.safeString (market, 'quoteCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            const symbol = id;
             const precision = {
                 'price': this.safeNumber (market, 'priceUnit'),
                 'amount': this.safeNumber (market, 'volUnit'),
