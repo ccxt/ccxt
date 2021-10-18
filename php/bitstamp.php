@@ -701,7 +701,9 @@ class bitstamp extends Exchange {
 
     public function parse_trading_fee($balances, $symbol) {
         $market = $this->market($symbol);
-        $tradeFee = $this->safe_number($balances, $market['id'] . '_fee');
+        $feeString = $this->safe_string($balances, $market['id'] . '_fee');
+        $dividedFeeString = Precise::string_div($feeString, '100');
+        $tradeFee = $this->parse_number($dividedFeeString);
         return array(
             'symbol' => $symbol,
             'maker' => $tradeFee,
