@@ -688,6 +688,7 @@ module.exports = class gateio extends Exchange {
                             'id': id,
                             'baseId': baseId,
                             'quoteId': quoteId,
+                            'settleId': this.safeCurrencyCode (settle),
                             'base': base,
                             'quote': quote,
                             'symbol': symbol,
