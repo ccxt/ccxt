@@ -29,17 +29,17 @@ module.exports = class upbit extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
-                'fetchOrders': false,
+                'fetchOrders': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTransactions': false,
+                'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -326,6 +326,8 @@ module.exports = class upbit extends Exchange {
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
+            'type': 'spot',
+            'spot': true,
             'active': active,
             'precision': precision,
             'maker': fee,
@@ -1421,6 +1423,7 @@ module.exports = class upbit extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

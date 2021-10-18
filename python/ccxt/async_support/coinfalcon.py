@@ -25,6 +25,7 @@ class coinfalcon(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchDeposits': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
@@ -33,6 +34,8 @@ class coinfalcon(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
@@ -109,6 +112,8 @@ class coinfalcon(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
                 'precision': precision,
                 'limits': {
@@ -377,6 +382,179 @@ class coinfalcon(Exchange):
         data = self.safe_value(response, 'data', [])
         orders = self.filter_by_array(data, 'status', ['pending', 'open', 'partially_filled'], False)
         return self.parse_orders(orders, market, since, limit)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # currency: 'xrp',  # optional: currency code in lowercase
+            # status: 'completed',  # optional: withdrawal status
+            # since_time  # datetime in ISO8601 format(2017-11-06T09:53:08.383210Z)
+            # end_time  # datetime in ISO8601 format(2017-11-06T09:53:08.383210Z)
+            # start_time  # datetime in ISO8601 format(2017-11-06T09:53:08.383210Z)
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id'].lower()
+        if since is not None:
+            request['since_time'] = self.iso8601(since)
+        response = await self.privateGetAccountDeposits(self.extend(request, params))
+        #
+        #     data: [
+        #         {
+        #             id: '6e2f18b5-f80e-xxx-xxx-xxx',
+        #             amount: '0.1',
+        #             status: 'completed',
+        #             currency_code: 'eth',
+        #             txid: '0xxxx',
+        #             address: '0xxxx',
+        #             tag: null,
+        #             type: 'deposit'
+        #         },
+        #     ]
+        #
+        transactions = self.safe_value(response, 'data', [])
+        transactions.reverse()  # no timestamp but in reversed order
+        return self.parse_transactions(transactions, currency, None, limit)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # currency: 'xrp',  # optional: currency code in lowercase
+            # status: 'completed',  # optional: withdrawal status
+            # since_time  # datetime in ISO8601 format(2017-11-06T09:53:08.383210Z)
+            # end_time  # datetime in ISO8601 format(2017-11-06T09:53:08.383210Z)
+            # start_time  # datetime in ISO8601 format(2017-11-06T09:53:08.383210Z)
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id'].lower()
+        if since is not None:
+            request['since_time'] = self.iso8601(since)
+        response = await self.privateGetAccountWithdrawals(self.extend(request, params))
+        #
+        #     data: [
+        #         {
+        #             id: '25f6f144-3666-xxx-xxx-xxx',
+        #             amount: '0.01',
+        #             status: 'completed',
+        #             fee: '0.0005',
+        #             currency_code: 'btc',
+        #             txid: '4xxx',
+        #             address: 'bc1xxx',
+        #             tag: null,
+        #             type: 'withdraw'
+        #         },
+        #     ]
+        #
+        transactions = self.safe_value(response, 'data', [])
+        transactions.reverse()  # no timestamp but in reversed order
+        return self.parse_transactions(transactions, currency, None, limit)
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'].lower(),
+            'address': address,
+            'amount': amount,
+            # 'tag': 'string',  # withdraw tag/memo
+        }
+        if tag is not None:
+            request['tag'] = tag
+        response = await self.privatePostAccountWithdraw(self.extend(request, params))
+        #
+        #     data: [
+        #         {
+        #             id: '25f6f144-3666-xxx-xxx-xxx',
+        #             amount: '0.01',
+        #             status: 'approval_pending',
+        #             fee: '0.0005',
+        #             currency_code: 'btc',
+        #             txid: null,
+        #             address: 'bc1xxx',
+        #             tag: null,
+        #             type: 'withdraw'
+        #         },
+        #     ]
+        #
+        transaction = self.safe_value(response, 'data', [])
+        return self.parse_transaction(transaction, currency)
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'completed': 'ok',
+            'denied': 'failed',
+            'approval_pending': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchWithdrawals, withdraw
+        #
+        #     {
+        #         id: '25f6f144-3666-xxx-xxx-xxx',
+        #         amount: '0.01',
+        #         status: 'completed',
+        #         fee: '0.0005',
+        #         currency_code: 'btc',
+        #         txid: '4xxx',
+        #         address: 'bc1xxx',
+        #         tag: null,
+        #         type: 'withdraw'
+        #     },
+        #
+        # fetchDeposits
+        #
+        #     {
+        #         id: '6e2f18b5-f80e-xxx-xxx-xxx',
+        #         amount: '0.1',
+        #         status: 'completed',
+        #         currency_code: 'eth',
+        #         txid: '0xxxx',
+        #         address: '0xxxx',
+        #         tag: null,
+        #         type: 'deposit'
+        #     },
+        #
+        id = self.safe_string(transaction, 'id')
+        address = self.safe_string(transaction, 'address')
+        tag = self.safe_string(transaction, 'tag')
+        txid = self.safe_string(transaction, 'txid')
+        currencyId = self.safe_string(transaction, 'currency_code')
+        code = self.safe_currency_code(currencyId, currency)
+        type = self.safe_string(transaction, 'type')
+        if type == 'withdraw':
+            type = 'withdrawal'
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        amountString = self.safe_string(transaction, 'amount')
+        amount = self.parse_number(amountString)
+        feeCostString = self.safe_string(transaction, 'fee')
+        feeCost = 0
+        if feeCostString is not None:
+            feeCost = self.parse_number(feeCostString)
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': None,
+            'datetime': None,
+            'address': address,
+            'tag': tag,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': None,
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        }
 
     def nonce(self):
         return self.milliseconds()

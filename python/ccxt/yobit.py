@@ -36,13 +36,13 @@ class yobit(Exchange):
             'version': '3',
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createDepositAddress': True,
-                'createMarketOrder': False,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchDepositAddress': True,
-                'fetchDeposits': False,
+                'fetchDeposits': None,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
@@ -52,8 +52,8 @@ class yobit(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTransactions': False,
-                'fetchWithdrawals': False,
+                'fetchTransactions': None,
+                'fetchWithdrawals': None,
                 'withdraw': True,
             },
             'urls': {
@@ -341,6 +341,8 @@ class yobit(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'taker': takerFee,
                 'maker': makerFee,
@@ -709,6 +711,7 @@ class yobit(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)

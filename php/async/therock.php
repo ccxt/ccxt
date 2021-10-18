@@ -21,7 +21,7 @@ class therock extends Exchange {
             'version' => 'v1',
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -180,6 +180,8 @@ class therock extends Exchange {
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
                     'info' => $market,
+                    'type' => 'spot',
+                    'spot' => true,
                     'active' => true,
                     'maker' => $maker,
                     'taker' => $taker,

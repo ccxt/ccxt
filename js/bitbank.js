@@ -180,6 +180,8 @@ module.exports = class bitbank extends Exchange {
                 'quote': quote,
                 'precision': precision,
                 'limits': limits,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'maker': maker,
                 'taker': taker,
@@ -564,6 +566,7 @@ module.exports = class bitbank extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         if (!('uuid' in params)) {
             throw new ExchangeError (this.id + ' uuid is required for withdrawal');
         }

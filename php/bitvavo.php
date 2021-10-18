@@ -21,29 +21,29 @@ class bitvavo extends Exchange {
             'certified' => true,
             'pro' => true,
             'has' => array(
-                'CORS' => false,
-                'publicAPI' => true,
-                'privateAPI' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'CORS' => null,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
                 'fetchOrderBook' => true,
-                'fetchMarkets' => true,
+                'fetchOrders' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'privateAPI' => true,
+                'publicAPI' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -304,6 +304,8 @@ class bitvavo extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array(
@@ -1150,15 +1152,16 @@ class bitvavo extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $timestamp = $this->safe_integer($order, 'created');
         $marketId = $this->safe_string($order, 'market');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'orderType');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'amount');
-        $remaining = $this->safe_number($order, 'amountRemaining');
-        $filled = $this->safe_number($order, 'filledAmount');
-        $cost = $this->safe_number($order, 'filledAmountQuote');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'amount');
+        $remaining = $this->safe_string($order, 'amountRemaining');
+        $filled = $this->safe_string($order, 'filledAmount');
+        $cost = $this->safe_string($order, 'filledAmountQuote');
         $fee = null;
         $feeCost = $this->safe_number($order, 'feePaid');
         if ($feeCost !== null) {
@@ -1170,17 +1173,11 @@ class bitvavo extends Exchange {
             );
         }
         $rawTrades = $this->safe_value($order, 'fills', array());
-        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-            'symbol' => $symbol,
-            'order' => $id,
-            'side' => $side,
-            'type' => $type,
-        ));
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = $this->safe_value($order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         $stopPrice = $this->safe_number($order, 'triggerPrice');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -1201,8 +1198,8 @@ class bitvavo extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
-            'trades' => $trades,
-        ));
+            'trades' => $rawTrades,
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1247,6 +1244,7 @@ class bitvavo extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);

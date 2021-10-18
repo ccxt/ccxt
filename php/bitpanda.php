@@ -20,19 +20,17 @@ class bitpanda extends Exchange {
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
-                'CORS' => false,
-                'publicAPI' => true,
-                'privateAPI' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchDeposits' => true,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -40,12 +38,14 @@ class bitpanda extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
-                'fetchTicker' => true,
-                'fetchTickers' => true,
                 'fetchWithdrawals' => true,
+                'privateAPI' => true,
+                'publicAPI' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -336,6 +336,7 @@ class bitpanda extends Exchange {
             $state = $this->safe_string($market, 'state');
             $active = ($state === 'ACTIVE');
             $result[] = array(
+                'info' => $market,
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -344,7 +345,8 @@ class bitpanda extends Exchange {
                 'quoteId' => $quoteId,
                 'precision' => $precision,
                 'limits' => $limits,
-                'info' => $market,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
             );
         }
@@ -1059,6 +1061,7 @@ class bitpanda extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);

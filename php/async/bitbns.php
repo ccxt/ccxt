@@ -20,6 +20,7 @@ class bitbns extends Exchange {
             'rateLimit' => 1000,
             'certified' => false,
             'pro' => false,
+            'version' => 'v2',
             // new metainfo interface
             'has' => array(
                 'cancelOrder' => true,
@@ -29,14 +30,14 @@ class bitbns extends Exchange {
                 'fetchDeposits' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
-                'fetchTrades' => false,
+                'fetchTrades' => null,
                 'fetchWithdrawals' => true,
             ),
             'timeframes' => array(
@@ -44,7 +45,7 @@ class bitbns extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
                 'api' => array(
-                    'ccxt' => 'https://bitbns.com/order',
+                    'www' => 'https://bitbns.com',
                     'v1' => 'https://api.bitbns.com/api/trade/v1',
                     'v2' => 'https://api.bitbns.com/api/trade/v2',
                 ),
@@ -56,11 +57,15 @@ class bitbns extends Exchange {
                 'fees' => 'https://bitbns.com/fees',
             ),
             'api' => array(
-                'ccxt' => array(
+                'www' => array(
                     'get' => array(
-                        'fetchMarkets',
-                        'fetchTickers',
-                        'fetchOrderbook',
+                        'order/fetchMarkets',
+                        'order/fetchTickers',
+                        'order/fetchOrderbook',
+                        'order/getTickerWithVolume',
+                        'exchangeData/ohlc', // ?coin=${coin_name}&page=${page}
+                        'exchangeData/orderBook',
+                        'exchangeData/tradedetails',
                     ),
                 ),
                 'v1' => array(
@@ -78,16 +83,21 @@ class bitbns extends Exchange {
                         'orderStatus/{symbol}',
                         'depositHistory/{symbol}',
                         'withdrawHistory/{symbol}',
+                        'withdrawHistoryAll/{symbol}',
+                        'depositHistoryAll/{symbol}',
                         'listOpenOrders/{symbol}',
                         'listOpenStopOrders/{symbol}',
                         'getCoinAddress/{symbol}',
                         'placeSellOrder/{symbol}',
                         'placeBuyOrder/{symbol}',
                         'buyStopLoss/{symbol}',
+                        'sellStopLoss/{symbol}',
                         'placeSellOrder/{symbol}',
                         'cancelOrder/{symbol}',
                         'cancelStopLossOrder/{symbol}',
                         'listExecutedOrders/{symbol}',
+                        'placeMarketOrder/{symbol}',
+                        'placeMarketOrderQnty/{symbol}',
                     ),
                 ),
                 'v2' => array(
@@ -146,7 +156,7 @@ class bitbns extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $response = yield $this->ccxtGetFetchMarkets ($params);
+        $response = yield $this->wwwGetOrderFetchMarkets ($params);
         //
         //     array(
         //         array(
@@ -200,6 +210,8 @@ class bitbns extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => null,
                 'precision' => $precision,
                 'limits' => array(
@@ -230,7 +242,7 @@ class bitbns extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
-        $response = yield $this->ccxtGetFetchOrderbook (array_merge($request, $params));
+        $response = yield $this->wwwGetOrderFetchOrderbook (array_merge($request, $params));
         //
         //     {
         //         "bids":[
@@ -313,7 +325,7 @@ class bitbns extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         yield $this->load_markets();
-        $response = yield $this->ccxtGetFetchTickers ($params);
+        $response = yield $this->wwwGetOrderFetchTickers ($params);
         //
         //     {
         //         "BTC/INR":{
@@ -500,8 +512,8 @@ class bitbns extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type !== 'limit') {
-            throw new ExchangeError($this->id . ' allows limit orders only');
+        if ($type !== 'limit' && $type !== 'market') {
+            throw new ExchangeError($this->id . ' allows limit and $market orders only');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -509,7 +521,6 @@ class bitbns extends Exchange {
             'side' => strtoupper($side),
             'symbol' => $market['uppercaseId'],
             'quantity' => $this->amount_to_precision($symbol, $amount),
-            'rate' => $this->price_to_precision($symbol, $price),
             // 'target_rate' => $this->price_to_precision($symbol, targetRate),
             // 't_rate' => $this->price_to_precision($symbol, stopPrice),
             // 'trail_rate' => $this->price_to_precision($symbol, trailRate),
@@ -517,7 +528,16 @@ class bitbns extends Exchange {
             // To Place Stoploss Buy or Sell Order use rate & t_rate
             // To Place Bracket Buy or Sell Order use rate , t_rate, target_rate & trail_rate
         );
-        $response = yield $this->v2PostOrders (array_merge($request, $params));
+        $method = 'v2PostOrders';
+        if ($type === 'limit') {
+            $request['rate'] = $this->price_to_precision($symbol, $price);
+        } else if ($type === 'market') {
+            $method = 'v1PostPlaceMarketOrderQntySymbol';
+            $request['market'] = $market['quoteId'];
+        } else {
+            throw new ExchangeError($this->id . ' allows limit and $market orders only');
+        }
+        $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",

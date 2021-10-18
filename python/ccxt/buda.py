@@ -26,7 +26,7 @@ class buda(Exchange):
             'version': 'v2',
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -36,14 +36,14 @@ class buda(Exchange):
                 'fetchDeposits': True,
                 'fetchFundingFees': True,
                 'fetchMarkets': True,
-                'fetchMyTrades': False,
+                'fetchMyTrades': None,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
-                'fetchTrades': True,
                 'fetchTicker': True,
+                'fetchTrades': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -207,6 +207,8 @@ class buda(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
                 'precision': precision,
                 'limits': limits,
@@ -701,6 +703,7 @@ class buda(Exchange):
         return self.parse_transactions(withdrawals, currency, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)

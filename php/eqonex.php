@@ -18,8 +18,8 @@ class eqonex extends Exchange {
             'countries' => array( 'US', 'SG' ), // United States, Singapore
             'rateLimit' => 10,
             'has' => array(
-                'CORS' => false,
                 'cancelOrder' => true,
+                'CORS' => null,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
@@ -34,7 +34,7 @@ class eqonex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
-                'fetchTicker' => false,
+                'fetchTicker' => null,
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
@@ -1149,6 +1149,7 @@ class eqonex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);

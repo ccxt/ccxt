@@ -16,21 +16,21 @@ class btcturk extends Exchange {
             'id' => 'btcturk',
             'name' => 'BTCTurk',
             'countries' => array( 'TR' ), // Turkey
-            'rateLimit' => 10,
+            'rateLimit' => 100,
             'has' => array(
                 'cancelOrder' => true,
                 'CORS' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchMarkets' => true,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
-                'fetchOrderBook' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchMyTrades' => true,
             ),
             'timeframes' => array(
                 '1d' => '1d',
@@ -48,30 +48,30 @@ class btcturk extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'orderbook' => 10,
-                        'ticker' => 1,
-                        'trades' => 10,   // ?last=COUNT (max 50)
-                        'server/exchangeinfo' => 10,
+                        'orderbook' => 1,
+                        'ticker' => 0.1,
+                        'trades' => 1,   // ?last=COUNT (max 50)
+                        'server/exchangeinfo' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'users/balances' => 10,
-                        'openOrders' => 10,
-                        'allOrders' => 10,
-                        'users/transactions/trade' => 10,
+                        'users/balances' => 1,
+                        'openOrders' => 1,
+                        'allOrders' => 1,
+                        'users/transactions/trade' => 1,
                     ),
                     'post' => array(
-                        'order' => 10,
-                        'cancelOrder' => 10,
+                        'order' => 1,
+                        'cancelOrder' => 1,
                     ),
                     'delete' => array(
-                        'order' => 10,
+                        'order' => 1,
                     ),
                 ),
                 'graph' => array(
                     'get' => array(
-                        'ohlcs' => 10,
+                        'ohlcs' => 1,
                     ),
                 ),
             ),
@@ -193,6 +193,8 @@ class btcturk extends Exchange {
                 'quoteId' => $quoteId,
                 'limits' => $limits,
                 'precision' => $precision,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
             );
         }

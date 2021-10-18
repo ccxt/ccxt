@@ -31,26 +31,26 @@ class probit(Exchange):
             'countries': ['SC', 'KR'],  # Seychelles, South Korea
             'rateLimit': 250,  # ms
             'has': {
-                'CORS': True,
-                'fetchTime': True,
-                'fetchMarkets': True,
-                'fetchCurrencies': True,
-                'fetchTickers': True,
-                'fetchTicker': True,
-                'fetchOHLCV': True,
-                'fetchOrderBook': True,
-                'fetchTrades': True,
-                'fetchBalance': True,
-                'createOrder': True,
-                'createMarketOrder': True,
                 'cancelOrder': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
+                'CORS': True,
+                'createMarketOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchMyTrades': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'withdraw': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'signIn': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -155,6 +155,12 @@ class probit(Exchange):
                     'limit': 'gtc',
                     'market': 'ioc',
                 },
+                'networks': {
+                    'BEP20': 'BSC',
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRON',
+                    'TRX': 'TRON',
+                },
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
@@ -164,11 +170,14 @@ class probit(Exchange):
                 'BTCBULL': 'BULL',
                 'CBC': 'CryptoBharatCoin',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
+                'GOGOL': 'GOL',
+                'GOL': 'Goldofir',
                 'GRB': 'Global Reward Bank',
                 'HBC': 'Hybrid Bank Cash',
                 'ORC': 'Oracle System',
                 'SOC': 'Soda Coin',
                 'TCT': 'Top Coin Token',
+                'TPAY': 'Tetra Pay',
                 'UNI': 'UNICORN Token',
                 'UNISWAP': 'UNI',
             },
@@ -233,6 +242,8 @@ class probit(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': precision,
                 'taker': self.parse_number(taker),
@@ -1031,6 +1042,7 @@ class probit(Exchange):
         return self.parse_deposit_addresses(data)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # In order to use self method
         # you need to allow API withdrawal from the API Settings Page, and
         # and register the list of withdrawal addresses and destination tags on the API Settings page
@@ -1052,6 +1064,12 @@ class probit(Exchange):
             # whether the amount field includes fees
             # 'include_fee': False,  # makes sense only when fee_currency_id is equal to currency_id
         }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['platform_id'] = network
+            params = self.omit(params, 'network')
         response = self.privatePostWithdrawal(self.extend(request, params))
         data = self.safe_value(response, 'data')
         return self.parse_transaction(data, currency)

@@ -19,7 +19,7 @@ class huobijp extends huobipro {
             'pro' => true,
             'certified' => false,
             'has' => array(
-                'fetchDepositAddress' => false,
+                'fetchDepositAddress' => null,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg',

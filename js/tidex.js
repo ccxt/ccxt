@@ -15,8 +15,8 @@ module.exports = class tidex extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
-                'createMarketOrder': false,
+                'CORS': undefined,
+                'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
@@ -265,6 +265,8 @@ module.exports = class tidex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'taker': takerFee,
                 'precision': precision,
@@ -716,6 +718,7 @@ module.exports = class tidex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

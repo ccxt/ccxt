@@ -18,14 +18,14 @@ module.exports = class bibox extends Exchange {
             'hostname': 'bibox365.com',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
-                'createMarketOrder': false, // or they will return https://github.com/ccxt/ccxt/issues/2338
+                'CORS': undefined,
+                'createMarketOrder': undefined, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDeposits': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchFundingFees': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -37,7 +37,7 @@ module.exports = class bibox extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
-                'publicAPI': false,
+                'publicAPI': undefined,
                 'withdraw': true,
             },
             'timeframes': {
@@ -142,7 +142,7 @@ module.exports = class bibox extends Exchange {
                 'TERN': 'Ternio-ERC20',
             },
             'options': {
-                'fetchCurrencies': 'fetch_currencies_public', // or 'fetch_currencies_private' with apiKey and secret
+                'fetchCurrencies': 'fetchCurrenciesPrivate', // or 'fetchCurrenciesPrivate' with apiKey and secret
             },
         });
     }
@@ -209,6 +209,13 @@ module.exports = class bibox extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            let type = 'spot';
+            let spot = true;
+            const areaId = this.safeInteger (market, 'area_id');
+            if (areaId === 16) {
+                type = undefined;
+                spot = false;
+            }
             const precision = {
                 'amount': this.safeNumber (market, 'amount_scale'),
                 'price': this.safeNumber (market, 'decimal'),
@@ -221,6 +228,8 @@ module.exports = class bibox extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
+                'spot': spot,
                 'active': true,
                 'info': market,
                 'precision': precision,
@@ -446,7 +455,7 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const method = this.safeString (this.options, 'fetchCurrencies', 'fetch_currencies_public');
+        const method = this.safeString (this.options, 'fetchCurrencies', 'fetchCurrenciesPublic');
         return await this[method] (params);
     }
 
@@ -522,45 +531,56 @@ module.exports = class bibox extends Exchange {
         //     {
         //         "result":[
         //             {
-        //                 "totalBalance":"14.57582269",
-        //                 "balance":"14.57582269",
-        //                 "freeze":"0.00000000",
-        //                 "id":60,
-        //                 "symbol":"USDT",
-        //                 "icon_url":"/appimg/USDT_icon.png",
-        //                 "describe_url":"[{\"lang\":\"zh-cn\",\"link\":\"https://bibox.zendesk.com/hc/zh-cn/articles/115004798234\"},{\"lang\":\"en-ww\",\"link\":\"https://bibox.zendesk.com/hc/en-us/articles/115004798234\"}]",
-        //                 "name":"USDT",
-        //                 "enable_withdraw":1,
-        //                 "enable_deposit":1,
-        //                 "enable_transfer":1,
-        //                 "confirm_count":2,
-        //                 "is_erc20":1,
-        //                 "forbid_info":null,
-        //                 "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"USDT 是 Tether 公司推出的基于稳定价值货币美元（USD）的代币 Tether USD（简称USDT），1USDT=1美元，用户可以随时使用 USDT 与 USD 进行1:1的兑换。\"},{\"lang\":\"en-ww\",\"text\":\"USDT is a cryptocurrency asset issued on the Bitcoin blockchain via the Omni Layer Protocol. Each USDT unit is backed by a U.S Dollar held in the reserves of the Tether Limited and can be redeemed through the Tether Platform.\"}]",
-        //                 "total_amount":4776930644,
-        //                 "supply_amount":4642367414,
-        //                 "price":"--",
-        //                 "contract_father":"OMNI",
-        //                 "supply_time":"--",
-        //                 "comment":null,
-        //                 "contract":"31",
-        //                 "original_decimals":8,
-        //                 "deposit_type":0,
-        //                 "hasCobo":0,
-        //                 "BTCValue":"0.00126358",
-        //                 "CNYValue":"100.93381445",
-        //                 "USDValue":"14.57524654",
-        //                 "children":[
-        //                     {"type":"OMNI","symbol":"USDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":2},
-        //                     {"type":"TRC20","symbol":"tUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20},
-        //                     {"type":"ERC20","symbol":"eUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":25}
-        //                 ]
-        //             },
-        //         ],
-        //         "cmd":"transfer/coinList"
+        //                 "result":[
+        //                     {
+        //                         "totalBalance":"14.60987476",
+        //                         "balance":"14.60987476",
+        //                         "freeze":"0.00000000",
+        //                         "id":60,
+        //                         "symbol":"USDT",
+        //                         "icon_url":"/appimg/USDT_icon.png",
+        //                         "describe_url":"[{\"lang\":\"zh-cn\",\"link\":\"https://bibox.zendesk.com/hc/zh-cn/articles/115004798234\"},{\"lang\":\"en-ww\",\"link\":\"https://bibox.zendesk.com/hc/en-us/articles/115004798234\"}]",
+        //                         "name":"USDT",
+        //                         "enable_withdraw":1,
+        //                         "enable_deposit":1,
+        //                         "enable_transfer":1,
+        //                         "confirm_count":2,
+        //                         "is_erc20":1,
+        //                         "forbid_info":null,
+        //                         "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"USDT 是 Tether 公司推出的基于稳定价值货币美元（USD）的代币 Tether USD（简称USDT），1USDT=1美元，用户可以随时使用 USDT 与 USD 进行1:1的兑换。\"},{\"lang\":\"en-ww\",\"text\":\"USDT is a cryptocurrency asset issued on the Bitcoin blockchain via the Omni Layer Protocol. Each USDT unit is backed by a U.S Dollar held in the reserves of the Tether Limited and can be redeemed through the Tether Platform.\"}]",
+        //                         "total_amount":4776930644,
+        //                         "supply_amount":4642367414,
+        //                         "price":"--",
+        //                         "contract_father":"OMNI",
+        //                         "supply_time":"--",
+        //                         "comment":null,
+        //                         "chain_type":"OMNI",
+        //                         "general_name":"USDT",
+        //                         "contract":"31",
+        //                         "original_decimals":8,
+        //                         "deposit_type":0,
+        //                         "hasCobo":0,
+        //                         "BTCValue":"0.00027116",
+        //                         "CNYValue":"90.36087919",
+        //                         "USDValue":"14.61090236",
+        //                         "children":[
+        //                             {"type":"ERC20","symbol":"eUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":13},
+        //                             {"type":"TRC20","symbol":"tUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20},
+        //                             {"type":"OMNI","symbol":"USDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":2},
+        //                             {"type":"HECO","symbol":"hUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":12},
+        //                             {"type":"BSC(BEP20)","symbol":"bUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":5},
+        //                             {"type":"HPB","symbol":"pUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20}
+        //                         ]
+        //                     }
+        //                 ],
+        //                 "cmd":"transfer/coinList"
+        //             }
+        //         ]
         //     }
         //
-        const currencies = this.safeValue (response, 'result');
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const currencies = this.safeValue (firstResult, 'result');
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -605,33 +625,37 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostTransfer (request);
-        const balances = this.safeValue (response, 'result');
-        const result = { 'info': balances };
-        let indexed = undefined;
-        if ('assets_list' in balances) {
-            indexed = this.indexBy (balances['assets_list'], 'coin_symbol');
-        } else {
-            indexed = balances;
-        }
-        const keys = Object.keys (indexed);
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            let code = id.toUpperCase ();
-            if (code.indexOf ('TOTAL_') >= 0) {
-                code = code.slice (6);
-            }
-            if (code in this.currencies_by_id) {
-                code = this.currencies_by_id[code]['code'];
-            }
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "total_btc":"0.00000298",
+        //                     "total_cny":"0.99",
+        //                     "total_usd":"0.16",
+        //                     "assets_list":[
+        //                         {"coin_symbol":"BTC","BTCValue":"0.00000252","CNYValue":"0.84","USDValue":"0.14","balance":"0.00000252","freeze":"0.00000000"},
+        //                         {"coin_symbol":"LTC","BTCValue":"0.00000023","CNYValue":"0.07","USDValue":"0.01","balance":"0.00006765","freeze":"0.00000000"},
+        //                         {"coin_symbol":"USDT","BTCValue":"0.00000023","CNYValue":"0.08","USDValue":"0.01","balance":"0.01252100","freeze":"0.00000000"}
+        //                     ]
+        //                 },
+        //                 "cmd":"transfer/assets"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResult = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResult, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result');
+        const result = { 'info': response };
+        const assetsList = this.safeValue (innerResult, 'assets_list', []);
+        for (let i = 0; i < assetsList.length; i++) {
+            const balance = assetsList[i];
+            const currencyId = this.safeString (balance, 'coin_symbol');
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            const balance = indexed[id];
-            if (typeof balance === 'string') {
-                account['free'] = balance;
-                account['total'] = balance;
-            } else {
-                account['free'] = this.safeString (balance, 'balance');
-                account['used'] = this.safeString (balance, 'freeze');
-            }
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'freeze');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -639,24 +663,57 @@ module.exports = class bibox extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = undefined;
+        if (limit === undefined) {
+            limit = 100;
+        }
         const request = {
             'page': 1,
+            'size': limit,
         };
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        } else {
-            request['size'] = 100;
         }
         const response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferInList',
             'body': this.extend (request, params),
         });
-        const deposits = this.safeValue (response['result'], 'items', []);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "count":2,
+        //                     "page":1,
+        //                     "items":[
+        //                         {
+        //                             "coin_symbol":"ETH",                        // token
+        //                             "to_address":"xxxxxxxxxxxxxxxxxxxxxxxxxx",  // address
+        //                             "amount":"1.00000000",                      // amount
+        //                             "confirmCount":"15",                        // the acknowledgment number
+        //                             "createdAt":1540641511000,
+        //                             "status":2                                 // status,  1-deposit is in process，2-deposit finished，3-deposit failed
+        //                         },
+        //                         {
+        //                             "coin_symbol":"BIX",
+        //                             "to_address":"xxxxxxxxxxxxxxxxxxxxxxxxxx",
+        //                             "amount":"1.00000000",
+        //                             "confirmCount":"15",
+        //                             "createdAt":1540622460000,
+        //                             "status":2
+        //                         }
+        //                     ]
+        //                 },
+        //                 "cmd":"transfer/transferInList"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result', {});
+        const deposits = this.safeValue (innerResult, 'items', []);
         for (let i = 0; i < deposits.length; i++) {
             deposits[i]['type'] = 'deposit';
         }
@@ -665,24 +722,54 @@ module.exports = class bibox extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = undefined;
+        if (limit === undefined) {
+            limit = 100;
+        }
         const request = {
             'page': 1,
+            'size': limit,
         };
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        } else {
-            request['size'] = 100;
         }
         const response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferOutList',
             'body': this.extend (request, params),
         });
-        const withdrawals = this.safeValue (response['result'], 'items', []);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "count":1,
+        //                     "page":1,
+        //                     "items":[
+        //                         {
+        //                             "id":612867,
+        //                             "coin_symbol":"ETH",
+        //                             "chain_type":"ETH",
+        //                             "to_address":"0xd41de7a88ab5fc59edc6669f54873576be95bff1",
+        //                             "tx_id":"0xc60950596227af3f27c3a1b5911ea1c79bae53bdce67274e48a0ce87a5ef2df8",
+        //                             "addr_remark":"binance",
+        //                             "amount":"2.34550946",
+        //                             "fee":"0.00600000",
+        //                             "createdAt":1561339330000,
+        //                             "memo":"",
+        //                             "status":3
+        //                         }
+        //                     ]
+        //                 },
+        //                 "cmd":"transfer/transferOutList"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result', {});
+        const withdrawals = this.safeValue (innerResult, 'items', []);
         for (let i = 0; i < withdrawals.length; i++) {
             withdrawals[i]['type'] = 'withdrawal';
         }
@@ -784,9 +871,23 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result": "100055558128036", // order id
+        //                 "index": 12345, // random index, specific one in a batch
+        //                 "cmd":"orderpending/trade"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const id = this.safeValue (firstResult, 'result');
         return {
             'info': response,
-            'id': this.safeString (response, 'result'),
+            'id': id,
         };
     }
 
@@ -798,7 +899,20 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
-        return response;
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":"OK", // only indicates if the server received the cancelling request, and the cancelling result can be obtained from the order record
+        //                 "index": 12345, // random index, specific one in a batch
+        //                 "cmd":"orderpending/cancelTrade"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        return firstResult;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -811,7 +925,34 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
-        const order = this.safeValue (response, 'result');
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "id":"100055558128036",
+        //                     "createdAt": 1512756997000,
+        //                     "account_type":0,
+        //                     "coin_symbol":"LTC",        // Trading Token
+        //                     "currency_symbol":"BTC",    // Pricing Token
+        //                     "order_side":2,             // Trading side 1-Buy, 2-Sell
+        //                     "order_type":2,             // 2-limit order
+        //                     "price":"0.00900000",       // order price
+        //                     "amount":"1.00000000",      // order amount
+        //                     "money":"0.00900000",       // currency amount (price * amount)
+        //                     "deal_amount":"0.00000000", // deal amount
+        //                     "deal_percent":"0.00%",     // deal percentage
+        //                     "unexecuted":"0.00000000",  // unexecuted amount
+        //                     "status":3                  // Status, -1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        //                 },
+        //                 "cmd":"orderpending/order"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const order = this.safeValue (firstResult, 'result');
         if (this.isEmpty (order)) {
             throw new OrderNotFound (this.id + ' order ' + id + ' not found');
         }
@@ -911,7 +1052,41 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
-        const orders = this.safeValue (response['result'], 'items', []);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "count":1,
+        //                     "page":1,
+        //                     "items":[
+        //                         {
+        //                             "id":"100055558128036",
+        //                             "createdAt": 1512756997000,
+        //                             "account_type":0,
+        //                             "coin_symbol":"LTC",        // Trading Token
+        //                             "currency_symbol":"BTC",    // Pricing Token
+        //                             "order_side":2,             // Trading side 1-Buy, 2-Sell
+        //                             "order_type":2,             // 2-limit order
+        //                             "price":"0.00900000",       // order price
+        //                             "amount":"1.00000000",      // order amount
+        //                             "money":"0.00900000",       // currency amount (price * amount)
+        //                             "deal_amount":"0.00000000", // deal amount
+        //                             "deal_percent":"0.00%",     // deal percentage
+        //                             "unexecuted":"0.00000000",  // unexecuted amount
+        //                             "status":1                  // Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        //                         }
+        //                     ]
+        //                 },
+        //                 "cmd":"orderpending/orderPendingList"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result', {});
+        const orders = this.safeValue (innerResult, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -931,7 +1106,41 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
-        const orders = this.safeValue (response['result'], 'items', []);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "count":1,
+        //                     "page":1,
+        //                     "items":[
+        //                         {
+        //                             "id":"100055558128036",
+        //                             "createdAt": 1512756997000,
+        //                             "account_type":0,
+        //                             "coin_symbol":"LTC",        // Trading Token
+        //                             "currency_symbol":"BTC",    // Pricing Token
+        //                             "order_side":2,             // Trading side 1-Buy, 2-Sell
+        //                             "order_type":2,             // 2-limit order
+        //                             "price":"0.00900000",       // order price
+        //                             "amount":"1.00000000",      // order amount
+        //                             "money":"0.00900000",       // currency amount (price * amount)
+        //                             "deal_amount":"0.00000000", // deal amount
+        //                             "deal_percent":"0.00%",     // deal percentage
+        //                             "unexecuted":"0.00000000",  // unexecuted amount
+        //                             "status":3                  // Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        //                         }
+        //                     ]
+        //                 },
+        //                 "cmd":"orderpending/pendingHistoryList"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result', {});
+        const orders = this.safeValue (innerResult, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -954,7 +1163,38 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
-        const trades = this.safeValue (response['result'], 'items', []);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "count":1,
+        //                     "page":1,
+        //                     "items":[
+        //                         {
+        //                             "id":"100055558128033",
+        //                             "createdAt": 1512756997000,
+        //                             "account_type":0,
+        //                             "coin_symbol":"LTC",
+        //                             "currency_symbol":"BTC",
+        //                             "order_side":2,
+        //                             "order_type":2,
+        //                             "price":"0.00886500",
+        //                             "amount":"1.00000000",
+        //                             "money":"0.00886500",
+        //                             "fee":0
+        //                         }
+        //                     ]
+        //                 },
+        //                 "cmd":"orderpending/orderHistoryList"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result', {});
+        const trades = this.safeValue (innerResult, 'items', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -970,18 +1210,30 @@ module.exports = class bibox extends Exchange {
         const response = await this.privatePostTransfer (request);
         //
         //     {
-        //         "result":"3Jx6RZ9TNMsAoy9NUzBwZf68QBppDruSKW","cmd":"transfer/transferIn"
+        //         "result":[
+        //             {
+        //                 "result":"3Jx6RZ9TNMsAoy9NUzBwZf68QBppDruSKW",
+        //                 "cmd":"transfer/transferIn"
+        //             }
+        //         ]
         //     }
         //
         //     {
-        //         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
+        //         "result":[
+        //             {
+        //                 "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}",
+        //                 "cmd":"transfer/transferIn"
+        //             }
+        //         ]
         //     }
         //
-        const result = this.safeString (response, 'result');
-        let address = result;
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result');
+        let address = innerResult;
         let tag = undefined;
-        if (this.isJsonEncodedObject (result)) {
-            const parsed = JSON.parse (result);
+        if (this.isJsonEncodedObject (innerResult)) {
+            const parsed = JSON.parse (innerResult);
             address = this.safeString (parsed, 'account');
             tag = this.safeString (parsed, 'memo');
         }
@@ -994,6 +1246,7 @@ module.exports = class bibox extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1018,9 +1271,22 @@ module.exports = class bibox extends Exchange {
             'cmd': 'transfer/transferOut',
             'body': this.extend (request, params),
         });
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result": 228, // withdrawal id
+        //                 "cmd":"transfer/transferOut"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const id = this.safeValue (firstResult, 'result');
         return {
             'info': response,
-            'id': undefined,
+            'id': id,
         };
     }
 
@@ -1043,8 +1309,33 @@ module.exports = class bibox extends Exchange {
                 }, params),
             };
             const response = await this.privatePostTransfer (request);
-            info[code] = response;
-            withdrawFees[code] = this.safeNumber (response['result'], 'withdraw_fee');
+            //     {
+            //         "result":[
+            //             {
+            //                 "result":[
+            //                     {
+            //                         "coin_symbol":"ETH",
+            //                         "is_active":1,
+            //                         "original_decimals":18,
+            //                         "enable_deposit":1,
+            //                         "enable_withdraw":1,
+            //                         "withdraw_fee":0.008,
+            //                         "withdraw_min":0.05,
+            //                         "deposit_avg_spent":173700,
+            //                         "withdraw_avg_spent":322600
+            //                     }
+            //                 ],
+            //                 "cmd":"transfer/coinConfig"
+            //             }
+            //         ]
+            //     }
+            //
+            const outerResults = this.safeValue (response, 'result', []);
+            const firstOuterResult = this.safeValue (outerResults, 0, {});
+            const innerResults = this.safeValue (firstOuterResult, 'result', []);
+            const firstInnerResult = this.safeValue (innerResults, 0, {});
+            info[code] = firstInnerResult;
+            withdrawFees[code] = this.safeNumber (firstInnerResult, 'withdraw_fee');
         }
         return {
             'info': info,
@@ -1101,15 +1392,6 @@ module.exports = class bibox extends Exchange {
         }
         if (!('result' in response)) {
             throw new ExchangeError (this.id + ' ' + body);
-        }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
-        if (method === 'GET') {
-            return response;
-        } else {
-            return response['result'][0];
         }
     }
 };

@@ -25,7 +25,7 @@ class bitfinex extends Exchange {
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'deposit' => true,
@@ -33,23 +33,27 @@ class bitfinex extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
-                'fetchDeposits' => false,
+                'fetchDeposits' => null,
                 'fetchFundingFees' => true,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => false,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
-                'fetchWithdrawals' => false,
-                'withdraw' => true,
+                'fetchWithdrawals' => null,
                 'transfer' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -235,6 +239,7 @@ class bitfinex extends Exchange {
                 'STJ' => 'STORJ',
                 'TERRAUST' => 'UST',
                 'TSD' => 'TUSD',
+                'YGG' => 'YEED', // conflict with Yield Guild Games
                 'YYW' => 'YOYOW',
                 'UDC' => 'USDC',
                 'UST' => 'USDT',
@@ -494,6 +499,7 @@ class bitfinex extends Exchange {
                 'quoteId' => $quoteId,
                 'active' => true,
                 'type' => 'spot',
+                'spot' => true,
                 'margin' => $margin,
                 'precision' => $precision,
                 'limits' => $limits,
@@ -1165,6 +1171,7 @@ class bitfinex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
         // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method

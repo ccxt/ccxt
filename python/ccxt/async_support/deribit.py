@@ -43,20 +43,23 @@ class deribit(Exchange):
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': False,
+                'fetchOrders': None,
                 'fetchOrderTrades': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTransactions': False,
+                'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -546,8 +549,8 @@ class deribit(Exchange):
         currencyId = self.safe_string(balance, 'currency')
         currencyCode = self.safe_currency_code(currencyId)
         account = self.account()
-        account['free'] = self.safe_string(balance, 'availableFunds')
-        account['used'] = self.safe_string(balance, 'maintenanceMargin')
+        account['free'] = self.safe_string(balance, 'available_funds')
+        account['used'] = self.safe_string(balance, 'maintenance_margin')
         account['total'] = self.safe_string(balance, 'equity')
         result[currencyCode] = account
         return self.parse_balance(result)
@@ -1649,6 +1652,7 @@ class deribit(Exchange):
         return result
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)

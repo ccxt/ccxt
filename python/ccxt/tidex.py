@@ -36,8 +36,8 @@ class tidex(Exchange):
             'userAgent': self.userAgents['chrome'],
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
-                'createMarketOrder': False,
+                'CORS': None,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,
@@ -282,6 +282,8 @@ class tidex(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'taker': takerFee,
                 'precision': precision,
@@ -688,6 +690,7 @@ class tidex(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)

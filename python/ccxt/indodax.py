@@ -24,20 +24,20 @@ class indodax(Exchange):
             'countries': ['ID'],  # Indonesia
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
-                'createMarketOrder': False,
+                'CORS': None,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': False,
+                'fetchCurrencies': None,
                 'fetchMarkets': True,
-                'fetchMyTrades': False,
+                'fetchMyTrades': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': False,
+                'fetchOrders': None,
                 'fetchTicker': True,
-                'fetchTickers': False,
+                'fetchTickers': None,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'withdraw': True,
@@ -198,12 +198,14 @@ class indodax(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
+                'active': active,
                 'taker': taker,
                 'percentage': True,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-                'active': active,
             })
         return result
 
@@ -528,6 +530,7 @@ class indodax(Exchange):
         return self.privatePostCancelOrder(self.extend(request, params))
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)

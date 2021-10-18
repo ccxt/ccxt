@@ -38,7 +38,7 @@ class bitfinex(Exchange):
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'deposit': True,
@@ -46,23 +46,27 @@ class bitfinex(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
-                'fetchDeposits': False,
+                'fetchDeposits': None,
                 'fetchFundingFees': True,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': False,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
-                'fetchWithdrawals': False,
-                'withdraw': True,
+                'fetchWithdrawals': None,
                 'transfer': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -248,6 +252,7 @@ class bitfinex(Exchange):
                 'STJ': 'STORJ',
                 'TERRAUST': 'UST',
                 'TSD': 'TUSD',
+                'YGG': 'YEED',  # conflict with Yield Guild Games
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
                 'UST': 'USDT',
@@ -501,6 +506,7 @@ class bitfinex(Exchange):
                 'quoteId': quoteId,
                 'active': True,
                 'type': 'spot',
+                'spot': True,
                 'margin': margin,
                 'precision': precision,
                 'limits': limits,
@@ -1101,6 +1107,7 @@ class bitfinex(Exchange):
         return self.safe_string(statuses, status, status)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method

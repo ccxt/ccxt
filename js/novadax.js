@@ -19,8 +19,8 @@ module.exports = class novadax extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'CORS': false,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -31,9 +31,9 @@ module.exports = class novadax extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOrderTrades': true,
                 'fetchOrderBook': true,
+                'fetchOrderTrades': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -219,10 +219,12 @@ module.exports = class novadax extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
+                'active': active,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-                'active': active,
             });
         }
         return result;
@@ -905,6 +907,7 @@ module.exports = class novadax extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {

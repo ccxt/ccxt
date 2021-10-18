@@ -252,6 +252,8 @@ class coinex(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'taker': self.safe_number(market, 'taker_fee_rate'),
                 'maker': self.safe_number(market, 'maker_fee_rate'),
@@ -672,6 +674,7 @@ class coinex(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)

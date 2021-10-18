@@ -24,6 +24,7 @@ class bitbns(Exchange):
             'rateLimit': 1000,
             'certified': False,
             'pro': False,
+            'version': 'v2',
             # new metainfo interface
             'has': {
                 'cancelOrder': True,
@@ -33,14 +34,14 @@ class bitbns(Exchange):
                 'fetchDeposits': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
-                'fetchOHLCV': False,
+                'fetchOHLCV': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchStatus': True,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
-                'fetchTrades': False,
+                'fetchTrades': None,
                 'fetchWithdrawals': True,
             },
             'timeframes': {
@@ -48,7 +49,7 @@ class bitbns(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
                 'api': {
-                    'ccxt': 'https://bitbns.com/order',
+                    'www': 'https://bitbns.com',
                     'v1': 'https://api.bitbns.com/api/trade/v1',
                     'v2': 'https://api.bitbns.com/api/trade/v2',
                 },
@@ -60,11 +61,15 @@ class bitbns(Exchange):
                 'fees': 'https://bitbns.com/fees',
             },
             'api': {
-                'ccxt': {
+                'www': {
                     'get': [
-                        'fetchMarkets',
-                        'fetchTickers',
-                        'fetchOrderbook',
+                        'order/fetchMarkets',
+                        'order/fetchTickers',
+                        'order/fetchOrderbook',
+                        'order/getTickerWithVolume',
+                        'exchangeData/ohlc',  # ?coin=${coin_name}&page=${page}
+                        'exchangeData/orderBook',
+                        'exchangeData/tradedetails',
                     ],
                 },
                 'v1': {
@@ -82,16 +87,21 @@ class bitbns(Exchange):
                         'orderStatus/{symbol}',
                         'depositHistory/{symbol}',
                         'withdrawHistory/{symbol}',
+                        'withdrawHistoryAll/{symbol}',
+                        'depositHistoryAll/{symbol}',
                         'listOpenOrders/{symbol}',
                         'listOpenStopOrders/{symbol}',
                         'getCoinAddress/{symbol}',
                         'placeSellOrder/{symbol}',
                         'placeBuyOrder/{symbol}',
                         'buyStopLoss/{symbol}',
+                        'sellStopLoss/{symbol}',
                         'placeSellOrder/{symbol}',
                         'cancelOrder/{symbol}',
                         'cancelStopLossOrder/{symbol}',
                         'listExecutedOrders/{symbol}',
+                        'placeMarketOrder/{symbol}',
+                        'placeMarketOrderQnty/{symbol}',
                     ],
                 },
                 'v2': {
@@ -147,7 +157,7 @@ class bitbns(Exchange):
         return self.status
 
     async def fetch_markets(self, params={}):
-        response = await self.ccxtGetFetchMarkets(params)
+        response = await self.wwwGetOrderFetchMarkets(params)
         #
         #     [
         #         {
@@ -201,6 +211,8 @@ class bitbns(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': True,
                 'active': None,
                 'precision': precision,
                 'limits': {
@@ -228,7 +240,7 @@ class bitbns(Exchange):
         }
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
-        response = await self.ccxtGetFetchOrderbook(self.extend(request, params))
+        response = await self.wwwGetOrderFetchOrderbook(self.extend(request, params))
         #
         #     {
         #         "bids":[
@@ -309,7 +321,7 @@ class bitbns(Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        response = await self.ccxtGetFetchTickers(params)
+        response = await self.wwwGetOrderFetchTickers(params)
         #
         #     {
         #         "BTC/INR":{
@@ -487,15 +499,14 @@ class bitbns(Exchange):
         })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type != 'limit':
-            raise ExchangeError(self.id + ' allows limit orders only')
+        if type != 'limit' and type != 'market':
+            raise ExchangeError(self.id + ' allows limit and market orders only')
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'side': side.upper(),
             'symbol': market['uppercaseId'],
             'quantity': self.amount_to_precision(symbol, amount),
-            'rate': self.price_to_precision(symbol, price),
             # 'target_rate': self.price_to_precision(symbol, targetRate),
             # 't_rate': self.price_to_precision(symbol, stopPrice),
             # 'trail_rate': self.price_to_precision(symbol, trailRate),
@@ -503,7 +514,15 @@ class bitbns(Exchange):
             # To Place Stoploss Buy or Sell Order use rate & t_rate
             # To Place Bracket Buy or Sell Order use rate , t_rate, target_rate & trail_rate
         }
-        response = await self.v2PostOrders(self.extend(request, params))
+        method = 'v2PostOrders'
+        if type == 'limit':
+            request['rate'] = self.price_to_precision(symbol, price)
+        elif type == 'market':
+            method = 'v1PostPlaceMarketOrderQntySymbol'
+            request['market'] = market['quoteId']
+        else:
+            raise ExchangeError(self.id + ' allows limit and market orders only')
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "data":"Successfully placed bid to purchase currency",

@@ -16,19 +16,23 @@ module.exports = class okex extends Exchange {
             'name': 'OKEX',
             'countries': [ 'CN', 'US' ],
             'version': 'v5',
-            'rateLimit': 20 / 3, // 300 requests per 2 seconds
+            'rateLimit': 100,
             'pro': true,
+            'certified': true,
             'has': {
-                'CORS': false,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': false, // see below
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddressByNetwork': true,
                 'fetchDeposits': true,
+                'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -71,7 +75,7 @@ module.exports = class okex extends Exchange {
                     'rest': 'https://{hostname}',
                 },
                 'www': 'https://www.okex.com',
-                'doc': 'https://www.okex.com/docs/en/',
+                'doc': 'https://www.okex.com/docs-v5/en/',
                 'fees': 'https://www.okex.com/pages/products/fees.html',
                 'referral': 'https://www.okex.com/join/1888677',
                 'test': {
@@ -81,94 +85,94 @@ module.exports = class okex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'market/tickers': 15,
-                        'market/ticker': 15,
-                        'market/index-tickers': 15,
-                        'market/books': 15,
-                        'market/candles': 15,
-                        'market/history-candles': 15,
-                        'market/index-candles': 15,
-                        'market/mark-price-candles': 15,
-                        'market/trades': 15,
-                        'market/platform-24-volume': 150,
-                        'market/open-oracle': 1500,
+                        'market/tickers': 1,
+                        'market/ticker': 1,
+                        'market/index-tickers': 1,
+                        'market/books': 1,
+                        'market/candles': 1,
+                        'market/history-candles': 1,
+                        'market/index-candles': 1,
+                        'market/mark-price-candles': 1,
+                        'market/trades': 1,
+                        'market/platform-24-volume': 10,
+                        'market/open-oracle': 100,
                         // 'market/oracle',
-                        'public/instruments': 15,
-                        'public/delivery-exercise-history': 7.5,
-                        'public/open-interest': 15,
-                        'public/funding-rate': 15,
-                        'public/funding-rate-history': 15,
-                        'public/price-limit': 15,
-                        'public/opt-summary': 15,
-                        'public/estimated-price': 30,
-                        'public/discount-rate-interest-free-quota': 150,
-                        'public/time': 30,
-                        'public/liquidation-orders': 7.5,
-                        'public/mark-price': 30,
+                        'public/instruments': 1,
+                        'public/delivery-exercise-history': 0.5,
+                        'public/open-interest': 1,
+                        'public/funding-rate': 1,
+                        'public/funding-rate-history': 1,
+                        'public/price-limit': 1,
+                        'public/opt-summary': 1,
+                        'public/estimated-price': 2,
+                        'public/discount-rate-interest-free-quota': 10,
+                        'public/time': 2,
+                        'public/liquidation-orders': 0.5,
+                        'public/mark-price': 2,
                         // 'public/tier',
-                        'public/position-tiers': 30,
-                        'public/underlying': 15,
-                        'public/interest-rate-loan-quota': 150,
-                        'system/status': 1500,
+                        'public/position-tiers': 2,
+                        'public/underlying': 1,
+                        'public/interest-rate-loan-quota': 10,
+                        'system/status': 100,
                     },
                 },
                 'private': {
                     'get': {
-                        'account/account-position-risk': 30,
-                        'account/balance': 30,
-                        'account/positions': 30,
-                        'account/bills': 25,
-                        'account/bills-archive': 25,
-                        'account/config': 60,
-                        'account/max-size': 15,
-                        'account/max-avail-size': 15,
-                        'account/leverage-info': 15,
-                        'account/max-loan': 15,
-                        'account/trade-fee': 60,
-                        'account/interest-accrued': 60,
-                        'account/interest-rate': 60,
-                        'account/max-withdrawal': 15,
-                        'asset/deposit-address': 25,
-                        'asset/balances': 25,
-                        'asset/deposit-history': 25,
-                        'asset/withdrawal-history': 25,
-                        'asset/currencies': 25,
-                        'asset/bills': 25,
-                        'asset/piggy-balance': 25,
-                        'trade/order': 5,
-                        'trade/orders-pending': 15,
-                        'trade/orders-history': 7.5,
-                        'trade/orders-history-archive': 15,
-                        'trade/fills': 5,
-                        'trade/fills-history': 30,
-                        'trade/orders-algo-pending': 15,
-                        'trade/orders-algo-history': 15,
-                        'account/subaccount/balances': 150,
-                        'asset/subaccount/bills': 25,
-                        'users/subaccount/list': 150,
+                        'account/account-position-risk': 2,
+                        'account/balance': 2,
+                        'account/positions': 2,
+                        'account/bills': 5 / 3,
+                        'account/bills-archive': 5 / 3,
+                        'account/config': 4,
+                        'account/max-size': 1,
+                        'account/max-avail-size': 1,
+                        'account/leverage-info': 1,
+                        'account/max-loan': 1,
+                        'account/trade-fee': 4,
+                        'account/interest-accrued': 4,
+                        'account/interest-rate': 4,
+                        'account/max-withdrawal': 1,
+                        'asset/deposit-address': 5 / 3,
+                        'asset/balances': 5 / 3,
+                        'asset/deposit-history': 5 / 3,
+                        'asset/withdrawal-history': 5 / 3,
+                        'asset/currencies': 5 / 3,
+                        'asset/bills': 5 / 3,
+                        'asset/piggy-balance': 5 / 3,
+                        'trade/order': 1 / 3,
+                        'trade/orders-pending': 1,
+                        'trade/orders-history': 0.5,
+                        'trade/orders-history-archive': 1,
+                        'trade/fills': 1 / 3,
+                        'trade/fills-history': 2,
+                        'trade/orders-algo-pending': 1,
+                        'trade/orders-algo-history': 1,
+                        'account/subaccount/balances': 10,
+                        'asset/subaccount/bills': 5 / 3,
+                        'users/subaccount/list': 10,
                     },
                     'post': {
-                        'account/set-position-mode': 60,
-                        'account/set-leverage': 15,
-                        'account/position/margin-balance': 15,
-                        'account/set-greeks': 60,
-                        'asset/transfer': 150,
-                        'asset/withdrawal': 25,
-                        'asset/purchase_redempt': 25,
-                        'trade/order': 5,
-                        'trade/batch-orders': 1,
-                        'trade/cancel-order': 5,
-                        'trade/cancel-batch-orders': 1,
-                        'trade/amend-order': 5,
-                        'trade/amend-batch-orders': 5,
-                        'trade/close-position': 15,
-                        'trade/order-algo': 15,
-                        'trade/cancel-algos': 15,
-                        'trade/cancel-advance-algos': 15,
-                        'users/subaccount/delete-apikey': 150,
-                        'users/subaccount/modify-apikey': 150,
-                        'users/subaccount/apikey': 150,
-                        'asset/subaccount/transfer': 150,
+                        'account/set-position-mode': 4,
+                        'account/set-leverage': 1,
+                        'account/position/margin-balance': 1,
+                        'account/set-greeks': 4,
+                        'asset/transfer': 10,
+                        'asset/withdrawal': 5 / 3,
+                        'asset/purchase_redempt': 5 / 3,
+                        'trade/order': 1 / 3,
+                        'trade/batch-orders': 1 / 15,
+                        'trade/cancel-order': 1 / 3,
+                        'trade/cancel-batch-orders': 1 / 15,
+                        'trade/amend-order': 1 / 3,
+                        'trade/amend-batch-orders': 1 / 3,
+                        'trade/close-position': 1,
+                        'trade/order-algo': 1,
+                        'trade/cancel-algos': 1,
+                        'trade/cancel-advance-algos': 1,
+                        'users/subaccount/delete-apikey': 10,
+                        'users/subaccount/modify-apikey': 10,
+                        'users/subaccount/apikey': 10,
+                        'asset/subaccount/transfer': 10,
                     },
                 },
             },
@@ -479,6 +483,12 @@ module.exports = class okex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'defaultNetwork': 'ERC20',
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'OMNI': 'Omni',
+                },
                 'fetchOHLCV': {
                     'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
@@ -749,7 +759,23 @@ module.exports = class okex extends Exchange {
         return this.parseMarkets (data);
     }
 
+    safeNetwork (networkId) {
+        const networksById = {
+            'Bitcoin': 'BTC',
+            'Omni': 'OMNI',
+            'TRON': 'TRC20',
+        };
+        return this.safeString (networksById, networkId, networkId);
+    }
+
     async fetchCurrencies (params = {}) {
+        // this endpoint requires authentication
+        // while fetchCurrencies is a public API method by design
+        // therefore we check the keys here
+        // and fallback to generating the currencies from the markets
+        if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
         // has['fetchCurrencies'] is currently set to false
         // it will reply with {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
         // if you attempt to access it without authentication
@@ -777,37 +803,55 @@ module.exports = class okex extends Exchange {
         const result = {};
         const dataByCurrencyId = this.groupBy (data, 'ccy');
         const currencyIds = Object.keys (dataByCurrencyId);
+        const precision = this.parseNumber ('0.00000001'); // default precision, todo: fix "magic constants"
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
             const chains = dataByCurrencyId[currencyId];
-            const first = this.safeValue (chains, 0);
-            const id = this.safeString (first, 'ccy');
-            const code = this.safeCurrencyCode (id);
-            const precision = 0.00000001; // default precision, todo: fix "magic constants"
-            let name = this.safeString (first, 'name');
-            if ((name !== undefined) && (name.length < 1)) {
-                name = undefined;
+            const networks = {};
+            let currencyActive = false;
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const canDeposit = this.safeValue (chain, 'canDep');
+                const canWithdraw = this.safeValue (chain, 'canWd');
+                const canInternal = this.safeValue (chain, 'canInternal');
+                const active = (canDeposit && canWithdraw && canInternal) ? true : false;
+                currencyActive = (currencyActive === undefined) ? active : currencyActive;
+                let networkId = this.safeString (chain, 'chain');
+                if (networkId.indexOf ('-') >= 0) {
+                    const parts = networkId.split ('-');
+                    networkId = this.safeString (parts, 1, networkId);
+                    const network = this.safeNetwork (networkId);
+                    networks[network] = {
+                        'info': chain,
+                        'id': networkId,
+                        'network': network,
+                        'active': active,
+                        'fee': this.safeNumber (chain, 'minFee'),
+                        'precision': undefined,
+                        'limits': {
+                            'withdraw': {
+                                'min': this.safeNumber (chain, 'minWd'),
+                                'max': undefined,
+                            },
+                        },
+                    };
+                }
             }
-            const canDeposit = this.safeValue (first, 'canDep');
-            const canWithdraw = this.safeValue (first, 'canWd');
-            const canInternal = this.safeValue (first, 'canInternal');
-            const active = (canDeposit && canWithdraw && canInternal) ? true : false;
             result[code] = {
-                'id': id,
                 'code': code,
-                'info': chains,
-                'type': undefined,
-                'name': name,
-                'active': active,
-                'fee': this.safeNumber (first, 'minFee'),
+                'id': currencyId,
+                'name': undefined,
+                'active': currencyActive,
+                'fee': undefined,
                 'precision': precision,
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': {
-                        'min': this.safeNumber (first, 'ccy'),
+                    'amount': {
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
+                'networks': networks,
             };
         }
         return result;
@@ -1124,6 +1168,8 @@ module.exports = class okex extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
         const request = {
             'instId': market['id'],
             'bar': this.timeframes[timeframe],
@@ -1135,7 +1181,12 @@ module.exports = class okex extends Exchange {
         const defaultType = this.safeString (options, 'type', 'Candles'); // Candles or HistoryCandles
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        const method = 'publicGetMarket' + type;
+        let method = 'publicGetMarket' + type;
+        if (price === 'mark') {
+            method = 'publicGetMarketMarkPriceCandles';
+        } else if (price === 'index') {
+            method = 'publicGetMarketIndexCandles';
+        }
         if (since !== undefined) {
             request['before'] = since - 1;
         }
@@ -1153,6 +1204,20 @@ module.exports = class okex extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseBalanceByType (type, response) {
@@ -1387,30 +1452,40 @@ module.exports = class okex extends Exchange {
             request['clOrdId'] = clientOrderId;
             params = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
         }
+        request['sz'] = this.amountToPrecision (symbol, amount);
         if (type === 'market') {
-            // for market buy it requires the amount of quote currency to spend
-            if (side === 'buy') {
-                let notional = this.safeNumber (params, 'sz');
-                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
-                if (createMarketBuyOrderRequiresPrice) {
-                    if (price !== undefined) {
-                        if (notional === undefined) {
-                            notional = amount * price;
+            if (market['type'] === 'spot' && side === 'buy') {
+                // spot market buy: "sz" can refer either to base currency units or to quote currency units
+                // see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
+                const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
+                const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
+                if (tgtCcy === 'quote_ccy') {
+                    // quote_ccy: sz refers to units of quote currency
+                    request['tgtCcy'] = 'quote_ccy';
+                    let notional = this.safeNumber (params, 'sz');
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    if (createMarketBuyOrderRequiresPrice) {
+                        if (price !== undefined) {
+                            if (notional === undefined) {
+                                notional = amount * price;
+                            }
+                        } else if (notional === undefined) {
+                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
                         }
-                    } else if (notional === undefined) {
-                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
+                    } else {
+                        notional = (notional === undefined) ? amount : notional;
                     }
+                    const precision = market['precision']['price'];
+                    request['sz'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
                 } else {
-                    notional = (notional === undefined) ? amount : notional;
+                    // base_ccy: sz refers to units of base currency
+                    request['tgtCcy'] = 'base_ccy';
                 }
-                const precision = market['precision']['price'];
-                request['sz'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
-            } else {
-                request['sz'] = this.amountToPrecision (symbol, amount);
+                params = this.omit (params, [ 'tgtCcy' ]);
             }
         } else {
+            // non-market orders
             request['px'] = this.priceToPrecision (symbol, price);
-            request['sz'] = this.amountToPrecision (symbol, amount);
         }
         let extendedRequest = undefined;
         const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder
@@ -1559,9 +1634,15 @@ module.exports = class okex extends Exchange {
         const feeCostString = this.safeString (order, 'fee');
         let amount = undefined;
         let cost = undefined;
-        if (side === 'buy' && type === 'market') {
+        // spot market buy: "sz" can refer either to base currency units or to quote currency units
+        // see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
+        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
+        const tgtCcy = this.safeString (order, 'tgtCcy', defaultTgtCcy);
+        if (side === 'buy' && type === 'market' && market['spot'] && tgtCcy === 'quote_ccy') {
+            // "sz" refers to the cost
             cost = this.safeNumber (order, 'sz');
         } else {
+            // "sz" refers to the trade currency amount
             amount = this.safeNumber (order, 'sz');
         }
         let fee = undefined;
@@ -1740,7 +1821,7 @@ module.exports = class okex extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString (this.options, 'defaultType');
-        const options = this.safeString (this.options, 'fetchClosedOrders', {});
+        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
         let type = this.safeString (options, 'type', defaultType);
         type = this.safeString (params, 'type', type);
         params = this.omit (params, 'type');
@@ -2121,24 +2202,40 @@ module.exports = class okex extends Exchange {
         //         "selected":true
         //     }
         //
+        //     {
+        //       "chain": "ETH-OKExChain",
+        //       "ctAddr": "72315c",
+        //       "ccy": "ETH",
+        //       "to": "6",
+        //       "addr": "0x1c9f2244d1ccaa060bd536827c18925db10db102",
+        //       "selected": true
+        //     }
+        //
         const address = this.safeString (depositAddress, 'addr');
         let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
         tag = this.safeString (depositAddress, 'memo', tag);
         const currencyId = this.safeString (depositAddress, 'ccy');
         const code = this.safeCurrencyCode (currencyId);
+        const chain = this.safeString (depositAddress, 'chain');
+        let network = undefined;
+        if (chain.indexOf ('-') > -1) {
+            const parts = chain.split ('-');
+            const networkId = this.safeString (parts, 1);
+            network = this.safeNetwork (networkId);
+        }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': network,
             'info': depositAddress,
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code, params = {}) {
         await this.loadMarkets ();
-        const parts = code.split ('-');
-        const currency = this.currency (parts[0]);
+        const currency = this.currency (code);
         const request = {
             'ccy': currency['id'],
         };
@@ -2165,15 +2262,46 @@ module.exports = class okex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const addressesByCode = this.parseDepositAddresses (data);
-        const address = this.safeValue (addressesByCode, code);
-        if (address === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
+        const filtered = this.filterBy (data, 'selected', true);
+        const parsed = this.parseDepositAddresses (filtered, [ code ], false);
+        return this.indexBy (parsed, 'network');
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        const rawNetwork = this.safeString (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        const network = this.safeString (networks, rawNetwork, rawNetwork);
+        params = this.omit (params, 'network');
+        const response = await this.fetchDepositAddressesByNetwork (code, params);
+        let result = undefined;
+        if (network === undefined) {
+            result = this.safeValue (response, code);
+            if (result === undefined) {
+                const alias = this.safeString (networks, code, code);
+                result = this.safeValue (response, alias);
+                if (result === undefined) {
+                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+                    result = this.safeValue (response, defaultNetwork);
+                    if (result === undefined) {
+                        const values = Object.values (response);
+                        result = this.safeValue (values, 0);
+                        if (result === undefined) {
+                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
+                        }
+                    }
+                }
+            }
+            return result;
         }
-        return address;
+        result = this.safeValue (response, network);
+        if (result === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
+        }
+        return result;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2182,7 +2310,7 @@ module.exports = class okex extends Exchange {
         }
         const fee = this.safeString (params, 'fee');
         if (fee === undefined) {
-            throw new ArgumentsRequired (this.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
+            throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
         }
         const request = {
             'ccy': currency['id'],
@@ -2195,6 +2323,13 @@ module.exports = class okex extends Exchange {
             request['pwd'] = params['password'];
         } else if ('pwd' in params) {
             request['pwd'] = params['pwd'];
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ETH>ERC20 alias
+        if (network !== undefined) {
+            request['chain'] = currency['id'] + '-' + network;
+            params = this.omit (params, 'network');
         }
         const query = this.omit (params, [ 'fee', 'password', 'pwd' ]);
         if (!('pwd' in request)) {
@@ -2530,7 +2665,11 @@ module.exports = class okex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parsePosition (this.safeValue (data, 0));
+        const position = this.safeValue (data, 0);
+        if (position === undefined) {
+            return position;
+        }
+        return this.parsePosition (position);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -2833,6 +2972,74 @@ module.exports = class okex extends Exchange {
             headers['OK-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    parseFundingRate (fundingRate, market = undefined) {
+        //
+        //     {
+        //       "fundingRate": "0.00027815",
+        //       "fundingTime": "1634256000000",
+        //       "instId": "BTC-USD-SWAP",
+        //       "instType": "SWAP",
+        //       "nextFundingRate": "0.00017",
+        //       "nextFundingTime": "1634284800000"
+        //     }
+        //
+        const previousFundingRate = this.safeNumber (fundingRate, 'fundingRate');
+        const previousFundingTimestamp = this.safeInteger (fundingRate, 'fundingTime');
+        const marketId = this.safeString (fundingRate, 'instId');
+        const symbol = this.safeSymbol (marketId, market);
+        const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
+        const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'nextFundingTime');
+        // https://www.okex.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
+        // > The current interest is 0.
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'previousFundingRate': previousFundingRate,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
+            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new ExchangeError (this.id + ' fetchFundingRate is only valid for swap markets');
+        }
+        const request = {
+            'instId': market['id'],
+        };
+        const response = await this.publicGetPublicFundingRate (this.extend (request, params));
+        //
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "fundingRate": "0.00027815",
+        //           "fundingTime": "1634256000000",
+        //           "instId": "BTC-USD-SWAP",
+        //           "instType": "SWAP",
+        //           "nextFundingRate": "0.00017",
+        //           "nextFundingTime": "1634284800000"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const entry = this.safeValue (data, 0, {});
+        return this.parseFundingRate (entry, market);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

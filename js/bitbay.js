@@ -281,6 +281,8 @@ module.exports = class bitbay extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'precision': precision,
+                'type': 'spot',
+                'spot': true,
                 'active': undefined,
                 'maker': maker,
                 'taker': taker,
@@ -1130,6 +1132,7 @@ module.exports = class bitbay extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         let method = undefined;

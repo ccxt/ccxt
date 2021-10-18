@@ -16,20 +16,20 @@ module.exports = class indodax extends Exchange {
             'countries': [ 'ID' ], // Indonesia
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
-                'createMarketOrder': false,
+                'CORS': undefined,
+                'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': false,
+                'fetchCurrencies': undefined,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': undefined,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': undefined,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'withdraw': true,
@@ -194,12 +194,14 @@ module.exports = class indodax extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
+                'active': active,
                 'taker': taker,
                 'percentage': true,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-                'active': active,
             });
         }
         return result;
@@ -556,6 +558,7 @@ module.exports = class indodax extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

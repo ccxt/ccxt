@@ -244,6 +244,8 @@ module.exports = class coinex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'taker': this.safeNumber (market, 'taker_fee_rate'),
                 'maker': this.safeNumber (market, 'maker_fee_rate'),
@@ -703,6 +705,7 @@ module.exports = class coinex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

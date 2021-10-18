@@ -35,10 +35,11 @@ class zb(Exchange):
             'pro': True,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
-                'createMarketOrder': False,
+                'CORS': None,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
@@ -49,7 +50,6 @@ class zb(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
-                'fetchClosedOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -287,6 +287,8 @@ class zb(Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
                 'precision': precision,
                 'limits': {
@@ -769,7 +771,7 @@ class zb(Exchange):
             raise e
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol=None, since=None, limit=10, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + 'fetchClosedOrders() requires a symbol argument')
         self.load_markets()
@@ -777,7 +779,7 @@ class zb(Exchange):
         request = {
             'currency': market['id'],
             'pageIndex': 1,  # default pageIndex is 1
-            'pageSize': 10,  # default pageSize is 10, doesn't work with other values now
+            'pageSize': limit,  # default pageSize is 10, doesn't work with other values now
         }
         response = self.privateGetGetFinishedAndPartialOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
@@ -974,6 +976,7 @@ class zb(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         password = self.safe_string(params, 'safePwd', self.password)
         if password is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires exchange.password or a safePwd parameter')

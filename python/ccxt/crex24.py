@@ -35,7 +35,7 @@ class crex24(Exchange):
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -44,6 +44,7 @@ class crex24(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingFees': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -55,9 +56,8 @@ class crex24(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTradingFee': False,  # actually, True, but will be implemented later
-                'fetchTradingFees': False,  # actually, True, but will be implemented later
-                'fetchFundingFees': True,
+                'fetchTradingFee': None,  # actually, True, but will be implemented later
+                'fetchTradingFees': None,  # actually, True, but will be implemented later
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
@@ -163,6 +163,11 @@ class crex24(Exchange):
             },
             # exchange-specific options
             'options': {
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                },
                 'fetchOrdersMethod': 'tradingGetOrderHistory',  # or 'tradingGetActiveOrders'
                 'fetchClosedOrdersMethod': 'tradingGetOrderHistory',  # or 'tradingGetActiveOrders'
                 'fetchTickersMethod': 'publicGetTicker24hr',
@@ -190,6 +195,7 @@ class crex24(Exchange):
                     'has been delisted.': BadSymbol,  # {"errorDescription":"Instrument '$PAC-BTC' has been delisted."}
                     'is currently suspended.': BadSymbol,  # {"errorDescription":"Trading in BITG-BTC is currently suspended."}
                     'Mandatory parameter': BadRequest,  # {"errorDescription":"Mandatory parameter 'feeCurrency' is missing."}
+                    'can not trade': AccountSuspended,  # {"errorDescription":"User 123456 can not trade"}
                 },
             },
         })
@@ -317,6 +323,8 @@ class crex24(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': precision,
                 'maker': maker,
@@ -1266,6 +1274,7 @@ class crex24(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
@@ -1281,6 +1290,12 @@ class crex24(Exchange):
         }
         if tag is not None:
             request['paymentId'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['transport'] = network
+            params = self.omit(params, 'network')
         response = self.accountPostWithdraw(self.extend(request, params))
         return self.parse_transaction(response)
 

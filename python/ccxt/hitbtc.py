@@ -32,7 +32,7 @@ class hitbtc(Exchange):
             'pro': True,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'editOrder': True,
@@ -40,7 +40,7 @@ class hitbtc(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'fetchDeposits': False,
+                'fetchDeposits': None,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -48,16 +48,16 @@ class hitbtc(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': False,
+                'fetchOrders': None,
                 'fetchOrderTrades': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTransactions': True,
-                'fetchWithdrawals': False,
-                'withdraw': True,
+                'fetchWithdrawals': None,
                 'transfer': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -184,6 +184,13 @@ class hitbtc(Exchange):
                 },
             },
             'options': {
+                'networks': {
+                    'ETH': 'T20',
+                    'ERC20': 'T20',
+                    'TRX': 'TTRX',
+                    'TRC20': 'TTRX',
+                    'OMNI': '',
+                },
                 'defaultTimeInForce': 'FOK',
                 'accountsByType': {
                     'bank': 'bank',
@@ -289,6 +296,8 @@ class hitbtc(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
                 'taker': taker,
                 'maker': maker,
@@ -1012,26 +1021,26 @@ class hitbtc(Exchange):
         #
         #     [
         #         {
-        #         "id": 9535486,
-        #         "clientOrderId": "f8dbaab336d44d5ba3ff578098a68454",
-        #         "orderId": 816088377,
-        #         "symbol": "ETHBTC",
-        #         "side": "sell",
-        #         "quantity": "0.061",
-        #         "price": "0.045487",
-        #         "fee": "0.000002775",
-        #         "timestamp": "2017-05-17T12:32:57.848Z"
+        #             "id": 9535486,
+        #             "clientOrderId": "f8dbaab336d44d5ba3ff578098a68454",
+        #             "orderId": 816088377,
+        #             "symbol": "ETHBTC",
+        #             "side": "sell",
+        #             "quantity": "0.061",
+        #             "price": "0.045487",
+        #             "fee": "0.000002775",
+        #             "timestamp": "2017-05-17T12:32:57.848Z"
         #         },
         #         {
-        #         "id": 9535437,
-        #         "clientOrderId": "27b9bfc068b44194b1f453c7af511ed6",
-        #         "orderId": 816088021,
-        #         "symbol": "ETHBTC",
-        #         "side": "buy",
-        #         "quantity": "0.038",
-        #         "price": "0.046000",
-        #         "fee": "-0.000000174",
-        #         "timestamp": "2017-05-17T12:30:57.848Z"
+        #             "id": 9535437,
+        #             "clientOrderId": "27b9bfc068b44194b1f453c7af511ed6",
+        #             "orderId": 816088021,
+        #             "symbol": "ETHBTC",
+        #             "side": "buy",
+        #             "quantity": "0.038",
+        #             "price": "0.046000",
+        #             "fee": "-0.000000174",
+        #             "timestamp": "2017-05-17T12:30:57.848Z"
         #         }
         #     ]
         #
@@ -1077,6 +1086,12 @@ class hitbtc(Exchange):
         request = {
             'currency': currency['id'],
         }
+        network = self.safe_string(params, 'network')
+        if network is not None:
+            params = self.omit(params, 'network')
+            networks = self.safe_value(self.options, 'networks')
+            endpart = self.safe_string(networks, network, network)
+            request['currency'] += endpart
         response = self.privateGetAccountCryptoAddressCurrency(self.extend(request, params))
         address = self.safe_string(response, 'address')
         self.check_address(address)
@@ -1088,7 +1103,26 @@ class hitbtc(Exchange):
             'info': response,
         }
 
+    def convert_currency_network(self, code, amount, fromNetwork, toNetwork, params):
+        self.load_markets()
+        currency = self.currency(code)
+        networks = self.safe_value(self.options, 'networks', {})
+        fromNetwork = self.safe_string(networks, fromNetwork, fromNetwork)  # handle ETH>ERC20 alias
+        toNetwork = self.safe_string(networks, toNetwork, toNetwork)  # handle ETH>ERC20 alias
+        if fromNetwork == toNetwork:
+            raise ExchangeError(self.id + ' fromNetwork cannot be the same as toNetwork')
+        request = {
+            'fromCurrency': currency['id'] + fromNetwork,
+            'toCurrency': currency['id'] + toNetwork,
+            'amount': float(self.currency_to_precision(code, amount)),
+        }
+        response = self.privatePostAccountCryptoTransferConvert(self.extend(request, params))
+        return {
+            'info': response,
+        }
+
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
@@ -1099,6 +1133,12 @@ class hitbtc(Exchange):
         }
         if tag:
             request['paymentId'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['currency'] += network  # when network the currency need to be changed to currency + network
+            params = self.omit(params, 'network')
         response = self.privatePostAccountCryptoWithdraw(self.extend(request, params))
         return {
             'info': response,

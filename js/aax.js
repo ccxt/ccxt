@@ -246,6 +246,10 @@ module.exports = class aax extends Exchange {
                     'F2CP': 'otc',
                     'VLTP': 'saving',
                 },
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                },
             },
         });
     }
@@ -1775,6 +1779,12 @@ module.exports = class aax extends Exchange {
             'currency': currency['id'],
             // 'network': undefined, // 'ERC20
         };
+        if ('network' in params) {
+            const networks = this.safeValue (this.options, 'networks', {});
+            const network = this.safeStringUpper (params, 'network');
+            params = this.omit (params, 'network');
+            request['network'] = this.safeStringUpper (networks, network, network);
+        }
         const response = await this.privateGetAccountDepositAddress (this.extend (request, params));
         //
         //     {
@@ -1804,13 +1814,18 @@ module.exports = class aax extends Exchange {
         //
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString (depositAddress, 'tag');
-        const currencyId = this.safeString (depositAddress, 'currency');
+        let currencyId = this.safeString (depositAddress, 'currency');
+        const network = this.safeString (depositAddress, 'network');
+        if (network !== undefined) {
+            currencyId = currencyId.replace (network, '');
+        }
         const code = this.safeCurrencyCode (currencyId);
         return {
             'info': depositAddress,
             'code': code,
             'address': address,
             'tag': tag,
+            'network': network,
         };
     }
 

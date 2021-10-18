@@ -38,17 +38,17 @@ class upbit(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchMarkets': True,
-                'fetchMyTrades': False,
+                'fetchMyTrades': None,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
-                'fetchOrders': False,
+                'fetchOrders': None,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTransactions': False,
+                'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -329,6 +329,8 @@ class upbit(Exchange):
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
+            'type': 'spot',
+            'spot': True,
             'active': active,
             'precision': precision,
             'maker': fee,
@@ -1355,6 +1357,7 @@ class upbit(Exchange):
         return self.parse_deposit_address(response)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)

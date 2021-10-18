@@ -21,8 +21,8 @@ class ripio extends Exchange {
             'pro' => true,
             // new metainfo interface
             'has' => array(
-                'CORS' => false,
                 'cancelOrder' => true,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -180,12 +180,14 @@ class ripio extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
+                'active' => $active,
                 'precision' => $precision,
                 'maker' => $maker,
                 'taker' => $taker,
                 'limits' => $limits,
                 'info' => $market,
-                'active' => $active,
             );
         }
         return $result;

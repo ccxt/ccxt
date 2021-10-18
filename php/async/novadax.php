@@ -22,8 +22,8 @@ class novadax extends Exchange {
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
-                'CORS' => false,
                 'cancelOrder' => true,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
@@ -34,9 +34,9 @@ class novadax extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOrderTrades' => true,
                 'fetchOrderBook' => true,
+                'fetchOrderTrades' => true,
+                'fetchOrders' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -222,10 +222,12 @@ class novadax extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
+                'active' => $active,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
-                'active' => $active,
             );
         }
         return $result;
@@ -908,6 +910,7 @@ class novadax extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(

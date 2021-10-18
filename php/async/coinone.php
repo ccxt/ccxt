@@ -22,11 +22,12 @@ class coinone extends Exchange {
             'version' => 'v2',
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
-                'createMarketOrder' => false,
+                'CORS' => null,
+                'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
-                'fetchCurrencies' => false,
+                'fetchClosedOrders' => null, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchCurrencies' => null,
                 'fetchDepositAddresses' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -36,9 +37,6 @@ class coinone extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                // https://github.com/ccxt/ccxt/pull/7067
-                // the endpoint that should return closed orders actually returns trades
-                'fetchClosedOrders' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -131,6 +129,8 @@ class coinone extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => true,
             );
         }

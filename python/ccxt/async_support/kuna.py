@@ -20,8 +20,8 @@ class kuna(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'CORS': False,
                 'cancelOrder': True,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchMarkets': True,
@@ -34,7 +34,7 @@ class kuna(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'withdraw': False,
+                'withdraw': None,
             },
             'timeframes': None,
             'urls': {
@@ -153,6 +153,9 @@ class kuna(Exchange):
                         'quote': quote,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'type': 'spot',
+                        'spot': True,
+                        'active': None,
                         'precision': {
                             'amount': None,
                             'price': None,
@@ -171,7 +174,6 @@ class kuna(Exchange):
                                 'max': None,
                             },
                         },
-                        'active': None,
                         'info': None,
                     })
         return markets

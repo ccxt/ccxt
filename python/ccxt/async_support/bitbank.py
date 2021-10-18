@@ -186,6 +186,8 @@ class bitbank(Exchange):
                 'quote': quote,
                 'precision': precision,
                 'limits': limits,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'maker': maker,
                 'taker': taker,
@@ -540,6 +542,7 @@ class bitbank(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         if not ('uuid' in params):
             raise ExchangeError(self.id + ' uuid is required for withdrawal')
         await self.load_markets()

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.56.52';
+$version = '1.58.47';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.56.52';
+    const VERSION = '1.58.47';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -91,7 +91,6 @@ class Exchange {
         'bitstamp1',
         'bittrex',
         'bitvavo',
-        'bitz',
         'bl3p',
         'btcalpha',
         'btcbox',
@@ -101,6 +100,7 @@ class Exchange {
         'buda',
         'bw',
         'bybit',
+        'bytetrade',
         'cdax',
         'cex',
         'coinbase',
@@ -110,7 +110,6 @@ class Exchange {
         'coinegg',
         'coinex',
         'coinfalcon',
-        'coinfloor',
         'coinmarketcap',
         'coinmate',
         'coinone',
@@ -128,7 +127,6 @@ class Exchange {
         'ftx',
         'gateio',
         'gemini',
-        'hbtc',
         'hitbtc',
         'hollaex',
         'huobi',
@@ -147,7 +145,7 @@ class Exchange {
         'luno',
         'lykke',
         'mercado',
-        'mixcoins',
+        'mexc',
         'ndax',
         'novadax',
         'oceanex',
@@ -329,6 +327,8 @@ class Exchange {
         'safeMarket' => 'safe_market',
         'safeSymbol' => 'safe_symbol',
         'filterBySymbol' => 'filter_by_symbol',
+        'parseFundingRate' => 'parse_funding_rate',
+        'parseFundingRates' => 'parse_funding_rates',
         'parseOHLCV' => 'parse_ohlcv',
         'parseOHLCVs' => 'parse_ohlc_vs',
         'editLimitBuyOrder' => 'edit_limit_buy_order',
@@ -355,10 +355,12 @@ class Exchange {
         'signMessageString' => 'sign_message_string',
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
         'safeOrder' => 'safe_order',
+        'safeOrder2' => 'safe_order2',
         'parseNumber' => 'parse_number',
         'safeNumber' => 'safe_number',
         'safeNumber2' => 'safe_number2',
         'parsePrecision' => 'parse_precision',
+        'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -1214,7 +1216,7 @@ class Exchange {
 
         if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
-                throw new ExchangeError(this . id . ' warning! The glue symbol for HTTP queries ' .
+                throw new ExchangeError($this->id . ' warning! The glue symbol for HTTP queries ' .
                     ' is changed from its default value & to ' . $this->urlencode_glue . ' in php.ini' .
                     ' (arg_separator.output) or with a call to ini_set prior to this message. If that' .
                     ' was the intent, you can acknowledge this warning and silence it by setting' .
@@ -1271,7 +1273,7 @@ class Exchange {
             $lowercase_method = mb_strtolower($key);
             $camelcase_method = static::capitalize($lowercase_method);
             if (static::is_associative($value)) {
-                if (preg_match('/^(?:get|post|put|delete|options|head)$/i', $key)) {
+                if (preg_match('/^(?:get|post|put|delete|options|head|patch)$/i', $key)) {
                     foreach ($value as $endpoint => $config) {
                         $path = trim($endpoint);
                         if (static::is_associative($config)) {
@@ -1770,6 +1772,20 @@ class Exchange {
         return $this->accounts;
     }
 
+    public function parse_funding_rate($response, $market = null) {
+        throw new NotSupported($this->id . ' parse_funding_rate() not supported yet');
+    }
+
+    public function parse_funding_rates($response, $market = null) {
+        $response = is_array($response) ? array_values($response) : array();
+        $result = array();
+        foreach ($response as $entry) {
+            $parsed = $this->parse_funding_rate($entry, $market);
+            $result[$parsed['symbol']] = $parsed;
+        }
+        return $result;
+    }
+
     public function parse_ohlcv($ohlcv, $market = null) {
         return ('array' === gettype($ohlcv) && !static::is_associative($ohlcv)) ? array_slice($ohlcv, 0, 6) : $ohlcv;
     }
@@ -2013,16 +2029,16 @@ class Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_deposit_addresses($addresses, $codes = null) {
+    public function parse_deposit_addresses($addresses, $codes = null, $indexed = true) {
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
             $address = $this->parse_deposit_address($addresses[$i]);
             $result[] = $address;
         }
         if ($codes) {
-            $result = $this->filter_by_array($result, 'currency', $codes);
+            $result = $this->filter_by_array($result, 'currency', $codes, false);
         }
-        return $this->index_by($result, 'currency');
+        return $indexed ? $this->index_by($result, 'currency') : $result;
     }
 
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
@@ -2961,17 +2977,21 @@ class Exchange {
         return (substr($string, 0, 2) === '0x') ? substr($string, 2) : $string;
     }
 
-    public function reduce_fees_by_currency($fees) {
+    public function reduce_fees_by_currency($fees, $string = false) {
         $reduced = array();
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $fees[$i];
             $feeCurrencyCode = $this->safe_value($fee, 'currency');
             if ($feeCurrencyCode !== null) {
                 if (is_array($reduced) && array_key_exists($feeCurrencyCode, $reduced)) {
-                    $reduced[$feeCurrencyCode]['cost'] = $this->sum($reduced[$feeCurrencyCode]['cost'], $fee['cost']);
+                    if ($string) {
+                        $reduced[$feeCurrencyCode]['cost'] = Precise::string_add($reduced[$feeCurrencyCode]['cost'], $fee['cost']);
+                    } else {
+                        $reduced[$feeCurrencyCode]['cost'] = $this->sum($reduced[$feeCurrencyCode]['cost'], $fee['cost']);
+                    }
                 } else {
                     $reduced[$feeCurrencyCode] = array(
-                        'cost' => $fee['cost'],
+                        'cost' => $string ? $fee['cost'] : $this->parse_number($fee['cost']),
                         'currency' => $feeCurrencyCode,
                     );
                 }
@@ -3106,6 +3126,154 @@ class Exchange {
         ));
     }
 
+    public function safe_order2($order, $market = null) {
+        // parses numbers as strings
+        // it is important pass the $trades as unparsed $rawTrades
+        $amount = $this->omit_zero($this->safe_string($order, 'amount'));
+        $remaining = $this->safe_string($order, 'remaining');
+        $filled = $this->safe_string($order, 'filled');
+        $cost = $this->safe_string($order, 'cost');
+        $average = $this->omit_zero($this->safe_string($order, 'average'));
+        $price = $this->omit_zero($this->safe_string($order, 'price'));
+        $lastTradeTimeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
+        $parseFilled = ($filled === null);
+        $parseCost = ($cost === null);
+        $parseLastTradeTimeTimestamp = ($lastTradeTimeTimestamp === null);
+        $parseFee = $this->safe_value($order, 'fee') === null;
+        $parseFees = $this->safe_value($order, 'fees') === null;
+        $shouldParseFees = $parseFee || $parseFees;
+        $fees = $this->safe_value($order, 'fees', array());
+        $trades = array();
+        if ($parseFilled || $parseCost || $shouldParseFees) {
+            $rawTrades = $this->safe_value($order, 'trades', $trades);
+            $oldNumber = $this->number;
+            // we parse $trades as strings here!
+            $this->number = 'strval';
+            $trades = $this->parse_trades($rawTrades, $market, null, null, array(
+                'symbol' => $order['symbol'],
+                'side' => $order['side'],
+                'type' => $order['type'],
+                'order' => $order['id'],
+            ));
+            $this->number = $oldNumber;
+            if (is_array($trades) && count($trades)) {
+                if ($parseFilled) {
+                    $filled = '0';
+                }
+                if ($parseCost) {
+                    $cost = '0';
+                }
+                for ($i = 0; $i < count($trades); $i++) {
+                    $trade = $trades[$i];
+                    $tradeAmount = $this->safe_string($trade, 'amount');
+                    if ($parseFilled && ($tradeAmount !== null)) {
+                        $filled = Precise::string_add($filled, $tradeAmount);
+                    }
+                    $tradeCost = $this->safe_string($trade, 'cost');
+                    if ($parseCost && ($tradeCost !== null)) {
+                        $cost = Precise::string_add($cost, $tradeCost);
+                    }
+                    $tradeTimestamp = $this->safe_value($trade, 'timestamp');
+                    if ($parseLastTradeTimeTimestamp && ($tradeTimestamp !== null)) {
+                        if ($lastTradeTimeTimestamp === null) {
+                            $lastTradeTimeTimestamp = $tradeTimestamp;
+                        } else {
+                            $lastTradeTimeTimestamp = max($lastTradeTimeTimestamp, $tradeTimestamp);
+                        }
+                    }
+                    if ($shouldParseFees) {
+                        $tradeFees = $this->safe_value($trade, 'fees');
+                        if ($tradeFees !== null) {
+                            for ($j = 0; $j < count($tradeFees); $j++) {
+                                $tradeFee = $tradeFees[$j];
+                                $fees[] = array_merge(array(), $tradeFee);
+                            }
+                        } else {
+                            $tradeFee = $this->safe_value($trade, 'fee');
+                            if ($tradeFee !== null) {
+                                $fees[] = array_merge(array(), $tradeFee);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if ($shouldParseFees) {
+            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees, true) : $fees;
+            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            for ($i = 0; $i < $reducedLength; $i++) {
+                $reducedFees[$i]['cost'] = $this->parse_number($reducedFees[$i]['cost']);
+            }
+            if (!$parseFee && ($reducedLength === 0)) {
+                $reducedFees[] = $order['fee'];
+            }
+            if ($parseFees) {
+                $order['fees'] = $reducedFees;
+            }
+            if ($parseFee && ($reducedLength === 1)) {
+                $order['fee'] = $reducedFees[0];
+            }
+        }
+        if ($amount === null) {
+            // ensure $amount = $filled + $remaining
+            if ($filled !== null && $remaining !== null) {
+                $amount = Precise::string_add($filled, $remaining);
+            } else if ($this->safe_string($order, 'status') === 'closed') {
+                $amount = $filled;
+            }
+        }
+        if ($filled === null) {
+            if ($amount !== null && $remaining !== null) {
+                $filled = Precise::string_sub($amount, $remaining);
+            }
+        }
+        if ($remaining === null) {
+            if ($amount !== null && $filled !== null) {
+                $remaining = Precise::string_sub($amount, $filled);
+            }
+        }
+        // ensure that the $average field is calculated correctly
+        if ($average === null) {
+            if (($filled !== null) && ($cost !== null) && Precise::string_gt($filled, '0')) {
+                $average = Precise::string_div($cost, $filled);
+            }
+        }
+        // also ensure the $cost field is calculated correctly
+        $costPriceExists = ($average !== null) || ($price !== null);
+        if ($parseCost && ($filled !== null) && $costPriceExists) {
+            if ($average === null) {
+                $cost = Precise::string_mul($price, $filled);
+            } else {
+                $cost = Precise::string_mul($average, $filled);
+            }
+        }
+        // support for $market orders
+        $orderType = $this->safe_value($order, 'type');
+        $emptyPrice = ($price === null) || Precise::string_equals($price, '0');
+        if ($emptyPrice && ($orderType === 'market')) {
+            $price = $average;
+        }
+        // we have $trades with string values at this point so we will mutate them
+        for ($i = 0; $i < count($trades); $i++) {
+            $entry =& $trades[$i];
+            $entry['amount'] = $this->safe_number($entry, 'amount');
+            $entry['price'] = $this->safe_number($entry, 'price');
+            $entry['cost'] = $this->safe_number($entry, 'cost');
+            $fee = $this->safe_value($entry, 'fee', array());
+            $fee['cost'] = $this->safe_number($fee, 'cost');
+        }
+        return array_merge($order, array(
+            'lastTradeTimestamp' => $lastTradeTimeTimestamp,
+            'price' => $this->parse_number($price),
+            'amount' => $this->parse_number($amount),
+            'cost' => $this->parse_number($cost),
+            'average' => $this->parse_number($average),
+            'filled' => $this->parse_number($filled),
+            'remaining' => $this->parse_number($remaining),
+            'trades' => $trades,
+        ));
+    }
+
     public function parse_number($value, $default = null) {
         if ($value === null) {
             return $default;
@@ -3143,5 +3311,19 @@ class Exchange {
             return null;
         }
         return $string_number;
+    }
+
+    public function handle_withdraw_tag_and_params($tag, $params) {
+        if (gettype($tag) === 'array') {
+            $params = $this->extend($tag, $params);
+            $tag = null;
+        }
+        if ($tag === null) {
+            $tag = $this->safe_string($params, 'tag');
+            if ($tag !== null) {
+                $params = $this->omit($params, 'tag');
+            }
+        }
+        return array($tag, $params);
     }
 }

@@ -26,10 +26,11 @@ class zb extends Exchange {
             'pro' => true,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
-                'createMarketOrder' => false,
+                'CORS' => null,
+                'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
@@ -40,7 +41,6 @@ class zb extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
-                'fetchClosedOrders' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -279,6 +279,8 @@ class zb extends Exchange {
                 'quoteId' => $quoteId,
                 'base' => $base,
                 'quote' => $quote,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => true,
                 'precision' => $precision,
                 'limits' => array(
@@ -797,7 +799,7 @@ class zb extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = 10, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . 'fetchClosedOrders() requires a $symbol argument');
         }
@@ -806,7 +808,7 @@ class zb extends Exchange {
         $request = array(
             'currency' => $market['id'],
             'pageIndex' => 1, // default pageIndex is 1
-            'pageSize' => 10, // default pageSize is 10, doesn't work with other values now
+            'pageSize' => $limit, // default pageSize is 10, doesn't work with other values now
         );
         $response = yield $this->privateGetGetFinishedAndPartialOrders (array_merge($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
@@ -1018,6 +1020,7 @@ class zb extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $password = $this->safe_string($params, 'safePwd', $this->password);
         if ($password === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() requires exchange.password or a safePwd parameter');

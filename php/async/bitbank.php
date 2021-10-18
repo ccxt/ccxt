@@ -182,6 +182,8 @@ class bitbank extends Exchange {
                 'quote' => $quote,
                 'precision' => $precision,
                 'limits' => $limits,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'maker' => $maker,
                 'taker' => $taker,
@@ -566,6 +568,7 @@ class bitbank extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         if (!(is_array($params) && array_key_exists('uuid', $params))) {
             throw new ExchangeError($this->id . ' uuid is required for withdrawal');
         }

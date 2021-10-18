@@ -42,12 +42,12 @@ class kraken(Exchange):
             'countries': ['US'],
             'version': '0',
             'rateLimit': 3000,
-            'certified': True,
+            'certified': False,
             'pro': True,
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -55,6 +55,7 @@ class kraken(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchLedgerEntry': True,
                 'fetchMarkets': True,
@@ -71,6 +72,7 @@ class kraken(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
+                'setMarginMode': False,  # Kraken only supports cross margin
                 'withdraw': True,
             },
             'marketsByAltname': {},
@@ -240,11 +242,15 @@ class kraken(Exchange):
                 'REP': 'REPV1',
             },
             'options': {
-                'cacheDepositMethodsOnFetchDepositAddress': True,  # will issue up to two calls in fetchDepositAddress
-                'depositMethods': {},
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
+                'networks': {
+                    'ETH': 'Tether USD(ERC20)',
+                    'ERC20': 'Tether USD(ERC20)',
+                    'TRX': 'Tether USD(TRC20)',
+                    'TRC20': 'Tether USD(TRC20)',
+                },
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
@@ -353,6 +359,9 @@ class kraken(Exchange):
                 'price': self.safe_integer(market, 'pair_decimals'),
             }
             minAmount = self.safe_number(market, 'ordermin')
+            leverageBuy = self.safe_value(market, 'leverage_buy', [])
+            leverageBuyLength = len(leverageBuy)
+            maxLeverage = self.safe_value(leverageBuy, leverageBuyLength - 1, 1)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -365,6 +374,8 @@ class kraken(Exchange):
                 'altname': market['altname'],
                 'maker': maker,
                 'taker': taker,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
                 'precision': precision,
                 'limits': {
@@ -379,6 +390,10 @@ class kraken(Exchange):
                     'cost': {
                         'min': 0,
                         'max': None,
+                    },
+                    'leverage': {
+                        'min': 1,
+                        'max': maxLeverage,
                     },
                 },
             })
@@ -467,7 +482,6 @@ class kraken(Exchange):
 
     def fetch_trading_fees(self, params={}):
         self.load_markets()
-        self.check_required_credentials()
         response = self.privatePostTradeVolume(params)
         tradedVolume = self.safe_number(response['result'], 'volume')
         tiers = self.fees['trading']['tiers']
@@ -1331,9 +1345,10 @@ class kraken(Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = None
+        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
         try:
             response = self.privatePostCancelOrder(self.extend({
-                'txid': id,
+                'txid': clientOrderId or id,
             }, params))
         except Exception as e:
             if self.last_http_response:
@@ -1351,7 +1366,12 @@ class kraken(Exchange):
         request = {}
         if since is not None:
             request['start'] = int(since / 1000)
-        response = self.privatePostOpenOrders(self.extend(request, params))
+        query = params
+        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
+        if clientOrderId is not None:
+            request['userref'] = clientOrderId
+            query = self.omit(params, ['userref', 'clientOrderId'])
+        response = self.privatePostOpenOrders(self.extend(request, query))
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1364,7 +1384,12 @@ class kraken(Exchange):
         request = {}
         if since is not None:
             request['start'] = int(since / 1000)
-        response = self.privatePostClosedOrders(self.extend(request, params))
+        query = params
+        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
+        if clientOrderId is not None:
+            request['userref'] = clientOrderId
+            query = self.omit(params, ['userref', 'clientOrderId'])
+        response = self.privatePostClosedOrders(self.extend(request, query))
         #
         #     {
         #         "error":[],
@@ -1570,6 +1595,11 @@ class kraken(Exchange):
         request = {
             'new': 'true',
         }
+        if (code == 'USDT') and ('network' in params):
+            networks = self.safe_value(self.options, 'networks', {})
+            network = self.safe_string_upper(params, 'network')
+            request['method'] = self.safe_string(networks, network, network)
+            params = self.omit(params, 'network')
         response = self.fetch_deposit_address(code, self.extend(request, params))
         address = self.safe_string(response, 'address')
         self.check_address(address)
@@ -1582,20 +1612,15 @@ class kraken(Exchange):
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        # eslint-disable-next-line quotes
-        method = self.safe_string(params, 'method')
-        if method is None:
-            if self.options['cacheDepositMethodsOnFetchDepositAddress']:
-                # cache depositMethods
-                if not (code in self.options['depositMethods']):
-                    self.options['depositMethods'][code] = self.fetch_deposit_methods(code)
-                method = self.options['depositMethods'][code][0]['method']
-            else:
-                raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = True')
         request = {
             'asset': currency['id'],
-            'method': method,
         }
+        # USDT is the only currency with multiple networks on kraken, you may check
+        if (code == 'USDT') and ('network' in params):
+            networks = self.safe_value(self.options, 'networks', {})
+            network = self.safe_string_upper(params, 'network')
+            request['method'] = self.safe_string(networks, network, network)
+            params = self.omit(params, 'network')
         response = self.privatePostDepositAddresses(self.extend(request, params))  # overwrite methods
         result = response['result']
         numResults = len(result)
@@ -1612,6 +1637,7 @@ class kraken(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         if 'key' in params:
             self.load_markets()

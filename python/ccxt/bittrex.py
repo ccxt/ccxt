@@ -44,29 +44,29 @@ class bittrex(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
-                'CORS': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'CORS': None,
                 'createDepositAddress': True,
                 'createMarketOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
-                'fetchDeposits': True,
-                'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': 'emulated',
                 'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrderTrades': True,
-                'fetchOrderBook': True,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderTrades': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTransactions': False,
+                'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -240,7 +240,9 @@ class bittrex(Exchange):
                 # 'createOrderMethod': 'create_order_v1',
             },
             'commonCurrencies': {
+                'MER': 'Mercury',  # conflict with Mercurial Finance
                 'REPV2': 'REP',
+                'TON': 'Tokamak Network',
             },
         })
 
@@ -298,6 +300,8 @@ class bittrex(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'info': market,
                 'precision': precision,
@@ -969,6 +973,7 @@ class bittrex(Exchange):
         #         quantity: '0.50000000',
         #         limit: '0.17846699',
         #         timeInForce: 'GOOD_TIL_CANCELLED',
+        #         clientOrderId: 'ff156d39-fe01-44ca-8f21-b0afa19ef228',
         #         fillQuantity: '0.50000000',
         #         commission: '0.00022286',
         #         proceeds: '0.08914915',
@@ -986,6 +991,7 @@ class bittrex(Exchange):
         createdAt = self.safe_string(order, 'createdAt')
         updatedAt = self.safe_string(order, 'updatedAt')
         closedAt = self.safe_string(order, 'closedAt')
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         lastTradeTimestamp = None
         if closedAt is not None:
             lastTradeTimestamp = self.parse8601(closedAt)
@@ -1003,7 +1009,7 @@ class bittrex(Exchange):
         postOnly = (timeInForce == 'PO')
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1192,6 +1198,7 @@ class bittrex(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)

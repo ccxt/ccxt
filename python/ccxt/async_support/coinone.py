@@ -26,11 +26,12 @@ class coinone(Exchange):
             'version': 'v2',
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
-                'createMarketOrder': False,
+                'CORS': None,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
-                'fetchCurrencies': False,
+                'fetchClosedOrders': None,  # the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchCurrencies': None,
                 'fetchDepositAddresses': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -40,9 +41,6 @@ class coinone(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                # https://github.com/ccxt/ccxt/pull/7067
-                # the endpoint that should return closed orders actually returns trades
-                'fetchClosedOrders': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -133,6 +131,8 @@ class coinone(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
             })
         return result

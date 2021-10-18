@@ -20,10 +20,11 @@ module.exports = class zb extends Exchange {
             'pro': true,
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
-                'createMarketOrder': false,
+                'CORS': undefined,
+                'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
@@ -34,7 +35,6 @@ module.exports = class zb extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchClosedOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -273,6 +273,8 @@ module.exports = class zb extends Exchange {
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': true,
                 'active': true,
                 'precision': precision,
                 'limits': {
@@ -791,7 +793,7 @@ module.exports = class zb extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + 'fetchClosedOrders() requires a symbol argument');
         }
@@ -800,7 +802,7 @@ module.exports = class zb extends Exchange {
         const request = {
             'currency': market['id'],
             'pageIndex': 1, // default pageIndex is 1
-            'pageSize': 10, // default pageSize is 10, doesn't work with other values now
+            'pageSize': limit, // default pageSize is 10, doesn't work with other values now
         };
         const response = await this.privateGetGetFinishedAndPartialOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
@@ -1012,6 +1014,7 @@ module.exports = class zb extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const password = this.safeString (params, 'safePwd', this.password);
         if (password === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires exchange.password or a safePwd parameter');

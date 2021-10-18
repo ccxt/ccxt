@@ -22,7 +22,9 @@ module.exports = class bithumb extends Exchange {
                 'createMarketOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -130,6 +132,7 @@ module.exports = class bithumb extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'FTC': 'FTC2',
                 'MIR': 'MIR COIN',
                 'SOC': 'Soda Coin',
             },
@@ -172,6 +175,8 @@ module.exports = class bithumb extends Exchange {
                     'base': base,
                     'quote': quote,
                     'info': market,
+                    'type': 'spot',
+                    'spot': true,
                     'active': active,
                     'precision': {
                         'amount': 4,
@@ -826,6 +831,7 @@ module.exports = class bithumb extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

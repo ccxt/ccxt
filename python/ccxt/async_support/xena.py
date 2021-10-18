@@ -23,9 +23,9 @@ class xena(Exchange):
             'countries': ['VC', 'UK'],
             'rateLimit': 100,
             'has': {
-                'CORS': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'editOrder': True,
@@ -1422,6 +1422,7 @@ class xena(Exchange):
         return self.safe_string(statuses, status, status)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         await self.load_accounts()

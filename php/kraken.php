@@ -26,12 +26,12 @@ class kraken extends Exchange {
             'countries' => array( 'US' ),
             'version' => '0',
             'rateLimit' => 3000,
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -39,6 +39,7 @@ class kraken extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => true,
                 'fetchMarkets' => true,
@@ -55,6 +56,7 @@ class kraken extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
+                'setMarginMode' => false, // Kraken only supports cross margin
                 'withdraw' => true,
             ),
             'marketsByAltname' => array(),
@@ -224,11 +226,15 @@ class kraken extends Exchange {
                 'REP' => 'REPV1',
             ),
             'options' => array(
-                'cacheDepositMethodsOnFetchDepositAddress' => true, // will issue up to two calls in fetchDepositAddress
-                'depositMethods' => array(),
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
+                'networks' => array(
+                    'ETH' => 'Tether USD (ERC20)',
+                    'ERC20' => 'Tether USD (ERC20)',
+                    'TRX' => 'Tether USD (TRC20)',
+                    'TRC20' => 'Tether USD (TRC20)',
+                ),
             ),
             'exceptions' => array(
                 'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
@@ -342,6 +348,9 @@ class kraken extends Exchange {
                 'price' => $this->safe_integer($market, 'pair_decimals'),
             );
             $minAmount = $this->safe_number($market, 'ordermin');
+            $leverageBuy = $this->safe_value($market, 'leverage_buy', array());
+            $leverageBuyLength = is_array($leverageBuy) ? count($leverageBuy) : 0;
+            $maxLeverage = $this->safe_value($leverageBuy, $leverageBuyLength - 1, 1);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -354,6 +363,8 @@ class kraken extends Exchange {
                 'altname' => $market['altname'],
                 'maker' => $maker,
                 'taker' => $taker,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => true,
                 'precision' => $precision,
                 'limits' => array(
@@ -368,6 +379,10 @@ class kraken extends Exchange {
                     'cost' => array(
                         'min' => 0,
                         'max' => null,
+                    ),
+                    'leverage' => array(
+                        'min' => 1,
+                        'max' => $maxLeverage,
                     ),
                 ),
             );
@@ -466,7 +481,6 @@ class kraken extends Exchange {
 
     public function fetch_trading_fees($params = array ()) {
         $this->load_markets();
-        $this->check_required_credentials();
         $response = $this->privatePostTradeVolume ($params);
         $tradedVolume = $this->safe_number($response['result'], 'volume');
         $tiers = $this->fees['trading']['tiers'];
@@ -1417,9 +1431,10 @@ class kraken extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = null;
+        $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
         try {
             $response = $this->privatePostCancelOrder (array_merge(array(
-                'txid' => $id,
+                'txid' => $clientOrderId || $id,
             ), $params));
         } catch (Exception $e) {
             if ($this->last_http_response) {
@@ -1443,7 +1458,13 @@ class kraken extends Exchange {
         if ($since !== null) {
             $request['start'] = intval($since / 1000);
         }
-        $response = $this->privatePostOpenOrders (array_merge($request, $params));
+        $query = $params;
+        $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['userref'] = $clientOrderId;
+            $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
+        }
+        $response = $this->privatePostOpenOrders (array_merge($request, $query));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1459,7 +1480,13 @@ class kraken extends Exchange {
         if ($since !== null) {
             $request['start'] = intval($since / 1000);
         }
-        $response = $this->privatePostClosedOrders (array_merge($request, $params));
+        $query = $params;
+        $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['userref'] = $clientOrderId;
+            $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
+        }
+        $response = $this->privatePostClosedOrders (array_merge($request, $query));
         //
         //     {
         //         "error":array(),
@@ -1679,6 +1706,12 @@ class kraken extends Exchange {
         $request = array(
             'new' => 'true',
         );
+        if (($code === 'USDT') && (is_array($params) && array_key_exists('network', $params))) {
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network');
+            $request['method'] = $this->safe_string($networks, $network, $network);
+            $params = $this->omit($params, 'network');
+        }
         $response = $this->fetch_deposit_address($code, array_merge($request, $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
@@ -1692,23 +1725,16 @@ class kraken extends Exchange {
     public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
-        // eslint-disable-next-line quotes
-        $method = $this->safe_string($params, 'method');
-        if ($method === null) {
-            if ($this->options['cacheDepositMethodsOnFetchDepositAddress']) {
-                // cache depositMethods
-                if (!(is_array($this->options['depositMethods']) && array_key_exists($code, $this->options['depositMethods']))) {
-                    $this->options['depositMethods'][$code] = $this->fetch_deposit_methods($code);
-                }
-                $method = $this->options['depositMethods'][$code][0]['method'];
-            } else {
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an extra `$method` parameter. Use fetchDepositMethods ("' . $code . '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true');
-            }
-        }
         $request = array(
             'asset' => $currency['id'],
-            'method' => $method,
         );
+        // USDT is the only $currency with multiple $networks on kraken, you may check
+        if (($code === 'USDT') && (is_array($params) && array_key_exists('network', $params))) {
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network');
+            $request['method'] = $this->safe_string($networks, $network, $network);
+            $params = $this->omit($params, 'network');
+        }
         $response = $this->privatePostDepositAddresses (array_merge($request, $params)); // overwrite methods
         $result = $response['result'];
         $numResults = is_array($result) ? count($result) : 0;
@@ -1727,6 +1753,7 @@ class kraken extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         if (is_array($params) && array_key_exists('key', $params)) {
             $this->load_markets();

@@ -32,17 +32,17 @@ class upbit extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchMarkets' => true,
-                'fetchMyTrades' => false,
+                'fetchMyTrades' => null,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => null,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchTransactions' => false,
+                'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -329,6 +329,8 @@ class upbit extends Exchange {
             'quote' => $quote,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
+            'type' => 'spot',
+            'spot' => true,
             'active' => $active,
             'precision' => $precision,
             'maker' => $fee,
@@ -1424,6 +1426,7 @@ class upbit extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);

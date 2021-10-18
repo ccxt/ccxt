@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.56.52'
+__version__ = '1.58.47'
 
 # -----------------------------------------------------------------------------
 
@@ -468,7 +468,7 @@ class Exchange(object):
             if isinstance(value, list):
                 for path in value:
                     self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths)
-            elif re.search(r'^(?:get|post|put|delete|options|head)$', key, re.IGNORECASE) is not None:
+            elif re.search(r'^(?:get|post|put|delete|options|head|patch)$', key, re.IGNORECASE) is not None:
                 for [endpoint, config] in value.items():
                     path = endpoint.strip()
                     if isinstance(config, dict):
@@ -1533,6 +1533,16 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
 
+    def parse_funding_rate(self, contract, market=None):
+        raise NotSupported(self.id + ' parse_funding_rate() not supported yet')
+
+    def parse_funding_rates(self, response, market=None):
+        result = {}
+        for entry in response:
+            parsed = self.parse_funding_rate(entry, market)
+            result[parsed['symbol']] = parsed
+        return result
+
     def parse_ohlcv(self, ohlcv, market=None):
         if isinstance(ohlcv, list):
             return [
@@ -1824,14 +1834,14 @@ class Exchange(object):
             result.append(self.extend(self.parse_ticker(values[i]), params))
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_deposit_addresses(self, addresses, codes=None):
+    def parse_deposit_addresses(self, addresses, codes=None, indexed=True):
         result = []
         for i in range(0, len(addresses)):
             address = self.parse_deposit_address(addresses[i])
             result.append(address)
         if codes:
-            result = self.filter_by_array(result, 'currency', codes)
-        return self.index_by(result, 'currency')
+            result = self.filter_by_array(result, 'currency', codes, False)
+        return self.index_by(result, 'currency') if indexed else result
 
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
@@ -2216,17 +2226,20 @@ class Exchange(object):
         string.reverse()
         return ''.join(string)
 
-    def reduce_fees_by_currency(self, fees):
+    def reduce_fees_by_currency(self, fees, string=False):
         reduced = {}
         for i in range(0, len(fees)):
             fee = fees[i]
             feeCurrencyCode = self.safe_value(fee, 'currency')
             if feeCurrencyCode is not None:
                 if feeCurrencyCode in reduced:
-                    reduced[feeCurrencyCode]['cost'] = self.sum(reduced[feeCurrencyCode]['cost'], fee['cost'])
+                    if string:
+                        reduced[feeCurrencyCode]['cost'] = Precise.string_add(reduced[feeCurrencyCode]['cost'], fee['cost'])
+                    else:
+                        reduced[feeCurrencyCode]['cost'] = self.sum(reduced[feeCurrencyCode]['cost'], fee['cost'])
                 else:
                     reduced[feeCurrencyCode] = {
-                        'cost': fee['cost'],
+                        'cost': fee['cost'] if string else self.parse_number(fee['cost']),
                         'currency': feeCurrencyCode,
                     }
         return list(reduced.values())
@@ -2329,6 +2342,123 @@ class Exchange(object):
             'remaining': remaining,
         })
 
+    def safe_order2(self, order, market=None):
+        # parses numbers as strings
+        # it is important pass the trades as unparsed rawTrades
+        amount = self.omit_zero(self.safe_string(order, 'amount'))
+        remaining = self.safe_string(order, 'remaining')
+        filled = self.safe_string(order, 'filled')
+        cost = self.safe_string(order, 'cost')
+        average = self.omit_zero(self.safe_string(order, 'average'))
+        price = self.omit_zero(self.safe_string(order, 'price'))
+        lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
+        parseFilled = (filled is None)
+        parseCost = (cost is None)
+        parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
+        parseFee = self.safe_value(order, 'fee') is None
+        parseFees = self.safe_value(order, 'fees') is None
+        shouldParseFees = parseFee or parseFees
+        fees = self.safe_value(order, 'fees', [])
+        trades = []
+        if parseFilled or parseCost or shouldParseFees:
+            rawTrades = self.safe_value(order, 'trades', trades)
+            oldNumber = self.number
+            # we parse trades as strings here!
+            self.number = str
+            trades = self.parse_trades(rawTrades, market, None, None, {
+                'symbol': order['symbol'],
+                'side': order['side'],
+                'type': order['type'],
+                'order': order['id'],
+            })
+            self.number = oldNumber
+            if isinstance(trades, list) and len(trades):
+                if parseFilled:
+                    filled = '0'
+                if parseCost:
+                    cost = '0'
+                for i in range(0, len(trades)):
+                    trade = trades[i]
+                    tradeAmount = self.safe_string(trade, 'amount')
+                    if parseFilled and (tradeAmount is not None):
+                        filled = Precise.string_add(filled, tradeAmount)
+                    tradeCost = self.safe_string(trade, 'cost')
+                    if parseCost and (tradeCost is not None):
+                        cost = Precise.string_add(cost, tradeCost)
+                    tradeTimestamp = self.safe_value(trade, 'timestamp')
+                    if parseLastTradeTimeTimestamp and (tradeTimestamp is not None):
+                        if lastTradeTimeTimestamp is None:
+                            lastTradeTimeTimestamp = tradeTimestamp
+                        else:
+                            lastTradeTimeTimestamp = max(lastTradeTimeTimestamp, tradeTimestamp)
+                    if shouldParseFees:
+                        tradeFees = self.safe_value(trade, 'fees')
+                        if tradeFees is not None:
+                            for j in range(0, len(tradeFees)):
+                                tradeFee = tradeFees[j]
+                                fees.append(self.extend({}, tradeFee))
+                        else:
+                            tradeFee = self.safe_value(trade, 'fee')
+                            if tradeFee is not None:
+                                fees.append(self.extend({}, tradeFee))
+        if shouldParseFees:
+            reducedFees = self.reduce_fees_by_currency(fees, True) if self.reduceFees else fees
+            reducedLength = len(reducedFees)
+            for i in range(0, reducedLength):
+                reducedFees[i]['cost'] = self.parse_number(reducedFees[i]['cost'])
+            if not parseFee and (reducedLength == 0):
+                reducedFees.append(order['fee'])
+            if parseFees:
+                order['fees'] = reducedFees
+            if parseFee and (reducedLength == 1):
+                order['fee'] = reducedFees[0]
+        if amount is None:
+            # ensure amount = filled + remaining
+            if filled is not None and remaining is not None:
+                amount = Precise.string_add(filled, remaining)
+            elif self.safe_string(order, 'status') == 'closed':
+                amount = filled
+        if filled is None:
+            if amount is not None and remaining is not None:
+                filled = Precise.string_sub(amount, remaining)
+        if remaining is None:
+            if amount is not None and filled is not None:
+                remaining = Precise.string_sub(amount, filled)
+        # ensure that the average field is calculated correctly
+        if average is None:
+            if (filled is not None) and (cost is not None) and Precise.string_gt(filled, '0'):
+                average = Precise.string_div(cost, filled)
+        # also ensure the cost field is calculated correctly
+        costPriceExists = (average is not None) or (price is not None)
+        if parseCost and (filled is not None) and costPriceExists:
+            if average is None:
+                cost = Precise.string_mul(price, filled)
+            else:
+                cost = Precise.string_mul(average, filled)
+        # support for market orders
+        orderType = self.safe_value(order, 'type')
+        emptyPrice = (price is None) or Precise.string_equals(price, '0')
+        if emptyPrice and (orderType == 'market'):
+            price = average
+        # we have trades with string values at self point so we will mutate them
+        for i in range(0, len(trades)):
+            entry = trades[i]
+            entry['amount'] = self.safe_number(entry, 'amount')
+            entry['price'] = self.safe_number(entry, 'price')
+            entry['cost'] = self.safe_number(entry, 'cost')
+            fee = self.safe_value(entry, 'fee', {})
+            fee['cost'] = self.safe_number(fee, 'cost')
+        return self.extend(order, {
+            'lastTradeTimestamp': lastTradeTimeTimestamp,
+            'price': self.parse_number(price),
+            'amount': self.parse_number(amount),
+            'cost': self.parse_number(cost),
+            'average': self.parse_number(average),
+            'filled': self.parse_number(filled),
+            'remaining': self.parse_number(remaining),
+            'trades': trades,
+        })
+
     def parse_number(self, value, default=None):
         if value is None:
             return default
@@ -2357,3 +2487,13 @@ class Exchange(object):
         if float(string_number) == 0:
             return None
         return string_number
+
+    def handle_withdraw_tag_and_params(self, tag, params):
+        if isinstance(tag, dict):
+            params = self.extend(tag, params)
+            tag = None
+        if tag is None:
+            tag = self.safe_string(params, 'tag')
+            if tag is not None:
+                params = self.omit(params, 'tag')
+        return [tag, params]

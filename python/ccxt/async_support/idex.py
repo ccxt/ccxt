@@ -34,20 +34,20 @@ class idex(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
-                'fetchMarkets': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposits': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchOrders': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrders': None,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTransactions': False,
-                'fetchDeposits': True,
+                'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -204,6 +204,8 @@ class idex(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'info': entry,
                 'precision': precision,
@@ -891,7 +893,7 @@ class idex(Exchange):
         }
         priceString = None
         typeLower = type.lower()
-        limitOrder = typeLower.find('limit') > -1
+        limitOrder = typeLower.find('limit') >= 0
         if type in limitTypeEnums:
             typeEnum = limitTypeEnums[type]
             priceString = self.price_to_precision(symbol, price)
@@ -1029,6 +1031,7 @@ class idex(Exchange):
         return self.parse_order(response, market)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_required_credentials()
         await self.load_markets()
         nonce = self.uuidv1()

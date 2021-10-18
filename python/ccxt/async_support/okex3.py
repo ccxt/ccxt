@@ -48,11 +48,11 @@ class okex3(Exchange):
             'pro': True,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': False,  # see below
+                'fetchCurrencies': None,  # see below
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchLedger': True,
@@ -62,13 +62,13 @@ class okex3(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': False,
+                'fetchOrders': None,
                 'fetchOrderTrades': True,
-                'fetchTime': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTransactions': False,
+                'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'futures': True,
                 'withdraw': True,
@@ -2415,6 +2415,7 @@ class okex3(Exchange):
         return address
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)

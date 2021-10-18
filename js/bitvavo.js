@@ -20,29 +20,29 @@ module.exports = class bitvavo extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
-                'CORS': false,
-                'publicAPI': true,
-                'privateAPI': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchOrderBook': true,
-                'fetchMarkets': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'privateAPI': true,
+                'publicAPI': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -303,6 +303,8 @@ module.exports = class bitvavo extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -1149,15 +1151,16 @@ module.exports = class bitvavo extends Exchange {
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeInteger (order, 'created');
         const marketId = this.safeString (order, 'market');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'amount');
-        const remaining = this.safeNumber (order, 'amountRemaining');
-        const filled = this.safeNumber (order, 'filledAmount');
-        const cost = this.safeNumber (order, 'filledAmountQuote');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'amount');
+        const remaining = this.safeString (order, 'amountRemaining');
+        const filled = this.safeString (order, 'filledAmount');
+        const cost = this.safeString (order, 'filledAmountQuote');
         let fee = undefined;
         const feeCost = this.safeNumber (order, 'feePaid');
         if (feeCost !== undefined) {
@@ -1169,17 +1172,11 @@ module.exports = class bitvavo extends Exchange {
             };
         }
         const rawTrades = this.safeValue (order, 'fills', []);
-        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-            'symbol': symbol,
-            'order': id,
-            'side': side,
-            'type': type,
-        });
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = this.safeValue (order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         const stopPrice = this.safeNumber (order, 'triggerPrice');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1200,8 +1197,8 @@ module.exports = class bitvavo extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
-            'trades': trades,
-        });
+            'trades': rawTrades,
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1246,6 +1243,7 @@ module.exports = class bitvavo extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

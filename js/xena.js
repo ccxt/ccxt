@@ -12,9 +12,9 @@ module.exports = class xena extends Exchange {
             'countries': [ 'VC', 'UK' ],
             'rateLimit': 100,
             'has': {
-                'CORS': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'editOrder': true,
@@ -1492,6 +1492,7 @@ module.exports = class xena extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         await this.loadAccounts ();

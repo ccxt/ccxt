@@ -21,29 +21,29 @@ module.exports = class bittrex extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
-                'CORS': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
-                'fetchDeposits': true,
-                'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': 'emulated',
                 'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrderTrades': true,
-                'fetchOrderBook': true,
                 'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTransactions': false,
+                'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -217,7 +217,9 @@ module.exports = class bittrex extends Exchange {
                 // 'createOrderMethod': 'create_order_v1',
             },
             'commonCurrencies': {
+                'MER': 'Mercury', // conflict with Mercurial Finance
                 'REPV2': 'REP',
+                'TON': 'Tokamak Network',
             },
         });
     }
@@ -278,6 +280,8 @@ module.exports = class bittrex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'info': market,
                 'precision': precision,
@@ -998,6 +1002,7 @@ module.exports = class bittrex extends Exchange {
         //         quantity: '0.50000000',
         //         limit: '0.17846699',
         //         timeInForce: 'GOOD_TIL_CANCELLED',
+        //         clientOrderId: 'ff156d39-fe01-44ca-8f21-b0afa19ef228',
         //         fillQuantity: '0.50000000',
         //         commission: '0.00022286',
         //         proceeds: '0.08914915',
@@ -1015,6 +1020,7 @@ module.exports = class bittrex extends Exchange {
         const createdAt = this.safeString (order, 'createdAt');
         const updatedAt = this.safeString (order, 'updatedAt');
         const closedAt = this.safeString (order, 'closedAt');
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         let lastTradeTimestamp = undefined;
         if (closedAt !== undefined) {
             lastTradeTimestamp = this.parse8601 (closedAt);
@@ -1033,7 +1039,7 @@ module.exports = class bittrex extends Exchange {
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1247,6 +1253,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

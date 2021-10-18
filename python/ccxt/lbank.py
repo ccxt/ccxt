@@ -28,7 +28,7 @@ class lbank(Exchange):
                 'fetchClosedOrders': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
-                'fetchOpenOrders': False,  # status 0 API doesn't work
+                'fetchOpenOrders': None,  # status 0 API doesn't work
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -133,6 +133,8 @@ class lbank(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
                 'precision': precision,
                 'limits': {
@@ -512,6 +514,7 @@ class lbank(Exchange):
         return self.filter_by_symbol_since_limit(allOrders, symbol, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # mark and fee are optional params, mark is a note and must be less than 255 characters
         self.check_address(address)
         self.load_markets()

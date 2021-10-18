@@ -34,10 +34,10 @@ class ndax extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
-                'fetchOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
+                'fetchOrders' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
@@ -193,9 +193,9 @@ class ndax extends Exchange {
                 'secret' => true,
                 'uid' => true,
                 // these credentials are required for signIn() and withdraw()
-                // 'login' => true,
-                // 'password' => true,
-                // 'twofa' => true,
+                'login' => true,
+                'password' => true,
+                'twofa' => true,
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -393,6 +393,8 @@ class ndax extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array(
@@ -2013,6 +2015,7 @@ class ndax extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         // this method required login, password and twofa key
         $sessionToken = $this->safe_string($this->options, 'sessionToken');
         if ($sessionToken === null) {

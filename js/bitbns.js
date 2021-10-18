@@ -17,6 +17,7 @@ module.exports = class bitbns extends Exchange {
             'rateLimit': 1000,
             'certified': false,
             'pro': false,
+            'version': 'v2',
             // new metainfo interface
             'has': {
                 'cancelOrder': true,
@@ -26,14 +27,14 @@ module.exports = class bitbns extends Exchange {
                 'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
-                'fetchTrades': false,
+                'fetchTrades': undefined,
                 'fetchWithdrawals': true,
             },
             'timeframes': {
@@ -41,7 +42,7 @@ module.exports = class bitbns extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
                 'api': {
-                    'ccxt': 'https://bitbns.com/order',
+                    'www': 'https://bitbns.com',
                     'v1': 'https://api.bitbns.com/api/trade/v1',
                     'v2': 'https://api.bitbns.com/api/trade/v2',
                 },
@@ -53,11 +54,15 @@ module.exports = class bitbns extends Exchange {
                 'fees': 'https://bitbns.com/fees',
             },
             'api': {
-                'ccxt': {
+                'www': {
                     'get': [
-                        'fetchMarkets',
-                        'fetchTickers',
-                        'fetchOrderbook',
+                        'order/fetchMarkets',
+                        'order/fetchTickers',
+                        'order/fetchOrderbook',
+                        'order/getTickerWithVolume',
+                        'exchangeData/ohlc', // ?coin=${coin_name}&page=${page}
+                        'exchangeData/orderBook',
+                        'exchangeData/tradedetails',
                     ],
                 },
                 'v1': {
@@ -75,16 +80,21 @@ module.exports = class bitbns extends Exchange {
                         'orderStatus/{symbol}',
                         'depositHistory/{symbol}',
                         'withdrawHistory/{symbol}',
+                        'withdrawHistoryAll/{symbol}',
+                        'depositHistoryAll/{symbol}',
                         'listOpenOrders/{symbol}',
                         'listOpenStopOrders/{symbol}',
                         'getCoinAddress/{symbol}',
                         'placeSellOrder/{symbol}',
                         'placeBuyOrder/{symbol}',
                         'buyStopLoss/{symbol}',
+                        'sellStopLoss/{symbol}',
                         'placeSellOrder/{symbol}',
                         'cancelOrder/{symbol}',
                         'cancelStopLossOrder/{symbol}',
                         'listExecutedOrders/{symbol}',
+                        'placeMarketOrder/{symbol}',
+                        'placeMarketOrderQnty/{symbol}',
                     ],
                 },
                 'v2': {
@@ -143,7 +153,7 @@ module.exports = class bitbns extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.ccxtGetFetchMarkets (params);
+        const response = await this.wwwGetOrderFetchMarkets (params);
         //
         //     [
         //         {
@@ -197,6 +207,8 @@ module.exports = class bitbns extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': true,
                 'active': undefined,
                 'precision': precision,
                 'limits': {
@@ -227,7 +239,7 @@ module.exports = class bitbns extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
-        const response = await this.ccxtGetFetchOrderbook (this.extend (request, params));
+        const response = await this.wwwGetOrderFetchOrderbook (this.extend (request, params));
         //
         //     {
         //         "bids":[
@@ -310,7 +322,7 @@ module.exports = class bitbns extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.ccxtGetFetchTickers (params);
+        const response = await this.wwwGetOrderFetchTickers (params);
         //
         //     {
         //         "BTC/INR":{
@@ -497,8 +509,8 @@ module.exports = class bitbns extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
+        if (type !== 'limit' && type !== 'market') {
+            throw new ExchangeError (this.id + ' allows limit and market orders only');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -506,7 +518,6 @@ module.exports = class bitbns extends Exchange {
             'side': side.toUpperCase (),
             'symbol': market['uppercaseId'],
             'quantity': this.amountToPrecision (symbol, amount),
-            'rate': this.priceToPrecision (symbol, price),
             // 'target_rate': this.priceToPrecision (symbol, targetRate),
             // 't_rate': this.priceToPrecision (symbol, stopPrice),
             // 'trail_rate': this.priceToPrecision (symbol, trailRate),
@@ -514,7 +525,16 @@ module.exports = class bitbns extends Exchange {
             // To Place Stoploss Buy or Sell Order use rate & t_rate
             // To Place Bracket Buy or Sell Order use rate , t_rate, target_rate & trail_rate
         };
-        const response = await this.v2PostOrders (this.extend (request, params));
+        let method = 'v2PostOrders';
+        if (type === 'limit') {
+            request['rate'] = this.priceToPrecision (symbol, price);
+        } else if (type === 'market') {
+            method = 'v1PostPlaceMarketOrderQntySymbol';
+            request['market'] = market['quoteId'];
+        } else {
+            throw new ExchangeError (this.id + ' allows limit and market orders only');
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",

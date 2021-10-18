@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -27,12 +27,13 @@ module.exports = class huobi extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -42,8 +43,10 @@ module.exports = class huobi extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
@@ -128,7 +131,7 @@ module.exports = class huobi extends Exchange {
                         'etp/limit': 1, // 获取ETP持仓限额
                     },
                     'post': {
-                        // 'account/transfer',
+                        'account/transfer': 1,
                         'account/repayment': 5, // 归还借币（全仓逐仓通用）
                         'point/transfer': 5, // 点卡划转
                         'sub-user/management': 1, // 冻结/解冻子用户
@@ -278,6 +281,16 @@ module.exports = class huobi extends Exchange {
                 },
             },
             'options': {
+                'defaultNetwork': 'ERC20',
+                'networks': {
+                    'ETH': 'erc20',
+                    'TRX': 'trc20',
+                    'HRC20': 'hrc20',
+                    'HECO': 'hrc20',
+                    'HT': 'hrc20',
+                    'ALGO': 'algo',
+                    'OMNI': '',
+                },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
@@ -307,6 +320,11 @@ module.exports = class huobi extends Exchange {
                 'BIFI': 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetCommonTimestamp (params);
+        return this.safeInteger (response, 'data');
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {
@@ -416,6 +434,8 @@ module.exports = class huobi extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': precision,
                 'taker': taker,
@@ -727,8 +747,8 @@ module.exports = class huobi extends Exchange {
             request['size'] = limit; // 1-100 orders, default is 100
         }
         if (since !== undefined) {
-            request['start-date'] = this.ymd (since); // a date within 61 days from today
-            request['end-date'] = this.ymd (this.sum (since, 86400000));
+            request['start-time'] = since; // a date within 120 days from today
+            // request['end-time'] = this.sum (since, 172800000); // 48 hours window
         }
         const response = await this.privateGetOrderMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
@@ -838,66 +858,102 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const request = {
-            'language': this.options['language'],
-        };
-        const response = await this.publicGetSettingsCurrencys (this.extend (request, params));
-        const currencies = this.safeValue (response, 'data');
+        const response = await this.v2PublicGetReferenceCurrencies ();
+        //     {
+        //       "code": 200,
+        //       "data": [
+        //         {
+        //           "currency": "sxp",
+        //           "assetType": "1",
+        //           "chains": [
+        //             {
+        //               "chain": "sxp",
+        //               "displayName": "ERC20",
+        //               "baseChain": "ETH",
+        //               "baseChainProtocol": "ERC20",
+        //               "isDynamic": true,
+        //               "numOfConfirmations": "12",
+        //               "numOfFastConfirmations": "12",
+        //               "depositStatus": "allowed",
+        //               "minDepositAmt": "0.23",
+        //               "withdrawStatus": "allowed",
+        //               "minWithdrawAmt": "0.23",
+        //               "withdrawPrecision": "8",
+        //               "maxWithdrawAmt": "227000.000000000000000000",
+        //               "withdrawQuotaPerDay": "227000.000000000000000000",
+        //               "withdrawQuotaPerYear": null,
+        //               "withdrawQuotaTotal": null,
+        //               "withdrawFeeType": "fixed",
+        //               "transactFeeWithdraw": "11.1653",
+        //               "addrWithTag": false,
+        //               "addrDepositTag": false
+        //             }
+        //           ],
+        //           "instStatus": "normal"
+        //         }
+        //       ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
         const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            //
-            //  {                     name: "ctxc",
-            //              'display-name': "CTXC",
-            //        'withdraw-precision':  8,
-            //             'currency-type': "eth",
-            //        'currency-partition': "pro",
-            //             'support-sites':  null,
-            //                'otc-enable':  0,
-            //        'deposit-min-amount': "2",
-            //       'withdraw-min-amount': "4",
-            //            'show-precision': "8",
-            //                      weight: "2988",
-            //                     visible:  true,
-            //              'deposit-desc': "Please don’t deposit any other digital assets except CTXC t…",
-            //             'withdraw-desc': "Minimum withdrawal amount: 4 CTXC. !>_<!For security reason…",
-            //           'deposit-enabled':  true,
-            //          'withdraw-enabled':  true,
-            //    'currency-addr-with-tag':  false,
-            //             'fast-confirms':  15,
-            //             'safe-confirms':  30                                                             }
-            //
-            const id = this.safeValue (currency, 'name');
-            const precision = this.safeInteger (currency, 'withdraw-precision');
-            const code = this.safeCurrencyCode (id);
-            const active = currency['visible'] && currency['deposit-enabled'] && currency['withdraw-enabled'];
-            const name = this.safeString (currency, 'display-name');
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const currencyId = this.safeString (entry, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const chains = this.safeValue (entry, 'chains', []);
+            const networks = {};
+            let currencyActive = false;
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'chain');
+                let baseChainProtocol = this.safeString (chain, 'baseChainProtocol');
+                const huobiToken = 'h' + currencyId;
+                if (baseChainProtocol === undefined) {
+                    if (huobiToken === networkId) {
+                        baseChainProtocol = 'ERC20';
+                    } else {
+                        baseChainProtocol = this.safeString (chain, 'displayName');
+                    }
+                }
+                const network = this.safeNetwork (baseChainProtocol);
+                const minWithdraw = this.safeNumber (chain, 'minWithdrawAmt');
+                const maxWithdraw = this.safeNumber (chain, 'maxWithdrawAmt');
+                const withdraw = this.safeString (chain, 'withdrawStatus');
+                const deposit = this.safeString (chain, 'depositStatus');
+                const active = (withdraw === 'allowed') && (deposit === 'allowed');
+                currencyActive = (currencyActive === undefined) ? active : currencyActive;
+                const precision = this.safeInteger (chain, 'withdrawPrecision');
+                const fee = this.safeNumber (chain, 'transactFeeWithdraw');
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'limits': {
+                        'withdraw': {
+                            'min': minWithdraw,
+                            'max': maxWithdraw,
+                        },
+                    },
+                    'active': active,
+                    'fee': fee,
+                    'precision': precision,
+                };
+            }
             result[code] = {
-                'id': id,
+                'info': undefined,
                 'code': code,
-                'type': 'crypto',
-                // 'payin': currency['deposit-enabled'],
-                // 'payout': currency['withdraw-enabled'],
-                // 'transfer': undefined,
-                'name': name,
-                'active': active,
-                'fee': undefined, // todo need to fetch from fee endpoint
-                'precision': precision,
+                'id': currencyId,
+                'active': currencyActive,
+                'fee': undefined,
+                'name': undefined,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'deposit': {
-                        'min': this.safeNumber (currency, 'deposit-min-amount'),
-                        'max': Math.pow (10, precision),
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber (currency, 'withdraw-min-amount'),
-                        'max': Math.pow (10, precision),
+                        'min': undefined,
+                        'max': undefined,
                     },
                 },
-                'info': currency,
+                'precision': undefined,
+                'networks': networks,
             };
         }
         return result;
@@ -1220,10 +1276,10 @@ module.exports = class huobi extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         const response = await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
         //
-        //     let response = {
+        //     {
         //         'status': 'ok',
         //         'data': '10138899000',
-        //     };
+        //     }
         //
         return this.extend (this.parseOrder (response), {
             'id': id,
@@ -1309,29 +1365,49 @@ module.exports = class huobi extends Exchange {
         return this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']);
     }
 
+    safeNetwork (networkId) {
+        const lastCharacterIndex = networkId.length - 1;
+        const lastCharacter = networkId[lastCharacterIndex];
+        if (lastCharacter === '1') {
+            networkId = networkId.slice (0, lastCharacterIndex);
+        }
+        const networksById = {};
+        return this.safeString (networksById, networkId, networkId);
+    }
+
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
-        //         currency: "eth",
+        //         currency: "usdt",
         //         address: "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
         //         addressTag: "",
-        //         chain: "eth"
+        //         chain: "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
         //     }
         //
         const address = this.safeString (depositAddress, 'address');
-        const tag = this.safeString (depositAddress, 'addressTag');
+        let tag = this.safeString (depositAddress, 'addressTag');
+        if (tag === '') {
+            tag = undefined;
+        }
         const currencyId = this.safeString (depositAddress, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
+        currency = this.safeCurrency (currencyId, currency);
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const networkId = this.safeString (depositAddress, 'chain');
+        const networks = this.safeValue (currency, 'networks', {});
+        const networksById = this.indexBy (networks, 'id');
+        const networkValue = this.safeValue (networksById, networkId, networkId);
+        const network = this.safeString (networkValue, 'network');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': network,
             'info': depositAddress,
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1352,7 +1428,41 @@ module.exports = class huobi extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseDepositAddress (this.safeValue (data, 0, {}), currency);
+        const parsed = this.parseDepositAddresses (data, [ code ], false);
+        return this.indexBy (parsed, 'network');
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        const rawNetwork = this.safeStringUpper (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        const network = this.safeStringUpper (networks, rawNetwork, rawNetwork);
+        params = this.omit (params, 'network');
+        const response = await this.fetchDepositAddressesByNetwork (code, params);
+        let result = undefined;
+        if (network === undefined) {
+            result = this.safeValue (response, code);
+            if (result === undefined) {
+                const alias = this.safeString (networks, code, code);
+                result = this.safeValue (response, alias);
+                if (result === undefined) {
+                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+                    result = this.safeValue (response, defaultNetwork);
+                    if (result === undefined) {
+                        const values = Object.values (response);
+                        result = this.safeValue (values, 0);
+                        if (result === undefined) {
+                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+        result = this.safeValue (response, network);
+        if (result === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
+        }
+        return result;
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1498,6 +1608,7 @@ module.exports = class huobi extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);
@@ -1508,6 +1619,18 @@ module.exports = class huobi extends Exchange {
         };
         if (tag !== undefined) {
             request['addr-tag'] = tag; // only for XRP?
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
+        if (network !== undefined) {
+            // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
+            if (network === 'erc20') {
+                request['chain'] = currency['id'] + network;
+            } else {
+                request['chain'] = network + currency['id'];
+            }
+            params = this.omit (params, 'network');
         }
         const response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
         const id = this.safeString (response, 'data');

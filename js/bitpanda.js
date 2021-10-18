@@ -17,19 +17,17 @@ module.exports = class bitpanda extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'CORS': false,
-                'publicAPI': true,
-                'privateAPI': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDeposits': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -37,12 +35,14 @@ module.exports = class bitpanda extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
-                'fetchTicker': true,
-                'fetchTickers': true,
                 'fetchWithdrawals': true,
+                'privateAPI': true,
+                'publicAPI': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -333,6 +333,7 @@ module.exports = class bitpanda extends Exchange {
             const state = this.safeString (market, 'state');
             const active = (state === 'ACTIVE');
             result.push ({
+                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -341,7 +342,8 @@ module.exports = class bitpanda extends Exchange {
                 'quoteId': quoteId,
                 'precision': precision,
                 'limits': limits,
-                'info': market,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
             });
         }
@@ -1056,6 +1058,7 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

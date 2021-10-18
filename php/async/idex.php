@@ -28,20 +28,20 @@ class idex extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
-                'fetchMarkets' => true,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposits' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
-                'fetchOrders' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrders' => null,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchTransactions' => false,
-                'fetchDeposits' => true,
+                'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -200,6 +200,8 @@ class idex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'info' => $entry,
                 'precision' => $precision,
@@ -936,7 +938,7 @@ class idex extends Exchange {
         );
         $priceString = null;
         $typeLower = strtolower($type);
-        $limitOrder = mb_strpos($typeLower, 'limit') > -1;
+        $limitOrder = mb_strpos($typeLower, 'limit') !== false;
         if (is_array($limitTypeEnums) && array_key_exists($type, $limitTypeEnums)) {
             $typeEnum = $limitTypeEnums[$type];
             $priceString = $this->price_to_precision($symbol, $price);
@@ -1087,6 +1089,7 @@ class idex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_required_credentials();
         yield $this->load_markets();
         $nonce = $this->uuidv1();

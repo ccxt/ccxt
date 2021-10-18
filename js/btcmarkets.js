@@ -19,7 +19,7 @@ module.exports = class btcmarkets extends Exchange {
             'has': {
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
@@ -338,6 +338,8 @@ module.exports = class btcmarkets extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': undefined,
                 'maker': fees['maker'],
                 'taker': fees['taker'],
