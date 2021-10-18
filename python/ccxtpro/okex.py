@@ -554,17 +554,17 @@ class okex(Exchange, ccxt.okex):
             if self.orders is None:
                 self.orders = ArrayCacheBySymbolById(limit)
             stored = self.orders
-            symbols = {}
+            marketIds = []
             parsed = self.parse_orders(orders)
             for i in range(0, len(parsed)):
                 order = parsed[i]
                 stored.append(order)
                 symbol = order['symbol']
-                symbols[symbol] = True
+                market = self.market(symbol)
+                marketIds.append(market['id'])
             client.resolve(self.orders, channel)
-            keys = list(symbols.keys())
-            for i in range(0, len(keys)):
-                messageHash = channel + ':' + keys[i]
+            for i in range(0, len(marketIds)):
+                messageHash = channel + ':' + marketIds[i]
                 client.resolve(self.orders, messageHash)
 
     def handle_subscription_status(self, client, message):

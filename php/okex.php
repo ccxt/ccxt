@@ -590,18 +590,18 @@ class okex extends \ccxt\async\okex {
                 $this->orders = new ArrayCacheBySymbolById ($limit);
             }
             $stored = $this->orders;
-            $symbols = array();
+            $marketIds = array();
             $parsed = $this->parse_orders($orders);
             for ($i = 0; $i < count($parsed); $i++) {
                 $order = $parsed[$i];
                 $stored->append ($order);
                 $symbol = $order['symbol'];
-                $symbols[$symbol] = true;
+                $market = $this->market($symbol);
+                $marketIds[] = $market['id'];
             }
             $client->resolve ($this->orders, $channel);
-            $keys = is_array($symbols) ? array_keys($symbols) : array();
-            for ($i = 0; $i < count($keys); $i++) {
-                $messageHash = $channel . ':' . $keys[$i];
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $messageHash = $channel . ':' . $marketIds[$i];
                 $client->resolve ($this->orders, $messageHash);
             }
         }
