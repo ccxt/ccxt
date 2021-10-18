@@ -698,7 +698,6 @@ module.exports = class gateio extends Exchange {
                         'option': option,
                         'linear': linear,
                         'inverse': inverse,
-                        'settle': settle,
                         // Fee is in %, so divide by 100
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
