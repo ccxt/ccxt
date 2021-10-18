@@ -22,6 +22,7 @@ class okex extends \ccxt\async\okex {
                 'watchTrades' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => true,
+                'watchOrders' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -495,7 +496,7 @@ class okex extends \ccxt\async\okex {
         //         "op" => "subscribe",
         //         "args" => array(
         //             {
-        //                 "channel" => "orders",
+        //                 "channel" => "$orders",
         //                 "instType" => "FUTURES",
         //                 "uly" => "BTC-USD",
         //                 "instId" => "BTC-USD-200329"
@@ -517,7 +518,93 @@ class okex extends \ccxt\async\okex {
         $request = array(
             'instType' => $uppercaseType,
         );
-        return yield $this->subscribe('private', 'orders', $symbol, array_merge($request, $params));
+        $orders = yield $this->subscribe('private', 'orders', $symbol, array_merge($request, $params));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit ($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+    }
+
+    public function handle_orders($client, $message, $subscription = null) {
+        //
+        //     {
+        //         "$arg":array(
+        //             "$channel":"$orders",
+        //             "instType":"SPOT"
+        //         ),
+        //         "data":array(
+        //             {
+        //                 "accFillSz":"0",
+        //                 "amendResult":"",
+        //                 "avgPx":"",
+        //                 "cTime":"1634548275191",
+        //                 "category":"normal",
+        //                 "ccy":"",
+        //                 "clOrdId":"e847386590ce4dBC330547db94a08ba0",
+        //                 "code":"0",
+        //                 "execType":"",
+        //                 "fee":"0",
+        //                 "feeCcy":"USDT",
+        //                 "fillFee":"0",
+        //                 "fillFeeCcy":"",
+        //                 "fillNotionalUsd":"",
+        //                 "fillPx":"",
+        //                 "fillSz":"0",
+        //                 "fillTime":"",
+        //                 "instId":"ETH-USDT",
+        //                 "instType":"SPOT",
+        //                 "lever":"",
+        //                 "msg":"",
+        //                 "notionalUsd":"451.4516256",
+        //                 "ordId":"370257534141235201",
+        //                 "ordType":"$limit",
+        //                 "pnl":"0",
+        //                 "posSide":"",
+        //                 "px":"60000",
+        //                 "rebate":"0",
+        //                 "rebateCcy":"ETH",
+        //                 "reqId":"",
+        //                 "side":"sell",
+        //                 "slOrdPx":"",
+        //                 "slTriggerPx":"",
+        //                 "state":"live",
+        //                 "sz":"0.007526",
+        //                 "tag":"",
+        //                 "tdMode":"cash",
+        //                 "tgtCcy":"",
+        //                 "tpOrdPx":"",
+        //                 "tpTriggerPx":"",
+        //                 "tradeId":"",
+        //                 "uTime":"1634548275191"
+        //             }
+        //         )
+        //     }
+        //
+        $arg = $this->safe_value($message, 'arg', array());
+        $channel = $this->safe_string($arg, 'channel');
+        $orders = $this->safe_value($message, 'data', array());
+        $ordersLength = is_array($orders) ? count($orders) : 0;
+        if ($ordersLength > 0) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            if ($this->orders === null) {
+                $this->orders = new ArrayCacheBySymbolById ($limit);
+            }
+            $stored = $this->orders;
+            $symbols = array();
+            $parsed = $this->parse_orders($orders);
+            for ($i = 0; $i < count($parsed); $i++) {
+                $order = $parsed[$i];
+                $stored->append ($order);
+                $symbol = $order['symbol'];
+                $symbols[$symbol] = true;
+            }
+            $client->resolve ($this->orders, $channel);
+            $keys = is_array($symbols) ? array_keys($symbols) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $messageHash = $channel . ':' . $keys[$i];
+                $client->resolve ($this->orders, $messageHash);
+            }
+        }
     }
 
     public function handle_subscription_status($client, $message) {
@@ -650,6 +737,7 @@ class okex extends \ccxt\async\okex {
                 'trades' => array($this, 'handle_trades'),
                 'account' => array($this, 'handle_balance'),
                 // 'margin_account' => array($this, 'handle_balance'),
+                'orders' => array($this, 'handle_orders'),
             );
             $method = $this->safe_value($methods, $channel);
             if ($method === null) {

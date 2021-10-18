@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
 from ccxt.base.errors import AuthenticationError
 
@@ -22,6 +22,7 @@ class okex(Exchange, ccxt.okex):
                 'watchTrades': True,
                 'watchBalance': True,
                 'watchOHLCV': True,
+                'watchOrders': True,
             },
             'urls': {
                 'api': {
@@ -484,7 +485,87 @@ class okex(Exchange, ccxt.okex):
         request = {
             'instType': uppercaseType,
         }
-        return await self.subscribe('private', 'orders', symbol, self.extend(request, params))
+        orders = await self.subscribe('private', 'orders', symbol, self.extend(request, params))
+        if self.newUpdates:
+            limit = orders.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+
+    def handle_orders(self, client, message, subscription=None):
+        #
+        #     {
+        #         "arg":{
+        #             "channel":"orders",
+        #             "instType":"SPOT"
+        #         },
+        #         "data":[
+        #             {
+        #                 "accFillSz":"0",
+        #                 "amendResult":"",
+        #                 "avgPx":"",
+        #                 "cTime":"1634548275191",
+        #                 "category":"normal",
+        #                 "ccy":"",
+        #                 "clOrdId":"e847386590ce4dBC330547db94a08ba0",
+        #                 "code":"0",
+        #                 "execType":"",
+        #                 "fee":"0",
+        #                 "feeCcy":"USDT",
+        #                 "fillFee":"0",
+        #                 "fillFeeCcy":"",
+        #                 "fillNotionalUsd":"",
+        #                 "fillPx":"",
+        #                 "fillSz":"0",
+        #                 "fillTime":"",
+        #                 "instId":"ETH-USDT",
+        #                 "instType":"SPOT",
+        #                 "lever":"",
+        #                 "msg":"",
+        #                 "notionalUsd":"451.4516256",
+        #                 "ordId":"370257534141235201",
+        #                 "ordType":"limit",
+        #                 "pnl":"0",
+        #                 "posSide":"",
+        #                 "px":"60000",
+        #                 "rebate":"0",
+        #                 "rebateCcy":"ETH",
+        #                 "reqId":"",
+        #                 "side":"sell",
+        #                 "slOrdPx":"",
+        #                 "slTriggerPx":"",
+        #                 "state":"live",
+        #                 "sz":"0.007526",
+        #                 "tag":"",
+        #                 "tdMode":"cash",
+        #                 "tgtCcy":"",
+        #                 "tpOrdPx":"",
+        #                 "tpTriggerPx":"",
+        #                 "tradeId":"",
+        #                 "uTime":"1634548275191"
+        #             }
+        #         ]
+        #     }
+        #
+        arg = self.safe_value(message, 'arg', {})
+        channel = self.safe_string(arg, 'channel')
+        orders = self.safe_value(message, 'data', [])
+        ordersLength = len(orders)
+        if ordersLength > 0:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            if self.orders is None:
+                self.orders = ArrayCacheBySymbolById(limit)
+            stored = self.orders
+            symbols = {}
+            parsed = self.parse_orders(orders)
+            for i in range(0, len(parsed)):
+                order = parsed[i]
+                stored.append(order)
+                symbol = order['symbol']
+                symbols[symbol] = True
+            client.resolve(self.orders, channel)
+            keys = list(symbols.keys())
+            for i in range(0, len(keys)):
+                messageHash = channel + ':' + keys[i]
+                client.resolve(self.orders, messageHash)
 
     def handle_subscription_status(self, client, message):
         #
@@ -603,6 +684,7 @@ class okex(Exchange, ccxt.okex):
                 'trades': self.handle_trades,
                 'account': self.handle_balance,
                 # 'margin_account': self.handle_balance,
+                'orders': self.handle_orders,
             }
             method = self.safe_value(methods, channel)
             if method is None:
