@@ -295,7 +295,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'future',
+                'defaultType': 'spot',
                 'future': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -687,6 +687,7 @@ module.exports = class gateio extends Exchange {
                         'id': id,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'settleId': this.safeSymbol (settle),
                         'base': base,
                         'quote': quote,
                         'symbol': symbol,
