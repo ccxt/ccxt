@@ -1322,8 +1322,8 @@ class bybit(Exchange):
             'qty': qty,  # order quantity in USD, integer only
             # 'price': float(self.price_to_precision(symbol, price)),  # required for limit orders
             'time_in_force': 'GoodTillCancel',  # ImmediateOrCancel, FillOrKill, PostOnly
-            # 'take_profit': 123.45,  # take profit price, only take effect upon opening the position
-            # 'stop_loss': 123.45,  # stop loss price, only take effect upon opening the position
+            'take_profit': self.safe_value(params, 'take_profit'),  # take profit price, only take effect upon opening the position
+            'stop_loss': self.safe_value(params, 'stop_loss'),      # stop loss price, only take effect upon opening the position
             # 'reduce_only': False,  # reduce only, required for linear orders
             # when creating a closing order, bybit recommends a True value for
             # close_on_trigger to avoid failing due to insufficient available margin
