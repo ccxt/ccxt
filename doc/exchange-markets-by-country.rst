@@ -563,17 +563,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - Hong Kong
-     - .. image:: https://user-images.githubusercontent.com/51840849/87460810-1dd06c00-c616-11ea-9276-956f400d6ffa.jpg
-          :target: https://mixcoins.com
-          :alt: mixcoins
-     
-     - mixcoins
-     - `MixCoins <https://mixcoins.com>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://mixcoins.com/help/api/
-          :alt: API Version 1
-     
-   * - Hong Kong
      - .. image:: https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg
           :target: http://bit.ly/2IX0LrM
           :alt: tidebit
@@ -1308,17 +1297,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - `luno <https://www.luno.com/invite/44893A>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://www.luno.com/en/api
-          :alt: API Version 1
-     
-   * - UK
-     - .. image:: https://user-images.githubusercontent.com/51840849/87460810-1dd06c00-c616-11ea-9276-956f400d6ffa.jpg
-          :target: https://mixcoins.com
-          :alt: mixcoins
-     
-     - mixcoins
-     - `MixCoins <https://mixcoins.com>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://mixcoins.com/help/api/
           :alt: API Version 1
      
    * - UK

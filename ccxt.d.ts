@@ -509,7 +509,6 @@ declare module 'ccxt' {
     export class lykke extends Exchange {}
     export class mercado extends Exchange {}
     export class mexc extends Exchange {}
-    export class mixcoins extends Exchange {}
     export class ndax extends Exchange {}
     export class novadax extends Exchange {}
     export class oceanex extends Exchange {}
@@ -624,7 +623,6 @@ declare module 'ccxt' {
         | 'lykke'
         | 'mercado'
         | 'mexc'
-        | 'mixcoins'
         | 'ndax'
         | 'novadax'
         | 'oceanex'
