@@ -587,18 +587,18 @@ module.exports = class okex extends ccxt.okex {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
-            const symbols = {};
+            const marketIds = [];
             const parsed = this.parseOrders (orders);
             for (let i = 0; i < parsed.length; i++) {
                 const order = parsed[i];
                 stored.append (order);
                 const symbol = order['symbol'];
-                symbols[symbol] = true;
+                const market = this.market (symbol);
+                marketIds.push (market['id']);
             }
             client.resolve (this.orders, channel);
-            const keys = Object.keys (symbols);
-            for (let i = 0; i < keys.length; i++) {
-                const messageHash = channel + ':' + keys[i];
+            for (let i = 0; i < marketIds.length; i++) {
+                const messageHash = channel + ':' + marketIds[i];
                 client.resolve (this.orders, messageHash);
             }
         }
