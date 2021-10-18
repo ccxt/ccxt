@@ -935,15 +935,20 @@ module.exports = class bitbns extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'v1', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        this.checkRequiredCredentials ();
+    sign (path, api = 'www', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        if (!(api in this.urls['api'])) {
+            throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
+        }
+        if (api !== 'www') {
+            this.checkRequiredCredentials ();
+            headers = {
+                'X-BITBNS-APIKEY': this.apiKey,
+            };
+        }
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const nonce = this.nonce ().toString ();
-        headers = {
-            'X-BITBNS-APIKEY': this.apiKey,
-        };
         if (method === 'GET') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
