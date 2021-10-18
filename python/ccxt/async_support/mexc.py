@@ -233,6 +233,7 @@ class mexc(Exchange):
                 },
             },
             'commonCurrencies': {
+                'SIN': 'Sin City Token',
             },
             'exceptions': {
                 'exact': {
