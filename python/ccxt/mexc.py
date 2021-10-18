@@ -233,6 +233,7 @@ class mexc(Exchange):
                 },
             },
             'commonCurrencies': {
+                'SIN': 'Sin City Token',
             },
             'exceptions': {
                 'exact': {
@@ -475,7 +476,7 @@ class mexc(Exchange):
             quoteId = self.safe_string(market, 'quoteCoin')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
+            symbol = id
             precision = {
                 'price': self.safe_number(market, 'priceUnit'),
                 'amount': self.safe_number(market, 'volUnit'),
