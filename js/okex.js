@@ -1638,7 +1638,8 @@ module.exports = class okex extends Exchange {
         // see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
         const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
         const tgtCcy = this.safeString (order, 'tgtCcy', defaultTgtCcy);
-        if (side === 'buy' && type === 'market' && market['spot'] && tgtCcy === 'quote_ccy') {
+        const instType = this.safeString (order, 'instType');
+        if ((side === 'buy') && (type === 'market') && (instType === 'SPOT') && (tgtCcy === 'quote_ccy')) {
             // "sz" refers to the cost
             cost = this.safeNumber (order, 'sz');
         } else {
