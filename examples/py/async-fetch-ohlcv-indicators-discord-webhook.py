@@ -1,18 +1,6 @@
 from asyncio import get_event_loop, gather, ensure_future
-import os
-import sys
 import pandas_ta as ta
 import pandas as pd
-
-# -----------------------------------------------------------------------------
-
-this_folder = os.path.dirname(os.path.abspath(__file__))
-root_folder = os.path.dirname(os.path.dirname(this_folder))
-sys.path.append(root_folder + '/python')
-sys.path.append(this_folder)
-
-# -----------------------------------------------------------------------------
-
 import ccxt.async_support as ccxt  # noqa: E402
 
 # -----------------------------------------------------------------------------
@@ -27,7 +15,8 @@ async def send_discord_webhook_messsage(exchange, symbol, message):
         "username": "Kj Bot Top 10 Coins 15 Min TF",
         "content" : message
     }
-    url = 'https://discord.com/api/webhooks/894679855755558952/8bb6noZjAOEv0-lnws1wLAxCU0yVmogNxbuiz_N8w7Wx9mKf05U4WmXXKr4ds5sh1fVw'
+    # change your webhook URL here
+    url = 'https://discord.com/api/webhooks/xxxxxxxxxxxxxxxxxx/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
     method = 'POST'
     headers = {'Content-Type': 'application/json'}
     body = exchange.json(payload)
