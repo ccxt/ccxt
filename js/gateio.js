@@ -295,7 +295,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'spot',
+                'defaultType': 'future',
                 'future': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -815,7 +815,7 @@ module.exports = class gateio extends Exchange {
         if (market['type'] === 'future' || market['type'] === 'swap') {
             return {
                 'contract': market['id'],
-                'settle': market['settle'],
+                'settle': market['settleId'],
             };
         } else {
             return {
@@ -1207,18 +1207,15 @@ module.exports = class gateio extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const request = this.baseRequest (market);
         const futures = market['futures'];
-        const id = market['id'];
-        let request = {
-            'currency_pair': id,
-        };
+        const delivery = market['delivery'];
+        const spot = market['spot'];
         let method = 'publicSpotGetOrderBook';
         if (futures) {
-            request = {
-                'contract': id,
-                'settle': market['quoteId'].toLowerCase (),
-            };
             method = 'publicFuturesGetSettleOrderBook';
+        } else if (delivery) {
+            method = 'publicDeliveryGetSettleOrderBook';
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
@@ -1282,23 +1279,13 @@ module.exports = class gateio extends Exchange {
         //     ],
         //     "update": 1634350208.724
         // }
-        const timestamp = this.safeInteger (response, 'current');
-        const result = JSON.parse (JSON.stringify (response));
-        if (futures) {
-            const bids = [];
-            const asks = [];
-            for (let i = 0; i < response['bids'].length; i++) {
-                const bid = response['bids'][i];
-                bids.push ([bid['p'], bid['s']]);
-            }
-            for (let i = 0; i < response['asks'].length; i++) {
-                const ask = response['asks'][i];
-                asks.push ([ask['p'], ask['s']]);
-            }
-            result['bids'] = bids;
-            result['asks'] = asks;
+        let timestamp = this.safeInteger (response, 'current');
+        if (!spot) {
+            timestamp = timestamp * 1000;
         }
-        return this.parseOrderBook (result, symbol, timestamp);
+        const priceKey = spot ? 0 : 'p';
+        const amountKey = spot ? 1 : 's';
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
     }
 
     async fetchTicker (symbol, params = {}) {
