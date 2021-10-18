@@ -295,7 +295,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'spot',
+                'defaultType': 'future',
                 'future': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -669,18 +669,17 @@ module.exports = class gateio extends Exchange {
                 for (let i = 0; i < response.length; i++) {
                     const market = response[i];
                     const id = this.safeString (market, 'name');
-                    const underlying = this.safeString (market, 'underlying');
-                    let [ baseId, quoteId ] = [undefined, undefined];
-                    if (underlying) {
-                        [ baseId, quoteId ] = underlying.split ('_');
-                    } else {
-                        [ baseId, quoteId ] = id.split ('_');
-                    }
+                    const [ baseId, quoteId, date ] = id.split ('_');
                     const linear = quoteId.toLowerCase () === settle;
                     const inverse = baseId.toLowerCase () === settle;
                     const base = this.safeCurrencyCode (baseId);
                     const quote = this.safeCurrencyCode (quoteId);
-                    const symbol = base + '/' + quote;
+                    let symbol = '';
+                    if (date) {
+                        symbol = base + '/' + quote + '-' + date + ':' + settle;
+                    } else {
+                        symbol = base + '/' + quote + ':' + settle.toUpperCase ();
+                    }
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
                     result.push ({
