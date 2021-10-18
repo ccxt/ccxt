@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -19,6 +19,7 @@ module.exports = class okex extends ccxt.okex {
                 'watchTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
+                'watchOrders': true,
             },
             'urls': {
                 'api': {
@@ -514,7 +515,93 @@ module.exports = class okex extends ccxt.okex {
         const request = {
             'instType': uppercaseType,
         };
-        return await this.subscribe ('private', 'orders', symbol, this.extend (request, params));
+        const orders = await this.subscribe ('private', 'orders', symbol, this.extend (request, params));
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrders (client, message, subscription = undefined) {
+        //
+        //     {
+        //         "arg":{
+        //             "channel":"orders",
+        //             "instType":"SPOT"
+        //         },
+        //         "data":[
+        //             {
+        //                 "accFillSz":"0",
+        //                 "amendResult":"",
+        //                 "avgPx":"",
+        //                 "cTime":"1634548275191",
+        //                 "category":"normal",
+        //                 "ccy":"",
+        //                 "clOrdId":"e847386590ce4dBC330547db94a08ba0",
+        //                 "code":"0",
+        //                 "execType":"",
+        //                 "fee":"0",
+        //                 "feeCcy":"USDT",
+        //                 "fillFee":"0",
+        //                 "fillFeeCcy":"",
+        //                 "fillNotionalUsd":"",
+        //                 "fillPx":"",
+        //                 "fillSz":"0",
+        //                 "fillTime":"",
+        //                 "instId":"ETH-USDT",
+        //                 "instType":"SPOT",
+        //                 "lever":"",
+        //                 "msg":"",
+        //                 "notionalUsd":"451.4516256",
+        //                 "ordId":"370257534141235201",
+        //                 "ordType":"limit",
+        //                 "pnl":"0",
+        //                 "posSide":"",
+        //                 "px":"60000",
+        //                 "rebate":"0",
+        //                 "rebateCcy":"ETH",
+        //                 "reqId":"",
+        //                 "side":"sell",
+        //                 "slOrdPx":"",
+        //                 "slTriggerPx":"",
+        //                 "state":"live",
+        //                 "sz":"0.007526",
+        //                 "tag":"",
+        //                 "tdMode":"cash",
+        //                 "tgtCcy":"",
+        //                 "tpOrdPx":"",
+        //                 "tpTriggerPx":"",
+        //                 "tradeId":"",
+        //                 "uTime":"1634548275191"
+        //             }
+        //         ]
+        //     }
+        //
+        const arg = this.safeValue (message, 'arg', {});
+        const channel = this.safeString (arg, 'channel');
+        const orders = this.safeValue (message, 'data', []);
+        const ordersLength = orders.length;
+        if (ordersLength > 0) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            if (this.orders === undefined) {
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const stored = this.orders;
+            const symbols = {};
+            const parsed = this.parseOrders (orders);
+            for (let i = 0; i < parsed.length; i++) {
+                const order = parsed[i];
+                stored.append (order);
+                const symbol = order['symbol'];
+                symbols[symbol] = true;
+            }
+            client.resolve (this.orders, channel);
+            const keys = Object.keys (symbols);
+            for (let i = 0; i < keys.length; i++) {
+                const messageHash = channel + ':' + keys[i];
+                client.resolve (this.orders, messageHash);
+            }
+        }
     }
 
     handleSubscriptionStatus (client, message) {
@@ -647,6 +734,7 @@ module.exports = class okex extends ccxt.okex {
                 'trades': this.handleTrades,
                 'account': this.handleBalance,
                 // 'margin_account': this.handleBalance,
+                'orders': this.handleOrders,
             };
             const method = this.safeValue (methods, channel);
             if (method === undefined) {
