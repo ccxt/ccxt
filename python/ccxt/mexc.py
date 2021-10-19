@@ -1625,7 +1625,8 @@ class mexc(Exchange):
         if clientOrderId == '':
             clientOrderId = None
         orderType = self.safe_string_lower(order, 'order_type')
-        orderType = orderType.replace('_order', '')
+        if orderType is not None:
+            orderType = orderType.replace('_order', '')
         return self.safe_order2({
             'id': id,
             'clientOrderId': clientOrderId,

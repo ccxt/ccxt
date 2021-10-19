@@ -1713,7 +1713,9 @@ class mexc extends Exchange {
             $clientOrderId = null;
         }
         $orderType = $this->safe_string_lower($order, 'order_type');
-        $orderType = str_replace('_order', '', $orderType);
+        if ($orderType !== null) {
+            $orderType = str_replace('_order', '', $orderType);
+        }
         return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
