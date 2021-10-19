@@ -3385,7 +3385,10 @@ class binance extends Exchange {
 
     public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency($code);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $defaultType = $this->safe_string_2($this->options, 'fetchTransfers', 'defaultType', 'spot');
         $fromAccount = $this->safe_string($params, 'fromAccount', $defaultType);
         $defaultTo = ($fromAccount === 'future') ? 'spot' : 'future';

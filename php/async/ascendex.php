@@ -257,6 +257,7 @@ class ascendex extends Exchange {
                     '300011' => '\\ccxt\\InsufficientFunds', // INVALID_BALANCE No enough account or asset balance for the trading
                     '300012' => '\\ccxt\\BadSymbol', // INVALID_PRODUCT Not a valid product supported by exchange
                     '300013' => '\\ccxt\\InvalidOrder', // INVALID_BATCH_ORDER Some or all orders are invalid in batch order request
+                    '300014' => '\\ccxt\\InvalidOrder', // array("code":300014,"message":"Order price doesn't conform to the required tick size => 0.1","reason":"TICK_SIZE_VIOLATION")
                     '300020' => '\\ccxt\\InvalidOrder', // TRADING_RESTRICTED There is some trading restriction on account or asset
                     '300021' => '\\ccxt\\InvalidOrder', // TRADING_DISABLED Trading is disabled on account or asset
                     '300031' => '\\ccxt\\InvalidOrder', // NO_MARKET_PRICE No market price for market type order trading
@@ -1734,6 +1735,10 @@ class ascendex extends Exchange {
         $url .= '/' . $request;
         if (($version === 'v1') && ($request === 'cash/balance') || ($request === 'margin/balance')) {
             $request = 'balance';
+        }
+        if (mb_strpos($request, 'subuser') !== false) {
+            $parts = explode('/', $request);
+            $request = $parts[2];
         }
         $query = $this->omit($query, $this->extract_params($path));
         if ($access === 'public') {

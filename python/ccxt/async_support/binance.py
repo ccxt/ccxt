@@ -3228,7 +3228,9 @@ class binance(Exchange):
 
     async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
-        currency = self.currency(code)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         defaultType = self.safe_string_2(self.options, 'fetchTransfers', 'defaultType', 'spot')
         fromAccount = self.safe_string(params, 'fromAccount', defaultType)
         defaultTo = 'spot' if (fromAccount == 'future') else 'future'
