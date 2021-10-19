@@ -1440,7 +1440,8 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, 'price');
         const isMark = (price === 'mark');
         const isIndex = (price === 'index');
-        const isFuture = isMark || isIndex;
+        const future = market['futures'];
+        const swap = market['swap'];
         const request = {
             'interval': this.timeframes[timeframe],
         };
@@ -1455,10 +1456,14 @@ module.exports = class gateio extends Exchange {
             }
         }
         let method = 'publicSpotGetCandlesticks';
-        if (isFuture) {
+        if (isMark || isIndex || future || swap) {
             request['contract'] = market['id'];
-            method = 'publicFuturesGetSettleCandlesticks';
-            request['settle'] = market['quote'].toLowerCase ();
+            if (future) {
+                method = 'publicDeliveryGetSettleCandlesticks';
+            } else {
+                method = 'publicFuturesGetSettleCandlesticks';
+            }
+            request['settle'] = market['settleId'];
             if (isMark) {
                 request['contract'] = 'mark_' + request['contract'];
             } else if (isIndex) {
@@ -1551,7 +1556,7 @@ module.exports = class gateio extends Exchange {
                 this.safeNumber (ohlcv, 'h'),    // highest price
                 this.safeNumber (ohlcv, 'l'),    // lowest price
                 this.safeNumber (ohlcv, 'c'),    // close price
-                0,
+                this.safeNumber (ohlcv, 'v', 0), // trading volume, 0 for mark or index price
             ];
         }
     }
