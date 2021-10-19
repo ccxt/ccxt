@@ -738,12 +738,13 @@ class kucoin(Exchange):
         last = self.safe_number_2(ticker, 'last', 'lastTradedPrice')
         last = self.safe_number(ticker, 'price', last)
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         baseVolume = self.safe_number(ticker, 'vol')
         quoteVolume = self.safe_number(ticker, 'volValue')
         vwap = self.vwap(baseVolume, quoteVolume)
         timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -764,7 +765,7 @@ class kucoin(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
