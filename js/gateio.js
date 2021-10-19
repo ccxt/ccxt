@@ -1223,62 +1223,66 @@ module.exports = class gateio extends Exchange {
         const response = await this[method] (this.extend (request, params));
         //
         // SPOT
-        // {
-        //     "current": 1634345973275,
-        //     "update": 1634345973271,
-        //     "asks": [
-        //         ["2.2241","12449.827"],
-        //         ["2.2242","200"],
-        //         ["2.2244","826.931"],
-        //         ["2.2248","3876.107"],
-        //         ["2.225","2377.252"],
-        //         ["2.22509","439.484"],
-        //         ["2.2251","1489.313"],
-        //         ["2.2253","714.582"],
-        //         ["2.2254","1349.784"],
-        //         ["2.2256","234.701"]],
-        //      "bids":[
-        //         ["2.2236","32.465"],
-        //         ["2.2232","243.983"],
-        //         ["2.2231","32.207"],
-        //         ["2.223","449.827"],
-        //         ["2.2228","7.918"],
-        //         ["2.2227","12703.482"],
-        //         ["2.2226","143.033"],
-        //         ["2.2225","143.027"],
-        //         ["2.2224","1369.352"],
-        //         ["2.2223","756.063"]
-        //     ]
-        // }
+        //
+        //     {
+        //         "current": 1634345973275,
+        //         "update": 1634345973271,
+        //         "asks": [
+        //             ["2.2241","12449.827"],
+        //             ["2.2242","200"],
+        //             ["2.2244","826.931"],
+        //             ["2.2248","3876.107"],
+        //             ["2.225","2377.252"],
+        //             ["2.22509","439.484"],
+        //             ["2.2251","1489.313"],
+        //             ["2.2253","714.582"],
+        //             ["2.2254","1349.784"],
+        //             ["2.2256","234.701"]],
+        //          "bids":[
+        //             ["2.2236","32.465"],
+        //             ["2.2232","243.983"],
+        //             ["2.2231","32.207"],
+        //             ["2.223","449.827"],
+        //             ["2.2228","7.918"],
+        //             ["2.2227","12703.482"],
+        //             ["2.2226","143.033"],
+        //             ["2.2225","143.027"],
+        //             ["2.2224","1369.352"],
+        //             ["2.2223","756.063"]
+        //         ]
+        //     }
+        //
         // Perpetual Swap
-        // {
-        //     "current": 1634350208.745,
-        //     "asks": [
-        //         {"s":24909,"p":"61264.8"},
-        //         {"s":81,"p":"61266.6"},
-        //         {"s":2000,"p":"61267.6"},
-        //         {"s":490,"p":"61270.2"},
-        //         {"s":12,"p":"61270.4"},
-        //         {"s":11782,"p":"61273.2"},
-        //         {"s":14666,"p":"61273.3"},
-        //         {"s":22541,"p":"61273.4"},
-        //         {"s":33,"p":"61273.6"},
-        //         {"s":11980,"p":"61274.5"}
-        //     ],
-        //     "bids": [
-        //         {"s":41844,"p":"61264.7"},
-        //         {"s":13783,"p":"61263.3"},
-        //         {"s":1143,"p":"61259.8"},
-        //         {"s":81,"p":"61258.7"},
-        //         {"s":2471,"p":"61257.8"},
-        //         {"s":2471,"p":"61257.7"},
-        //         {"s":2471,"p":"61256.5"},
-        //         {"s":3,"p":"61254.2"},
-        //         {"s":114,"p":"61252.4"},
-        //         {"s":14372,"p":"61248.6"}
-        //     ],
-        //     "update": 1634350208.724
-        // }
+        //
+        //     {
+        //         "current": 1634350208.745,
+        //         "asks": [
+        //             {"s":24909,"p":"61264.8"},
+        //             {"s":81,"p":"61266.6"},
+        //             {"s":2000,"p":"61267.6"},
+        //             {"s":490,"p":"61270.2"},
+        //             {"s":12,"p":"61270.4"},
+        //             {"s":11782,"p":"61273.2"},
+        //             {"s":14666,"p":"61273.3"},
+        //             {"s":22541,"p":"61273.4"},
+        //             {"s":33,"p":"61273.6"},
+        //             {"s":11980,"p":"61274.5"}
+        //         ],
+        //         "bids": [
+        //             {"s":41844,"p":"61264.7"},
+        //             {"s":13783,"p":"61263.3"},
+        //             {"s":1143,"p":"61259.8"},
+        //             {"s":81,"p":"61258.7"},
+        //             {"s":2471,"p":"61257.8"},
+        //             {"s":2471,"p":"61257.7"},
+        //             {"s":2471,"p":"61256.5"},
+        //             {"s":3,"p":"61254.2"},
+        //             {"s":114,"p":"61252.4"},
+        //             {"s":14372,"p":"61248.6"}
+        //         ],
+        //         "update": 1634350208.724
+        //     }
+        //
         let timestamp = this.safeInteger (response, 'current');
         if (!spot) {
             timestamp = timestamp * 1000;
@@ -1313,39 +1317,41 @@ module.exports = class gateio extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
         //  SPOT
+        //
         //     {
-        //       "currency_pair": "KFC_USDT",
-        //       "last": "7.255",
-        //       "lowest_ask": "7.298",
-        //       "highest_bid": "7.218",
-        //       "change_percentage": "-1.18",
-        //       "base_volume": "1219.053687865",
-        //       "quote_volume": "8807.40299875455",
-        //       "high_24h": "7.262",
-        //       "low_24h": "7.095"
+        //         "currency_pair": "KFC_USDT",
+        //         "last": "7.255",
+        //         "lowest_ask": "7.298",
+        //         "highest_bid": "7.218",
+        //         "change_percentage": "-1.18",
+        //         "base_volume": "1219.053687865",
+        //         "quote_volume": "8807.40299875455",
+        //         "high_24h": "7.262",
+        //         "low_24h": "7.095"
         //     }
         //
         //  LINEAR/DELIVERY
         //
-        //   {
-        //     "contract": "BTC_USDT",
-        //     "last": "6432",
-        //     "low_24h": "6278",
-        //     "high_24h": "6790",
-        //     "change_percentage": "4.43",
-        //     "total_size": "32323904",
-        //     "volume_24h": "184040233284",
-        //     "volume_24h_btc": "28613220",
-        //     "volume_24h_usd": "184040233284",
-        //     "volume_24h_base": "28613220",
-        //     "volume_24h_quote": "184040233284",
-        //     "volume_24h_settle": "28613220",
-        //     "mark_price": "6534",
-        //     "funding_rate": "0.0001",
-        //     "funding_rate_indicative": "0.0001",
-        //     "index_price": "6531"
-        //   }
+        //     {
+        //         "contract": "BTC_USDT",
+        //         "last": "6432",
+        //         "low_24h": "6278",
+        //         "high_24h": "6790",
+        //         "change_percentage": "4.43",
+        //         "total_size": "32323904",
+        //         "volume_24h": "184040233284",
+        //         "volume_24h_btc": "28613220",
+        //         "volume_24h_usd": "184040233284",
+        //         "volume_24h_base": "28613220",
+        //         "volume_24h_quote": "184040233284",
+        //         "volume_24h_settle": "28613220",
+        //         "mark_price": "6534",
+        //         "funding_rate": "0.0001",
+        //         "funding_rate_indicative": "0.0001",
+        //         "index_price": "6531"
+        //     }
         //
         const marketId = this.safeString2 (ticker, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
@@ -1520,24 +1526,27 @@ module.exports = class gateio extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined) {
+        //
         // Spot market candles
+        //
         //     [
-        //       "1626163200",           // Unix timestamp in seconds
-        //       "346711.933138181617",  // Trading volume
-        //       "33165.23",             // Close price
-        //       "33260",                // Highest price
-        //       "33117.6",              // Lowest price
-        //       "33184.47"              // Open price
+        //         "1626163200",           // Unix timestamp in seconds
+        //         "346711.933138181617",  // Trading volume
+        //         "33165.23",             // Close price
+        //         "33260",                // Highest price
+        //         "33117.6",              // Lowest price
+        //         "33184.47"              // Open price
         //     ]
         //
         // Mark and Index price candles
-        // {
-        //      "t":1632873600,         // Unix timestamp in seconds
-        //      "o":"41025",            // Open price
-        //      "h":"41882.17",         // Highest price
-        //      "c":"41776.92",         // Close price
-        //      "l":"40783.94"          // Lowest price
-        // }
+        //
+        //     {
+        //          "t":1632873600,         // Unix timestamp in seconds
+        //          "o":"41025",            // Open price
+        //          "h":"41882.17",         // Highest price
+        //          "c":"41776.92",         // Close price
+        //          "l":"40783.94"          // Lowest price
+        //     }
         //
         if (Array.isArray (ohlcv)) {
             return [
@@ -1556,7 +1565,7 @@ module.exports = class gateio extends Exchange {
                 this.safeNumber (ohlcv, 'h'),    // highest price
                 this.safeNumber (ohlcv, 'l'),    // lowest price
                 this.safeNumber (ohlcv, 'c'),    // close price
-                this.safeNumber (ohlcv, 'v', 0), // trading volume, 0 for mark or index price
+                this.safeNumber (ohlcv, 'v'),    // trading volume, undefined for mark or index price
             ];
         }
     }
@@ -1578,25 +1587,34 @@ module.exports = class gateio extends Exchange {
             request['from'] = parseInt (since / 1000);
         }
         const response = await this[method] (this.extend (request, params));
-        // SPOT
-        // [{
-        //     id: "1852958144",
-        //     create_time: "1634673259",
-        //     create_time_ms: "1634673259378.105000",
-        //     currency_pair: "ADA_USDT",
-        //     side: "sell",
-        //     amount: "307.078",
-        //     price: "2.104",
-        // }]
-        // Perpetual Swap
-        // [{
-        //      size: "2",
-        //      id: "2522911",
-        //      create_time_ms: "1634673380.182",
-        //      create_time: "1634673380.182",
-        //      contract: "ADA_USDT",
-        //      price: "2.10486",
-        // }]
+        //
+        // spot
+        //
+        //     [
+        //         {
+        //             id: "1852958144",
+        //             create_time: "1634673259",
+        //             create_time_ms: "1634673259378.105000",
+        //             currency_pair: "ADA_USDT",
+        //             side: "sell",
+        //             amount: "307.078",
+        //             price: "2.104",
+        //         }
+        //     ]
+        //
+        // perpetual swap
+        //
+        //     [
+        //         {
+        //              size: "2",
+        //              id: "2522911",
+        //              create_time_ms: "1634673380.182",
+        //              create_time: "1634673380.182",
+        //              contract: "ADA_USDT",
+        //              price: "2.10486",
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1626,31 +1644,33 @@ module.exports = class gateio extends Exchange {
     parseTrade (trade, market = undefined) {
         //
         // public
+        //
         //     {
-        //       "id": "1334253759",
-        //       "create_time": "1626342738",
-        //       "create_time_ms": "1626342738331.497000",
-        //       "currency_pair": "BTC_USDT",
-        //       "side": "sell",
-        //       "amount": "0.0022",
-        //       "price": "32452.16"
+        //         "id": "1334253759",
+        //         "create_time": "1626342738",
+        //         "create_time_ms": "1626342738331.497000",
+        //         "currency_pair": "BTC_USDT",
+        //         "side": "sell",
+        //         "amount": "0.0022",
+        //         "price": "32452.16"
         //     }
         //
         // private
+        //
         //     {
-        //       "id": "218087755",
-        //       "create_time": "1578958740",
-        //       "create_time_ms": "1578958740122.710000",
-        //       "currency_pair": "BTC_USDT",
-        //       "side": "sell",
-        //       "role": "taker",
-        //       "amount": "0.0004",
-        //       "price": "8112.77",
-        //       "order_id": "8445563839",
-        //       "fee": "0.006490216",
-        //       "fee_currency": "USDT",
-        //       "point_fee": "0",
-        //       "gt_fee": "0"
+        //         "id": "218087755",
+        //         "create_time": "1578958740",
+        //         "create_time_ms": "1578958740122.710000",
+        //         "currency_pair": "BTC_USDT",
+        //         "side": "sell",
+        //         "role": "taker",
+        //         "amount": "0.0004",
+        //         "price": "8112.77",
+        //         "order_id": "8445563839",
+        //         "fee": "0.006490216",
+        //         "fee_currency": "USDT",
+        //         "point_fee": "0",
+        //         "gt_fee": "0"
         //     }
         //
         const id = this.safeString (trade, 'id');
@@ -1803,6 +1823,7 @@ module.exports = class gateio extends Exchange {
     parseTransaction (transaction, currency = undefined) {
         //
         // deposits
+        //
         //     {
         //       "id": "d33361395",
         //       "currency": "USDT_TRX",
@@ -2091,6 +2112,7 @@ module.exports = class gateio extends Exchange {
         const response = await this.privateWalletPostTransfers (this.extend (request, params));
         //
         // according to the docs
+        //
         //     {
         //       "currency": "BTC",
         //       "from": "spot",
@@ -2100,6 +2122,7 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         // actual response
+        //
         //  POST https://api.gateio.ws/api/v4/wallet/transfers 204 No Content
         //
         return {
