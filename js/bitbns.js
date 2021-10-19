@@ -660,53 +660,29 @@ module.exports = class bitbns extends Exchange {
         //     }
         //
         // fetchTrades
-        // [
+        //
         //     {
-        //       tradeId: '2567653',
-        //       price: '4841691.15',
-        //       quote_volume: '230.17',
-        //       base_volume: '4.742e-5',
-        //       timestamp: '1634542840000',
-        //       type: 'sell'
-        //     },
-        //     {
-        //       tradeId: '2567655',
-        //       price: '4841428.97',
-        //       quote_volume: '97070.65',
-        //       base_volume: '0.02',
-        //       timestamp: '1634542921000',
-        //       type: 'sell'
-        //     },
-        // ]
+        //         "tradeId":"1909151",
+        //         "price":"61904.6300",
+        //         "quote_volume":1618.05,
+        //         "base_volume":0.02607254,
+        //         "timestamp":1634548602000,
+        //         "type":"buy"
+        //     }
+        //
         market = this.safeMarket (undefined, market);
-        let orderId = this.safeString (trade, 'id');
-        if (orderId === undefined) {
-            orderId = this.safeString (trade, 'tradeId');
-        }
+        const orderId = this.safeString2 (trade, 'id', 'tradeId');
         let timestamp = this.parse8601 (this.safeString (trade, 'date'));
-        if (timestamp === undefined) {
-            timestamp = this.safeInteger (trade, 'timestamp');
-        }
-        const amountString = this.safeString (trade, 'amount');
-        let priceString = this.safeString (trade, 'rate');
-        if (priceString === undefined) {
-            priceString = this.safeString (trade, 'price');
-        }
+        timestamp = this.safeInteger (trade, 'timestamp', timestamp);
+        const amountString = this.safeString2 (trade, 'amount', 'base_volume');
+        const priceString = this.safeString2 (trade, 'rate', 'price');
         const price = this.parseNumber (priceString);
         const factor = this.safeString (trade, 'factor');
         const amountScaled = Precise.stringDiv (amountString, factor);
-        let amount = this.parseNumber (amountScaled);
-        if (amount === undefined) {
-            amount = this.parseNumber (this.safeString (trade, 'base_volume'));
-        }
+        const amount = this.parseNumber (amountScaled);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountScaled));
         const symbol = market['symbol'];
-        let side = this.safeStringLower (trade, 'type');
-        if (side.indexOf ('sell') >= 0) {
-            side = 'sell';
-        } else if (side.indexOf ('buy') >= 0) {
-            side = 'buy';
-        }
+        const side = this.safeStringLower (trade, 'type');
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
@@ -799,10 +775,17 @@ module.exports = class bitbns extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'coin': market['id'],
+            'coin': market['baseId'],
             'market': market['quoteId'],
         };
         const response = await this.wwwGetExchangeDataTradedetails (this.extend (request, params));
+        //
+        //     [
+        //         {"tradeId":"1909151","price":"61904.6300","quote_volume":1618.05,"base_volume":0.02607254,"timestamp":1634548602000,"type":"buy"},
+        //         {"tradeId":"1909153","price":"61893.9000","quote_volume":16384.42,"base_volume":0.26405767,"timestamp":1634548999000,"type":"sell"},
+        //         {"tradeId":"1909155","price":"61853.1100","quote_volume":2304.37,"base_volume":0.03716263,"timestamp":1634549670000,"type":"sell"}
+        //     }
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
