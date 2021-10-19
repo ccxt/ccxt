@@ -34,7 +34,7 @@ module.exports = class bitbns extends Exchange {
                 'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
-                'fetchTrades': undefined,
+                'fetchTrades': true,
                 'fetchWithdrawals': true,
             },
             'timeframes': {
@@ -659,23 +659,30 @@ module.exports = class bitbns extends Exchange {
         //         "id": "2938823"
         //     }
         //
+        // fetchTrades
+        //
+        //     {
+        //         "tradeId":"1909151",
+        //         "price":"61904.6300",
+        //         "quote_volume":1618.05,
+        //         "base_volume":0.02607254,
+        //         "timestamp":1634548602000,
+        //         "type":"buy"
+        //     }
+        //
         market = this.safeMarket (undefined, market);
-        const orderId = this.safeString (trade, 'id');
-        const timestamp = this.parse8601 (this.safeString (trade, 'date'));
-        const amountString = this.safeString (trade, 'amount');
-        const priceString = this.safeString (trade, 'rate');
+        const orderId = this.safeString2 (trade, 'id', 'tradeId');
+        let timestamp = this.parse8601 (this.safeString (trade, 'date'));
+        timestamp = this.safeInteger (trade, 'timestamp', timestamp);
+        const amountString = this.safeString2 (trade, 'amount', 'base_volume');
+        const priceString = this.safeString2 (trade, 'rate', 'price');
         const price = this.parseNumber (priceString);
         const factor = this.safeString (trade, 'factor');
         const amountScaled = Precise.stringDiv (amountString, factor);
         const amount = this.parseNumber (amountScaled);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountScaled));
         const symbol = market['symbol'];
-        let side = this.safeStringLower (trade, 'type');
-        if (side.indexOf ('sell') >= 0) {
-            side = 'sell';
-        } else if (side.indexOf ('buy') >= 0) {
-            side = 'buy';
-        }
+        const side = this.safeStringLower (trade, 'type');
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
@@ -690,7 +697,7 @@ module.exports = class bitbns extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': undefined,
+            'id': orderId,
             'order': orderId,
             'type': undefined,
             'side': side,
@@ -759,6 +766,27 @@ module.exports = class bitbns extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'coin': market['baseId'],
+            'market': market['quoteId'],
+        };
+        const response = await this.wwwGetExchangeDataTradedetails (this.extend (request, params));
+        //
+        //     [
+        //         {"tradeId":"1909151","price":"61904.6300","quote_volume":1618.05,"base_volume":0.02607254,"timestamp":1634548602000,"type":"buy"},
+        //         {"tradeId":"1909153","price":"61893.9000","quote_volume":16384.42,"base_volume":0.26405767,"timestamp":1634548999000,"type":"sell"},
+        //         {"tradeId":"1909155","price":"61853.1100","quote_volume":2304.37,"base_volume":0.03716263,"timestamp":1634549670000,"type":"sell"}
+        //     }
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -935,15 +963,20 @@ module.exports = class bitbns extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'v1', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        this.checkRequiredCredentials ();
+    sign (path, api = 'www', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        if (!(api in this.urls['api'])) {
+            throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
+        }
+        if (api !== 'www') {
+            this.checkRequiredCredentials ();
+            headers = {
+                'X-BITBNS-APIKEY': this.apiKey,
+            };
+        }
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const nonce = this.nonce ().toString ();
-        headers = {
-            'X-BITBNS-APIKEY': this.apiKey,
-        };
         if (method === 'GET') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
