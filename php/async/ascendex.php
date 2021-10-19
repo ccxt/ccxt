@@ -1737,7 +1737,8 @@ class ascendex extends Exchange {
             $request = 'balance';
         }
         if (mb_strpos($request, 'subuser') !== false) {
-            $request = 'subuser';
+            $parts = explode('/', $request);
+            $request = $parts[2];
         }
         $query = $this->omit($query, $this->extract_params($path));
         if ($access === 'public') {

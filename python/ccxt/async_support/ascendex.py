@@ -1664,7 +1664,8 @@ class ascendex(Exchange):
         if (version == 'v1') and (request == 'cash/balance') or (request == 'margin/balance'):
             request = 'balance'
         if request.find('subuser') >= 0:
-            request = 'subuser'
+            parts = request.split('/')
+            request = parts[2]
         query = self.omit(query, self.extract_params(path))
         if access == 'public':
             if query:
