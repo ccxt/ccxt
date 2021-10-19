@@ -29,6 +29,9 @@ module.exports = class kucoin extends ccxt.kucoin {
                     'maxAttempts': 3, // default number of sync attempts
                     'delay': 1000, // warmup delay in ms before synchronizing
                 },
+                'watchTicker': {
+                    'topic': 'market/snapshot', // market/ticker
+                },
             },
             'streaming': {
                 // kucoin does not support built-in ws protocol-level ping-pong
@@ -125,12 +128,16 @@ module.exports = class kucoin extends ccxt.kucoin {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const negotiation = await this.negotiate ();
-        const topic = '/market/snapshot:' + market['id'];
+        const options = this.safeValue (this.options, 'watchTicker', {});
+        const channel = this.safeString (options, 'topic', 'market/snapshot');
+        const topic = '/' + channel + ':' + market['id'];
         const messageHash = topic;
         return await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
     }
 
     handleTicker (client, message) {
+        //
+        // market/snapshot
         //
         // updates come in every 2 sec unless there
         // were no changes since the previous update
@@ -165,9 +172,34 @@ module.exports = class kucoin extends ccxt.kucoin {
         //         "type": "message"
         //     }
         //
+        // market/ticker
+        //
+        //     {
+        //         type: 'message',
+        //         topic: '/market/ticker:BTC-USDT',
+        //         subject: 'trade.ticker',
+        //         data: {
+        //             bestAsk: '62163',
+        //             bestAskSize: '0.99011388',
+        //             bestBid: '62162.9',
+        //             bestBidSize: '0.04794181',
+        //             price: '62162.9',
+        //             sequence: '1621383371852',
+        //             size: '0.00832274',
+        //             time: 1634641987564
+        //         }
+        //     }
+        //
+        const topic = this.safeString (message, 'topic');
+        let market = undefined;
+        if (topic !== undefined) {
+            const parts = topic.split (':');
+            const marketId = this.safeString (parts, 1);
+            market = this.safeMarket (marketId, market, '-');
+        }
         const data = this.safeValue (message, 'data', {});
-        const rawTicker = this.safeValue (data, 'data', {});
-        const ticker = this.parseTicker (rawTicker);
+        const rawTicker = this.safeValue (data, 'data', data);
+        const ticker = this.parseTicker (rawTicker, market);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
         const messageHash = this.safeString (message, 'topic');
@@ -739,6 +771,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         const subject = this.safeString (message, 'subject');
         const methods = {
             'trade.l2update': this.handleOrderBook,
+            'trade.ticker': this.handleTicker,
             'trade.snapshot': this.handleTicker,
             'trade.l3match': this.handleTrade,
             'trade.candles.update': this.handleOHLCV,
