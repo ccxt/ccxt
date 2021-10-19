@@ -553,23 +553,22 @@ module.exports = class gateio extends Exchange {
         const spot = (type === 'spot');
         const margin = (type === 'margin');
         const futures = (type === 'future');
-        const delivery = (type === 'delivery');
         const swap = (type === 'swap');
         const option = (type === 'option');
-        if (!spot && !margin && !futures && !delivery) {
+        if (!spot && !margin && !futures && !swap) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
         }
         let response = undefined;
         const result = [];
         let method = 'publicSpotGetCurrencyPairs';
-        if (futures) {
+        if (swap) {
             method = 'publicFuturesGetSettleContracts';
-        } else if (delivery) {
+        } else if (futures) {
             method = 'publicDeliveryGetSettleContracts';
         } else if (margin) {
             method = 'publicMarginGetCurrencyPairs';
         }
-        if (futures || delivery) {
+        if (futures || swap) {
             const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
             const fetchMarketsContractOptions = this.safeValue (options, 'fetchMarchets', {});
             const settlementCurrencies = this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', ['usdt']);
@@ -577,7 +576,7 @@ module.exports = class gateio extends Exchange {
                 const settle = settlementCurrencies[c];
                 query['settle'] = settle;
                 response = await this[method] (query);
-                //  Futures
+                //  Perpetual swap
                 //      [
                 //          {
                 //              "name": "BTC_USDT",
@@ -621,7 +620,7 @@ module.exports = class gateio extends Exchange {
                 //          }
                 //      ]
                 //
-                //  Delivery
+                //  Delivery Futures
                 //      [
                 //          {
                 //            "name": "BTC_USDT_20200814",
@@ -1210,12 +1209,12 @@ module.exports = class gateio extends Exchange {
         const market = this.market (symbol);
         const request = this.baseRequest (market);
         const futures = market['futures'];
-        const delivery = market['delivery'];
+        const swap = market['swap'];
         const spot = market['spot'];
         let method = 'publicSpotGetOrderBook';
-        if (futures) {
+        if (swap) {
             method = 'publicFuturesGetSettleOrderBook';
-        } else if (delivery) {
+        } else if (futures) {
             method = 'publicDeliveryGetSettleOrderBook';
         }
         if (limit !== undefined) {
@@ -1251,7 +1250,7 @@ module.exports = class gateio extends Exchange {
         //         ["2.2223","756.063"]
         //     ]
         // }
-        // FUTURE
+        // Perpetual Swap
         // {
         //     "current": 1634350208.745,
         //     "asks": [
@@ -1295,12 +1294,12 @@ module.exports = class gateio extends Exchange {
         let method = 'publicSpotGetTickers';
         const id = market['id'];
         const request = {};
-        const linear = market['linear'];
-        const inverse = market['inverse'];
-        if (linear || inverse) {
+        const swap = market['swap'];
+        const futures = market['futures'];
+        if (swap || futures) {
             request['contract'] = id;
-            request['settle'] = market['baseId'];
-            if (market['linear']) {
+            request['settle'] = market['settleId'];
+            if (swap) {
                 method = 'publicFuturesGetTickers';
             } else {
                 method = 'publicDeliveryGetTickers';
@@ -1389,10 +1388,10 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, 'type');
         let method = 'publicSpotGetTickers';
         const request = {};
-        const linear = type === 'future';
-        const inverse = type === 'delivery';
-        if (linear || inverse) {
-            if (linear) {
+        const futures = type === 'future';
+        const swap = type === 'swap';
+        if (swap || futures) {
+            if (swap) {
                 if (!params['settle']) {
                     request['settle'] = 'usdt';
                 }
