@@ -34,7 +34,7 @@ module.exports = class bitbns extends Exchange {
                 'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
-                'fetchTrades': undefined,
+                'fetchTrades': true,
                 'fetchWithdrawals': true,
             },
             'timeframes': {
@@ -659,15 +659,46 @@ module.exports = class bitbns extends Exchange {
         //         "id": "2938823"
         //     }
         //
+        // fetchTrades
+        // [
+        //     {
+        //       tradeId: '2567653',
+        //       price: '4841691.15',
+        //       quote_volume: '230.17',
+        //       base_volume: '4.742e-5',
+        //       timestamp: '1634542840000',
+        //       type: 'sell'
+        //     },
+        //     {
+        //       tradeId: '2567655',
+        //       price: '4841428.97',
+        //       quote_volume: '97070.65',
+        //       base_volume: '0.02',
+        //       timestamp: '1634542921000',
+        //       type: 'sell'
+        //     },
+        // ]
         market = this.safeMarket (undefined, market);
-        const orderId = this.safeString (trade, 'id');
-        const timestamp = this.parse8601 (this.safeString (trade, 'date'));
+        let orderId = this.safeString (trade, 'id');
+        if (orderId === undefined) {
+            orderId = this.safeString (trade, 'tradeId');
+        }
+        let timestamp = this.parse8601 (this.safeString (trade, 'date'));
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (trade, 'timestamp');
+        }
         const amountString = this.safeString (trade, 'amount');
-        const priceString = this.safeString (trade, 'rate');
+        let priceString = this.safeString (trade, 'rate');
+        if (priceString === undefined) {
+            priceString = this.safeString (trade, 'price');
+        }
         const price = this.parseNumber (priceString);
         const factor = this.safeString (trade, 'factor');
         const amountScaled = Precise.stringDiv (amountString, factor);
-        const amount = this.parseNumber (amountScaled);
+        let amount = this.parseNumber (amountScaled);
+        if (amount === undefined) {
+            amount = this.parseNumber (this.safeString (trade, 'base_volume'));
+        }
         const cost = this.parseNumber (Precise.stringMul (priceString, amountScaled));
         const symbol = market['symbol'];
         let side = this.safeStringLower (trade, 'type');
@@ -690,7 +721,7 @@ module.exports = class bitbns extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': undefined,
+            'id': orderId,
             'order': orderId,
             'type': undefined,
             'side': side,
@@ -759,6 +790,20 @@ module.exports = class bitbns extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'coin': market['id'],
+            'market': market['quoteId'],
+        };
+        const response = await this.wwwGetExchangeDataTradedetails (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
