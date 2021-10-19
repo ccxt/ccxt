@@ -728,11 +728,24 @@ class kucoin extends Exchange {
         //         "mark" => 0
         //     }
         //
+        // market/ticker ws subscription
+        //
+        //     {
+        //         "sequence":"1545896668986", // Sequence number
+        //         "price":"0.08",             // Last traded price
+        //         "size":"0.011",             //  Last traded amount
+        //         "bestAsk":"0.08",          // Best ask price
+        //         "bestAskSize":"0.18",      // Best ask size
+        //         "bestBid":"0.049",         // Best bid price
+        //         "bestBidSize":"0.036"     // Best bid size
+        //     }
+        //
         $percentage = $this->safe_number($ticker, 'changeRate');
         if ($percentage !== null) {
             $percentage = $percentage * 100;
         }
         $last = $this->safe_number_2($ticker, 'last', 'lastTradedPrice');
+        $last = $this->safe_number($ticker, 'price', $last);
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $baseVolume = $this->safe_number($ticker, 'vol');
@@ -745,10 +758,10 @@ class kucoin extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'high'),
             'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
-            'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
-            'askVolume' => null,
+            'bid' => $this->safe_number_2($ticker, 'buy', 'bestBid'),
+            'bidVolume' => $this->safe_number($ticker, 'bestBidSize'),
+            'ask' => $this->safe_number_2($ticker, 'sell', 'bestAsk'),
+            'askVolume' => $this->safe_number($ticker, 'bestAskSize'),
             'vwap' => $vwap,
             'open' => $this->safe_number($ticker, 'open'),
             'close' => $last,

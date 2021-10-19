@@ -719,10 +719,23 @@ class kucoin(Exchange):
         #         "mark": 0
         #     }
         #
+        # market/ticker ws subscription
+        #
+        #     {
+        #         "sequence":"1545896668986",  # Sequence number
+        #         "price":"0.08",             # Last traded price
+        #         "size":"0.011",             #  Last traded amount
+        #         "bestAsk":"0.08",          # Best ask price
+        #         "bestAskSize":"0.18",      # Best ask size
+        #         "bestBid":"0.049",         # Best bid price
+        #         "bestBidSize":"0.036"     # Best bid size
+        #     }
+        #
         percentage = self.safe_number(ticker, 'changeRate')
         if percentage is not None:
             percentage = percentage * 100
         last = self.safe_number_2(ticker, 'last', 'lastTradedPrice')
+        last = self.safe_number(ticker, 'price', last)
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, '-')
         baseVolume = self.safe_number(ticker, 'vol')
@@ -735,10 +748,10 @@ class kucoin(Exchange):
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high'),
             'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
-            'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
-            'askVolume': None,
+            'bid': self.safe_number_2(ticker, 'buy', 'bestBid'),
+            'bidVolume': self.safe_number(ticker, 'bestBidSize'),
+            'ask': self.safe_number_2(ticker, 'sell', 'bestAsk'),
+            'askVolume': self.safe_number(ticker, 'bestAskSize'),
             'vwap': vwap,
             'open': self.safe_number(ticker, 'open'),
             'close': last,
