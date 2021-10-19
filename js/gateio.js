@@ -1634,15 +1634,7 @@ module.exports = class gateio extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currency_pair': market['id'],
-            // 'limit': limit,
-            // 'page': 0,
-            // 'order_id': 'Order ID',
-            // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
-            // 'from': since, // default to 7 days before current time
-            // 'to': this.milliseconds (), // default to current time
-        };
+        const request = this.prepareRequest (market);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
@@ -1650,7 +1642,39 @@ module.exports = class gateio extends Exchange {
             request['from'] = parseInt (since / 1000);
             // request['to'] = since + 7 * 24 * 60 * 60;
         }
-        const response = await this.privateSpotGetMyTrades (this.extend (request, params));
+        let method = 'privateSpotGetMyTrades';
+        if (market['swap']) {
+            method = 'privateFuturesGetSettleMyTrades';
+        } else if (market['futures']) {
+            method = 'privateDeliveryGetSettleMyTrades';
+        }
+        const response = await this[method] (this.extend (request, params));
+        // SPOT
+        // [{
+        //     id: "1851927191",
+        //     create_time: "1634333360",
+        //     create_time_ms: "1634333360359.901000",
+        //     currency_pair: "BTC_USDT",
+        //     side: "buy",
+        //     role: "taker",
+        //     amount: "0.0001",
+        //     price: "62547.51",
+        //     order_id: "93475897349",
+        //     fee: "2e-07",
+        //     fee_currency: "BTC",
+        //     point_fee: "0",
+        //     gt_fee: "0",
+        //   }]
+        // Perpetual Swap
+        // [{
+        //   size: "-13",
+        //   order_id: "79723658958",
+        //   id: "47612669",
+        //   role: "taker",
+        //   create_time: "1634600263.326",
+        //   contract: "BTC_USDT",
+        //   price: "61987.8",
+        // }]
         return this.parseTrades (response, market, since, limit);
     }
 
