@@ -285,6 +285,7 @@ class bitmart extends Exchange {
             'commonCurrencies' => array(
                 'COT' => 'Community Coin',
                 'CPC' => 'CPCoin',
+                'GDT' => 'Gorilla Diamond',
                 'MVP' => 'MVP Coin',
                 'ONE' => 'Menlo One',
                 'PLA' => 'Plair',

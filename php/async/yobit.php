@@ -123,6 +123,7 @@ class yobit extends Exchange {
                 'EXT' => 'LifeExtension',
                 'FUND' => 'FUNDChains',
                 'FUNK' => 'FUNKCoin',
+                'FX' => 'FCoin',
                 'GCC' => 'GlobalCryptocurrency',
                 'GEN' => 'Genstake',
                 'GENE' => 'Genesiscoin',

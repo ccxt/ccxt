@@ -1592,7 +1592,8 @@ class okex(Exchange):
         # see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
         defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
         tgtCcy = self.safe_string(order, 'tgtCcy', defaultTgtCcy)
-        if side == 'buy' and type == 'market' and market['spot'] and tgtCcy == 'quote_ccy':
+        instType = self.safe_string(order, 'instType')
+        if (side == 'buy') and (type == 'market') and (instType == 'SPOT') and (tgtCcy == 'quote_ccy'):
             # "sz" refers to the cost
             cost = self.safe_number(order, 'sz')
         else:

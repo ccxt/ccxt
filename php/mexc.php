@@ -224,6 +224,7 @@ class mexc extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'SIN' => 'Sin City Token',
             ),
             'exceptions' => array(
                 'exact' => array(

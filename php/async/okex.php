@@ -1590,7 +1590,7 @@ class okex extends Exchange {
         //         "fillSz":"0",
         //         "fillTime":"",
         //         "instId":"ETH-USDT",
-        //         "instType":"SPOT",
+        //         "$instType":"SPOT",
         //         "lever":"",
         //         "ordId":"317251910906576896",
         //         "ordType":"limit",
@@ -1642,7 +1642,8 @@ class okex extends Exchange {
         // see documentation => https://www.okex.com/docs-v5/en/#rest-api-trade-place-$order
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
         $tgtCcy = $this->safe_string($order, 'tgtCcy', $defaultTgtCcy);
-        if ($side === 'buy' && $type === 'market' && $market['spot'] && $tgtCcy === 'quote_ccy') {
+        $instType = $this->safe_string($order, 'instType');
+        if (($side === 'buy') && ($type === 'market') && ($instType === 'SPOT') && ($tgtCcy === 'quote_ccy')) {
             // "sz" refers to the $cost
             $cost = $this->safe_number($order, 'sz');
         } else {
