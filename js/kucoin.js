@@ -724,11 +724,24 @@ module.exports = class kucoin extends Exchange {
         //         "mark": 0
         //     }
         //
+        // market/ticker ws subscription
+        //
+        //     {
+        //         "sequence":"1545896668986", // Sequence number
+        //         "price":"0.08",             // Last traded price
+        //         "size":"0.011",             //  Last traded amount
+        //         "bestAsk":"0.08",          // Best ask price
+        //         "bestAskSize":"0.18",      // Best ask size
+        //         "bestBid":"0.049",         // Best bid price
+        //         "bestBidSize":"0.036"     // Best bid size
+        //     }
+        //
         let percentage = this.safeNumber (ticker, 'changeRate');
         if (percentage !== undefined) {
             percentage = percentage * 100;
         }
-        const last = this.safeNumber2 (ticker, 'last', 'lastTradedPrice');
+        let last = this.safeNumber2 (ticker, 'last', 'lastTradedPrice');
+        last = this.safeNumber (ticker, 'price', last);
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '-');
         const baseVolume = this.safeNumber (ticker, 'vol');
@@ -741,10 +754,10 @@ module.exports = class kucoin extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'high'),
             'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
-            'askVolume': undefined,
+            'bid': this.safeNumber2 (ticker, 'buy', 'bestBid'),
+            'bidVolume': this.safeNumber (ticker, 'bestBidSize'),
+            'ask': this.safeNumber2 (ticker, 'sell', 'bestAsk'),
+            'askVolume': this.safeNumber (ticker, 'bestAskSize'),
             'vwap': vwap,
             'open': this.safeNumber (ticker, 'open'),
             'close': last,
