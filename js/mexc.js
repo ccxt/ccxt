@@ -1707,7 +1707,9 @@ module.exports = class mexc extends Exchange {
             clientOrderId = undefined;
         }
         let orderType = this.safeStringLower (order, 'order_type');
-        orderType = orderType.replace ('_order', '');
+        if (orderType !== undefined) {
+            orderType = orderType.replace ('_order', '');
+        }
         return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
