@@ -177,7 +177,6 @@ module.exports = class binance extends Exchange {
                         'capital/withdraw/history': 1,
                         'account/status': 1,
                         'account/apiTradingStatus': 1,
-                        'account/apiRestrictions': 1,
                         'bnbBurn': 1,
                         'sub-account/assets': 1,
                         'sub-account/futures/account': 1,
