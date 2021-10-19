@@ -1414,7 +1414,8 @@ class gateio(Exchange):
         params = self.omit(params, 'price')
         isMark = (price == 'mark')
         isIndex = (price == 'index')
-        isFuture = isMark or isIndex
+        future = market['futures']
+        swap = market['swap']
         request = {
             'interval': self.timeframes[timeframe],
         }
@@ -1426,10 +1427,13 @@ class gateio(Exchange):
             if limit is not None:
                 request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe) - 1)
         method = 'publicSpotGetCandlesticks'
-        if isFuture:
+        if isMark or isIndex or future or swap:
             request['contract'] = market['id']
-            method = 'publicFuturesGetSettleCandlesticks'
-            request['settle'] = market['quote'].lower()
+            if future:
+                method = 'publicDeliveryGetSettleCandlesticks'
+            else:
+                method = 'publicFuturesGetSettleCandlesticks'
+            request['settle'] = market['settleId']
             if isMark:
                 request['contract'] = 'mark_' + request['contract']
             elif isIndex:
@@ -1514,7 +1518,7 @@ class gateio(Exchange):
                 self.safe_number(ohlcv, 'h'),    # highest price
                 self.safe_number(ohlcv, 'l'),    # lowest price
                 self.safe_number(ohlcv, 'c'),    # close price
-                0,
+                self.safe_number(ohlcv, 'v', 0),  # trading volume, 0 for mark or index price
             ]
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

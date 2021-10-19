@@ -1445,7 +1445,8 @@ class gateio extends Exchange {
         $params = $this->omit($params, 'price');
         $isMark = ($price === 'mark');
         $isIndex = ($price === 'index');
-        $isFuture = $isMark || $isIndex;
+        $future = $market['futures'];
+        $swap = $market['swap'];
         $request = array(
             'interval' => $this->timeframes[$timeframe],
         );
@@ -1460,10 +1461,14 @@ class gateio extends Exchange {
             }
         }
         $method = 'publicSpotGetCandlesticks';
-        if ($isFuture) {
+        if ($isMark || $isIndex || $future || $swap) {
             $request['contract'] = $market['id'];
-            $method = 'publicFuturesGetSettleCandlesticks';
-            $request['settle'] = strtolower($market['quote']);
+            if ($future) {
+                $method = 'publicDeliveryGetSettleCandlesticks';
+            } else {
+                $method = 'publicFuturesGetSettleCandlesticks';
+            }
+            $request['settle'] = $market['settleId'];
             if ($isMark) {
                 $request['contract'] = 'mark_' . $request['contract'];
             } else if ($isIndex) {
@@ -1556,7 +1561,7 @@ class gateio extends Exchange {
                 $this->safe_number($ohlcv, 'h'),    // highest price
                 $this->safe_number($ohlcv, 'l'),    // lowest price
                 $this->safe_number($ohlcv, 'c'),    // close price
-                0,
+                $this->safe_number($ohlcv, 'v', 0), // trading volume, 0 for mark or index price
             );
         }
     }
