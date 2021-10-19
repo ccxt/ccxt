@@ -1564,10 +1564,39 @@ module.exports = class gateio extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currency_pair': market['id'],
-        };
-        const response = await this.publicSpotGetTrades (this.extend (request, params));
+        const request = this.prepareRequest (market);
+        let method = 'publicSpotGetTrades';
+        if (market['swap']) {
+            method = 'publicFuturesGetSettleTrades';
+        } else if (market['futures']) {
+            method = 'publicDeliveryGetSettleTrades';
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 1000
+        }
+        if (since !== undefined && (market['swap'] || market['delivery'])) {
+            request['from'] = Math.floor (since / 1000);
+        }
+        const response = await this[method] (this.extend (request, params));
+        // SPOT
+        // [{
+        //     id: "1852958144",
+        //     create_time: "1634673259",
+        //     create_time_ms: "1634673259378.105000",
+        //     currency_pair: "ADA_USDT",
+        //     side: "sell",
+        //     amount: "307.078",
+        //     price: "2.104",
+        // }]
+        // Perpetual Swap
+        // [{
+        //      size: "2",
+        //      id: "2522911",
+        //      create_time_ms: "1634673380.182",
+        //      create_time: "1634673380.182",
+        //      contract: "ADA_USDT",
+        //      price: "2.10486",
+        // }]
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1631,9 +1660,9 @@ module.exports = class gateio extends Exchange {
             const milliseconds = timestampString.split ('.');
             timestamp = parseInt (milliseconds[0]);
         }
-        const marketId = this.safeString (trade, 'currency_pair');
+        const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
-        const amountString = this.safeString (trade, 'amount');
+        const amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
         const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
         const amount = this.parseNumber (amountString);
