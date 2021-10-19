@@ -744,12 +744,13 @@ module.exports = class kucoin extends Exchange {
         let last = this.safeNumber2 (ticker, 'last', 'lastTradedPrice');
         last = this.safeNumber (ticker, 'price', last);
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const baseVolume = this.safeNumber (ticker, 'vol');
         const quoteVolume = this.safeNumber (ticker, 'volValue');
         const vwap = this.vwap (baseVolume, quoteVolume);
         const timestamp = this.safeInteger2 (ticker, 'time', 'datetime');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -770,7 +771,7 @@ module.exports = class kucoin extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
