@@ -1902,4 +1902,19 @@ module.exports = class Exchange {
         }
         return [ tag, params ]
     }
+
+    paths (market, spot, swap, futures, margin) {
+        // returns what path to use for each market
+        if (market['spot']) {
+            return spot;
+        } else if (market['swap']) {
+            return swap;
+        } else if (market['futures']) {
+            return futures;
+        } else if (market['margin']) {
+            return margin;
+        } else {
+            throw new NotSupported ('Method unavailable for' + this.name + 'for the current market ');
+        }
+    }
 }

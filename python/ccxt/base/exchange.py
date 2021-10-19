@@ -2497,3 +2497,16 @@ class Exchange(object):
             if tag is not None:
                 params = self.omit(params, 'tag')
         return [tag, params]
+
+    def paths(self, market, spot, swap, futures, margin):
+        # returns what path to use for each market
+        if (market['spot']):
+            return spot
+        elif (market['swap']):
+            return swap
+        elif (market['futures']):
+            return futures
+        elif (market['margin']):
+            return margin
+        else:
+            raise NotSupported('Method unavailable for' + self.name + 'for the current market ')
