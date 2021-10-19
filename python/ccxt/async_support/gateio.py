@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1210,62 +1209,66 @@ class gateio(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         #
         # SPOT
-        # {
-        #     "current": 1634345973275,
-        #     "update": 1634345973271,
-        #     "asks": [
-        #         ["2.2241","12449.827"],
-        #         ["2.2242","200"],
-        #         ["2.2244","826.931"],
-        #         ["2.2248","3876.107"],
-        #         ["2.225","2377.252"],
-        #         ["2.22509","439.484"],
-        #         ["2.2251","1489.313"],
-        #         ["2.2253","714.582"],
-        #         ["2.2254","1349.784"],
-        #         ["2.2256","234.701"]],
-        #      "bids":[
-        #         ["2.2236","32.465"],
-        #         ["2.2232","243.983"],
-        #         ["2.2231","32.207"],
-        #         ["2.223","449.827"],
-        #         ["2.2228","7.918"],
-        #         ["2.2227","12703.482"],
-        #         ["2.2226","143.033"],
-        #         ["2.2225","143.027"],
-        #         ["2.2224","1369.352"],
-        #         ["2.2223","756.063"]
-        #     ]
-        # }
+        #
+        #     {
+        #         "current": 1634345973275,
+        #         "update": 1634345973271,
+        #         "asks": [
+        #             ["2.2241","12449.827"],
+        #             ["2.2242","200"],
+        #             ["2.2244","826.931"],
+        #             ["2.2248","3876.107"],
+        #             ["2.225","2377.252"],
+        #             ["2.22509","439.484"],
+        #             ["2.2251","1489.313"],
+        #             ["2.2253","714.582"],
+        #             ["2.2254","1349.784"],
+        #             ["2.2256","234.701"]],
+        #          "bids":[
+        #             ["2.2236","32.465"],
+        #             ["2.2232","243.983"],
+        #             ["2.2231","32.207"],
+        #             ["2.223","449.827"],
+        #             ["2.2228","7.918"],
+        #             ["2.2227","12703.482"],
+        #             ["2.2226","143.033"],
+        #             ["2.2225","143.027"],
+        #             ["2.2224","1369.352"],
+        #             ["2.2223","756.063"]
+        #         ]
+        #     }
+        #
         # Perpetual Swap
-        # {
-        #     "current": 1634350208.745,
-        #     "asks": [
-        #         {"s":24909,"p":"61264.8"},
-        #         {"s":81,"p":"61266.6"},
-        #         {"s":2000,"p":"61267.6"},
-        #         {"s":490,"p":"61270.2"},
-        #         {"s":12,"p":"61270.4"},
-        #         {"s":11782,"p":"61273.2"},
-        #         {"s":14666,"p":"61273.3"},
-        #         {"s":22541,"p":"61273.4"},
-        #         {"s":33,"p":"61273.6"},
-        #         {"s":11980,"p":"61274.5"}
-        #     ],
-        #     "bids": [
-        #         {"s":41844,"p":"61264.7"},
-        #         {"s":13783,"p":"61263.3"},
-        #         {"s":1143,"p":"61259.8"},
-        #         {"s":81,"p":"61258.7"},
-        #         {"s":2471,"p":"61257.8"},
-        #         {"s":2471,"p":"61257.7"},
-        #         {"s":2471,"p":"61256.5"},
-        #         {"s":3,"p":"61254.2"},
-        #         {"s":114,"p":"61252.4"},
-        #         {"s":14372,"p":"61248.6"}
-        #     ],
-        #     "update": 1634350208.724
-        # }
+        #
+        #     {
+        #         "current": 1634350208.745,
+        #         "asks": [
+        #             {"s":24909,"p":"61264.8"},
+        #             {"s":81,"p":"61266.6"},
+        #             {"s":2000,"p":"61267.6"},
+        #             {"s":490,"p":"61270.2"},
+        #             {"s":12,"p":"61270.4"},
+        #             {"s":11782,"p":"61273.2"},
+        #             {"s":14666,"p":"61273.3"},
+        #             {"s":22541,"p":"61273.4"},
+        #             {"s":33,"p":"61273.6"},
+        #             {"s":11980,"p":"61274.5"}
+        #         ],
+        #         "bids": [
+        #             {"s":41844,"p":"61264.7"},
+        #             {"s":13783,"p":"61263.3"},
+        #             {"s":1143,"p":"61259.8"},
+        #             {"s":81,"p":"61258.7"},
+        #             {"s":2471,"p":"61257.8"},
+        #             {"s":2471,"p":"61257.7"},
+        #             {"s":2471,"p":"61256.5"},
+        #             {"s":3,"p":"61254.2"},
+        #             {"s":114,"p":"61252.4"},
+        #             {"s":14372,"p":"61248.6"}
+        #         ],
+        #         "update": 1634350208.724
+        #     }
+        #
         timestamp = self.safe_integer(response, 'current')
         if not spot:
             timestamp = timestamp * 1000
@@ -1295,39 +1298,41 @@ class gateio(Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
+        #
         #  SPOT
+        #
         #     {
-        #       "currency_pair": "KFC_USDT",
-        #       "last": "7.255",
-        #       "lowest_ask": "7.298",
-        #       "highest_bid": "7.218",
-        #       "change_percentage": "-1.18",
-        #       "base_volume": "1219.053687865",
-        #       "quote_volume": "8807.40299875455",
-        #       "high_24h": "7.262",
-        #       "low_24h": "7.095"
+        #         "currency_pair": "KFC_USDT",
+        #         "last": "7.255",
+        #         "lowest_ask": "7.298",
+        #         "highest_bid": "7.218",
+        #         "change_percentage": "-1.18",
+        #         "base_volume": "1219.053687865",
+        #         "quote_volume": "8807.40299875455",
+        #         "high_24h": "7.262",
+        #         "low_24h": "7.095"
         #     }
         #
         #  LINEAR/DELIVERY
         #
-        #   {
-        #     "contract": "BTC_USDT",
-        #     "last": "6432",
-        #     "low_24h": "6278",
-        #     "high_24h": "6790",
-        #     "change_percentage": "4.43",
-        #     "total_size": "32323904",
-        #     "volume_24h": "184040233284",
-        #     "volume_24h_btc": "28613220",
-        #     "volume_24h_usd": "184040233284",
-        #     "volume_24h_base": "28613220",
-        #     "volume_24h_quote": "184040233284",
-        #     "volume_24h_settle": "28613220",
-        #     "mark_price": "6534",
-        #     "funding_rate": "0.0001",
-        #     "funding_rate_indicative": "0.0001",
-        #     "index_price": "6531"
-        #   }
+        #     {
+        #         "contract": "BTC_USDT",
+        #         "last": "6432",
+        #         "low_24h": "6278",
+        #         "high_24h": "6790",
+        #         "change_percentage": "4.43",
+        #         "total_size": "32323904",
+        #         "volume_24h": "184040233284",
+        #         "volume_24h_btc": "28613220",
+        #         "volume_24h_usd": "184040233284",
+        #         "volume_24h_base": "28613220",
+        #         "volume_24h_quote": "184040233284",
+        #         "volume_24h_settle": "28613220",
+        #         "mark_price": "6534",
+        #         "funding_rate": "0.0001",
+        #         "funding_rate_indicative": "0.0001",
+        #         "index_price": "6531"
+        #     }
         #
         marketId = self.safe_string_2(ticker, 'currency_pair', 'contract')
         symbol = self.safe_symbol(marketId, market)
@@ -1423,7 +1428,7 @@ class gateio(Exchange):
             if limit is not None:
                 request['limit'] = limit
         else:
-            request['from'] = int(math.floor(since / 1000))
+            request['from'] = int(since / 1000)
             if limit is not None:
                 request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe) - 1)
         method = 'publicSpotGetCandlesticks'
@@ -1482,24 +1487,27 @@ class gateio(Exchange):
         return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_ohlcv(self, ohlcv, market=None):
+        #
         # Spot market candles
+        #
         #     [
-        #       "1626163200",           # Unix timestamp in seconds
-        #       "346711.933138181617",  # Trading volume
-        #       "33165.23",             # Close price
-        #       "33260",                # Highest price
-        #       "33117.6",              # Lowest price
-        #       "33184.47"              # Open price
+        #         "1626163200",           # Unix timestamp in seconds
+        #         "346711.933138181617",  # Trading volume
+        #         "33165.23",             # Close price
+        #         "33260",                # Highest price
+        #         "33117.6",              # Lowest price
+        #         "33184.47"              # Open price
         #     ]
         #
         # Mark and Index price candles
-        # {
-        #      "t":1632873600,         # Unix timestamp in seconds
-        #      "o":"41025",            # Open price
-        #      "h":"41882.17",         # Highest price
-        #      "c":"41776.92",         # Close price
-        #      "l":"40783.94"          # Lowest price
-        # }
+        #
+        #     {
+        #          "t":1632873600,         # Unix timestamp in seconds
+        #          "o":"41025",            # Open price
+        #          "h":"41882.17",         # Highest price
+        #          "c":"41776.92",         # Close price
+        #          "l":"40783.94"          # Lowest price
+        #     }
         #
         if isinstance(ohlcv, list):
             return [
@@ -1518,16 +1526,51 @@ class gateio(Exchange):
                 self.safe_number(ohlcv, 'h'),    # highest price
                 self.safe_number(ohlcv, 'l'),    # lowest price
                 self.safe_number(ohlcv, 'c'),    # close price
-                self.safe_number(ohlcv, 'v', 0),  # trading volume, 0 for mark or index price
+                self.safe_number(ohlcv, 'v'),    # trading volume, None for mark or index price
             ]
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'currency_pair': market['id'],
-        }
-        response = await self.publicSpotGetTrades(self.extend(request, params))
+        request = self.prepare_request(market)
+        method = 'publicSpotGetTrades'
+        if market['swap']:
+            method = 'publicFuturesGetSettleTrades'
+        elif market['futures']:
+            method = 'publicDeliveryGetSettleTrades'
+        if limit is not None:
+            request['limit'] = limit  # default 100, max 1000
+        if since is not None and (market['swap'] or market['delivery']):
+            request['from'] = int(since / 1000)
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot
+        #
+        #     [
+        #         {
+        #             id: "1852958144",
+        #             create_time: "1634673259",
+        #             create_time_ms: "1634673259378.105000",
+        #             currency_pair: "ADA_USDT",
+        #             side: "sell",
+        #             amount: "307.078",
+        #             price: "2.104",
+        #         }
+        #     ]
+        #
+        # perpetual swap
+        #
+        #     [
+        #         {
+        #              size: "2",
+        #              id: "2522911",
+        #              create_time_ms: "1634673380.182",
+        #              create_time: "1634673380.182",
+        #              contract: "ADA_USDT",
+        #              price: "2.10486",
+        #         }
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -1545,7 +1588,7 @@ class gateio(Exchange):
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
         if since is not None:
-            request['from'] = int(math.floor(since / 1000))
+            request['from'] = int(since / 1000)
             # request['to'] = since + 7 * 24 * 60 * 60
         response = await self.privateSpotGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
@@ -1553,31 +1596,33 @@ class gateio(Exchange):
     def parse_trade(self, trade, market=None):
         #
         # public
+        #
         #     {
-        #       "id": "1334253759",
-        #       "create_time": "1626342738",
-        #       "create_time_ms": "1626342738331.497000",
-        #       "currency_pair": "BTC_USDT",
-        #       "side": "sell",
-        #       "amount": "0.0022",
-        #       "price": "32452.16"
+        #         "id": "1334253759",
+        #         "create_time": "1626342738",
+        #         "create_time_ms": "1626342738331.497000",
+        #         "currency_pair": "BTC_USDT",
+        #         "side": "sell",
+        #         "amount": "0.0022",
+        #         "price": "32452.16"
         #     }
         #
         # private
+        #
         #     {
-        #       "id": "218087755",
-        #       "create_time": "1578958740",
-        #       "create_time_ms": "1578958740122.710000",
-        #       "currency_pair": "BTC_USDT",
-        #       "side": "sell",
-        #       "role": "taker",
-        #       "amount": "0.0004",
-        #       "price": "8112.77",
-        #       "order_id": "8445563839",
-        #       "fee": "0.006490216",
-        #       "fee_currency": "USDT",
-        #       "point_fee": "0",
-        #       "gt_fee": "0"
+        #         "id": "218087755",
+        #         "create_time": "1578958740",
+        #         "create_time_ms": "1578958740122.710000",
+        #         "currency_pair": "BTC_USDT",
+        #         "side": "sell",
+        #         "role": "taker",
+        #         "amount": "0.0004",
+        #         "price": "8112.77",
+        #         "order_id": "8445563839",
+        #         "fee": "0.006490216",
+        #         "fee_currency": "USDT",
+        #         "point_fee": "0",
+        #         "gt_fee": "0"
         #     }
         #
         id = self.safe_string(trade, 'id')
@@ -1586,9 +1631,9 @@ class gateio(Exchange):
         if timestampString.find('.') > 0:
             milliseconds = timestampString.split('.')
             timestamp = int(milliseconds[0])
-        marketId = self.safe_string(trade, 'currency_pair')
+        marketId = self.safe_string_2(trade, 'currency_pair', 'contract')
         symbol = self.safe_symbol(marketId, market)
-        amountString = self.safe_string(trade, 'amount')
+        amountString = self.safe_string_2(trade, 'amount', 'size')
         priceString = self.safe_string(trade, 'price')
         cost = self.parse_number(Precise.string_mul(amountString, priceString))
         amount = self.parse_number(amountString)
@@ -1635,7 +1680,7 @@ class gateio(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['from'] = int(math.floor(since / 1000))
+            request['from'] = int(since / 1000)
             request['to'] = since + 30 * 24 * 60 * 60
         response = await self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
@@ -1650,7 +1695,7 @@ class gateio(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['from'] = int(math.floor(since / 1000))
+            request['from'] = int(since / 1000)
             request['to'] = since + 30 * 24 * 60 * 60
         response = await self.privateWalletGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency)
@@ -1714,6 +1759,7 @@ class gateio(Exchange):
     def parse_transaction(self, transaction, currency=None):
         #
         # deposits
+        #
         #     {
         #       "id": "d33361395",
         #       "currency": "USDT_TRX",
@@ -1940,7 +1986,7 @@ class gateio(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['start'] = int(math.floor(since / 1000))
+            request['start'] = int(since / 1000)
         response = await self.privateSpotGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
@@ -1980,6 +2026,7 @@ class gateio(Exchange):
         response = await self.privateWalletPostTransfers(self.extend(request, params))
         #
         # according to the docs
+        #
         #     {
         #       "currency": "BTC",
         #       "from": "spot",
@@ -1989,6 +2036,7 @@ class gateio(Exchange):
         #     }
         #
         # actual response
+        #
         #  POST https://api.gateio.ws/api/v4/wallet/transfers 204 No Content
         #
         return {
