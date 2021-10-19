@@ -95,7 +95,6 @@ class binance extends Exchange {
                     'fapiPrivateV2' => 'https://testnet.binancefuture.com/fapi/v2',
                     'public' => 'https://testnet.binance.vision/api/v3',
                     'private' => 'https://testnet.binance.vision/api/v3',
-                    'v3' => 'https://testnet.binance.vision/api/v3',
                     'v1' => 'https://testnet.binance.vision/api/v1',
                 ),
                 'api' => array(
@@ -111,7 +110,6 @@ class binance extends Exchange {
                     'fapiPrivateV2' => 'https://fapi.binance.com/fapi/v2',
                     'public' => 'https://api.binance.com/api/v3',
                     'private' => 'https://api.binance.com/api/v3',
-                    'v3' => 'https://api.binance.com/api/v3',
                     'v1' => 'https://api.binance.com/api/v1',
                 ),
                 'www' => 'https://www.binance.com',
@@ -527,12 +525,6 @@ class binance extends Exchange {
                         'account' => 1,
                         'balance' => 1,
                         'positionRisk' => 1,
-                    ),
-                ),
-                'v3' => array(
-                    'get' => array(
-                        'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
-                        'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
                     ),
                 ),
                 'public' => array(
