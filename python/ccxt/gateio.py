@@ -818,7 +818,7 @@ class gateio(Exchange):
                 })
         return result
 
-    def base_request(self, market):
+    def prepare_request(self, market):
         if market['type'] == 'future' or market['type'] == 'swap':
             return {
                 'contract': market['id'],
@@ -1196,7 +1196,7 @@ class gateio(Exchange):
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = self.base_request(market)
+        request = self.prepare_request(market)
         futures = market['futures']
         swap = market['swap']
         spot = market['spot']
