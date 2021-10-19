@@ -193,6 +193,8 @@ class binance(Exchange):
                         'capital/deposit/subAddress': 1,
                         'capital/deposit/subHisrec': 1,
                         'capital/withdraw/history': 1,
+                        'account/status': 1,
+                        'account/apiTradingStatus': 1,
                         'bnbBurn': 1,
                         'sub-account/assets': 1,
                         'sub-account/futures/account': 1,
