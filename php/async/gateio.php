@@ -558,23 +558,22 @@ class gateio extends Exchange {
         $spot = ($type === 'spot');
         $margin = ($type === 'margin');
         $futures = ($type === 'future');
-        $delivery = ($type === 'delivery');
         $swap = ($type === 'swap');
         $option = ($type === 'option');
-        if (!$spot && !$margin && !$futures && !$delivery) {
+        if (!$spot && !$margin && !$futures && !$swap) {
             throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to " . "'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
         }
         $response = null;
         $result = array();
         $method = 'publicSpotGetCurrencyPairs';
-        if ($futures) {
+        if ($swap) {
             $method = 'publicFuturesGetSettleContracts';
-        } else if ($delivery) {
+        } else if ($futures) {
             $method = 'publicDeliveryGetSettleContracts';
         } else if ($margin) {
             $method = 'publicMarginGetCurrencyPairs';
         }
-        if ($futures || $delivery) {
+        if ($futures || $swap) {
             $options = $this->safe_value($this->options, $type, array()); // array( 'BTC', 'USDT' ) unified codes
             $fetchMarketsContractOptions = $this->safe_value($options, 'fetchMarchets', array());
             $settlementCurrencies = $this->safe_value($fetchMarketsContractOptions, 'settlementCurrencies', ['usdt']);
@@ -582,7 +581,7 @@ class gateio extends Exchange {
                 $settle = $settlementCurrencies[$c];
                 $query['settle'] = $settle;
                 $response = yield $this->$method ($query);
-                //  Futures
+                //  Perpetual $swap
                 //      array(
                 //          {
                 //              "name" => "BTC_USDT",
@@ -626,11 +625,11 @@ class gateio extends Exchange {
                 //          }
                 //      )
                 //
-                //  Delivery
+                //  Delivery Futures
                 //      array(
                 //          {
                 //            "name" => "BTC_USDT_20200814",
-                //            "$underlying" => "BTC_USDT",
+                //            "underlying" => "BTC_USDT",
                 //            "cycle" => "WEEKLY",
                 //            "$type" => "direct",
                 //            "quanto_multiplier" => "0.0001",
@@ -674,18 +673,17 @@ class gateio extends Exchange {
                 for ($i = 0; $i < count($response); $i++) {
                     $market = $response[$i];
                     $id = $this->safe_string($market, 'name');
-                    $underlying = $this->safe_string($market, 'underlying');
-                    list($baseId, $quoteId) = [null, null];
-                    if ($underlying) {
-                        list($baseId, $quoteId) = explode('_', $underlying);
-                    } else {
-                        list($baseId, $quoteId) = explode('_', $id);
-                    }
+                    list($baseId, $quoteId, $date) = explode('_', $id);
                     $linear = strtolower($quoteId) === $settle;
                     $inverse = strtolower($baseId) === $settle;
                     $base = $this->safe_currency_code($baseId);
                     $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $id;
+                    $symbol = '';
+                    if ($date) {
+                        $symbol = $base . '/' . $quote . '-' . $date . ':' . $this->safe_currency_code($settle);
+                    } else {
+                        $symbol = $base . '/' . $quote . ':' . $this->safe_currency_code($settle);
+                    }
                     $takerPercent = $this->safe_string($market, 'taker_fee_rate');
                     $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
                     $result[] = array(
@@ -693,6 +691,7 @@ class gateio extends Exchange {
                         'id' => $id,
                         'baseId' => $baseId,
                         'quoteId' => $quoteId,
+                        'settleId' => $this->safe_symbol($settle),
                         'base' => $base,
                         'quote' => $quote,
                         'symbol' => $symbol,
@@ -703,6 +702,7 @@ class gateio extends Exchange {
                         'option' => $option,
                         'linear' => $linear,
                         'inverse' => $inverse,
+                        'settle' => $settle,
                         // Fee is in %, so divide by 100
                         'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')),
                         'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
@@ -814,6 +814,19 @@ class gateio extends Exchange {
             }
         }
         return $result;
+    }
+
+    public function base_request($market) {
+        if ($market['type'] === 'future' || $market['type'] === 'swap') {
+            return array(
+                'contract' => $market['id'],
+                'settle' => $market['settleId'],
+            );
+        } else {
+            return array(
+                'currency_pair' => $market['id'],
+            );
+        }
     }
 
     public function fetch_currencies($params = array ()) {
@@ -1199,15 +1212,85 @@ class gateio extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $request = array(
-            'currency_pair' => $market['id'],
-        );
+        $request = $this->base_request($market);
+        $futures = $market['futures'];
+        $swap = $market['swap'];
+        $spot = $market['spot'];
+        $method = 'publicSpotGetOrderBook';
+        if ($swap) {
+            $method = 'publicFuturesGetSettleOrderBook';
+        } else if ($futures) {
+            $method = 'publicDeliveryGetSettleOrderBook';
+        }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 10, max 100
         }
-        $response = yield $this->publicSpotGetOrderBook (array_merge($request, $params));
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // SPOT
+        // {
+        //     "current" => 1634345973275,
+        //     "update" => 1634345973271,
+        //     "asks" => [
+        //         ["2.2241","12449.827"],
+        //         ["2.2242","200"],
+        //         ["2.2244","826.931"],
+        //         ["2.2248","3876.107"],
+        //         ["2.225","2377.252"],
+        //         ["2.22509","439.484"],
+        //         ["2.2251","1489.313"],
+        //         ["2.2253","714.582"],
+        //         ["2.2254","1349.784"],
+        //         ["2.2256","234.701"]],
+        //      "bids":[
+        //         ["2.2236","32.465"],
+        //         ["2.2232","243.983"],
+        //         ["2.2231","32.207"],
+        //         ["2.223","449.827"],
+        //         ["2.2228","7.918"],
+        //         ["2.2227","12703.482"],
+        //         ["2.2226","143.033"],
+        //         ["2.2225","143.027"],
+        //         ["2.2224","1369.352"],
+        //         ["2.2223","756.063"]
+        //     ]
+        // }
+        // Perpetual Swap
+        // {
+        //     "current" => 1634350208.745,
+        //     "asks" => array(
+        //         array("s":24909,"p":"61264.8"),
+        //         array("s":81,"p":"61266.6"),
+        //         array("s":2000,"p":"61267.6"),
+        //         array("s":490,"p":"61270.2"),
+        //         array("s":12,"p":"61270.4"),
+        //         array("s":11782,"p":"61273.2"),
+        //         array("s":14666,"p":"61273.3"),
+        //         array("s":22541,"p":"61273.4"),
+        //         array("s":33,"p":"61273.6"),
+        //         array("s":11980,"p":"61274.5")
+        //     ),
+        //     "bids" => array(
+        //         array("s":41844,"p":"61264.7"),
+        //         array("s":13783,"p":"61263.3"),
+        //         array("s":1143,"p":"61259.8"),
+        //         array("s":81,"p":"61258.7"),
+        //         array("s":2471,"p":"61257.8"),
+        //         array("s":2471,"p":"61257.7"),
+        //         array("s":2471,"p":"61256.5"),
+        //         array("s":3,"p":"61254.2"),
+        //         array("s":114,"p":"61252.4"),
+        //         array("s":14372,"p":"61248.6")
+        //     ),
+        //     "update" => 1634350208.724
+        // }
         $timestamp = $this->safe_integer($response, 'current');
-        return $this->parse_order_book($response, $symbol, $timestamp);
+        if (!$spot) {
+            $timestamp = $timestamp * 1000;
+        }
+        $priceKey = $spot ? 0 : 'p';
+        $amountKey = $spot ? 1 : 's';
+        return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', $priceKey, $amountKey);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1216,12 +1299,12 @@ class gateio extends Exchange {
         $method = 'publicSpotGetTickers';
         $id = $market['id'];
         $request = array();
-        $linear = $market['linear'];
-        $inverse = $market['inverse'];
-        if ($linear || $inverse) {
+        $swap = $market['swap'];
+        $futures = $market['futures'];
+        if ($swap || $futures) {
             $request['contract'] = $id;
-            $request['settle'] = $market['baseId'];
-            if ($market['linear']) {
+            $request['settle'] = $market['settleId'];
+            if ($swap) {
                 $method = 'publicFuturesGetTickers';
             } else {
                 $method = 'publicDeliveryGetTickers';
@@ -1310,10 +1393,10 @@ class gateio extends Exchange {
         $params = $this->omit($params, 'type');
         $method = 'publicSpotGetTickers';
         $request = array();
-        $linear = $type === 'future';
-        $inverse = $type === 'delivery';
-        if ($linear || $inverse) {
-            if ($linear) {
+        $futures = $type === 'future';
+        $swap = $type === 'swap';
+        if ($swap || $futures) {
+            if ($swap) {
                 if (!$params['settle']) {
                     $request['settle'] = 'usdt';
                 }
