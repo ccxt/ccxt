@@ -811,7 +811,7 @@ module.exports = class gateio extends Exchange {
         return result;
     }
 
-    baseRequest (market) {
+    prepareRequest (market) {
         if (market['type'] === 'future' || market['type'] === 'swap') {
             return {
                 'contract': market['id'],
@@ -1207,7 +1207,7 @@ module.exports = class gateio extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = this.baseRequest (market);
+        const request = this.prepareRequest (market);
         const futures = market['futures'];
         const swap = market['swap'];
         const spot = market['spot'];
