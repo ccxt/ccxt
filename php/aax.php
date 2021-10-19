@@ -31,17 +31,17 @@ class aax extends Exchange {
                 'fetchTicker' => true,
             ),
             'timeframes' => array(
-                '1m' => 1,
-                '3m' => 3,
-                '5m' => 5,
-                '15m' => 15,
-                '30m' => 30,
-                '1h' => 60,
-                '2h' => 120,
-                '3h' => 180,
-                '4h' => 240,
-                '8h' => 480,
-                '1d' => 1440,
+                '1m' => '1m',
+                '5m' => '5m',
+                '15m' => '15m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '2h' => '2h',
+                '4h' => '4h',
+                '12h' => '12h',
+                '1d' => '1d',
+                '3d' => '3d',
+                '1w' => '1w',
             ),
             'headers' => array(
                 'Content-Type' => 'application/json',
@@ -58,6 +58,7 @@ class aax extends Exchange {
                         'marketdata/v1/getHistMarketData',
                         'v2/market/trades',
                         'v2/market/tickers',
+                        'v2/market/history/candles', // Get Current Candlestick
                     ),
                 ),
                 'private' => array(
@@ -261,43 +262,55 @@ class aax extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array(
-            'date_scale' => $this->timeframes[$timeframe],
-            'base' => $market['base'],
-            'quote' => $market['quote'],
+            'symbol' => $market['id'],
+            'timeFrame' => $this->timeframes[$timeframe],
             'limit' => $limit,
         );
-        if ($since !== null) {
-            $request['from'] = $since;
+        $duration = $this->parse_timeframe($timeframe);
+        if ($since === null) {
+            $end = $this->seconds ();
+            $request['start'] = $end - $duration * $limit;
+            $request['end'] = $end;
+        } else {
+            $start = intval ($since / 1000);
+            $request['start'] = $start;
+            $request['end'] = $this->sum ($start, $duration * $limit);
         }
-        if (is_array($params) && array_key_exists('to', $params)) {
-            $request['to'] = $params['to'];
-        }
-        $response = $this->publicGetMarketdataV1GetHistMarketData (array_merge($request, $params));
-        $result = array();
-        if (is_array($response && $response['s'] === 'ok') && array_key_exists('s', $response && $response['s'] === 'ok')) {
-            $timeArr = $response['t'];
-            $openArr = $response['o'];
-            $highArr = $response['h'];
-            $lowArr = $response['l'];
-            $closeArr = $response['c'];
-            $volumeArr = $response['v'];
-            $prevOpenTime = null;
-            for ($i = 0; $i < count($timeArr); $i++) {
-                $openTime = (intval ($timeArr[$i]) * 1000);
-                if ($openTime !== $prevOpenTime) {
-                    $ohlcvArr = array();
-                    $ohlcvArr[] = $openTime;
-                    $ohlcvArr[] = $openArr[$i];
-                    $ohlcvArr[] = $highArr[$i];
-                    $ohlcvArr[] = $lowArr[$i];
-                    $ohlcvArr[] = $closeArr[$i];
-                    $ohlcvArr[] = $volumeArr[$i] / $closeArr[$i];
-                    $result[] = $ohlcvArr;
-                    $prevOpenTime = $openTime;
-                }
-            }
-        }
-        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+        $response = $this->publicGetV2MarketHistoryCandles (array_merge($request, $params));
+        //
+        //     {
+        //         "$data":[
+        //             [0.042398,0.042684,0.042366,0.042386,0.93734243,1611514800],
+        //             [0.042386,0.042602,0.042234,0.042373,1.01925239,1611518400],
+        //             [0.042373,0.042558,0.042362,0.042389,0.93801705,1611522000],
+        //         ],
+        //         "success":true,
+        //         "t":1611875157
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        //
+        //     array(
+        //         0.042398, // 0 open
+        //         0.042684, // 1 high
+        //         0.042366, // 2 low
+        //         0.042386, // 3 close
+        //         0.93734243, // 4 volume
+        //         1611514800, // 5 timestamp
+        //     )
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 5),
+            $this->safe_number($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+        );
     }
 
     public function parse_ticker ($ticker, $market = null, $time = null) {

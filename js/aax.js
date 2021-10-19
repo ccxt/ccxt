@@ -24,17 +24,17 @@ module.exports = class aax extends Exchange {
                 'fetchTicker': true,
             },
             'timeframes': {
-                '1m': 1,
-                '3m': 3,
-                '5m': 5,
-                '15m': 15,
-                '30m': 30,
-                '1h': 60,
-                '2h': 120,
-                '3h': 180,
-                '4h': 240,
-                '8h': 480,
-                '1d': 1440,
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
             },
             'headers': {
                 'Content-Type': 'application/json',
@@ -51,6 +51,7 @@ module.exports = class aax extends Exchange {
                         'marketdata/v1/getHistMarketData',
                         'v2/market/trades',
                         'v2/market/tickers',
+                        'v2/market/history/candles', // Get Current Candlestick
                     ],
                 },
                 'private': {
@@ -254,43 +255,55 @@ module.exports = class aax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'date_scale': this.timeframes[timeframe],
-            'base': market['base'],
-            'quote': market['quote'],
+            'symbol': market['id'],
+            'timeFrame': this.timeframes[timeframe],
             'limit': limit,
         };
-        if (since !== undefined) {
-            request['from'] = since;
+        const duration = this.parseTimeframe (timeframe);
+        if (since === undefined) {
+            const end = this.seconds ();
+            request['start'] = end - duration * limit;
+            request['end'] = end;
+        } else {
+            const start = parseInt (since / 1000);
+            request['start'] = start;
+            request['end'] = this.sum (start, duration * limit);
         }
-        if ('to' in params) {
-            request['to'] = params['to'];
-        }
-        const response = await this.publicGetMarketdataV1GetHistMarketData (this.extend (request, params));
-        const result = [];
-        if ('s' in response && response['s'] === 'ok') {
-            const timeArr = response['t'];
-            const openArr = response['o'];
-            const highArr = response['h'];
-            const lowArr = response['l'];
-            const closeArr = response['c'];
-            const volumeArr = response['v'];
-            let prevOpenTime = undefined;
-            for (let i = 0; i < timeArr.length; i++) {
-                const openTime = (parseInt (timeArr[i]) * 1000);
-                if (openTime !== prevOpenTime) {
-                    const ohlcvArr = [];
-                    ohlcvArr.push (openTime);
-                    ohlcvArr.push (openArr[i]);
-                    ohlcvArr.push (highArr[i]);
-                    ohlcvArr.push (lowArr[i]);
-                    ohlcvArr.push (closeArr[i]);
-                    ohlcvArr.push (volumeArr[i] / closeArr[i]);
-                    result.push (ohlcvArr);
-                    prevOpenTime = openTime;
-                }
-            }
-        }
-        return this.parseOHLCVs (result, market, timeframe, since, limit);
+        const response = await this.publicGetV2MarketHistoryCandles (this.extend (request, params));
+        //
+        //     {
+        //         "data":[
+        //             [0.042398,0.042684,0.042366,0.042386,0.93734243,1611514800],
+        //             [0.042386,0.042602,0.042234,0.042373,1.01925239,1611518400],
+        //             [0.042373,0.042558,0.042362,0.042389,0.93801705,1611522000],
+        //         ],
+        //         "success":true,
+        //         "t":1611875157
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     [
+        //         0.042398, // 0 open
+        //         0.042684, // 1 high
+        //         0.042366, // 2 low
+        //         0.042386, // 3 close
+        //         0.93734243, // 4 volume
+        //         1611514800, // 5 timestamp
+        //     ]
+        //
+        return [
+            this.safeTimestamp (ohlcv, 5),
+            this.safeNumber (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+        ];
     }
 
     parseTicker (ticker, market = undefined, time = undefined) {

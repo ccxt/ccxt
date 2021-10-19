@@ -37,17 +37,17 @@ class aax(Exchange):
                 'fetchTicker': True,
             },
             'timeframes': {
-                '1m': 1,
-                '3m': 3,
-                '5m': 5,
-                '15m': 15,
-                '30m': 30,
-                '1h': 60,
-                '2h': 120,
-                '3h': 180,
-                '4h': 240,
-                '8h': 480,
-                '1d': 1440,
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
             },
             'headers': {
                 'Content-Type': 'application/json',
@@ -64,6 +64,7 @@ class aax(Exchange):
                         'marketdata/v1/getHistMarketData',
                         'v2/market/trades',
                         'v2/market/tickers',
+                        'v2/market/history/candles',  # Get Current Candlestick
                     ],
                 },
                 'private': {
@@ -257,38 +258,53 @@ class aax(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'date_scale': self.timeframes[timeframe],
-            'base': market['base'],
-            'quote': market['quote'],
+            'symbol': market['id'],
+            'timeFrame': self.timeframes[timeframe],
             'limit': limit,
         }
-        if since is not None:
-            request['from'] = since
-        if 'to' in params:
-            request['to'] = params['to']
-        response = self.publicGetMarketdataV1GetHistMarketData(self.extend(request, params))
-        result = []
-        if 's' in response and response['s'] == 'ok':
-            timeArr = response['t']
-            openArr = response['o']
-            highArr = response['h']
-            lowArr = response['l']
-            closeArr = response['c']
-            volumeArr = response['v']
-            prevOpenTime = None
-            for i in range(0, len(timeArr)):
-                openTime = (int(timeArr[i]) * 1000)
-                if openTime != prevOpenTime:
-                    ohlcvArr = []
-                    ohlcvArr.append(openTime)
-                    ohlcvArr.append(openArr[i])
-                    ohlcvArr.append(highArr[i])
-                    ohlcvArr.append(lowArr[i])
-                    ohlcvArr.append(closeArr[i])
-                    ohlcvArr.append(volumeArr[i] / closeArr[i])
-                    result.append(ohlcvArr)
-                    prevOpenTime = openTime
-        return self.parse_ohlcvs(result, market, timeframe, since, limit)
+        duration = self.parse_timeframe(timeframe)
+        if since is None:
+            end = self.seconds()
+            request['start'] = end - duration * limit
+            request['end'] = end
+        else:
+            start = int(since / 1000)
+            request['start'] = start
+            request['end'] = self.sum(start, duration * limit)
+        response = self.publicGetV2MarketHistoryCandles(self.extend(request, params))
+        #
+        #     {
+        #         "data":[
+        #             [0.042398,0.042684,0.042366,0.042386,0.93734243,1611514800],
+        #             [0.042386,0.042602,0.042234,0.042373,1.01925239,1611518400],
+        #             [0.042373,0.042558,0.042362,0.042389,0.93801705,1611522000],
+        #         ],
+        #         "success":true,
+        #         "t":1611875157
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     [
+        #         0.042398,  # 0 open
+        #         0.042684,  # 1 high
+        #         0.042366,  # 2 low
+        #         0.042386,  # 3 close
+        #         0.93734243,  # 4 volume
+        #         1611514800,  # 5 timestamp
+        #     ]
+        #
+        return [
+            self.safe_timestamp(ohlcv, 5),
+            self.safe_number(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+        ]
 
     def parse_ticker(self, ticker, market=None, time=None):
         symbol = None
