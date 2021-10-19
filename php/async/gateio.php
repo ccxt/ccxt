@@ -816,7 +816,7 @@ class gateio extends Exchange {
         return $result;
     }
 
-    public function base_request($market) {
+    public function prepare_request($market) {
         if ($market['type'] === 'future' || $market['type'] === 'swap') {
             return array(
                 'contract' => $market['id'],
@@ -1212,7 +1212,7 @@ class gateio extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $request = $this->base_request($market);
+        $request = $this->prepare_request($market);
         $futures = $market['futures'];
         $swap = $market['swap'];
         $spot = $market['spot'];
