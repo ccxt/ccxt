@@ -727,13 +727,14 @@ module.exports = class kucoin extends Exchange {
         // market/ticker ws subscription
         //
         //     {
-        //         "sequence":"1545896668986", // Sequence number
-        //         "price":"0.08",             // Last traded price
-        //         "size":"0.011",             //  Last traded amount
-        //         "bestAsk":"0.08",          // Best ask price
-        //         "bestAskSize":"0.18",      // Best ask size
-        //         "bestBid":"0.049",         // Best bid price
-        //         "bestBidSize":"0.036"     // Best bid size
+        //         bestAsk: '62258.9',
+        //         bestAskSize: '0.38579986',
+        //         bestBid: '62258.8',
+        //         bestBidSize: '0.0078381',
+        //         price: '62260.7',
+        //         sequence: '1621383297064',
+        //         size: '0.00002841',
+        //         time: 1634641777363
         //     }
         //
         let percentage = this.safeNumber (ticker, 'changeRate');
