@@ -1731,9 +1731,8 @@ module.exports = class ascendex extends Exchange {
         if ((version === 'v1') && (request === 'cash/balance') || (request === 'margin/balance')) {
             request = 'balance';
         }
-        if ((request === 'v2/subuser/subuser-transfer') || (request === 'v2/subuser/subuser-transfer-hist')) {
-            const parts = request.split ('/');
-            request = parts[2];
+        if ((request.indexOf ('subuser') >= 0) {
+            request = 'subuser';
         }
         query = this.omit (query, this.extractParams (path));
         if (access === 'public') {
