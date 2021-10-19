@@ -32,6 +32,9 @@ class kucoin(Exchange, ccxt.kucoin):
                     'maxAttempts': 3,  # default number of sync attempts
                     'delay': 1000,  # warmup delay in ms before synchronizing
                 },
+                'watchTicker': {
+                    'topic': 'market/snapshot',  # market/ticker
+                },
             },
             'streaming': {
                 # kucoin does not support built-in ws protocol-level ping-pong
@@ -122,11 +125,15 @@ class kucoin(Exchange, ccxt.kucoin):
         await self.load_markets()
         market = self.market(symbol)
         negotiation = await self.negotiate()
-        topic = '/market/snapshot:' + market['id']
+        options = self.safe_value(self.options, 'watchTicker', {})
+        channel = self.safe_string(options, 'topic', 'market/snapshot')
+        topic = '/' + channel + ':' + market['id']
         messageHash = topic
         return await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
 
     def handle_ticker(self, client, message):
+        #
+        # market/snapshot
         #
         # updates come in every 2 sec unless there
         # were no changes since the previous update
@@ -161,9 +168,33 @@ class kucoin(Exchange, ccxt.kucoin):
         #         "type": "message"
         #     }
         #
+        # market/ticker
+        #
+        #     {
+        #         type: 'message',
+        #         topic: '/market/ticker:BTC-USDT',
+        #         subject: 'trade.ticker',
+        #         data: {
+        #             bestAsk: '62163',
+        #             bestAskSize: '0.99011388',
+        #             bestBid: '62162.9',
+        #             bestBidSize: '0.04794181',
+        #             price: '62162.9',
+        #             sequence: '1621383371852',
+        #             size: '0.00832274',
+        #             time: 1634641987564
+        #         }
+        #     }
+        #
+        topic = self.safe_string(message, 'topic')
+        market = None
+        if topic is not None:
+            parts = topic.split(':')
+            marketId = self.safe_string(parts, 1)
+            market = self.safe_market(marketId, market, '-')
         data = self.safe_value(message, 'data', {})
-        rawTicker = self.safe_value(data, 'data', {})
-        ticker = self.parse_ticker(rawTicker)
+        rawTicker = self.safe_value(data, 'data', data)
+        ticker = self.parse_ticker(rawTicker, market)
         symbol = ticker['symbol']
         self.tickers[symbol] = ticker
         messageHash = self.safe_string(message, 'topic')
@@ -680,6 +711,7 @@ class kucoin(Exchange, ccxt.kucoin):
         subject = self.safe_string(message, 'subject')
         methods = {
             'trade.l2update': self.handle_order_book,
+            'trade.ticker': self.handle_ticker,
             'trade.snapshot': self.handle_ticker,
             'trade.l3match': self.handle_trade,
             'trade.candles.update': self.handle_ohlcv,

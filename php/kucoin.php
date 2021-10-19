@@ -33,6 +33,9 @@ class kucoin extends \ccxt\async\kucoin {
                     'maxAttempts' => 3, // default number of sync attempts
                     'delay' => 1000, // warmup delay in ms before synchronizing
                 ),
+                'watchTicker' => array(
+                    'topic' => 'market/snapshot', // market/ticker
+                ),
             ),
             'streaming' => array(
                 // kucoin does not support built-in ws protocol-level ping-pong
@@ -129,12 +132,16 @@ class kucoin extends \ccxt\async\kucoin {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $negotiation = yield $this->negotiate();
-        $topic = '/market/snapshot:' . $market['id'];
+        $options = $this->safe_value($this->options, 'watchTicker', array());
+        $channel = $this->safe_string($options, 'topic', 'market/snapshot');
+        $topic = '/' . $channel . ':' . $market['id'];
         $messageHash = $topic;
         return yield $this->subscribe($negotiation, $topic, $messageHash, null, $symbol, $params);
     }
 
     public function handle_ticker($client, $message) {
+        //
+        // market/snapshot
         //
         // updates come in every 2 sec unless there
         // were no changes since the previous update
@@ -150,7 +157,7 @@ class kucoin extends \ccxt\async\kucoin {
         //                 "sort" => 100,
         //                 "volValue" => 3.13851792584, // total
         //                 "baseCurrency" => "KCS",
-        //                 "market" => "BTC",
+        //                 "$market" => "BTC",
         //                 "quoteCurrency" => "BTC",
         //                 "symbolCode" => "KCS-BTC",
         //                 "datetime" => 1548388122031,
@@ -165,13 +172,38 @@ class kucoin extends \ccxt\async\kucoin {
         //             }
         //         ),
         //         "subject" => "trade.snapshot",
-        //         "topic" => "/market/snapshot:KCS-BTC",
+        //         "$topic" => "/market/snapshot:KCS-BTC",
         //         "type" => "$message"
         //     }
         //
+        // market/ticker
+        //
+        //     {
+        //         type => 'message',
+        //         $topic => '/market/ticker:BTC-USDT',
+        //         subject => 'trade.ticker',
+        //         $data => {
+        //             bestAsk => '62163',
+        //             bestAskSize => '0.99011388',
+        //             bestBid => '62162.9',
+        //             bestBidSize => '0.04794181',
+        //             price => '62162.9',
+        //             sequence => '1621383371852',
+        //             size => '0.00832274',
+        //             time => 1634641987564
+        //         }
+        //     }
+        //
+        $topic = $this->safe_string($message, 'topic');
+        $market = null;
+        if ($topic !== null) {
+            $parts = explode(':', $topic);
+            $marketId = $this->safe_string($parts, 1);
+            $market = $this->safe_market($marketId, $market, '-');
+        }
         $data = $this->safe_value($message, 'data', array());
-        $rawTicker = $this->safe_value($data, 'data', array());
-        $ticker = $this->parse_ticker($rawTicker);
+        $rawTicker = $this->safe_value($data, 'data', $data);
+        $ticker = $this->parse_ticker($rawTicker, $market);
         $symbol = $ticker['symbol'];
         $this->tickers[$symbol] = $ticker;
         $messageHash = $this->safe_string($message, 'topic');
@@ -743,6 +775,7 @@ class kucoin extends \ccxt\async\kucoin {
         $subject = $this->safe_string($message, 'subject');
         $methods = array(
             'trade.l2update' => array($this, 'handle_order_book'),
+            'trade.ticker' => array($this, 'handle_ticker'),
             'trade.snapshot' => array($this, 'handle_ticker'),
             'trade.l3match' => array($this, 'handle_trade'),
             'trade.candles.update' => array($this, 'handle_ohlcv'),
