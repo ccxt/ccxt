@@ -36,7 +36,7 @@ class bitbns extends Exchange {
                 'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
-                'fetchTrades' => null,
+                'fetchTrades' => true,
                 'fetchWithdrawals' => true,
             ),
             'timeframes' => array(
@@ -661,11 +661,23 @@ class bitbns extends Exchange {
         //         "id" => "2938823"
         //     }
         //
+        // fetchTrades
+        //
+        //     {
+        //         "tradeId":"1909151",
+        //         "$price":"61904.6300",
+        //         "quote_volume":1618.05,
+        //         "base_volume":0.02607254,
+        //         "$timestamp":1634548602000,
+        //         "type":"buy"
+        //     }
+        //
         $market = $this->safe_market(null, $market);
-        $orderId = $this->safe_string($trade, 'id');
+        $orderId = $this->safe_string_2($trade, 'id', 'tradeId');
         $timestamp = $this->parse8601($this->safe_string($trade, 'date'));
-        $amountString = $this->safe_string($trade, 'amount');
-        $priceString = $this->safe_string($trade, 'rate');
+        $timestamp = $this->safe_integer($trade, 'timestamp', $timestamp);
+        $amountString = $this->safe_string_2($trade, 'amount', 'base_volume');
+        $priceString = $this->safe_string_2($trade, 'rate', 'price');
         $price = $this->parse_number($priceString);
         $factor = $this->safe_string($trade, 'factor');
         $amountScaled = Precise::string_div($amountString, $factor);
@@ -673,11 +685,6 @@ class bitbns extends Exchange {
         $cost = $this->parse_number(Precise::string_mul($priceString, $amountScaled));
         $symbol = $market['symbol'];
         $side = $this->safe_string_lower($trade, 'type');
-        if (mb_strpos($side, 'sell') !== false) {
-            $side = 'sell';
-        } else if (mb_strpos($side, 'buy') !== false) {
-            $side = 'buy';
-        }
         $fee = null;
         $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
@@ -692,7 +699,7 @@ class bitbns extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'id' => null,
+            'id' => $orderId,
             'order' => $orderId,
             'type' => null,
             'side' => $side,
@@ -761,6 +768,27 @@ class bitbns extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
+    }
+
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTrades() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'coin' => $market['baseId'],
+            'market' => $market['quoteId'],
+        );
+        $response = $this->wwwGetExchangeDataTradedetails (array_merge($request, $params));
+        //
+        //     [
+        //         array("tradeId":"1909151","price":"61904.6300","quote_volume":1618.05,"base_volume":0.02607254,"timestamp":1634548602000,"type":"buy"),
+        //         array("tradeId":"1909153","price":"61893.9000","quote_volume":16384.42,"base_volume":0.26405767,"timestamp":1634548999000,"type":"sell"),
+        //         array("tradeId":"1909155","price":"61853.1100","quote_volume":2304.37,"base_volume":0.03716263,"timestamp":1634549670000,"type":"sell")
+        //     }
+        //
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
@@ -937,15 +965,20 @@ class bitbns extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'v1', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $this->check_required_credentials();
+    public function sign($path, $api = 'www', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        if (!(is_array($this->urls['api']) && array_key_exists($api, $this->urls['api']))) {
+            throw new ExchangeError($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
+        }
+        if ($api !== 'www') {
+            $this->check_required_credentials();
+            $headers = array(
+                'X-BITBNS-APIKEY' => $this->apiKey,
+            );
+        }
         $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $nonce = (string) $this->nonce();
-        $headers = array(
-            'X-BITBNS-APIKEY' => $this->apiKey,
-        );
         if ($method === 'GET') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);

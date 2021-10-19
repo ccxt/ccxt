@@ -553,23 +553,22 @@ module.exports = class gateio extends Exchange {
         const spot = (type === 'spot');
         const margin = (type === 'margin');
         const futures = (type === 'future');
-        const delivery = (type === 'delivery');
         const swap = (type === 'swap');
         const option = (type === 'option');
-        if (!spot && !margin && !futures && !delivery) {
+        if (!spot && !margin && !futures && !swap) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
         }
         let response = undefined;
         const result = [];
         let method = 'publicSpotGetCurrencyPairs';
-        if (futures) {
+        if (swap) {
             method = 'publicFuturesGetSettleContracts';
-        } else if (delivery) {
+        } else if (futures) {
             method = 'publicDeliveryGetSettleContracts';
         } else if (margin) {
             method = 'publicMarginGetCurrencyPairs';
         }
-        if (futures || delivery) {
+        if (futures || swap) {
             const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
             const fetchMarketsContractOptions = this.safeValue (options, 'fetchMarchets', {});
             const settlementCurrencies = this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', ['usdt']);
@@ -577,7 +576,7 @@ module.exports = class gateio extends Exchange {
                 const settle = settlementCurrencies[c];
                 query['settle'] = settle;
                 response = await this[method] (query);
-                //  Futures
+                //  Perpetual swap
                 //      [
                 //          {
                 //              "name": "BTC_USDT",
@@ -621,7 +620,7 @@ module.exports = class gateio extends Exchange {
                 //          }
                 //      ]
                 //
-                //  Delivery
+                //  Delivery Futures
                 //      [
                 //          {
                 //            "name": "BTC_USDT_20200814",
@@ -669,18 +668,17 @@ module.exports = class gateio extends Exchange {
                 for (let i = 0; i < response.length; i++) {
                     const market = response[i];
                     const id = this.safeString (market, 'name');
-                    const underlying = this.safeString (market, 'underlying');
-                    let [ baseId, quoteId ] = [undefined, undefined];
-                    if (underlying) {
-                        [ baseId, quoteId ] = underlying.split ('_');
-                    } else {
-                        [ baseId, quoteId ] = id.split ('_');
-                    }
+                    const [ baseId, quoteId, date ] = id.split ('_');
                     const linear = quoteId.toLowerCase () === settle;
                     const inverse = baseId.toLowerCase () === settle;
                     const base = this.safeCurrencyCode (baseId);
                     const quote = this.safeCurrencyCode (quoteId);
-                    const symbol = id;
+                    let symbol = '';
+                    if (date) {
+                        symbol = base + '/' + quote + '-' + date + ':' + this.safeCurrencyCode (settle);
+                    } else {
+                        symbol = base + '/' + quote + ':' + this.safeCurrencyCode (settle);
+                    }
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
                     result.push ({
@@ -688,6 +686,7 @@ module.exports = class gateio extends Exchange {
                         'id': id,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'settleId': this.safeSymbol (settle),
                         'base': base,
                         'quote': quote,
                         'symbol': symbol,
@@ -698,6 +697,7 @@ module.exports = class gateio extends Exchange {
                         'option': option,
                         'linear': linear,
                         'inverse': inverse,
+                        'settle': settle,
                         // Fee is in %, so divide by 100
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
@@ -809,6 +809,19 @@ module.exports = class gateio extends Exchange {
             }
         }
         return result;
+    }
+
+    baseRequest (market) {
+        if (market['type'] === 'future' || market['type'] === 'swap') {
+            return {
+                'contract': market['id'],
+                'settle': market['settleId'],
+            };
+        } else {
+            return {
+                'currency_pair': market['id'],
+            };
+        }
     }
 
     async fetchCurrencies (params = {}) {
@@ -1194,15 +1207,85 @@ module.exports = class gateio extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currency_pair': market['id'],
-        };
+        const request = this.baseRequest (market);
+        const futures = market['futures'];
+        const swap = market['swap'];
+        const spot = market['spot'];
+        let method = 'publicSpotGetOrderBook';
+        if (swap) {
+            method = 'publicFuturesGetSettleOrderBook';
+        } else if (futures) {
+            method = 'publicDeliveryGetSettleOrderBook';
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
         }
-        const response = await this.publicSpotGetOrderBook (this.extend (request, params));
-        const timestamp = this.safeInteger (response, 'current');
-        return this.parseOrderBook (response, symbol, timestamp);
+        const response = await this[method] (this.extend (request, params));
+        //
+        // SPOT
+        // {
+        //     "current": 1634345973275,
+        //     "update": 1634345973271,
+        //     "asks": [
+        //         ["2.2241","12449.827"],
+        //         ["2.2242","200"],
+        //         ["2.2244","826.931"],
+        //         ["2.2248","3876.107"],
+        //         ["2.225","2377.252"],
+        //         ["2.22509","439.484"],
+        //         ["2.2251","1489.313"],
+        //         ["2.2253","714.582"],
+        //         ["2.2254","1349.784"],
+        //         ["2.2256","234.701"]],
+        //      "bids":[
+        //         ["2.2236","32.465"],
+        //         ["2.2232","243.983"],
+        //         ["2.2231","32.207"],
+        //         ["2.223","449.827"],
+        //         ["2.2228","7.918"],
+        //         ["2.2227","12703.482"],
+        //         ["2.2226","143.033"],
+        //         ["2.2225","143.027"],
+        //         ["2.2224","1369.352"],
+        //         ["2.2223","756.063"]
+        //     ]
+        // }
+        // Perpetual Swap
+        // {
+        //     "current": 1634350208.745,
+        //     "asks": [
+        //         {"s":24909,"p":"61264.8"},
+        //         {"s":81,"p":"61266.6"},
+        //         {"s":2000,"p":"61267.6"},
+        //         {"s":490,"p":"61270.2"},
+        //         {"s":12,"p":"61270.4"},
+        //         {"s":11782,"p":"61273.2"},
+        //         {"s":14666,"p":"61273.3"},
+        //         {"s":22541,"p":"61273.4"},
+        //         {"s":33,"p":"61273.6"},
+        //         {"s":11980,"p":"61274.5"}
+        //     ],
+        //     "bids": [
+        //         {"s":41844,"p":"61264.7"},
+        //         {"s":13783,"p":"61263.3"},
+        //         {"s":1143,"p":"61259.8"},
+        //         {"s":81,"p":"61258.7"},
+        //         {"s":2471,"p":"61257.8"},
+        //         {"s":2471,"p":"61257.7"},
+        //         {"s":2471,"p":"61256.5"},
+        //         {"s":3,"p":"61254.2"},
+        //         {"s":114,"p":"61252.4"},
+        //         {"s":14372,"p":"61248.6"}
+        //     ],
+        //     "update": 1634350208.724
+        // }
+        let timestamp = this.safeInteger (response, 'current');
+        if (!spot) {
+            timestamp = timestamp * 1000;
+        }
+        const priceKey = spot ? 0 : 'p';
+        const amountKey = spot ? 1 : 's';
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1211,12 +1294,12 @@ module.exports = class gateio extends Exchange {
         let method = 'publicSpotGetTickers';
         const id = market['id'];
         const request = {};
-        const linear = market['linear'];
-        const inverse = market['inverse'];
-        if (linear || inverse) {
+        const swap = market['swap'];
+        const futures = market['futures'];
+        if (swap || futures) {
             request['contract'] = id;
-            request['settle'] = market['baseId'];
-            if (market['linear']) {
+            request['settle'] = market['settleId'];
+            if (swap) {
                 method = 'publicFuturesGetTickers';
             } else {
                 method = 'publicDeliveryGetTickers';
@@ -1305,10 +1388,10 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, 'type');
         let method = 'publicSpotGetTickers';
         const request = {};
-        const linear = type === 'future';
-        const inverse = type === 'delivery';
-        if (linear || inverse) {
-            if (linear) {
+        const futures = type === 'future';
+        const swap = type === 'swap';
+        if (swap || futures) {
+            if (swap) {
                 if (!params['settle']) {
                     request['settle'] = 'usdt';
                 }
