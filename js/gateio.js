@@ -356,7 +356,7 @@ module.exports = class gateio extends Exchange {
                         ],
                     },
                 },
-                'future': {
+                'swap': {
                     'tierBased': true,
                     'feeSide': 'base',
                     'percentage': true,
@@ -403,7 +403,7 @@ module.exports = class gateio extends Exchange {
                         ],
                     },
                 },
-                'delivery': {
+                'future': {
                     'tierBased': true,
                     'feeSide': 'base',
                     'percentage': true,
@@ -556,7 +556,7 @@ module.exports = class gateio extends Exchange {
         const swap = (type === 'swap');
         const option = (type === 'option');
         if (!spot && !margin && !futures && !swap) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap' or 'future'"); // eslint-disable-line quotes
         }
         let response = undefined;
         const result = [];
@@ -702,7 +702,6 @@ module.exports = class gateio extends Exchange {
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                         'contractSize': this.safeString (market, 'contractSize', '1'),
-                        'contractType': linear ? 'Perpetual' : this.safeString (market, 'cycle'),
                         'limits': {
                             'leverage': {
                                 'min': this.safeNumber (market, 'leverage_min'),
@@ -714,7 +713,7 @@ module.exports = class gateio extends Exchange {
                             },
                         },
                         'expiry': this.safeInteger (market, 'expire_time'),
-                        'fees': this.fees[type],
+                        'fees': this.safeValue (this.fees, type, {}),
                     });
                 }
             }
