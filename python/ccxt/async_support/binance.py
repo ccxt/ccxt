@@ -2728,13 +2728,6 @@ class binance(Exchange):
         tradedCurrencyIsQuote = False
         if applicantSymbol in self.markets:
             tradedCurrencyIsQuote = True
-        #
-        # Warning
-        # Binance dust trade `fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
-        # So the parser should either set the `fee.cost` to `0` or add it on top of the earned
-        # BNB `amount`(or `cost` depending on the trade `side`). The second of the above options
-        # is much more illustrative and therefore preferable.
-        #
         feeCostString = self.safe_string(trade, 'serviceChargeAmount')
         fee = {
             'currency': earnedCurrency,
@@ -2746,13 +2739,13 @@ class binance(Exchange):
         side = None
         if tradedCurrencyIsQuote:
             symbol = applicantSymbol
-            amountString = Precise.string_add(self.safe_string(trade, 'transferedAmount'), feeCostString)
+            amountString = self.safe_string(trade, 'transferedAmount')
             costString = self.safe_string(trade, 'amount')
             side = 'buy'
         else:
             symbol = tradedCurrency + '/' + earnedCurrency
             amountString = self.safe_string(trade, 'amount')
-            costString = Precise.string_add(self.safe_string(trade, 'transferedAmount'), feeCostString)
+            costString = self.safe_string(trade, 'transferedAmount')
             side = 'sell'
         priceString = None
         if costString is not None:
