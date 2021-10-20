@@ -299,7 +299,6 @@ module.exports = class bittrex extends Exchange {
                         'max': undefined,
                     },
                     'leverage': {
-                        'min': 1,
                         'max': 1,
                     },
                 },

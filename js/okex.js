@@ -722,7 +722,6 @@ module.exports = class okex extends Exchange {
                     'max': undefined,
                 },
                 'leverage': {
-                    'min': 1,
                     'max': leverage,
                 },
             },

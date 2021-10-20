@@ -656,7 +656,6 @@ module.exports = class gateio extends Exchange {
                         'contractSize': this.safeString (market, 'contractSize', '1'),
                         'limits': {
                             'leverage': {
-                                'min': this.safeNumber (market, 'leverage_min'),
                                 'max': this.safeNumber (market, 'leverage_max'),
                             },
                             'amount': {

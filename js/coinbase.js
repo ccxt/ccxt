@@ -573,7 +573,6 @@ module.exports = class coinbase extends Exchange {
                                 'max': undefined,
                             },
                             'leverage': {
-                                'min': 1,
                                 'max': 1,
                             },
                         },

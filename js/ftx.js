@@ -485,7 +485,6 @@ module.exports = class ftx extends Exchange {
                         'max': undefined,
                     },
                     'leverage': {
-                        'min': 1,
                         'max': 20,
                     },
                 },
