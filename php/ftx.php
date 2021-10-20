@@ -1021,10 +1021,9 @@ class ftx extends Exchange {
             'future' => $market['id'],
         );
         if ($since !== null) {
-            $request['start_time'] = $since / 1000;
+            $request['start_time'] = intval($since / 1000);
         }
-        $method = 'publicGetFundingRates';
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->publicGetFundingRates (array_merge($request, $params));
         //
         //     {
         //        "success" => true,
