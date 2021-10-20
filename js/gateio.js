@@ -153,6 +153,7 @@ module.exports = class gateio extends Exchange {
                     },
                     'margin': {
                         'get': {
+                            'accounts': 1.5,
                             'account_book': 1.5,
                             'funding_accounts': 1.5,
                             'loans': 1.5,
@@ -296,12 +297,12 @@ module.exports = class gateio extends Exchange {
                     'delivery': 'delivery',
                 },
                 'defaultType': 'spot',
-                'future': {
+                'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
                 },
-                'delivery': {
+                'future': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
@@ -569,9 +570,7 @@ module.exports = class gateio extends Exchange {
             method = 'publicMarginGetCurrencyPairs';
         }
         if (futures || swap) {
-            const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
-            const fetchMarketsContractOptions = this.safeValue (options, 'fetchMarchets', {});
-            const settlementCurrencies = this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', ['usdt']);
+            const settlementCurrencies = this.getSettlementCurrencies (type, 'fetchMarkets');
             for (let c = 0; c < settlementCurrencies.length; c++) {
                 const settle = settlementCurrencies[c];
                 query['settle'] = settle;
@@ -697,7 +696,6 @@ module.exports = class gateio extends Exchange {
                         'option': option,
                         'linear': linear,
                         'inverse': inverse,
-                        'settle': settle,
                         // Fee is in %, so divide by 100
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
@@ -821,6 +819,13 @@ module.exports = class gateio extends Exchange {
                 'currency_pair': market['id'],
             };
         }
+    }
+
+    getSettlementCurrencies (type, method) {
+        const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
+        const fetchMarketsContractOptions = this.safeValue (options, method, {});
+        const defaultSettle = type === 'swap' ? ['usdt'] : ['btc'];
+        return this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
     }
 
     async fetchCurrencies (params = {}) {
@@ -1413,9 +1418,31 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        // :param params.type: spot, margin, crossMargin, swap or future
+        // :param params.settle: Settle currency (usdt or btc) for perpetual swap and futures
         await this.loadMarkets ();
-        const response = await this.privateSpotGetAccounts (params);
-        //
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        const swap = type === 'swap';
+        const future = type === 'future';
+        const request = {};
+        let method = 'privateSpotGetAccounts';
+        if (swap) {
+            method = 'privateFuturesGetSettleAccounts';
+        } else if (future) {
+            method = 'privateDeliveryGetSettleAccounts';
+        }
+        let response = [];
+        if (swap || future) {
+            const defaultSettle = swap ? 'usdt' : 'btc';
+            request['settle'] = this.safeString (params, 'settle', defaultSettle);
+            const response_item = await this[method] (this.extend (request, params));
+            response = [response_item];
+        } else {
+            response = await this[method] (this.extend (request, params));
+        }
+        //  SPOT
         //     [
         //       {
         //         "currency": "DBC",
@@ -1425,13 +1452,61 @@ module.exports = class gateio extends Exchange {
         //       ...
         //     ]
         //
+        //  Perpetual Swap
+        //  {
+        //     order_margin: "0",
+        //     point: "0",
+        //     bonus: "0",
+        //     history: {
+        //       dnw: "2.1321",
+        //       pnl: "11.5351",
+        //       refr: "0",
+        //       point_fee: "0",
+        //       fund: "-0.32340576684",
+        //       bonus_dnw: "0",
+        //       point_refr: "0",
+        //       bonus_offset: "0",
+        //       fee: "-0.20132775",
+        //       point_dnw: "0",
+        //     },
+        //     unrealised_pnl: "13.315100000006",
+        //     total: "12.51345151332",
+        //     available: "0",
+        //     in_dual_mode: false,
+        //     currency: "USDT",
+        //     position_margin: "12.51345151332",
+        //     user: "6333333",
+        //   }
+        //
+        //   Delivery Future
+        //   {
+        //     order_margin: "0",
+        //     point: "0",
+        //     history: {
+        //       dnw: "1",
+        //       pnl: "0",
+        //       refr: "0",
+        //       point_fee: "0",
+        //       point_dnw: "0",
+        //       settle: "0",
+        //       settle_fee: "0",
+        //       point_refr: "0",
+        //       fee: "0",
+        //     },
+        //     unrealised_pnl: "0",
+        //     total: "1",
+        //     available: "1",
+        //     currency: "USDT",
+        //     position_margin: "0",
+        //     user: "6333333",
+        //   }
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const account = this.account ();
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            account['used'] = this.safeString (entry, 'locked');
+            account['used'] = this.safeString2 (entry, 'locked', 'position_margin');
             account['free'] = this.safeString (entry, 'available');
             result[code] = account;
         }

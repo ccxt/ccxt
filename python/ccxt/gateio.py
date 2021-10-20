@@ -168,6 +168,7 @@ class gateio(Exchange):
                     },
                     'margin': {
                         'get': {
+                            'accounts': 1.5,
                             'account_book': 1.5,
                             'funding_accounts': 1.5,
                             'loans': 1.5,
@@ -311,12 +312,12 @@ class gateio(Exchange):
                     'delivery': 'delivery',
                 },
                 'defaultType': 'spot',
-                'future': {
+                'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': ['usdt', 'btc'],
                     },
                 },
-                'delivery': {
+                'future': {
                     'fetchMarkets': {
                         'settlementCurrencies': ['usdt', 'btc'],
                     },
@@ -581,9 +582,7 @@ class gateio(Exchange):
         elif margin:
             method = 'publicMarginGetCurrencyPairs'
         if futures or swap:
-            options = self.safe_value(self.options, type, {})  # ['BTC', 'USDT'] unified codes
-            fetchMarketsContractOptions = self.safe_value(options, 'fetchMarchets', {})
-            settlementCurrencies = self.safe_value(fetchMarketsContractOptions, 'settlementCurrencies', ['usdt'])
+            settlementCurrencies = self.get_settlement_currencies(type, 'fetchMarkets')
             for c in range(0, len(settlementCurrencies)):
                 settle = settlementCurrencies[c]
                 query['settle'] = settle
@@ -708,7 +707,6 @@ class gateio(Exchange):
                         'option': option,
                         'linear': linear,
                         'inverse': inverse,
-                        'settle': settle,
                         # Fee is in %, so divide by 100
                         'taker': self.parse_number(Precise.string_div(takerPercent, '100')),
                         'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
@@ -827,6 +825,12 @@ class gateio(Exchange):
             return {
                 'currency_pair': market['id'],
             }
+
+    def get_settlement_currencies(self, type, method):
+        options = self.safe_value(self.options, type, {})  # ['BTC', 'USDT'] unified codes
+        fetchMarketsContractOptions = self.safe_value(options, method, {})
+        defaultSettle = type == ['usdt'] if 'swap' else ['btc']
+        return self.safe_value(fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle)
 
     def fetch_currencies(self, params={}):
         response = self.publicSpotGetCurrencies(params)
@@ -1389,9 +1393,29 @@ class gateio(Exchange):
         return self.parse_tickers(response, symbols)
 
     def fetch_balance(self, params={}):
+        # :param params.type: spot, margin, crossMargin, swap or future
+        # :param params.settle: Settle currency(usdt or btc) for perpetual swap and futures
         self.load_markets()
-        response = self.privateSpotGetAccounts(params)
-        #
+        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        swap = type == 'swap'
+        future = type == 'future'
+        request = {}
+        method = 'privateSpotGetAccounts'
+        if swap:
+            method = 'privateFuturesGetSettleAccounts'
+        elif future:
+            method = 'privateDeliveryGetSettleAccounts'
+        response = []
+        if swap or future:
+            defaultSettle = 'usdt' if swap else 'btc'
+            request['settle'] = self.safe_string(params, 'settle', defaultSettle)
+            response_item = getattr(self, method)(self.extend(request, params))
+            response = [response_item]
+        else:
+            response = getattr(self, method)(self.extend(request, params))
+        #  SPOT
         #     [
         #       {
         #         "currency": "DBC",
@@ -1401,13 +1425,61 @@ class gateio(Exchange):
         #       ...
         #     ]
         #
+        #  Perpetual Swap
+        #  {
+        #     order_margin: "0",
+        #     point: "0",
+        #     bonus: "0",
+        #     history: {
+        #       dnw: "2.1321",
+        #       pnl: "11.5351",
+        #       refr: "0",
+        #       point_fee: "0",
+        #       fund: "-0.32340576684",
+        #       bonus_dnw: "0",
+        #       point_refr: "0",
+        #       bonus_offset: "0",
+        #       fee: "-0.20132775",
+        #       point_dnw: "0",
+        #     },
+        #     unrealised_pnl: "13.315100000006",
+        #     total: "12.51345151332",
+        #     available: "0",
+        #     in_dual_mode: False,
+        #     currency: "USDT",
+        #     position_margin: "12.51345151332",
+        #     user: "6333333",
+        #   }
+        #
+        #   Delivery Future
+        #   {
+        #     order_margin: "0",
+        #     point: "0",
+        #     history: {
+        #       dnw: "1",
+        #       pnl: "0",
+        #       refr: "0",
+        #       point_fee: "0",
+        #       point_dnw: "0",
+        #       settle: "0",
+        #       settle_fee: "0",
+        #       point_refr: "0",
+        #       fee: "0",
+        #     },
+        #     unrealised_pnl: "0",
+        #     total: "1",
+        #     available: "1",
+        #     currency: "USDT",
+        #     position_margin: "0",
+        #     user: "6333333",
+        #   }
         result = {}
         for i in range(0, len(response)):
             entry = response[i]
             account = self.account()
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            account['used'] = self.safe_string(entry, 'locked')
+            account['used'] = self.safe_string_2(entry, 'locked', 'position_margin')
             account['free'] = self.safe_string(entry, 'available')
             result[code] = account
         return self.parse_balance(result)

@@ -1018,10 +1018,9 @@ module.exports = class ftx extends Exchange {
             'future': market['id'],
         };
         if (since !== undefined) {
-            request['start_time'] = since / 1000;
+            request['start_time'] = parseInt (since / 1000);
         }
-        const method = 'publicGetFundingRates';
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicGetFundingRates (this.extend (request, params));
         //
         //     {
         //        "success": true,
