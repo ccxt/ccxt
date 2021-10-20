@@ -2843,13 +2843,6 @@ module.exports = class binance extends Exchange {
         if (applicantSymbol in this.markets) {
             tradedCurrencyIsQuote = true;
         }
-        //
-        // Warning
-        // Binance dust trade `fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
-        // So the parser should either set the `fee.cost` to `0` or add it on top of the earned
-        // BNB `amount` (or `cost` depending on the trade `side`). The second of the above options
-        // is much more illustrative and therefore preferable.
-        //
         const feeCostString = this.safeString (trade, 'serviceChargeAmount');
         const fee = {
             'currency': earnedCurrency,
@@ -2861,13 +2854,13 @@ module.exports = class binance extends Exchange {
         let side = undefined;
         if (tradedCurrencyIsQuote) {
             symbol = applicantSymbol;
-            amountString = Precise.stringAdd (this.safeString (trade, 'transferedAmount'), feeCostString);
+            amountString = this.safeString (trade, 'transferedAmount');
             costString = this.safeString (trade, 'amount');
             side = 'buy';
         } else {
             symbol = tradedCurrency + '/' + earnedCurrency;
             amountString = this.safeString (trade, 'amount');
-            costString = Precise.stringAdd (this.safeString (trade, 'transferedAmount'), feeCostString);
+            costString = this.safeString (trade, 'transferedAmount');
             side = 'sell';
         }
         let priceString = undefined;
