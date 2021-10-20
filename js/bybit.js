@@ -516,6 +516,7 @@ module.exports = class bybit extends Exchange {
                 'amount': this.safeNumber (lotSizeFilter, 'qty_step'),
                 'price': this.safeNumber (priceFilter, 'tick_size'),
             };
+            const leverage = this.safeValue (market, 'leverage_filter', {});
             const status = this.safeString (market, 'status');
             let active = undefined;
             if (status !== undefined) {
@@ -553,6 +554,9 @@ module.exports = class bybit extends Exchange {
                     'cost': {
                         'min': undefined,
                         'max': undefined,
+                    },
+                    'leverage': {
+                        'max': this.safeNumber (leverage, 'max_leverage', 1),
                     },
                 },
                 'info': market,
