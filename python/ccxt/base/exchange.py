@@ -2498,7 +2498,7 @@ class Exchange(object):
                 params = self.omit(params, 'tag')
         return [tag, params]
 
-    def getSupportedMapping(self, key, mapping={}):
+    def get_supported_mapping(self, key, mapping={}):
         # Takes a key and a dictionary, and returns the dictionary's value for that key
         # :throws:
         #      NotSupported if the dictionary does not contain the key
