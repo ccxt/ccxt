@@ -28,7 +28,7 @@ class crex24 extends Exchange {
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
@@ -37,6 +37,7 @@ class crex24 extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingFees' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -48,9 +49,8 @@ class crex24 extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => false, // actually, true, but will be implemented later
-                'fetchTradingFees' => false, // actually, true, but will be implemented later
-                'fetchFundingFees' => true,
+                'fetchTradingFee' => null, // actually, true, but will be implemented later
+                'fetchTradingFees' => null, // actually, true, but will be implemented later
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
@@ -138,9 +138,11 @@ class crex24 extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'ACM' => 'Actinium',
                 'BCC' => 'BCH',
                 'BIT' => 'BitMoney',
                 'BULL' => 'BuySell',
+                'CLC' => 'CaluraCoin',
                 'CREDIT' => 'TerraCredit',
                 'EPS' => 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND' => 'FUNDChains',
@@ -154,6 +156,11 @@ class crex24 extends Exchange {
             ),
             // exchange-specific options
             'options' => array(
+                'networks' => array(
+                    'ETH' => 'ERC20',
+                    'TRX' => 'TRC20',
+                    'BSC' => 'BEP20',
+                ),
                 'fetchOrdersMethod' => 'tradingGetOrderHistory', // or 'tradingGetActiveOrders'
                 'fetchClosedOrdersMethod' => 'tradingGetOrderHistory', // or 'tradingGetActiveOrders'
                 'fetchTickersMethod' => 'publicGetTicker24hr',
@@ -172,6 +179,7 @@ class crex24 extends Exchange {
                     "Nonce error. Make sure that the value passed in the 'X-CREX24-API-NONCE' header is greater in each consecutive request than in the previous one for the corresponding API-Key provided in 'X-CREX24-API-KEY' header." => '\\ccxt\\InvalidNonce',
                     'Market orders are not supported by the instrument currently.' => '\\ccxt\\InvalidOrder',
                     "Parameter 'instrument' contains invalid value." => '\\ccxt\\BadSymbol',
+                    "Trading has been disabled for the account until the verification is passed. To initiate the verification process, please log into your account at crex24.com and proceed to 'My account' -> 'Verification'." => '\\ccxt\\AccountSuspended', // array("errorDescription":"Trading has been disabled for the account until the verification is passed. To initiate the verification process, please log into your account at crex24.com and proceed to 'My account' -> 'Verification'.")
                 ),
                 'broad' => array(
                     'try again later' => '\\ccxt\\ExchangeNotAvailable', // array("errorDescription":"Failed to process the request. Please, try again later.")
@@ -180,6 +188,7 @@ class crex24 extends Exchange {
                     'has been delisted.' => '\\ccxt\\BadSymbol', // array("errorDescription":"Instrument '$PAC-BTC' has been delisted.")
                     'is currently suspended.' => '\\ccxt\\BadSymbol', // array(is_array(BITG-BTC is currently suspended.") && array_key_exists("errorDescription":"Trading, BITG-BTC is currently suspended."))
                     'Mandatory parameter' => '\\ccxt\\BadRequest', // array("errorDescription":"Mandatory parameter 'feeCurrency' is missing.")
+                    'can not trade' => '\\ccxt\\AccountSuspended', // array("errorDescription":"User 123456 can not trade")
                 ),
             ),
         ));
@@ -197,7 +206,7 @@ class crex24 extends Exchange {
         //             "baseCurrency" => "$PAC",
         //             "quoteCurrency" => "BTC",
         //             "feeCurrency" => "BTC",
-        //             "feeSchedule" => "OriginalSchedule",
+        //             "$feeSchedule" => "OriginalSchedule",
         //             "$tickSize" => 0.00000001,
         //             "$minPrice" => 0.00000001,
         //             "$maxPrice" => 10000000000.0,
@@ -216,7 +225,7 @@ class crex24 extends Exchange {
         //             "baseCurrency" => "1INCH",
         //             "quoteCurrency" => "USDT",
         //             "feeCurrency" => "USDT",
-        //             "feeSchedule" => "FeeSchedule10",
+        //             "$feeSchedule" => "FeeSchedule10",
         //             "$tickSize" => 0.0001,
         //             "$minPrice" => 0.0001,
         //             "$maxPrice" => 10000000000.0,
@@ -230,6 +239,41 @@ class crex24 extends Exchange {
         //             ),
         //             "state" => "$active"
         //           ), )
+        //
+        $response2 = $this->publicGetTradingFeeSchedules ($params);
+        //
+        //     array(
+        //         {
+        //             "name" => "FeeSchedule05",
+        //             "$feeRates" => array(
+        //                 array(
+        //                     "$volumeThreshold" => 0.0,
+        //                     "$maker" => 0.0005,
+        //                     "$taker" => 0.0005
+        //                 ),
+        //                 array(
+        //                     "$volumeThreshold" => 5.0,
+        //                     "$maker" => 0.0004,
+        //                     "$taker" => 0.0004
+        //                 ),
+        //                 array(
+        //                     "$volumeThreshold" => 15.0,
+        //                     "$maker" => 0.0003,
+        //                     "$taker" => 0.0003
+        //                 ),
+        //                 array(
+        //                     "$volumeThreshold" => 30.0,
+        //                     "$maker" => 0.0002,
+        //                     "$taker" => 0.0002
+        //                 ),
+        //                 array(
+        //                     "$volumeThreshold" => 50.0,
+        //                     "$maker" => 0.0001,
+        //                     "$taker" => 0.0001
+        //                 }
+        //             )
+        //         ),
+        //     )
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -251,6 +295,24 @@ class crex24 extends Exchange {
                 'amount' => $minAmount,
                 'price' => $tickSize,
             );
+            $maker = null;
+            $taker = null;
+            $feeSchedule = $this->safe_string($market, 'feeSchedule');
+            for ($j = 0; $j < count($response2); $j++) {
+                $feeScheduleName = $this->safe_string($response2[$j], 'name');
+                if ($feeScheduleName === $feeSchedule) {
+                    $feeRates = $this->safe_value($response2[$j], 'feeRates', array());
+                    for ($k = 0; $k < count($feeRates); $k++) {
+                        $volumeThreshold = $this->safe_number($feeRates[$k], 'volumeThreshold');
+                        if ($volumeThreshold === 0) {
+                            $maker = $this->safe_number($feeRates[$k], 'maker');
+                            $taker = $this->safe_number($feeRates[$k], 'taker');
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
             $active = ($market['state'] === 'active');
             $result[] = array(
                 'id' => $id,
@@ -260,8 +322,12 @@ class crex24 extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'precision' => $precision,
+                'maker' => $maker,
+                'taker' => $taker,
                 'limits' => array(
                     'amount' => array(
                         'min' => $minAmount,
@@ -1265,6 +1331,7 @@ class crex24 extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1280,6 +1347,13 @@ class crex24 extends Exchange {
         );
         if ($tag !== null) {
             $request['paymentId'] = $tag;
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['transport'] = $network;
+            $params = $this->omit($params, 'network');
         }
         $response = $this->accountPostWithdraw (array_merge($request, $params));
         return $this->parse_transaction($response);

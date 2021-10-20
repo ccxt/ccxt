@@ -33,7 +33,7 @@ class vcc(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
-                'editOrder': False,
+                'editOrder': None,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -45,11 +45,11 @@ class vcc(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': False,
+                'fetchOrders': None,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTradingFees': False,
+                'fetchTradingFees': None,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
             },
@@ -200,6 +200,8 @@ class vcc(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': {
                     'price': self.safe_integer(precision, 'price'),
@@ -428,17 +430,9 @@ class vcc(Exchange):
         quoteVolume = self.safe_number(ticker, 'quote_volume')
         open = self.safe_number(ticker, 'open_price')
         last = self.safe_number(ticker, 'last_price')
-        change = None
-        percentage = None
-        average = None
-        if last is not None and open is not None:
-            change = last - open
-            average = self.sum(last, open) / 2
-            if open > 0:
-                percentage = change / open * 100
         vwap = self.vwap(baseVolume, quoteVolume)
-        symbol = None if (market is None) else market['symbol']
-        return {
+        symbol = self.safe_symbol(None, market)
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -453,13 +447,13 @@ class vcc(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

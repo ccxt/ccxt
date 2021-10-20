@@ -147,9 +147,7 @@ class Transpiler {
             [ /\.safeOrder\s/g, '.safe_order'],
             [ /\.safeTicker\s/g, '.safe_ticker'],
             [ /\.roundTimeframe/g, '.round_timeframe'],
-            [ /\.integerDivide/g, '.integer_divide'],
-            [ /\.integerModulo/g, '.integer_modulo'],
-            [ /\.integerPow/g, '.integer_pow'],
+            [ /\.calculateRateLimiterCost/g, '.calculate_rate_limiter_cost' ],
             [ /\.parseAccountPosition/g, '.parse_account_position' ],
             [ /\.parsePositionRisk/g, '.parse_position_risk' ],
             [ /\.parseIncome/g, '.parse_income' ],
@@ -226,6 +224,7 @@ class Transpiler {
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
+            [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -386,7 +385,7 @@ class Transpiler {
 
         // add {}-array syntax conversions up to 20 levels deep in the same line
         ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
-
+            [ /\[\s*([^\]]+)\s\]\s=/g, 'list($1) =' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -948,7 +947,7 @@ class Transpiler {
             let variables = args.map (arg => arg.split ('=').map (x => x.trim ()) [0])
 
             // add $ to each argument name in PHP method signature
-            let phpArgs = args.join (', $').trim ().replace (/undefined/g, 'null').replace ('{}', 'array ()')
+            let phpArgs = args.join (', $').trim ().replace (/undefined/g, 'null').replace (/\{\}/g, 'array ()')
             phpArgs = phpArgs.length ? ('$' + phpArgs) : ''
 
             // remove excessive spacing from argument defaults in Python method signature
@@ -1133,7 +1132,7 @@ class Transpiler {
 
         const regex = /\/[\n]{2}(?:    export class [^\s]+ extends [^\s]+ \{\}[\r]?[\n])+/
         const replacement = "/\n\n" + Object.keys (classes).map (className => {
-            const baseClass = classes[className].replace (/ccxt\.[a-z_]+/, 'Exchange')
+            const baseClass = classes[className].replace (/ccxt\.[a-z0-9_]+/, 'Exchange')
             return '    export class ' + className + ' extends ' + baseClass + " {}"
         }).join ("\n") + "\n"
 

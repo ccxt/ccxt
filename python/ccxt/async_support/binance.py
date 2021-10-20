@@ -20,6 +20,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.precise import Precise
@@ -32,34 +33,38 @@ class binance(Exchange):
             'id': 'binance',
             'name': 'Binance',
             'countries': ['JP', 'MT'],  # Japan, Malta
-            'rateLimit': 500,
+            'rateLimit': 50,
             'certified': True,
             'pro': True,
             # new metainfo interface
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
-                'fetchCurrencies': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
+                'fetchIndexOHLCV': True,
                 'fetchIsolatedPositions': True,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
                 'fetchOrderBook': True,
+                'fetchOrders': True,
                 'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -67,13 +72,13 @@ class binance(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'fetchTransactions': False,
+                'fetchTransactions': None,
+                'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': True,
-                'withdraw': True,
                 'transfer': True,
-                'fetchTransfers': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -102,7 +107,6 @@ class binance(Exchange):
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
                     'public': 'https://testnet.binance.vision/api/v3',
                     'private': 'https://testnet.binance.vision/api/v3',
-                    'v3': 'https://testnet.binance.vision/api/v3',
                     'v1': 'https://testnet.binance.vision/api/v1',
                 },
                 'api': {
@@ -118,7 +122,6 @@ class binance(Exchange):
                     'fapiPrivateV2': 'https://fapi.binance.com/fapi/v2',
                     'public': 'https://api.binance.com/api/v3',
                     'private': 'https://api.binance.com/api/v3',
-                    'v3': 'https://api.binance.com/api/v3',
                     'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
@@ -132,444 +135,457 @@ class binance(Exchange):
                 'api_management': 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
+            'depth': 1,
             'api': {
                 # the API structure below will need 3-layer apidefs
                 'sapi': {
-                    'get': [
-                        'accountSnapshot',
-                        'system/status',
+                    'get': {
+                        'accountSnapshot': 1,
+                        'system/status': 1,
                         # these endpoints require self.apiKey
-                        'margin/asset',
-                        'margin/pair',
-                        'margin/allAssets',
-                        'margin/allPairs',
-                        'margin/priceIndex',
+                        'margin/asset': 1,
+                        'margin/pair': 1,
+                        'margin/allAssets': 1,
+                        'margin/allPairs': 1,
+                        'margin/priceIndex': 1,
                         # these endpoints require self.apiKey + self.secret
-                        'asset/assetDividend',
-                        'asset/dribblet',
-                        'asset/transfer',
-                        'asset/assetDetail',
-                        'asset/tradeFee',
-                        'asset/get-funding-asset',
-                        'margin/loan',
-                        'margin/repay',
-                        'margin/account',
-                        'margin/transfer',
-                        'margin/interestHistory',
-                        'margin/forceLiquidationRec',
-                        'margin/order',
-                        'margin/openOrders',
-                        'margin/allOrders',
-                        'margin/myTrades',
-                        'margin/maxBorrowable',
-                        'margin/maxTransferable',
-                        'margin/isolated/transfer',
-                        'margin/isolated/account',
-                        'margin/isolated/pair',
-                        'margin/isolated/allPairs',
-                        'margin/interestRateHistory',
-                        'fiat/orders',
-                        'fiat/payments',
-                        'futures/transfer',
-                        'futures/loan/borrow/history',
-                        'futures/loan/repay/history',
-                        'futures/loan/wallet',
-                        'futures/loan/configs',
-                        'futures/loan/calcAdjustLevel',
-                        'futures/loan/calcMaxAdjustAmount',
-                        'futures/loan/adjustCollateral/history',
-                        'futures/loan/liquidationHistory',
+                        'asset/assetDividend': 1,
+                        'asset/dribblet': 1,
+                        'asset/transfer': 1,
+                        'asset/assetDetail': 1,
+                        'asset/tradeFee': 1,
+                        'asset/get-funding-asset': 1,
+                        'margin/loan': 1,
+                        'margin/repay': 1,
+                        'margin/account': 1,
+                        'margin/transfer': 1,
+                        'margin/interestHistory': 1,
+                        'margin/forceLiquidationRec': 1,
+                        'margin/order': 1,
+                        'margin/openOrders': 1,
+                        'margin/allOrders': 1,
+                        'margin/myTrades': 1,
+                        'margin/maxBorrowable': 5,
+                        'margin/maxTransferable': 5,
+                        'margin/isolated/transfer': 1,
+                        'margin/isolated/account': 1,
+                        'margin/isolated/pair': 1,
+                        'margin/isolated/allPairs': 1,
+                        'margin/interestRateHistory': 1,
+                        'margin/orderList': 2,
+                        'margin/allOrderList': 10,
+                        'margin/openOrderList': 3,
+                        'fiat/orders': 1,
+                        'fiat/payments': 1,
+                        'futures/transfer': 5,
+                        'futures/loan/borrow/history': 1,
+                        'futures/loan/repay/history': 1,
+                        'futures/loan/wallet': 1,
+                        'futures/loan/configs': 1,
+                        'futures/loan/calcAdjustLevel': 1,
+                        'futures/loan/calcMaxAdjustAmount': 1,
+                        'futures/loan/adjustCollateral/history': 1,
+                        'futures/loan/liquidationHistory': 1,
                         # https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
-                        'capital/config/getall',  # get networks for withdrawing USDT ERC20 vs USDT Omni
-                        'capital/deposit/address',
-                        'capital/deposit/hisrec',
-                        'capital/deposit/subAddress',
-                        'capital/deposit/subHisrec',
-                        'capital/withdraw/history',
-                        'bnbBurn',
-                        'sub-account/assets',
-                        'sub-account/futures/account',
-                        'sub-account/futures/accountSummary',
-                        'sub-account/futures/positionRisk',
-                        'sub-account/futures/internalTransfer',
-                        'sub-account/list',
-                        'sub-account/margin/account',
-                        'sub-account/margin/accountSummary',
-                        'sub-account/spotSummary',
-                        'sub-account/status',
-                        'sub-account/sub/transfer/history',
-                        'sub-account/transfer/subUserHistory',
-                        'sub-account/universalTransfer',
+                        'capital/config/getall': 1,  # get networks for withdrawing USDT ERC20 vs USDT Omni
+                        'capital/deposit/address': 1,
+                        'capital/deposit/hisrec': 1,
+                        'capital/deposit/subAddress': 1,
+                        'capital/deposit/subHisrec': 1,
+                        'capital/withdraw/history': 1,
+                        'account/status': 1,
+                        'account/apiTradingStatus': 1,
+                        'bnbBurn': 1,
+                        'sub-account/assets': 1,
+                        'sub-account/futures/account': 1,
+                        'sub-account/futures/accountSummary': 20,
+                        'sub-account/futures/positionRisk': 1,
+                        'sub-account/futures/internalTransfer': 1,
+                        'sub-account/list': 1,
+                        'sub-account/margin/account': 1,
+                        'sub-account/margin/accountSummary': 1,
+                        'sub-account/spotSummary': 5,
+                        'sub-account/status': 1,
+                        'sub-account/sub/transfer/history': 1,
+                        'sub-account/transfer/subUserHistory': 1,
+                        'sub-account/universalTransfer': 1,
                         # lending endpoints
-                        'lending/daily/product/list',
-                        'lending/daily/userLeftQuota',
-                        'lending/daily/userRedemptionQuota',
-                        'lending/daily/token/position',
-                        'lending/union/account',
-                        'lending/union/purchaseRecord',
-                        'lending/union/redemptionRecord',
-                        'lending/union/interestHistory',
-                        'lending/project/list',
-                        'lending/project/position/list',
+                        'lending/daily/product/list': 1,
+                        'lending/daily/userLeftQuota': 1,
+                        'lending/daily/userRedemptionQuota': 1,
+                        'lending/daily/token/position': 1,
+                        'lending/union/account': 1,
+                        'lending/union/purchaseRecord': 1,
+                        'lending/union/redemptionRecord': 1,
+                        'lending/union/interestHistory': 1,
+                        'lending/project/list': 1,
+                        'lending/project/position/list': 1,
                         # mining endpoints
-                        'mining/pub/algoList',
-                        'mining/pub/coinList',
-                        'mining/worker/detail',
-                        'mining/worker/list',
-                        'mining/payment/list',
-                        'mining/statistics/user/status',
-                        'mining/statistics/user/list',
+                        'mining/pub/algoList': 1,
+                        'mining/pub/coinList': 1,
+                        'mining/worker/detail': 5,
+                        'mining/worker/list': 5,
+                        'mining/payment/list': 5,
+                        'mining/statistics/user/status': 5,
+                        'mining/statistics/user/list': 5,
                         # liquid swap endpoints
-                        'bswap/pools',
-                        'bswap/liquidity',
-                        'bswap/liquidityOps',
-                        'bswap/quote',
-                        'bswap/swap',
+                        'bswap/pools': 1,
+                        'bswap/liquidity': {'cost': 1, 'noPoolId': 10},
+                        'bswap/liquidityOps': 2,
+                        'bswap/quote': 2,
+                        'bswap/swap': 1,
                         # leveraged token endpoints
-                        'blvt/tokenInfo',
-                        'blvt/subscribe/record',
-                        'blvt/redeem/record',
-                        'blvt/userLimit',
+                        'blvt/tokenInfo': 1,
+                        'blvt/subscribe/record': 1,
+                        'blvt/redeem/record': 1,
+                        'blvt/userLimit': 1,
                         # broker api
-                        'apiReferral/ifNewUser',
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
-                        'apiReferral/rebate/recentRecord',
-                        'apiReferral/rebate/historicalRecord',
-                        'apiReferral/kickback/recentRecord',
-                        'apiReferral/kickback/historicalRecord',
+                        'apiReferral/ifNewUser': 1,
+                        'apiReferral/customization': 1,
+                        'apiReferral/userCustomization': 1,
+                        'apiReferral/rebate/recentRecord': 1,
+                        'apiReferral/rebate/historicalRecord': 1,
+                        'apiReferral/kickback/recentRecord': 1,
+                        'apiReferral/kickback/historicalRecord': 1,
                         # brokerage API
-                        'broker/subAccountApi',
-                        'broker/subAccount',
-                        'broker/subAccountApi/commission/futures',
-                        'broker/subAccountApi/commission/coinFutures',
-                        'broker/info',
-                        'broker/transfer',
-                        'broker/transfer/futures',
-                        'broker/rebate/recentRecord',
-                        'broker/rebate/historicalRecord',
-                        'broker/subAccount/bnbBurn/status',
-                        'broker/subAccount/depositHist',
-                        'broker/subAccount/spotSummary',
-                        'broker/subAccount/marginSummary',
-                        'broker/subAccount/futuresSummary',
-                        'broker/rebate/futures/recentRecord',
-                        'broker/subAccountApi/ipRestriction',
-                        'broker/universalTransfer',
+                        'broker/subAccountApi': 1,
+                        'broker/subAccount': 1,
+                        'broker/subAccountApi/commission/futures': 1,
+                        'broker/subAccountApi/commission/coinFutures': 1,
+                        'broker/info': 1,
+                        'broker/transfer': 1,
+                        'broker/transfer/futures': 1,
+                        'broker/rebate/recentRecord': 1,
+                        'broker/rebate/historicalRecord': 1,
+                        'broker/subAccount/bnbBurn/status': 1,
+                        'broker/subAccount/depositHist': 1,
+                        'broker/subAccount/spotSummary': 1,
+                        'broker/subAccount/marginSummary': 1,
+                        'broker/subAccount/futuresSummary': 1,
+                        'broker/rebate/futures/recentRecord': 1,
+                        'broker/subAccountApi/ipRestriction': 1,
+                        'broker/universalTransfer': 1,
                         # v2 not supported yet
                         # GET /sapi/v2/broker/subAccount/futuresSummary
-                        'account/apiRestrictions',
+                        'account/apiRestrictions': 1,
                         # subaccounts
-                        'managed-subaccount/asset',
-                    ],
-                    'post': [
-                        'asset/dust',
-                        'asset/transfer',
-                        'asset/get-funding-asset',
-                        'account/disableFastWithdrawSwitch',
-                        'account/enableFastWithdrawSwitch',
-                        'capital/withdraw/apply',
-                        'margin/transfer',
-                        'margin/loan',
-                        'margin/repay',
-                        'margin/order',
-                        'margin/isolated/create',
-                        'margin/isolated/transfer',
-                        'bnbBurn',
-                        'sub-account/margin/transfer',
-                        'sub-account/margin/enable',
-                        'sub-account/margin/enable',
-                        'sub-account/futures/enable',
-                        'sub-account/futures/transfer',
-                        'sub-account/futures/internalTransfer',
-                        'sub-account/transfer/subToSub',
-                        'sub-account/transfer/subToMaster',
-                        'sub-account/universalTransfer',
-                        'managed-subaccount/deposit',
-                        'managed-subaccount/withdraw',
-                        'userDataStream',
-                        'userDataStream/isolated',
-                        'futures/transfer',
-                        'futures/loan/borrow',
-                        'futures/loan/repay',
-                        'futures/loan/adjustCollateral',
+                        'managed-subaccount/asset': 1,
+                    },
+                    'post': {
+                        'asset/dust': 1,
+                        'asset/transfer': 1,
+                        'asset/get-funding-asset': 1,
+                        'account/disableFastWithdrawSwitch': 1,
+                        'account/enableFastWithdrawSwitch': 1,
+                        'capital/withdraw/apply': 1,
+                        'margin/transfer': 1,
+                        'margin/loan': 1,
+                        'margin/repay': 1,
+                        'margin/order': 4,
+                        'margin/order/oco': 1,
+                        'margin/isolated/create': 1,
+                        'margin/isolated/transfer': 1,
+                        'bnbBurn': 1,
+                        'sub-account/margin/transfer': 1,
+                        'sub-account/margin/enable': 1,
+                        # 'sub-account/margin/enable': 1,
+                        'sub-account/futures/enable': 1,
+                        'sub-account/futures/transfer': 1,
+                        'sub-account/futures/internalTransfer': 1,
+                        'sub-account/transfer/subToSub': 1,
+                        'sub-account/transfer/subToMaster': 1,
+                        'sub-account/universalTransfer': 1,
+                        'managed-subaccount/deposit': 1,
+                        'managed-subaccount/withdraw': 1,
+                        'userDataStream': 1,
+                        'userDataStream/isolated': 1,
+                        'futures/transfer': 1,
+                        'futures/loan/borrow': 20,
+                        'futures/loan/repay': 20,
+                        'futures/loan/adjustCollateral': 20,
                         # lending
-                        'lending/customizedFixed/purchase',
-                        'lending/daily/purchase',
-                        'lending/daily/redeem',
+                        'lending/customizedFixed/purchase': 1,
+                        'lending/daily/purchase': 1,
+                        'lending/daily/redeem': 1,
                         # liquid swap endpoints
-                        'bswap/liquidityAdd',
-                        'bswap/liquidityRemove',
-                        'bswap/swap',
+                        'bswap/liquidityAdd': 2,
+                        'bswap/liquidityRemove': 2,
+                        'bswap/swap': 2,
                         # leveraged token endpoints
-                        'blvt/subscribe',
-                        'blvt/redeem',
+                        'blvt/subscribe': 1,
+                        'blvt/redeem': 1,
                         # brokerage API
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
-                        'apiReferral/rebate/historicalRecord',
-                        'apiReferral/kickback/historicalRecord',
-                        'broker/subAccount',
-                        'broker/subAccount/margin',
-                        'broker/subAccount/futures',
-                        'broker/subAccountApi',
-                        'broker/subAccountApi/permission',
-                        'broker/subAccountApi/commission',
-                        'broker/subAccountApi/commission/futures',
-                        'broker/subAccountApi/commission/coinFutures',
-                        'broker/transfer',
-                        'broker/transfer/futures',
-                        'broker/rebate/historicalRecord',
-                        'broker/subAccount/bnbBurn/spot',
-                        'broker/subAccount/bnbBurn/marginInterest',
-                        'broker/subAccount/blvt',
-                        'broker/subAccountApi/ipRestriction',
-                        'broker/subAccountApi/ipRestriction/ipList',
-                        'broker/universalTransfer',
-                        'broker/subAccountApi/permission/universalTransfer',
-                        'broker/subAccountApi/permission/vanillaOptions',
-                    ],
-                    'put': [
-                        'userDataStream',
-                        'userDataStream/isolated',
-                    ],
-                    'delete': [
-                        'margin/openOrders',
-                        'margin/order',
-                        'userDataStream',
-                        'userDataStream/isolated',
+                        'apiReferral/customization': 1,
+                        'apiReferral/userCustomization': 1,
+                        'apiReferral/rebate/historicalRecord': 1,
+                        'apiReferral/kickback/historicalRecord': 1,
+                        'broker/subAccount': 1,
+                        'broker/subAccount/margin': 1,
+                        'broker/subAccount/futures': 1,
+                        'broker/subAccountApi': 1,
+                        'broker/subAccountApi/permission': 1,
+                        'broker/subAccountApi/commission': 1,
+                        'broker/subAccountApi/commission/futures': 1,
+                        'broker/subAccountApi/commission/coinFutures': 1,
+                        'broker/transfer': 1,
+                        'broker/transfer/futures': 1,
+                        'broker/rebate/historicalRecord': 1,
+                        'broker/subAccount/bnbBurn/spot': 1,
+                        'broker/subAccount/bnbBurn/marginInterest': 1,
+                        'broker/subAccount/blvt': 1,
+                        'broker/subAccountApi/ipRestriction': 1,
+                        'broker/subAccountApi/ipRestriction/ipList': 1,
+                        'broker/universalTransfer': 1,
+                        'broker/subAccountApi/permission/universalTransfer': 1,
+                        'broker/subAccountApi/permission/vanillaOptions': 1,
+                    },
+                    'put': {
+                        'userDataStream': 1,
+                        'userDataStream/isolated': 1,
+                    },
+                    'delete': {
+                        'margin/openOrders': 1,
+                        'margin/order': 1,
+                        'margin/orderList': 1,
+                        'userDataStream': 1,
+                        'userDataStream/isolated': 1,
                         # brokerage API
-                        'broker/subAccountApi',
-                        'broker/subAccountApi/ipRestriction/ipList',
-                    ],
+                        'broker/subAccountApi': 1,
+                        'broker/subAccountApi/ipRestriction/ipList': 1,
+                    },
                 },
                 # deprecated
                 'wapi': {
-                    'post': [
-                        'withdraw',
-                        'sub-account/transfer',
-                    ],
-                    'get': [
-                        'depositHistory',
-                        'withdrawHistory',
-                        'depositAddress',
-                        'accountStatus',
-                        'systemStatus',
-                        'apiTradingStatus',
-                        'userAssetDribbletLog',
-                        'tradeFee',
-                        'assetDetail',
-                        'sub-account/list',
-                        'sub-account/transfer/history',
-                        'sub-account/assets',
-                    ],
+                    'post': {
+                        'withdraw': 1,
+                        'sub-account/transfer': 1,
+                    },
+                    'get': {
+                        'depositHistory': 1,
+                        'withdrawHistory': 1,
+                        'depositAddress': 1,
+                        'accountStatus': 1,
+                        'systemStatus': 1,
+                        'apiTradingStatus': 1,
+                        'userAssetDribbletLog': 1,
+                        'tradeFee': 1,
+                        'assetDetail': 1,
+                        'sub-account/list': 1,
+                        'sub-account/transfer/history': 1,
+                        'sub-account/assets': 1,
+                    },
                 },
                 'dapiPublic': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'exchangeInfo',
-                        'depth',
-                        'trades',
-                        'historicalTrades',
-                        'aggTrades',
-                        'premiumIndex',
-                        'fundingRate',
-                        'klines',
-                        'continuousKlines',
-                        'indexPriceKlines',
-                        'markPriceKlines',
-                        'ticker/24hr',
-                        'ticker/price',
-                        'ticker/bookTicker',
-                        'openInterest',
-                    ],
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'exchangeInfo': 1,
+                        'depth': {'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]]},
+                        'trades': 1,
+                        'historicalTrades': 20,
+                        'aggTrades': 20,
+                        'premiumIndex': 10,
+                        'fundingRate': 1,
+                        'klines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'continuousKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'indexPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'markPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'ticker/24hr': {'cost': 1, 'noSymbol': 40},
+                        'ticker/price': {'cost': 1, 'noSymbol': 2},
+                        'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
+                        'openInterest': 1,
+                    },
                 },
                 'dapiData': {
-                    'get': [
-                        'openInterestHist',
-                        'topLongShortAccountRatio',
-                        'topLongShortPositionRatio',
-                        'globalLongShortAccountRatio',
-                        'takerBuySellVol',
-                        'basis',
-                    ],
+                    'get': {
+                        'openInterestHist': 1,
+                        'topLongShortAccountRatio': 1,
+                        'topLongShortPositionRatio': 1,
+                        'globalLongShortAccountRatio': 1,
+                        'takerBuySellVol': 1,
+                        'basis': 1,
+                    },
                 },
                 'dapiPrivate': {
-                    'get': [
-                        'positionSide/dual',
-                        'order',
-                        'openOrder',
-                        'openOrders',
-                        'allOrders',
-                        'balance',
-                        'account',
-                        'positionMargin/history',
-                        'positionRisk',
-                        'userTrades',
-                        'income',
-                        'leverageBracket',
-                        'forceOrders',
-                        'adlQuantile',
-                    ],
-                    'post': [
-                        'positionSide/dual',
-                        'order',
-                        'batchOrders',
-                        'countdownCancelAll',
-                        'leverage',
-                        'marginType',
-                        'positionMargin',
-                        'listenKey',
-                    ],
-                    'put': [
-                        'listenKey',
-                    ],
-                    'delete': [
-                        'order',
-                        'allOpenOrders',
-                        'batchOrders',
-                        'listenKey',
-                    ],
+                    'get': {
+                        'positionSide/dual': 30,
+                        'order': 1,
+                        'openOrder': 1,
+                        'openOrders': {'cost': 1, 'noSymbol': 5},
+                        'allOrders': {'cost': 20, 'noSymbol': 40},
+                        'balance': 1,
+                        'account': 5,
+                        'positionMargin/history': 1,
+                        'positionRisk': 1,
+                        'userTrades': {'cost': 20, 'noSymbol': 40},
+                        'income': 20,
+                        'leverageBracket': 1,
+                        'forceOrders': {'cost': 20, 'noSymbol': 50},
+                        'adlQuantile': 5,
+                    },
+                    'post': {
+                        'positionSide/dual': 1,
+                        'order': 4,
+                        'batchOrders': 5,
+                        'countdownCancelAll': 10,
+                        'leverage': 1,
+                        'marginType': 1,
+                        'positionMargin': 1,
+                        'listenKey': 1,
+                    },
+                    'put': {
+                        'listenKey': 1,
+                    },
+                    'delete': {
+                        'order': 1,
+                        'allOpenOrders': 1,
+                        'batchOrders': 5,
+                        'listenKey': 1,
+                    },
                 },
                 'dapiPrivateV2': {
-                    'get': [
-                        'leverageBracket',
-                    ],
+                    'get': {
+                        'leverageBracket': 1,
+                    },
                 },
                 'fapiPublic': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'exchangeInfo',
-                        'depth',
-                        'trades',
-                        'historicalTrades',
-                        'aggTrades',
-                        'klines',
-                        'continuousKlines',
-                        'fundingRate',
-                        'premiumIndex',
-                        'ticker/24hr',
-                        'ticker/price',
-                        'ticker/bookTicker',
-                        'openInterest',
-                        'indexInfo',
-                    ],
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'exchangeInfo': 1,
+                        'depth': {'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]]},
+                        'trades': 1,
+                        'historicalTrades': 20,
+                        'aggTrades': 20,
+                        'klines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'continuousKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'markPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'indexPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'fundingRate': 1,
+                        'premiumIndex': 1,
+                        'ticker/24hr': {'cost': 1, 'noSymbol': 40},
+                        'ticker/price': {'cost': 1, 'noSymbol': 2},
+                        'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
+                        'openInterest': 1,
+                        'indexInfo': 1,
+                        'apiTradingStatus': {'cost': 1, 'noSymbol': 10},
+                        'lvtKlines': 1,
+                    },
                 },
                 'fapiData': {
-                    'get': [
-                        'openInterestHist',
-                        'topLongShortAccountRatio',
-                        'topLongShortPositionRatio',
-                        'globalLongShortAccountRatio',
-                        'takerlongshortRatio',
-                    ],
+                    'get': {
+                        'openInterestHist': 1,
+                        'topLongShortAccountRatio': 1,
+                        'topLongShortPositionRatio': 1,
+                        'globalLongShortAccountRatio': 1,
+                        'takerlongshortRatio': 1,
+                    },
                 },
                 'fapiPrivate': {
-                    'get': [
-                        'forceOrders',
-                        'allOrders',
-                        'openOrder',
-                        'openOrders',
-                        'order',
-                        'account',
-                        'balance',
-                        'leverageBracket',
-                        'positionMargin/history',
-                        'positionRisk',
-                        'positionSide/dual',
-                        'userTrades',
-                        'income',
-                        'commissionRate',
-                        'apiTradingStatus',
-                        'multiAssetsMargin',
+                    'get': {
+                        'forceOrders': {'cost': 20, 'noSymbol': 50},
+                        'allOrders': 5,
+                        'openOrder': 1,
+                        'openOrders': 1,
+                        'order': 1,
+                        'account': 5,
+                        'balance': 5,
+                        'leverageBracket': 1,
+                        'positionMargin/history': 1,
+                        'positionRisk': 5,
+                        'positionSide/dual': 30,
+                        'userTrades': 5,
+                        'income': 30,
+                        'commissionRate': 20,
+                        'apiTradingStatus': 1,
+                        'multiAssetsMargin': 30,
                         # broker endpoints
-                        'apiReferral/ifNewUser',
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
-                        'apiReferral/traderNum',
-                        'apiReferral/overview',
-                        'apiReferral/tradeVol',
-                        'apiReferral/rebateVol',
-                        'apiReferral/traderSummary',
-                    ],
-                    'post': [
-                        'batchOrders',
-                        'positionSide/dual',
-                        'positionMargin',
-                        'marginType',
-                        'order',
-                        'leverage',
-                        'listenKey',
-                        'countdownCancelAll',
-                        'multiAssetsMargin',
+                        'apiReferral/ifNewUser': 1,
+                        'apiReferral/customization': 1,
+                        'apiReferral/userCustomization': 1,
+                        'apiReferral/traderNum': 1,
+                        'apiReferral/overview': 1,
+                        'apiReferral/tradeVol': 1,
+                        'apiReferral/rebateVol': 1,
+                        'apiReferral/traderSummary': 1,
+                        'adlQuantile': 5,
+                    },
+                    'post': {
+                        'batchOrders': 5,
+                        'positionSide/dual': 1,
+                        'positionMargin': 1,
+                        'marginType': 1,
+                        'order': 4,
+                        'leverage': 1,
+                        'listenKey': 1,
+                        'countdownCancelAll': 10,
+                        'multiAssetsMargin': 1,
                         # broker endpoints
-                        'apiReferral/customization',
-                        'apiReferral/userCustomization',
-                    ],
-                    'put': [
-                        'listenKey',
-                    ],
-                    'delete': [
-                        'batchOrders',
-                        'order',
-                        'allOpenOrders',
-                        'listenKey',
-                    ],
+                        'apiReferral/customization': 1,
+                        'apiReferral/userCustomization': 1,
+                    },
+                    'put': {
+                        'listenKey': 1,
+                    },
+                    'delete': {
+                        'batchOrders': 1,
+                        'order': 1,
+                        'allOpenOrders': 1,
+                        'listenKey': 1,
+                    },
                 },
                 'fapiPrivateV2': {
-                    'get': [
-                        'account',
-                        'balance',
-                        'positionRisk',
-                    ],
-                },
-                'v3': {
-                    'get': [
-                        'ticker/price',
-                        'ticker/bookTicker',
-                    ],
+                    'get': {
+                        'account': 1,
+                        'balance': 1,
+                        'positionRisk': 1,
+                    },
                 },
                 'public': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'depth',
-                        'trades',
-                        'aggTrades',
-                        'historicalTrades',
-                        'klines',
-                        'ticker/24hr',
-                        'ticker/price',
-                        'ticker/bookTicker',
-                        'exchangeInfo',
-                    ],
-                    'put': ['userDataStream'],
-                    'post': ['userDataStream'],
-                    'delete': ['userDataStream'],
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'depth': {'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10], [5000, 50]]},
+                        'trades': 1,
+                        'aggTrades': 1,
+                        'historicalTrades': 5,
+                        'klines': 1,
+                        'ticker/24hr': {'cost': 1, 'noSymbol': 40},
+                        'ticker/price': {'cost': 1, 'noSymbol': 2},
+                        'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
+                        'exchangeInfo': 10,
+                    },
+                    'put': {
+                        'userDataStream': 1,
+                    },
+                    'post': {
+                        'userDataStream': 1,
+                    },
+                    'delete': {
+                        'userDataStream': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'allOrderList',  # oco
-                        'openOrderList',  # oco
-                        'orderList',  # oco
-                        'order',
-                        'openOrders',
-                        'allOrders',
-                        'account',
-                        'myTrades',
-                    ],
-                    'post': [
-                        'order/oco',
-                        'order',
-                        'order/test',
-                    ],
-                    'delete': [
-                        'openOrders',  # added on 2020-04-25 for canceling all open orders per symbol
-                        'orderList',  # oco
-                        'order',
-                    ],
+                    'get': {
+                        'allOrderList': 10,  # oco
+                        'openOrderList': 3,  # oco
+                        'orderList': 2,  # oco
+                        'order': 2,
+                        'openOrders': {'cost': 3, 'noSymbol': 40},
+                        'allOrders': 10,
+                        'account': 10,
+                        'myTrades': 10,
+                    },
+                    'post': {
+                        'order/oco': 1,
+                        'order': 4,
+                        'order/test': 1,
+                    },
+                    'delete': {
+                        'openOrders': 1,  # added on 2020-04-25 for canceling all open orders per symbol
+                        'orderList': 1,  # oco
+                        'order': 1,
+                    },
                 },
             },
             'fees': {
@@ -657,7 +673,7 @@ class binance(Exchange):
             },
             # exchange-specific options
             'options': {
-                'fetchCurrencies': False,  # self is a private call and it requires API keys
+                'fetchCurrencies': True,  # self is a private call and it requires API keys
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
@@ -692,6 +708,109 @@ class binance(Exchange):
                     'UMFUTURE': 'future',
                     'CMFUTURE': 'delivery',
                     'MINING': 'mining',
+                },
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'BEP2': 'BNB',
+                    'BEP20': 'BSC',
+                    'OMNI': 'OMNI',
+                    'EOS': 'EOS',
+                    'SPL': 'SOL',
+                },
+                'reverseNetworks': {
+                    'tronscan.org': 'TRC20',
+                    'etherscan.io': 'ERC20',
+                    'bscscan.com': 'BSC',
+                    'explorer.binance.org': 'BEP2',
+                    'bithomp.com': 'XRP',
+                    'bloks.io': 'EOS',
+                    'stellar.expert': 'XLM',
+                    'blockchair.com/bitcoin': 'BTC',
+                    'blockchair.com/bitcoin-cash': 'BCH',
+                    'blockchair.com/ecash': 'XEC',
+                    'explorer.litecoin.net': 'LTC',
+                    'explorer.avax.network': 'AVAX',
+                    'solscan.io': 'SOL',
+                    'polkadot.subscan.io': 'DOT',
+                    'dashboard.internetcomputer.org': 'ICP',
+                    'explorer.chiliz.com': 'CHZ',
+                    'cardanoscan.io': 'ADA',
+                    'mainnet.theoan.com': 'AION',
+                    'algoexplorer.io': 'ALGO',
+                    'explorer.ambrosus.com': 'AMB',
+                    'viewblock.io/zilliqa': 'ZIL',
+                    'viewblock.io/arweave': 'AR',
+                    'explorer.ark.io': 'ARK',
+                    'atomscan.com': 'ATOM',
+                    'www.mintscan.io': 'CTK',
+                    'explorer.bitcoindiamond.org': 'BCD',
+                    'btgexplorer.com': 'BTG',
+                    'bts.ai': 'BTS',
+                    'explorer.celo.org': 'CELO',
+                    'explorer.nervos.org': 'CKB',
+                    'cerebro.cortexlabs.ai': 'CTXC',
+                    'chainz.cryptoid.info': 'VIA',
+                    'explorer.dcrdata.org': 'DCR',
+                    'digiexplorer.info': 'DGB',
+                    'dock.subscan.io': 'DOCK',
+                    'dogechain.info': 'DOGE',
+                    'explorer.elrond.com': 'EGLD',
+                    'blockscout.com': 'ETC',
+                    'explore-fetchhub.fetch.ai': 'FET',
+                    'filfox.info': 'FIL',
+                    'fio.bloks.io': 'FIO',
+                    'explorer.firo.org': 'FIRO',
+                    'neoscan.io': 'NEO',
+                    'ftmscan.com': 'FTM',
+                    'explorer.gochain.io': 'GO',
+                    'block.gxb.io': 'GXS',
+                    'hash-hash.info': 'HBAR',
+                    'www.hiveblockexplorer.com': 'HIVE',
+                    'explorer.helium.com': 'HNT',
+                    'tracker.icon.foundation': 'ICX',
+                    'www.iostabc.com': 'IOST',
+                    'explorer.iota.org': 'IOTA',
+                    'iotexscan.io': 'IOTX',
+                    'irishub.iobscan.io': 'IRIS',
+                    'kava.mintscan.io': 'KAVA',
+                    'scope.klaytn.com': 'KLAY',
+                    'kmdexplorer.io': 'KMD',
+                    'kusama.subscan.io': 'KSM',
+                    'explorer.lto.network': 'LTO',
+                    'polygonscan.com': 'POLYGON',
+                    'explorer.ont.io': 'ONT',
+                    'minaexplorer.com': 'MINA',
+                    'nanolooker.com': 'NANO',
+                    'explorer.nebulas.io': 'NAS',
+                    'explorer.nbs.plus': 'NBS',
+                    'explorer.nebl.io': 'NEBL',
+                    'nulscan.io': 'NULS',
+                    'nxscan.com': 'NXS',
+                    'explorer.harmony.one': 'ONE',
+                    'explorer.poa.network': 'POA',
+                    'qtum.info': 'QTUM',
+                    'explorer.rsk.co': 'RSK',
+                    'www.oasisscan.com': 'ROSE',
+                    'ravencoin.network': 'RVN',
+                    'sc.tokenview.com': 'SC',
+                    'secretnodes.com': 'SCRT',
+                    'explorer.skycoin.com': 'SKY',
+                    'steemscan.com': 'STEEM',
+                    'explorer.stacks.co': 'STX',
+                    'www.thetascan.io': 'THETA',
+                    'scan.tomochain.com': 'TOMO',
+                    'explore.vechain.org': 'VET',
+                    'explorer.vite.net': 'VITE',
+                    'www.wanscan.org': 'WAN',
+                    'wavesexplorer.com': 'WAVES',
+                    'wax.eosx.io': 'WAXP',
+                    'waltonchain.pro': 'WTC',
+                    'chain.nem.ninja': 'XEM',
+                    'verge-blockchain.info': 'XVG',
+                    'explorer.yoyow.org': 'YOYOW',
+                    'explorer.zcha.in': 'ZEC',
+                    'explorer.zensystem.io': 'ZEN',
                 },
                 'legalMoney': {
                     'MXN': True,
@@ -731,6 +850,7 @@ class binance(Exchange):
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
                 'exact': {
+                    'System is under maintenance.': OnMaintenance,  # {"code":1,"msg":"System is under maintenance."}
                     'System abnormality': ExchangeError,  # {"code":-1000,"msg":"System abnormality"}
                     'You are not authorized to execute self request.': PermissionDenied,  # {"msg":"You are not authorized to execute self request."}
                     'API key does not exist': AuthenticationError,
@@ -741,7 +861,7 @@ class binance(Exchange):
                     'Rest API trading is not enabled.': ExchangeNotAvailable,
                     "You don't have permission.": PermissionDenied,  # {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable,  # {"code":-1013,"msg":"Market is closed."}
-                    'Too many requests.': DDoSProtection,  # {"msg":"Too many requests. Please try again later.","success":false}
+                    'Too many requests. Please try again later.': DDoSProtection,  # {"msg":"Too many requests. Please try again later.","success":false}
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable,  # 'Internal error; unable to process your request. Please try again.'
                     '-1002': AuthenticationError,  # 'You are not authorized to execute self request.'
@@ -792,6 +912,7 @@ class binance(Exchange):
                     '-3041': InsufficientFunds,  # {"code":-3041,"msg":"Balance is not enough"}
                     '-5013': InsufficientFunds,  # Asset transfer failed: insufficient balance"
                     '-11008': InsufficientFunds,  # {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}
+                    '-4051': InsufficientFunds,  # {"code":-4051,"msg":"Isolated balance insufficient."}
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
@@ -800,20 +921,29 @@ class binance(Exchange):
             },
         })
 
+    def cost_to_precision(self, symbol, cost):
+        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['quote'], self.precisionMode, self.paddingMode)
+
     def currency_to_precision(self, currency, fee):
-        return self.number_to_string(fee)
+        # info is available in currencies only if the user has configured his api keys
+        if self.safe_value(self.currencies[currency], 'precision') is not None:
+            return self.decimal_to_precision(fee, TRUNCATE, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
+        else:
+            return self.number_to_string(fee)
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
     async def fetch_time(self, params={}):
-        type = self.safe_string_2(self.options, 'fetchTime', 'defaultType', 'spot')
+        defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
         method = 'publicGetTime'
         if type == 'future':
             method = 'fapiPublicGetTime'
         elif type == 'delivery':
             method = 'dapiPublicGetTime'
-        response = await getattr(self, method)(params)
+        response = await getattr(self, method)(query)
         return self.safe_integer(response, 'serverTime')
 
     async def load_time_difference(self, params={}):
@@ -949,6 +1079,7 @@ class binance(Exchange):
                 'precision': precision,
                 'info': entry,
                 'active': active,
+                'networks': networkList,
                 'fee': fee,
                 'fees': fees,
                 'limits': self.limits,
@@ -1195,6 +1326,8 @@ class binance(Exchange):
             }
             if 'PRICE_FILTER' in filtersByType:
                 filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
+                tickSize = self.safe_string(filter, 'tickSize')
+                entry['precision']['price'] = self.precision_from_string(tickSize)
                 # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
                 # https://github.com/ccxt/ccxt/issues/4286
@@ -1230,11 +1363,11 @@ class binance(Exchange):
         type = self.safe_string(params, 'type', defaultType)
         method = 'privateGetAccount'
         if type == 'future':
-            options = self.safe_value(self.options, 'future', {})
+            options = self.safe_value(self.options, type, {})
             fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
             method = self.safe_string(fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount')
         elif type == 'delivery':
-            options = self.safe_value(self.options, 'delivery', {})
+            options = self.safe_value(self.options, type, {})
             fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
             method = self.safe_string(fetchBalanceOptions, 'method', 'dapiPrivateGetAccount')
         elif type == 'margin':
@@ -1579,7 +1712,7 @@ class binance(Exchange):
         else:
             baseVolume = self.safe_number(ticker, 'volume')
             quoteVolume = self.safe_number(ticker, 'quoteVolume')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1600,7 +1733,7 @@ class binance(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_status(self, params={}):
         response = await self.sapiGetSystemStatus(params)
@@ -1662,20 +1795,38 @@ class binance(Exchange):
         return self.parse_tickers(response, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
-        #
+        # when api method = publicGetKlines or fapiPublicGetKlines or dapiPublicGetKlines
         #     [
-        #         1591478520000,
-        #         "0.02501300",
-        #         "0.02501800",
-        #         "0.02500000",
-        #         "0.02500000",
-        #         "22.19000000",
-        #         1591478579999,
-        #         "0.55490906",
-        #         40,
-        #         "10.92900000",
-        #         "0.27336462",
-        #         "0"
+        #         1591478520000,  # open time
+        #         "0.02501300",  # open
+        #         "0.02501800",  # high
+        #         "0.02500000",  # low
+        #         "0.02500000",  # close
+        #         "22.19000000",  # volume
+        #         1591478579999,  # close time
+        #         "0.55490906",  # quote asset volume
+        #         40,            # number of trades
+        #         "10.92900000",  # taker buy base asset volume
+        #         "0.27336462",  # taker buy quote asset volume
+        #         "0"            # ignore
+        #     ]
+        #
+        #  when api method = fapiPublicGetMarkPriceKlines or fapiPublicGetIndexPriceKlines
+        #     [
+        #         [
+        #         1591256460000,          # Open time
+        #         "9653.29201333",        # Open
+        #         "9654.56401333",        # High
+        #         "9653.07367333",        # Low
+        #         "9653.07367333",        # Close(or latest price)
+        #         "0",                    # Ignore
+        #         1591256519999,          # Close time
+        #         "0",                    # Ignore
+        #         60,                     # Number of bisic data
+        #         "0",                    # Ignore
+        #         "0",                    # Ignore
+        #         "0"                     # Ignore
+        #         ]
         #     ]
         #
         return [
@@ -1694,12 +1845,17 @@ class binance(Exchange):
         # the reality is that the time range wider than 500 candles won't work right
         defaultLimit = 500
         maxLimit = 1500
+        price = self.safe_string(params, 'price')
+        params = self.omit(params, 'price')
         limit = defaultLimit if (limit is None) else min(limit, maxLimit)
         request = {
-            'symbol': market['id'],
             'interval': self.timeframes[timeframe],
             'limit': limit,
         }
+        if price == 'index':
+            request['pair'] = market['id']   # Index price takes self argument instead of symbol
+        else:
+            request['symbol'] = market['id']
         duration = self.parse_timeframe(timeframe)
         if since is not None:
             request['startTime'] = since
@@ -1708,7 +1864,17 @@ class binance(Exchange):
                 now = self.milliseconds()
                 request['endTime'] = min(now, endTime)
         method = 'publicGetKlines'
-        if market['linear']:
+        if price == 'mark':
+            if market['inverse']:
+                method = 'dapiPublicGetMarkPriceKlines'
+            else:
+                method = 'fapiPublicGetMarkPriceKlines'
+        elif price == 'index':
+            if market['inverse']:
+                method = 'dapiPublicGetIndexPriceKlines'
+            else:
+                method = 'fapiPublicGetIndexPriceKlines'
+        elif market['linear']:
             method = 'fapiPublicGetKlines'
         elif market['inverse']:
             method = 'dapiPublicGetKlines'
@@ -1721,6 +1887,18 @@ class binance(Exchange):
         #     ]
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'mark',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_trade(self, trade, market=None):
         if 'isDustTrade' in trade:
@@ -1808,6 +1986,16 @@ class binance(Exchange):
         #       "buyer": False
         #     }
         #
+        # {respType: FULL}
+        #
+        #     {
+        #       "price": "4000.00000000",
+        #       "qty": "1.00000000",
+        #       "commission": "4.00000000",
+        #       "commissionAsset": "USDT",
+        #       "tradeId": "1234",
+        #     }
+        #
         timestamp = self.safe_integer_2(trade, 'T', 'time')
         priceString = self.safe_string_2(trade, 'p', 'price')
         amountString = self.safe_string_2(trade, 'q', 'qty')
@@ -1818,7 +2006,7 @@ class binance(Exchange):
         costString = Precise.string_mul(priceString, amountString)
         cost = self.parse_number(costString)
         id = self.safe_string_2(trade, 't', 'a')
-        id = self.safe_string(trade, 'id', id)
+        id = self.safe_string_2(trade, 'id', 'tradeId', id)
         side = None
         orderId = self.safe_string(trade, 'orderId')
         if 'm' in trade:
@@ -2019,9 +2207,7 @@ class binance(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        filledString = self.safe_string(order, 'executedQty', '0')
-        filled = self.parse_number(filledString)
-        filledFloat = float(filledString)
+        filled = self.safe_string(order, 'executedQty', '0')
         timestamp = None
         lastTradeTimestamp = None
         if 'time' in order:
@@ -2030,24 +2216,21 @@ class binance(Exchange):
             timestamp = self.safe_integer(order, 'transactTime')
         elif 'updateTime' in order:
             if status == 'open':
-                if filledFloat > 0:
+                if Precise.string_gt(filled, '0'):
                     lastTradeTimestamp = self.safe_integer(order, 'updateTime')
                 else:
                     timestamp = self.safe_integer(order, 'updateTime')
-        averageString = self.safe_string(order, 'avgPrice')
-        average = self.parse_number(self.omit_zero(averageString))
-        priceString = self.safe_string(order, 'price')
-        price = self.parse_number(self.omit_zero(priceString))
-        amount = self.safe_number(order, 'origQty')
+        average = self.safe_string(order, 'avgPrice')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'origQty')
         # - Spot/Margin market: cummulativeQuoteQty
         # - Futures market: cumQuote.
         #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
-        cost = self.safe_number_2(order, 'cummulativeQuoteQty', 'cumQuote')
+        cost = self.safe_string_2(order, 'cummulativeQuoteQty', 'cumQuote')
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
         fills = self.safe_value(order, 'fills', [])
-        trades = self.parse_trades(fills, market)
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX')
@@ -2055,7 +2238,7 @@ class binance(Exchange):
             type = 'limit'
         stopPriceString = self.safe_string(order, 'stopPrice')
         stopPrice = self.parse_number(self.omit_zero(stopPriceString))
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -2076,8 +2259,14 @@ class binance(Exchange):
             'remaining': None,
             'status': status,
             'fee': None,
-            'trades': trades,
-        })
+            'trades': fills,
+        }, market)
+
+    async def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
+        request = {
+            'reduceOnly': True,
+        }
+        return await self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -2086,6 +2275,10 @@ class binance(Exchange):
         orderType = self.safe_string(params, 'type', defaultType)
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
         params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId'])
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        if reduceOnly is not None:
+            if (orderType != 'future') and (orderType != 'delivery'):
+                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only')
         method = 'privatePostOrder'
         if orderType == 'future':
             method = 'fapiPrivatePostOrder'
@@ -2526,7 +2719,7 @@ class binance(Exchange):
         #     }
         #
         orderId = self.safe_string(trade, 'transId')
-        timestamp = self.parse8601(self.safe_string(trade, 'operateTime'))
+        timestamp = self.safe_integer(trade, 'operateTime')
         currencyId = self.safe_string(trade, 'fromAsset')
         tradedCurrency = self.safe_currency_code(currencyId)
         bnb = self.currency('BNB')
@@ -2535,13 +2728,6 @@ class binance(Exchange):
         tradedCurrencyIsQuote = False
         if applicantSymbol in self.markets:
             tradedCurrencyIsQuote = True
-        #
-        # Warning
-        # Binance dust trade `fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
-        # So the parser should either set the `fee.cost` to `0` or add it on top of the earned
-        # BNB `amount`(or `cost` depending on the trade `side`). The second of the above options
-        # is much more illustrative and therefore preferable.
-        #
         feeCostString = self.safe_string(trade, 'serviceChargeAmount')
         fee = {
             'currency': earnedCurrency,
@@ -2553,13 +2739,13 @@ class binance(Exchange):
         side = None
         if tradedCurrencyIsQuote:
             symbol = applicantSymbol
-            amountString = Precise.string_add(self.safe_string(trade, 'transferedAmount'), feeCostString)
+            amountString = self.safe_string(trade, 'transferedAmount')
             costString = self.safe_string(trade, 'amount')
             side = 'buy'
         else:
             symbol = tradedCurrency + '/' + earnedCurrency
             amountString = self.safe_string(trade, 'amount')
-            costString = Precise.string_add(self.safe_string(trade, 'transferedAmount'), feeCostString)
+            costString = self.safe_string(trade, 'transferedAmount')
             side = 'sell'
         priceString = None
         if costString is not None:
@@ -2760,6 +2946,14 @@ class binance(Exchange):
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
+                # Fiat
+                # Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
+                'Processing': 'pending',
+                'Failed': 'failed',
+                'Successful': 'ok',
+                'Refunding': 'canceled',
+                'Refunded': 'canceled',
+                'Refund Failed': 'failed',
             },
             'withdrawal': {
                 '0': 'pending',  # Email Sent
@@ -3021,7 +3215,9 @@ class binance(Exchange):
 
     async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
-        currency = self.currency(code)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         defaultType = self.safe_string_2(self.options, 'fetchTransfers', 'defaultType', 'spot')
         fromAccount = self.safe_string(params, 'fromAccount', defaultType)
         defaultTo = 'spot' if (fromAccount == 'future') else 'future'
@@ -3071,6 +3267,12 @@ class binance(Exchange):
             'coin': currency['id'],
             # 'network': 'ETH',  # 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['network'] = network
+            params = self.omit(params, 'network')
         # has support for the 'network' parameter
         # https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
         response = await self.sapiGetCapitalDepositAddress(self.extend(request, params))
@@ -3088,12 +3290,26 @@ class binance(Exchange):
         #     }
         #
         address = self.safe_string(response, 'address')
-        tag = self.safe_string(response, 'tag')
+        url = self.safe_string(response, 'url')
+        impliedNetwork = None
+        if url is not None:
+            reverseNetworks = self.safe_value(self.options, 'reverseNetworks', {})
+            parts = url.split('/')
+            topLevel = self.safe_string(parts, 2)
+            if (topLevel == 'blockchair.com') or (topLevel == 'viewblock.io'):
+                subLevel = self.safe_string(parts, 3)
+                if subLevel is not None:
+                    topLevel = topLevel + '/' + subLevel
+            impliedNetwork = self.safe_string(reverseNetworks, topLevel)
+        tag = self.safe_string(response, 'tag', '')
+        if len(tag) == 0:
+            tag = None
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': impliedNetwork,
             'info': response,
         }
 
@@ -3201,6 +3417,7 @@ class binance(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
@@ -3214,6 +3431,12 @@ class binance(Exchange):
         }
         if tag is not None:
             request['addressTag'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['network'] = network
+            params = self.omit(params, 'network')
         response = await self.sapiPostCapitalWithdrawApply(self.extend(request, params))
         #     {id: '9a67628b16ba4988ae20d329333f16bc'}
         return {
@@ -3436,8 +3659,10 @@ class binance(Exchange):
         elif market['inverse']:
             method = 'dapiPublicGetPremiumIndex'
         else:
-            raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
+            raise NotSupported(self.id + ' fetchFundingRate() supports linear and inverse contracts only')
         response = await getattr(self, method)(self.extend(request, params))
+        if market['inverse']:
+            response = response[0]
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -3450,7 +3675,37 @@ class binance(Exchange):
         #         "time": "1621252344001"
         #     }
         #
-        return self.parse_funding_rate(response)
+        return self.parse_funding_rate(response, market)
+
+    async def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        method = 'fapiPublicGetFundingRate'
+        if market['inverse']:
+            method = 'dapiPublicGetFundingRate'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "fundingRate": "0.00063521",
+        #         "fundingTime": "1621267200000",
+        #     }
+        #
+        rates = []
+        for i in range(0, len(response)):
+            rates.append({
+                'symbol': self.safe_string(response[i], 'symbol'),
+                'fundingRate': self.safe_number(response[i], 'fundingRate'),
+                'timestamp': self.safe_number(response[i], 'fundingTime'),
+            })
+        return rates
 
     async def fetch_funding_rates(self, symbols=None, params={}):
         await self.load_markets()
@@ -3463,7 +3718,7 @@ class binance(Exchange):
         elif type == 'delivery':
             method = 'dapiPublicGetPremiumIndex'
         else:
-            raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
+            raise NotSupported(self.id + ' fetchFundingRates() supports linear and inverse contracts only')
         response = await getattr(self, method)(query)
         result = []
         for i in range(0, len(response)):
@@ -3492,19 +3747,24 @@ class binance(Exchange):
         markPrice = self.safe_number(premiumIndex, 'markPrice')
         indexPrice = self.safe_number(premiumIndex, 'indexPrice')
         interestRate = self.safe_number(premiumIndex, 'interestRate')
-        # current funding rate
-        fundingRate = self.safe_number(premiumIndex, 'lastFundingRate')
+        estimatedSettlePrice = self.safe_number(premiumIndex, 'estimatedSettlePrice')
+        nextFundingRate = self.safe_number(premiumIndex, 'lastFundingRate')
         nextFundingTime = self.safe_integer(premiumIndex, 'nextFundingTime')
+        previousFundingTime = nextFundingTime - (8 * 3600000)
         return {
             'info': premiumIndex,
             'symbol': symbol,
             'markPrice': markPrice,
             'indexPrice': indexPrice,
             'interestRate': interestRate,
+            'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fundingRate': fundingRate,
+            'previousFundingRate': None,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTime,  # subtract 8 hours
             'nextFundingTimestamp': nextFundingTime,
+            'previousFundingDatetime': self.iso8601(previousFundingTime),
             'nextFundingDatetime': self.iso8601(nextFundingTime),
         }
 
@@ -3528,11 +3788,13 @@ class binance(Exchange):
             marketId = self.safe_string(position, 'symbol')
             market = self.safe_market(marketId)
             code = market['quote'] if (self.options['defaultType'] == 'future') else market['base']
-            parsed = self.parse_position(self.extend(position, {
-                'crossMargin': balances[code]['crossMargin'],
-                'crossWalletBalance': balances[code]['crossWalletBalance'],
-            }), market)
-            result.append(parsed)
+            # sometimes not all the codes are correctly returned...
+            if code in balances:
+                parsed = self.parse_position(self.extend(position, {
+                    'crossMargin': balances[code]['crossMargin'],
+                    'crossWalletBalance': balances[code]['crossWalletBalance'],
+                }), market)
+                result.append(parsed)
         return result
 
     def parse_position(self, position, market=None):
@@ -3949,7 +4211,9 @@ class binance(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_incomes(response, market, since, limit)
 
-    async def set_leverage(self, symbol, leverage, params={}):
+    async def set_leverage(self, leverage, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 1) or (leverage > 125):
@@ -3969,7 +4233,7 @@ class binance(Exchange):
         }
         return await getattr(self, method)(self.extend(request, params))
 
-    async def set_margin_mode(self, symbol, marginType, params={}):
+    async def set_margin_mode(self, symbol, marginType, params={}, leverage=None):
         #
         # {"code": -4048 , "msg": "Margin type cannot be changed if there exists position."}
         #
@@ -3977,6 +4241,8 @@ class binance(Exchange):
         #
         # {"code": 200, "msg": "success"}
         #
+        if leverage:  # Needed because other exchanges require self argument
+            leverage = None
         marginType = marginType.upper()
         if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
             raise BadRequest(self.id + ' marginType must be either isolated or crossed')
@@ -4106,9 +4372,67 @@ class binance(Exchange):
         if not success:
             raise ExchangeError(self.id + ' ' + body)
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+        if ('noSymbol' in config) and not ('symbol' in params):
+            return config['noSymbol']
+        elif ('noPoolId' in config) and not ('poolId' in params):
+            return config['noPoolId']
+        elif ('byLimit' in config) and ('limit' in params):
+            limit = params['limit']
+            byLimit = config['byLimit']
+            for i in range(0, len(byLimit)):
+                entry = byLimit[i]
+                if limit <= entry[0]:
+                    return entry[1]
+        return self.safe_integer(config, 'cost', 1)
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+        response = await self.fetch2(path, api, method, params, headers, body, config, context)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api == 'private') or (api == 'wapi'):
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
+
+    async def modify_margin_helper(self, symbol, amount, addOrReduce, params={}):
+        # used to modify isolated positions
+        defaultType = self.safe_string(self.options, 'defaultType', 'future')
+        if defaultType == 'spot':
+            defaultType = 'future'
+        type = self.safe_string(params, 'type', defaultType)
+        if (type == 'margin') or (type == 'spot'):
+            raise NotSupported(self.id + ' add / reduce margin only supported with type future or delivery')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'type': addOrReduce,
+            'symbol': market['id'],
+            'amount': amount,
+        }
+        method = None
+        code = None
+        if type == 'future':
+            method = 'fapiPrivatePostPositionMargin'
+            code = market['quote']
+        else:
+            method = 'dapiPrivatePostPositionMargin'
+            code = market['base']
+        response = await getattr(self, method)(self.extend(request, params))
+        rawType = self.safe_integer(response, 'type')
+        resultType = 'add' if (rawType == 1) else 'reduce'
+        resultAmount = self.safe_number(response, 'amount')
+        errorCode = self.safe_string(response, 'code')
+        status = 'ok' if (errorCode == '200') else 'failed'
+        return {
+            'info': response,
+            'type': resultType,
+            'amount': resultAmount,
+            'code': code,
+            'symbol': market['symbol'],
+            'status': status,
+        }
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        return await self.modify_margin_helper(symbol, amount, 2, params)
+
+    async def add_margin(self, symbol, amount, params={}):
+        return await self.modify_margin_helper(symbol, amount, 1, params)

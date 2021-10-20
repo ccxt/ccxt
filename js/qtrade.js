@@ -24,30 +24,30 @@ module.exports = class qtrade extends Exchange {
                 'referral': 'https://qtrade.io/?ref=BKOQWVFGRH2C',
             },
             'has': {
-                'CORS': false,
-                'fetchTrades': true,
+                'cancelOrder': true,
+                'CORS': undefined,
+                'createMarketOrder': undefined,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': true,
+                'fetchDeposit': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchMarkets': true,
-                'fetchCurrencies': true,
-                'fetchBalance': true,
-                'fetchOrderBook': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchMyTrades': true,
-                'fetchClosedOrders': true,
-                'fetchOpenOrders': true,
-                'fetchOHLCV': true,
-                'createOrder': true,
-                'cancelOrder': true,
-                'createMarketOrder': false,
-                'withdraw': true,
-                'fetchDepositAddress': true,
-                'fetchTransactions': false,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
-                'fetchDeposit': true,
+                'fetchTrades': true,
+                'fetchTransactions': undefined,
                 'fetchWithdrawal': true,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '5m': 'fivemin',
@@ -181,6 +181,8 @@ module.exports = class qtrade extends Exchange {
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': precision,
                 'taker': this.safeNumber (market, 'taker_fee'),
@@ -404,20 +406,17 @@ module.exports = class qtrade extends Exchange {
         const day_change = this.safeNumber (ticker, 'day_change');
         let percentage = undefined;
         let change = undefined;
-        let average = this.safeNumber (ticker, 'day_avg_price');
+        const average = this.safeNumber (ticker, 'day_avg_price');
         if (day_change !== undefined) {
             percentage = day_change * 100;
             if (previous !== undefined) {
                 change = day_change * previous;
             }
         }
-        if ((average === undefined) && (last !== undefined) && (previous !== undefined)) {
-            average = this.sum (last, previous) / 2;
-        }
         const baseVolume = this.safeNumber (ticker, 'day_volume_market');
         const quoteVolume = this.safeNumber (ticker, 'day_volume_base');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -438,7 +437,7 @@ module.exports = class qtrade extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1400,6 +1399,7 @@ module.exports = class qtrade extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {

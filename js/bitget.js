@@ -20,19 +20,19 @@ module.exports = class bitget extends Exchange {
             'has': {
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
                 'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -1094,15 +1094,7 @@ module.exports = class bitget extends Exchange {
         const baseVolume = this.safeNumber2 (ticker, 'amount', 'volume_24h');
         const quoteVolume = this.safeNumber (ticker, 'vol');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
-        if ((last !== undefined) && (open !== undefined)) {
-            change = last - open;
-            percentage = change / open * 100;
-            average = this.sum (open, last) / 2;
-        }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1117,13 +1109,13 @@ module.exports = class bitget extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

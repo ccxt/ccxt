@@ -13,4 +13,5 @@ class huobipro(huobi):
         # to be removed soon
         return self.deep_extend(super(huobipro, self).describe(), {
             'id': 'huobipro',
+            'alias': True,
         })

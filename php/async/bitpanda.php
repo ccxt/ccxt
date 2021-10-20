@@ -20,19 +20,17 @@ class bitpanda extends Exchange {
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
-                'CORS' => false,
-                'publicAPI' => true,
-                'privateAPI' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchDeposits' => true,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -40,12 +38,14 @@ class bitpanda extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
-                'fetchTicker' => true,
-                'fetchTickers' => true,
                 'fetchWithdrawals' => true,
+                'privateAPI' => true,
+                'publicAPI' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -336,6 +336,7 @@ class bitpanda extends Exchange {
             $state = $this->safe_string($market, 'state');
             $active = ($state === 'ACTIVE');
             $result[] = array(
+                'info' => $market,
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -344,7 +345,8 @@ class bitpanda extends Exchange {
                 'quoteId' => $quoteId,
                 'precision' => $precision,
                 'limits' => $limits,
-                'info' => $market,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
             );
         }
@@ -504,16 +506,10 @@ class bitpanda extends Exchange {
         $last = $this->safe_number($ticker, 'last_price');
         $percentage = $this->safe_number($ticker, 'price_change_percentage');
         $change = $this->safe_number($ticker, 'price_change');
-        $open = null;
-        $average = null;
-        if (($last !== null) && ($change !== null)) {
-            $open = $last - $change;
-            $average = $this->sum($last, $open) / 2;
-        }
         $baseVolume = $this->safe_number($ticker, 'base_volume');
         $quoteVolume = $this->safe_number($ticker, 'quote_volume');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -524,17 +520,17 @@ class bitpanda extends Exchange {
             'ask' => $this->safe_number($ticker, 'best_ask'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => $open,
+            'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => $change,
             'percentage' => $percentage,
-            'average' => $average,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1065,6 +1061,7 @@ class bitpanda extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
         $currency = $this->currency($code);

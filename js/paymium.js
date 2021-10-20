@@ -17,13 +17,13 @@ module.exports = class paymium extends Exchange {
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
+                'createOrder': true,
                 'fetchBalance': true,
+                'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
-                'fetchOrderBook': true,
-                'createOrder': true,
-                'cancelOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
@@ -74,7 +74,7 @@ module.exports = class paymium extends Exchange {
                 },
             },
             'markets': {
-                'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur' },
+                'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur', 'type': 'spot', 'spot': true },
             },
             'fees': {
                 'trading': {
@@ -252,11 +252,13 @@ module.exports = class paymium extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('errors' in response) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        const errors = this.safeValue (response, 'errors');
+        if (errors !== undefined) {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
-        return response;
     }
 };

@@ -18,9 +18,9 @@ module.exports = class hollaex extends Exchange {
             'rateLimit': 333,
             'version': 'v2',
             'has': {
-                'CORS': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createLimitBuyOrder': true,
                 'createLimitSellOrder': true,
                 'createMarketBuyOrder': true,
@@ -30,6 +30,7 @@ module.exports = class hollaex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -43,10 +44,9 @@ module.exports = class hollaex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTransactions': false,
+                'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'withdraw': true,
-                'fetchDepositAddresses': true,
             },
             'timeframes': {
                 '1h': '1h',
@@ -205,6 +205,8 @@ module.exports = class hollaex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': {
                     'price': this.safeNumber (market, 'increment_price'),
@@ -1236,6 +1238,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

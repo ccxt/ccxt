@@ -18,13 +18,13 @@ module.exports = class yobit extends Exchange {
             'version': '3',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createDepositAddress': true,
-                'createMarketOrder': false,
+                'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': false,
+                'fetchDeposits': undefined,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
@@ -34,8 +34,8 @@ module.exports = class yobit extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTransactions': false,
-                'fetchWithdrawals': false,
+                'fetchTransactions': undefined,
+                'fetchWithdrawals': undefined,
                 'withdraw': true,
             },
             'urls': {
@@ -120,12 +120,14 @@ module.exports = class yobit extends Exchange {
                 'EXT': 'LifeExtension',
                 'FUND': 'FUNDChains',
                 'FUNK': 'FUNKCoin',
+                'FX': 'FCoin',
                 'GCC': 'GlobalCryptocurrency',
                 'GEN': 'Genstake',
                 'GENE': 'Genesiscoin',
                 'GOLD': 'GoldMint',
                 'GOT': 'Giotto Coin',
                 'GSX': 'GlowShares',
+                'GT': 'GTcoin',
                 'HTML5': 'HTML',
                 'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
@@ -325,6 +327,8 @@ module.exports = class yobit extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'taker': takerFee,
                 'maker': makerFee,
@@ -546,8 +550,6 @@ module.exports = class yobit extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'rate': this.priceToPrecision (symbol, price),
         };
-        price = parseFloat (price);
-        amount = parseFloat (amount);
         const response = await this.privatePostTrade (this.extend (request, params));
         let id = undefined;
         let status = 'open';
@@ -739,6 +741,7 @@ module.exports = class yobit extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

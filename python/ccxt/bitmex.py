@@ -32,19 +32,22 @@ class bitmex(Exchange):
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -903,21 +906,12 @@ class bitmex(Exchange):
         #                            timestamp: "2019-02-13T08:40:30.000Z",
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'symbol')
-        market = self.safe_value(self.markets_by_id, marketId, market)
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         open = self.safe_number(ticker, 'prevPrice24h')
         last = self.safe_number(ticker, 'lastPrice')
-        change = None
-        percentage = None
-        if last is not None and open is not None:
-            change = last - open
-            if open > 0:
-                percentage = change / open * 100
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -932,13 +926,13 @@ class bitmex(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': self.sum(open, last) / 2,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': self.safe_number(ticker, 'homeNotional24h'),
             'quoteVolume': self.safe_number(ticker, 'foreignNotional24h'),
             'info': ticker,
-        }
+        }, market)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -1500,6 +1494,7 @@ class bitmex(Exchange):
         return False
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         # currency = self.currency(code)

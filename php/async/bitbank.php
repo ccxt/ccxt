@@ -182,6 +182,8 @@ class bitbank extends Exchange {
                 'quote' => $quote,
                 'precision' => $precision,
                 'limits' => $limits,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'maker' => $maker,
                 'taker' => $taker,
@@ -191,13 +193,10 @@ class bitbank extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_number($ticker, 'last');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -218,7 +217,7 @@ class bitbank extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -569,6 +568,7 @@ class bitbank extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         if (!(is_array($params) && array_key_exists('uuid', $params))) {
             throw new ExchangeError($this->id . ' uuid is required for withdrawal');
         }
@@ -625,8 +625,10 @@ class bitbank extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body);
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
+        }
         $success = $this->safe_integer($response, 'success');
         $data = $this->safe_value($response, 'data');
         if (!$success || !$data) {
@@ -702,6 +704,5 @@ class bitbank extends Exchange {
                 throw new ExchangeError($this->id . ' ' . $this->json($response));
             }
         }
-        return $response;
     }
 }

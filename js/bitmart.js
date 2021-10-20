@@ -14,8 +14,10 @@ module.exports = class bitmart extends Exchange {
             'id': 'bitmart',
             'name': 'BitMart',
             'countries': [ 'US', 'CN', 'HK', 'KR' ],
-            'rateLimit': 1000,
+            'rateLimit': 250, // a bit slower than 50 times per second ~40 times per second
             'version': 'v1',
+            'certified': true,
+            'pro': true,
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -27,6 +29,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingFee': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -35,22 +38,26 @@ module.exports = class bitmart extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchStatus': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
-                'fetchFundingFee': true,
                 'withdraw': true,
             },
-            'hostname': 'bitmart.com', // bitmart.info for Hong Kong users
+            'hostname': 'bitmart.com', // bitmart.info, bitmart.news for Hong Kong users
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
-                'api': 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
+                'logo': 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
+                'api': {
+                    'rest': 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
+                },
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://developer-pro.bitmart.com/',
-                'referral': 'http://www.bitmart.com/?r=rQCFLh',
+                'referral': {
+                    'url': 'http://www.bitmart.com/?r=rQCFLh',
+                    'discount': 0.3,
+                },
                 'fees': 'https://www.bitmart.com/fee/en',
             },
             'requiredCredentials': {
@@ -61,85 +68,59 @@ module.exports = class bitmart extends Exchange {
             'api': {
                 'public': {
                     'system': {
-                        'get': [
-                            'time', // https://api-cloud.bitmart.com/system/time
-                            'service', // https://api-cloud.bitmart.com/system/service
-                        ],
+                        'get': {
+                            'time': 5, // https://api-cloud.bitmart.com/system/time
+                            'service': 5, // https://api-cloud.bitmart.com/system/service
+                        },
                     },
                     'account': {
-                        'get': [
-                            'currencies', // https://api-cloud.bitmart.com/account/v1/currencies
-                        ],
+                        'get': {
+                            'currencies': 10, // https://api-cloud.bitmart.com/account/v1/currencies
+                        },
                     },
                     'spot': {
-                        'get': [
-                            'currencies',
-                            'symbols',
-                            'symbols/details',
-                            'ticker', // ?symbol=BTC_USDT
-                            'steps', // ?symbol=BMX_ETH
-                            'symbols/kline', // ?symbol=BMX_ETH&step=15&from=1525760116&to=1525769116
-                            'symbols/book', // ?symbol=BMX_ETH&precision=6
-                            'symbols/trades', // ?symbol=BMX_ETH
-                        ],
+                        'get': {
+                            'currencies': 1,
+                            'symbols': 1,
+                            'symbols/details': 1,
+                            'ticker': 1, // ?symbol=BTC_USDT
+                            'steps': 1, // ?symbol=BMX_ETH
+                            'symbols/kline': 1, // ?symbol=BMX_ETH&step=15&from=1525760116&to=1525769116
+                            'symbols/book': 1, // ?symbol=BMX_ETH&precision=6
+                            'symbols/trades': 1, // ?symbol=BMX_ETH
+                        },
                     },
                     'contract': {
-                        'get': [
-                            'contracts', // https://api-cloud.bitmart.com/contract/v1/ifcontract/contracts
-                            'pnls',
-                            'indexes',
-                            'tickers',
-                            'quote',
-                            'indexquote',
-                            'trades',
-                            'depth',
-                            'fundingrate',
-                        ],
+                        'get': {
+                            'tickers': 0.5,
+                        },
                     },
                 },
                 'private': {
                     'account': {
-                        'get': [
-                            'wallet', // ?account_type=1
-                            'deposit/address', // ?currency=USDT-TRC20
-                            'withdraw/charge', // ?currency=BTC
-                            'deposit-withdraw/history', // ?limit=10&offset=1&operationType=withdraw
-                            'deposit-withdraw/detail', // ?id=1679952
-                        ],
-                        'post': [
-                            'withdraw/apply',
-                        ],
+                        'get': {
+                            'wallet': 0.5, // ?account_type=1
+                            'deposit/address': 1, // ?currency=USDT-TRC20
+                            'withdraw/charge': 1, // ?currency=BTC
+                            'deposit-withdraw/history': 1, // ?limit=10&offset=1&operationType=withdraw
+                            'deposit-withdraw/detail': 1, // ?id=1679952
+                        },
+                        'post': {
+                            'withdraw/apply': 1,
+                        },
                     },
                     'spot': {
-                        'get': [
-                            'wallet',
-                            'order_detail',
-                            'orders',
-                            'trades',
-                        ],
-                        'post': [
-                            'submit_order', // https://api-cloud.bitmart.com/spot/v1/submit_order
-                            'cancel_order', // https://api-cloud.bitmart.com/spot/v2/cancel_order
-                            'cancel_orders',
-                        ],
-                    },
-                    'contract': {
-                        'get': [
-                            'userOrders',
-                            'userOrderInfo',
-                            'userTrades',
-                            'orderTrades',
-                            'accounts',
-                            'userPositions',
-                            'userLiqRecords',
-                            'positionFee',
-                        ],
-                        'post': [
-                            'batchOrders',
-                            'submitOrder',
-                            'cancelOrders',
-                            'marginOper',
-                        ],
+                        'get': {
+                            'wallet': 0.5,
+                            'order_detail': 0.1,
+                            'orders': 0.5,
+                            'trades': 0.5,
+                        },
+                        'post': {
+                            'submit_order': 0.1, // https://api-cloud.bitmart.com/spot/v1/submit_order
+                            'cancel_order': 0.1, // https://api-cloud.bitmart.com/spot/v2/cancel_order
+                            'cancel_orders': 0.1,
+                        },
                     },
                 },
             },
@@ -299,10 +280,20 @@ module.exports = class bitmart extends Exchange {
             'commonCurrencies': {
                 'COT': 'Community Coin',
                 'CPC': 'CPCoin',
+                'GDT': 'Gorilla Diamond',
+                'MVP': 'MVP Coin',
                 'ONE': 'Menlo One',
                 'PLA': 'Plair',
+                'TCT': 'TacoCat Token',
             },
             'options': {
+                'networks': {
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                },
+                'defaultNetworks': {
+                    'USDT': 'ERC20',
+                },
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
                     'type': 'spot', // 'spot', 'swap', 'contract', 'account'
@@ -437,7 +428,7 @@ module.exports = class bitmart extends Exchange {
             const pricePrecision = this.safeInteger (market, 'price_max_precision');
             const precision = {
                 'amount': this.safeNumber (market, 'base_min_size'),
-                'price': parseFloat (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 12)),
+                'price': this.parseNumber (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 12)),
             };
             const minBuyCost = this.safeNumber (market, 'min_buy_amount');
             const minSellCost = this.safeNumber (market, 'min_sell_amount');
@@ -471,7 +462,7 @@ module.exports = class bitmart extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-                'active': undefined,
+                'active': true,
             });
         }
         return result;
@@ -664,53 +655,37 @@ module.exports = class bitmart extends Exchange {
         //         "best_bid":"0.035983",
         //         "best_bid_size":"4.2792",
         //         "fluctuation":"-0.0143",
+        //         "s_t": "1630981727", // ws only
         //         "url":"https://www.bitmart.com/trade?symbol=ETH_BTC"
         //     }
         //
         // contract
         //
         //     {
-        //         "last_price":"422.2",
-        //         "open":"430.5",
-        //         "close":"422.2",
-        //         "low":"421.9",
-        //         "high":"436.9",
-        //         "avg_price":"430.8569900089815372072",
-        //         "volume":"2720",
-        //         "total_volume":"18912248",
-        //         "timestamp":1597631495,
-        //         "rise_fall_rate":"-0.0192799070847851336",
-        //         "rise_fall_value":"-8.3",
-        //         "contract_id":2,
-        //         "position_size":"3067404",
-        //         "volume_day":"9557384",
-        //         "amount24":"80995537.0919999999999974153",
-        //         "base_coin_volume":"189122.48",
-        //         "quote_coin_volume":"81484742.475833810590837937856",
-        //         "pps":"1274350547",
-        //         "index_price":"422.135",
-        //         "fair_price":"422.147253318507",
-        //         "depth_price":{"bid_price":"421.9","ask_price":"422","mid_price":"421.95"},
-        //         "fair_basis":"0.000029027013",
-        //         "fair_value":"0.012253318507",
-        //         "rate":{"quote_rate":"0.0006","base_rate":"0.0003","interest_rate":"0.000099999999"},
-        //         "premium_index":"0.000045851604",
-        //         "funding_rate":"0.000158",
-        //         "next_funding_rate":"0.000099999999",
-        //         "next_funding_at":"2020-08-17T04:00:00Z"
+        //         contract_symbol: "DGBUSDT",
+        //         last_price: "0.05759",
+        //         index_price: "0.05757755",
+        //         last_funding_rate: "0.00010000",
+        //         price_change_percent_24h: "0.244",
+        //         volume_24h: "64303817.028126",
+        //         url: "https://futures.bitmart.com/en?symbol=DGBUSDT"
         //     }
         //
-        const timestamp = this.safeTimestamp (ticker, 'timestamp', this.milliseconds ());
-        const marketId = this.safeString2 (ticker, 'symbol', 'contract_id');
-        const symbol = this.safeSymbol (marketId, market, '_');
+        const timestamp = this.safeTimestamp2 (ticker, 'timestamp', 's_t', this.milliseconds ());
+        let marketId = this.safeString2 (ticker, 'symbol', 'contract_id');
+        marketId = this.safeString (ticker, 'contract_symbol', marketId);
+        const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber2 (ticker, 'close_24h', 'last_price');
-        let percentage = this.safeNumber (ticker, 'fluctuation', 'rise_fall_rate');
+        let percentage = this.safeNumber2 (ticker, 'fluctuation', 'rise_fall_rate');
         if (percentage !== undefined) {
             percentage *= 100;
         }
+        if (percentage === undefined) {
+            percentage = this.safeNumber (ticker, 'price_change_percent_24h');
+        }
         const baseVolume = this.safeNumber2 (ticker, 'base_volume_24h', 'base_coin_volume');
-        const quoteVolume = this.safeNumber2 (ticker, 'quote_volume_24h', 'quote_coin_volume');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        let quoteVolume = this.safeNumber2 (ticker, 'quote_volume_24h', 'quote_coin_volume');
+        quoteVolume = this.safeNumber (ticker, 'volume_24h', quoteVolume);
         const open = this.safeNumber2 (ticker, 'open_24h', 'open');
         let average = undefined;
         if ((last !== undefined) && (open !== undefined)) {
@@ -724,11 +699,11 @@ module.exports = class bitmart extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber2 (ticker, 'high', 'high_24h'),
             'low': this.safeNumber2 (ticker, 'low', 'low_24h'),
-            'bid': this.safeNumber (price, 'best_bid', 'bid_price'),
+            'bid': this.safeNumber2 (price, 'best_bid', 'bid_price'),
             'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
-            'ask': this.safeNumber (price, 'best_ask', 'ask_price'),
+            'ask': this.safeNumber2 (price, 'best_ask', 'ask_price'),
             'askVolume': this.safeNumber (ticker, 'best_ask_size'),
-            'vwap': vwap,
+            'vwap': undefined,
             'open': this.safeNumber (ticker, 'open_24h'),
             'close': last,
             'last': last,
@@ -787,44 +762,22 @@ module.exports = class bitmart extends Exchange {
         // contract
         //
         //     {
-        //         "errno":"OK",
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"d09b57c4-d99b-4a13-91a8-2df98f889909",
-        //         "data":{
-        //             "tickers":[
+        //         message: "OK",
+        //         code: "1000",
+        //         trace: "84a0dc44-b395-4bae-a1b7-fe1201defd51",
+        //         data: {
+        //             tickers: [
         //                 {
-        //                     "last_price":"422.2",
-        //                     "open":"430.5",
-        //                     "close":"422.2",
-        //                     "low":"421.9",
-        //                     "high":"436.9",
-        //                     "avg_price":"430.8569900089815372072",
-        //                     "volume":"2720",
-        //                     "total_volume":"18912248",
-        //                     "timestamp":1597631495,
-        //                     "rise_fall_rate":"-0.0192799070847851336",
-        //                     "rise_fall_value":"-8.3",
-        //                     "contract_id":2,
-        //                     "position_size":"3067404",
-        //                     "volume_day":"9557384",
-        //                     "amount24":"80995537.0919999999999974153",
-        //                     "base_coin_volume":"189122.48",
-        //                     "quote_coin_volume":"81484742.475833810590837937856",
-        //                     "pps":"1274350547",
-        //                     "index_price":"422.135",
-        //                     "fair_price":"422.147253318507",
-        //                     "depth_price":{"bid_price":"421.9","ask_price":"422","mid_price":"421.95"},
-        //                     "fair_basis":"0.000029027013",
-        //                     "fair_value":"0.012253318507",
-        //                     "rate":{"quote_rate":"0.0006","base_rate":"0.0003","interest_rate":"0.000099999999"},
-        //                     "premium_index":"0.000045851604",
-        //                     "funding_rate":"0.000158",
-        //                     "next_funding_rate":"0.000099999999",
-        //                     "next_funding_at":"2020-08-17T04:00:00Z"
-        //                 }
-        //             ]
-        //         }
+        //                     contract_symbol: "DGBUSDT",
+        //                     last_price: "0.05759",
+        //                     index_price: "0.05757755",
+        //                     last_funding_rate: "0.00010000",
+        //                     price_change_percent_24h: "0.244",
+        //                     volume_24h: "64303817.028126",
+        //                     url: "https://futures.bitmart.com/en?symbol=DGBUSDT"
+        //                 },
+        //             ],
+        //         },
         //     }
         //
         const data = this.safeValue (response, 'data', {});
@@ -909,6 +862,9 @@ module.exports = class bitmart extends Exchange {
         if (market['spot']) {
             method = 'publicSpotGetSymbolsBook';
             request['symbol'] = market['id'];
+            if (limit !== undefined) {
+                request['size'] = limit; // default 50, max 200
+            }
             // request['precision'] = 4; // optional price precision / depth level whose range is defined in symbol details
         } else if (market['swap'] || market['future']) {
             method = 'publicContractGetDepth';
@@ -1013,6 +969,9 @@ module.exports = class bitmart extends Exchange {
         //
         const id = this.safeString2 (trade, 'trade_id', 'detail_id');
         let timestamp = this.safeInteger2 (trade, 'order_time', 'create_time');
+        if (timestamp === undefined) {
+            timestamp = this.safeTimestamp (trade, 's_t');
+        }
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         }
@@ -1168,14 +1127,36 @@ module.exports = class bitmart extends Exchange {
         //         "quote_coin_volume":"31017.48"
         //     }
         //
-        return [
-            this.safeTimestamp (ohlcv, 'timestamp'),
-            this.safeNumber (ohlcv, 'open'),
-            this.safeNumber (ohlcv, 'high'),
-            this.safeNumber (ohlcv, 'low'),
-            this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'volume'),
-        ];
+        // ws
+        //
+        //     [
+        //         1631056350, // timestamp
+        //         '46532.83', // oopen
+        //         '46555.71', // high
+        //         '46511.41', // low
+        //         '46555.71', // close
+        //         '0.25', // volume
+        //     ]
+        //
+        if (Array.isArray (ohlcv)) {
+            return [
+                this.safeTimestamp (ohlcv, 0),
+                this.safeNumber (ohlcv, 1),
+                this.safeNumber (ohlcv, 2),
+                this.safeNumber (ohlcv, 3),
+                this.safeNumber (ohlcv, 4),
+                this.safeNumber (ohlcv, 5),
+            ];
+        } else {
+            return [
+                this.safeTimestamp (ohlcv, 'timestamp'),
+                this.safeNumber (ohlcv, 'open'),
+                this.safeNumber (ohlcv, 'high'),
+                this.safeNumber (ohlcv, 'low'),
+                this.safeNumber (ohlcv, 'close'),
+                this.safeNumber (ohlcv, 'volume'),
+            ];
+        }
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -2089,6 +2070,17 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'currency': currency['id'],
         };
+        if (code === 'USDT') {
+            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
+            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
+            const networks = this.safeValue (this.options, 'networks', {});
+            let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+            network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+            if (network !== undefined) {
+                request['currency'] += '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                params = this.omit (params, 'network');
+            }
+        }
         const response = await this.privateAccountGetDepositAddress (this.extend (request, params));
         //
         //     {
@@ -2116,6 +2108,7 @@ module.exports = class bitmart extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2127,6 +2120,17 @@ module.exports = class bitmart extends Exchange {
         };
         if (tag !== undefined) {
             request['address_memo'] = tag;
+        }
+        if (code === 'USDT') {
+            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
+            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
+            const networks = this.safeValue (this.options, 'networks', {});
+            let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+            network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+            if (network !== undefined) {
+                request['currency'] += '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                params = this.omit (params, 'network');
+            }
         }
         const response = await this.privateAccountPostWithdrawApply (this.extend (request, params));
         //
@@ -2160,7 +2164,7 @@ module.exports = class bitmart extends Exchange {
         };
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.currenc (code);
+            currency = this.currency (code);
             request['currency'] = currency['id'];
         }
         const response = await this.privateAccountGetDepositWithdrawHistory (this.extend (request, params));
@@ -2293,15 +2297,12 @@ module.exports = class bitmart extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseUrl = this.implodeHostname (this.urls['api']);
         const access = this.safeString (api, 0);
         const type = this.safeString (api, 1);
+        const baseUrl = this.implodeHostname (this.urls['api']['rest']);
         let url = baseUrl + '/' + type;
         if (type !== 'system') {
             url += '/' + this.version;
-        }
-        if (type === 'contract') {
-            url += '/' + 'ifcontract';
         }
         url += '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));

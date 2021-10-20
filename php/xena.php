@@ -20,9 +20,9 @@ class xena extends Exchange {
             'countries' => array( 'VC', 'UK' ),
             'rateLimit' => 100,
             'has' => array(
-                'CORS' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'editOrder' => true,
@@ -409,20 +409,10 @@ class xena extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_number($ticker, 'lastPx');
         $open = $this->safe_number($ticker, 'firstPx');
-        $percentage = null;
-        $change = null;
-        $average = null;
-        if (($last !== null) && ($open !== null)) {
-            $change = $last - $open;
-            $average = $this->sum($last, $open) / 2;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-        }
         $buyVolume = $this->safe_number($ticker, 'buyVolume');
         $sellVolume = $this->safe_number($ticker, 'sellVolume');
         $baseVolume = $this->sum($buyVolume, $sellVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -437,13 +427,13 @@ class xena extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1510,6 +1500,7 @@ class xena extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $this->load_accounts();

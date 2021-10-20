@@ -35,10 +35,11 @@ class zb(Exchange):
             'pro': True,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
-                'createMarketOrder': False,
+                'CORS': None,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
@@ -49,7 +50,6 @@ class zb(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
-                'fetchClosedOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -152,9 +152,9 @@ class zb(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
-                    'public': 'https://api.zb.today/data',
-                    'private': 'https://trade.zb.today/api',
-                    'trade': 'https://trade.zb.today/api',
+                    'public': 'https://api.zb.work/data',
+                    'private': 'https://trade.zb.work/api',
+                    'trade': 'https://trade.zb.work/api',
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
@@ -275,7 +275,6 @@ class zb(Exchange):
             symbol = base + '/' + quote
             amountPrecisionString = self.safe_string(market, 'amountScale')
             pricePrecisionString = self.safe_string(market, 'priceScale')
-            amountLimit = self.parse_precision(amountPrecisionString)
             priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
                 'amount': int(amountPrecisionString),
@@ -288,11 +287,13 @@ class zb(Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.parse_number(amountLimit),
+                        'min': self.safe_number(market, 'minAmount'),
                         'max': None,
                     },
                     'price': {
@@ -300,7 +301,7 @@ class zb(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': 0,
+                        'min': self.safe_number(market, 'minSize'),
                         'max': None,
                     },
                 },
@@ -770,7 +771,7 @@ class zb(Exchange):
             raise e
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=10, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + 'fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
@@ -778,7 +779,7 @@ class zb(Exchange):
         request = {
             'currency': market['id'],
             'pageIndex': 1,  # default pageIndex is 1
-            'pageSize': 10,  # default pageSize is 10, doesn't work with other values now
+            'pageSize': limit,  # default pageSize is 10, doesn't work with other values now
         }
         response = await self.privateGetGetFinishedAndPartialOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
@@ -975,6 +976,7 @@ class zb(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         password = self.safe_string(params, 'safePwd', self.password)
         if password is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires exchange.password or a safePwd parameter')

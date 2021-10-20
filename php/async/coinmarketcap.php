@@ -18,22 +18,22 @@ class coinmarketcap extends Exchange {
             'version' => 'v1',
             'countries' => array( 'US' ),
             'has' => array(
-                'cancelOrder' => false,
+                'cancelOrder' => null,
                 'CORS' => true,
-                'createLimitOrder' => false,
-                'createMarketOrder' => false,
-                'createOrder' => false,
-                'editOrder' => false,
-                'privateAPI' => false,
-                'fetchBalance' => false,
+                'createLimitOrder' => null,
+                'createMarketOrder' => null,
+                'createOrder' => null,
+                'editOrder' => null,
+                'fetchBalance' => null,
                 'fetchCurrencies' => true,
-                'fetchL2OrderBook' => false,
+                'fetchL2OrderBook' => null,
                 'fetchMarkets' => true,
-                'fetchOHLCV' => false,
-                'fetchOrderBook' => false,
+                'fetchOHLCV' => null,
+                'fetchOrderBook' => null,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
-                'fetchTrades' => false,
+                'fetchTrades' => null,
+                'privateAPI' => null,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg',
@@ -187,6 +187,8 @@ class coinmarketcap extends Exchange {
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
                     'info' => $market,
+                    'type' => 'spot',
+                    'spot' => true,
                     'active' => null,
                     'precision' => $this->precision,
                     'limits' => $this->limits,
@@ -336,13 +338,13 @@ class coinmarketcap extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('error', $response)) {
-            if ($response['error']) {
-                throw new ExchangeError($this->id . ' ' . $this->json($response));
-            }
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
         }
-        return $response;
+        $error = $this->safe_value($response, 'error', false);
+        if ($error) {
+            throw new ExchangeError($this->id . ' ' . $this->json($response));
+        }
     }
 }

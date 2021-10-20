@@ -29,7 +29,7 @@ class timex(Exchange):
             'has': {
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -852,6 +852,7 @@ class timex(Exchange):
             'baseId': baseId,
             'quoteId': quoteId,
             'type': 'spot',
+            'spot': True,
             'active': active,
             'precision': precision,
             'limits': limits,
@@ -913,12 +914,12 @@ class timex(Exchange):
             if dotIndex > 0:
                 whole = feeString[0:dotIndex]
                 fraction = feeString[-dotIndex:]
-                fee = float(whole + '.' + fraction)
+                fee = self.parse_number(whole + '.' + fraction)
             else:
                 fraction = '.'
                 for i in range(0, -dotIndex):
                     fraction += '0'
-                fee = float(fraction + feeString)
+                fee = self.parse_number(fraction + feeString)
         return {
             'id': code,
             'code': code,
@@ -955,15 +956,7 @@ class timex(Exchange):
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         last = self.safe_number(ticker, 'last')
         open = self.safe_number(ticker, 'open')
-        change = None
-        average = None
-        if last is not None and open is not None:
-            change = last - open
-            average = self.sum(last, open) / 2
-        percentage = None
-        if change is not None and open:
-            percentage = (change / open) * 100
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
@@ -979,12 +972,12 @@ class timex(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': self.safe_number(ticker, 'volumeQuote'),
-        }
+        }, market)
 
     def parse_trade(self, trade, market=None):
         #

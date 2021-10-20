@@ -17,8 +17,8 @@ module.exports = class kuna extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'CORS': false,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchMarkets': true,
@@ -31,7 +31,7 @@ module.exports = class kuna extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'withdraw': false,
+                'withdraw': undefined,
             },
             'timeframes': undefined,
             'urls': {
@@ -133,10 +133,15 @@ module.exports = class kuna extends Exchange {
             const id = ids[i];
             for (let j = 0; j < quotes.length; j++) {
                 const quoteId = quotes[j];
-                const index = id.indexOf (quoteId);
-                const slice = id.slice (index);
+                // usd gets matched before usdt in usdtusd USDT/USD
+                // https://github.com/ccxt/ccxt/issues/9868
+                const slicedId = id.slice (1);
+                const index = slicedId.indexOf (quoteId);
+                const slice = slicedId.slice (index);
                 if ((index > 0) && (slice === quoteId)) {
-                    const baseId = id.replace (quoteId, '');
+                    // usd gets matched before usdt in usdtusd USDT/USD
+                    // https://github.com/ccxt/ccxt/issues/9868
+                    const baseId = id[0] + slicedId.replace (quoteId, '');
                     const base = this.safeCurrencyCode (baseId);
                     const quote = this.safeCurrencyCode (quoteId);
                     const symbol = base + '/' + quote;
@@ -147,6 +152,9 @@ module.exports = class kuna extends Exchange {
                         'quote': quote,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'type': 'spot',
+                        'spot': true,
+                        'active': undefined,
                         'precision': {
                             'amount': undefined,
                             'price': undefined,
@@ -165,10 +173,8 @@ module.exports = class kuna extends Exchange {
                                 'max': undefined,
                             },
                         },
-                        'active': undefined,
                         'info': undefined,
                     });
-                    break;
                 }
             }
         }

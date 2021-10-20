@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -34,7 +35,7 @@ class crex24(Exchange):
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -43,6 +44,7 @@ class crex24(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingFees': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -54,9 +56,8 @@ class crex24(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTradingFee': False,  # actually, True, but will be implemented later
-                'fetchTradingFees': False,  # actually, True, but will be implemented later
-                'fetchFundingFees': True,
+                'fetchTradingFee': None,  # actually, True, but will be implemented later
+                'fetchTradingFees': None,  # actually, True, but will be implemented later
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
@@ -144,9 +145,11 @@ class crex24(Exchange):
                 },
             },
             'commonCurrencies': {
+                'ACM': 'Actinium',
                 'BCC': 'BCH',
                 'BIT': 'BitMoney',
                 'BULL': 'BuySell',
+                'CLC': 'CaluraCoin',
                 'CREDIT': 'TerraCredit',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND': 'FUNDChains',
@@ -160,6 +163,11 @@ class crex24(Exchange):
             },
             # exchange-specific options
             'options': {
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                },
                 'fetchOrdersMethod': 'tradingGetOrderHistory',  # or 'tradingGetActiveOrders'
                 'fetchClosedOrdersMethod': 'tradingGetOrderHistory',  # or 'tradingGetActiveOrders'
                 'fetchTickersMethod': 'publicGetTicker24hr',
@@ -178,6 +186,7 @@ class crex24(Exchange):
                     "Nonce error. Make sure that the value passed in the 'X-CREX24-API-NONCE' header is greater in each consecutive request than in the previous one for the corresponding API-Key provided in 'X-CREX24-API-KEY' header.": InvalidNonce,
                     'Market orders are not supported by the instrument currently.': InvalidOrder,
                     "Parameter 'instrument' contains invalid value.": BadSymbol,
+                    "Trading has been disabled for the account until the verification is passed. To initiate the verification process, please log into your account at crex24.com and proceed to 'My account' -> 'Verification'.": AccountSuspended,  # {"errorDescription":"Trading has been disabled for the account until the verification is passed. To initiate the verification process, please log into your account at crex24.com and proceed to 'My account' -> 'Verification'."}
                 },
                 'broad': {
                     'try again later': ExchangeNotAvailable,  # {"errorDescription":"Failed to process the request. Please, try again later."}
@@ -186,6 +195,7 @@ class crex24(Exchange):
                     'has been delisted.': BadSymbol,  # {"errorDescription":"Instrument '$PAC-BTC' has been delisted."}
                     'is currently suspended.': BadSymbol,  # {"errorDescription":"Trading in BITG-BTC is currently suspended."}
                     'Mandatory parameter': BadRequest,  # {"errorDescription":"Mandatory parameter 'feeCurrency' is missing."}
+                    'can not trade': AccountSuspended,  # {"errorDescription":"User 123456 can not trade"}
                 },
             },
         })
@@ -235,6 +245,41 @@ class crex24(Exchange):
         #             "state": "active"
         #           },]
         #
+        response2 = self.publicGetTradingFeeSchedules(params)
+        #
+        #     [
+        #         {
+        #             "name": "FeeSchedule05",
+        #             "feeRates": [
+        #                 {
+        #                     "volumeThreshold": 0.0,
+        #                     "maker": 0.0005,
+        #                     "taker": 0.0005
+        #                 },
+        #                 {
+        #                     "volumeThreshold": 5.0,
+        #                     "maker": 0.0004,
+        #                     "taker": 0.0004
+        #                 },
+        #                 {
+        #                     "volumeThreshold": 15.0,
+        #                     "maker": 0.0003,
+        #                     "taker": 0.0003
+        #                 },
+        #                 {
+        #                     "volumeThreshold": 30.0,
+        #                     "maker": 0.0002,
+        #                     "taker": 0.0002
+        #                 },
+        #                 {
+        #                     "volumeThreshold": 50.0,
+        #                     "maker": 0.0001,
+        #                     "taker": 0.0001
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        #
         result = []
         for i in range(0, len(response)):
             market = response[i]
@@ -255,6 +300,20 @@ class crex24(Exchange):
                 'amount': minAmount,
                 'price': tickSize,
             }
+            maker = None
+            taker = None
+            feeSchedule = self.safe_string(market, 'feeSchedule')
+            for j in range(0, len(response2)):
+                feeScheduleName = self.safe_string(response2[j], 'name')
+                if feeScheduleName == feeSchedule:
+                    feeRates = self.safe_value(response2[j], 'feeRates', [])
+                    for k in range(0, len(feeRates)):
+                        volumeThreshold = self.safe_number(feeRates[k], 'volumeThreshold')
+                        if volumeThreshold == 0:
+                            maker = self.safe_number(feeRates[k], 'maker')
+                            taker = self.safe_number(feeRates[k], 'taker')
+                            break
+                    break
             active = (market['state'] == 'active')
             result.append({
                 'id': id,
@@ -264,8 +323,12 @@ class crex24(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': precision,
+                'maker': maker,
+                'taker': taker,
                 'limits': {
                     'amount': {
                         'min': minAmount,
@@ -1211,6 +1274,7 @@ class crex24(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
@@ -1226,6 +1290,12 @@ class crex24(Exchange):
         }
         if tag is not None:
             request['paymentId'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['transport'] = network
+            params = self.omit(params, 'network')
         response = self.accountPostWithdraw(self.extend(request, params))
         return self.parse_transaction(response)
 

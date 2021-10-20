@@ -18,14 +18,14 @@ module.exports = class zaif extends Exchange {
             'version': '1',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
-                'createMarketOrder': false,
+                'CORS': undefined,
+                'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchMarkets': true,
-                'fetchOrderBook': true,
                 'fetchOpenOrders': true,
+                'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'withdraw': true,
@@ -172,6 +172,8 @@ module.exports = class zaif extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': true, // can trade or not
                 'precision': precision,
                 'taker': taker,
@@ -424,6 +426,7 @@ module.exports = class zaif extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

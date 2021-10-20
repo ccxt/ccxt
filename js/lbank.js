@@ -22,7 +22,7 @@ module.exports = class lbank extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': false, // status 0 API doesn't work
+                'fetchOpenOrders': undefined, // status 0 API doesn't work
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -129,6 +129,8 @@ module.exports = class lbank extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': true,
                 'precision': precision,
                 'limits': {
@@ -544,6 +546,7 @@ module.exports = class lbank extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // mark and fee are optional params, mark is a note and must be less than 255 characters
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -612,8 +615,10 @@ module.exports = class lbank extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
         const success = this.safeString (response, 'result');
         if (success === 'false') {
             const errorCode = this.safeString (response, 'error_code');
@@ -659,6 +664,5 @@ module.exports = class lbank extends Exchange {
             }, errorCode, ExchangeError);
             throw new ErrorClass (message);
         }
-        return response;
     }
 };

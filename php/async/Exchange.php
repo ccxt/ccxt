@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.54.58';
+$version = '1.58.73';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.54.58';
+    const VERSION = '1.58.73';
 
     public static $loop;
     public static $kernel;
@@ -61,10 +61,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function __construct($options = array()) {
         if (!class_exists('React\\EventLoop\\Factory')) {
-            throw new ccxt\NotSupported("React is not installed\n\ncomposer require --ignore-platform-reqs react/http\n\n");
+            throw new ccxt\NotSupported("React is not installed\n\ncomposer require --ignore-platform-reqs react/http:\"^1.4.0\"\n\n");
         }
         if (!class_exists('Recoil\\React\\ReactKernel')) {
-            throw new ccxt\NotSupported("Recoil is not installed\n\ncomposer require --ignore-platform-reqs recoil/react\n\n");
+            throw new ccxt\NotSupported("Recoil is not installed\n\ncomposer require --ignore-platform-reqs recoil/react:\"1.0.2\"\n\n");
         }
         $config = $this->omit($options, array('loop', 'kernel'));
         parent::__construct($config);
@@ -180,9 +180,10 @@ class Exchange extends \ccxt\Exchange {
         return isset($json_response) ? $json_response : $response_body;
     }
 
-    public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
+    public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
         if ($this->enableRateLimit) {
-            yield call_user_func($this->throttle, $this->rateLimit);
+            $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
+            yield call_user_func($this->throttle, $cost);
         }
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
         return yield $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);

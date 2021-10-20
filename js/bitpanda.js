@@ -17,19 +17,17 @@ module.exports = class bitpanda extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'CORS': false,
-                'publicAPI': true,
-                'privateAPI': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDeposits': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -37,12 +35,14 @@ module.exports = class bitpanda extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
-                'fetchTicker': true,
-                'fetchTickers': true,
                 'fetchWithdrawals': true,
+                'privateAPI': true,
+                'publicAPI': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -333,6 +333,7 @@ module.exports = class bitpanda extends Exchange {
             const state = this.safeString (market, 'state');
             const active = (state === 'ACTIVE');
             result.push ({
+                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -341,7 +342,8 @@ module.exports = class bitpanda extends Exchange {
                 'quoteId': quoteId,
                 'precision': precision,
                 'limits': limits,
-                'info': market,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
             });
         }
@@ -501,16 +503,10 @@ module.exports = class bitpanda extends Exchange {
         const last = this.safeNumber (ticker, 'last_price');
         const percentage = this.safeNumber (ticker, 'price_change_percentage');
         const change = this.safeNumber (ticker, 'price_change');
-        let open = undefined;
-        let average = undefined;
-        if ((last !== undefined) && (change !== undefined)) {
-            open = last - change;
-            average = this.sum (last, open) / 2;
-        }
         const baseVolume = this.safeNumber (ticker, 'base_volume');
         const quoteVolume = this.safeNumber (ticker, 'quote_volume');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -521,17 +517,17 @@ module.exports = class bitpanda extends Exchange {
             'ask': this.safeNumber (ticker, 'best_ask'),
             'askVolume': undefined,
             'vwap': vwap,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': change,
             'percentage': percentage,
-            'average': average,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1062,6 +1058,7 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

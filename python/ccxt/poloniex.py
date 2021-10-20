@@ -33,10 +33,11 @@ class poloniex(Exchange):
             'certified': False,
             'pro': True,
             'has': {
+                'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createDepositAddress': True,
-                'createMarketOrder': False,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -59,7 +60,6 @@ class poloniex(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
-                'cancelAllOrders': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -168,6 +168,7 @@ class poloniex(Exchange):
                 'HOT': 'Hotcoin',
                 'ITC': 'Information Coin',
                 'KEY': 'KEYCoin',
+                'MASK': 'NFTX Hashmasks Index',  # conflict with Mask Network
                 'PLX': 'ParallaxCoin',
                 'REPV2': 'REP',
                 'STR': 'XLM',
@@ -186,6 +187,11 @@ class poloniex(Exchange):
                 'USDTETH': 'USDT',
             },
             'options': {
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRX': 'TRON',
+                    'TRC20': 'TRON',
+                },
                 'limits': {
                     'cost': {
                         'min': {
@@ -209,6 +215,7 @@ class poloniex(Exchange):
                     'You may only place orders that reduce your position.': InvalidOrder,
                     'Invalid order number, or you are not the person who placed the order.': OrderNotFound,
                     'Permission denied': PermissionDenied,
+                    'Permission denied.': PermissionDenied,
                     'Connection timed out. Please try again.': RequestTimeout,
                     'Internal error. Please try again.': ExchangeNotAvailable,
                     'Currently in maintenance mode.': OnMaintenance,
@@ -318,6 +325,8 @@ class poloniex(Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'limits': limits,
                 'info': market,
@@ -1194,6 +1203,7 @@ class poloniex(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
@@ -1204,6 +1214,12 @@ class poloniex(Exchange):
         }
         if tag is not None:
             request['paymentId'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['currency'] += network  # when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            params = self.omit(params, 'network')
         response = self.privatePostWithdraw(self.extend(request, params))
         #
         #     {

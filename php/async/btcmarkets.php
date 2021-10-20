@@ -22,7 +22,7 @@ class btcmarkets extends Exchange {
             'has' => array(
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
@@ -307,8 +307,8 @@ class btcmarkets extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $fees = $this->safe_value($this->safe_value($this->options, 'fees', array()), $quote, $this->fees);
-            $pricePrecision = $this->safe_number($market, 'priceDecimals');
-            $amountPrecision = $this->safe_number($market, 'amountDecimals');
+            $pricePrecision = $this->safe_integer($market, 'priceDecimals');
+            $amountPrecision = $this->safe_integer($market, 'amountDecimals');
             $minAmount = $this->safe_number($market, 'minOrderAmount');
             $maxAmount = $this->safe_number($market, 'maxOrderAmount');
             $minPrice = null;
@@ -341,6 +341,8 @@ class btcmarkets extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => null,
                 'maker' => $fees['maker'],
                 'taker' => $fees['taker'],

@@ -26,8 +26,8 @@ class delta extends Exchange {
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchDepositAddress' => true,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -428,6 +428,7 @@ class delta extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'type' => $type,
+                'spot' => false,
                 'option' => $option,
                 'swap' => $swap,
                 'future' => $future,
@@ -468,20 +469,10 @@ class delta extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_number($ticker, 'close');
         $open = $this->safe_number($ticker, 'open');
-        $change = null;
-        $average = null;
-        $percentage = null;
-        if (($open !== null) && ($last !== null)) {
-            $change = $last - $open;
-            $average = $this->sum($last, $open) / 2;
-            if ($open !== 0.0) {
-                $percentage = ($change / $open) * 100;
-            }
-        }
         $baseVolume = $this->safe_number($ticker, 'volume');
         $quoteVolume = $this->safe_number($ticker, 'turnover');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -496,13 +487,13 @@ class delta extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

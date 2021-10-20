@@ -21,27 +21,27 @@ class idex extends Exchange {
             'countries' => array( 'US' ),
             'rateLimit' => 1500,
             'version' => 'v2',
-            'certified' => true,
             'pro' => true,
+            'certified' => true,
             'requiresWeb3' => true,
             'has' => array(
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
-                'fetchMarkets' => true,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposits' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
-                'fetchOrders' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrders' => null,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchTransactions' => false,
-                'fetchDeposits' => true,
+                'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -136,6 +136,8 @@ class idex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        $response = yield $this->publicGetMarkets ($params);
+        //
         // array(
         //   array(
         //     market => 'DIL-ETH',
@@ -146,7 +148,28 @@ class idex extends Exchange {
         //     quoteAssetPrecision => 8
         //   ), ...
         // )
-        $response = yield $this->publicGetMarkets ($params);
+        //
+        $response2 = yield $this->publicGetExchange ();
+        //
+        // {
+        //     "timeZone" => "UTC",
+        //     "serverTime" => 1590408000000,
+        //     "ethereumDepositContractAddress" => "0x...",
+        //     "ethUsdPrice" => "206.46",
+        //     "gasPrice" => 7,
+        //     "volume24hUsd" => "10416227.98",
+        //     "makerFeeRate" => "0.001",
+        //     "takerFeeRate" => "0.002",
+        //     "makerTradeMinimum" => "0.15000000",
+        //     "takerTradeMinimum" => "0.05000000",
+        //     "withdrawalMinimum" => "0.04000000"
+        // }
+        //
+        $maker = $this->safe_number($response2, 'makerFeeRate');
+        $taker = $this->safe_number($response2, 'takerFeeRate');
+        $makerMin = $this->safe_number($response2, 'makerTradeMinimum');
+        $takerMin = $this->safe_number($response2, 'takerTradeMinimum');
+        $minCostETH = min ($makerMin, $takerMin);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -162,6 +185,10 @@ class idex extends Exchange {
             $quotePrecision = $this->parse_precision($quotePrecisionString);
             $status = $this->safe_string($entry, 'status');
             $active = $status === 'active';
+            $minCost = null;
+            if ($quote === 'ETH') {
+                $minCost = $minCostETH;
+            }
             $precision = array(
                 'amount' => intval($basePrecisionString),
                 'price' => intval($quotePrecisionString),
@@ -173,9 +200,13 @@ class idex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'info' => $entry,
                 'precision' => $precision,
+                'taker' => $taker,
+                'maker' => $maker,
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->parse_number($basePrecision),
@@ -186,7 +217,7 @@ class idex extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $minCost,
                         'max' => null,
                     ),
                 ),
@@ -907,7 +938,7 @@ class idex extends Exchange {
         );
         $priceString = null;
         $typeLower = strtolower($type);
-        $limitOrder = mb_strpos($typeLower, 'limit') > -1;
+        $limitOrder = mb_strpos($typeLower, 'limit') !== false;
         if (is_array($limitTypeEnums) && array_key_exists($type, $limitTypeEnums)) {
             $typeEnum = $limitTypeEnums[$type];
             $priceString = $this->price_to_precision($symbol, $price);
@@ -1058,6 +1089,7 @@ class idex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_required_credentials();
         yield $this->load_markets();
         $nonce = $this->uuidv1();

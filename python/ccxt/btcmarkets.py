@@ -28,7 +28,7 @@ class btcmarkets(Exchange):
             'has': {
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
@@ -298,8 +298,8 @@ class btcmarkets(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             fees = self.safe_value(self.safe_value(self.options, 'fees', {}), quote, self.fees)
-            pricePrecision = self.safe_number(market, 'priceDecimals')
-            amountPrecision = self.safe_number(market, 'amountDecimals')
+            pricePrecision = self.safe_integer(market, 'priceDecimals')
+            amountPrecision = self.safe_integer(market, 'amountDecimals')
             minAmount = self.safe_number(market, 'minOrderAmount')
             maxAmount = self.safe_number(market, 'maxOrderAmount')
             minPrice = None
@@ -331,6 +331,8 @@ class btcmarkets(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': None,
                 'maker': fees['maker'],
                 'taker': fees['taker'],

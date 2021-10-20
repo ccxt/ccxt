@@ -22,7 +22,7 @@ class tidebit(Exchange):
             'version': 'v2',
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchDepositAddress': True,
@@ -165,6 +165,8 @@ class tidebit(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': True,
                 'active': None,
                 'precision': self.precision,
                 'limits': self.limits,
@@ -441,6 +443,7 @@ class tidebit(Exchange):
         return order
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)

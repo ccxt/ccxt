@@ -27,27 +27,27 @@ class idex(Exchange):
             'countries': ['US'],
             'rateLimit': 1500,
             'version': 'v2',
-            'certified': True,
             'pro': True,
+            'certified': True,
             'requiresWeb3': True,
             'has': {
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
-                'fetchMarkets': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposits': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchOrders': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrders': None,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTransactions': False,
-                'fetchDeposits': True,
+                'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -141,6 +141,8 @@ class idex(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        response = await self.publicGetMarkets(params)
+        #
         # [
         #   {
         #     market: 'DIL-ETH',
@@ -151,7 +153,28 @@ class idex(Exchange):
         #     quoteAssetPrecision: 8
         #   }, ...
         # ]
-        response = await self.publicGetMarkets(params)
+        #
+        response2 = await self.publicGetExchange()
+        #
+        # {
+        #     "timeZone": "UTC",
+        #     "serverTime": 1590408000000,
+        #     "ethereumDepositContractAddress": "0x...",
+        #     "ethUsdPrice": "206.46",
+        #     "gasPrice": 7,
+        #     "volume24hUsd": "10416227.98",
+        #     "makerFeeRate": "0.001",
+        #     "takerFeeRate": "0.002",
+        #     "makerTradeMinimum": "0.15000000",
+        #     "takerTradeMinimum": "0.05000000",
+        #     "withdrawalMinimum": "0.04000000"
+        # }
+        #
+        maker = self.safe_number(response2, 'makerFeeRate')
+        taker = self.safe_number(response2, 'takerFeeRate')
+        makerMin = self.safe_number(response2, 'makerTradeMinimum')
+        takerMin = self.safe_number(response2, 'takerTradeMinimum')
+        minCostETH = min(makerMin, takerMin)
         result = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -167,6 +190,9 @@ class idex(Exchange):
             quotePrecision = self.parse_precision(quotePrecisionString)
             status = self.safe_string(entry, 'status')
             active = status == 'active'
+            minCost = None
+            if quote == 'ETH':
+                minCost = minCostETH
             precision = {
                 'amount': int(basePrecisionString),
                 'price': int(quotePrecisionString),
@@ -178,9 +204,13 @@ class idex(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'info': entry,
                 'precision': precision,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
                         'min': self.parse_number(basePrecision),
@@ -191,7 +221,7 @@ class idex(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': minCost,
                         'max': None,
                     },
                 },
@@ -863,7 +893,7 @@ class idex(Exchange):
         }
         priceString = None
         typeLower = type.lower()
-        limitOrder = typeLower.find('limit') > -1
+        limitOrder = typeLower.find('limit') >= 0
         if type in limitTypeEnums:
             typeEnum = limitTypeEnums[type]
             priceString = self.price_to_precision(symbol, price)
@@ -1001,6 +1031,7 @@ class idex(Exchange):
         return self.parse_order(response, market)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_required_credentials()
         await self.load_markets()
         nonce = self.uuidv1()

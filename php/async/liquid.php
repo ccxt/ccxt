@@ -24,7 +24,7 @@ class liquid extends Exchange {
             'rateLimit' => 1000,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
@@ -72,7 +72,9 @@ class liquid extends Exchange {
                         'accounts/{id}',
                         'accounts/{currency}/reserved_balance_details',
                         'crypto_accounts', // add fetchAccounts
+                        'crypto_withdrawal',
                         'crypto_withdrawals',
+                        'crypto_withdrawals/crypto_networks',
                         'executions/me',
                         'fiat_accounts', // add fetchAccounts
                         'fund_infos', // add fetchDeposits
@@ -87,6 +89,11 @@ class liquid extends Exchange {
                         'trading_accounts/{id}',
                         'transactions',
                         'withdrawals', // add fetchWithdrawals
+                        'user/fee_tier',
+                        'user/fees',
+                        'trading_accounts/{id}',
+                        'bank_accounts',
+                        'accounts/{currency}/reserved_balance_details',
                     ),
                     'post' => array(
                         'crypto_withdrawals',
@@ -95,6 +102,7 @@ class liquid extends Exchange {
                         'loan_bids',
                         'orders',
                         'withdrawals',
+                        'fees/estimate',
                     ),
                     'put' => array(
                         'crypto_withdrawal/{id}/cancel',
@@ -201,12 +209,18 @@ class liquid extends Exchange {
                 'product_disabled' => '\\ccxt\\BadSymbol', // array("errors":array("order":["product_disabled"]))
             ),
             'commonCurrencies' => array(
-                'WIN' => 'WCOIN',
                 'HOT' => 'HOT Token',
                 'MIOTA' => 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
+                'TON' => 'Tokamak Network',
             ),
             'options' => array(
                 'cancelOrderException' => true,
+                'networks' => array(
+                    'ETH' => 'ERC20',
+                    'TRX' => 'TRC20',
+                    'XLM' => 'Stellar',
+                    'ALGO' => 'Algorand',
+                ),
             ),
         ));
     }
@@ -553,18 +567,8 @@ class liquid extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $change = null;
-        $percentage = null;
-        $average = null;
         $open = $this->safe_number($ticker, 'last_price_24h');
-        if ($open !== null && $last !== null) {
-            $change = $last - $open;
-            $average = $this->sum($last, $open) / 2;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-        }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -579,13 +583,13 @@ class liquid extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'volume_24h'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -981,6 +985,7 @@ class liquid extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
         $currency = $this->currency($code);
@@ -1002,6 +1007,13 @@ class liquid extends Exchange {
             } else {
                 throw new NotSupported($this->id . ' withdraw() only supports a $tag along the $address for XRP or XLM');
             }
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['network'] = $network;
+            $params = $this->omit($params, 'network');
         }
         $response = yield $this->privatePostCryptoWithdrawals (array_merge($request, $params));
         //

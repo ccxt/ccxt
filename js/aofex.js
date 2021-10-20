@@ -18,21 +18,21 @@ module.exports = class aofex extends Exchange {
             'rateLimit': 1000,
             'hostname': 'openapi.aofex.com',
             'has': {
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrder': true,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': undefined,
                 'fetchMarkets': true,
-                'fetchCurrencies': false,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
                 'fetchOrderBook': true,
-                'fetchTrades': true,
+                'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchOHLCV': true,
-                'fetchBalance': true,
-                'createOrder': true,
-                'cancelOrder': true,
-                'cancelAllOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchClosedOrder': true,
-                'fetchOrderTrades': true,
+                'fetchTrades': true,
                 'fetchTradingFee': true,
             },
             'timeframes': {
@@ -207,6 +207,8 @@ module.exports = class aofex extends Exchange {
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': true,
                 'active': undefined,
                 'maker': makerFee,
                 'taker': takerFee,
@@ -417,48 +419,32 @@ module.exports = class aofex extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp (ticker, 'id');
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        }
         const open = this.safeNumber (ticker, 'open');
         const last = this.safeNumber (ticker, 'close');
-        let change = undefined;
-        if (symbol !== undefined) {
-            change = parseFloat (this.priceToPrecision (symbol, last - open));
-        } else {
-            change = last - open;
-        }
-        const average = this.sum (last, open) / 2;
-        const percentage = change / open * 100;
         const baseVolume = this.safeNumber (ticker, 'amount');
         const quoteVolume = this.safeNumber (ticker, 'vol');
-        let vwap = this.vwap (baseVolume, quoteVolume);
-        if (vwap !== undefined) {
-            vwap = parseFloat (this.priceToPrecision (symbol, vwap));
-        }
-        return {
-            'symbol': symbol,
+        return this.safeTicker ({
+            'symbol': undefined,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': undefined,
             'high': this.safeNumber (ticker, 'high'),
             'low': this.safeNumber (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

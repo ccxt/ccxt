@@ -23,9 +23,9 @@ class xena(Exchange):
             'countries': ['VC', 'UK'],
             'rateLimit': 100,
             'has': {
-                'CORS': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'editOrder': True,
@@ -404,18 +404,10 @@ class xena(Exchange):
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_number(ticker, 'lastPx')
         open = self.safe_number(ticker, 'firstPx')
-        percentage = None
-        change = None
-        average = None
-        if (last is not None) and (open is not None):
-            change = last - open
-            average = self.sum(last, open) / 2
-            if open > 0:
-                percentage = change / open * 100
         buyVolume = self.safe_number(ticker, 'buyVolume')
         sellVolume = self.safe_number(ticker, 'sellVolume')
         baseVolume = self.sum(buyVolume, sellVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -430,13 +422,13 @@ class xena(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -1430,6 +1422,7 @@ class xena(Exchange):
         return self.safe_string(statuses, status, status)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         self.load_accounts()

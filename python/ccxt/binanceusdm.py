@@ -19,14 +19,6 @@ class binanceusdm(binance):
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],
             },
-            'has': {
-                'fetchPositions': True,
-                'fetchIsolatedPositions': True,
-                'fetchFundingRate': True,
-                'fetchFundingHistory': True,
-                'setLeverage': True,
-                'setMarginMode': True,
-            },
             'options': {
                 'defaultType': 'future',
                 # https://www.binance.com/en/support/faq/360033162192

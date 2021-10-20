@@ -27,7 +27,9 @@ try:
     amount = 123
     address = '0x3010c3486f1c16cb608ba3e53e3597c9a3b01f41'
     tag = None
-    params = {'chain': 'eth'}
+    params = {
+        'chain': 'TRC20',  # 'ERC20', 'TRC20', default is ERC20
+    }
     response = kucoin.withdraw(code, amount, address, tag, params)
     pprint(response)
 except Exception as e:

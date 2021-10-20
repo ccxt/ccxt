@@ -16,7 +16,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DuplicateOrderId
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -35,7 +34,7 @@ class phemex(Exchange):
             'pro': True,
             'hostname': 'api.phemex.com',
             'has': {
-                'cancelAllOrders': True,  # swap contracts only
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -43,13 +42,16 @@ class phemex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
@@ -159,6 +161,7 @@ class phemex(Exchange):
                     'delete': [
                         # spot
                         'spot/orders',  # ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/all',  # ?symbol=<symbol>&untriggered=<untriggered>
                         # 'spot/orders',  # ?symbol=<symbol>&clOrdID=<clOrdID>
                         # swap
                         'orders/cancel',  # ?symbol=<symbol>&orderID=<orderID>
@@ -320,6 +323,13 @@ class phemex(Exchange):
             'options': {
                 'x-phemex-request-expiry': 60,  # in seconds
                 'createOrderByQuoteRequiresPrice': True,
+                'networks': {
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                },
+                'defaultNetworks': {
+                    'USDT': 'ETH',
+                },
             },
         })
 
@@ -382,15 +392,15 @@ class phemex(Exchange):
         quoteId = self.safe_string(market, 'quoteCurrency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
         type = self.safe_string_lower(market, 'type')
         inverse = False
         spot = False
         swap = True
-        settlementCurrencyId = self.safe_string(market, 'settlementCurrency')
+        settlementCurrencyId = self.safe_string(market, 'settleCurrency')
         if settlementCurrencyId != quoteId:
             inverse = True
         linear = not inverse
+        symbol = id if (inverse) else (base + '/' + quote)  # fix for uBTCUSD inverse
         precision = {
             'amount': self.safe_number(market, 'lotSize'),
             'price': self.safe_number(market, 'tickSize'),
@@ -1862,19 +1872,20 @@ class phemex(Exchange):
         return self.parse_order(data, market)
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         request = {
             # 'symbol': market['id'],
             # 'untriggerred': False,  # False to cancel non-conditional orders, True to cancel conditional orders
             # 'text': 'up to 40 characters max',
         }
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            if not market['swap']:
-                raise NotSupported(self.id + ' cancelAllOrders() supports swap market type orders only')
-            request['symbol'] = market['id']
-        return await self.privateDeleteOrdersAll(self.extend(request, params))
+        market = self.market(symbol)
+        method = 'privateDeleteSpotOrdersAll'
+        if market['swap']:
+            method = 'privateDeleteOrdersAll'
+        request['symbol'] = market['id']
+        return await getattr(self, method)(self.extend(request, params))
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -1931,7 +1942,12 @@ class phemex(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        try:
+            response = await getattr(self, method)(self.extend(request, params))
+        except Exception as e:
+            if isinstance(e, OrderNotFound):
+                return []
         data = self.safe_value(response, 'data', {})
         if isinstance(data, list):
             return self.parse_orders(data, market, since, limit)
@@ -2094,6 +2110,16 @@ class phemex(Exchange):
         request = {
             'currency': currency['id'],
         }
+        defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
+        defaultNetwork = self.safe_string_upper(defaultNetworks, code)
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network', defaultNetwork)
+        network = self.safe_string(networks, network, network)
+        if network is None:
+            request['chainName'] = currency['id']
+        else:
+            request['chainName'] = network
+            params = self.omit(params, 'network')
         response = await self.privateGetPhemexUserWalletsV2DepositAddress(self.extend(request, params))
         #     {
         #         "code":0,

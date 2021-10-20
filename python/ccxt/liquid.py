@@ -30,7 +30,7 @@ class liquid(Exchange):
             'rateLimit': 1000,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -78,7 +78,9 @@ class liquid(Exchange):
                         'accounts/{id}',
                         'accounts/{currency}/reserved_balance_details',
                         'crypto_accounts',  # add fetchAccounts
+                        'crypto_withdrawal',
                         'crypto_withdrawals',
+                        'crypto_withdrawals/crypto_networks',
                         'executions/me',
                         'fiat_accounts',  # add fetchAccounts
                         'fund_infos',  # add fetchDeposits
@@ -93,6 +95,11 @@ class liquid(Exchange):
                         'trading_accounts/{id}',
                         'transactions',
                         'withdrawals',  # add fetchWithdrawals
+                        'user/fee_tier',
+                        'user/fees',
+                        'trading_accounts/{id}',
+                        'bank_accounts',
+                        'accounts/{currency}/reserved_balance_details',
                     ],
                     'post': [
                         'crypto_withdrawals',
@@ -101,6 +108,7 @@ class liquid(Exchange):
                         'loan_bids',
                         'orders',
                         'withdrawals',
+                        'fees/estimate',
                     ],
                     'put': [
                         'crypto_withdrawal/{id}/cancel',
@@ -207,12 +215,18 @@ class liquid(Exchange):
                 'product_disabled': BadSymbol,  # {"errors":{"order":["product_disabled"]}}
             },
             'commonCurrencies': {
-                'WIN': 'WCOIN',
                 'HOT': 'HOT Token',
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
+                'TON': 'Tokamak Network',
             },
             'options': {
                 'cancelOrderException': True,
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'XLM': 'Stellar',
+                    'ALGO': 'Algorand',
+                },
             },
         })
 
@@ -536,16 +550,8 @@ class liquid(Exchange):
                     symbol = self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
         if market is not None:
             symbol = market['symbol']
-        change = None
-        percentage = None
-        average = None
         open = self.safe_number(ticker, 'last_price_24h')
-        if open is not None and last is not None:
-            change = last - open
-            average = self.sum(last, open) / 2
-            if open > 0:
-                percentage = change / open * 100
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -560,13 +566,13 @@ class liquid(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': self.safe_number(ticker, 'volume_24h'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -927,6 +933,7 @@ class liquid(Exchange):
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
@@ -947,6 +954,12 @@ class liquid(Exchange):
                 request['memo_value'] = tag
             else:
                 raise NotSupported(self.id + ' withdraw() only supports a tag along the address for XRP or XLM')
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['network'] = network
+            params = self.omit(params, 'network')
         response = self.privatePostCryptoWithdrawals(self.extend(request, params))
         #
         #     {

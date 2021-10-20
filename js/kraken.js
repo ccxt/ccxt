@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded } = require ('./base/errors');
+const { BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -17,12 +17,12 @@ module.exports = class kraken extends Exchange {
             'countries': [ 'US' ],
             'version': '0',
             'rateLimit': 3000,
-            'certified': true,
+            'certified': false,
             'pro': true,
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -30,6 +30,7 @@ module.exports = class kraken extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchLedgerEntry': true,
                 'fetchMarkets': true,
@@ -46,6 +47,7 @@ module.exports = class kraken extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
+                'setMarginMode': false, // Kraken only supports cross margin
                 'withdraw': true,
             },
             'marketsByAltname': {},
@@ -177,34 +179,34 @@ module.exports = class kraken extends Exchange {
                     ],
                 },
                 'private': {
-                    'post': [
-                        'AddOrder',
-                        'AddExport',
-                        'Balance',
-                        'CancelAll',
-                        'CancelOrder',
-                        'ClosedOrders',
-                        'DepositAddresses',
-                        'DepositMethods',
-                        'DepositStatus',
-                        'ExportStatus',
-                        'GetWebSocketsToken',
-                        'Ledgers',
-                        'OpenOrders',
-                        'OpenPositions',
-                        'QueryLedgers',
-                        'QueryOrders',
-                        'QueryTrades',
-                        'RetrieveExport',
-                        'RemoveExport',
-                        'TradeBalance',
-                        'TradesHistory',
-                        'TradeVolume',
-                        'Withdraw',
-                        'WithdrawCancel',
-                        'WithdrawInfo',
-                        'WithdrawStatus',
-                    ],
+                    'post': {
+                        'AddOrder': 0,
+                        'AddExport': 1,
+                        'Balance': 1,
+                        'CancelAll': 1,
+                        'CancelOrder': 0,
+                        'ClosedOrders': 2,
+                        'DepositAddresses': 1,
+                        'DepositMethods': 1,
+                        'DepositStatus': 1,
+                        'ExportStatus': 1,
+                        'GetWebSocketsToken': 1,
+                        'Ledgers': 2,
+                        'OpenOrders': 1,
+                        'OpenPositions': 1,
+                        'QueryLedgers': 1,
+                        'QueryOrders': 1,
+                        'QueryTrades': 1,
+                        'RetrieveExport': 1,
+                        'RemoveExport': 1,
+                        'TradeBalance': 1,
+                        'TradesHistory': 2,
+                        'TradeVolume': 1,
+                        'Withdraw': 1,
+                        'WithdrawCancel': 1,
+                        'WithdrawInfo': 1,
+                        'WithdrawStatus': 1,
+                    },
                 },
             },
             'commonCurrencies': {
@@ -215,11 +217,15 @@ module.exports = class kraken extends Exchange {
                 'REP': 'REPV1',
             },
             'options': {
-                'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
-                'depositMethods': {},
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
+                'networks': {
+                    'ETH': 'Tether USD (ERC20)',
+                    'ERC20': 'Tether USD (ERC20)',
+                    'TRX': 'Tether USD (TRC20)',
+                    'TRC20': 'Tether USD (TRC20)',
+                },
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
@@ -237,6 +243,9 @@ module.exports = class kraken extends Exchange {
                 'EGeneral:Permission denied': PermissionDenied,
                 'EOrder:Unknown order': InvalidOrder,
                 'EOrder:Order minimum not met': InvalidOrder,
+                'EGeneral:Invalid arguments': BadRequest,
+                'ESession:Invalid session': AuthenticationError,
+                'EAPI:Invalid nonce': InvalidNonce,
             },
         });
     }
@@ -330,6 +339,9 @@ module.exports = class kraken extends Exchange {
                 'price': this.safeInteger (market, 'pair_decimals'),
             };
             const minAmount = this.safeNumber (market, 'ordermin');
+            const leverageBuy = this.safeValue (market, 'leverage_buy', []);
+            const leverageBuyLength = leverageBuy.length;
+            const maxLeverage = this.safeValue (leverageBuy, leverageBuyLength - 1, 1);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -342,6 +354,8 @@ module.exports = class kraken extends Exchange {
                 'altname': market['altname'],
                 'maker': maker,
                 'taker': taker,
+                'type': 'spot',
+                'spot': true,
                 'active': true,
                 'precision': precision,
                 'limits': {
@@ -356,6 +370,10 @@ module.exports = class kraken extends Exchange {
                     'cost': {
                         'min': 0,
                         'max': undefined,
+                    },
+                    'leverage': {
+                        'min': 1,
+                        'max': maxLeverage,
                     },
                 },
             });
@@ -454,7 +472,6 @@ module.exports = class kraken extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        this.checkRequiredCredentials ();
         const response = await this.privatePostTradeVolume (params);
         const tradedVolume = this.safeNumber (response['result'], 'volume');
         const tiers = this.fees['trading']['tiers'];
@@ -1405,9 +1422,10 @@ module.exports = class kraken extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = undefined;
+        const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
         try {
             response = await this.privatePostCancelOrder (this.extend ({
-                'txid': id,
+                'txid': clientOrderId || id,
             }, params));
         } catch (e) {
             if (this.last_http_response) {
@@ -1431,7 +1449,13 @@ module.exports = class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = parseInt (since / 1000);
         }
-        const response = await this.privatePostOpenOrders (this.extend (request, params));
+        let query = params;
+        const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['userref'] = clientOrderId;
+            query = this.omit (params, [ 'userref', 'clientOrderId' ]);
+        }
+        const response = await this.privatePostOpenOrders (this.extend (request, query));
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1447,7 +1471,13 @@ module.exports = class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = parseInt (since / 1000);
         }
-        const response = await this.privatePostClosedOrders (this.extend (request, params));
+        let query = params;
+        const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['userref'] = clientOrderId;
+            query = this.omit (params, [ 'userref', 'clientOrderId' ]);
+        }
+        const response = await this.privatePostClosedOrders (this.extend (request, query));
         //
         //     {
         //         "error":[],
@@ -1667,6 +1697,12 @@ module.exports = class kraken extends Exchange {
         const request = {
             'new': 'true',
         };
+        if ((code === 'USDT') && ('network' in params)) {
+            const networks = this.safeValue (this.options, 'networks', {});
+            const network = this.safeStringUpper (params, 'network');
+            request['method'] = this.safeString (networks, network, network);
+            params = this.omit (params, 'network');
+        }
         const response = await this.fetchDepositAddress (code, this.extend (request, params));
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
@@ -1680,23 +1716,16 @@ module.exports = class kraken extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        // eslint-disable-next-line quotes
-        let method = this.safeString (params, 'method');
-        if (method === undefined) {
-            if (this.options['cacheDepositMethodsOnFetchDepositAddress']) {
-                // cache depositMethods
-                if (!(code in this.options['depositMethods'])) {
-                    this.options['depositMethods'][code] = await this.fetchDepositMethods (code);
-                }
-                method = this.options['depositMethods'][code][0]['method'];
-            } else {
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods ("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true');
-            }
-        }
         const request = {
             'asset': currency['id'],
-            'method': method,
         };
+        // USDT is the only currency with multiple networks on kraken, you may check
+        if ((code === 'USDT') && ('network' in params)) {
+            const networks = this.safeValue (this.options, 'networks', {});
+            const network = this.safeStringUpper (params, 'network');
+            request['method'] = this.safeString (networks, network, network);
+            params = this.omit (params, 'network');
+        }
         const response = await this.privatePostDepositAddresses (this.extend (request, params)); // overwrite methods
         const result = response['result'];
         const numResults = result.length;
@@ -1715,6 +1744,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if ('key' in params) {
             await this.loadMarkets ();

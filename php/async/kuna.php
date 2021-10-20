@@ -20,8 +20,8 @@ class kuna extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
-                'CORS' => false,
                 'cancelOrder' => true,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchMarkets' => true,
@@ -34,7 +34,7 @@ class kuna extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'withdraw' => false,
+                'withdraw' => null,
             ),
             'timeframes' => null,
             'urls' => array(
@@ -136,10 +136,15 @@ class kuna extends Exchange {
             $id = $ids[$i];
             for ($j = 0; $j < count($quotes); $j++) {
                 $quoteId = $quotes[$j];
-                $index = mb_strpos($id, $quoteId);
-                $slice = mb_substr($id, $index);
+                // usd gets matched before usdt in usdtusd USDT/USD
+                // https://github.com/ccxt/ccxt/issues/9868
+                $slicedId = mb_substr($id, 1);
+                $index = mb_strpos($slicedId, $quoteId);
+                $slice = mb_substr($slicedId, $index);
                 if (($index > 0) && ($slice === $quoteId)) {
-                    $baseId = str_replace($quoteId, '', $id);
+                    // usd gets matched before usdt in usdtusd USDT/USD
+                    // https://github.com/ccxt/ccxt/issues/9868
+                    $baseId = $id[0] . str_replace($quoteId, '', $slicedId);
                     $base = $this->safe_currency_code($baseId);
                     $quote = $this->safe_currency_code($quoteId);
                     $symbol = $base . '/' . $quote;
@@ -150,6 +155,9 @@ class kuna extends Exchange {
                         'quote' => $quote,
                         'baseId' => $baseId,
                         'quoteId' => $quoteId,
+                        'type' => 'spot',
+                        'spot' => true,
+                        'active' => null,
                         'precision' => array(
                             'amount' => null,
                             'price' => null,
@@ -168,10 +176,8 @@ class kuna extends Exchange {
                                 'max' => null,
                             ),
                         ),
-                        'active' => null,
                         'info' => null,
                     );
-                    break;
                 }
             }
         }

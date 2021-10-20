@@ -23,7 +23,7 @@ class cex extends Exchange {
             'rateLimit' => 1500,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
@@ -336,6 +336,9 @@ class cex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
+                'active' => null,
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
@@ -351,7 +354,6 @@ class cex extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'active' => null,
             );
         }
         return $result;

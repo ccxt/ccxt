@@ -20,8 +20,8 @@ module.exports = class ripio extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
-                'CORS': false,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -179,12 +179,14 @@ module.exports = class ripio extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
+                'active': active,
                 'precision': precision,
                 'maker': maker,
                 'taker': taker,
                 'limits': limits,
                 'info': market,
-                'active': active,
             });
         }
         return result;

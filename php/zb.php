@@ -25,10 +25,11 @@ class zb extends Exchange {
             'pro' => true,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
-                'createMarketOrder' => false,
+                'CORS' => null,
+                'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
@@ -39,7 +40,6 @@ class zb extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
-                'fetchClosedOrders' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -142,9 +142,9 @@ class zb extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api' => array(
-                    'public' => 'https://api.zb.today/data',
-                    'private' => 'https://trade.zb.today/api',
-                    'trade' => 'https://trade.zb.today/api',
+                    'public' => 'https://api.zb.work/data',
+                    'private' => 'https://trade.zb.work/api',
+                    'trade' => 'https://trade.zb.work/api',
                 ),
                 'www' => 'https://www.zb.com',
                 'doc' => 'https://www.zb.com/i/developer',
@@ -266,7 +266,6 @@ class zb extends Exchange {
             $symbol = $base . '/' . $quote;
             $amountPrecisionString = $this->safe_string($market, 'amountScale');
             $pricePrecisionString = $this->safe_string($market, 'priceScale');
-            $amountLimit = $this->parse_precision($amountPrecisionString);
             $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
                 'amount' => intval($amountPrecisionString),
@@ -279,11 +278,13 @@ class zb extends Exchange {
                 'quoteId' => $quoteId,
                 'base' => $base,
                 'quote' => $quote,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => true,
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->parse_number($amountLimit),
+                        'min' => $this->safe_number($market, 'minAmount'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -291,7 +292,7 @@ class zb extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => 0,
+                        'min' => $this->safe_number($market, 'minSize'),
                         'max' => null,
                     ),
                 ),
@@ -797,7 +798,7 @@ class zb extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = 10, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . 'fetchClosedOrders() requires a $symbol argument');
         }
@@ -806,7 +807,7 @@ class zb extends Exchange {
         $request = array(
             'currency' => $market['id'],
             'pageIndex' => 1, // default pageIndex is 1
-            'pageSize' => 10, // default pageSize is 10, doesn't work with other values now
+            'pageSize' => $limit, // default pageSize is 10, doesn't work with other values now
         );
         $response = $this->privateGetGetFinishedAndPartialOrders (array_merge($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
@@ -1018,6 +1019,7 @@ class zb extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $password = $this->safe_string($params, 'safePwd', $this->password);
         if ($password === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() requires exchange.password or a safePwd parameter');

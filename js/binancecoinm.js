@@ -22,14 +22,6 @@ module.exports = class binancecoinm extends binance {
                 'defaultType': 'delivery',
                 'leverageBrackets': undefined,
             },
-            'has': {
-                'fetchPositions': true,
-                'fetchIsolatedPositions': true,
-                'fetchFundingRate': true,
-                'fetchFundingHistory': true,
-                'setLeverage': true,
-                'setMode': true,
-            },
         });
     }
 

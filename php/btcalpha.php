@@ -31,7 +31,7 @@ class btcalpha extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
-                'fetchTicker' => false,
+                'fetchTicker' => null,
                 'fetchTrades' => true,
             ),
             'timeframes' => array(
@@ -120,6 +120,8 @@ class btcalpha extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => true,
                 'precision' => $precision,
                 'limits' => array(

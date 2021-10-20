@@ -283,6 +283,8 @@ class bitbay extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'precision' => $precision,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => null,
                 'maker' => $maker,
                 'taker' => $taker,
@@ -430,12 +432,8 @@ class bitbay extends Exchange {
         return $this->parse_order_book($orderbook, $symbol);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $request = array(
-            'id' => $this->market_id($symbol),
-        );
-        $ticker = yield $this->publicGetIdTicker (array_merge($request, $params));
+    public function parse_ticker($ticker, $market = null) {
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->milliseconds();
         $baseVolume = $this->safe_number($ticker, 'volume');
         $vwap = $this->safe_number($ticker, 'vwap');
@@ -444,7 +442,7 @@ class bitbay extends Exchange {
             $quoteVolume = $baseVolume * $vwap;
         }
         $last = $this->safe_number($ticker, 'last');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -465,7 +463,17 @@ class bitbay extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
+        ), $market);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'id' => $market['id'],
         );
+        $response = yield $this->publicGetIdTicker (array_merge($request, $params));
+        return $this->parse_ticker($response, $market);
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1126,6 +1134,7 @@ class bitbay extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
         $method = null;

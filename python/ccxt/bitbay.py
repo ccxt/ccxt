@@ -292,6 +292,8 @@ class bitbay(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'precision': precision,
+                'type': 'spot',
+                'spot': True,
                 'active': None,
                 'maker': maker,
                 'taker': taker,
@@ -428,12 +430,8 @@ class bitbay(Exchange):
         orderbook = self.publicGetIdOrderbook(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol)
 
-    def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
-        request = {
-            'id': self.market_id(symbol),
-        }
-        ticker = self.publicGetIdTicker(self.extend(request, params))
+    def parse_ticker(self, ticker, market=None):
+        symbol = self.safe_symbol(None, market)
         timestamp = self.milliseconds()
         baseVolume = self.safe_number(ticker, 'volume')
         vwap = self.safe_number(ticker, 'vwap')
@@ -441,7 +439,7 @@ class bitbay(Exchange):
         if baseVolume is not None and vwap is not None:
             quoteVolume = baseVolume * vwap
         last = self.safe_number(ticker, 'last')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -462,7 +460,16 @@ class bitbay(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market)
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': market['id'],
         }
+        response = self.publicGetIdTicker(self.extend(request, params))
+        return self.parse_ticker(response, market)
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         balanceCurrencies = []
@@ -1096,6 +1103,7 @@ class bitbay(Exchange):
         return self.safe_value(fiatCurrencies, currency, False)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         method = None

@@ -19,8 +19,8 @@ class btctradeua(Exchange):
             'rateLimit': 3000,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
-                'createMarketOrder': False,
+                'CORS': None,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchOpenOrders': True,
@@ -60,23 +60,23 @@ class btctradeua(Exchange):
                 },
             },
             'markets': {
-                'BCH/UAH': {'id': 'bch_uah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH', 'baseId': 'bch', 'quoteId': 'uah'},
-                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': {'price': 1}, 'limits': {'amount': {'min': 0.0000000001}}},
-                'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc'},
-                'DASH/UAH': {'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH', 'baseId': 'dash', 'quoteId': 'uah'},
-                'DOGE/BTC': {'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc'},
-                'DOGE/UAH': {'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH', 'baseId': 'doge', 'quoteId': 'uah'},
-                'ETH/UAH': {'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH', 'baseId': 'eth', 'quoteId': 'uah'},
-                'ITI/UAH': {'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH', 'baseId': 'iti', 'quoteId': 'uah'},
-                'KRB/UAH': {'id': 'krb_uah', 'symbol': 'KRB/UAH', 'base': 'KRB', 'quote': 'UAH', 'baseId': 'krb', 'quoteId': 'uah'},
-                'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc'},
-                'LTC/UAH': {'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH', 'baseId': 'ltc', 'quoteId': 'uah'},
-                'NVC/BTC': {'id': 'nvc_btc', 'symbol': 'NVC/BTC', 'base': 'NVC', 'quote': 'BTC', 'baseId': 'nvc', 'quoteId': 'btc'},
-                'NVC/UAH': {'id': 'nvc_uah', 'symbol': 'NVC/UAH', 'base': 'NVC', 'quote': 'UAH', 'baseId': 'nvc', 'quoteId': 'uah'},
-                'PPC/BTC': {'id': 'ppc_btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC', 'baseId': 'ppc', 'quoteId': 'btc'},
-                'SIB/UAH': {'id': 'sib_uah', 'symbol': 'SIB/UAH', 'base': 'SIB', 'quote': 'UAH', 'baseId': 'sib', 'quoteId': 'uah'},
-                'XMR/UAH': {'id': 'xmr_uah', 'symbol': 'XMR/UAH', 'base': 'XMR', 'quote': 'UAH', 'baseId': 'xmr', 'quoteId': 'uah'},
-                'ZEC/UAH': {'id': 'zec_uah', 'symbol': 'ZEC/UAH', 'base': 'ZEC', 'quote': 'UAH', 'baseId': 'zec', 'quoteId': 'uah'},
+                'BCH/UAH': {'id': 'bch_uah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH', 'baseId': 'bch', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
+                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': {'price': 1}, 'limits': {'amount': {'min': 0.0000000001}}, 'type': 'spot', 'spot': True},
+                'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
+                'DASH/UAH': {'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH', 'baseId': 'dash', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
+                'DOGE/BTC': {'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
+                'DOGE/UAH': {'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH', 'baseId': 'doge', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
+                'ETH/UAH': {'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH', 'baseId': 'eth', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
+                'ITI/UAH': {'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH', 'baseId': 'iti', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
+                'KRB/UAH': {'id': 'krb_uah', 'symbol': 'KRB/UAH', 'base': 'KRB', 'quote': 'UAH', 'baseId': 'krb', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
+                'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
+                'LTC/UAH': {'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH', 'baseId': 'ltc', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
+                'NVC/BTC': {'id': 'nvc_btc', 'symbol': 'NVC/BTC', 'base': 'NVC', 'quote': 'BTC', 'baseId': 'nvc', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
+                'NVC/UAH': {'id': 'nvc_uah', 'symbol': 'NVC/UAH', 'base': 'NVC', 'quote': 'UAH', 'baseId': 'nvc', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
+                'PPC/BTC': {'id': 'ppc_btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC', 'baseId': 'ppc', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
+                'SIB/UAH': {'id': 'sib_uah', 'symbol': 'SIB/UAH', 'base': 'SIB', 'quote': 'UAH', 'baseId': 'sib', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
+                'XMR/UAH': {'id': 'xmr_uah', 'symbol': 'XMR/UAH', 'base': 'XMR', 'quote': 'UAH', 'baseId': 'xmr', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
+                'ZEC/UAH': {'id': 'zec_uah', 'symbol': 'ZEC/UAH', 'base': 'ZEC', 'quote': 'UAH', 'baseId': 'zec', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
             },
             'fees': {
                 'trading': {
@@ -167,66 +167,85 @@ class btctradeua(Exchange):
             for i in range(start, len(ticker)):
                 candle = ticker[i]
                 if result['open'] is None:
-                    result['open'] = candle[1]
-                if (result['high'] is None) or (result['high'] < candle[2]):
-                    result['high'] = candle[2]
-                if (result['low'] is None) or (result['low'] > candle[3]):
-                    result['low'] = candle[3]
+                    result['open'] = self.safe_number(candle, 1)
+                high = self.safe_number(candle, 2)
+                if (result['high'] is None) or ((high is not None) and (result['high'] < high)):
+                    result['high'] = high
+                low = self.safe_number(candle, 3)
+                if (result['low'] is None) or ((low is not None) and (result['low'] > low)):
+                    result['low'] = low
+                baseVolume = self.safe_number(candle, 5)
                 if result['baseVolume'] is None:
-                    result['baseVolume'] = -candle[5]
+                    result['baseVolume'] = baseVolume
                 else:
-                    result['baseVolume'] -= candle[5]
+                    result['baseVolume'] = self.sum(result['baseVolume'], baseVolume)
             last = tickerLength - 1
-            result['last'] = ticker[last][4]
+            result['last'] = self.safe_number(ticker[last], 4)
             result['close'] = result['last']
-            result['baseVolume'] = -1 * result['baseVolume']
         return result
 
-    def convert_cyrillic_month_name_to_string(self, cyrillic):
+    def convert_month_name_to_string(self, cyrillic):
         months = {
-            u'января': '01',
-            u'февраля': '02',
-            u'марта': '03',
-            u'апреля': '04',
-            u'мая': '05',
-            u'июня': '06',
-            u'июля': '07',
-            u'августа': '08',
-            u'сентября': '09',
-            u'октября': '10',
-            u'ноября': '11',
-            u'декабря': '12',
+            'Jan': '01',
+            'Feb': '02',
+            'Mar': '03',
+            'Apr': '04',
+            'May': '05',
+            'Jun': '06',
+            'Jul': '07',
+            'Aug': '08',
+            'Sept': '09',
+            'Oct': '10',
+            'Nov': '11',
+            'Dec': '12',
         }
         return self.safe_string(months, cyrillic)
 
-    def parse_cyrillic_datetime(self, cyrillic):
+    def parse_exchange_specific_datetime(self, cyrillic):
         parts = cyrillic.split(' ')
-        day = parts[0]
-        month = self.convert_cyrillic_month_name_to_string(parts[1])
-        if not month:
-            raise ExchangeError(self.id + ' parseTrade() None month name: ' + cyrillic)
-        year = parts[2]
-        hms = parts[4]
-        hmsLength = len(hms)
-        if hmsLength == 7:
-            hms = '0' + hms
-        if len(day) == 1:
+        month = parts[0]
+        day = parts[1].replace(',', '')
+        if len(day) < 2:
             day = '0' + day
+        year = parts[2].replace(',', '')
+        month = month.replace(',', '')
+        month = month.replace('.', '')
+        month = self.convert_month_name_to_string(month)
+        if not month:
+            raise ExchangeError(self.id + ' parseTrade() unrecognized month name: ' + cyrillic)
+        hms = parts[3]
+        hmsParts = hms.split(':')
+        h = self.safe_string(hmsParts, 0)
+        m = '00'
+        ampm = self.safe_string(parts, 4)
+        if h == 'noon':
+            h = '12'
+        else:
+            intH = int(h)
+            if (ampm is not None) and (ampm[0] == 'p'):
+                intH = 12 + intH
+                if intH > 23:
+                    intH = 0
+            h = str(intH)
+            if len(h) < 2:
+                h = '0' + h
+            m = self.safe_string(hmsParts, 1, '00')
+            if len(m) < 2:
+                m = '0' + m
         ymd = '-'.join([year, month, day])
-        ymdhms = ymd + 'T' + hms
+        ymdhms = ymd + 'T' + h + ':' + m + ':00'
         timestamp = self.parse8601(ymdhms)
         # server reports local time, adjust to UTC
-        md = ''.join([month, day])
-        md = int(md)
         # a special case for DST
         # subtract 2 hours during winter
-        if md < 325 or md > 1028:
+        intM = int(m)
+        if intM < 11 or intM > 2:
             return timestamp - 7200000
         # subtract 3 hours during summer
         return timestamp - 10800000
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse_cyrillic_datetime(self.safe_string(trade, 'pub_date'))
+        timestamp = self.parse_exchange_specific_datetime(self.safe_string(trade, 'pub_date'))
         id = self.safe_string(trade, 'id')
         type = 'limit'
         side = self.safe_string(trade, 'type')
@@ -265,7 +284,8 @@ class btctradeua(Exchange):
         # deduplicate trades for that reason
         trades = []
         for i in range(0, len(response)):
-            if response[i]['id'] % 2:
+            id = self.safe_integer(response[i], 'id')
+            if id % 2:
                 trades.append(response[i])
         return self.parse_trades(trades, market, since, limit)
 

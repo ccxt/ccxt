@@ -16,6 +16,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -24,6 +25,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class bitstamp(Exchange):
@@ -38,29 +40,32 @@ class bitstamp(Exchange):
             'userAgent': self.userAgents['chrome'],
             'pro': True,
             'has': {
-                'CORS': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'CORS': True,
                 'createOrder': True,
                 'fetchBalance': True,
-                'fetchDepositAddress': True,
-                'fetchMarkets': True,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'fetchFees': True,
+                'fetchFundingFees': True,
+                'fetchIndexOHLCV': False,
+                'fetchLedger': True,
+                'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
-                'fetchTradingFee': True,
-                'fetchTradingFees': True,
-                'fetchFundingFees': True,
-                'fetchFees': True,
-                'fetchLedger': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
@@ -176,6 +181,26 @@ class bitstamp(Exchange):
                         'usdt_address/',
                         'eurt_withdrawal/',
                         'eurt_address/',
+                        'matic_withdrawal/',
+                        'matic_address/',
+                        'sushi_withdrawal/',
+                        'sushi_address/',
+                        'chz_withdrawal/',
+                        'chz_address/',
+                        'enj_withdrawal/',
+                        'enj_address/',
+                        'alpha_withdrawal/',
+                        'alpha_address/',
+                        'ftt_withdrawal/',
+                        'ftt_address/',
+                        'storj_withdrawal/',
+                        'storj_address/',
+                        'axs_withdrawal/',
+                        'axs_address/',
+                        'sand_withdrawal/',
+                        'sand_address/',
+                        'hbar_withdrawal/',
+                        'hbar_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -267,6 +292,7 @@ class bitstamp(Exchange):
                     'Price is more than 20% below market price.': InvalidOrder,
                     'Bitstamp.net is under scheduled maintenance.': OnMaintenance,  # {"error": "Bitstamp.net is under scheduled maintenance. We'll be back soon."}
                     'Order could not be placed.': ExchangeNotAvailable,  # Order could not be placed(perhaps due to internal error or trade halt). Please retry placing order.
+                    'Invalid offset.': BadRequest,
                 },
                 'broad': {
                     'Minimum order size is': InvalidOrder,  # Minimum order size is 5.0 EUR.
@@ -313,6 +339,8 @@ class bitstamp(Exchange):
                 'quoteId': quoteId,
                 'symbolId': symbolId,
                 'info': market,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -402,7 +430,7 @@ class bitstamp(Exchange):
                 result[base] = self.construct_currency_object(baseId, base, baseDescription, baseDecimals, None, market)
             if not (quote in result):
                 counterDecimals = self.safe_integer(market, 'counter_decimals')
-                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, float(cost), market)
+                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, self.parse_number(cost), market)
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -646,7 +674,9 @@ class bitstamp(Exchange):
 
     def parse_trading_fee(self, balances, symbol):
         market = self.market(symbol)
-        tradeFee = self.safe_number(balances, market['id'] + '_fee')
+        feeString = self.safe_string(balances, market['id'] + '_fee')
+        dividedFeeString = Precise.string_div(feeString, '100')
+        tradeFee = self.parse_number(dividedFeeString)
         return {
             'symbol': symbol,
             'maker': tradeFee,
@@ -858,6 +888,10 @@ class bitstamp(Exchange):
         else:
             request['price'] = self.price_to_precision(symbol, price)
         method += 'Pair'
+        clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+            params = self.omit(params, ['client_order_id', 'clientOrderId'])
         response = getattr(self, method)(self.extend(request, params))
         order = self.parse_order(response, market)
         return self.extend(order, {
@@ -893,9 +927,13 @@ class bitstamp(Exchange):
 
     def fetch_order_status(self, id, symbol=None, params={}):
         self.load_markets()
-        request = {
-            'id': id,
-        }
+        clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+        request = {}
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+            params = self.omit(params, ['client_order_id', 'clientOrderId'])
+        else:
+            request['id'] = id
         response = self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order_status(self.safe_string(response, 'status'))
 
@@ -904,12 +942,19 @@ class bitstamp(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {'id': id}
+        clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+        request = {}
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+            params = self.omit(params, ['client_order_id', 'clientOrderId'])
+        else:
+            request['id'] = id
         response = self.privatePostOrderStatus(self.extend(request, params))
         #
         #     {
         #         "status": "Finished",
         #         "id": 3047704374,
+        #         "client_order_id": ""
         #         "transactions": [
         #             {
         #                 "usd": "6.0134400000000000",
@@ -1140,6 +1185,7 @@ class bitstamp(Exchange):
         # from fetch order:
         #   {status: 'Finished',
         #     id: 731693945,
+        #     client_order_id: '',
         #     transactions:
         #     [{fee: '0.000019',
         #         price: '0.00015803',
@@ -1151,6 +1197,7 @@ class bitstamp(Exchange):
         #
         # partially filled order:
         #   {"id": 468646390,
+        #     "client_order_id": "",
         #     "status": "Canceled",
         #     "transactions": [{
         #         "eth": "0.23000000",
@@ -1165,6 +1212,7 @@ class bitstamp(Exchange):
         # from create order response:
         #     {
         #         price: '0.00008012',
+        #         client_order_id: '',
         #         currency_pair: 'XRP/BTC',
         #         datetime: '2019-01-31 21:23:36',
         #         amount: '15.00000000',
@@ -1173,6 +1221,7 @@ class bitstamp(Exchange):
         #     }
         #
         id = self.safe_string(order, 'id')
+        clientOrderId = self.safe_string(order, 'client_order_id')
         side = self.safe_string(order, 'type')
         if side is not None:
             side = 'sell' if (side == '1') else 'buy'
@@ -1190,7 +1239,7 @@ class bitstamp(Exchange):
         price = self.safe_number(order, 'price')
         return self.safe_order({
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -1330,6 +1379,7 @@ class bitstamp(Exchange):
         #         {
         #             price: '0.00008012',
         #             currency_pair: 'XRP/BTC',
+        #             client_order_id: '',
         #             datetime: '2019-01-31 21:23:36',
         #             amount: '15.00000000',
         #             type: '0',
@@ -1367,6 +1417,7 @@ class bitstamp(Exchange):
     def withdraw(self, code, amount, address, tag=None, params={}):
         # For fiat withdrawals please provide all required additional parameters in the 'params'
         # Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         self.check_address(address)
         request = {
@@ -1379,6 +1430,9 @@ class bitstamp(Exchange):
             if code == 'XRP':
                 if tag is not None:
                     request['destination_tag'] = tag
+            elif code == 'XLM' or code == 'HBAR':
+                if tag is not None:
+                    request['memo_id'] = tag
             request['address'] = address
         else:
             method = 'privatePostWithdrawalOpen'

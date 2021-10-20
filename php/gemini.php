@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\NotSupported;
 
@@ -21,27 +22,27 @@ class gemini extends Exchange {
             'version' => 'v1',
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createDepositAddress' => true,
-                'createMarketOrder' => false,
+                'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
-                'fetchBidsAsks' => false,
-                'fetchClosedOrders' => false,
-                'fetchDepositAddress' => false,
-                'fetchDeposits' => false,
+                'fetchBidsAsks' => null,
+                'fetchClosedOrders' => null,
+                'fetchDepositAddress' => null,
+                'fetchDeposits' => null,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => null,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => true,
-                'fetchWithdrawals' => false,
+                'fetchWithdrawals' => null,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -80,20 +81,23 @@ class gemini extends Exchange {
                 'public' => array(
                     'get' => array(
                         'v1/symbols',
-                        'v1/pricefeed',
+                        'v1/symbols/details/{symbol}',
                         'v1/pubticker/{symbol}',
-                        'v1/book/{symbol}',
+                        'v2/ticker/{symbol}',
+                        'v2/candles/{symbol}/{timeframe}',
                         'v1/trades/{symbol}',
                         'v1/auction/{symbol}',
                         'v1/auction/{symbol}/history',
-                        'v2/candles/{symbol}/{timeframe}',
-                        'v2/ticker/{symbol}',
+                        'v1/pricefeed',
+                        'v1/book/{symbol}',
+                        'v1/earn/rates',
                     ),
                 ),
                 'private' => array(
                     'post' => array(
                         'v1/order/new',
                         'v1/order/cancel',
+                        'v1/wrap/{symbol}',
                         'v1/order/cancel/session',
                         'v1/order/cancel/all',
                         'v1/order/status',
@@ -101,12 +105,29 @@ class gemini extends Exchange {
                         'v1/mytrades',
                         'v1/notionalvolume',
                         'v1/tradevolume',
-                        'v1/transfers',
+                        'v1/clearing/new',
+                        'v1/clearing/status',
+                        'v1/clearing/cancel',
+                        'v1/clearing/confirm',
                         'v1/balances',
-                        'v1/deposit/{currency}/newAddress',
-                        'v1/withdraw/{currency}',
-                        'v1/heartbeat',
+                        'v1/notionalbalances/{currency}',
                         'v1/transfers',
+                        'v1/addresses/{network}',
+                        'v1/deposit/{network}/newAddress',
+                        'v1/withdraw/{currency}',
+                        'v1/account/transfer/{currency}',
+                        'v1/payments/addbank',
+                        'v1/payments/methods',
+                        'v1/payments/sen/withdraw',
+                        'v1/balances/earn',
+                        'v1/earn/interest',
+                        'v1/approvedAddresses/{network}/request',
+                        'v1/approvedAddresses/account/{network}',
+                        'v1/approvedAddresses/{network}/remove',
+                        'v1/account',
+                        'v1/account/create',
+                        'v1/account/list',
+                        'v1/heartbeat',
                     ),
                 ),
             ),
@@ -229,7 +250,8 @@ class gemini extends Exchange {
             $amountPrecisionParts = explode(' ', $amountPrecisionString);
             $amountPrecision = $this->safe_number($amountPrecisionParts, 0);
             $idLength = strlen($marketId) - 0;
-            $quoteId = mb_substr($marketId, $idLength - 3, $idLength - $idLength - 3);
+            $startingIndex = $idLength - 3;
+            $quoteId = mb_substr($marketId, $startingIndex, $idLength - $startingIndex);
             $quote = $this->safe_currency_code($quoteId);
             $pricePrecisionString = str_replace('<td>', '', $cells[3]);
             $pricePrecisionParts = explode(' ', $pricePrecisionString);
@@ -246,6 +268,8 @@ class gemini extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'precision' => array(
                     'amount' => $amountPrecision,
@@ -464,28 +488,11 @@ class gemini extends Exchange {
         $price = $this->safe_number($ticker, 'price');
         $last = $this->safe_number_2($ticker, 'last', 'close', $price);
         $percentage = $this->safe_number($ticker, 'percentChange24h');
-        $change = null;
         $open = $this->safe_number($ticker, 'open');
-        $average = null;
-        if ($last !== null) {
-            if ($open !== null) {
-                $change = $last - $open;
-                if ($open !== 0) {
-                    $percentage = $change / $open * 100;
-                }
-                $average = $this->sum($last, $open) / 2;
-            } else if ($percentage !== null) {
-                $change = $last * $percentage;
-                if ($open === null) {
-                    $open = $last - $change;
-                }
-                $average = $this->sum($last, $open) / 2;
-            }
-        }
         $baseVolume = $this->safe_number($volume, $baseId);
         $quoteVolume = $this->safe_number($volume, $quoteId);
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -500,13 +507,13 @@ class gemini extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null, // previous day close
-            'change' => $change,
+            'change' => null,
             'percentage' => $percentage,
-            'average' => $average,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -737,6 +744,7 @@ class gemini extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -810,6 +818,10 @@ class gemini extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
             $this->check_required_credentials();
+            $apiKey = $this->apiKey;
+            if (mb_strpos($apiKey, 'account') === false) {
+                throw new AuthenticationError($this->id . ' sign() requires an account-key, master-keys are not-supported');
+            }
             $nonce = $this->nonce();
             $request = array_merge(array(
                 'request' => $url,

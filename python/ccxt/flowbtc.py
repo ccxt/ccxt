@@ -19,7 +19,7 @@ class flowbtc(Exchange):
             'rateLimit': 1000,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchMarkets': True,
@@ -100,6 +100,9 @@ class flowbtc(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
+                'active': None,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -116,7 +119,6 @@ class flowbtc(Exchange):
                     },
                 },
                 'info': market,
-                'active': None,
             }
         return result
 
@@ -256,9 +258,9 @@ class flowbtc(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'isAccepted' in response:
-            if response['isAccepted']:
-                return response
-        raise ExchangeError(self.id + ' ' + self.json(response))
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
+        isAccepted = self.safe_value(response, 'isAccepted', True)
+        if not isAccepted:
+            raise ExchangeError(self.id + ' ' + self.json(response))

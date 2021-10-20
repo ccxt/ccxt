@@ -4,11 +4,11 @@
     "bcex":          { "skip": true },
     "bibox":         { "has": { "fetchCurrencies": false }},
     "bitbns":        { "skip": true },
+    "bitcoincom":    { "skip": true },
     "bitforex":      { "skip": true },
     "bitget":        { "skip": true },
     "bitmart":       { "skip": true },
     "btcmarkets":    { "skip": true },
-    "btctradeua":    { "skip": true },
     "braziliex":     { "skip":  true },
     "buda":          { "skip": true },
     "coinegg":       { "skip": true },
@@ -37,8 +37,7 @@
     "mercado":       { "skip": true },
     "qtrade":        { "skip": true },
     "rightbtc":      { "skip": true },
-    "stronghold":    { "skip": true },
     "tidebit":       { "skip": true },
-    "vaultoro":      { "skip": true },
+    "vcc":           { "skip": true },
     "xbtce":         { "skip": true }
 }

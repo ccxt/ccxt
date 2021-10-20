@@ -21,21 +21,21 @@ class aofex extends Exchange {
             'rateLimit' => 1000,
             'hostname' => 'openapi.aofex.com',
             'has' => array(
+                'cancelAllOrders' => true,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrder' => true,
+                'fetchClosedOrders' => true,
+                'fetchCurrencies' => null,
                 'fetchMarkets' => true,
-                'fetchCurrencies' => false,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
-                'fetchTrades' => true,
+                'fetchOrderTrades' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
-                'fetchOHLCV' => true,
-                'fetchBalance' => true,
-                'createOrder' => true,
-                'cancelOrder' => true,
-                'cancelAllOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
-                'fetchClosedOrder' => true,
-                'fetchOrderTrades' => true,
+                'fetchTrades' => true,
                 'fetchTradingFee' => true,
             ),
             'timeframes' => array(
@@ -210,6 +210,8 @@ class aofex extends Exchange {
                 'quoteId' => $quoteId,
                 'base' => $base,
                 'quote' => $quote,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => null,
                 'maker' => $makerFee,
                 'taker' => $takerFee,
@@ -420,48 +422,32 @@ class aofex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_timestamp($ticker, 'id');
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
         $open = $this->safe_number($ticker, 'open');
         $last = $this->safe_number($ticker, 'close');
-        $change = null;
-        if ($symbol !== null) {
-            $change = floatval($this->price_to_precision($symbol, $last - $open));
-        } else {
-            $change = $last - $open;
-        }
-        $average = $this->sum($last, $open) / 2;
-        $percentage = $change / $open * 100;
         $baseVolume = $this->safe_number($ticker, 'amount');
         $quoteVolume = $this->safe_number($ticker, 'vol');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
-        if ($vwap !== null) {
-            $vwap = floatval($this->price_to_precision($symbol, $vwap));
-        }
-        return array(
-            'symbol' => $symbol,
+        return $this->safe_ticker(array(
+            'symbol' => null,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'datetime' => null,
             'high' => $this->safe_number($ticker, 'high'),
             'low' => $this->safe_number($ticker, 'low'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

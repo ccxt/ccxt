@@ -22,7 +22,7 @@ module.exports = class bitfinex extends Exchange {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'deposit': true,
@@ -30,23 +30,27 @@ module.exports = class bitfinex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': false,
+                'fetchDeposits': undefined,
                 'fetchFundingFees': true,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
-                'fetchWithdrawals': false,
-                'withdraw': true,
+                'fetchWithdrawals': undefined,
                 'transfer': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -209,7 +213,7 @@ module.exports = class bitfinex extends Exchange {
                 'ALG': 'ALGO', // https://github.com/ccxt/ccxt/issues/6034
                 'AMP': 'AMPL',
                 'ATO': 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
-                'BCHABC': 'BCHA',
+                'BCHABC': 'XEC',
                 'BCHN': 'BCH',
                 'DAT': 'DATA',
                 'DOG': 'MDOGE',
@@ -232,6 +236,7 @@ module.exports = class bitfinex extends Exchange {
                 'STJ': 'STORJ',
                 'TERRAUST': 'UST',
                 'TSD': 'TUSD',
+                'YGG': 'YEED', // conflict with Yield Guild Games
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
                 'UST': 'USDT',
@@ -491,6 +496,7 @@ module.exports = class bitfinex extends Exchange {
                 'quoteId': quoteId,
                 'active': true,
                 'type': 'spot',
+                'spot': true,
                 'margin': margin,
                 'precision': precision,
                 'limits': limits,
@@ -694,7 +700,7 @@ module.exports = class bitfinex extends Exchange {
             }
         }
         const last = this.safeNumber (ticker, 'last_price');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -715,7 +721,7 @@ module.exports = class bitfinex extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     parseTrade (trade, market) {
@@ -1162,6 +1168,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method

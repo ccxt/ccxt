@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\InsufficientFunds;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\NotSupported;
@@ -26,31 +25,34 @@ class bitfinex2 extends bitfinex {
             'pro' => false,
             // new metainfo interface
             'has' => array(
-                'CORS' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'CORS' => null,
                 'createDepositAddress' => true,
                 'createLimitOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
-                'deposit' => false,
-                'editOrder' => false,
+                'deposit' => null,
+                'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => true,
-                'fetchClosedOrders' => false,
+                'fetchClosedOrders' => null,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchFundingFees' => false,
+                'fetchFundingFees' => null,
+                'fetchIndexOHLCV' => false,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
-                'fetchOrder' => false,
+                'fetchOrder' => null,
                 'fetchOrderTrades' => true,
                 'fetchStatus' => true,
                 'fetchTickers' => true,
-                'fetchTradingFee' => false,
-                'fetchTradingFees' => false,
+                'fetchTime' => false,
+                'fetchTradingFee' => null,
+                'fetchTradingFees' => null,
                 'fetchTransactions' => true,
                 'withdraw' => true,
             ),
@@ -318,6 +320,8 @@ class bitfinex2 extends bitfinex {
                     '10100' => '\\ccxt\\AuthenticationError',
                     '10114' => '\\ccxt\\InvalidNonce',
                     '20060' => '\\ccxt\\OnMaintenance',
+                    // array("code":503,"error":"temporarily_unavailable","error_description":"Sorry, the service is temporarily unavailable. See https://www.bitfinex.com/ for more info.")
+                    'temporarily_unavailable' => '\\ccxt\\ExchangeNotAvailable',
                 ),
                 'broad' => array(
                     'address' => '\\ccxt\\InvalidAddress',
@@ -726,13 +730,10 @@ class bitfinex2 extends bitfinex {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->milliseconds();
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol(null, $market);
         $length = is_array($ticker) ? count($ticker) : 0;
         $last = $this->safe_number($ticker, $length - 4);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -753,7 +754,7 @@ class bitfinex2 extends bitfinex {
             'baseVolume' => $this->safe_number($ticker, $length - 3),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1633,23 +1634,18 @@ class bitfinex2 extends bitfinex {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body);
-        if ($response) {
-            if (is_array($response) && array_key_exists('message', $response)) {
-                if (mb_strpos($response['message'], 'not enough exchange balance') !== false) {
-                    throw new InsufficientFunds($this->id . ' ' . $this->json($response));
-                }
-                throw new ExchangeError($this->id . ' ' . $this->json($response));
+    public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
+        if ($response !== null) {
+            if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
+                $message = $this->safe_string_2($response, 'message', 'error');
+                $feedback = $this->id . ' ' . $responseBody;
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+                throw new ExchangeError($this->id . ' ' . $responseBody);
             }
-            return $response;
         } else if ($response === '') {
             throw new ExchangeError($this->id . ' returned empty response');
         }
-        return $response;
-    }
-
-    public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
         if ($statusCode === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             $errorCode = $this->number_to_string($response[1]);
@@ -1660,5 +1656,6 @@ class bitfinex2 extends bitfinex {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorText, $feedback);
             throw new ExchangeError($this->id . ' ' . $errorText . ' (#' . $errorCode . ')');
         }
+        return $response;
     }
 }

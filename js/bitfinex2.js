@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js');
-const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -19,31 +19,34 @@ module.exports = class bitfinex2 extends bitfinex {
             'pro': false,
             // new metainfo interface
             'has': {
-                'CORS': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
-                'deposit': false,
-                'editOrder': false,
+                'deposit': undefined,
+                'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchClosedOrder': true,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchFundingFees': false,
+                'fetchFundingFees': undefined,
+                'fetchIndexOHLCV': false,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
-                'fetchOrder': false,
+                'fetchOrder': undefined,
                 'fetchOrderTrades': true,
                 'fetchStatus': true,
                 'fetchTickers': true,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTime': false,
+                'fetchTradingFee': undefined,
+                'fetchTradingFees': undefined,
                 'fetchTransactions': true,
                 'withdraw': true,
             },
@@ -311,6 +314,8 @@ module.exports = class bitfinex2 extends bitfinex {
                     '10100': AuthenticationError,
                     '10114': InvalidNonce,
                     '20060': OnMaintenance,
+                    // {"code":503,"error":"temporarily_unavailable","error_description":"Sorry, the service is temporarily unavailable. See https://www.bitfinex.com/ for more info."}
+                    'temporarily_unavailable': ExchangeNotAvailable,
                 },
                 'broad': {
                     'address': InvalidAddress,
@@ -719,13 +724,10 @@ module.exports = class bitfinex2 extends bitfinex {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.milliseconds ();
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const length = ticker.length;
         const last = this.safeNumber (ticker, length - 4);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -746,7 +748,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'baseVolume': this.safeNumber (ticker, length - 3),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1626,23 +1628,18 @@ module.exports = class bitfinex2 extends bitfinex {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if (response) {
-            if ('message' in response) {
-                if (response['message'].indexOf ('not enough exchange balance') >= 0) {
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                }
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+        if (response !== undefined) {
+            if (!Array.isArray (response)) {
+                const message = this.safeString2 (response, 'message', 'error');
+                const feedback = this.id + ' ' + responseBody;
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                throw new ExchangeError (this.id + ' ' + responseBody);
             }
-            return response;
         } else if (response === '') {
             throw new ExchangeError (this.id + ' returned empty response');
         }
-        return response;
-    }
-
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (statusCode === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             const errorCode = this.numberToString (response[1]);
@@ -1653,5 +1650,6 @@ module.exports = class bitfinex2 extends bitfinex {
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorText, feedback);
             throw new ExchangeError (this.id + ' ' + errorText + ' (#' + errorCode + ')');
         }
+        return response;
     }
 };

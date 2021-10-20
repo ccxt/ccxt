@@ -194,6 +194,9 @@ class coinex extends Exchange {
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
             ),
+            'commonCurrencies' => array(
+                'ACM' => 'Actinium',
+            ),
         ));
     }
 
@@ -244,6 +247,8 @@ class coinex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'taker' => $this->safe_number($market, 'taker_fee_rate'),
                 'maker' => $this->safe_number($market, 'maker_fee_rate'),
@@ -578,14 +583,12 @@ class coinex extends Exchange {
             'market' => $market['id'],
             'type' => $side,
         );
-        $amount = floatval($amount);
         // for $market buy it requires the $amount of quote currency to spend
         if (($type === 'market') && ($side === 'buy')) {
             if ($this->options['createMarketBuyOrderRequiresPrice']) {
                 if ($price === null) {
                     throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                 } else {
-                    $price = floatval($price);
                     $request['amount'] = $this->cost_to_precision($symbol, $amount * $price);
                 }
             } else {
@@ -705,6 +708,7 @@ class coinex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
         $currency = $this->currency($code);
@@ -983,15 +987,22 @@ class coinex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body);
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
+        }
         $code = $this->safe_string($response, 'code');
         $data = $this->safe_value($response, 'data');
         $message = $this->safe_string($response, 'message');
-        if (($code !== '0') || ($data === null) || (($message !== 'Success') && ($message !== 'Ok') && !$data)) {
+        if (($code !== '0') || ($data === null) || (($message !== 'Success') && ($message !== 'Succeeded') && ($message !== 'Ok') && !$data)) {
             $responseCodes = array(
+                // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
+                '23' => '\\ccxt\\PermissionDenied', // IP Prohibited
                 '24' => '\\ccxt\\AuthenticationError',
                 '25' => '\\ccxt\\AuthenticationError',
+                '34' => '\\ccxt\\AuthenticationError', // Access id is expires
+                '35' => '\\ccxt\\ExchangeNotAvailable', // Service unavailable
+                '36' => '\\ccxt\\RequestTimeout', // Service timeout
                 '107' => '\\ccxt\\InsufficientFunds',
                 '600' => '\\ccxt\\OrderNotFound',
                 '601' => '\\ccxt\\InvalidOrder',
@@ -1001,6 +1012,5 @@ class coinex extends Exchange {
             $ErrorClass = $this->safe_value($responseCodes, $code, '\\ccxt\\ExchangeError');
             throw new $ErrorClass($response['message']);
         }
-        return $response;
     }
 }

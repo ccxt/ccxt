@@ -21,7 +21,7 @@ class timex extends Exchange {
             'has' => array(
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
@@ -883,6 +883,7 @@ class timex extends Exchange {
             'baseId' => $baseId,
             'quoteId' => $quoteId,
             'type' => 'spot',
+            'spot' => true,
             'active' => $active,
             'precision' => $precision,
             'limits' => $limits,
@@ -945,13 +946,13 @@ class timex extends Exchange {
             if ($dotIndex > 0) {
                 $whole = mb_substr($feeString, 0, $dotIndex - 0);
                 $fraction = mb_substr($feeString, -$dotIndex);
-                $fee = floatval($whole . '.' . $fraction);
+                $fee = $this->parse_number($whole . '.' . $fraction);
             } else {
                 $fraction = '.';
                 for ($i = 0; $i < -$dotIndex; $i++) {
                     $fraction .= '0';
                 }
-                $fee = floatval($fraction . $feeString);
+                $fee = $this->parse_number($fraction . $feeString);
             }
         }
         return array(
@@ -991,17 +992,7 @@ class timex extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
         $last = $this->safe_number($ticker, 'last');
         $open = $this->safe_number($ticker, 'open');
-        $change = null;
-        $average = null;
-        if ($last !== null && $open !== null) {
-            $change = $last - $open;
-            $average = $this->sum($last, $open) / 2;
-        }
-        $percentage = null;
-        if ($change !== null && $open) {
-            $percentage = ($change / $open) * 100;
-        }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'info' => $ticker,
             'timestamp' => $timestamp,
@@ -1017,12 +1008,12 @@ class timex extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => $this->safe_number($ticker, 'volumeQuote'),
-        );
+        ), $market);
     }
 
     public function parse_trade($trade, $market = null) {

@@ -22,19 +22,22 @@ module.exports = class bitmex extends Exchange {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -944,24 +947,12 @@ module.exports = class bitmex extends Exchange {
         //                            timestamp: "2019-02-13T08:40:30.000Z",
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const open = this.safeNumber (ticker, 'prevPrice24h');
         const last = this.safeNumber (ticker, 'lastPrice');
-        let change = undefined;
-        let percentage = undefined;
-        if (last !== undefined && open !== undefined) {
-            change = last - open;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-        }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -976,13 +967,13 @@ module.exports = class bitmex extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': this.sum (open, last) / 2,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'homeNotional24h'),
             'quoteVolume': this.safeNumber (ticker, 'foreignNotional24h'),
             'info': ticker,
-        };
+        }, market);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -1581,6 +1572,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         // let currency = this.currency (code);

@@ -24,7 +24,7 @@ class vcc extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
-                'editOrder' => false,
+                'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -36,11 +36,11 @@ class vcc extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => null,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchTradingFees' => false,
+                'fetchTradingFees' => null,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
             ),
@@ -192,6 +192,8 @@ class vcc extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'precision' => array(
                     'price' => $this->safe_integer($precision, 'price'),
@@ -433,19 +435,9 @@ class vcc extends Exchange {
         $quoteVolume = $this->safe_number($ticker, 'quote_volume');
         $open = $this->safe_number($ticker, 'open_price');
         $last = $this->safe_number($ticker, 'last_price');
-        $change = null;
-        $percentage = null;
-        $average = null;
-        if ($last !== null && $open !== null) {
-            $change = $last - $open;
-            $average = $this->sum($last, $open) / 2;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-        }
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        $symbol = ($market === null) ? null : $market['symbol'];
-        return array(
+        $symbol = $this->safe_symbol(null, $market);
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -460,13 +452,13 @@ class vcc extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, PermissionDenied, BadRequest, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -29,8 +29,8 @@ module.exports = class bigone extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -129,6 +129,7 @@ module.exports = class bigone extends Exchange {
                     '40605': InvalidOrder, // {"code":40605,"message":"Price less than the minimum order price"}
                     '40120': InvalidOrder, // Order is in trading
                     '40121': InvalidOrder, // Order is already cancelled or filled
+                    '60100': BadSymbol, // {"code":60100,"message":"Asset pair is suspended"}
                 },
                 'broad': {
                 },
@@ -198,6 +199,8 @@ module.exports = class bigone extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': true,
                 'precision': precision,
                 'limits': {
@@ -257,7 +260,7 @@ module.exports = class bigone extends Exchange {
         const close = this.safeNumber (ticker, 'close');
         const bid = this.safeValue (ticker, 'bid', {});
         const ask = this.safeValue (ticker, 'ask', {});
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -278,7 +281,7 @@ module.exports = class bigone extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -488,7 +491,7 @@ module.exports = class bigone extends Exchange {
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': parseFloat (cost),
+            'cost': this.parseNumber (cost),
             'info': trade,
         };
         let makerCurrencyCode = undefined;
@@ -1203,6 +1206,7 @@ module.exports = class bigone extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {

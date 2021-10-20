@@ -7,10 +7,13 @@ from ccxt.base.exchange import Exchange
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import RequestTimeout
 from ccxt.base.precise import Precise
 
 
@@ -198,6 +201,9 @@ class coinex(Exchange):
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
             },
+            'commonCurrencies': {
+                'ACM': 'Actinium',
+            },
         })
 
     def fetch_markets(self, params={}):
@@ -246,6 +252,8 @@ class coinex(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'taker': self.safe_number(market, 'taker_fee_rate'),
                 'maker': self.safe_number(market, 'maker_fee_rate'),
@@ -557,14 +565,12 @@ class coinex(Exchange):
             'market': market['id'],
             'type': side,
         }
-        amount = float(amount)
         # for market buy it requires the amount of quote currency to spend
         if (type == 'market') and (side == 'buy'):
             if self.options['createMarketBuyOrderRequiresPrice']:
                 if price is None:
                     raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
                 else:
-                    price = float(price)
                     request['amount'] = self.cost_to_precision(symbol, amount * price)
             else:
                 request['amount'] = self.cost_to_precision(symbol, amount)
@@ -668,6 +674,7 @@ class coinex(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
@@ -923,15 +930,21 @@ class coinex(Exchange):
                 body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
         message = self.safe_string(response, 'message')
-        if (code != '0') or (data is None) or ((message != 'Success') and (message != 'Ok') and not data):
+        if (code != '0') or (data is None) or ((message != 'Success') and (message != 'Succeeded') and (message != 'Ok') and not data):
             responseCodes = {
+                # https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
+                '23': PermissionDenied,  # IP Prohibited
                 '24': AuthenticationError,
                 '25': AuthenticationError,
+                '34': AuthenticationError,  # Access id is expires
+                '35': ExchangeNotAvailable,  # Service unavailable
+                '36': RequestTimeout,  # Service timeout
                 '107': InsufficientFunds,
                 '600': OrderNotFound,
                 '601': InvalidOrder,
@@ -940,4 +953,3 @@ class coinex(Exchange):
             }
             ErrorClass = self.safe_value(responseCodes, code, ExchangeError)
             raise ErrorClass(response['message'])
-        return response

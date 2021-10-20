@@ -3,7 +3,7 @@
 /*  ------------------------------------------------------------------------ */
 
 const ccxt        = require ('../../ccxt.js')
-    , asTable     = require ('as-table') // .configure ({ print: require ('string.ify').noPretty })
+    , asTable     = require ('as-table').configure ({ delimiter: ' | ', /* print: require ('string.ify').noPretty  */ })
     , log         = require ('ololog').noLocate
     , ansi        = require ('ansicolor').nice
 
@@ -14,6 +14,7 @@ console.log ('CCXT v' + ccxt.version)
 
     let total = 0
     let missing = 0
+    let ignored = 0
     let implemented = 0
     let emulated = 0
 
@@ -25,47 +26,78 @@ console.log ('CCXT v' + ccxt.version)
             'publicAPI',
             'privateAPI',
             'CORS',
+            'fetchCurrencies',
+            'fetchFundingFees',
+            'fetchFundingRate',
+            'fetchFundingRates',
+            'fetchFundingRateHistory',
+            'fetchIndexOHLCV',
+            'fetchMarkOHLCV',
+            'fetchMarkets',
+            'fetchOHLCV',
+            'fetchOrderBook',
+            'fetchOrderBooks',
+            'fetchStatus',
             'fetchTicker',
             'fetchTickers',
-            'fetchOrderBook',
+            'fetchTime',
             'fetchTrades',
-            'fetchOHLCV',
-            'fetchBalance',
-            'createOrder',
-            'createMarketOrder',
-            'createLimitOrder',
-            'editOrder',
+            'fetchTradingLimits',
+            'cancelAllOrders',
             'cancelOrder',
             'cancelOrders',
-            'cancelAllOrders',
-            'fetchOrder',
-            'fetchOrders',
-            'fetchOpenOrders',
-            'fetchClosedOrders',
-            'fetchMyTrades',
-            'fetchOrderTrades',
-            'fetchCurrencies',
-            'fetchDepositAddress',
             'createDepositAddress',
-            'fetchTransactions',
+            'createOrder',
+            'deposit',
+            'editOrder',
+            'fetchAccounts',
+            'fetchBalance',
+            'fetchCanceledOrders',
+            'fetchClosedOrder',
+            'fetchClosedOrders',
+            'fetchDeposit',
+            'fetchDepositAddress',
+            'fetchDepositAddresses',
             'fetchDeposits',
-            'fetchWithdrawals',
-            'withdraw',
+            'fetchFees',
+            'fetchFundingFee',
+            'fetchFundingHistory',
+            'fetchIsolatedPositions',
             'fetchLedger',
-            'fetchFundingFees',
+            'fetchLedgerEntry',
+            'fetchMyTrades',
+            'fetchOpenOrder',
+            'fetchOpenOrders',
+            'fetchOrder',
+            'fetchOrderTrades',
+            'fetchOrders',
+            'fetchPosition',
+            'fetchPositions',
+            'fetchPremiumIndexOHLCV',
+            'fetchTradingFee',
             'fetchTradingFees',
-            'fetchTradingLimits',
-
+            'fetchTransactions',
+            'fetchTransfers',
+            'fetchWithdrawal',
+            'fetchWithdrawals',
+            'setLeverage',
+            'setMarginMode',
+            'signIn',
+            'transfer',
+            'withdraw',
         ].forEach (key => {
 
             total += 1
 
-            let capability = exchange.has[key].toString ()
+            let capability = exchange.has[key]
 
-            if (!exchange.has[key]) {
-                capability = exchange.id.red.dim
+            if (capability === undefined) {
+                capability = exchange.id.red
                 missing += 1
-            } else if (exchange.has[key] === 'emulated') {
+            } else if (capability === false) {
+                capability = exchange.id.red.dim
+                ignored += 1
+            } else if (capability.toString () === 'emulated') {
                 capability = exchange.id.yellow
                 emulated += 1
             } else {
@@ -83,7 +115,11 @@ console.log ('CCXT v' + ccxt.version)
         ccxt.exchanges.length.toString (), 'exchanges,',
         implemented.toString ().green, 'methods implemented,',
         emulated.toString ().yellow, 'emulated,',
+        ignored.toString ().red.dim, 'ignored,',
         missing.toString ().red, 'missing,',
-        total.toString (), 'total')
+        total.toString (), 'total'
+    )
+
+    log("\nMessy? Try piping to less (e.g. node script.js | less -S -R)\n".red)
 
 }) ()

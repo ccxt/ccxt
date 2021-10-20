@@ -9,6 +9,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -38,8 +39,8 @@ class bigone(Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
                 'fetchOrderBook': True,
+                'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -138,6 +139,7 @@ class bigone(Exchange):
                     '40605': InvalidOrder,  # {"code":40605,"message":"Price less than the minimum order price"}
                     '40120': InvalidOrder,  # Order is in trading
                     '40121': InvalidOrder,  # Order is already cancelled or filled
+                    '60100': BadSymbol,  # {"code":60100,"message":"Asset pair is suspended"}
                 },
                 'broad': {
                 },
@@ -206,6 +208,8 @@ class bigone(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
                 'precision': precision,
                 'limits': {
@@ -260,7 +264,7 @@ class bigone(Exchange):
         close = self.safe_number(ticker, 'close')
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -281,7 +285,7 @@ class bigone(Exchange):
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -478,7 +482,7 @@ class bigone(Exchange):
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': float(cost),
+            'cost': self.parse_number(cost),
             'info': trade,
         }
         makerCurrencyCode = None
@@ -1143,6 +1147,7 @@ class bigone(Exchange):
         return self.parse_transactions(withdrawals, code, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
         currency = self.currency(code)
         request = {

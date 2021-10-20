@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.54.58",
+  "version": "1.58.73",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -570,7 +570,10 @@
     "Binance COIN-M",
     "Binance USDⓈ-M",
     "eqonex.com",
-    "EQONEX"
+    "EQONEX",
+    "fmfw.io",
+    "mexc.com",
+    "MEXC Global"
   ],
   "collective": {
     "type": "opencollective",

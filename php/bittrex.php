@@ -28,29 +28,29 @@ class bittrex extends Exchange {
             'pro' => true,
             // new metainfo interface
             'has' => array(
-                'CORS' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'CORS' => null,
                 'createDepositAddress' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
-                'fetchDeposits' => true,
-                'fetchDepositAddress' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => 'emulated',
                 'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOrderTrades' => true,
-                'fetchOrderBook' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrderTrades' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTransactions' => false,
+                'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -163,6 +163,7 @@ class bittrex extends Exchange {
                     // 'Call to Cancel was throttled. Try again in 60 seconds.' => '\\ccxt\\DDoSProtection',
                     // 'Call to GetBalances was throttled. Try again in 60 seconds.' => '\\ccxt\\DDoSProtection',
                     'APISIGN_NOT_PROVIDED' => '\\ccxt\\AuthenticationError',
+                    'APIKEY_INVALID' => '\\ccxt\\AuthenticationError',
                     'INVALID_SIGNATURE' => '\\ccxt\\AuthenticationError',
                     'INVALID_CURRENCY' => '\\ccxt\\ExchangeError',
                     'INVALID_PERMISSION' => '\\ccxt\\AuthenticationError',
@@ -172,6 +173,7 @@ class bittrex extends Exchange {
                     'INVALID_ORDER_TYPE' => '\\ccxt\\InvalidOrder',
                     'QUANTITY_NOT_PROVIDED' => '\\ccxt\\InvalidOrder',
                     'MIN_TRADE_REQUIREMENT_NOT_MET' => '\\ccxt\\InvalidOrder',
+                    'NOT_FOUND' => '\\ccxt\\OrderNotFound',
                     'ORDER_NOT_OPEN' => '\\ccxt\\OrderNotFound',
                     'INVALID_ORDER' => '\\ccxt\\InvalidOrder',
                     'UUID_INVALID' => '\\ccxt\\OrderNotFound',
@@ -222,7 +224,9 @@ class bittrex extends Exchange {
                 // 'createOrderMethod' => 'create_order_v1',
             ),
             'commonCurrencies' => array(
+                'MER' => 'Mercury', // conflict with Mercurial Finance
                 'REPV2' => 'REP',
+                'TON' => 'Tokamak Network',
             ),
         ));
     }
@@ -283,6 +287,8 @@ class bittrex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'info' => $market,
                 'precision' => $precision,
@@ -1003,6 +1009,7 @@ class bittrex extends Exchange {
         //         $quantity => '0.50000000',
         //         $limit => '0.17846699',
         //         $timeInForce => 'GOOD_TIL_CANCELLED',
+        //         $clientOrderId => 'ff156d39-fe01-44ca-8f21-b0afa19ef228',
         //         $fillQuantity => '0.50000000',
         //         $commission => '0.00022286',
         //         $proceeds => '0.08914915',
@@ -1020,6 +1027,7 @@ class bittrex extends Exchange {
         $createdAt = $this->safe_string($order, 'createdAt');
         $updatedAt = $this->safe_string($order, 'updatedAt');
         $closedAt = $this->safe_string($order, 'closedAt');
+        $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $lastTradeTimestamp = null;
         if ($closedAt !== null) {
             $lastTradeTimestamp = $this->parse8601($closedAt);
@@ -1038,7 +1046,7 @@ class bittrex extends Exchange {
         $postOnly = ($timeInForce === 'PO');
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -1252,6 +1260,7 @@ class bittrex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1334,12 +1343,12 @@ class bittrex extends Exchange {
             $success = $this->safe_value($response, 'success');
             if ($success === null) {
                 $code = $this->safe_string($response, 'code');
+                if (($code === 'NOT_FOUND') && (mb_strpos($url, 'addresses') !== false)) {
+                    throw new InvalidAddress($feedback);
+                }
                 if ($code !== null) {
                     $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $code, $feedback);
-                }
-                if (($code === 'NOT_FOUND') && (mb_strpos($url, 'addresses') !== false)) {
-                    throw new InvalidAddress($feedback);
                 }
                 // throw new ExchangeError($this->id . ' malformed $response ' . $this->json($response));
                 return;

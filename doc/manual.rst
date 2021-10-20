@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 106 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -98,9 +98,9 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - ascendex
      - `AscendEX <https://ascendex.com/en-us/register?inviteCode=EL6BXBQM>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation
-          :alt: API Version 1
+          :alt: API Version 2
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -257,20 +257,20 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - bitbns
      - `Bitbns <https://ref.bitbns.com/1090961>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://bitbns.com/trade/#/api-trading/
-          :alt: API Version *
+          :alt: API Version 2
      
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg
-          :target: https://exchange.bitcoin.com/referral/da948b21d6c92d69
+          :target: https://fmfw.io/referral/da948b21d6c92d69
           :alt: bitcoincom
      
      - bitcoincom
-     - `bitcoin.com <https://exchange.bitcoin.com/referral/da948b21d6c92d69>`__
+     - `bitcoin.com <https://fmfw.io/referral/da948b21d6c92d69>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://api.exchange.bitcoin.com/api/2/explore
+          :target: https://api.fmfw.io/api/2/explore/
           :alt: API Version 2
      
      - 
@@ -353,7 +353,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg
           :target: http://www.bitmart.com/?r=rQCFLh
           :alt: bitmart
      
@@ -363,8 +363,14 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://developer-pro.bitmart.com/
           :alt: API Version 1
      
-     - 
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg
           :target: https://www.bitmex.com/register/upZpOX
           :alt: bitmex
@@ -464,18 +470,6 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/51840849/87443304-fec5e000-c5fd-11ea-98f8-ba8e67f7eaff.jpg
-          :target: https://u.bitz.com/register?invite_code=1429193
-          :alt: bitz
-     
-     - bitz
-     - `Bit-Z <https://u.bitz.com/register?invite_code=1429193>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://apidocv2.bitz.plus/en/
-          :alt: API Version 2
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg
           :target: https://bl3p.eu
           :alt: bl3p
@@ -485,18 +479,6 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://github.com/BitonicNL/bl3p-api/tree/master/docs
           :alt: API Version 1
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg
-          :target: https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465
-          :alt: braziliex
-     
-     - braziliex
-     - `Braziliex <https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://braziliex.com/exchange/api.php
-          :alt: API Version *
      
      - 
      - 
@@ -596,15 +578,15 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg
-          :target: https://cdax.io/invite?invite_code=esc74
-          :alt: cdax
+   * - .. image:: https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg
+          :target: https://www.byte-trade.com
+          :alt: bytetrade
      
-     - cdax
-     - `CDAX <https://cdax.io/invite?invite_code=esc74>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://github.com/cloudapidoc/API_Docs
-          :alt: API Version 1
+     - bytetrade
+     - `ByteTrade <https://www.byte-trade.com>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://docs.byte-trade.com/#description
+          :alt: API Version *
      
      - 
      - 
@@ -707,18 +689,6 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://docs.coinfalcon.com
           :alt: API Version 1
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/87153925-ef265e80-c2c0-11ea-91b5-020c804b90e0.jpg
-          :target: https://www.coinfloor.co.uk
-          :alt: coinfloor
-     
-     - coinfloor
-     - `coinfloor <https://www.coinfloor.co.uk>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://github.com/coinfloor/api
-          :alt: API Version *
      
      - 
      - 
@@ -924,30 +894,6 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://www.gate.io/docs/apiv4/en/index.html
           :alt: API Version 4
      
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg
-          :target: https://gemini.com/
-          :alt: gemini
-     
-     - gemini
-     - `Gemini <https://gemini.com/>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://docs.gemini.com/rest-api
-          :alt: API Version 1
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg
-          :target: https://www.gopax.co.kr
-          :alt: gopax
-     
-     - gopax
-     - `GOPAX <https://www.gopax.co.kr>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://gopax.github.io/API/index.en.html
-          :alt: API Version 1
-     
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
@@ -956,14 +902,14 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/51840849/80134449-70663300-85a7-11ea-8942-e204cdeaab5d.jpg
-          :target: https://www.hbtc.com/register/O2S8NS
-          :alt: hbtc
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg
+          :target: https://gemini.com/
+          :alt: gemini
      
-     - hbtc
-     - `HBTC <https://www.hbtc.com/register/O2S8NS>`__
+     - gemini
+     - `Gemini <https://gemini.com/>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://github.com/bhexopen/BHEX-OpenApi/tree/master/doc
+          :target: https://docs.gemini.com/rest-api
           :alt: API Version 1
      
      - 
@@ -1005,22 +951,10 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
      
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg
-          :target: https://www.huobi.co.jp/register/?invite_code=znnq3
-          :alt: huobijp
-     
-     - huobijp
-     - `Huobi Japan <https://www.huobi.co.jp/register/?invite_code=znnq3>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://api-doc.huobi.co.jp
-          :alt: API Version 1
-     
-     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -1089,10 +1023,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://www.kraken.com/features/api
           :alt: API Version 0
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -1196,17 +1127,20 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/87460810-1dd06c00-c616-11ea-9276-956f400d6ffa.jpg
-          :target: https://mixcoins.com
-          :alt: mixcoins
+   * - .. image:: https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg
+          :target: https://m.mexc.com/auth/signup?inviteCode=1FQ1G
+          :alt: mexc
      
-     - mixcoins
-     - `MixCoins <https://mixcoins.com>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://mixcoins.com/help/api/
-          :alt: API Version 1
+     - mexc
+     - `MEXC Global <https://m.mexc.com/auth/signup?inviteCode=1FQ1G>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://mxcdevelop.github.io/APIDoc/
+          :alt: API Version 2
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg
           :target: https://one.ndax.io/bfQiSL
@@ -1269,10 +1203,13 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - okex
      - `OKEX <https://www.okex.com/join/1888677>`__
      - .. image:: https://img.shields.io/badge/5-lightgray
-          :target: https://www.okex.com/docs/en/
+          :target: https://www.okex.com/docs-v5/en/
           :alt: API Version 5
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -1286,21 +1223,6 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://www.okex.com/docs/en/
           :alt: API Version 3
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
-   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
-          :target: https://www.okex.com/join/1888677
-          :alt: okex5
-     
-     - okex5
-     - `OKEX <https://www.okex.com/join/1888677>`__
-     - .. image:: https://img.shields.io/badge/5-lightgray
-          :target: https://www.okex.com/docs/en/
-          :alt: API Version 5
      
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
@@ -1938,8 +1860,9 @@ Exchange Metadata
     The meaning of each flag showing availability of this or that method is:
 
 
+  * a value of ``undefined`` / ``None`` / ``null`` means the method is not unified in the ccxt library yet or the method isn't natively available from the exchange API
+  * boolean ``false`` means the method isn't natively available from the exchange API
   * boolean ``true`` means the method is natively available from the exchange API and unified in the ccxt library
-  * boolean ``false`` means the method isn't natively available from the exchange API or not unified in the ccxt library yet
   * an ``'emulated'`` string means the endpoint isn't natively available from the exchange API but reconstructed by the ccxt library from available true-methods
 
 Rate Limit
@@ -2045,7 +1968,7 @@ Reuse the exchange instance as much as possible as shown below:
        console.log (result)
    }
 
-Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits.
+Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time you call a unified method like fetchOrderBook, fetchBalance, etc. This, you will force-load the markets pver and over as explained in the `Loading Markets <https://github.com/ccxt/ccxt/wiki/Manual#loading-markets>`__ section. Abusing the markets endpoint will eventually break the rate limiter as well.
 
 .. code-block:: JavaScript
 
@@ -2096,12 +2019,6 @@ The most common symptoms for a DDoS protection problem, rate-limiting problem or
 
 If you encounter DDoS protection errors and cannot reach a particular exchange then:
 
-
- * try using a cloudscraper:
-
-  * https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
-  * https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
-  * https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare-with-cookies.py
 
  * use a proxy (this is less responsive, though)
  * ask the exchange support to add you to a whitelist
@@ -2420,7 +2337,7 @@ For example:
 Loading Markets
 ---------------
 
-In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially.
+In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially. For that reason, your first call to a unified CCXT API method like fetchTicker, fetchBalance, etc will take more time, than the consequent calls, since it has to do more work loading the market information from the exchange API. See `Notes On Rate Limiter <https://github.com/ccxt/ccxt/wiki/Manual#notes-on-rate-limiter>`__ for more details.
 
 In order to load markets manually beforehand call the ``loadMarkets ()`` / ``load_markets ()`` method on an exchange instance. It returns an associative array of markets indexed by trading symbol. If you want more control over the execution of your logic, preloading markets by hand is recommended.
 
@@ -3828,10 +3745,10 @@ This process may differ from exchange to exchange. Some exchanges may want the s
 The authentication is already handled for you, so you don't need to perform any of those steps manually unless you are implementing a new exchange class. The only thing you need for trading is the actual API key pair.
 
 API Keys Setup
---------------
+^^^^^^^^^^^^^^
 
 Required Credentials
-^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~
 
 The API credentials usually include the following:
 
@@ -4162,13 +4079,13 @@ To check if any of the above methods are available, look into the ``.has`` prope
    # Python
    import ccxt
    id = 'binance'
-   exchange = getattr(ccxt, id) ()
+   exchange = getattr(ccxt, id)()
    print(exchange.has)
 
 .. code-block:: PHP
 
    // PHP
-   $exchange = new \ccxt\liqui ();
+   $exchange = new \ccxt\bitfinex();
    print_r ($exchange->has); // or var_dump
 
 A typical structure of the ``.has`` property usually contains the following flags corresponding to order API methods for querying orders:
@@ -4189,6 +4106,37 @@ A typical structure of the ``.has`` property usually contains the following flag
    }
 
 The meanings of boolean ``true`` and ``false`` are obvious. A string value of ``emulated`` means that particular method is missing in the exchange API and ccxt will workaround that where possible on the client-side.
+
+Understanding The Orders API Design
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The exchanges' order management APIs differ by design. The user has to understand the purpose of each specific method and how they're combined together into a complete order API:
+
+
+ * ``fetchOrder()`` – fetches a single order (open or closed) by order ``id``.
+ * ``fetchOpenOrders()`` – fetches a list of open orders.
+ * ``fetchClosedOrders()`` – fetches a list of closed (or canceled) orders.
+ * ``fetchOrders()`` – fetches a list of all orders (either open or closed/canceled).
+ * ``fetchMyTrades()`` – though not a part of the orders' API, it is closely related, since it provides the history of settled trades.
+
+The majority of the exchanges will have a way of fetching currently-open orders. Thus, the ``exchange.has['fetchOpenOrders']``. If that method is not available, then most likely the ``exchange.has['fetchOrders']`` that will provide a list of all orders. The exchange will return a list of open orders either from ``fetchOpenOrders()`` or from ``fetchOrders()``. One of the two methods is usually available from any exchange.
+
+Some exchanges will provide the order history, other exchanges will not. If the underlying exchange provides the order history, then the ``exchange.has['fetchClosedOrders']`` or the ``exchange.has['fetchOrders']``. If the underlying exchange does not provide the order history, then ``fetchClosedOrders()`` and ``fetchOrders()`` are not available. In the latter case, the user is required to build a local cache of orders and track the open orders using ``fetchOpenOrders()`` and ``fetchOrder()`` for order statuses and for marking them as closed locally in the userland (when they're not open anymore).
+
+If the underlying exchange does not have methods for order history (\ ``fetchClosedOrders()`` and ``fetchOrders()``\ ), then it will provide ``fetchOpenOrders`` + the trade history with ``fetchMyTrades`` (see `How Orders Are Related To Trades <https://github.com/ccxt/ccxt/wiki/Manual#how-orders-are-related-to-trades>`__\ ). That set of information is in many cases enough for tracking in a live-trading robot. If there's no order history – you have to track your live orders and restore historical info from open orders and historical trades.
+
+In general, the underlying exchanges will usually provide one or more of the following types of historical data:
+
+
+ * ``fetchClosedOrders()``
+ * ``fetchOrders()``
+ * ``fetchMyTrades()``
+
+Any of the above three methods may be missing, if any other of the three methods is present.
+
+If the underlying exchange does not provide historical orders, the CCXT library will not emulate the missing functionality – it has to be added on the user side where necessary.
+
+ **Please, note, that a certain method may be missing either because the exchange does not have a corresponding API endpoint, or because CCXT has not implemented it yet (the library is also a work in progress). In the latter case, the missing method will be added as soon as possible.**
 
 Querying Multiple Orders And Trades
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -4256,8 +4204,8 @@ Below are examples of using the fetchOrder method to get order info from an auth
 
    // PHP
    if ($exchange->has['fetchOrder']) {
-       $order = $exchange->fetch_order ($id);
-       var_dump ($order);
+       $order = $exchange->fetch_order($id);
+       var_dump($order);
    }
 
 All Orders
@@ -4889,11 +4837,11 @@ Position Structure
       'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
       'price': 20000,              // float, the average entry price of the position
       'markPrice': 20050,          // float, a price that is used for funding calculations
-      'notional': 100000,          // float, the number of contracts times the price
+      'notional': 100000,          // float, the value of the position in the settlement currency
       'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
       'collateral': 5300,          // float, the maximum amount of collateral that can be lost, affected by pnl
-      'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position in the same currency as the notional
-      'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated in the same currency as the notional
+      'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position
+      'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated
       'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
       'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
       'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
@@ -5055,6 +5003,49 @@ The withdraw method returns a dictionary containing the withdrawal id, which is 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See :ref:`their docs <exchanges>` for details.
+
+Withdrawal Networks
+-------------------
+
+It is also possible to pass the parameters as the fourth argument with or without a specified tag
+
+.. code-block:: JavaScript
+
+   // JavaScript
+   exchange.withdraw (code, amount, address, { tag, network: 'ETH' })
+
+.. code-block:: Python
+
+   # Python
+   exchange.withdraw(code, amount, address, { 'tag': tag, 'network': 'ETH' })
+
+.. code-block:: PHP
+
+   // PHP
+   $exchange->withdraw ($code, $amount, $address, array( 'tag' => tag, 'network' -> 'ETH' ));
+
+The following aliases of ``network`` allow for withdrawing crypto on multiple chains
+
+.. list-table::
+   :header-rows: 1
+
+   * - Currency
+     - Network
+   * - ETH
+     - ERC20
+   * - TRX
+     - TRC20
+   * - BSC
+     - BEP20
+   * - BNB
+     - BEP2
+   * - HT
+     - HECO
+   * - OMNI
+     - OMNI
+
+
+You may set the value of ``exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km95sDFN9jhLxJ2D', { 'network': 'TRX' })`` in order to withdraw USDT on the TRON chain, or 'BSC' to withdraw USDT on Binance Smart Chain. In the table above BSC and BEP20 are equivalent aliases, so it doesn't matter which one you use as they both will achieve the same effect.
 
 Transactions
 ------------
@@ -5771,12 +5762,6 @@ In case you experience any difficulty connecting to a particular exchange, do th
  * **Try a fresh new keypair if possible.**
  * Read the answers to Frequently Asked Questions: https://github.com/ccxt/ccxt/wiki/FAQ
  * Check the permissions on the keypair with the exchange website!
- * If it is a Cloudflare protection error, try these examples:
-
-  * https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
-  * https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
-  * https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare-with-cookies.py
-
  * Check your nonce. If you used your API keys with other software, you most likely should :ref:`override your nonce function <overriding the nonce>` to match your previous nonce value. A nonce usually can be easily reset by generating a new unused keypair. If you are getting nonce errors with an existing key, try with a new API key that hasn't been used yet.
  * Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests or enable the built-in rate-limiter, like shown in the long-poller `examples <https://github.com/ccxt/ccxt/tree/master/examples>`__\ , also :ref:`here <order-book--market-depth>`.
  * Read the `docs for your exchange <https://github.com/ccxt/ccxt/wiki/Exchanges>`__ and compare your verbose output to the docs.

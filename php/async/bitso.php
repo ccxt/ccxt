@@ -21,7 +21,7 @@ class bitso extends Exchange {
             'version' => 'v3',
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchDepositAddress' => true,
@@ -220,6 +220,8 @@ class bitso extends Exchange {
                 'info' => $market,
                 'limits' => $limits,
                 'precision' => $precision,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => null,
             ), $fee);
         }
@@ -555,6 +557,7 @@ class bitso extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
         $methods = array(
@@ -637,15 +640,5 @@ class bitso extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
-    }
-
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('success', $response)) {
-            if ($response['success']) {
-                return $response;
-            }
-        }
-        throw new ExchangeError($this->id . ' ' . $this->json($response));
     }
 }

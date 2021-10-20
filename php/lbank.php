@@ -23,7 +23,7 @@ class lbank extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
-                'fetchOpenOrders' => false, // status 0 API doesn't work
+                'fetchOpenOrders' => null, // status 0 API doesn't work
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -130,6 +130,8 @@ class lbank extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => true,
                 'precision' => $precision,
                 'limits' => array(
@@ -545,6 +547,7 @@ class lbank extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         // mark and fee are optional $params, mark is a note and must be less than 255 characters
         $this->check_address($address);
         $this->load_markets();
@@ -613,8 +616,10 @@ class lbank extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
+        }
         $success = $this->safe_string($response, 'result');
         if ($success === 'false') {
             $errorCode = $this->safe_string($response, 'error_code');
@@ -660,6 +665,5 @@ class lbank extends Exchange {
             ), $errorCode, '\\ccxt\\ExchangeError');
             throw new $ErrorClass($message);
         }
-        return $response;
     }
 }

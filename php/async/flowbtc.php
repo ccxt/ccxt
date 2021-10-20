@@ -20,7 +20,7 @@ class flowbtc extends Exchange {
             'rateLimit' => 1000,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchMarkets' => true,
@@ -102,6 +102,9 @@ class flowbtc extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
+                'active' => null,
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
@@ -118,7 +121,6 @@ class flowbtc extends Exchange {
                     ),
                 ),
                 'info' => $market,
-                'active' => null,
             );
         }
         return $result;
@@ -272,13 +274,13 @@ class flowbtc extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = yield $this->fetch2($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('isAccepted', $response)) {
-            if ($response['isAccepted']) {
-                return $response;
-            }
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
         }
-        throw new ExchangeError($this->id . ' ' . $this->json($response));
+        $isAccepted = $this->safe_value($response, 'isAccepted', true);
+        if (!$isAccepted) {
+            throw new ExchangeError($this->id . ' ' . $this->json($response));
+        }
     }
 }

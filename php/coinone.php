@@ -21,11 +21,13 @@ class coinone extends Exchange {
             'version' => 'v2',
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
-                'createMarketOrder' => false,
+                'CORS' => null,
+                'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
-                'fetchCurrencies' => false,
+                'fetchClosedOrders' => null, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchCurrencies' => null,
+                'fetchDepositAddresses' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
@@ -34,9 +36,6 @@ class coinone extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                // https://github.com/ccxt/ccxt/pull/7067
-                // the endpoint that should return closed orders actually returns trades
-                'fetchClosedOrders' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -58,6 +57,7 @@ class coinone extends Exchange {
                 ),
                 'private' => array(
                     'post' => array(
+                        'account/deposit_address/',
                         'account/btc_deposit_address/',
                         'account/balance/',
                         'account/daily_balance/',
@@ -128,6 +128,8 @@ class coinone extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => true,
             );
         }
@@ -206,23 +208,11 @@ class coinone extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $first = $this->safe_number($ticker, 'first');
+        $open = $this->safe_number($ticker, 'first');
         $last = $this->safe_number($ticker, 'last');
-        $average = null;
-        if ($first !== null && $last !== null) {
-            $average = $this->sum($first, $last) / 2;
-        }
         $previousClose = $this->safe_number($ticker, 'yesterday_last');
-        $change = null;
-        $percentage = null;
-        if ($last !== null && $previousClose !== null) {
-            $change = $last - $previousClose;
-            if ($previousClose !== 0) {
-                $percentage = $change / $previousClose * 100;
-            }
-        }
-        $symbol = ($market !== null) ? $market['symbol'] : null;
-        return array(
+        $symbol = $this->safe_symbol(null, $market);
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -233,17 +223,17 @@ class coinone extends Exchange {
             'ask' => null,
             'askVolume' => null,
             'vwap' => null,
-            'open' => $first,
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => $previousClose,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -624,6 +614,58 @@ class coinone extends Exchange {
         //     }
         //
         return $response;
+    }
+
+    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostAccountDepositAddress ($params);
+        //
+        //     {
+        //         $result => 'success',
+        //         errorCode => '0',
+        //         $walletAddress => {
+        //             matic => null,
+        //             btc => "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+        //             xrp => null,
+        //             xrp_tag => '-1',
+        //             kava => null,
+        //             kava_memo => null,
+        //         }
+        //     }
+        //
+        $walletAddress = $this->safe_value($response, 'walletAddress', array());
+        $keys = is_array($walletAddress) ? array_keys($walletAddress) : array();
+        $result = array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $value = $walletAddress[$key];
+            if ((!$value) || ($value === '-1')) {
+                continue;
+            }
+            $parts = explode('_', $key);
+            $currencyId = $this->safe_value($parts, 0);
+            $secondPart = $this->safe_value($parts, 1);
+            $code = $this->safe_currency_code($currencyId);
+            $depositAddress = $this->safe_value($result, $code);
+            if ($depositAddress === null) {
+                $depositAddress = array(
+                    'currency' => $code,
+                    'address' => null,
+                    'tag' => null,
+                    'info' => $value,
+                );
+            }
+            $address = $this->safe_string($depositAddress, 'address', $value);
+            $this->check_address($address);
+            $depositAddress['address'] = $address;
+            $depositAddress['info'] = $address;
+            if (($secondPart === 'tag' || $secondPart === 'memo')) {
+                $depositAddress['tag'] = $value;
+                $depositAddress['info'] = array( $address, $value );
+            }
+            $result[$code] = $depositAddress;
+        }
+        return $result;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -26,11 +26,13 @@ class coinone(Exchange):
             'version': 'v2',
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
-                'createMarketOrder': False,
+                'CORS': None,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
-                'fetchCurrencies': False,
+                'fetchClosedOrders': None,  # the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchCurrencies': None,
+                'fetchDepositAddresses': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
@@ -39,9 +41,6 @@ class coinone(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                # https://github.com/ccxt/ccxt/pull/7067
-                # the endpoint that should return closed orders actually returns trades
-                'fetchClosedOrders': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -63,6 +62,7 @@ class coinone(Exchange):
                 },
                 'private': {
                     'post': [
+                        'account/deposit_address/',
                         'account/btc_deposit_address/',
                         'account/balance/',
                         'account/daily_balance/',
@@ -131,6 +131,8 @@ class coinone(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
             })
         return result
@@ -200,20 +202,11 @@ class coinone(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        first = self.safe_number(ticker, 'first')
+        open = self.safe_number(ticker, 'first')
         last = self.safe_number(ticker, 'last')
-        average = None
-        if first is not None and last is not None:
-            average = self.sum(first, last) / 2
         previousClose = self.safe_number(ticker, 'yesterday_last')
-        change = None
-        percentage = None
-        if last is not None and previousClose is not None:
-            change = last - previousClose
-            if previousClose != 0:
-                percentage = change / previousClose * 100
-        symbol = market['symbol'] if (market is not None) else None
-        return {
+        symbol = self.safe_symbol(None, market)
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -224,17 +217,17 @@ class coinone(Exchange):
             'ask': None,
             'askVolume': None,
             'vwap': None,
-            'open': first,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': previousClose,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def parse_trade(self, trade, market=None):
         #
@@ -587,6 +580,53 @@ class coinone(Exchange):
         #     }
         #
         return response
+
+    def fetch_deposit_addresses(self, codes=None, params={}):
+        self.load_markets()
+        response = self.privatePostAccountDepositAddress(params)
+        #
+        #     {
+        #         result: 'success',
+        #         errorCode: '0',
+        #         walletAddress: {
+        #             matic: null,
+        #             btc: "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+        #             xrp: null,
+        #             xrp_tag: '-1',
+        #             kava: null,
+        #             kava_memo: null,
+        #         }
+        #     }
+        #
+        walletAddress = self.safe_value(response, 'walletAddress', {})
+        keys = list(walletAddress.keys())
+        result = {}
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = walletAddress[key]
+            if (not value) or (value == '-1'):
+                continue
+            parts = key.split('_')
+            currencyId = self.safe_value(parts, 0)
+            secondPart = self.safe_value(parts, 1)
+            code = self.safe_currency_code(currencyId)
+            depositAddress = self.safe_value(result, code)
+            if depositAddress is None:
+                depositAddress = {
+                    'currency': code,
+                    'address': None,
+                    'tag': None,
+                    'info': value,
+                }
+            address = self.safe_string(depositAddress, 'address', value)
+            self.check_address(address)
+            depositAddress['address'] = address
+            depositAddress['info'] = address
+            if (secondPart == 'tag' or secondPart == 'memo'):
+                depositAddress['tag'] = value
+                depositAddress['info'] = [address, value]
+            result[code] = depositAddress
+        return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.implode_params(path, params)

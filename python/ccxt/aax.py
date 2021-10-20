@@ -265,6 +265,10 @@ class aax(Exchange):
                     'F2CP': 'otc',
                     'VLTP': 'saving',
                 },
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                },
             },
         })
 
@@ -524,19 +528,11 @@ class aax(Exchange):
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_number(ticker, 'c')
         open = self.safe_number(ticker, 'o')
-        change = None
-        percentage = None
-        average = None
-        if last is not None and open is not None:
-            change = last - open
-            if open > 0:
-                percentage = change / open * 100
-            average = self.sum(last, open) / 2
         quoteVolume = self.safe_number(ticker, 'v')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': None,
             'high': self.safe_number(ticker, 'h'),
             'low': self.safe_number(ticker, 'l'),
             'bid': None,
@@ -548,13 +544,13 @@ class aax(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': None,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -1719,6 +1715,11 @@ class aax(Exchange):
             'currency': currency['id'],
             # 'network': None,  # 'ERC20
         }
+        if 'network' in params:
+            networks = self.safe_value(self.options, 'networks', {})
+            network = self.safe_string_upper(params, 'network')
+            params = self.omit(params, 'network')
+            request['network'] = self.safe_string_upper(networks, network, network)
         response = self.privateGetAccountDepositAddress(self.extend(request, params))
         #
         #     {
@@ -1748,12 +1749,16 @@ class aax(Exchange):
         address = self.safe_string(depositAddress, 'address')
         tag = self.safe_string(depositAddress, 'tag')
         currencyId = self.safe_string(depositAddress, 'currency')
+        network = self.safe_string(depositAddress, 'network')
+        if network is not None:
+            currencyId = currencyId.replace(network, '')
         code = self.safe_currency_code(currencyId)
         return {
             'info': depositAddress,
             'code': code,
             'address': address,
             'tag': tag,
+            'network': network,
         }
 
     def nonce(self):

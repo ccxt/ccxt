@@ -16,7 +16,7 @@ module.exports = class independentreserve extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -126,6 +126,8 @@ module.exports = class independentreserve extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': id,
+                    'type': 'spot',
+                    'spot': true,
                     'active': undefined,
                     'precision': this.precision,
                     'limits': {
@@ -274,7 +276,7 @@ module.exports = class independentreserve extends Exchange {
         const remaining = this.safeNumber (order, 'Outstanding');
         const feeRate = this.safeNumber (order, 'FeePercent');
         let feeCost = undefined;
-        if (feeRate !== undefined) {
+        if (feeRate !== undefined && filled !== undefined) {
             feeCost = feeRate * filled;
         }
         const fee = {

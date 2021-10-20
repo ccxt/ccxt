@@ -29,21 +29,21 @@ class aofex(Exchange):
             'rateLimit': 1000,
             'hostname': 'openapi.aofex.com',
             'has': {
+                'cancelAllOrders': True,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrder': True,
+                'fetchClosedOrders': True,
+                'fetchCurrencies': None,
                 'fetchMarkets': True,
-                'fetchCurrencies': False,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
                 'fetchOrderBook': True,
-                'fetchTrades': True,
+                'fetchOrderTrades': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
-                'fetchOHLCV': True,
-                'fetchBalance': True,
-                'createOrder': True,
-                'cancelOrder': True,
-                'cancelAllOrders': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchClosedOrder': True,
-                'fetchOrderTrades': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,
             },
             'timeframes': {
@@ -217,6 +217,8 @@ class aofex(Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': True,
                 'active': None,
                 'maker': makerFee,
                 'taker': takerFee,
@@ -418,45 +420,32 @@ class aofex(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(ticker, 'id')
-        symbol = None
-        if market:
-            symbol = market['symbol']
         open = self.safe_number(ticker, 'open')
         last = self.safe_number(ticker, 'close')
-        change = None
-        if symbol is not None:
-            change = float(self.price_to_precision(symbol, last - open))
-        else:
-            change = last - open
-        average = self.sum(last, open) / 2
-        percentage = change / open * 100
         baseVolume = self.safe_number(ticker, 'amount')
         quoteVolume = self.safe_number(ticker, 'vol')
-        vwap = self.vwap(baseVolume, quoteVolume)
-        if vwap is not None:
-            vwap = float(self.price_to_precision(symbol, vwap))
-        return {
-            'symbol': symbol,
+        return self.safe_ticker({
+            'symbol': None,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': None,
             'high': self.safe_number(ticker, 'high'),
             'low': self.safe_number(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

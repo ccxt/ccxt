@@ -33,7 +33,9 @@ class bithumb(Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -141,6 +143,7 @@ class bithumb(Exchange):
                 },
             },
             'commonCurrencies': {
+                'FTC': 'FTC2',
                 'MIR': 'MIR COIN',
                 'SOC': 'Soda Coin',
             },
@@ -178,6 +181,8 @@ class bithumb(Exchange):
                     'base': base,
                     'quote': quote,
                     'info': market,
+                    'type': 'spot',
+                    'spot': True,
                     'active': active,
                     'precision': {
                         'amount': 4,
@@ -273,23 +278,13 @@ class bithumb(Exchange):
         #     }
         #
         timestamp = self.safe_integer(ticker, 'date')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(None, market)
         open = self.safe_number(ticker, 'opening_price')
         close = self.safe_number(ticker, 'closing_price')
-        change = None
-        percentage = None
-        average = None
-        if (close is not None) and (open is not None):
-            change = close - open
-            if open > 0:
-                percentage = change / open * 100
-            average = self.sum(open, close) / 2
         baseVolume = self.safe_number(ticker, 'units_traded_24H')
         quoteVolume = self.safe_number(ticker, 'acc_trade_value_24H')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -304,13 +299,13 @@ class bithumb(Exchange):
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -797,6 +792,7 @@ class bithumb(Exchange):
         return self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
@@ -864,11 +860,3 @@ class bithumb(Exchange):
                 self.throw_exactly_matched_exception(self.exceptions, status, feedback)
                 self.throw_exactly_matched_exception(self.exceptions, message, feedback)
                 raise ExchangeError(feedback)
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'status' in response:
-            if response['status'] == '0000' or response['message'] == '거래 진행중인 내역이 존재하지 않습니다':
-                return response
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response

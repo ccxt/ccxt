@@ -19,7 +19,7 @@ module.exports = class bitflyer extends Exchange {
             'hostname': 'bitflyer.com', // or bitflyer.com
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
@@ -198,12 +198,8 @@ module.exports = class bitflyer extends Exchange {
         return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price', 'size');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'product_code': this.marketId (symbol),
-        };
-        const ticker = await this.publicGetGetticker (this.extend (request, params));
+    parseTicker (ticker, market = undefined) {
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const last = this.safeNumber (ticker, 'ltp');
         return {
@@ -228,6 +224,16 @@ module.exports = class bitflyer extends Exchange {
             'quoteVolume': undefined,
             'info': ticker,
         };
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'product_code': market['id'],
+        };
+        const response = await this.publicGetGetticker (this.extend (request, params));
+        return this.parseTicker (response, market);
     }
 
     parseTrade (trade, market = undefined) {

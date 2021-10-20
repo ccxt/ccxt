@@ -21,7 +21,7 @@ module.exports = class vcc extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
-                'editOrder': false,
+                'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -33,11 +33,11 @@ module.exports = class vcc extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': undefined,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTradingFees': false,
+                'fetchTradingFees': undefined,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
             },
@@ -189,6 +189,8 @@ module.exports = class vcc extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': {
                     'price': this.safeInteger (precision, 'price'),
@@ -430,19 +432,9 @@ module.exports = class vcc extends Exchange {
         const quoteVolume = this.safeNumber (ticker, 'quote_volume');
         const open = this.safeNumber (ticker, 'open_price');
         const last = this.safeNumber (ticker, 'last_price');
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
-        if (last !== undefined && open !== undefined) {
-            change = last - open;
-            average = this.sum (last, open) / 2;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-        }
         const vwap = this.vwap (baseVolume, quoteVolume);
-        const symbol = (market === undefined) ? undefined : market['symbol'];
-        return {
+        const symbol = this.safeSymbol (undefined, market);
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -457,13 +449,13 @@ module.exports = class vcc extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

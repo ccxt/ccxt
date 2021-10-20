@@ -15,34 +15,34 @@ module.exports = class bitvavo extends Exchange {
             'id': 'bitvavo',
             'name': 'Bitvavo',
             'countries': [ 'NL' ], // Netherlands
-            'rateLimit': 500,
+            'rateLimit': 60.1, // 1000 requests per second
             'version': 'v2',
             'certified': true,
             'pro': true,
             'has': {
-                'CORS': false,
-                'publicAPI': true,
-                'privateAPI': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchOrderBook': true,
-                'fetchMarkets': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'privateAPI': true,
+                'publicAPI': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -71,40 +71,40 @@ module.exports = class bitvavo extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'time',
-                        'markets',
-                        'assets',
-                        '{market}/book',
-                        '{market}/trades',
-                        '{market}/candles',
-                        'ticker/price',
-                        'ticker/book',
-                        'ticker/24h',
-                    ],
+                    'get': {
+                        'time': 1,
+                        'markets': 1,
+                        'assets': 1,
+                        '{market}/book': 1,
+                        '{market}/trades': 5,
+                        '{market}/candles': 1,
+                        'ticker/price': 1,
+                        'ticker/book': 1,
+                        'ticker/24h': { 'cost': 1, 'noMarket': 25 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'order',
-                        'orders',
-                        'ordersOpen',
-                        'trades',
-                        'balance',
-                        'deposit',
-                        'depositHistory',
-                        'withdrawalHistory',
-                    ],
-                    'post': [
-                        'order',
-                        'withdrawal',
-                    ],
-                    'put': [
-                        'order',
-                    ],
-                    'delete': [
-                        'order',
-                        'orders',
-                    ],
+                    'get': {
+                        'order': 1,
+                        'orders': 5,
+                        'ordersOpen': { 'cost': 1, 'noMarket': 25 },
+                        'trades': 5,
+                        'balance': 5,
+                        'deposit': 1,
+                        'depositHistory': 5,
+                        'withdrawalHistory': 5,
+                    },
+                    'post': {
+                        'order': 1,
+                        'withdrawal': 1,
+                    },
+                    'put': {
+                        'order': 1,
+                    },
+                    'delete': {
+                        'order': 1,
+                        'orders': 1,
+                    },
                 },
             },
             'fees': {
@@ -303,6 +303,8 @@ module.exports = class bitvavo extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -447,18 +449,8 @@ module.exports = class bitvavo extends Exchange {
         const baseVolume = this.safeNumber (ticker, 'volume');
         const quoteVolume = this.safeNumber (ticker, 'volumeQuote');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
         const open = this.safeNumber (ticker, 'open');
-        if ((open !== undefined) && (last !== undefined)) {
-            change = last - open;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-            average = this.sum (open, last) / 2;
-        }
-        const result = {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -473,14 +465,13 @@ module.exports = class bitvavo extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined, // previous day close
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
-        return result;
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1160,15 +1151,16 @@ module.exports = class bitvavo extends Exchange {
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeInteger (order, 'created');
         const marketId = this.safeString (order, 'market');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'amount');
-        const remaining = this.safeNumber (order, 'amountRemaining');
-        const filled = this.safeNumber (order, 'filledAmount');
-        const cost = this.safeNumber (order, 'filledAmountQuote');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'amount');
+        const remaining = this.safeString (order, 'amountRemaining');
+        const filled = this.safeString (order, 'filledAmount');
+        const cost = this.safeString (order, 'filledAmountQuote');
         let fee = undefined;
         const feeCost = this.safeNumber (order, 'feePaid');
         if (feeCost !== undefined) {
@@ -1180,17 +1172,11 @@ module.exports = class bitvavo extends Exchange {
             };
         }
         const rawTrades = this.safeValue (order, 'fills', []);
-        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-            'symbol': symbol,
-            'order': id,
-            'side': side,
-            'type': type,
-        });
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = this.safeValue (order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         const stopPrice = this.safeNumber (order, 'triggerPrice');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1211,8 +1197,8 @@ module.exports = class bitvavo extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
-            'trades': trades,
-        });
+            'trades': rawTrades,
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1257,6 +1243,7 @@ module.exports = class bitvavo extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1499,5 +1486,12 @@ module.exports = class bitvavo extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+    }
+
+    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+        if (('noMarket' in config) && !('market' in params)) {
+            return config['noMarket'];
+        }
+        return this.safeValue (config, 'cost', 1);
     }
 };

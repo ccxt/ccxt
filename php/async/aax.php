@@ -249,6 +249,10 @@ class aax extends Exchange {
                     'F2CP' => 'otc',
                     'VLTP' => 'saving',
                 ),
+                'networks' => array(
+                    'ETH' => 'ERC20',
+                    'TRX' => 'TRC20',
+                ),
             ),
         ));
     }
@@ -504,7 +508,7 @@ class aax extends Exchange {
         //         "t":1610162685342, // $timestamp
         //         "a":"0.00000000", // trading volume in USD in the $last 24 hours, futures only
         //         "c":"435.20000000", // close
-        //         "d":"4.22953489", // $change
+        //         "d":"4.22953489", // change
         //         "h":"455.04000000", // high
         //         "l":"412.78000000", // low
         //         "o":"417.54000000", // $open
@@ -517,21 +521,11 @@ class aax extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_number($ticker, 'c');
         $open = $this->safe_number($ticker, 'o');
-        $change = null;
-        $percentage = null;
-        $average = null;
-        if ($last !== null && $open !== null) {
-            $change = $last - $open;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-            $average = $this->sum($last, $open) / 2;
-        }
         $quoteVolume = $this->safe_number($ticker, 'v');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'datetime' => null,
             'high' => $this->safe_number($ticker, 'h'),
             'low' => $this->safe_number($ticker, 'l'),
             'bid' => null,
@@ -543,13 +537,13 @@ class aax extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1788,6 +1782,12 @@ class aax extends Exchange {
             'currency' => $currency['id'],
             // 'network' => null, // 'ERC20
         );
+        if (is_array($params) && array_key_exists('network', $params)) {
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network');
+            $params = $this->omit($params, 'network');
+            $request['network'] = $this->safe_string_upper($networks, $network, $network);
+        }
         $response = yield $this->privateGetAccountDepositAddress (array_merge($request, $params));
         //
         //     {
@@ -1796,7 +1796,7 @@ class aax extends Exchange {
         //             "address":"0x080c5c667381404cca9be0be9a04b2e47691ff86",
         //             "tag":null,
         //             "$currency":"USDT",
-        //             "network":"ERC20"
+        //             "$network":"ERC20"
         //         ),
         //         "message":"success",
         //         "ts":1610270465132
@@ -1812,18 +1812,23 @@ class aax extends Exchange {
         //         "$address":"0x080c5c667381404cca9be0be9a04b2e47691ff86",
         //         "$tag":null,
         //         "$currency":"USDT",
-        //         "network":"ERC20"
+        //         "$network":"ERC20"
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'tag');
         $currencyId = $this->safe_string($depositAddress, 'currency');
+        $network = $this->safe_string($depositAddress, 'network');
+        if ($network !== null) {
+            $currencyId = str_replace($network, '', $currencyId);
+        }
         $code = $this->safe_currency_code($currencyId);
         return array(
             'info' => $depositAddress,
             'code' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => $network,
         );
     }
 

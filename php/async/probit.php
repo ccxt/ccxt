@@ -23,26 +23,26 @@ class probit extends Exchange {
             'countries' => array( 'SC', 'KR' ), // Seychelles, South Korea
             'rateLimit' => 250, // ms
             'has' => array(
-                'CORS' => true,
-                'fetchTime' => true,
-                'fetchMarkets' => true,
-                'fetchCurrencies' => true,
-                'fetchTickers' => true,
-                'fetchTicker' => true,
-                'fetchOHLCV' => true,
-                'fetchOrderBook' => true,
-                'fetchTrades' => true,
-                'fetchBalance' => true,
-                'createOrder' => true,
-                'createMarketOrder' => true,
                 'cancelOrder' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
+                'CORS' => true,
+                'createMarketOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchMyTrades' => true,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'withdraw' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
                 'signIn' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -147,18 +147,35 @@ class probit extends Exchange {
                     'limit' => 'gtc',
                     'market' => 'ioc',
                 ),
+                'networks' => array(
+                    'BEP20' => 'BSC',
+                    'ERC20' => 'ETH',
+                    'TRC20' => 'TRON',
+                    'TRX' => 'TRON',
+                ),
             ),
             'commonCurrencies' => array(
                 'AUTO' => 'Cube',
                 'BCC' => 'BCC',
                 'BDP' => 'BidiPass',
+                'BIRD' => 'Birdchain',
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
                 'CBC' => 'CryptoBharatCoin',
+                'CHE' => 'Chellit',
+                'DIP' => 'Dipper',
                 'EPS' => 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
+                'FX' => 'Fanzy',
+                'GDT' => 'Gorilla Diamond',
+                'GOGOL' => 'GOL',
+                'GOL' => 'Goldofir',
+                'GRB' => 'Global Reward Bank',
                 'HBC' => 'Hybrid Bank Cash',
                 'ORC' => 'Oracle System',
+                'ROOK' => 'Reckoon',
                 'SOC' => 'Soda Coin',
+                'TCT' => 'Top Coin Token',
+                'TPAY' => 'Tetra Pay',
                 'UNI' => 'UNICORN Token',
                 'UNISWAP' => 'UNI',
             ),
@@ -224,6 +241,8 @@ class probit extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'precision' => $precision,
                 'taker' => $this->parse_number($taker),
@@ -492,18 +511,10 @@ class probit extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $close = $this->safe_number($ticker, 'last');
         $change = $this->safe_number($ticker, 'change');
-        $percentage = null;
-        $open = null;
-        if ($change !== null) {
-            if ($close !== null) {
-                $open = $close - $change;
-                $percentage = ($change / $open) * 100;
-            }
-        }
         $baseVolume = $this->safe_number($ticker, 'base_volume');
         $quoteVolume = $this->safe_number($ticker, 'quote_volume');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -514,17 +525,17 @@ class probit extends Exchange {
             'ask' => null,
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => $open,
+            'open' => null,
             'close' => $close,
             'last' => $close,
             'previousClose' => null, // previous day $close
             'change' => $change,
-            'percentage' => $percentage,
+            'percentage' => null,
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1019,7 +1030,7 @@ class probit extends Exchange {
         // returned by the exchange on $market buys
         if (($type === 'market') && ($side === 'buy')) {
             $order['amount'] = null;
-            $order['cost'] = floatval($costToPrecision);
+            $order['cost'] = $this->parse_number($costToPrecision);
             $order['remaining'] = null;
         }
         return $order;
@@ -1097,6 +1108,7 @@ class probit extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         // In order to use this method
         // you need to allow API withdrawal from the API Settings Page, and
         // and register the list of withdrawal addresses and destination tags on the API Settings page
@@ -1119,6 +1131,13 @@ class probit extends Exchange {
             // whether the $amount field includes fees
             // 'include_fee' => false, // makes sense only when fee_currency_id is equal to currency_id
         );
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['platform_id'] = $network;
+            $params = $this->omit($params, 'network');
+        }
         $response = yield $this->privatePostWithdrawal (array_merge($request, $params));
         $data = $this->safe_value($response, 'data');
         return $this->parse_transaction($data, $currency);

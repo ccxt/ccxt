@@ -15,7 +15,7 @@ module.exports = class coinbasepro extends Exchange {
             'id': 'coinbasepro',
             'name': 'Coinbase Pro',
             'countries': [ 'US' ],
-            'rateLimit': 1000,
+            'rateLimit': 100,
             'userAgent': this.userAgents['chrome'],
             'pro': true,
             'has': {
@@ -27,9 +27,10 @@ module.exports = class coinbasepro extends Exchange {
                 'deposit': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
-                'fetchCurrencies': true,
                 'fetchClosedOrders': true,
-                'fetchDepositAddress': false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchCurrencies': true,
+                'fetchDepositAddress': undefined, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -38,13 +39,12 @@ module.exports = class coinbasepro extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
-                'fetchTime': true,
                 'fetchTicker': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTransactions': true,
-                'withdraw': true,
-                'fetchDeposits': true,
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 60,
@@ -320,6 +320,9 @@ module.exports = class coinbasepro extends Exchange {
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': true,
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -332,7 +335,6 @@ module.exports = class coinbasepro extends Exchange {
                         'max': this.safeNumber (market, 'max_market_funds'),
                     },
                 },
-                'active': active,
                 'info': market,
             }));
         }
@@ -977,6 +979,7 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1192,8 +1195,8 @@ module.exports = class coinbasepro extends Exchange {
         }
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
         if (typeof response !== 'string') {
             if ('message' in response) {
                 throw new ExchangeError (this.id + ' ' + this.json (response));

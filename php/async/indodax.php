@@ -19,20 +19,20 @@ class indodax extends Exchange {
             'countries' => array( 'ID' ), // Indonesia
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
-                'createMarketOrder' => false,
+                'CORS' => null,
+                'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchCurrencies' => false,
+                'fetchCurrencies' => null,
                 'fetchMarkets' => true,
-                'fetchMyTrades' => false,
+                'fetchMyTrades' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => null,
                 'fetchTicker' => true,
-                'fetchTickers' => false,
+                'fetchTickers' => null,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'withdraw' => true,
@@ -197,12 +197,14 @@ class indodax extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
+                'active' => $active,
                 'taker' => $taker,
                 'percentage' => true,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
-                'active' => $active,
             );
         }
         return $result;
@@ -559,6 +561,7 @@ class indodax extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
         $currency = $this->currency($code);

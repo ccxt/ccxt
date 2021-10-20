@@ -26,30 +26,30 @@ class qtrade extends Exchange {
                 'referral' => 'https://qtrade.io/?ref=BKOQWVFGRH2C',
             ),
             'has' => array(
-                'CORS' => false,
-                'fetchTrades' => true,
+                'cancelOrder' => true,
+                'CORS' => null,
+                'createMarketOrder' => null,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => true,
+                'fetchCurrencies' => true,
+                'fetchDeposit' => true,
+                'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
-                'fetchMarkets' => true,
-                'fetchCurrencies' => true,
-                'fetchBalance' => true,
-                'fetchOrderBook' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchMyTrades' => true,
-                'fetchClosedOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchOHLCV' => true,
-                'createOrder' => true,
-                'cancelOrder' => true,
-                'createMarketOrder' => false,
-                'withdraw' => true,
-                'fetchDepositAddress' => true,
-                'fetchTransactions' => false,
-                'fetchDeposits' => true,
-                'fetchWithdrawals' => true,
-                'fetchDeposit' => true,
+                'fetchTrades' => true,
+                'fetchTransactions' => null,
                 'fetchWithdrawal' => true,
+                'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '5m' => 'fivemin',
@@ -183,6 +183,8 @@ class qtrade extends Exchange {
                 'quoteId' => $quoteId,
                 'base' => $base,
                 'quote' => $quote,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'precision' => $precision,
                 'taker' => $this->safe_number($market, 'taker_fee'),
@@ -413,13 +415,10 @@ class qtrade extends Exchange {
                 $change = $day_change * $previous;
             }
         }
-        if (($average === null) && ($last !== null) && ($previous !== null)) {
-            $average = $this->sum($last, $previous) / 2;
-        }
         $baseVolume = $this->safe_number($ticker, 'day_volume_market');
         $quoteVolume = $this->safe_number($ticker, 'day_volume_base');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -440,7 +439,7 @@ class qtrade extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1402,6 +1401,7 @@ class qtrade extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(

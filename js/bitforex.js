@@ -14,6 +14,7 @@ module.exports = class bitforex extends Exchange {
             'id': 'bitforex',
             'name': 'Bitforex',
             'countries': [ 'CN' ],
+            'rateLimit': 500, // https://github.com/ccxt/ccxt/issues/5054
             'version': 'v1',
             'has': {
                 'cancelOrder': true,
@@ -21,14 +22,14 @@ module.exports = class bitforex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': undefined,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': undefined,
                 'fetchTrades': true,
             },
             'timeframes': {
@@ -54,26 +55,27 @@ module.exports = class bitforex extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'api/v1/market/symbols',
-                        'api/v1/market/ticker',
-                        'api/v1/market/depth',
-                        'api/v1/market/trades',
-                        'api/v1/market/kline',
-                    ],
+                    'get': {
+                        'api/v1/market/symbols': 20,
+                        'api/v1/market/ticker': 4,
+                        'api/v1/market/depth': 4,
+                        'api/v1/market/trades': 20,
+                        'api/v1/market/kline': 20,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'api/v1/fund/mainAccount',
-                        'api/v1/fund/allAccount',
-                        'api/v1/trade/placeOrder',
-                        'api/v1/trade/placeMultiOrder',
-                        'api/v1/trade/cancelOrder',
-                        'api/v1/trade/cancelMultiOrder',
-                        'api/v1/trade/orderInfo',
-                        'api/v1/trade/multiOrderInfo',
-                        'api/v1/trade/orderInfos',
-                    ],
+                    'post': {
+                        'api/v1/fund/mainAccount': 1,
+                        'api/v1/fund/allAccount': 30,
+                        'api/v1/trade/placeOrder': 1,
+                        'api/v1/trade/placeMultiOrder': 10,
+                        'api/v1/trade/cancelOrder': 1,
+                        'api/v1/trade/cancelMultiOrder': 20,
+                        'api/v1/trade/cancelAllOrder': 20,
+                        'api/v1/trade/orderInfo': 1,
+                        'api/v1/trade/multiOrderInfo': 10,
+                        'api/v1/trade/orderInfos': 20,
+                    },
                 },
             },
             'fees': {
@@ -91,19 +93,15 @@ module.exports = class bitforex extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'ACE': 'ACE Entertainment',
-                'BDP': 'BidiPass',
                 'CAPP': 'Crypto Application Token',
                 'CREDIT': 'TerraCredit',
                 'CTC': 'Culture Ticket Chain',
-                'GOT': 'GoNetwork',
-                'HBC': 'Hybrid Bank Cash',
                 'IQ': 'IQ.Cash',
                 'MIR': 'MIR COIN',
-                'UOS': 'UOS Network',
+                'TON': 'To The Moon',
             },
             'exceptions': {
-                '4004': OrderNotFound,
+                '1003': BadSymbol, // {"success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error"}
                 '1013': AuthenticationError,
                 '1016': AuthenticationError,
                 '1017': PermissionDenied, // {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
@@ -111,6 +109,7 @@ module.exports = class bitforex extends Exchange {
                 '3002': InsufficientFunds,
                 '4002': InvalidOrder, // {"success":false,"code":"4002","message":"Price unreasonable"}
                 '4003': InvalidOrder, // {"success":false,"code":"4003","message":"amount too small"}
+                '4004': OrderNotFound,
                 '10204': DDoSProtection,
             },
         });
@@ -155,6 +154,8 @@ module.exports = class bitforex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': precision,
                 'limits': limits,

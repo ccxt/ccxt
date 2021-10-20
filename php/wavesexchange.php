@@ -24,7 +24,7 @@ class wavesexchange extends Exchange {
             'pro' => false,
             'has' => array(
                 'cancelOrder' => true,
-                'createMarketOrder' => false,
+                'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -214,6 +214,7 @@ class wavesexchange extends Exchange {
                 ),
                 'public' => array(
                     'get' => array(
+                        'assets',
                         'pairs',
                         'candles/{baseId}/{quoteId}',
                         'transactions/exchange',
@@ -376,6 +377,9 @@ class wavesexchange extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
+                'active' => null,
                 'info' => $entry,
                 'precision' => $precision,
             );
@@ -457,7 +461,7 @@ class wavesexchange extends Exchange {
         $isCancelOrder = $path === 'matcher/orders/{wavesAddress}/cancel';
         $path = $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . '/' . $path;
-        $queryString = $this->urlencode($query);
+        $queryString = $this->urlencode_with_array_repeat($query);
         if (($api === 'private') || ($api === 'forward')) {
             $headers = array(
                 'Accept' => 'application/json',
@@ -579,17 +583,7 @@ class wavesexchange extends Exchange {
         $baseVolume = $this->safe_number($data, 'volume');
         $quoteVolume = $this->safe_number($data, 'quoteVolume');
         $open = $this->safe_number($data, 'firstPrice');
-        $change = null;
-        $average = null;
-        $percentage = null;
-        if ($last !== null && $open !== null) {
-            $change = $last - $open;
-            $average = $this->sum($last, $open) / 2;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-        }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -604,13 +598,13 @@ class wavesexchange extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -940,16 +934,17 @@ class wavesexchange extends Exchange {
             $matcherFeeAssetId = $this->options['feeAssetId'];
         } else {
             $balances = $this->fetch_balance();
-            if ($balances['WAVES']['free'] > $wavesMatcherFee) {
+            $floatWavesMatcherFee = floatval($wavesMatcherFee);
+            if ($balances['WAVES']['free'] > $floatWavesMatcherFee) {
                 $matcherFeeAssetId = 'WAVES';
                 $matcherFee = $baseMatcherFee;
             } else {
                 for ($i = 0; $i < count($priceAssets); $i++) {
                     $assetId = $priceAssets[$i];
                     $code = $this->safe_currency_code($assetId);
-                    $balance = $this->safe_value($this->safe_value($balances, $code, array()), 'free');
+                    $balance = $this->safe_string($this->safe_value($balances, $code, array()), 'free');
                     $assetFee = Precise::string_mul($rates[$assetId], $wavesMatcherFee);
-                    if (($balance !== null) && ($balance > $assetFee)) {
+                    if (($balance !== null) && Precise::string_gt($balance, $assetFee)) {
                         $matcherFeeAssetId = $assetId;
                         break;
                     }
@@ -1310,12 +1305,12 @@ class wavesexchange extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        // makes a lot of different requests to get all the data
+        // makes a lot of different requests to get all the $data
         // in particular:
         // fetchMarkets, getWavesAddress,
         // getTotalBalance (doesn't include waves), getReservedBalance (doesn't include waves)
         // getReservedBalance (includes WAVES)
-        // I couldn't find another way to get all the data
+        // I couldn't find another way to get all the $data
         $this->check_required_dependencies();
         $this->check_required_keys();
         $this->load_markets();
@@ -1361,17 +1356,42 @@ class wavesexchange extends Exchange {
         $balances = $this->safe_value($totalBalance, 'balances');
         $result = array();
         $timestamp = null;
+        $assetIds = array();
+        $nonStandardBalances = array();
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $balances[$i];
             $entryTimestamp = $this->safe_integer($entry, 'timestamp');
             $timestamp = ($timestamp === null) ? $entryTimestamp : max ($timestamp, $entryTimestamp);
             $issueTransaction = $this->safe_value($entry, 'issueTransaction');
-            $decimals = $this->safe_integer($issueTransaction, 'decimals');
             $currencyId = $this->safe_string($entry, 'assetId');
             $balance = $this->safe_string($entry, 'balance');
+            if ($issueTransaction === null) {
+                $assetIds[] = $currencyId;
+                $nonStandardBalances[] = $balance;
+                continue;
+            }
+            $decimals = $this->safe_integer($issueTransaction, 'decimals');
             $code = null;
             if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->safe_currency_code($currencyId);
+                $result[$code] = $this->account();
+                $result[$code]['total'] = $this->from_precision($balance, $decimals);
+            }
+        }
+        $nonStandardAssets = is_array($assetIds) ? count($assetIds) : 0;
+        if ($nonStandardAssets) {
+            $request = array(
+                'ids' => $assetIds,
+            );
+            $response = $this->publicGetAssets ($request);
+            $data = $this->safe_value($response, 'data');
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $balance = $nonStandardBalances[$i];
+                $inner = $this->safe_value($entry, 'data');
+                $decimals = $this->safe_integer($inner, 'precision');
+                $ticker = $this->safe_string($inner, 'ticker');
+                $code = $this->safe_currency_code($ticker);
                 $result[$code] = $this->account();
                 $result[$code]['total'] = $this->from_precision($balance, $decimals);
             }
@@ -1567,6 +1587,7 @@ class wavesexchange extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         // currently only works for BTC and WAVES
         if ($code !== 'WAVES') {
             $supportedCurrencies = $this->privateGetWithdrawCurrencies ();

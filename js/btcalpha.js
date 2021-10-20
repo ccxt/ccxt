@@ -27,7 +27,7 @@ module.exports = class btcalpha extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchTicker': false,
+                'fetchTicker': undefined,
                 'fetchTrades': true,
             },
             'timeframes': {
@@ -116,6 +116,8 @@ module.exports = class btcalpha extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': true,
                 'active': true,
                 'precision': precision,
                 'limits': {

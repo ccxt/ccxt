@@ -32,34 +32,34 @@ class bitvavo(Exchange):
             'id': 'bitvavo',
             'name': 'Bitvavo',
             'countries': ['NL'],  # Netherlands
-            'rateLimit': 500,
+            'rateLimit': 60.1,  # 1000 requests per second
             'version': 'v2',
             'certified': True,
             'pro': True,
             'has': {
-                'CORS': False,
-                'publicAPI': True,
-                'privateAPI': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'CORS': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
                 'fetchOrderBook': True,
-                'fetchMarkets': True,
+                'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'privateAPI': True,
+                'publicAPI': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -88,40 +88,40 @@ class bitvavo(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'time',
-                        'markets',
-                        'assets',
-                        '{market}/book',
-                        '{market}/trades',
-                        '{market}/candles',
-                        'ticker/price',
-                        'ticker/book',
-                        'ticker/24h',
-                    ],
+                    'get': {
+                        'time': 1,
+                        'markets': 1,
+                        'assets': 1,
+                        '{market}/book': 1,
+                        '{market}/trades': 5,
+                        '{market}/candles': 1,
+                        'ticker/price': 1,
+                        'ticker/book': 1,
+                        'ticker/24h': {'cost': 1, 'noMarket': 25},
+                    },
                 },
                 'private': {
-                    'get': [
-                        'order',
-                        'orders',
-                        'ordersOpen',
-                        'trades',
-                        'balance',
-                        'deposit',
-                        'depositHistory',
-                        'withdrawalHistory',
-                    ],
-                    'post': [
-                        'order',
-                        'withdrawal',
-                    ],
-                    'put': [
-                        'order',
-                    ],
-                    'delete': [
-                        'order',
-                        'orders',
-                    ],
+                    'get': {
+                        'order': 1,
+                        'orders': 5,
+                        'ordersOpen': {'cost': 1, 'noMarket': 25},
+                        'trades': 5,
+                        'balance': 5,
+                        'deposit': 1,
+                        'depositHistory': 5,
+                        'withdrawalHistory': 5,
+                    },
+                    'post': {
+                        'order': 1,
+                        'withdrawal': 1,
+                    },
+                    'put': {
+                        'order': 1,
+                    },
+                    'delete': {
+                        'order': 1,
+                        'orders': 1,
+                    },
                 },
             },
             'fees': {
@@ -314,6 +314,8 @@ class bitvavo(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -451,16 +453,8 @@ class bitvavo(Exchange):
         baseVolume = self.safe_number(ticker, 'volume')
         quoteVolume = self.safe_number(ticker, 'volumeQuote')
         vwap = self.vwap(baseVolume, quoteVolume)
-        change = None
-        percentage = None
-        average = None
         open = self.safe_number(ticker, 'open')
-        if (open is not None) and (last is not None):
-            change = last - open
-            if open > 0:
-                percentage = change / open * 100
-            average = self.sum(open, last) / 2
-        result = {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -475,14 +469,13 @@ class bitvavo(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,  # previous day close
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
-        return result
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -1118,15 +1111,16 @@ class bitvavo(Exchange):
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_integer(order, 'created')
         marketId = self.safe_string(order, 'market')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
-        remaining = self.safe_number(order, 'amountRemaining')
-        filled = self.safe_number(order, 'filledAmount')
-        cost = self.safe_number(order, 'filledAmountQuote')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'amount')
+        remaining = self.safe_string(order, 'amountRemaining')
+        filled = self.safe_string(order, 'filledAmount')
+        cost = self.safe_string(order, 'filledAmountQuote')
         fee = None
         feeCost = self.safe_number(order, 'feePaid')
         if feeCost is not None:
@@ -1137,17 +1131,11 @@ class bitvavo(Exchange):
                 'currency': feeCurrencyCode,
             }
         rawTrades = self.safe_value(order, 'fills', [])
-        trades = self.parse_trades(rawTrades, market, None, None, {
-            'symbol': symbol,
-            'order': id,
-            'side': side,
-            'type': type,
-        })
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')
         # https://github.com/ccxt/ccxt/issues/8489
         stopPrice = self.safe_number(order, 'triggerPrice')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -1168,8 +1156,8 @@ class bitvavo(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
-            'trades': trades,
-        })
+            'trades': rawTrades,
+        }, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -1209,6 +1197,7 @@ class bitvavo(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
@@ -1428,3 +1417,8 @@ class bitvavo(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
+
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+        if ('noMarket' in config) and not ('market' in params):
+            return config['noMarket']
+        return self.safe_value(config, 'cost', 1)

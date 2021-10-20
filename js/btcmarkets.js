@@ -19,7 +19,7 @@ module.exports = class btcmarkets extends Exchange {
             'has': {
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
@@ -304,8 +304,8 @@ module.exports = class btcmarkets extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const fees = this.safeValue (this.safeValue (this.options, 'fees', {}), quote, this.fees);
-            const pricePrecision = this.safeNumber (market, 'priceDecimals');
-            const amountPrecision = this.safeNumber (market, 'amountDecimals');
+            const pricePrecision = this.safeInteger (market, 'priceDecimals');
+            const amountPrecision = this.safeInteger (market, 'amountDecimals');
             const minAmount = this.safeNumber (market, 'minOrderAmount');
             const maxAmount = this.safeNumber (market, 'maxOrderAmount');
             let minPrice = undefined;
@@ -338,6 +338,8 @@ module.exports = class btcmarkets extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': undefined,
                 'maker': fees['maker'],
                 'taker': fees['taker'],
