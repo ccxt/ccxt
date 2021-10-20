@@ -453,6 +453,11 @@ module.exports = class huobi extends Exchange {
                         'min': minCost,
                         'max': undefined,
                     },
+                    'leverage': {
+                        'min': 1,
+                        'max': this.safeNumber (market, 'leverage-ratio', 1),
+                        'superMax': this.safeNumber (market, 'super-margin-leverage-ratio', 1),
+                    },
                 },
                 'info': market,
             });
