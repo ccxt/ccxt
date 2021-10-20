@@ -158,6 +158,7 @@ class gateio extends Exchange {
                     ),
                     'margin' => array(
                         'get' => array(
+                            'accounts' => 1.5,
                             'account_book' => 1.5,
                             'funding_accounts' => 1.5,
                             'loans' => 1.5,
@@ -301,12 +302,12 @@ class gateio extends Exchange {
                     'delivery' => 'delivery',
                 ),
                 'defaultType' => 'spot',
-                'future' => array(
+                'swap' => array(
                     'fetchMarkets' => array(
                         'settlementCurrencies' => array( 'usdt', 'btc' ),
                     ),
                 ),
-                'delivery' => array(
+                'future' => array(
                     'fetchMarkets' => array(
                         'settlementCurrencies' => array( 'usdt', 'btc' ),
                     ),
@@ -574,9 +575,7 @@ class gateio extends Exchange {
             $method = 'publicMarginGetCurrencyPairs';
         }
         if ($futures || $swap) {
-            $options = $this->safe_value($this->options, $type, array()); // array( 'BTC', 'USDT' ) unified codes
-            $fetchMarketsContractOptions = $this->safe_value($options, 'fetchMarchets', array());
-            $settlementCurrencies = $this->safe_value($fetchMarketsContractOptions, 'settlementCurrencies', ['usdt']);
+            $settlementCurrencies = $this->get_settlement_currencies($type, 'fetchMarkets');
             for ($c = 0; $c < count($settlementCurrencies); $c++) {
                 $settle = $settlementCurrencies[$c];
                 $query['settle'] = $settle;
@@ -702,7 +701,6 @@ class gateio extends Exchange {
                         'option' => $option,
                         'linear' => $linear,
                         'inverse' => $inverse,
-                        'settle' => $settle,
                         // Fee is in %, so divide by 100
                         'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')),
                         'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
@@ -827,6 +825,13 @@ class gateio extends Exchange {
                 'currency_pair' => $market['id'],
             );
         }
+    }
+
+    public function get_settlement_currencies($type, $method) {
+        $options = $this->safe_value($this->options, $type, array()); // array( 'BTC', 'USDT' ) unified codes
+        $fetchMarketsContractOptions = $this->safe_value($options, $method, array());
+        $defaultSettle = $type === 'swap' ? ['usdt'] : ['btc'];
+        return $this->safe_value($fetchMarketsContractOptions, 'settlementCurrencies', $defaultSettle);
     }
 
     public function fetch_currencies($params = array ()) {
@@ -1419,9 +1424,31 @@ class gateio extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        // :param $params->type => spot, margin, crossMargin, $swap or $future
+        // :param $params->settle => Settle currency (usdt or btc) for perpetual $swap and futures
         yield $this->load_markets();
-        $response = yield $this->privateSpotGetAccounts ($params);
-        //
+        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $params = $this->omit($params, 'type');
+        $swap = $type === 'swap';
+        $future = $type === 'future';
+        $request = array();
+        $method = 'privateSpotGetAccounts';
+        if ($swap) {
+            $method = 'privateFuturesGetSettleAccounts';
+        } else if ($future) {
+            $method = 'privateDeliveryGetSettleAccounts';
+        }
+        $response = array();
+        if ($swap || $future) {
+            $defaultSettle = $swap ? 'usdt' : 'btc';
+            $request['settle'] = $this->safe_string($params, 'settle', $defaultSettle);
+            $response_item = yield $this->$method (array_merge($request, $params));
+            $response = [$response_item];
+        } else {
+            $response = yield $this->$method (array_merge($request, $params));
+        }
+        //  SPOT
         //     array(
         //       array(
         //         "currency" => "DBC",
@@ -1431,13 +1458,61 @@ class gateio extends Exchange {
         //       ...
         //     )
         //
+        //  Perpetual Swap
+        //  {
+        //     order_margin => "0",
+        //     point => "0",
+        //     bonus => "0",
+        //     history => array(
+        //       dnw => "2.1321",
+        //       pnl => "11.5351",
+        //       refr => "0",
+        //       point_fee => "0",
+        //       fund => "-0.32340576684",
+        //       bonus_dnw => "0",
+        //       point_refr => "0",
+        //       bonus_offset => "0",
+        //       fee => "-0.20132775",
+        //       point_dnw => "0",
+        //     ),
+        //     unrealised_pnl => "13.315100000006",
+        //     total => "12.51345151332",
+        //     available => "0",
+        //     in_dual_mode => false,
+        //     currency => "USDT",
+        //     position_margin => "12.51345151332",
+        //     user => "6333333",
+        //   }
+        //
+        //   Delivery Future
+        //   {
+        //     order_margin => "0",
+        //     point => "0",
+        //     history => array(
+        //       dnw => "1",
+        //       pnl => "0",
+        //       refr => "0",
+        //       point_fee => "0",
+        //       point_dnw => "0",
+        //       settle => "0",
+        //       settle_fee => "0",
+        //       point_refr => "0",
+        //       fee => "0",
+        //     ),
+        //     unrealised_pnl => "0",
+        //     total => "1",
+        //     available => "1",
+        //     currency => "USDT",
+        //     position_margin => "0",
+        //     user => "6333333",
+        //   }
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
             $account = $this->account();
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $account['used'] = $this->safe_string($entry, 'locked');
+            $account['used'] = $this->safe_string_2($entry, 'locked', 'position_margin');
             $account['free'] = $this->safe_string($entry, 'available');
             $result[$code] = $account;
         }
