@@ -2498,20 +2498,11 @@ class Exchange(object):
                 params = self.omit(params, 'tag')
         return [tag, params]
 
-    def paths(self, market_or_type, spot, swap, futures, margin):
-        # :param (str) market_or_type: The type as a string ('spot', 'swap', 'futures', 'margin') or a market
-        # :param (str) spot: The api path for spot
-        # :param (str) swap: The api path for swap
-        # :param (str) futures: The api path for futures
-        # :param (str) margin: The api path for margin
-        # :return (str): what path to use for each market
-        if market_or_type == 'spot' or market_or_type['spot']:
-            return spot
-        elif market_or_type == 'swap' or market_or_type['swap']:
-            return swap
-        elif market_or_type == 'futures' or market_or_type['futures']:
-            return futures
-        elif market_or_type == 'margin' or market_or_type['margin']:
-            return margin
+    def getSupportedMapping(self, key, mapping={}):
+        # Takes a key and a dictionary, and returns the dictionary's value for that key
+        # :throws:
+        #      NotSupported if the dictionary does not contain the key
+        if (key in mapping):
+            return mapping[key]
         else:
-            raise NotSupported('Method unavailable for' + self.name + 'for the current market ')
+            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')

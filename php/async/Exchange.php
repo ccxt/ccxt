@@ -326,24 +326,4 @@ class Exchange extends \ccxt\Exchange {
             throw new NotSupported($this->id . ' fetchTicker not supported yet');
         }
     }
-
-    public function paths ($market_or_type, $spot, $swap, $futures, $margin) {
-        // :param (str) $market_or_type: The type as a string ('spot', 'swap', 'futures', 'margin') or a market
-        // :param (str) spot: The api path for spot
-        // :param (str) swap: The api path for swap
-        // :param (str) futures: The api path for futures
-        // :param (str) margin: The api path for margin
-        // :return (str): what path to use for each market
-        if ($market_or_type === 'spot' || $market_or_type['spot']) {
-            return $spot;
-        } else if ($market_or_type === 'swap' || $market_or_type['swap']) {
-            return $swap;
-        } else if ($market_or_type === 'futures' || $market_or_type['futures']) {
-            return $futures;
-        } else if ($market_or_type === 'margin' || $market_or_type['margin']) {
-            return $margin;
-        } else {
-            throw new NotSupported ('Method unavailable for' + $this->name + 'for the current market ');
-        }
-    }
 }
