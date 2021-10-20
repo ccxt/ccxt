@@ -572,6 +572,10 @@ module.exports = class coinbase extends Exchange {
                                 'min': this.safeNumber (quoteCurrency, 'min_size'),
                                 'max': undefined,
                             },
+                            'leverage': {
+                                'min': 1,
+                                'max': 1,
+                            },
                         },
                     });
                 }
