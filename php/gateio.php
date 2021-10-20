@@ -361,7 +361,7 @@ class gateio extends Exchange {
                         ),
                     ),
                 ),
-                'future' => array(
+                'swap' => array(
                     'tierBased' => true,
                     'feeSide' => 'base',
                     'percentage' => true,
@@ -369,90 +369,43 @@ class gateio extends Exchange {
                     'taker' => $this->parse_number('0.0005'),
                     'tiers' => array(
                         'maker' => array(
-                            $this->parse_number('0.0000'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00008'),
-                            $this->parse_number('-0.01000'),
-                            $this->parse_number('-0.01002'),
-                            $this->parse_number('-0.01005'),
-                            $this->parse_number('-0.02000'),
-                            $this->parse_number('-0.02005'),
+                            array( $this->parse_number('0'), $this->parse_number('0.0000') ),
+                            array( $this->parse_number('1.5'), $this->parse_number('-0.00005') ),
+                            array( $this->parse_number('3'), $this->parse_number('-0.00005') ),
+                            array( $this->parse_number('6'), $this->parse_number('-0.00005') ),
+                            array( $this->parse_number('12.5'), $this->parse_number('-0.00005') ),
+                            array( $this->parse_number('25'), $this->parse_number('-0.00005') ),
+                            array( $this->parse_number('75'), $this->parse_number('-0.00005') ),
+                            array( $this->parse_number('200'), $this->parse_number('-0.00005') ),
+                            array( $this->parse_number('500'), $this->parse_number('-0.00005') ),
+                            array( $this->parse_number('1250'), $this->parse_number('-0.00005') ),
+                            array( $this->parse_number('2500'), $this->parse_number('-0.00005') ),
+                            array( $this->parse_number('3000'), $this->parse_number('-0.00008') ),
+                            array( $this->parse_number('6000'), $this->parse_number('-0.01000') ),
+                            array( $this->parse_number('11000'), $this->parse_number('-0.01002') ),
+                            array( $this->parse_number('20000'), $this->parse_number('-0.01005') ),
+                            array( $this->parse_number('40000'), $this->parse_number('-0.02000') ),
+                            array( $this->parse_number('75000'), $this->parse_number('-0.02005') ),
                         ),
-                        'taker' => [
-                            [$this->parse_number('0.00050'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00048'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00046'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00044'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00042'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00040'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00038'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00036'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00034'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00032'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00030'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00030'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00030'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00030'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00030'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00030'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00030'), $this->parse_number('0.00075')],
-                        ],
-                    ),
-                ),
-                'delivery' => array(
-                    'tierBased' => true,
-                    'feeSide' => 'base',
-                    'percentage' => true,
-                    'maker' => $this->parse_number('0.0'),
-                    'taker' => $this->parse_number('0.0005'),
-                    'tiers' => array(
-                        'maker' => array(
-                            $this->parse_number('0.0000'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00005'),
-                            $this->parse_number('-0.00008'),
-                            $this->parse_number('-0.01000'),
-                            $this->parse_number('-0.01002'),
-                            $this->parse_number('-0.01005'),
-                            $this->parse_number('-0.02000'),
-                            $this->parse_number('-0.02005'),
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.00050') ),
+                            array( $this->parse_number('1.5'), $this->parse_number('0.00048') ),
+                            array( $this->parse_number('3'), $this->parse_number('0.00046') ),
+                            array( $this->parse_number('6'), $this->parse_number('0.00044') ),
+                            array( $this->parse_number('12.5'), $this->parse_number('0.00042') ),
+                            array( $this->parse_number('25'), $this->parse_number('0.00040') ),
+                            array( $this->parse_number('75'), $this->parse_number('0.00038') ),
+                            array( $this->parse_number('200'), $this->parse_number('0.00036') ),
+                            array( $this->parse_number('500'), $this->parse_number('0.00034') ),
+                            array( $this->parse_number('1250'), $this->parse_number('0.00032') ),
+                            array( $this->parse_number('2500'), $this->parse_number('0.00030') ),
+                            array( $this->parse_number('3000'), $this->parse_number('0.00030') ),
+                            array( $this->parse_number('6000'), $this->parse_number('0.00030') ),
+                            array( $this->parse_number('11000'), $this->parse_number('0.00030') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.00030') ),
+                            array( $this->parse_number('40000'), $this->parse_number('0.00030') ),
+                            array( $this->parse_number('75000'), $this->parse_number('0.00030') ),
                         ),
-                        'taker' => [
-                            [$this->parse_number('0.00050'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00048'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00046'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00044'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00042'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00040'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00038'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00036'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00034'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00032'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00030'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00030'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00030'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00030'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00030'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00030'), $this->parse_number('0.00075')],
-                            [$this->parse_number('0.00030'), $this->parse_number('0.00075')],
-                        ],
                     ),
                 ),
             ),
@@ -561,7 +514,7 @@ class gateio extends Exchange {
         $swap = ($type === 'swap');
         $option = ($type === 'option');
         if (!$spot && !$margin && !$futures && !$swap) {
-            throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to " . "'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
+            throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to " . "'spot', 'margin', 'swap' or 'future'"); // eslint-disable-line quotes
         }
         $response = null;
         $result = array();
@@ -684,6 +637,7 @@ class gateio extends Exchange {
                     }
                     $takerPercent = $this->safe_string($market, 'taker_fee_rate');
                     $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
+                    $feeIndex = ($type === 'future') ? 'swap' : $type;
                     $result[] = array(
                         'info' => $market,
                         'id' => $id,
@@ -704,7 +658,6 @@ class gateio extends Exchange {
                         'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')),
                         'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
                         'contractSize' => $this->safe_string($market, 'contractSize', '1'),
-                        'contractType' => $linear ? 'Perpetual' : $this->safe_string($market, 'cycle'),
                         'limits' => array(
                             'leverage' => array(
                                 'min' => $this->safe_number($market, 'leverage_min'),
@@ -716,7 +669,7 @@ class gateio extends Exchange {
                             ),
                         ),
                         'expiry' => $this->safe_integer($market, 'expire_time'),
-                        'fees' => $this->fees[$type],
+                        'fees' => $this->safe_value($this->fees, $feeIndex, array()),
                     );
                 }
             }

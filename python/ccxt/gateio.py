@@ -372,7 +372,7 @@ class gateio(Exchange):
                         ],
                     },
                 },
-                'future': {
+                'swap': {
                     'tierBased': True,
                     'feeSide': 'base',
                     'percentage': True,
@@ -380,89 +380,42 @@ class gateio(Exchange):
                     'taker': self.parse_number('0.0005'),
                     'tiers': {
                         'maker': [
-                            self.parse_number('0.0000'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00008'),
-                            self.parse_number('-0.01000'),
-                            self.parse_number('-0.01002'),
-                            self.parse_number('-0.01005'),
-                            self.parse_number('-0.02000'),
-                            self.parse_number('-0.02005'),
+                            [self.parse_number('0'), self.parse_number('0.0000')],
+                            [self.parse_number('1.5'), self.parse_number('-0.00005')],
+                            [self.parse_number('3'), self.parse_number('-0.00005')],
+                            [self.parse_number('6'), self.parse_number('-0.00005')],
+                            [self.parse_number('12.5'), self.parse_number('-0.00005')],
+                            [self.parse_number('25'), self.parse_number('-0.00005')],
+                            [self.parse_number('75'), self.parse_number('-0.00005')],
+                            [self.parse_number('200'), self.parse_number('-0.00005')],
+                            [self.parse_number('500'), self.parse_number('-0.00005')],
+                            [self.parse_number('1250'), self.parse_number('-0.00005')],
+                            [self.parse_number('2500'), self.parse_number('-0.00005')],
+                            [self.parse_number('3000'), self.parse_number('-0.00008')],
+                            [self.parse_number('6000'), self.parse_number('-0.01000')],
+                            [self.parse_number('11000'), self.parse_number('-0.01002')],
+                            [self.parse_number('20000'), self.parse_number('-0.01005')],
+                            [self.parse_number('40000'), self.parse_number('-0.02000')],
+                            [self.parse_number('75000'), self.parse_number('-0.02005')],
                         ],
                         'taker': [
-                            [self.parse_number('0.00050'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00048'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00046'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00044'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00042'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00040'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00038'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00036'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00034'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00032'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
-                        ],
-                    },
-                },
-                'delivery': {
-                    'tierBased': True,
-                    'feeSide': 'base',
-                    'percentage': True,
-                    'maker': self.parse_number('0.0'),
-                    'taker': self.parse_number('0.0005'),
-                    'tiers': {
-                        'maker': [
-                            self.parse_number('0.0000'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00005'),
-                            self.parse_number('-0.00008'),
-                            self.parse_number('-0.01000'),
-                            self.parse_number('-0.01002'),
-                            self.parse_number('-0.01005'),
-                            self.parse_number('-0.02000'),
-                            self.parse_number('-0.02005'),
-                        ],
-                        'taker': [
-                            [self.parse_number('0.00050'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00048'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00046'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00044'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00042'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00040'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00038'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00036'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00034'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00032'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
-                            [self.parse_number('0.00030'), self.parse_number('0.00075')],
+                            [self.parse_number('0'), self.parse_number('0.00050')],
+                            [self.parse_number('1.5'), self.parse_number('0.00048')],
+                            [self.parse_number('3'), self.parse_number('0.00046')],
+                            [self.parse_number('6'), self.parse_number('0.00044')],
+                            [self.parse_number('12.5'), self.parse_number('0.00042')],
+                            [self.parse_number('25'), self.parse_number('0.00040')],
+                            [self.parse_number('75'), self.parse_number('0.00038')],
+                            [self.parse_number('200'), self.parse_number('0.00036')],
+                            [self.parse_number('500'), self.parse_number('0.00034')],
+                            [self.parse_number('1250'), self.parse_number('0.00032')],
+                            [self.parse_number('2500'), self.parse_number('0.00030')],
+                            [self.parse_number('3000'), self.parse_number('0.00030')],
+                            [self.parse_number('6000'), self.parse_number('0.00030')],
+                            [self.parse_number('11000'), self.parse_number('0.00030')],
+                            [self.parse_number('20000'), self.parse_number('0.00030')],
+                            [self.parse_number('40000'), self.parse_number('0.00030')],
+                            [self.parse_number('75000'), self.parse_number('0.00030')],
                         ],
                     },
                 },
@@ -571,7 +524,7 @@ class gateio(Exchange):
         swap = (type == 'swap')
         option = (type == 'option')
         if not spot and not margin and not futures and not swap:
-            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'delivery' or 'future'")  # eslint-disable-line quotes
+            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap' or 'future'")  # eslint-disable-line quotes
         response = None
         result = []
         method = 'publicSpotGetCurrencyPairs'
@@ -691,6 +644,7 @@ class gateio(Exchange):
                         symbol = base + '/' + quote + ':' + self.safe_currency_code(settle)
                     takerPercent = self.safe_string(market, 'taker_fee_rate')
                     makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
+                    feeIndex = 'swap' if (type == 'future') else type
                     result.append({
                         'info': market,
                         'id': id,
@@ -711,7 +665,6 @@ class gateio(Exchange):
                         'taker': self.parse_number(Precise.string_div(takerPercent, '100')),
                         'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
                         'contractSize': self.safe_string(market, 'contractSize', '1'),
-                        'contractType': 'Perpetual' if linear else self.safe_string(market, 'cycle'),
                         'limits': {
                             'leverage': {
                                 'min': self.safe_number(market, 'leverage_min'),
@@ -723,7 +676,7 @@ class gateio(Exchange):
                             },
                         },
                         'expiry': self.safe_integer(market, 'expire_time'),
-                        'fees': self.fees[type],
+                        'fees': self.safe_value(self.fees, feeIndex, {}),
                     })
         else:
             response = getattr(self, method)(query)
