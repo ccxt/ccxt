@@ -895,7 +895,7 @@ class huobi extends Exchange {
         //               "addrDepositTag" => false
         //             }
         //           ),
-        //           "instStatus" => "normal"
+        //           "$instStatus" => "normal"
         //         }
         //       )
         //     }
@@ -908,7 +908,12 @@ class huobi extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $chains = $this->safe_value($entry, 'chains', array());
             $networks = array();
-            $currencyActive = false;
+            $instStatus = $this->safe_string($entry, 'instStatus');
+            $currencyActive = $instStatus === 'normal';
+            $fee = null;
+            $precision = null;
+            $minWithdraw = null;
+            $maxWithdraw = null;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'chain');
@@ -927,7 +932,6 @@ class huobi extends Exchange {
                 $withdraw = $this->safe_string($chain, 'withdrawStatus');
                 $deposit = $this->safe_string($chain, 'depositStatus');
                 $active = ($withdraw === 'allowed') && ($deposit === 'allowed');
-                $currencyActive = ($currencyActive === null) ? $active : $currencyActive;
                 $precision = $this->safe_integer($chain, 'withdrawPrecision');
                 $fee = $this->safe_number($chain, 'transactFeeWithdraw');
                 $networks[$network] = array(
@@ -945,20 +949,26 @@ class huobi extends Exchange {
                     'precision' => $precision,
                 );
             }
+            $networksKeys = is_array($networks) ? array_keys($networks) : array();
+            $networkLength = is_array($networksKeys) ? count($networksKeys) : 0;
             $result[$code] = array(
-                'info' => null,
+                'info' => $entry,
                 'code' => $code,
                 'id' => $currencyId,
                 'active' => $currencyActive,
-                'fee' => null,
+                'fee' => ($networkLength <= 1) ? $fee : null,
                 'name' => null,
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
                         'max' => null,
                     ),
+                    'withdraw' => array(
+                        'min' => ($networkLength <= 1) ? $minWithdraw : null,
+                        'max' => ($networkLength <= 1) ? $maxWithdraw : null,
+                    ),
                 ),
-                'precision' => null,
+                'precision' => ($networkLength <= 1) ? $precision : null,
                 'networks' => $networks,
             );
         }
