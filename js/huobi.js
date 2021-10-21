@@ -946,7 +946,7 @@ module.exports = class huobi extends Exchange {
             const networksKeys = Object.keys (networks);
             const networkLength = networksKeys.length;
             result[code] = {
-                'info': this.omit (entry, [ 'chains' ]),
+                'info': entry,
                 'code': code,
                 'id': currencyId,
                 'active': currencyActive,
