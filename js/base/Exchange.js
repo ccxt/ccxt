@@ -1902,4 +1902,15 @@ module.exports = class Exchange {
         }
         return [ tag, params ]
     }
+
+    getSupportedMapping (key, mapping = {}) {
+        // Takes a key and a dictionary, and returns the dictionary's value for that key
+        // :throws:
+        //      NotSupported if the dictionary does not contain the key
+        if (key in mapping) {
+            return mapping[key]
+        } else {
+            throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping')
+        }
+    }
 }

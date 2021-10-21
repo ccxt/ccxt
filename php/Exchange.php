@@ -3326,4 +3326,15 @@ class Exchange {
         }
         return array($tag, $params);
     }
+
+    public function get_supported_mapping($key, $mapping = array()) {
+        // Takes a key and a dictionary, and returns the dictionary's value for that key
+        // :throws:
+        //      NotSupported if the dictionary does not contain the key
+        if (in_array($key, $mapping)) {
+            return $mapping[$key];
+        } else {
+            throw new NotSupported ($this->id + ' ' + $key + ' does not have a value in mapping');
+        }
+    }
 }
