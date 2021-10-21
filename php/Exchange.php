@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.58.74';
+$version = '1.58.75';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.58.74';
+    const VERSION = '1.58.75';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -361,6 +361,7 @@ class Exchange {
         'safeNumber2' => 'safe_number2',
         'parsePrecision' => 'parse_precision',
         'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
+        'getSupportedMapping' => 'get_supported_mapping',
     );
 
     public static function split($string, $delimiters = array(' ')) {
