@@ -477,6 +477,9 @@ module.exports = class kucoin extends Exchange {
                     'min': quoteMinSize,
                     'max': quoteMaxSize,
                 },
+                'leverage': {
+                    'max': this.safeNumber (market, 'maxLeverage', 1), // * Don't default to 1 for margin markets, leverage is located elsewhere
+                },
             };
             result.push ({
                 'id': id,
