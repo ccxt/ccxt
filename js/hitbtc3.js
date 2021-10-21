@@ -153,10 +153,39 @@ module.exports = class hitbtc3 extends Exchange {
                     ],
                 },
             },
-            'fee': {
-                'tierBased': true,
-                'percentage': true,
-                'feeSide': 'get',
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'taker': this.parseNumber ('0.0009'),
+                    'maker': this.parseNumber ('0.0009'),
+                    'tiers': {
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('10'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('100'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('1000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('5000'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.0001') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('-0.0001') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('-0.0001') ],
+                        ],
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('10'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('100'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('1000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('5000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.0002') ],
+                        ],
+                    },
+                },
             },
         });
     }
@@ -218,8 +247,8 @@ module.exports = class hitbtc3 extends Exchange {
                 'cost': {
                     'min': undefined,
                     'max': undefined,
-                }
-            }
+                },
+            };
             result.push ({
                 'info': entry,
                 'symbol': symbol,
@@ -231,6 +260,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'spot': spot,
                 'margin': margin,
                 'futures': futures,
+                'type': type,
                 'feeSide': feeSide,
                 'maker': maker,
                 'taker': taker,
@@ -241,8 +271,148 @@ module.exports = class hitbtc3 extends Exchange {
         return result;
     }
 
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetPublicCurrency (params);
+        //
+        //     {
+        //       "WEALTH": {
+        //         "full_name": "ConnectWealth",
+        //         "payin_enabled": false,
+        //         "payout_enabled": false,
+        //         "transfer_enabled": true,
+        //         "precision_transfer": "0.001",
+        //         "networks": [
+        //           {
+        //             "network": "ETH",
+        //             "protocol": "ERC20",
+        //             "default": true,
+        //             "payin_enabled": false,
+        //             "payout_enabled": false,
+        //             "precision_payout": "0.001",
+        //             "payout_fee": "0.016800000000",
+        //             "payout_is_payment_id": false,
+        //             "payin_payment_id": false,
+        //             "payin_confirmations": "2"
+        //           }
+        //         ]
+        //       }
+        //     }
+        //
+        const result = {};
+        const currencies = Object.keys (response);
+        for (let i = 0; i < currencies.length; i++) {
+            const currencyId = currencies[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const entry = response[currencyId];
+            const name = this.safeString (entry, 'full_name');
+            const precision = this.safeNumber (entry, 'precision_transfer');
+            const payinEnabled = this.safeValue (entry, 'payin_enabled', false);
+            const payoutEnabled = this.safeValue (entry, 'payout_enabled', false);
+            const transferEnabled = this.safeValue (entry, 'transfer_enabled', false);
+            const active = payinEnabled && payoutEnabled && transferEnabled;
+            const rawNetworks = this.safeValue (entry, 'networks', []);
+            const networks = {};
+            for (let j = 0; j < rawNetworks.length; j++) {
+                const rawNetwork = rawNetworks[j];
+                let networkId = this.safeString (rawNetwork, 'protocol');
+                if (networkId.length === 0) {
+                    networkId = this.safeString (rawNetwork, 'network');
+                }
+                const network = this.safeNetwork (networkId);
+                const fee = this.safeNumber (rawNetwork, 'payout_fee');
+                const precision = this.safeNumber (rawNetwork, 'precision_payout');
+                const payinEnabledNetwork = this.safeValue (entry, 'payin_enabled', false);
+                const payoutEnabledNetwork = this.safeValue (entry, 'payout_enabled', false);
+                const transferEnabledNetwork = this.safeValue (entry, 'transfer_enabled', false);
+                const active = payinEnabledNetwork && payoutEnabledNetwork && transferEnabledNetwork;
+                networks[network] = {
+                    'info': rawNetwork,
+                    'id': networkId,
+                    'network': network,
+                    'fee': fee,
+                    'active': active,
+                    'precision': precision,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = {
+                'info': entry,
+                'code': code,
+                'id': currencyId,
+                'precision': precision,
+                'name': name,
+                'active': active,
+                'networks': networks,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
+    safeNetwork (networkId) {
+        const networksById = {
+        };
+        return this.safeString (networksById, networkId, networkId);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+        };
+        const response = await this.privateGetWalletCryptoAddress (request);
+        return response;
+    }
+
+    async fetchBalance (params) {
+        const response = await this.privateGetSpotBalance ();
+        return response;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const url = this.urls['api'][api] + '/' + path;
+        const query = this.omit (params, this.extractParams (path));
+        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        let getRequest = undefined;
+        const keys = Object.keys (query);
+        const queryLength = keys.length;
+        if (method === 'GET') {
+            if (queryLength) {
+                getRequest = '?' + this.urlencode (query);
+                url = url + getRequest;
+            }
+        } else {
+            body = this.json (params);
+        }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ().toString ();
+            const payload = [ method, '/api/3/' + path ];
+            if (method === 'GET') {
+                if (getRequest !== undefined) {
+                    payload.push (getRequest);
+                }
+            } else {
+                payload.push (body);
+            }
+            payload.push (timestamp);
+            const payloadString = payload.join ('');
+            const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), 'sha256', 'hex');
+            const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
+            const encoded = this.stringToBase64 (secondPayload);
+            headers = {
+                'Authorization': 'HS256 ' + encoded,
+            };
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
