@@ -903,7 +903,7 @@ module.exports = class huobi extends Exchange {
             const chains = this.safeValue (entry, 'chains', []);
             const networks = {};
             const instStatus = this.safeString (entry, 'instStatus');
-            let currencyActive = instStatus === 'normal';
+            const currencyActive = instStatus === 'normal';
             let fee = undefined;
             let precision = undefined;
             let minWithdraw = undefined;
