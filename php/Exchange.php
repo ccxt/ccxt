@@ -1669,6 +1669,10 @@ class Exchange {
             throw new ExchangeNotAvailable(implode(' ', array($url, $method, $curl_errno, $curl_error)));
         }
 
+        if ($curl_errno !== 0) {
+            throw new NetworkError($this->id . ' unknown error: ' . $curl_error);
+        }
+
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
         $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $result);
 
