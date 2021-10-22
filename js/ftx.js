@@ -1004,12 +1004,13 @@ module.exports = class ftx extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, limit = undefined, start = undefined, end = undefined, params = {}) {
         //
         // Gets a history of funding rates with their timestamps
         //  (param) symbol: Future currency pair (e.g. "BTC-PERP")
         //  (param) limit: Not used by ftx
-        //  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) start: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) end: Unix timestamp in miliseconds for the time of the earliest requested funding rate
         //  return: [{symbol, fundingRate, timestamp}]
         //
         await this.loadMarkets ();
@@ -1018,8 +1019,11 @@ module.exports = class ftx extends Exchange {
             const market = this.market (symbol);
             request['future'] = market['id'];
         }
-        if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000);
+        if (start !== undefined) {
+            request['start_time'] = parseInt (start / 1000);
+        }
+        if (end !== undefined) {
+            request['end_time'] = parseInt (end / 1000);
         }
         const response = await this.publicGetFundingRates (this.extend (request, params));
         //
