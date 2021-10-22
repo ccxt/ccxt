@@ -1613,7 +1613,7 @@ module.exports = class gateio extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        if (since !== undefined && (market['swap'] || market['delivery'])) {
+        if (since !== undefined && (market['swap'] || market['futures'])) {
             request['from'] = parseInt (since / 1000);
         }
         const response = await this[method] (this.extend (request, params));
