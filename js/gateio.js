@@ -282,7 +282,6 @@ module.exports = class gateio extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
-                'password': true,
             },
             'options': {
                 'networks': {
