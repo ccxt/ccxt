@@ -1258,7 +1258,7 @@ module.exports = class huobi extends Exchange {
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
-        if (type === 'limit' || type === 'ioc' || type === 'limit-maker') {
+        if (type === 'limit' || type === 'ioc' || type === 'limit-maker' || type === 'stop-limit' || type === 'stop-limit-fok') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const method = this.options['createOrderMethod'];
