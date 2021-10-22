@@ -1913,4 +1913,12 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping')
         }
     }
+
+    isMarketType (market) {
+        const spot = market['spot'];
+        const margin = market['margin'];
+        const swap = market['swap'];
+        const futures = market['futures'];
+        return [spot, margin, swap, futures];
+    }
 }

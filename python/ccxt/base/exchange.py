@@ -2506,3 +2506,11 @@ class Exchange(object):
             return mapping[key]
         else:
             raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
+
+    def is_market_type(market):
+        # Returns boolean values for each market type
+        spot = market['spot']
+        margin = market['margin']
+        swap = market['swap']
+        futures = market['futures']
+        return [spot, margin, swap, futures]
