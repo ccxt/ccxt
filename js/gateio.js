@@ -1642,12 +1642,12 @@ module.exports = class gateio extends Exchange {
             request['from'] = parseInt (since / 1000);
             // request['to'] = since + 7 * 24 * 60 * 60;
         }
-        let method = 'privateSpotGetMyTrades';
-        if (market['swap']) {
-            method = 'privateFuturesGetSettleMyTrades';
-        } else if (market['futures']) {
-            method = 'privateDeliveryGetSettleMyTrades';
-        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateSpotGetMyTrades',
+            // 'margin': 'publicMarginGetCurrencyPairs',
+            'swap': 'privateFuturesGetSettleMyTrades',
+            'futures': 'privateDeliveryGetSettleMyTrades',
+        });
         const response = await this[method] (this.extend (request, params));
         // SPOT
         // [{
