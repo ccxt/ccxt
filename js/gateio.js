@@ -514,15 +514,13 @@ module.exports = class gateio extends Exchange {
         }
         let response = undefined;
         const result = [];
-        let method = 'publicSpotGetCurrencyPairs';
-        if (swap) {
-            method = 'publicFuturesGetSettleContracts';
-        } else if (futures) {
-            method = 'publicDeliveryGetSettleContracts';
-        } else if (margin) {
-            method = 'publicMarginGetCurrencyPairs';
-        }
-        if (futures || swap) {
+        const method = this.getSupportedMapping (type, {
+            'spot': 'publicSpotGetCurrencyPairs',
+            'margin': 'publicMarginGetCurrencyPairs',
+            'swap': 'publicFuturesGetSettleContracts',
+            'future': 'publicDeliveryGetSettleContracts',
+        });
+        if (future || swap) {
             const settlementCurrencies = this.getSettlementCurrencies (type, 'fetchMarkets');
             for (let c = 0; c < settlementCurrencies.length; c++) {
                 const settle = settlementCurrencies[c];
@@ -1170,15 +1168,13 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.prepareRequest (market);
-        const futures = market['futures'];
-        const swap = market['swap'];
         const spot = market['spot'];
-        let method = 'publicSpotGetOrderBook';
-        if (swap) {
-            method = 'publicFuturesGetSettleOrderBook';
-        } else if (futures) {
-            method = 'publicDeliveryGetSettleOrderBook';
-        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'publicSpotGetOrderBook',
+            // 'margin': 'publicMarginGetOrderBook',
+            'swap': 'publicFuturesGetSettleOrderBook',
+            'future': 'publicDeliveryGetSettleOrderBook',
+        });
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
         }
@@ -1257,22 +1253,13 @@ module.exports = class gateio extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'publicSpotGetTickers';
-        const id = market['id'];
-        const request = {};
-        const swap = market['swap'];
-        const futures = market['futures'];
-        if (swap || futures) {
-            request['contract'] = id;
-            request['settle'] = market['settleId'];
-            if (swap) {
-                method = 'publicFuturesGetTickers';
-            } else {
-                method = 'publicDeliveryGetTickers';
-            }
-        } else {
-            request['currency_pair'] = id;
-        }
+        const request = this.prepareRequest (market);
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'publicSpotGetTickers',
+            // 'margin': 'publicMarginGetTickers',
+            'swap': 'publicFuturesGetSettleTickers',
+            'future': 'publicDeliveryGetSettleTickers',
+        });
         const response = await this[method] (this.extend (request, params));
         const ticker = this.safeValue (response, 0);
         return this.parseTicker (ticker, market);
@@ -1354,22 +1341,17 @@ module.exports = class gateio extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        let method = 'publicSpotGetTickers';
+        const method = this.getSupportedMapping (type, {
+            'spot': 'publicSpotGetTickers',
+            // 'margin': 'publicMarginGetTickers',
+            'swap': 'publicFuturesGetSettleTickers',
+            'future': 'publicDeliveryGetSettleTickers',
+        });
         const request = {};
         const futures = type === 'future';
         const swap = type === 'swap';
-        if (swap || futures) {
-            if (swap) {
-                if (!params['settle']) {
-                    request['settle'] = 'usdt';
-                }
-                method = 'publicFuturesGetSettleTickers';
-            } else {
-                if (!params['settle']) {
-                    request['settle'] = 'btc';
-                }
-                method = 'publicDeliveryGetSettleTickers';
-            }
+        if ((swap || futures) && !params['settle']) {
+            request['settle'] = swap ? 'usdt' : 'btc';
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseTickers (response, symbols);
@@ -1384,13 +1366,13 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, 'type');
         const swap = type === 'swap';
         const future = type === 'future';
+        const method = this.getSupportedMapping (type, {
+            'spot': 'privateSpotGetAccounts',
+            // 'margin': 'publicMarginGetTickers',
+            'swap': 'privateFuturesGetSettleAccounts',
+            'future': 'privateDeliveryGetSettleAccounts',
+        });
         const request = {};
-        let method = 'privateSpotGetAccounts';
-        if (swap) {
-            method = 'privateFuturesGetSettleAccounts';
-        } else if (future) {
-            method = 'privateDeliveryGetSettleAccounts';
-        }
         let response = [];
         if (swap || future) {
             const defaultSettle = swap ? 'usdt' : 'btc';
@@ -1606,12 +1588,12 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.prepareRequest (market);
-        let method = 'publicSpotGetTrades';
-        if (market['swap']) {
-            method = 'publicFuturesGetSettleTrades';
-        } else if (market['futures']) {
-            method = 'publicDeliveryGetSettleTrades';
-        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'publicSpotGetTrades',
+            // 'margin': 'publicMarginGetTickers',
+            'swap': 'publicFuturesGetSettleTrades',
+            'future': 'publicDeliveryGetSettleTrades',
+        });
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
