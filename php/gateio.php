@@ -1617,7 +1617,7 @@ class gateio extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000
         }
-        if ($since !== null && ($market['swap'] || $market['delivery'])) {
+        if ($since !== null && ($market['swap'] || $market['futures'])) {
             $request['from'] = intval($since / 1000);
         }
         $response = $this->$method (array_merge($request, $params));

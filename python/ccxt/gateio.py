@@ -1567,7 +1567,7 @@ class gateio(Exchange):
             method = 'publicDeliveryGetSettleTrades'
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
-        if since is not None and (market['swap'] or market['delivery']):
+        if since is not None and (market['swap'] or market['futures']):
             request['from'] = int(since / 1000)
         response = getattr(self, method)(self.extend(request, params))
         #
