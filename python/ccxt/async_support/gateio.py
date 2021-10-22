@@ -297,7 +297,6 @@ class gateio(Exchange):
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': True,
-                'password': True,
             },
             'options': {
                 'networks': {

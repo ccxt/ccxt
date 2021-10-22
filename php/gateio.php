@@ -286,7 +286,6 @@ class gateio extends Exchange {
             'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,
-                'password' => true,
             ),
             'options' => array(
                 'networks' => array(
