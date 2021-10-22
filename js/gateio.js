@@ -1711,11 +1711,15 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         const id = this.safeString (trade, 'id');
-        const timestampString = this.safeString2 (trade, 'create_time_ms', 'time');
+        const timestampStringContract = this.safeString (trade, 'create_time');
+        const timestampString = this.safeString2 (trade, 'create_time_ms', 'time', timestampStringContract);
         let timestamp = undefined;
         if (timestampString.indexOf ('.') > 0) {
             const milliseconds = timestampString.split ('.');
             timestamp = parseInt (milliseconds[0]);
+        }
+        if (market['swap']) {
+            timestamp = timestamp * 1000;
         }
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
@@ -1724,7 +1728,8 @@ module.exports = class gateio extends Exchange {
         const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
         const amount = this.parseNumber (amountString);
         const price = this.parseNumber (priceString);
-        const side = this.safeString (trade, 'side');
+        const contractSide = amount > 0 ? 'enter' : 'exit';
+        const side = this.safeString (trade, 'side', contractSide);
         const orderId = this.safeString (trade, 'order_id');
         const gtFee = this.safeString (trade, 'gt_fee');
         let feeCurrency = undefined;
