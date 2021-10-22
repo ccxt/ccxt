@@ -489,7 +489,6 @@ class ftx extends Exchange {
                         'max' => null,
                     ),
                     'leverage' => array(
-                        'min' => 1,
                         'max' => 20,
                     ),
                 ),
@@ -1022,10 +1021,9 @@ class ftx extends Exchange {
             'future' => $market['id'],
         );
         if ($since !== null) {
-            $request['start_time'] = $since / 1000;
+            $request['start_time'] = intval($since / 1000);
         }
-        $method = 'publicGetFundingRates';
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = yield $this->publicGetFundingRates (array_merge($request, $params));
         //
         //     {
         //        "success" => true,

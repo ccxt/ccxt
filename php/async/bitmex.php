@@ -232,6 +232,7 @@ class bitmex extends Exchange {
             if ($tickSize !== null) {
                 $precision['price'] = $tickSize;
             }
+            $maxLeverage = $this->parse_number(Precise::string_div('1', $this->safe_string($market, 'initMargin', '1')));
             $limits = array(
                 'amount' => array(
                     'min' => null,
@@ -244,6 +245,9 @@ class bitmex extends Exchange {
                 'cost' => array(
                     'min' => null,
                     'max' => null,
+                ),
+                'leverage' => array(
+                    'max' => $maxLeverage,
                 ),
             );
             $limitField = ($position === $quote) ? 'cost' : 'amount';

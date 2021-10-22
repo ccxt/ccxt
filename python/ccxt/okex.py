@@ -697,6 +697,7 @@ class okex(Exchange):
         active = True
         fees = self.safe_value_2(self.fees, type, 'trading', {})
         contractSize = self.safe_string(market, 'ctVal')
+        leverage = self.safe_number(market, 'lever', 1)
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -727,6 +728,9 @@ class okex(Exchange):
                 'cost': {
                     'min': minCost,
                     'max': None,
+                },
+                'leverage': {
+                    'max': leverage,
                 },
             },
         })

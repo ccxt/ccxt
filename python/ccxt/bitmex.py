@@ -233,6 +233,7 @@ class bitmex(Exchange):
                 precision['amount'] = lotSize
             if tickSize is not None:
                 precision['price'] = tickSize
+            maxLeverage = self.parse_number(Precise.string_div('1', self.safe_string(market, 'initMargin', '1')))
             limits = {
                 'amount': {
                     'min': None,
@@ -245,6 +246,9 @@ class bitmex(Exchange):
                 'cost': {
                     'min': None,
                     'max': None,
+                },
+                'leverage': {
+                    'max': maxLeverage,
                 },
             }
             limitField = 'cost' if (position == quote) else 'amount'

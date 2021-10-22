@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.58.71';
+$version = '1.58.79';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.58.71';
+    const VERSION = '1.58.79';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -361,6 +361,7 @@ class Exchange {
         'safeNumber2' => 'safe_number2',
         'parsePrecision' => 'parse_precision',
         'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
+        'getSupportedMapping' => 'get_supported_mapping',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -3325,5 +3326,16 @@ class Exchange {
             }
         }
         return array($tag, $params);
+    }
+
+    public function get_supported_mapping($key, $mapping = array()) {
+        // Takes a key and a dictionary, and returns the dictionary's value for that key
+        // :throws:
+        //      NotSupported if the dictionary does not contain the key
+        if (in_array($key, $mapping)) {
+            return $mapping[$key];
+        } else {
+            throw new NotSupported ($this->id + ' ' + $key + ' does not have a value in mapping');
+        }
     }
 }

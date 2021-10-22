@@ -503,7 +503,6 @@ class ftx(Exchange):
                         'max': None,
                     },
                     'leverage': {
-                        'min': 1,
                         'max': 20,
                     },
                 },
@@ -1006,9 +1005,8 @@ class ftx(Exchange):
             'future': market['id'],
         }
         if since is not None:
-            request['start_time'] = since / 1000
-        method = 'publicGetFundingRates'
-        response = await getattr(self, method)(self.extend(request, params))
+            request['start_time'] = int(since / 1000)
+        response = await self.publicGetFundingRates(self.extend(request, params))
         #
         #     {
         #        "success": True,

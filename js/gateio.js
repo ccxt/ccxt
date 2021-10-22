@@ -153,6 +153,7 @@ module.exports = class gateio extends Exchange {
                     },
                     'margin': {
                         'get': {
+                            'accounts': 1.5,
                             'account_book': 1.5,
                             'funding_accounts': 1.5,
                             'loans': 1.5,
@@ -296,12 +297,12 @@ module.exports = class gateio extends Exchange {
                     'delivery': 'delivery',
                 },
                 'defaultType': 'spot',
-                'future': {
+                'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
                 },
-                'delivery': {
+                'future': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
@@ -356,7 +357,7 @@ module.exports = class gateio extends Exchange {
                         ],
                     },
                 },
-                'future': {
+                'swap': {
                     'tierBased': true,
                     'feeSide': 'base',
                     'percentage': true,
@@ -364,89 +365,42 @@ module.exports = class gateio extends Exchange {
                     'taker': this.parseNumber ('0.0005'),
                     'tiers': {
                         'maker': [
-                            this.parseNumber ('0.0000'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00008'),
-                            this.parseNumber ('-0.01000'),
-                            this.parseNumber ('-0.01002'),
-                            this.parseNumber ('-0.01005'),
-                            this.parseNumber ('-0.02000'),
-                            this.parseNumber ('-0.02005'),
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0000') ],
+                            [ this.parseNumber ('1.5'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('3'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('6'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('12.5'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('25'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('75'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('1250'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('2500'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('3000'), this.parseNumber ('-0.00008') ],
+                            [ this.parseNumber ('6000'), this.parseNumber ('-0.01000') ],
+                            [ this.parseNumber ('11000'), this.parseNumber ('-0.01002') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('-0.01005') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('-0.02000') ],
+                            [ this.parseNumber ('75000'), this.parseNumber ('-0.02005') ],
                         ],
                         'taker': [
-                            [this.parseNumber ('0.00050'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00048'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00046'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00044'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00042'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00040'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00038'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00036'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00034'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00032'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                        ],
-                    },
-                },
-                'delivery': {
-                    'tierBased': true,
-                    'feeSide': 'base',
-                    'percentage': true,
-                    'maker': this.parseNumber ('0.0'),
-                    'taker': this.parseNumber ('0.0005'),
-                    'tiers': {
-                        'maker': [
-                            this.parseNumber ('0.0000'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00008'),
-                            this.parseNumber ('-0.01000'),
-                            this.parseNumber ('-0.01002'),
-                            this.parseNumber ('-0.01005'),
-                            this.parseNumber ('-0.02000'),
-                            this.parseNumber ('-0.02005'),
-                        ],
-                        'taker': [
-                            [this.parseNumber ('0.00050'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00048'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00046'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00044'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00042'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00040'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00038'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00036'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00034'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00032'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.00050') ],
+                            [ this.parseNumber ('1.5'), this.parseNumber ('0.00048') ],
+                            [ this.parseNumber ('3'), this.parseNumber ('0.00046') ],
+                            [ this.parseNumber ('6'), this.parseNumber ('0.00044') ],
+                            [ this.parseNumber ('12.5'), this.parseNumber ('0.00042') ],
+                            [ this.parseNumber ('25'), this.parseNumber ('0.00040') ],
+                            [ this.parseNumber ('75'), this.parseNumber ('0.00038') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('0.00036') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('0.00034') ],
+                            [ this.parseNumber ('1250'), this.parseNumber ('0.00032') ],
+                            [ this.parseNumber ('2500'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('3000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('6000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('11000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('75000'), this.parseNumber ('0.00030') ],
                         ],
                     },
                 },
@@ -556,7 +510,7 @@ module.exports = class gateio extends Exchange {
         const swap = (type === 'swap');
         const option = (type === 'option');
         if (!spot && !margin && !futures && !swap) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap' or 'future'"); // eslint-disable-line quotes
         }
         let response = undefined;
         const result = [];
@@ -569,9 +523,7 @@ module.exports = class gateio extends Exchange {
             method = 'publicMarginGetCurrencyPairs';
         }
         if (futures || swap) {
-            const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
-            const fetchMarketsContractOptions = this.safeValue (options, 'fetchMarchets', {});
-            const settlementCurrencies = this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', ['usdt']);
+            const settlementCurrencies = this.getSettlementCurrencies (type, 'fetchMarkets');
             for (let c = 0; c < settlementCurrencies.length; c++) {
                 const settle = settlementCurrencies[c];
                 query['settle'] = settle;
@@ -681,6 +633,7 @@ module.exports = class gateio extends Exchange {
                     }
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
+                    const feeIndex = (type === 'future') ? 'swap' : type;
                     result.push ({
                         'info': market,
                         'id': id,
@@ -692,20 +645,18 @@ module.exports = class gateio extends Exchange {
                         'symbol': symbol,
                         'type': type,
                         'spot': spot,
+                        'margin': margin,
                         'futures': futures,
                         'swap': swap,
                         'option': option,
                         'linear': linear,
                         'inverse': inverse,
-                        'settle': settle,
                         // Fee is in %, so divide by 100
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                         'contractSize': this.safeString (market, 'contractSize', '1'),
-                        'contractType': linear ? 'Perpetual' : this.safeString (market, 'cycle'),
                         'limits': {
                             'leverage': {
-                                'min': this.safeNumber (market, 'leverage_min'),
                                 'max': this.safeNumber (market, 'leverage_max'),
                             },
                             'amount': {
@@ -714,7 +665,7 @@ module.exports = class gateio extends Exchange {
                             },
                         },
                         'expiry': this.safeInteger (market, 'expire_time'),
-                        'fees': this.fees[type],
+                        'fees': this.safeValue (this.fees, feeIndex, {}),
                     });
                 }
             }
@@ -778,6 +729,7 @@ module.exports = class gateio extends Exchange {
                     'symbol': symbol,
                     'type': type,
                     'spot': spot,
+                    'margin': margin,
                     'futures': futures,
                     'swap': swap,
                     'option': option,
@@ -804,6 +756,9 @@ module.exports = class gateio extends Exchange {
                             'min': this.safeNumber (market, 'min_quote_amount'),
                             'max': undefined,
                         },
+                        'leverage': {
+                            'max': this.safeNumber (market, 'lever', 1),
+                        },
                     },
                 });
             }
@@ -822,6 +777,13 @@ module.exports = class gateio extends Exchange {
                 'currency_pair': market['id'],
             };
         }
+    }
+
+    getSettlementCurrencies (type, method) {
+        const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
+        const fetchMarketsContractOptions = this.safeValue (options, method, {});
+        const defaultSettle = type === 'swap' ? ['usdt'] : ['btc'];
+        return this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
     }
 
     async fetchCurrencies (params = {}) {
@@ -1414,9 +1376,31 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        // :param params.type: spot, margin, crossMargin, swap or future
+        // :param params.settle: Settle currency (usdt or btc) for perpetual swap and futures
         await this.loadMarkets ();
-        const response = await this.privateSpotGetAccounts (params);
-        //
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        const swap = type === 'swap';
+        const future = type === 'future';
+        const request = {};
+        let method = 'privateSpotGetAccounts';
+        if (swap) {
+            method = 'privateFuturesGetSettleAccounts';
+        } else if (future) {
+            method = 'privateDeliveryGetSettleAccounts';
+        }
+        let response = [];
+        if (swap || future) {
+            const defaultSettle = swap ? 'usdt' : 'btc';
+            request['settle'] = this.safeString (params, 'settle', defaultSettle);
+            const response_item = await this[method] (this.extend (request, params));
+            response = [response_item];
+        } else {
+            response = await this[method] (this.extend (request, params));
+        }
+        //  SPOT
         //     [
         //       {
         //         "currency": "DBC",
@@ -1426,13 +1410,61 @@ module.exports = class gateio extends Exchange {
         //       ...
         //     ]
         //
+        //  Perpetual Swap
+        //  {
+        //     order_margin: "0",
+        //     point: "0",
+        //     bonus: "0",
+        //     history: {
+        //       dnw: "2.1321",
+        //       pnl: "11.5351",
+        //       refr: "0",
+        //       point_fee: "0",
+        //       fund: "-0.32340576684",
+        //       bonus_dnw: "0",
+        //       point_refr: "0",
+        //       bonus_offset: "0",
+        //       fee: "-0.20132775",
+        //       point_dnw: "0",
+        //     },
+        //     unrealised_pnl: "13.315100000006",
+        //     total: "12.51345151332",
+        //     available: "0",
+        //     in_dual_mode: false,
+        //     currency: "USDT",
+        //     position_margin: "12.51345151332",
+        //     user: "6333333",
+        //   }
+        //
+        //   Delivery Future
+        //   {
+        //     order_margin: "0",
+        //     point: "0",
+        //     history: {
+        //       dnw: "1",
+        //       pnl: "0",
+        //       refr: "0",
+        //       point_fee: "0",
+        //       point_dnw: "0",
+        //       settle: "0",
+        //       settle_fee: "0",
+        //       point_refr: "0",
+        //       fee: "0",
+        //     },
+        //     unrealised_pnl: "0",
+        //     total: "1",
+        //     available: "1",
+        //     currency: "USDT",
+        //     position_margin: "0",
+        //     user: "6333333",
+        //   }
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const account = this.account ();
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            account['used'] = this.safeString (entry, 'locked');
+            account['used'] = this.safeString2 (entry, 'locked', 'position_margin');
             account['free'] = this.safeString (entry, 'available');
             result[code] = account;
         }
@@ -1583,7 +1615,7 @@ module.exports = class gateio extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        if (since !== undefined && (market['swap'] || market['delivery'])) {
+        if (since !== undefined && (market['swap'] || market['futures'])) {
             request['from'] = parseInt (since / 1000);
         }
         const response = await this[method] (this.extend (request, params));
