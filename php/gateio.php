@@ -286,7 +286,6 @@ class gateio extends Exchange {
             'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,
-                'password' => true,
             ),
             'options' => array(
                 'networks' => array(
@@ -306,7 +305,7 @@ class gateio extends Exchange {
                         'settlementCurrencies' => array( 'usdt', 'btc' ),
                     ),
                 ),
-                'future' => array(
+                'futures' => array(
                     'fetchMarkets' => array(
                         'settlementCurrencies' => array( 'usdt', 'btc' ),
                     ),
@@ -503,29 +502,27 @@ class gateio extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        // :param $params['type'] => 'spot', 'margin', 'future' or 'delivery'
+        // :param $params['type'] => 'spot', 'margin', 'futures' or 'delivery'
         // :param $params['settle'] => The $quote currency
         $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
         $spot = ($type === 'spot');
         $margin = ($type === 'margin');
-        $futures = ($type === 'future');
+        $futures = ($type === 'futures');
         $swap = ($type === 'swap');
         $option = ($type === 'option');
         if (!$spot && !$margin && !$futures && !$swap) {
-            throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to " . "'spot', 'margin', 'swap' or 'future'"); // eslint-disable-line quotes
+            throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to " . "'spot', 'margin', 'swap' or 'futures'"); // eslint-disable-line quotes
         }
         $response = null;
         $result = array();
-        $method = 'publicSpotGetCurrencyPairs';
-        if ($swap) {
-            $method = 'publicFuturesGetSettleContracts';
-        } else if ($futures) {
-            $method = 'publicDeliveryGetSettleContracts';
-        } else if ($margin) {
-            $method = 'publicMarginGetCurrencyPairs';
-        }
+        $method = $this->get_supported_mapping($type, array(
+            'spot' => 'publicSpotGetCurrencyPairs',
+            'margin' => 'publicMarginGetCurrencyPairs',
+            'swap' => 'publicFuturesGetSettleContracts',
+            'futures' => 'publicDeliveryGetSettleContracts',
+        ));
         if ($futures || $swap) {
             $settlementCurrencies = $this->get_settlement_currencies($type, 'fetchMarkets');
             for ($c = 0; $c < count($settlementCurrencies); $c++) {
@@ -637,7 +634,7 @@ class gateio extends Exchange {
                     }
                     $takerPercent = $this->safe_string($market, 'taker_fee_rate');
                     $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
-                    $feeIndex = ($type === 'future') ? 'swap' : $type;
+                    $feeIndex = ($type === 'futures') ? 'swap' : $type;
                     $result[] = array(
                         'info' => $market,
                         'id' => $id,
@@ -709,7 +706,7 @@ class gateio extends Exchange {
                 $market = $response[$i];
                 $id = $this->safe_string($market, 'id');
                 $spot = ($type === 'spot');
-                $futures = ($type === 'future');
+                $futures = ($type === 'futures');
                 $swap = ($type === 'swap');
                 $option = ($type === 'option');
                 list($baseId, $quoteId) = explode('_', $id);
@@ -771,7 +768,7 @@ class gateio extends Exchange {
     }
 
     public function prepare_request($market) {
-        if ($market['type'] === 'future' || $market['type'] === 'swap') {
+        if ($market['type'] === 'futures' || $market['type'] === 'swap') {
             return array(
                 'contract' => $market['id'],
                 'settle' => $market['settleId'],
@@ -1174,15 +1171,13 @@ class gateio extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = $this->prepare_request($market);
-        $futures = $market['futures'];
-        $swap = $market['swap'];
         $spot = $market['spot'];
-        $method = 'publicSpotGetOrderBook';
-        if ($swap) {
-            $method = 'publicFuturesGetSettleOrderBook';
-        } else if ($futures) {
-            $method = 'publicDeliveryGetSettleOrderBook';
-        }
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'publicSpotGetOrderBook',
+            // 'margin' => 'publicMarginGetOrderBook',
+            'swap' => 'publicFuturesGetSettleOrderBook',
+            'futures' => 'publicDeliveryGetSettleOrderBook',
+        ));
         if ($limit !== null) {
             $request['limit'] = $limit; // default 10, max 100
         }
@@ -1261,22 +1256,13 @@ class gateio extends Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $method = 'publicSpotGetTickers';
-        $id = $market['id'];
-        $request = array();
-        $swap = $market['swap'];
-        $futures = $market['futures'];
-        if ($swap || $futures) {
-            $request['contract'] = $id;
-            $request['settle'] = $market['settleId'];
-            if ($swap) {
-                $method = 'publicFuturesGetTickers';
-            } else {
-                $method = 'publicDeliveryGetTickers';
-            }
-        } else {
-            $request['currency_pair'] = $id;
-        }
+        $request = $this->prepare_request($market);
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'publicSpotGetTickers',
+            // 'margin' => 'publicMarginGetTickers',
+            'swap' => 'publicFuturesGetSettleTickers',
+            'futures' => 'publicDeliveryGetSettleTickers',
+        ));
         $response = $this->$method (array_merge($request, $params));
         $ticker = $this->safe_value($response, 0);
         return $this->parse_ticker($ticker, $market);
@@ -1358,45 +1344,40 @@ class gateio extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
-        $method = 'publicSpotGetTickers';
+        $method = $this->get_supported_mapping($type, array(
+            'spot' => 'publicSpotGetTickers',
+            // 'margin' => 'publicMarginGetTickers',
+            'swap' => 'publicFuturesGetSettleTickers',
+            'futures' => 'publicDeliveryGetSettleTickers',
+        ));
         $request = array();
-        $futures = $type === 'future';
+        $futures = $type === 'futures';
         $swap = $type === 'swap';
-        if ($swap || $futures) {
-            if ($swap) {
-                if (!$params['settle']) {
-                    $request['settle'] = 'usdt';
-                }
-                $method = 'publicFuturesGetSettleTickers';
-            } else {
-                if (!$params['settle']) {
-                    $request['settle'] = 'btc';
-                }
-                $method = 'publicDeliveryGetSettleTickers';
-            }
+        if (($swap || $futures) && !$params['settle']) {
+            $request['settle'] = $swap ? 'usdt' : 'btc';
         }
         $response = $this->$method (array_merge($request, $params));
         return $this->parse_tickers($response, $symbols);
     }
 
     public function fetch_balance($params = array ()) {
-        // :param $params->type => spot, margin, crossMargin, $swap or $future
-        // :param $params->settle => Settle currency (usdt or btc) for perpetual $swap and futures
+        // :param $params->type => spot, margin, crossMargin, $swap or future
+        // :param $params->settle => Settle currency (usdt or btc) for perpetual $swap and $futures
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
         $swap = $type === 'swap';
-        $future = $type === 'future';
+        $futures = $type === 'futures';
+        $method = $this->get_supported_mapping($type, array(
+            'spot' => 'privateSpotGetAccounts',
+            // 'margin' => 'publicMarginGetTickers',
+            'swap' => 'privateFuturesGetSettleAccounts',
+            'futures' => 'privateDeliveryGetSettleAccounts',
+        ));
         $request = array();
-        $method = 'privateSpotGetAccounts';
-        if ($swap) {
-            $method = 'privateFuturesGetSettleAccounts';
-        } else if ($future) {
-            $method = 'privateDeliveryGetSettleAccounts';
-        }
         $response = array();
-        if ($swap || $future) {
+        if ($swap || $futures) {
             $defaultSettle = $swap ? 'usdt' : 'btc';
             $request['settle'] = $this->safe_string($params, 'settle', $defaultSettle);
             $response_item = $this->$method (array_merge($request, $params));
@@ -1482,7 +1463,7 @@ class gateio extends Exchange {
         $params = $this->omit($params, 'price');
         $isMark = ($price === 'mark');
         $isIndex = ($price === 'index');
-        $future = $market['futures'];
+        $futures = $market['futures'];
         $swap = $market['swap'];
         $request = array(
             'interval' => $this->timeframes[$timeframe],
@@ -1498,9 +1479,9 @@ class gateio extends Exchange {
             }
         }
         $method = 'publicSpotGetCandlesticks';
-        if ($isMark || $isIndex || $future || $swap) {
+        if ($isMark || $isIndex || $futures || $swap) {
             $request['contract'] = $market['id'];
-            if ($future) {
+            if ($futures) {
                 $method = 'publicDeliveryGetSettleCandlesticks';
             } else {
                 $method = 'publicFuturesGetSettleCandlesticks';
@@ -1610,12 +1591,12 @@ class gateio extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = $this->prepare_request($market);
-        $method = 'publicSpotGetTrades';
-        if ($market['swap']) {
-            $method = 'publicFuturesGetSettleTrades';
-        } else if ($market['futures']) {
-            $method = 'publicDeliveryGetSettleTrades';
-        }
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'publicSpotGetTrades',
+            // 'margin' => 'publicMarginGetTickers',
+            'swap' => 'publicFuturesGetSettleTrades',
+            'futures' => 'publicDeliveryGetSettleTrades',
+        ));
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000
         }
@@ -2172,7 +2153,7 @@ class gateio extends Exchange {
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $authentication = $api[0]; // public, private
-        $type = $api[1]; // spot, margin, future, delivery
+        $type = $api[1]; // spot, margin, futures, delivery
         $query = $this->omit($params, $this->extract_params($path));
         $path = $this->implode_params($path, $params);
         $endPart = ($path === '' ? '' : '/' . $path);

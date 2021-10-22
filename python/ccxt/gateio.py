@@ -297,7 +297,6 @@ class gateio(Exchange):
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': True,
-                'password': True,
             },
             'options': {
                 'networks': {
@@ -317,7 +316,7 @@ class gateio(Exchange):
                         'settlementCurrencies': ['usdt', 'btc'],
                     },
                 },
-                'future': {
+                'futures': {
                     'fetchMarkets': {
                         'settlementCurrencies': ['usdt', 'btc'],
                     },
@@ -513,27 +512,26 @@ class gateio(Exchange):
         })
 
     def fetch_markets(self, params={}):
-        # :param params['type']: 'spot', 'margin', 'future' or 'delivery'
+        # :param params['type']: 'spot', 'margin', 'futures' or 'delivery'
         # :param params['settle']: The quote currency
         defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
         spot = (type == 'spot')
         margin = (type == 'margin')
-        futures = (type == 'future')
+        futures = (type == 'futures')
         swap = (type == 'swap')
         option = (type == 'option')
         if not spot and not margin and not futures and not swap:
-            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap' or 'future'")  # eslint-disable-line quotes
+            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap' or 'futures'")  # eslint-disable-line quotes
         response = None
         result = []
-        method = 'publicSpotGetCurrencyPairs'
-        if swap:
-            method = 'publicFuturesGetSettleContracts'
-        elif futures:
-            method = 'publicDeliveryGetSettleContracts'
-        elif margin:
-            method = 'publicMarginGetCurrencyPairs'
+        method = self.get_supported_mapping(type, {
+            'spot': 'publicSpotGetCurrencyPairs',
+            'margin': 'publicMarginGetCurrencyPairs',
+            'swap': 'publicFuturesGetSettleContracts',
+            'futures': 'publicDeliveryGetSettleContracts',
+        })
         if futures or swap:
             settlementCurrencies = self.get_settlement_currencies(type, 'fetchMarkets')
             for c in range(0, len(settlementCurrencies)):
@@ -644,7 +642,7 @@ class gateio(Exchange):
                         symbol = base + '/' + quote + ':' + self.safe_currency_code(settle)
                     takerPercent = self.safe_string(market, 'taker_fee_rate')
                     makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
-                    feeIndex = 'swap' if (type == 'future') else type
+                    feeIndex = 'swap' if (type == 'futures') else type
                     result.append({
                         'info': market,
                         'id': id,
@@ -714,7 +712,7 @@ class gateio(Exchange):
                 market = response[i]
                 id = self.safe_string(market, 'id')
                 spot = (type == 'spot')
-                futures = (type == 'future')
+                futures = (type == 'futures')
                 swap = (type == 'swap')
                 option = (type == 'option')
                 baseId, quoteId = id.split('_')
@@ -773,7 +771,7 @@ class gateio(Exchange):
         return result
 
     def prepare_request(self, market):
-        if market['type'] == 'future' or market['type'] == 'swap':
+        if market['type'] == 'futures' or market['type'] == 'swap':
             return {
                 'contract': market['id'],
                 'settle': market['settleId'],
@@ -1157,14 +1155,13 @@ class gateio(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = self.prepare_request(market)
-        futures = market['futures']
-        swap = market['swap']
         spot = market['spot']
-        method = 'publicSpotGetOrderBook'
-        if swap:
-            method = 'publicFuturesGetSettleOrderBook'
-        elif futures:
-            method = 'publicDeliveryGetSettleOrderBook'
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'publicSpotGetOrderBook',
+            # 'margin': 'publicMarginGetOrderBook',
+            'swap': 'publicFuturesGetSettleOrderBook',
+            'futures': 'publicDeliveryGetSettleOrderBook',
+        })
         if limit is not None:
             request['limit'] = limit  # default 10, max 100
         response = getattr(self, method)(self.extend(request, params))
@@ -1240,20 +1237,13 @@ class gateio(Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        method = 'publicSpotGetTickers'
-        id = market['id']
-        request = {}
-        swap = market['swap']
-        futures = market['futures']
-        if swap or futures:
-            request['contract'] = id
-            request['settle'] = market['settleId']
-            if swap:
-                method = 'publicFuturesGetTickers'
-            else:
-                method = 'publicDeliveryGetTickers'
-        else:
-            request['currency_pair'] = id
+        request = self.prepare_request(market)
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'publicSpotGetTickers',
+            # 'margin': 'publicMarginGetTickers',
+            'swap': 'publicFuturesGetSettleTickers',
+            'futures': 'publicDeliveryGetSettleTickers',
+        })
         response = getattr(self, method)(self.extend(request, params))
         ticker = self.safe_value(response, 0)
         return self.parse_ticker(ticker, market)
@@ -1333,19 +1323,17 @@ class gateio(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
-        method = 'publicSpotGetTickers'
+        method = self.get_supported_mapping(type, {
+            'spot': 'publicSpotGetTickers',
+            # 'margin': 'publicMarginGetTickers',
+            'swap': 'publicFuturesGetSettleTickers',
+            'futures': 'publicDeliveryGetSettleTickers',
+        })
         request = {}
-        futures = type == 'future'
+        futures = type == 'futures'
         swap = type == 'swap'
-        if swap or futures:
-            if swap:
-                if not params['settle']:
-                    request['settle'] = 'usdt'
-                method = 'publicFuturesGetSettleTickers'
-            else:
-                if not params['settle']:
-                    request['settle'] = 'btc'
-                method = 'publicDeliveryGetSettleTickers'
+        if (swap or futures) and not params['settle']:
+            request['settle'] = 'usdt' if swap else 'btc'
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_tickers(response, symbols)
 
@@ -1357,15 +1345,16 @@ class gateio(Exchange):
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
         swap = type == 'swap'
-        future = type == 'future'
+        futures = type == 'futures'
+        method = self.get_supported_mapping(type, {
+            'spot': 'privateSpotGetAccounts',
+            # 'margin': 'publicMarginGetTickers',
+            'swap': 'privateFuturesGetSettleAccounts',
+            'futures': 'privateDeliveryGetSettleAccounts',
+        })
         request = {}
-        method = 'privateSpotGetAccounts'
-        if swap:
-            method = 'privateFuturesGetSettleAccounts'
-        elif future:
-            method = 'privateDeliveryGetSettleAccounts'
         response = []
-        if swap or future:
+        if swap or futures:
             defaultSettle = 'usdt' if swap else 'btc'
             request['settle'] = self.safe_string(params, 'settle', defaultSettle)
             response_item = getattr(self, method)(self.extend(request, params))
@@ -1448,7 +1437,7 @@ class gateio(Exchange):
         params = self.omit(params, 'price')
         isMark = (price == 'mark')
         isIndex = (price == 'index')
-        future = market['futures']
+        futures = market['futures']
         swap = market['swap']
         request = {
             'interval': self.timeframes[timeframe],
@@ -1461,9 +1450,9 @@ class gateio(Exchange):
             if limit is not None:
                 request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe) - 1)
         method = 'publicSpotGetCandlesticks'
-        if isMark or isIndex or future or swap:
+        if isMark or isIndex or futures or swap:
             request['contract'] = market['id']
-            if future:
+            if futures:
                 method = 'publicDeliveryGetSettleCandlesticks'
             else:
                 method = 'publicFuturesGetSettleCandlesticks'
@@ -1562,11 +1551,12 @@ class gateio(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = self.prepare_request(market)
-        method = 'publicSpotGetTrades'
-        if market['swap']:
-            method = 'publicFuturesGetSettleTrades'
-        elif market['futures']:
-            method = 'publicDeliveryGetSettleTrades'
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'publicSpotGetTrades',
+            # 'margin': 'publicMarginGetTickers',
+            'swap': 'publicFuturesGetSettleTrades',
+            'futures': 'publicDeliveryGetSettleTrades',
+        })
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
         if since is not None and (market['swap'] or market['futures']):
@@ -2078,7 +2068,7 @@ class gateio(Exchange):
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         authentication = api[0]  # public, private
-        type = api[1]  # spot, margin, future, delivery
+        type = api[1]  # spot, margin, futures, delivery
         query = self.omit(params, self.extract_params(path))
         path = self.implode_params(path, params)
         endPart = (path == '' if '' else '/' + path)
