@@ -3335,7 +3335,7 @@ class Exchange {
         if (in_array($key, $mapping)) {
             return $mapping[$key];
         } else {
-            throw new NotSupported ($this->id + ' ' + $key + ' does not have a value in mapping');
+            throw new NotSupported ($this->id . ' ' . $key . ' does not have a value in mapping');
         }
     }
 }
