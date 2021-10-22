@@ -3,7 +3,6 @@
 
 import os
 import sys
-from asyncio import get_event_loop
 
 # -----------------------------------------------------------------------------
 
@@ -14,7 +13,7 @@ sys.path.append(this_folder)
 
 # -----------------------------------------------------------------------------
 
-import ccxt.async_support as ccxt  # noqa: E402
+import ccxt  # noqa: E402
 
 # -----------------------------------------------------------------------------
 
@@ -30,27 +29,22 @@ def table(values):
     return "\n".join([string.format(*[str(v[k]) for k in keys]) for v in values])
 
 
-async def main():
-    exchange = ccxt.binanceusdm()
-    try:
-        await exchange.load_markets()
-        timeframe = '1m'
-        limit = 1
-        symbol = 'BTC/USDT'
-        market = exchange.market(symbol)
-        timeframe = '1m'
-        params = {
-            'pair': market['id'],
-            'contractType': 'PERPETUAL',  # 'PERPETUAL', 'CURRENT_MONTH', 'NEXT_MONTH', 'CURRENT_QUARTER', 'NEXT_QUARTER'
-            'interval': exchange.timeframes[timeframe],
-        }
-        # https://binance-docs.github.io/apidocs/futures/en/#continuous-contract-kline-candlestick-data
-        ohlcvs = await exchange.fapiPublic_get_continuousklines(params)
-        print(table([o for o in ohlcvs]))
-        print(table([[exchange.iso8601(int(o[0]))] + o[1:] for o in ohlcvs]))
-    except Exception as e:
-        print(type(e).__name__, str(e))
-    await exchange.close()
-
-loop = get_event_loop()
-loop.run_until_complete(main())
+exchange = ccxt.binanceusdm()
+try:
+    exchange.load_markets()
+    timeframe = '1m'
+    limit = 1
+    symbol = 'BTC/USDT'
+    market = exchange.market(symbol)
+    timeframe = '1m'
+    params = {
+        'pair': market['id'],
+        'contractType': 'PERPETUAL',  # 'PERPETUAL', 'CURRENT_MONTH', 'NEXT_MONTH', 'CURRENT_QUARTER', 'NEXT_QUARTER'
+        'interval': exchange.timeframes[timeframe],
+    }
+    # https://binance-docs.github.io/apidocs/futures/en/#continuous-contract-kline-candlestick-data
+    ohlcvs = exchange.fapiPublic_get_continuousklines(params)
+    print(table([o for o in ohlcvs]))
+    print(table([[exchange.iso8601(int(o[0]))] + o[1:] for o in ohlcvs]))
+except Exception as e:
+    print(type(e).__name__, str(e))
