@@ -3872,21 +3872,24 @@ module.exports = class binance extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    async fetchFundingRateHistory (symbol, limit = undefined, since = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
+        const request = {};
+        let method = 'fapiPublicGetFundingRate';
+        if (symbol) {
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+            if (market['inverse']) {
+                method = 'dapiPublicGetFundingRate';
+            }
+        } else if ('type' in params && params['type'] === 'future') {
+            method = 'dapiPublicGetFundingRate';
+        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
-        }
-        let method = 'fapiPublicGetFundingRate';
-        if (market['inverse']) {
-            method = 'dapiPublicGetFundingRate';
         }
         const response = await this[method] (this.extend (request, params));
         //
