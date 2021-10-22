@@ -1725,10 +1725,10 @@ module.exports = class gateio extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
-        const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
+        const cost = Math.abs (this.parseNumber (Precise.stringMul (amountString, priceString)));
         const amount = this.parseNumber (amountString);
         const price = this.parseNumber (priceString);
-        const contractSide = amount > 0 ? 'enter' : 'exit';
+        const contractSide = amount > 0 ? 'buy' : 'sell';
         const side = this.safeString (trade, 'side', contractSide);
         const orderId = this.safeString (trade, 'order_id');
         const gtFee = this.safeString (trade, 'gt_fee');
@@ -1757,7 +1757,7 @@ module.exports = class gateio extends Exchange {
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'amount': amount,
+            'amount': Math.abs (amount),
             'cost': cost,
             'fee': fee,
         };
