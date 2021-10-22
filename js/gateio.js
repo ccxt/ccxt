@@ -1510,8 +1510,11 @@ module.exports = class gateio extends Exchange {
         return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
-    async fetchFundingRateHistory (symbol, limit = undefined, since = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
         await this.loadMarkets ();
+        if (!symbol) {
+            throw new ArgumentsRequired ('Parameter symbol required for fetchFundingRateHistory using gateio');
+        }
         const market = this.market (symbol);
         const request = {
             'contract': market['id'],
