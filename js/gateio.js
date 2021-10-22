@@ -302,7 +302,7 @@ module.exports = class gateio extends Exchange {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
                 },
-                'future': {
+                'futures': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
@@ -499,18 +499,18 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        // :param params['type']: 'spot', 'margin', 'future' or 'delivery'
+        // :param params['type']: 'spot', 'margin', 'futures' or 'delivery'
         // :param params['settle']: The quote currency
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         const spot = (type === 'spot');
         const margin = (type === 'margin');
-        const futures = (type === 'future');
+        const futures = (type === 'futures');
         const swap = (type === 'swap');
         const option = (type === 'option');
         if (!spot && !margin && !futures && !swap) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap' or 'future'"); // eslint-disable-line quotes
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap' or 'futures'"); // eslint-disable-line quotes
         }
         let response = undefined;
         const result = [];
@@ -631,7 +631,7 @@ module.exports = class gateio extends Exchange {
                     }
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
-                    const feeIndex = (type === 'future') ? 'swap' : type;
+                    const feeIndex = (type === 'futures') ? 'swap' : type;
                     result.push ({
                         'info': market,
                         'id': id,
@@ -703,7 +703,7 @@ module.exports = class gateio extends Exchange {
                 const market = response[i];
                 const id = this.safeString (market, 'id');
                 const spot = (type === 'spot');
-                const futures = (type === 'future');
+                const futures = (type === 'futures');
                 const swap = (type === 'swap');
                 const option = (type === 'option');
                 const [ baseId, quoteId ] = id.split ('_');
@@ -765,7 +765,7 @@ module.exports = class gateio extends Exchange {
     }
 
     prepareRequest (market) {
-        if (market['type'] === 'future' || market['type'] === 'swap') {
+        if (market['type'] === 'futures' || market['type'] === 'swap') {
             return {
                 'contract': market['id'],
                 'settle': market['settleId'],
@@ -1348,7 +1348,7 @@ module.exports = class gateio extends Exchange {
             'future': 'publicDeliveryGetSettleTickers',
         });
         const request = {};
-        const futures = type === 'future';
+        const futures = type === 'futures';
         const swap = type === 'swap';
         if ((swap || futures) && !params['settle']) {
             request['settle'] = swap ? 'usdt' : 'btc';
@@ -1365,7 +1365,7 @@ module.exports = class gateio extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         const swap = type === 'swap';
-        const future = type === 'future';
+        const futures = type === 'futures';
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetAccounts',
             // 'margin': 'publicMarginGetTickers',
@@ -1374,7 +1374,7 @@ module.exports = class gateio extends Exchange {
         });
         const request = {};
         let response = [];
-        if (swap || future) {
+        if (swap || futures) {
             const defaultSettle = swap ? 'usdt' : 'btc';
             request['settle'] = this.safeString (params, 'settle', defaultSettle);
             const response_item = await this[method] (this.extend (request, params));
@@ -1460,7 +1460,7 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, 'price');
         const isMark = (price === 'mark');
         const isIndex = (price === 'index');
-        const future = market['futures'];
+        const futures = market['futures'];
         const swap = market['swap'];
         const request = {
             'interval': this.timeframes[timeframe],
@@ -1478,7 +1478,7 @@ module.exports = class gateio extends Exchange {
         let method = 'publicSpotGetCandlesticks';
         if (isMark || isIndex || future || swap) {
             request['contract'] = market['id'];
-            if (future) {
+            if (futures) {
                 method = 'publicDeliveryGetSettleCandlesticks';
             } else {
                 method = 'publicFuturesGetSettleCandlesticks';
