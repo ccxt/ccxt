@@ -2515,7 +2515,7 @@ class okex3 extends Exchange {
         }
         $fee = $this->safe_string($params, 'fee');
         if ($fee === null) {
-            throw new ArgumentsRequired($this->id . " withdraw() requires a `$fee` string parameter, network transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set '0'. Withdrawing to external digital asset $address requires network transaction $fee->");
+            throw new ArgumentsRequired($this->id . " withdraw() requires a 'fee' string parameter, network transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set '0'. Withdrawing to external digital asset $address requires network transaction $fee->");
         }
         $request = array(
             'currency' => $currency['id'],
