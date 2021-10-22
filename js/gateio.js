@@ -518,9 +518,9 @@ module.exports = class gateio extends Exchange {
             'spot': 'publicSpotGetCurrencyPairs',
             'margin': 'publicMarginGetCurrencyPairs',
             'swap': 'publicFuturesGetSettleContracts',
-            'future': 'publicDeliveryGetSettleContracts',
+            'futures': 'publicDeliveryGetSettleContracts',
         });
-        if (future || swap) {
+        if (futures || swap) {
             const settlementCurrencies = this.getSettlementCurrencies (type, 'fetchMarkets');
             for (let c = 0; c < settlementCurrencies.length; c++) {
                 const settle = settlementCurrencies[c];
@@ -1173,7 +1173,7 @@ module.exports = class gateio extends Exchange {
             'spot': 'publicSpotGetOrderBook',
             // 'margin': 'publicMarginGetOrderBook',
             'swap': 'publicFuturesGetSettleOrderBook',
-            'future': 'publicDeliveryGetSettleOrderBook',
+            'futures': 'publicDeliveryGetSettleOrderBook',
         });
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
@@ -1258,7 +1258,7 @@ module.exports = class gateio extends Exchange {
             'spot': 'publicSpotGetTickers',
             // 'margin': 'publicMarginGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
-            'future': 'publicDeliveryGetSettleTickers',
+            'futures': 'publicDeliveryGetSettleTickers',
         });
         const response = await this[method] (this.extend (request, params));
         const ticker = this.safeValue (response, 0);
@@ -1345,7 +1345,7 @@ module.exports = class gateio extends Exchange {
             'spot': 'publicSpotGetTickers',
             // 'margin': 'publicMarginGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
-            'future': 'publicDeliveryGetSettleTickers',
+            'futures': 'publicDeliveryGetSettleTickers',
         });
         const request = {};
         const futures = type === 'futures';
@@ -1370,7 +1370,7 @@ module.exports = class gateio extends Exchange {
             'spot': 'privateSpotGetAccounts',
             // 'margin': 'publicMarginGetTickers',
             'swap': 'privateFuturesGetSettleAccounts',
-            'future': 'privateDeliveryGetSettleAccounts',
+            'futures': 'privateDeliveryGetSettleAccounts',
         });
         const request = {};
         let response = [];
@@ -1476,7 +1476,7 @@ module.exports = class gateio extends Exchange {
             }
         }
         let method = 'publicSpotGetCandlesticks';
-        if (isMark || isIndex || future || swap) {
+        if (isMark || isIndex || futures || swap) {
             request['contract'] = market['id'];
             if (futures) {
                 method = 'publicDeliveryGetSettleCandlesticks';
@@ -1592,7 +1592,7 @@ module.exports = class gateio extends Exchange {
             'spot': 'publicSpotGetTrades',
             // 'margin': 'publicMarginGetTickers',
             'swap': 'publicFuturesGetSettleTrades',
-            'future': 'publicDeliveryGetSettleTrades',
+            'futures': 'publicDeliveryGetSettleTrades',
         });
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
@@ -2150,7 +2150,7 @@ module.exports = class gateio extends Exchange {
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
-        const type = api[1]; // spot, margin, future, delivery
+        const type = api[1]; // spot, margin, futures, delivery
         const query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
         const endPart = (path === '' ? '' : '/' + path);
