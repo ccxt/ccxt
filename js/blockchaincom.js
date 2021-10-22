@@ -4,7 +4,7 @@
 // Started Writing on Monday 27th September 2021
 //  ---------------------------------------------------------------------------
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 // const Precise = require ('./base/Precise');
 
@@ -84,12 +84,12 @@ module.exports = class blockchaincom extends Exchange {
                         'fees', // fetchFees
                         'orders', // fetchOpenOrders, fetchClosedOrders
                         'orders/{orderId}', // fetchOrder(id)
-                        'trades', // TODO
-                        'fills', // TODO
+                        'trades', // ** NULL
+                        'fills', // fetchMyTrades
                         'deposits', // fetchDeposits
-                        'deposits/{depositId}', // fetchOrder
+                        'deposits/{depositId}', // fetchDeposit
                         'accounts', // fetchBalance
-                        'accounts/{account}/{currency}', // ** NULL
+                        'accounts/{account}/{currency}', // ** unused
                         'whitelist', // fetchWithdrawalWhitelist
                         'whitelist/{currency}', // fetchWithdrawalWhitelistByCurrency
                         'withdrawals', // fetchWithdrawalWhitelist
@@ -101,8 +101,8 @@ module.exports = class blockchaincom extends Exchange {
                         'withdrawals', // withdraw
                     ],
                     'delete': [
-                        'orders', //
-                        'orders/{orderId}', // TODO
+                        'orders', // cancelOrders
+                        'orders/{orderId}', // cancelOrder
                     ],
                 },
             },
@@ -150,6 +150,9 @@ module.exports = class blockchaincom extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '401': AuthenticationError,
+                    '404': OrderNotFound,
+                    // 500 insufficient funds
                     // 'errorCode' : unifiedErrorMethod, ... populate via testing
                 },
                 'broad': {
@@ -258,7 +261,7 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        return this.fetchL3OrderBook (symbol, limit, params);
+        return await this.fetchL3OrderBook (symbol, limit, params);
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
@@ -779,12 +782,22 @@ module.exports = class blockchaincom extends Exchange {
         return this.parseTransactions (response, code, since, limit);
     }
 
+    async fetchDeposit (id, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        const depositId = this.safeString (params, 'depositId', id);
+        const request = {
+            'depositId': depositId,
+        };
+        const deposit = await this.privateGetDepositsDepositId (this.extend (request, params));
+        return this.parseTransaction (deposit);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const accountName = this.safeString (params, 'account', 'primary');
         params = this.omit (params, 'account');
         const request = {
-            // 'currency' = exchange-specific currency id
+            'account': accountName,
         };
         const response = await this.privateGetAccounts (this.extend (request, params));
         // {"primary":
@@ -839,12 +852,6 @@ module.exports = class blockchaincom extends Exchange {
         return this.parseOrder (response);
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (response === undefined) {
-            return true;
-        }
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const requestPath = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + requestPath;
@@ -868,5 +875,25 @@ module.exports = class blockchaincom extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
+        if (response === undefined) {
+            return;
+        }
+        const text = this.safeString (response, 'text', undefined);
+        if (text !== undefined) { // if trade currency account is empty returns 200 with rejected order
+            if (text === 'Insufficient Balance') {
+                throw new InsufficientFunds (this.id + ' ' + body);
+            }
+        }
+        const errorCode = this.safeString (response, 'status');
+        const errorMessage = this.safeString (response, 'error');
+        if (code !== undefined) {
+            const feedback = this.id + ' ' + this.json (response);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+        }
     }
 };
