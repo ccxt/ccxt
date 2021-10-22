@@ -689,6 +689,7 @@ module.exports = class okex extends Exchange {
         const active = true;
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
         const contractSize = this.safeString (market, 'ctVal');
+        const leverage = this.safeNumber (market, 'lever', 1);
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -719,6 +720,9 @@ module.exports = class okex extends Exchange {
                 'cost': {
                     'min': minCost,
                     'max': undefined,
+                },
+                'leverage': {
+                    'max': leverage,
                 },
             },
         });
