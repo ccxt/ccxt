@@ -528,6 +528,7 @@ class bybit(Exchange):
                 'amount': self.safe_number(lotSizeFilter, 'qty_step'),
                 'price': self.safe_number(priceFilter, 'tick_size'),
             }
+            leverage = self.safe_value(market, 'leverage_filter', {})
             status = self.safe_string(market, 'status')
             active = None
             if status is not None:
@@ -564,6 +565,9 @@ class bybit(Exchange):
                     'cost': {
                         'min': None,
                         'max': None,
+                    },
+                    'leverage': {
+                        'max': self.safe_number(leverage, 'max_leverage', 1),
                     },
                 },
                 'info': market,

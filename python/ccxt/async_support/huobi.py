@@ -460,6 +460,10 @@ class huobi(Exchange):
                         'min': minCost,
                         'max': None,
                     },
+                    'leverage': {
+                        'max': self.safe_number(market, 'leverage-ratio', 1),
+                        'superMax': self.safe_number(market, 'super-margin-leverage-ratio', 1),
+                    },
                 },
                 'info': market,
             })

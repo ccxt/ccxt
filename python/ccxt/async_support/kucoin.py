@@ -487,6 +487,9 @@ class kucoin(Exchange):
                     'min': quoteMinSize,
                     'max': quoteMaxSize,
                 },
+                'leverage': {
+                    'max': self.safe_number(market, 'maxLeverage', 1),  # * Don't default to 1 for margin markets, leverage is located elsewhere
+                },
             }
             result.append({
                 'id': id,

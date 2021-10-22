@@ -693,6 +693,7 @@ class okex extends Exchange {
         $active = true;
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
         $contractSize = $this->safe_string($market, 'ctVal');
+        $leverage = $this->safe_number($market, 'lever', 1);
         return array_merge($fees, array(
             'id' => $id,
             'symbol' => $symbol,
@@ -723,6 +724,9 @@ class okex extends Exchange {
                 'cost' => array(
                     'min' => $minCost,
                     'max' => null,
+                ),
+                'leverage' => array(
+                    'max' => $leverage,
                 ),
             ),
         ));

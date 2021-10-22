@@ -382,7 +382,6 @@ class kraken extends Exchange {
                         'max' => null,
                     ),
                     'leverage' => array(
-                        'min' => 1,
                         'max' => $maxLeverage,
                     ),
                 ),

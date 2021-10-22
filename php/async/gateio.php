@@ -661,7 +661,6 @@ class gateio extends Exchange {
                         'contractSize' => $this->safe_string($market, 'contractSize', '1'),
                         'limits' => array(
                             'leverage' => array(
-                                'min' => $this->safe_number($market, 'leverage_min'),
                                 'max' => $this->safe_number($market, 'leverage_max'),
                             ),
                             'amount' => array(
@@ -759,6 +758,9 @@ class gateio extends Exchange {
                         'cost' => array(
                             'min' => $this->safe_number($market, 'min_quote_amount'),
                             'max' => null,
+                        ),
+                        'leverage' => array(
+                            'max' => $this->safe_number($market, 'lever', 1),
                         ),
                     ),
                 );

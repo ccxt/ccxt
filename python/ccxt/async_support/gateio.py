@@ -667,7 +667,6 @@ class gateio(Exchange):
                         'contractSize': self.safe_string(market, 'contractSize', '1'),
                         'limits': {
                             'leverage': {
-                                'min': self.safe_number(market, 'leverage_min'),
                                 'max': self.safe_number(market, 'leverage_max'),
                             },
                             'amount': {
@@ -763,6 +762,9 @@ class gateio(Exchange):
                         'cost': {
                             'min': self.safe_number(market, 'min_quote_amount'),
                             'max': None,
+                        },
+                        'leverage': {
+                            'max': self.safe_number(market, 'lever', 1),
                         },
                     },
                 })

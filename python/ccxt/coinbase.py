@@ -557,6 +557,9 @@ class coinbase(Exchange):
                                 'min': self.safe_number(quoteCurrency, 'min_size'),
                                 'max': None,
                             },
+                            'leverage': {
+                                'max': 1,
+                            },
                         },
                     })
         return result

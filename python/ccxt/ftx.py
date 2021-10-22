@@ -503,7 +503,6 @@ class ftx(Exchange):
                         'max': None,
                     },
                     'leverage': {
-                        'min': 1,
                         'max': 20,
                     },
                 },

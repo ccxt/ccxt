@@ -458,6 +458,10 @@ class huobi extends Exchange {
                         'min' => $minCost,
                         'max' => null,
                     ),
+                    'leverage' => array(
+                        'max' => $this->safe_number($market, 'leverage-ratio', 1),
+                        'superMax' => $this->safe_number($market, 'super-margin-leverage-ratio', 1),
+                    ),
                 ),
                 'info' => $market,
             );
