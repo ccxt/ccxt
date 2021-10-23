@@ -226,6 +226,98 @@ module.exports = class kraken extends Exchange {
                     'TRX': 'Tether USD (TRC20)',
                     'TRC20': 'Tether USD (TRC20)',
                 },
+                'methods': {
+                    '1INCH': '1inch (1INCH)',
+                    'AAVE': 'Aave',
+                    'ADA': 'ADA',
+                    'ALGO': 'Algorand',
+                    'ANKR': 'ANKR (ANKR)',
+                    'ANT': 'Aragon (ANT)',
+                    'ATOM': 'Cosmos',
+                    'AXS': 'Axie Infinity Shards (AXS)',
+                    'BADGER': 'Bager DAO (BADGER)',
+                    'BAL': 'Balancer (BAL)',
+                    'BAND': 'Band Protocol (BAND)',
+                    'BAT': 'BAT',
+                    'BCH': 'Bitcoin Cash',
+                    'BNC': 'Bifrost (BNC)',
+                    'BNT': 'Bancor (BNT)',
+                    'BTC': 'Bitcoin',
+                    'CHZ': 'Chiliz (CHZ)',
+                    'COMP': 'Compound (COMP)',
+                    'CQT': '\tCovalent Query Token (CQT)',
+                    'CRV': 'Curve DAO Token (CRV)',
+                    'CTSI': 'Cartesi (CTSI)',
+                    'DAI': 'Dai',
+                    'DASH': 'Dash',
+                    'DOGE': 'Dogecoin',
+                    'DOT': 'Polkadot',
+                    'DYDX': 'dYdX (DYDX)',
+                    'ENJ': 'Enjin Coin (ENJ)',
+                    'EOS': 'EOS',
+                    'ETC': 'Ether Classic (Hex)',
+                    'ETH': 'Ether (Hex)',
+                    'EWT': 'Energy Web Token',
+                    'FEE': 'Kraken Fee Credit',
+                    'FIL': 'Filecoin',
+                    'FLOW': 'Flow',
+                    'GHST': 'Aavegotchi (GHST)',
+                    'GNO': 'GNO',
+                    'GRT': 'GRT',
+                    'ICX': 'Icon',
+                    'INJ': 'Injective Protocol (INJ)',
+                    'KAR': 'Karura (KAR)',
+                    'KAVA': 'Kava',
+                    'KEEP': 'Keep Token (KEEP)',
+                    'KNC': 'Kyber Network (KNC)',
+                    'KSM': 'Kusama',
+                    'LINK': 'Link',
+                    'LPT': 'Livepeer Token (LPT)',
+                    'LRC': 'Loopring (LRC)',
+                    'LSK': 'Lisk',
+                    'LTC': 'Litecoin',
+                    'MANA': 'MANA',
+                    'MATIC': 'Polygon (MATIC)',
+                    'MIR': 'Mirror Protocol (MIR)',
+                    'MKR': 'Maker (MKR)',
+                    'MLN': 'MLN',
+                    'MOVR': 'Moonriver (MOVR)',
+                    'NANO': 'NANO',
+                    'OCEAN': 'OCEAN',
+                    'OGN': 'Origin Protocol (OGN)',
+                    'OMG': 'OMG',
+                    'OXT': 'Orchid (OXT)',
+                    'OXY': 'Oxygen (OXY)',
+                    'PAXG': 'PAX (Gold)',
+                    'PERP': 'Perpetual Protocol (PERP)',
+                    'PHA': 'Phala (PHA)',
+                    'QTUM': 'QTUM',
+                    'RARI': 'Rarible (RARI)',
+                    'RAY': 'Raydium (RAY)',
+                    'REN': 'Ren Protocol (REN)',
+                    'REP': 'REPv2',
+                    'REPV1': 'REP',
+                    'SAND': 'The Sandbox (SAND)',
+                    'SC': 'Siacoin',
+                    'SDN': 'Shiden (SDN)',
+                    'SNX': 'Synthetix  Network (SNX)',
+                    'STORJ': 'Storj (STORJ)',
+                    'SUSHI': 'Sushiswap (SUSHI)',
+                    'TBTC': 'tBTC',
+                    'TRX': 'Tron',
+                    'UNI': 'UNI',
+                    'USDC': 'USDC',
+                    'USDT': 'Tether USD (ERC20)',
+                    'WAVES': 'Waves',
+                    'WBTC': 'Wrapped Bitcoin (WBTC)',
+                    'XLM': 'Stellar XLM',
+                    'XMR': 'Monero',
+                    'XRP': 'Ripple XRP',
+                    'XTZ': 'XTZ',
+                    'YFI': 'YFI',
+                    'ZEC': 'Zcash (Transparent)',
+                    'ZRX': '0x (ZRX)',
+                },
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
@@ -1718,12 +1810,20 @@ module.exports = class kraken extends Exchange {
         const request = {
             'asset': currency['id'],
         };
+        const methods = this.safeValue (this.options, 'methods', {});
         // USDT is the only currency with multiple networks on kraken, you may check
         if ((code === 'USDT') && ('network' in params)) {
             const networks = this.safeValue (this.options, 'networks', {});
             const network = this.safeStringUpper (params, 'network');
             request['method'] = this.safeString (networks, network, network);
             params = this.omit (params, 'network');
+        } else if (code in methods) {
+            request['method'] = methods[code];
+        } else {
+            // fallback for new currencies
+            const response = await this.fetchDepositMethods (code);
+            const firstValue = this.safeValue (response, 0);
+            request['method'] = this.safeString (firstValue, 'method');
         }
         const response = await this.privatePostDepositAddresses (this.extend (request, params)); // overwrite methods
         const result = response['result'];
