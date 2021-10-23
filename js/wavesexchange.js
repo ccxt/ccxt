@@ -32,6 +32,7 @@ module.exports = class wavesexchange extends Exchange {
                 'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'signIn': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -51,6 +52,14 @@ module.exports = class wavesexchange extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
+                'test': {
+                    'matcher' : 'http://matcher-testnet.waves.exchange',
+                    'node'    : 'https://nodes-testnet.wavesnodes.com',
+                    'public'  : 'https://api-testnet.wavesplatform.com/v0',
+                    'private' : 'https://api-testnet.waves.exchange/v1',
+                    'forward' : 'https://testnet.waves.exchange/api/v1/forward/matcher/matcher',
+                    'market' :  'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
+                },
                 'api': {
                     'matcher': 'http://matcher.waves.exchange',
                     'node': 'https://nodes.waves.exchange',
@@ -251,6 +260,7 @@ module.exports = class wavesexchange extends Exchange {
                 'withdrawFeeUSDN': 7420,
                 'withdrawFeeWAVES': 100000,
                 'wavesPrecision': 8,
+                'messagePrefix': 'W', // W for production, T for testnet
             },
             'requiresEddsa': true,
             'exceptions': {
@@ -280,6 +290,11 @@ module.exports = class wavesexchange extends Exchange {
                 '1051904': AuthenticationError,
             },
         });
+    }
+
+    setSandboxMode (enabled) {
+        this.options['messagePrefix'] = enabled ? 'T' : 'W';
+        return super.setSandboxMode (enabled);
     }
 
     async getQuotes () {
@@ -504,6 +519,10 @@ module.exports = class wavesexchange extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    async signIn () {
+        return await this.getAccessToken ();
+    }
+
     async getAccessToken () {
         if (!this.safeString (this.options, 'accessToken')) {
             const prefix = 'ffffff01';
@@ -511,7 +530,9 @@ module.exports = class wavesexchange extends Exchange {
             let seconds = this.sum (this.seconds (), expiresDelta);
             seconds = seconds.toString ();
             const clientId = 'waves.exchange';
-            const message = 'W:' + clientId + ':' + seconds;
+            // W for production, T for testnet
+            const defaultMessagePrefix = this.safeString (this.options, 'messagePrefix', 'W');
+            const message = defaultMessagePrefix + ':' + clientId + ':' + seconds;
             const messageHex = this.binaryToBase16 (this.stringToBinary (this.encode (message)));
             const payload = prefix + messageHex;
             const hexKey = this.binaryToBase16 (this.base58ToBinary (this.secret));
