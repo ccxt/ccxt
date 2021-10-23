@@ -1594,6 +1594,27 @@ module.exports = class gateio extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        //
+        // spot
+        //
+        //     const request = {
+        //         'currency_pair': market['id'],
+        //         'limit': limit, // maximum number of records to be returned in a single list
+        //         'last_id': 'id', // specify list staring point using the id of last record in previous list-query results
+        //         'reverse': false, // true to retrieve records where id is smaller than the specified last_id, false to retrieve records where id is larger than the specified last_id
+        //     };
+        //
+        // swap, futures
+        //
+        //     const request = {
+        //         'settle': market['settleId'],
+        //         'contract': market['id'],
+        //         'limit': limit, // maximum number of records to be returned in a single list
+        //         'last_id': 'id', // specify list staring point using the id of last record in previous list-query results
+        //         'from': since / 1000), // starting time in seconds, if not specified, to and limit will be used to limit response items
+        //         'to': this.seconds (), // end time in seconds, default to current time
+        //     };
+        //
         const request = this.prepareRequest (market);
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTrades',
