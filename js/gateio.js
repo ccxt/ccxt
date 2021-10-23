@@ -1166,6 +1166,14 @@ module.exports = class gateio extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        //
+        //     const request = {
+        //         'currency_pair': market['id'],
+        //         'interval': '0', // depth, 0 means no aggregation is applied, default to 0
+        //         'limit': limit, // maximum number of order depth data in asks or bids
+        //         'with_id': true, // return order book ID
+        //     };
+        //
         const request = this.prepareRequest (market);
         const spot = market['spot'];
         const method = this.getSupportedMapping (market['type'], {
@@ -1634,15 +1642,18 @@ module.exports = class gateio extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currency_pair': market['id'],
-            // 'limit': limit,
-            // 'page': 0,
-            // 'order_id': 'Order ID',
-            // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
-            // 'from': since, // default to 7 days before current time
-            // 'to': this.milliseconds (), // default to current time
-        };
+        //
+        //     const request = {
+        //         'currency_pair': market['id'],
+        //         // 'limit': limit,
+        //         // 'page': 0,
+        //         // 'order_id': 'Order ID',
+        //         // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
+        //         // 'from': since, // default to 7 days before current time
+        //         // 'to': this.milliseconds (), // default to current time
+        //     };
+        //
+        const request = this.prepareRequest (market);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
