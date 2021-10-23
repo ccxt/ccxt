@@ -1154,6 +1154,14 @@ class gateio(Exchange):
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
+        #
+        #     request = {
+        #         'currency_pair': market['id'],
+        #         'interval': '0',  # depth, 0 means no aggregation is applied, default to 0
+        #         'limit': limit,  # maximum number of order depth data in asks or bids
+        #         'with_id': True,  # return order book ID
+        #     }
+        #
         request = self.prepare_request(market)
         spot = market['spot']
         method = self.get_supported_mapping(market['type'], {
@@ -1550,6 +1558,27 @@ class gateio(Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
+        #
+        # spot
+        #
+        #     request = {
+        #         'currency_pair': market['id'],
+        #         'limit': limit,  # maximum number of records to be returned in a single list
+        #         'last_id': 'id',  # specify list staring point using the id of last record in previous list-query results
+        #         'reverse': False,  # True to retrieve records where id is smaller than the specified last_id, False to retrieve records where id is larger than the specified last_id
+        #     }
+        #
+        # swap, futures
+        #
+        #     request = {
+        #         'settle': market['settleId'],
+        #         'contract': market['id'],
+        #         'limit': limit,  # maximum number of records to be returned in a single list
+        #         'last_id': 'id',  # specify list staring point using the id of last record in previous list-query results
+        #         'from': since / 1000),  # starting time in seconds, if not specified, to and limit will be used to limit response items
+        #         'to': self.seconds(),  # end time in seconds, default to current time
+        #     }
+        #
         request = self.prepare_request(market)
         method = self.get_supported_mapping(market['type'], {
             'spot': 'publicSpotGetTrades',
@@ -1595,21 +1624,56 @@ class gateio(Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
-            'currency_pair': market['id'],
-            # 'limit': limit,
-            # 'page': 0,
-            # 'order_id': 'Order ID',
-            # 'account': 'spot',  # default to spot and margin account if not specified, set to cross_margin to operate against margin account
-            # 'from': since,  # default to 7 days before current time
-            # 'to': self.milliseconds(),  # default to current time
-        }
+        #
+        #     request = {
+        #         'currency_pair': market['id'],
+        #         # 'limit': limit,
+        #         # 'page': 0,
+        #         # 'order_id': 'Order ID',
+        #         # 'account': 'spot',  # default to spot and margin account if not specified, set to cross_margin to operate against margin account
+        #         # 'from': since,  # default to 7 days before current time
+        #         # 'to': self.milliseconds(),  # default to current time
+        #     }
+        #
+        request = self.prepare_request(market)
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
         if since is not None:
             request['from'] = int(since / 1000)
             # request['to'] = since + 7 * 24 * 60 * 60
-        response = self.privateSpotGetMyTrades(self.extend(request, params))
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'privateSpotGetMyTrades',
+            # 'margin': 'publicMarginGetCurrencyPairs',
+            'swap': 'privateFuturesGetSettleMyTrades',
+            'futures': 'privateDeliveryGetSettleMyTrades',
+        })
+        response = getattr(self, method)(self.extend(request, params))
+        # SPOT
+        # [{
+        #     id: "1851927191",
+        #     create_time: "1634333360",
+        #     create_time_ms: "1634333360359.901000",
+        #     currency_pair: "BTC_USDT",
+        #     side: "buy",
+        #     role: "taker",
+        #     amount: "0.0001",
+        #     price: "62547.51",
+        #     order_id: "93475897349",
+        #     fee: "2e-07",
+        #     fee_currency: "BTC",
+        #     point_fee: "0",
+        #     gt_fee: "0",
+        #   }]
+        # Perpetual Swap
+        # [{
+        #   size: "-13",
+        #   order_id: "79723658958",
+        #   id: "47612669",
+        #   role: "taker",
+        #   create_time: "1634600263.326",
+        #   contract: "BTC_USDT",
+        #   price: "61987.8",
+        # }]
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
@@ -1645,19 +1709,25 @@ class gateio(Exchange):
         #     }
         #
         id = self.safe_string(trade, 'id')
-        timestampString = self.safe_string_2(trade, 'create_time_ms', 'time')
+        timestampStringContract = self.safe_string(trade, 'create_time')
+        timestampString = self.safe_string_2(trade, 'create_time_ms', 'time', timestampStringContract)
         timestamp = None
         if timestampString.find('.') > 0:
             milliseconds = timestampString.split('.')
             timestamp = int(milliseconds[0])
+        if market['swap']:
+            timestamp = timestamp * 1000
         marketId = self.safe_string_2(trade, 'currency_pair', 'contract')
         symbol = self.safe_symbol(marketId, market)
         amountString = self.safe_string_2(trade, 'amount', 'size')
         priceString = self.safe_string(trade, 'price')
-        cost = self.parse_number(Precise.string_mul(amountString, priceString))
-        amount = self.parse_number(amountString)
+        costString = Precise.string_abs(Precise.string_mul(amountString, priceString))
         price = self.parse_number(priceString)
-        side = self.safe_string(trade, 'side')
+        cost = self.parse_number(costString)
+        contractSide = 'sell' if Precise.string_lt(amountString, '0') else 'buy'
+        amountString = Precise.string_abs(amountString)
+        amount = self.parse_number(amountString)
+        side = self.safe_string(trade, 'side', contractSide)
         orderId = self.safe_string(trade, 'order_id')
         gtFee = self.safe_string(trade, 'gt_fee')
         feeCurrency = None

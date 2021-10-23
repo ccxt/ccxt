@@ -1171,6 +1171,14 @@ class gateio extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        //
+        //     $request = array(
+        //         'currency_pair' => $market['id'],
+        //         'interval' => '0', // depth, 0 means no aggregation is applied, default to 0
+        //         'limit' => $limit, // maximum number of order depth data in asks or bids
+        //         'with_id' => true, // return order book ID
+        //     );
+        //
         $request = $this->prepare_request($market);
         $spot = $market['spot'];
         $method = $this->get_supported_mapping($market['type'], array(
@@ -1591,6 +1599,27 @@ class gateio extends Exchange {
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        //
+        // spot
+        //
+        //     $request = array(
+        //         'currency_pair' => $market['id'],
+        //         'limit' => $limit, // maximum number of records to be returned in a single list
+        //         'last_id' => 'id', // specify list staring point using the id of last record in previous list-query results
+        //         'reverse' => false, // true to retrieve records where id is smaller than the specified last_id, false to retrieve records where id is larger than the specified last_id
+        //     );
+        //
+        // swap, futures
+        //
+        //     $request = array(
+        //         'settle' => $market['settleId'],
+        //         'contract' => $market['id'],
+        //         'limit' => $limit, // maximum number of records to be returned in a single list
+        //         'last_id' => 'id', // specify list staring point using the id of last record in previous list-query results
+        //         'from' => $since / 1000), // starting time in seconds, if not specified, to and $limit will be used to $limit $response items
+        //         'to' => $this->seconds(), // end time in seconds, default to current time
+        //     );
+        //
         $request = $this->prepare_request($market);
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'publicSpotGetTrades',
@@ -1639,15 +1668,18 @@ class gateio extends Exchange {
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $request = array(
-            'currency_pair' => $market['id'],
-            // 'limit' => $limit,
-            // 'page' => 0,
-            // 'order_id' => 'Order ID',
-            // 'account' => 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
-            // 'from' => $since, // default to 7 days before current time
-            // 'to' => $this->milliseconds(), // default to current time
-        );
+        //
+        //     $request = array(
+        //         'currency_pair' => $market['id'],
+        //         // 'limit' => $limit,
+        //         // 'page' => 0,
+        //         // 'order_id' => 'Order ID',
+        //         // 'account' => 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
+        //         // 'from' => $since, // default to 7 days before current time
+        //         // 'to' => $this->milliseconds(), // default to current time
+        //     );
+        //
+        $request = $this->prepare_request($market);
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000
         }
@@ -1655,7 +1687,39 @@ class gateio extends Exchange {
             $request['from'] = intval($since / 1000);
             // $request['to'] = $since + 7 * 24 * 60 * 60;
         }
-        $response = yield $this->privateSpotGetMyTrades (array_merge($request, $params));
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'privateSpotGetMyTrades',
+            // 'margin' => 'publicMarginGetCurrencyPairs',
+            'swap' => 'privateFuturesGetSettleMyTrades',
+            'futures' => 'privateDeliveryGetSettleMyTrades',
+        ));
+        $response = yield $this->$method (array_merge($request, $params));
+        // SPOT
+        // [array(
+        //     id => "1851927191",
+        //     create_time => "1634333360",
+        //     create_time_ms => "1634333360359.901000",
+        //     currency_pair => "BTC_USDT",
+        //     side => "buy",
+        //     role => "taker",
+        //     amount => "0.0001",
+        //     price => "62547.51",
+        //     order_id => "93475897349",
+        //     fee => "2e-07",
+        //     fee_currency => "BTC",
+        //     point_fee => "0",
+        //     gt_fee => "0",
+        //   )]
+        // Perpetual Swap
+        // [array(
+        //   size => "-13",
+        //   order_id => "79723658958",
+        //   id => "47612669",
+        //   role => "taker",
+        //   create_time => "1634600263.326",
+        //   contract => "BTC_USDT",
+        //   price => "61987.8",
+        // )]
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -1692,20 +1756,27 @@ class gateio extends Exchange {
         //     }
         //
         $id = $this->safe_string($trade, 'id');
-        $timestampString = $this->safe_string_2($trade, 'create_time_ms', 'time');
+        $timestampStringContract = $this->safe_string($trade, 'create_time');
+        $timestampString = $this->safe_string_2($trade, 'create_time_ms', 'time', $timestampStringContract);
         $timestamp = null;
         if (mb_strpos($timestampString, '.') > 0) {
             $milliseconds = explode('.', $timestampString);
             $timestamp = intval($milliseconds[0]);
         }
+        if ($market['swap']) {
+            $timestamp = $timestamp * 1000;
+        }
         $marketId = $this->safe_string_2($trade, 'currency_pair', 'contract');
         $symbol = $this->safe_symbol($marketId, $market);
         $amountString = $this->safe_string_2($trade, 'amount', 'size');
         $priceString = $this->safe_string($trade, 'price');
-        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-        $amount = $this->parse_number($amountString);
+        $costString = Precise::string_abs(Precise::string_mul($amountString, $priceString));
         $price = $this->parse_number($priceString);
-        $side = $this->safe_string($trade, 'side');
+        $cost = $this->parse_number($costString);
+        $contractSide = Precise::string_lt($amountString, '0') ? 'sell' : 'buy';
+        $amountString = Precise::string_abs($amountString);
+        $amount = $this->parse_number($amountString);
+        $side = $this->safe_string($trade, 'side', $contractSide);
         $orderId = $this->safe_string($trade, 'order_id');
         $gtFee = $this->safe_string($trade, 'gt_fee');
         $feeCurrency = null;
