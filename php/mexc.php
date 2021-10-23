@@ -960,7 +960,8 @@ class mexc extends Exchange {
         $timestamp = $this->safe_integer_2($trade, 'create_time', 'trade_time');
         $timestamp = $this->safe_integer($trade, 't', $timestamp);
         $marketId = $this->safe_string($trade, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, '_');
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $market['symbol'];
         $priceString = $this->safe_string_2($trade, 'price', 'trade_price');
         $priceString = $this->safe_string($trade, 'p', $priceString);
         $amountString = $this->safe_string_2($trade, 'quantity', 'trade_quantity');
@@ -979,7 +980,12 @@ class mexc extends Exchange {
             $side = 'sell';
         }
         $id = $this->safe_string_2($trade, 'id', 'trade_time');
-        $id = $this->safe_string($trade, 't', $id);
+        if ($id === null) {
+            $id = $this->safe_string($trade, 't', $id);
+            if ($id !== null) {
+                $id .= '-' . $market['id'] . '-' . $amountString;
+            }
+        }
         $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
