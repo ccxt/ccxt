@@ -277,17 +277,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 1
      
    * - China
-     - .. image:: https://user-images.githubusercontent.com/1294454/37770292-fbf613d0-2de4-11e8-9f79-f2dc451b8ccb.jpg
-          :target: https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f?recommQd=1
-          :alt: exx
-     
-     - exx
-     - `EXX <https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f?recommQd=1>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://www.exx.com/help/restApi
-          :alt: API Version *
-     
-   * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
           :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
           :alt: huobi
