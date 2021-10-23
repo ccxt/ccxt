@@ -1138,7 +1138,8 @@ class mexc(Exchange):
         networkId = ''.join(parts)
         networkId = networkId.replace('-20', '20')
         networksById = {
-            'ETH': 'ERC20',
+            'ETH': 'ETH',
+            'ERC20': 'ERC20',
             'BEP20(BSC)': 'BEP20',
             'TRX': 'TRC20',
         }

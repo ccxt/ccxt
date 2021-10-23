@@ -1182,7 +1182,8 @@ class mexc extends Exchange {
         $networkId = implode('', $parts);
         $networkId = str_replace('-20', '20', $networkId);
         $networksById = array(
-            'ETH' => 'ERC20',
+            'ETH' => 'ETH',
+            'ERC20' => 'ERC20',
             'BEP20(BSC)' => 'BEP20',
             'TRX' => 'TRC20',
         );
