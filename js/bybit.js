@@ -556,7 +556,7 @@ module.exports = class bybit extends Exchange {
                         'max': undefined,
                     },
                     'leverage': {
-                        'max': this.safeNumber (leverage, 'max_leverage', 1),
+                        'max': this.safeInteger (leverage, 'max_leverage', 1),
                     },
                 },
                 'info': market,

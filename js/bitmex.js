@@ -227,7 +227,7 @@ module.exports = class bitmex extends Exchange {
             if (tickSize !== undefined) {
                 precision['price'] = tickSize;
             }
-            const maxLeverage = this.parseNumber (Precise.stringDiv ('1', this.safeString (market, 'initMargin', '1')));
+            const maxLeverage = parseInt (Precise.stringDiv ('1', this.safeString (market, 'initMargin', '1')));
             const limits = {
                 'amount': {
                     'min': undefined,
