@@ -300,6 +300,7 @@ module.exports = class kraken extends Exchange {
                     'SAND': 'The Sandbox (SAND)',
                     'SC': 'Siacoin',
                     'SDN': 'Shiden (SDN)',
+                    'SOL': 'Solana',  // their deposit method api doesn't work for SOL - was guessed
                     'SNX': 'Synthetix  Network (SNX)',
                     'STORJ': 'Storj (STORJ)',
                     'SUSHI': 'Sushiswap (SUSHI)',
