@@ -267,6 +267,10 @@ module.exports = class wavesexchange extends Exchange {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
                 },
+                'reverseNetworks': {
+                    'ETH': 'ERC20',
+                    'BSC': 'BEP20',
+                },
             },
             'requiresEddsa': true,
             'exceptions': {
@@ -869,13 +873,15 @@ module.exports = class wavesexchange extends Exchange {
         // }
         const currency = this.safeValue (response, 'currency');
         const networkId = this.safeString (currency, 'platform_id');
+        const reverseNetworks = this.safeValue (this.options, 'reverseNetworks', {});
+        const unifiedNetwork = this.safeString (reverseNetworks, networkId, networkId);
         const addresses = this.safeValue (response, 'deposit_addresses');
         const address = this.safeString (addresses, 0);
         return {
             'address': address,
             'code': code,
             'tag': undefined,
-            'network': networkId,
+            'network': unifiedNetwork,
             'info': response,
         };
     }
