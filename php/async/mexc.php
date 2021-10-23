@@ -225,6 +225,7 @@ class mexc extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'SIN' => 'Sin City Token',
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -483,7 +484,7 @@ class mexc extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteCoin');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
+            $symbol = $id;
             $precision = array(
                 'price' => $this->safe_number($market, 'priceUnit'),
                 'amount' => $this->safe_number($market, 'volUnit'),
@@ -960,7 +961,8 @@ class mexc extends Exchange {
         $timestamp = $this->safe_integer_2($trade, 'create_time', 'trade_time');
         $timestamp = $this->safe_integer($trade, 't', $timestamp);
         $marketId = $this->safe_string($trade, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, '_');
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $market['symbol'];
         $priceString = $this->safe_string_2($trade, 'price', 'trade_price');
         $priceString = $this->safe_string($trade, 'p', $priceString);
         $amountString = $this->safe_string_2($trade, 'quantity', 'trade_quantity');
@@ -979,7 +981,12 @@ class mexc extends Exchange {
             $side = 'sell';
         }
         $id = $this->safe_string_2($trade, 'id', 'trade_time');
-        $id = $this->safe_string($trade, 't', $id);
+        if ($id === null) {
+            $id = $this->safe_string($trade, 't', $id);
+            if ($id !== null) {
+                $id .= '-' . $market['id'] . '-' . $amountString;
+            }
+        }
         $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
@@ -1712,7 +1719,9 @@ class mexc extends Exchange {
             $clientOrderId = null;
         }
         $orderType = $this->safe_string_lower($order, 'order_type');
-        $orderType = str_replace('_order', '', $orderType);
+        if ($orderType !== null) {
+            $orderType = str_replace('_order', '', $orderType);
+        }
         return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,

@@ -485,7 +485,6 @@ declare module 'ccxt' {
     export class eqonex extends Exchange {}
     export class equos extends eqonex {}
     export class exmo extends Exchange {}
-    export class exx extends Exchange {}
     export class flowbtc extends Exchange {}
     export class ftx extends Exchange {}
     export class gateio extends Exchange {}
@@ -599,7 +598,6 @@ declare module 'ccxt' {
         | 'eqonex'
         | 'equos'
         | 'exmo'
-        | 'exx'
         | 'flowbtc'
         | 'ftx'
         | 'gateio'

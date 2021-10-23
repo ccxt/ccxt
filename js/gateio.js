@@ -153,6 +153,7 @@ module.exports = class gateio extends Exchange {
                     },
                     'margin': {
                         'get': {
+                            'accounts': 1.5,
                             'account_book': 1.5,
                             'funding_accounts': 1.5,
                             'loans': 1.5,
@@ -281,7 +282,6 @@ module.exports = class gateio extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
-                'password': true,
             },
             'options': {
                 'networks': {
@@ -296,12 +296,12 @@ module.exports = class gateio extends Exchange {
                     'delivery': 'delivery',
                 },
                 'defaultType': 'spot',
-                'future': {
+                'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
                 },
-                'delivery': {
+                'futures': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
@@ -356,7 +356,7 @@ module.exports = class gateio extends Exchange {
                         ],
                     },
                 },
-                'future': {
+                'swap': {
                     'tierBased': true,
                     'feeSide': 'base',
                     'percentage': true,
@@ -364,89 +364,42 @@ module.exports = class gateio extends Exchange {
                     'taker': this.parseNumber ('0.0005'),
                     'tiers': {
                         'maker': [
-                            this.parseNumber ('0.0000'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00008'),
-                            this.parseNumber ('-0.01000'),
-                            this.parseNumber ('-0.01002'),
-                            this.parseNumber ('-0.01005'),
-                            this.parseNumber ('-0.02000'),
-                            this.parseNumber ('-0.02005'),
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0000') ],
+                            [ this.parseNumber ('1.5'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('3'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('6'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('12.5'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('25'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('75'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('1250'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('2500'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('3000'), this.parseNumber ('-0.00008') ],
+                            [ this.parseNumber ('6000'), this.parseNumber ('-0.01000') ],
+                            [ this.parseNumber ('11000'), this.parseNumber ('-0.01002') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('-0.01005') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('-0.02000') ],
+                            [ this.parseNumber ('75000'), this.parseNumber ('-0.02005') ],
                         ],
                         'taker': [
-                            [this.parseNumber ('0.00050'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00048'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00046'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00044'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00042'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00040'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00038'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00036'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00034'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00032'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                        ],
-                    },
-                },
-                'delivery': {
-                    'tierBased': true,
-                    'feeSide': 'base',
-                    'percentage': true,
-                    'maker': this.parseNumber ('0.0'),
-                    'taker': this.parseNumber ('0.0005'),
-                    'tiers': {
-                        'maker': [
-                            this.parseNumber ('0.0000'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00008'),
-                            this.parseNumber ('-0.01000'),
-                            this.parseNumber ('-0.01002'),
-                            this.parseNumber ('-0.01005'),
-                            this.parseNumber ('-0.02000'),
-                            this.parseNumber ('-0.02005'),
-                        ],
-                        'taker': [
-                            [this.parseNumber ('0.00050'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00048'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00046'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00044'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00042'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00040'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00038'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00036'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00034'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00032'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.00050') ],
+                            [ this.parseNumber ('1.5'), this.parseNumber ('0.00048') ],
+                            [ this.parseNumber ('3'), this.parseNumber ('0.00046') ],
+                            [ this.parseNumber ('6'), this.parseNumber ('0.00044') ],
+                            [ this.parseNumber ('12.5'), this.parseNumber ('0.00042') ],
+                            [ this.parseNumber ('25'), this.parseNumber ('0.00040') ],
+                            [ this.parseNumber ('75'), this.parseNumber ('0.00038') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('0.00036') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('0.00034') ],
+                            [ this.parseNumber ('1250'), this.parseNumber ('0.00032') ],
+                            [ this.parseNumber ('2500'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('3000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('6000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('11000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('75000'), this.parseNumber ('0.00030') ],
                         ],
                     },
                 },
@@ -545,39 +498,34 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        // :param params['type']: 'spot', 'margin', 'future' or 'delivery'
+        // :param params['type']: 'spot', 'margin', 'futures' or 'delivery'
         // :param params['settle']: The quote currency
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         const spot = (type === 'spot');
         const margin = (type === 'margin');
-        const futures = (type === 'future');
-        const delivery = (type === 'delivery');
+        const futures = (type === 'futures');
         const swap = (type === 'swap');
         const option = (type === 'option');
-        if (!spot && !margin && !futures && !delivery) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
+        if (!spot && !margin && !futures && !swap) {
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap' or 'futures'"); // eslint-disable-line quotes
         }
         let response = undefined;
         const result = [];
-        let method = 'publicSpotGetCurrencyPairs';
-        if (futures) {
-            method = 'publicFuturesGetSettleContracts';
-        } else if (delivery) {
-            method = 'publicDeliveryGetSettleContracts';
-        } else if (margin) {
-            method = 'publicMarginGetCurrencyPairs';
-        }
-        if (futures || delivery) {
-            const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
-            const fetchMarketsContractOptions = this.safeValue (options, 'fetchMarchets', {});
-            const settlementCurrencies = this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', ['usdt']);
+        const method = this.getSupportedMapping (type, {
+            'spot': 'publicSpotGetCurrencyPairs',
+            'margin': 'publicMarginGetCurrencyPairs',
+            'swap': 'publicFuturesGetSettleContracts',
+            'futures': 'publicDeliveryGetSettleContracts',
+        });
+        if (futures || swap) {
+            const settlementCurrencies = this.getSettlementCurrencies (type, 'fetchMarkets');
             for (let c = 0; c < settlementCurrencies.length; c++) {
                 const settle = settlementCurrencies[c];
                 query['settle'] = settle;
                 response = await this[method] (query);
-                //  Futures
+                //  Perpetual swap
                 //      [
                 //          {
                 //              "name": "BTC_USDT",
@@ -621,7 +569,7 @@ module.exports = class gateio extends Exchange {
                 //          }
                 //      ]
                 //
-                //  Delivery
+                //  Delivery Futures
                 //      [
                 //          {
                 //            "name": "BTC_USDT_20200814",
@@ -669,30 +617,32 @@ module.exports = class gateio extends Exchange {
                 for (let i = 0; i < response.length; i++) {
                     const market = response[i];
                     const id = this.safeString (market, 'name');
-                    const underlying = this.safeString (market, 'underlying');
-                    let [ baseId, quoteId ] = [undefined, undefined];
-                    if (underlying) {
-                        [ baseId, quoteId ] = underlying.split ('_');
-                    } else {
-                        [ baseId, quoteId ] = id.split ('_');
-                    }
+                    const [ baseId, quoteId, date ] = id.split ('_');
                     const linear = quoteId.toLowerCase () === settle;
                     const inverse = baseId.toLowerCase () === settle;
                     const base = this.safeCurrencyCode (baseId);
                     const quote = this.safeCurrencyCode (quoteId);
-                    const symbol = id;
+                    let symbol = '';
+                    if (date) {
+                        symbol = base + '/' + quote + '-' + date + ':' + this.safeCurrencyCode (settle);
+                    } else {
+                        symbol = base + '/' + quote + ':' + this.safeCurrencyCode (settle);
+                    }
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
+                    const feeIndex = (type === 'futures') ? 'swap' : type;
                     result.push ({
                         'info': market,
                         'id': id,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'settleId': this.safeSymbol (settle),
                         'base': base,
                         'quote': quote,
                         'symbol': symbol,
                         'type': type,
                         'spot': spot,
+                        'margin': margin,
                         'futures': futures,
                         'swap': swap,
                         'option': option,
@@ -702,10 +652,8 @@ module.exports = class gateio extends Exchange {
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                         'contractSize': this.safeString (market, 'contractSize', '1'),
-                        'contractType': linear ? 'Perpetual' : this.safeString (market, 'cycle'),
                         'limits': {
                             'leverage': {
-                                'min': this.safeNumber (market, 'leverage_min'),
                                 'max': this.safeNumber (market, 'leverage_max'),
                             },
                             'amount': {
@@ -714,7 +662,7 @@ module.exports = class gateio extends Exchange {
                             },
                         },
                         'expiry': this.safeInteger (market, 'expire_time'),
-                        'fees': this.fees[type],
+                        'fees': this.safeValue (this.fees, feeIndex, {}),
                     });
                 }
             }
@@ -754,7 +702,7 @@ module.exports = class gateio extends Exchange {
                 const market = response[i];
                 const id = this.safeString (market, 'id');
                 const spot = (type === 'spot');
-                const futures = (type === 'future');
+                const futures = (type === 'futures');
                 const swap = (type === 'swap');
                 const option = (type === 'option');
                 const [ baseId, quoteId ] = id.split ('_');
@@ -778,6 +726,7 @@ module.exports = class gateio extends Exchange {
                     'symbol': symbol,
                     'type': type,
                     'spot': spot,
+                    'margin': margin,
                     'futures': futures,
                     'swap': swap,
                     'option': option,
@@ -804,11 +753,34 @@ module.exports = class gateio extends Exchange {
                             'min': this.safeNumber (market, 'min_quote_amount'),
                             'max': undefined,
                         },
+                        'leverage': {
+                            'max': this.safeNumber (market, 'lever', 1),
+                        },
                     },
                 });
             }
         }
         return result;
+    }
+
+    prepareRequest (market) {
+        if (market['type'] === 'futures' || market['type'] === 'swap') {
+            return {
+                'contract': market['id'],
+                'settle': market['settleId'],
+            };
+        } else {
+            return {
+                'currency_pair': market['id'],
+            };
+        }
+    }
+
+    getSettlementCurrencies (type, method) {
+        const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
+        const fetchMarketsContractOptions = this.safeValue (options, method, {});
+        const defaultSettle = type === 'swap' ? ['usdt'] : ['btc'];
+        return this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
     }
 
     async fetchCurrencies (params = {}) {
@@ -1194,75 +1166,148 @@ module.exports = class gateio extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currency_pair': market['id'],
-        };
+        //
+        //     const request = {
+        //         'currency_pair': market['id'],
+        //         'interval': '0', // depth, 0 means no aggregation is applied, default to 0
+        //         'limit': limit, // maximum number of order depth data in asks or bids
+        //         'with_id': true, // return order book ID
+        //     };
+        //
+        const request = this.prepareRequest (market);
+        const spot = market['spot'];
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'publicSpotGetOrderBook',
+            // 'margin': 'publicMarginGetOrderBook',
+            'swap': 'publicFuturesGetSettleOrderBook',
+            'futures': 'publicDeliveryGetSettleOrderBook',
+        });
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
         }
-        const response = await this.publicSpotGetOrderBook (this.extend (request, params));
-        const timestamp = this.safeInteger (response, 'current');
-        return this.parseOrderBook (response, symbol, timestamp);
+        const response = await this[method] (this.extend (request, params));
+        //
+        // SPOT
+        //
+        //     {
+        //         "current": 1634345973275,
+        //         "update": 1634345973271,
+        //         "asks": [
+        //             ["2.2241","12449.827"],
+        //             ["2.2242","200"],
+        //             ["2.2244","826.931"],
+        //             ["2.2248","3876.107"],
+        //             ["2.225","2377.252"],
+        //             ["2.22509","439.484"],
+        //             ["2.2251","1489.313"],
+        //             ["2.2253","714.582"],
+        //             ["2.2254","1349.784"],
+        //             ["2.2256","234.701"]],
+        //          "bids":[
+        //             ["2.2236","32.465"],
+        //             ["2.2232","243.983"],
+        //             ["2.2231","32.207"],
+        //             ["2.223","449.827"],
+        //             ["2.2228","7.918"],
+        //             ["2.2227","12703.482"],
+        //             ["2.2226","143.033"],
+        //             ["2.2225","143.027"],
+        //             ["2.2224","1369.352"],
+        //             ["2.2223","756.063"]
+        //         ]
+        //     }
+        //
+        // Perpetual Swap
+        //
+        //     {
+        //         "current": 1634350208.745,
+        //         "asks": [
+        //             {"s":24909,"p":"61264.8"},
+        //             {"s":81,"p":"61266.6"},
+        //             {"s":2000,"p":"61267.6"},
+        //             {"s":490,"p":"61270.2"},
+        //             {"s":12,"p":"61270.4"},
+        //             {"s":11782,"p":"61273.2"},
+        //             {"s":14666,"p":"61273.3"},
+        //             {"s":22541,"p":"61273.4"},
+        //             {"s":33,"p":"61273.6"},
+        //             {"s":11980,"p":"61274.5"}
+        //         ],
+        //         "bids": [
+        //             {"s":41844,"p":"61264.7"},
+        //             {"s":13783,"p":"61263.3"},
+        //             {"s":1143,"p":"61259.8"},
+        //             {"s":81,"p":"61258.7"},
+        //             {"s":2471,"p":"61257.8"},
+        //             {"s":2471,"p":"61257.7"},
+        //             {"s":2471,"p":"61256.5"},
+        //             {"s":3,"p":"61254.2"},
+        //             {"s":114,"p":"61252.4"},
+        //             {"s":14372,"p":"61248.6"}
+        //         ],
+        //         "update": 1634350208.724
+        //     }
+        //
+        let timestamp = this.safeInteger (response, 'current');
+        if (!spot) {
+            timestamp = timestamp * 1000;
+        }
+        const priceKey = spot ? 0 : 'p';
+        const amountKey = spot ? 1 : 's';
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'publicSpotGetTickers';
-        const id = market['id'];
-        const request = {};
-        const linear = market['linear'];
-        const inverse = market['inverse'];
-        if (linear || inverse) {
-            request['contract'] = id;
-            request['settle'] = market['baseId'];
-            if (market['linear']) {
-                method = 'publicFuturesGetTickers';
-            } else {
-                method = 'publicDeliveryGetTickers';
-            }
-        } else {
-            request['currency_pair'] = id;
-        }
+        const request = this.prepareRequest (market);
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'publicSpotGetTickers',
+            // 'margin': 'publicMarginGetTickers',
+            'swap': 'publicFuturesGetSettleTickers',
+            'futures': 'publicDeliveryGetSettleTickers',
+        });
         const response = await this[method] (this.extend (request, params));
         const ticker = this.safeValue (response, 0);
         return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
+        //
         //  SPOT
+        //
         //     {
-        //       "currency_pair": "KFC_USDT",
-        //       "last": "7.255",
-        //       "lowest_ask": "7.298",
-        //       "highest_bid": "7.218",
-        //       "change_percentage": "-1.18",
-        //       "base_volume": "1219.053687865",
-        //       "quote_volume": "8807.40299875455",
-        //       "high_24h": "7.262",
-        //       "low_24h": "7.095"
+        //         "currency_pair": "KFC_USDT",
+        //         "last": "7.255",
+        //         "lowest_ask": "7.298",
+        //         "highest_bid": "7.218",
+        //         "change_percentage": "-1.18",
+        //         "base_volume": "1219.053687865",
+        //         "quote_volume": "8807.40299875455",
+        //         "high_24h": "7.262",
+        //         "low_24h": "7.095"
         //     }
         //
         //  LINEAR/DELIVERY
         //
-        //   {
-        //     "contract": "BTC_USDT",
-        //     "last": "6432",
-        //     "low_24h": "6278",
-        //     "high_24h": "6790",
-        //     "change_percentage": "4.43",
-        //     "total_size": "32323904",
-        //     "volume_24h": "184040233284",
-        //     "volume_24h_btc": "28613220",
-        //     "volume_24h_usd": "184040233284",
-        //     "volume_24h_base": "28613220",
-        //     "volume_24h_quote": "184040233284",
-        //     "volume_24h_settle": "28613220",
-        //     "mark_price": "6534",
-        //     "funding_rate": "0.0001",
-        //     "funding_rate_indicative": "0.0001",
-        //     "index_price": "6531"
-        //   }
+        //     {
+        //         "contract": "BTC_USDT",
+        //         "last": "6432",
+        //         "low_24h": "6278",
+        //         "high_24h": "6790",
+        //         "change_percentage": "4.43",
+        //         "total_size": "32323904",
+        //         "volume_24h": "184040233284",
+        //         "volume_24h_btc": "28613220",
+        //         "volume_24h_usd": "184040233284",
+        //         "volume_24h_base": "28613220",
+        //         "volume_24h_quote": "184040233284",
+        //         "volume_24h_settle": "28613220",
+        //         "mark_price": "6534",
+        //         "funding_rate": "0.0001",
+        //         "funding_rate_indicative": "0.0001",
+        //         "index_price": "6531"
+        //     }
         //
         const marketId = this.safeString2 (ticker, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
@@ -1303,31 +1348,48 @@ module.exports = class gateio extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        let method = 'publicSpotGetTickers';
+        const method = this.getSupportedMapping (type, {
+            'spot': 'publicSpotGetTickers',
+            // 'margin': 'publicMarginGetTickers',
+            'swap': 'publicFuturesGetSettleTickers',
+            'futures': 'publicDeliveryGetSettleTickers',
+        });
         const request = {};
-        const linear = type === 'future';
-        const inverse = type === 'delivery';
-        if (linear || inverse) {
-            if (linear) {
-                if (!params['settle']) {
-                    request['settle'] = 'usdt';
-                }
-                method = 'publicFuturesGetSettleTickers';
-            } else {
-                if (!params['settle']) {
-                    request['settle'] = 'btc';
-                }
-                method = 'publicDeliveryGetSettleTickers';
-            }
+        const futures = type === 'futures';
+        const swap = type === 'swap';
+        if ((swap || futures) && !params['settle']) {
+            request['settle'] = swap ? 'usdt' : 'btc';
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseTickers (response, symbols);
     }
 
     async fetchBalance (params = {}) {
+        // :param params.type: spot, margin, crossMargin, swap or future
+        // :param params.settle: Settle currency (usdt or btc) for perpetual swap and futures
         await this.loadMarkets ();
-        const response = await this.privateSpotGetAccounts (params);
-        //
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        const swap = type === 'swap';
+        const futures = type === 'futures';
+        const method = this.getSupportedMapping (type, {
+            'spot': 'privateSpotGetAccounts',
+            // 'margin': 'publicMarginGetTickers',
+            'swap': 'privateFuturesGetSettleAccounts',
+            'futures': 'privateDeliveryGetSettleAccounts',
+        });
+        const request = {};
+        let response = [];
+        if (swap || futures) {
+            const defaultSettle = swap ? 'usdt' : 'btc';
+            request['settle'] = this.safeString (params, 'settle', defaultSettle);
+            const response_item = await this[method] (this.extend (request, params));
+            response = [response_item];
+        } else {
+            response = await this[method] (this.extend (request, params));
+        }
+        //  SPOT
         //     [
         //       {
         //         "currency": "DBC",
@@ -1337,13 +1399,61 @@ module.exports = class gateio extends Exchange {
         //       ...
         //     ]
         //
+        //  Perpetual Swap
+        //  {
+        //     order_margin: "0",
+        //     point: "0",
+        //     bonus: "0",
+        //     history: {
+        //       dnw: "2.1321",
+        //       pnl: "11.5351",
+        //       refr: "0",
+        //       point_fee: "0",
+        //       fund: "-0.32340576684",
+        //       bonus_dnw: "0",
+        //       point_refr: "0",
+        //       bonus_offset: "0",
+        //       fee: "-0.20132775",
+        //       point_dnw: "0",
+        //     },
+        //     unrealised_pnl: "13.315100000006",
+        //     total: "12.51345151332",
+        //     available: "0",
+        //     in_dual_mode: false,
+        //     currency: "USDT",
+        //     position_margin: "12.51345151332",
+        //     user: "6333333",
+        //   }
+        //
+        //   Delivery Future
+        //   {
+        //     order_margin: "0",
+        //     point: "0",
+        //     history: {
+        //       dnw: "1",
+        //       pnl: "0",
+        //       refr: "0",
+        //       point_fee: "0",
+        //       point_dnw: "0",
+        //       settle: "0",
+        //       settle_fee: "0",
+        //       point_refr: "0",
+        //       fee: "0",
+        //     },
+        //     unrealised_pnl: "0",
+        //     total: "1",
+        //     available: "1",
+        //     currency: "USDT",
+        //     position_margin: "0",
+        //     user: "6333333",
+        //   }
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const account = this.account ();
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            account['used'] = this.safeString (entry, 'locked');
+            account['used'] = this.safeString2 (entry, 'locked', 'position_margin');
             account['free'] = this.safeString (entry, 'available');
             result[code] = account;
         }
@@ -1357,7 +1467,8 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, 'price');
         const isMark = (price === 'mark');
         const isIndex = (price === 'index');
-        const isFuture = isMark || isIndex;
+        const futures = market['futures'];
+        const swap = market['swap'];
         const request = {
             'interval': this.timeframes[timeframe],
         };
@@ -1366,16 +1477,20 @@ module.exports = class gateio extends Exchange {
                 request['limit'] = limit;
             }
         } else {
-            request['from'] = Math.floor (since / 1000);
+            request['from'] = parseInt (since / 1000);
             if (limit !== undefined) {
                 request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe) - 1);
             }
         }
         let method = 'publicSpotGetCandlesticks';
-        if (isFuture) {
+        if (isMark || isIndex || futures || swap) {
             request['contract'] = market['id'];
-            method = 'publicFuturesGetSettleCandlesticks';
-            request['settle'] = market['quote'].toLowerCase ();
+            if (futures) {
+                method = 'publicDeliveryGetSettleCandlesticks';
+            } else {
+                method = 'publicFuturesGetSettleCandlesticks';
+            }
+            request['settle'] = market['settleId'];
             if (isMark) {
                 request['contract'] = 'mark_' + request['contract'];
             } else if (isIndex) {
@@ -1432,24 +1547,27 @@ module.exports = class gateio extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined) {
+        //
         // Spot market candles
+        //
         //     [
-        //       "1626163200",           // Unix timestamp in seconds
-        //       "346711.933138181617",  // Trading volume
-        //       "33165.23",             // Close price
-        //       "33260",                // Highest price
-        //       "33117.6",              // Lowest price
-        //       "33184.47"              // Open price
+        //         "1626163200",           // Unix timestamp in seconds
+        //         "346711.933138181617",  // Trading volume
+        //         "33165.23",             // Close price
+        //         "33260",                // Highest price
+        //         "33117.6",              // Lowest price
+        //         "33184.47"              // Open price
         //     ]
         //
         // Mark and Index price candles
-        // {
-        //      "t":1632873600,         // Unix timestamp in seconds
-        //      "o":"41025",            // Open price
-        //      "h":"41882.17",         // Highest price
-        //      "c":"41776.92",         // Close price
-        //      "l":"40783.94"          // Lowest price
-        // }
+        //
+        //     {
+        //          "t":1632873600,         // Unix timestamp in seconds
+        //          "o":"41025",            // Open price
+        //          "h":"41882.17",         // Highest price
+        //          "c":"41776.92",         // Close price
+        //          "l":"40783.94"          // Lowest price
+        //     }
         //
         if (Array.isArray (ohlcv)) {
             return [
@@ -1468,7 +1586,7 @@ module.exports = class gateio extends Exchange {
                 this.safeNumber (ohlcv, 'h'),    // highest price
                 this.safeNumber (ohlcv, 'l'),    // lowest price
                 this.safeNumber (ohlcv, 'c'),    // close price
-                0,
+                this.safeNumber (ohlcv, 'v'),    // trading volume, undefined for mark or index price
             ];
         }
     }
@@ -1476,81 +1594,184 @@ module.exports = class gateio extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currency_pair': market['id'],
-        };
-        const response = await this.publicSpotGetTrades (this.extend (request, params));
+        //
+        // spot
+        //
+        //     const request = {
+        //         'currency_pair': market['id'],
+        //         'limit': limit, // maximum number of records to be returned in a single list
+        //         'last_id': 'id', // specify list staring point using the id of last record in previous list-query results
+        //         'reverse': false, // true to retrieve records where id is smaller than the specified last_id, false to retrieve records where id is larger than the specified last_id
+        //     };
+        //
+        // swap, futures
+        //
+        //     const request = {
+        //         'settle': market['settleId'],
+        //         'contract': market['id'],
+        //         'limit': limit, // maximum number of records to be returned in a single list
+        //         'last_id': 'id', // specify list staring point using the id of last record in previous list-query results
+        //         'from': since / 1000), // starting time in seconds, if not specified, to and limit will be used to limit response items
+        //         'to': this.seconds (), // end time in seconds, default to current time
+        //     };
+        //
+        const request = this.prepareRequest (market);
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'publicSpotGetTrades',
+            // 'margin': 'publicMarginGetTickers',
+            'swap': 'publicFuturesGetSettleTrades',
+            'futures': 'publicDeliveryGetSettleTrades',
+        });
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 1000
+        }
+        if (since !== undefined && (market['swap'] || market['futures'])) {
+            request['from'] = parseInt (since / 1000);
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     [
+        //         {
+        //             id: "1852958144",
+        //             create_time: "1634673259",
+        //             create_time_ms: "1634673259378.105000",
+        //             currency_pair: "ADA_USDT",
+        //             side: "sell",
+        //             amount: "307.078",
+        //             price: "2.104",
+        //         }
+        //     ]
+        //
+        // perpetual swap
+        //
+        //     [
+        //         {
+        //              size: "2",
+        //              id: "2522911",
+        //              create_time_ms: "1634673380.182",
+        //              create_time: "1634673380.182",
+        //              contract: "ADA_USDT",
+        //              price: "2.10486",
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currency_pair': market['id'],
-            // 'limit': limit,
-            // 'page': 0,
-            // 'order_id': 'Order ID',
-            // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
-            // 'from': since, // default to 7 days before current time
-            // 'to': this.milliseconds (), // default to current time
-        };
+        //
+        //     const request = {
+        //         'currency_pair': market['id'],
+        //         // 'limit': limit,
+        //         // 'page': 0,
+        //         // 'order_id': 'Order ID',
+        //         // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
+        //         // 'from': since, // default to 7 days before current time
+        //         // 'to': this.milliseconds (), // default to current time
+        //     };
+        //
+        const request = this.prepareRequest (market);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
         if (since !== undefined) {
-            request['from'] = Math.floor (since / 1000);
+            request['from'] = parseInt (since / 1000);
             // request['to'] = since + 7 * 24 * 60 * 60;
         }
-        const response = await this.privateSpotGetMyTrades (this.extend (request, params));
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateSpotGetMyTrades',
+            // 'margin': 'publicMarginGetCurrencyPairs',
+            'swap': 'privateFuturesGetSettleMyTrades',
+            'futures': 'privateDeliveryGetSettleMyTrades',
+        });
+        const response = await this[method] (this.extend (request, params));
+        // SPOT
+        // [{
+        //     id: "1851927191",
+        //     create_time: "1634333360",
+        //     create_time_ms: "1634333360359.901000",
+        //     currency_pair: "BTC_USDT",
+        //     side: "buy",
+        //     role: "taker",
+        //     amount: "0.0001",
+        //     price: "62547.51",
+        //     order_id: "93475897349",
+        //     fee: "2e-07",
+        //     fee_currency: "BTC",
+        //     point_fee: "0",
+        //     gt_fee: "0",
+        //   }]
+        // Perpetual Swap
+        // [{
+        //   size: "-13",
+        //   order_id: "79723658958",
+        //   id: "47612669",
+        //   role: "taker",
+        //   create_time: "1634600263.326",
+        //   contract: "BTC_USDT",
+        //   price: "61987.8",
+        // }]
         return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
         //
         // public
+        //
         //     {
-        //       "id": "1334253759",
-        //       "create_time": "1626342738",
-        //       "create_time_ms": "1626342738331.497000",
-        //       "currency_pair": "BTC_USDT",
-        //       "side": "sell",
-        //       "amount": "0.0022",
-        //       "price": "32452.16"
+        //         "id": "1334253759",
+        //         "create_time": "1626342738",
+        //         "create_time_ms": "1626342738331.497000",
+        //         "currency_pair": "BTC_USDT",
+        //         "side": "sell",
+        //         "amount": "0.0022",
+        //         "price": "32452.16"
         //     }
         //
         // private
+        //
         //     {
-        //       "id": "218087755",
-        //       "create_time": "1578958740",
-        //       "create_time_ms": "1578958740122.710000",
-        //       "currency_pair": "BTC_USDT",
-        //       "side": "sell",
-        //       "role": "taker",
-        //       "amount": "0.0004",
-        //       "price": "8112.77",
-        //       "order_id": "8445563839",
-        //       "fee": "0.006490216",
-        //       "fee_currency": "USDT",
-        //       "point_fee": "0",
-        //       "gt_fee": "0"
+        //         "id": "218087755",
+        //         "create_time": "1578958740",
+        //         "create_time_ms": "1578958740122.710000",
+        //         "currency_pair": "BTC_USDT",
+        //         "side": "sell",
+        //         "role": "taker",
+        //         "amount": "0.0004",
+        //         "price": "8112.77",
+        //         "order_id": "8445563839",
+        //         "fee": "0.006490216",
+        //         "fee_currency": "USDT",
+        //         "point_fee": "0",
+        //         "gt_fee": "0"
         //     }
         //
         const id = this.safeString (trade, 'id');
-        const timestampString = this.safeString2 (trade, 'create_time_ms', 'time');
+        const timestampStringContract = this.safeString (trade, 'create_time');
+        const timestampString = this.safeString2 (trade, 'create_time_ms', 'time', timestampStringContract);
         let timestamp = undefined;
         if (timestampString.indexOf ('.') > 0) {
             const milliseconds = timestampString.split ('.');
             timestamp = parseInt (milliseconds[0]);
         }
-        const marketId = this.safeString (trade, 'currency_pair');
+        if (market['swap']) {
+            timestamp = timestamp * 1000;
+        }
+        const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
-        const amountString = this.safeString (trade, 'amount');
+        let amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
-        const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-        const amount = this.parseNumber (amountString);
+        const costString = Precise.stringAbs (Precise.stringMul (amountString, priceString));
         const price = this.parseNumber (priceString);
-        const side = this.safeString (trade, 'side');
+        const cost = this.parseNumber (costString);
+        const contractSide = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
+        amountString = Precise.stringAbs (amountString);
+        const amount = this.parseNumber (amountString);
+        const side = this.safeString (trade, 'side', contractSide);
         const orderId = this.safeString (trade, 'order_id');
         const gtFee = this.safeString (trade, 'gt_fee');
         let feeCurrency = undefined;
@@ -1596,7 +1817,7 @@ module.exports = class gateio extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['from'] = Math.floor (since / 1000);
+            request['from'] = parseInt (since / 1000);
             request['to'] = since + 30 * 24 * 60 * 60;
         }
         const response = await this.privateWalletGetDeposits (this.extend (request, params));
@@ -1615,7 +1836,7 @@ module.exports = class gateio extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['from'] = Math.floor (since / 1000);
+            request['from'] = parseInt (since / 1000);
             request['to'] = since + 30 * 24 * 60 * 60;
         }
         const response = await this.privateWalletGetWithdrawals (this.extend (request, params));
@@ -1686,6 +1907,7 @@ module.exports = class gateio extends Exchange {
     parseTransaction (transaction, currency = undefined) {
         //
         // deposits
+        //
         //     {
         //       "id": "d33361395",
         //       "currency": "USDT_TRX",
@@ -1927,7 +2149,7 @@ module.exports = class gateio extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['start'] = Math.floor (since / 1000);
+            request['start'] = parseInt (since / 1000);
         }
         const response = await this.privateSpotGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
@@ -1974,6 +2196,7 @@ module.exports = class gateio extends Exchange {
         const response = await this.privateWalletPostTransfers (this.extend (request, params));
         //
         // according to the docs
+        //
         //     {
         //       "currency": "BTC",
         //       "from": "spot",
@@ -1983,6 +2206,7 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         // actual response
+        //
         //  POST https://api.gateio.ws/api/v4/wallet/transfers 204 No Content
         //
         return {
@@ -1996,7 +2220,7 @@ module.exports = class gateio extends Exchange {
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
-        const type = api[1]; // spot, margin, future, delivery
+        const type = api[1]; // spot, margin, futures, delivery
         const query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
         const endPart = (path === '' ? '' : '/' + path);

@@ -309,6 +309,7 @@ class ftx extends Exchange {
                     'Invalid reduce-only order' => '\\ccxt\\InvalidOrder', // array("error":"Invalid reduce-only order","success":false)
                     'Account does not have enough balances' => '\\ccxt\\InsufficientFunds', // array("success":false,"error":"Account does not have enough balances")
                     'Not authorized for subaccount-specific access' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not authorized for subaccount-specific access")
+                    'Not approved to trade this product' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not approved to trade this product")
                 ),
                 'broad' => array(
                     'Account does not have enough margin for order' => '\\ccxt\\InsufficientFunds',
@@ -488,7 +489,6 @@ class ftx extends Exchange {
                         'max' => null,
                     ),
                     'leverage' => array(
-                        'min' => 1,
                         'max' => 20,
                     ),
                 ),
@@ -1021,10 +1021,9 @@ class ftx extends Exchange {
             'future' => $market['id'],
         );
         if ($since !== null) {
-            $request['start_time'] = $since / 1000;
+            $request['start_time'] = intval($since / 1000);
         }
-        $method = 'publicGetFundingRates';
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->publicGetFundingRates (array_merge($request, $params));
         //
         //     {
         //        "success" => true,

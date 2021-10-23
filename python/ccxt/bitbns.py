@@ -41,7 +41,7 @@ class bitbns(Exchange):
                 'fetchStatus': True,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
-                'fetchTrades': None,
+                'fetchTrades': True,
                 'fetchWithdrawals': True,
             },
             'timeframes': {
@@ -640,11 +640,23 @@ class bitbns(Exchange):
         #         "id": "2938823"
         #     }
         #
+        # fetchTrades
+        #
+        #     {
+        #         "tradeId":"1909151",
+        #         "price":"61904.6300",
+        #         "quote_volume":1618.05,
+        #         "base_volume":0.02607254,
+        #         "timestamp":1634548602000,
+        #         "type":"buy"
+        #     }
+        #
         market = self.safe_market(None, market)
-        orderId = self.safe_string(trade, 'id')
+        orderId = self.safe_string_2(trade, 'id', 'tradeId')
         timestamp = self.parse8601(self.safe_string(trade, 'date'))
-        amountString = self.safe_string(trade, 'amount')
-        priceString = self.safe_string(trade, 'rate')
+        timestamp = self.safe_integer(trade, 'timestamp', timestamp)
+        amountString = self.safe_string_2(trade, 'amount', 'base_volume')
+        priceString = self.safe_string_2(trade, 'rate', 'price')
         price = self.parse_number(priceString)
         factor = self.safe_string(trade, 'factor')
         amountScaled = Precise.string_div(amountString, factor)
@@ -652,10 +664,6 @@ class bitbns(Exchange):
         cost = self.parse_number(Precise.string_mul(priceString, amountScaled))
         symbol = market['symbol']
         side = self.safe_string_lower(trade, 'type')
-        if side.find('sell') >= 0:
-            side = 'sell'
-        elif side.find('buy') >= 0:
-            side = 'buy'
         fee = None
         feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
@@ -669,7 +677,7 @@ class bitbns(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': None,
+            'id': orderId,
             'order': orderId,
             'type': None,
             'side': side,
@@ -735,6 +743,25 @@ class bitbns(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
+
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchTrades() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'coin': market['baseId'],
+            'market': market['quoteId'],
+        }
+        response = self.wwwGetExchangeDataTradedetails(self.extend(request, params))
+        #
+        #     [
+        #         {"tradeId":"1909151","price":"61904.6300","quote_volume":1618.05,"base_volume":0.02607254,"timestamp":1634548602000,"type":"buy"},
+        #         {"tradeId":"1909153","price":"61893.9000","quote_volume":16384.42,"base_volume":0.26405767,"timestamp":1634548999000,"type":"sell"},
+        #         {"tradeId":"1909155","price":"61853.1100","quote_volume":2304.37,"base_volume":0.03716263,"timestamp":1634549670000,"type":"sell"}
+        #     }
+        #
+        return self.parse_trades(response, market, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if code is None:
@@ -899,15 +926,18 @@ class bitbns(Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='v1', method='GET', params={}, headers=None, body=None):
-        self.check_required_credentials()
+    def sign(self, path, api='www', method='GET', params={}, headers=None, body=None):
+        if not (api in self.urls['api']):
+            raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
+        if api != 'www':
+            self.check_required_credentials()
+            headers = {
+                'X-BITBNS-APIKEY': self.apiKey,
+            }
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         nonce = str(self.nonce())
-        headers = {
-            'X-BITBNS-APIKEY': self.apiKey,
-        }
         if method == 'GET':
             if query:
                 url += '?' + self.urlencode(query)

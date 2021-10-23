@@ -575,6 +575,9 @@ class coinbase extends Exchange {
                                 'min' => $this->safe_number($quoteCurrency, 'min_size'),
                                 'max' => null,
                             ),
+                            'leverage' => array(
+                                'max' => 1,
+                            ),
                         ),
                     );
                 }

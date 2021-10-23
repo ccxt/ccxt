@@ -233,6 +233,7 @@ class mexc(Exchange):
                 },
             },
             'commonCurrencies': {
+                'SIN': 'Sin City Token',
             },
             'exceptions': {
                 'exact': {
@@ -475,7 +476,7 @@ class mexc(Exchange):
             quoteId = self.safe_string(market, 'quoteCoin')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
+            symbol = id
             precision = {
                 'price': self.safe_number(market, 'priceUnit'),
                 'amount': self.safe_number(market, 'volUnit'),
@@ -935,7 +936,8 @@ class mexc(Exchange):
         timestamp = self.safe_integer_2(trade, 'create_time', 'trade_time')
         timestamp = self.safe_integer(trade, 't', timestamp)
         marketId = self.safe_string(trade, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '_')
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
         priceString = self.safe_string_2(trade, 'price', 'trade_price')
         priceString = self.safe_string(trade, 'p', priceString)
         amountString = self.safe_string_2(trade, 'quantity', 'trade_quantity')
@@ -952,7 +954,10 @@ class mexc(Exchange):
         elif (side == 'ASK') or (side == '2'):
             side = 'sell'
         id = self.safe_string_2(trade, 'id', 'trade_time')
-        id = self.safe_string(trade, 't', id)
+        if id is None:
+            id = self.safe_string(trade, 't', id)
+            if id is not None:
+                id += '-' + market['id'] + '-' + amountString
         feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
@@ -1624,7 +1629,8 @@ class mexc(Exchange):
         if clientOrderId == '':
             clientOrderId = None
         orderType = self.safe_string_lower(order, 'order_type')
-        orderType = orderType.replace('_order', '')
+        if orderType is not None:
+            orderType = orderType.replace('_order', '')
         return self.safe_order2({
             'id': id,
             'clientOrderId': clientOrderId,

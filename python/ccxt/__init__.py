@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.58.47'
+__version__ = '1.58.90'
 
 # ----------------------------------------------------------------------------
 
@@ -129,7 +129,6 @@ from ccxt.digifinex import digifinex                        # noqa: F401
 from ccxt.eqonex import eqonex                              # noqa: F401
 from ccxt.equos import equos                                # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
-from ccxt.exx import exx                                    # noqa: F401
 from ccxt.flowbtc import flowbtc                            # noqa: F401
 from ccxt.ftx import ftx                                    # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
@@ -241,7 +240,6 @@ exchanges = [
     'eqonex',
     'equos',
     'exmo',
-    'exx',
     'flowbtc',
     'ftx',
     'gateio',

@@ -487,6 +487,9 @@ class kucoin(Exchange):
                     'min': quoteMinSize,
                     'max': quoteMaxSize,
                 },
+                'leverage': {
+                    'max': self.safe_number(market, 'maxLeverage', 1),  # * Don't default to 1 for margin markets, leverage is located elsewhere
+                },
             }
             result.append({
                 'id': id,
@@ -719,26 +722,41 @@ class kucoin(Exchange):
         #         "mark": 0
         #     }
         #
+        # market/ticker ws subscription
+        #
+        #     {
+        #         bestAsk: '62258.9',
+        #         bestAskSize: '0.38579986',
+        #         bestBid: '62258.8',
+        #         bestBidSize: '0.0078381',
+        #         price: '62260.7',
+        #         sequence: '1621383297064',
+        #         size: '0.00002841',
+        #         time: 1634641777363
+        #     }
+        #
         percentage = self.safe_number(ticker, 'changeRate')
         if percentage is not None:
             percentage = percentage * 100
         last = self.safe_number_2(ticker, 'last', 'lastTradedPrice')
+        last = self.safe_number(ticker, 'price', last)
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         baseVolume = self.safe_number(ticker, 'vol')
         quoteVolume = self.safe_number(ticker, 'volValue')
         vwap = self.vwap(baseVolume, quoteVolume)
         timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high'),
             'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
-            'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
-            'askVolume': None,
+            'bid': self.safe_number_2(ticker, 'buy', 'bestBid'),
+            'bidVolume': self.safe_number(ticker, 'bestBidSize'),
+            'ask': self.safe_number_2(ticker, 'sell', 'bestAsk'),
+            'askVolume': self.safe_number(ticker, 'bestAskSize'),
             'vwap': vwap,
             'open': self.safe_number(ticker, 'open'),
             'close': last,
@@ -750,7 +768,7 @@ class kucoin(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

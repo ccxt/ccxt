@@ -392,7 +392,6 @@ class kraken(Exchange):
                         'max': None,
                     },
                     'leverage': {
-                        'min': 1,
                         'max': maxLeverage,
                     },
                 },

@@ -219,6 +219,7 @@ module.exports = class mexc extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'SIN': 'Sin City Token',
             },
             'exceptions': {
                 'exact': {
@@ -477,7 +478,7 @@ module.exports = class mexc extends Exchange {
             const quoteId = this.safeString (market, 'quoteCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            const symbol = id;
             const precision = {
                 'price': this.safeNumber (market, 'priceUnit'),
                 'amount': this.safeNumber (market, 'volUnit'),
@@ -954,7 +955,8 @@ module.exports = class mexc extends Exchange {
         let timestamp = this.safeInteger2 (trade, 'create_time', 'trade_time');
         timestamp = this.safeInteger (trade, 't', timestamp);
         const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '_');
+        market = this.safeMarket (marketId, market, '_');
+        const symbol = market['symbol'];
         let priceString = this.safeString2 (trade, 'price', 'trade_price');
         priceString = this.safeString (trade, 'p', priceString);
         let amountString = this.safeString2 (trade, 'quantity', 'trade_quantity');
@@ -973,7 +975,12 @@ module.exports = class mexc extends Exchange {
             side = 'sell';
         }
         let id = this.safeString2 (trade, 'id', 'trade_time');
-        id = this.safeString (trade, 't', id);
+        if (id === undefined) {
+            id = this.safeString (trade, 't', id);
+            if (id !== undefined) {
+                id += '-' + market['id'] + '-' + amountString;
+            }
+        }
         const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -1706,7 +1713,9 @@ module.exports = class mexc extends Exchange {
             clientOrderId = undefined;
         }
         let orderType = this.safeStringLower (order, 'order_type');
-        orderType = orderType.replace ('_order', '');
+        if (orderType !== undefined) {
+            orderType = orderType.replace ('_order', '');
+        }
         return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,

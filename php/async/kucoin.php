@@ -482,6 +482,9 @@ class kucoin extends Exchange {
                     'min' => $quoteMinSize,
                     'max' => $quoteMaxSize,
                 ),
+                'leverage' => array(
+                    'max' => $this->safe_number($market, 'maxLeverage', 1), // * Don't default to 1 for margin markets, leverage is located elsewhere
+                ),
             );
             $result[] = array(
                 'id' => $id,
@@ -729,27 +732,42 @@ class kucoin extends Exchange {
         //         "mark" => 0
         //     }
         //
+        // market/ticker ws subscription
+        //
+        //     {
+        //         bestAsk => '62258.9',
+        //         bestAskSize => '0.38579986',
+        //         bestBid => '62258.8',
+        //         bestBidSize => '0.0078381',
+        //         price => '62260.7',
+        //         sequence => '1621383297064',
+        //         size => '0.00002841',
+        //         time => 1634641777363
+        //     }
+        //
         $percentage = $this->safe_number($ticker, 'changeRate');
         if ($percentage !== null) {
             $percentage = $percentage * 100;
         }
         $last = $this->safe_number_2($ticker, 'last', 'lastTradedPrice');
+        $last = $this->safe_number($ticker, 'price', $last);
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $baseVolume = $this->safe_number($ticker, 'vol');
         $quoteVolume = $this->safe_number($ticker, 'volValue');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         $timestamp = $this->safe_integer_2($ticker, 'time', 'datetime');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'high'),
             'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
-            'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
-            'askVolume' => null,
+            'bid' => $this->safe_number_2($ticker, 'buy', 'bestBid'),
+            'bidVolume' => $this->safe_number($ticker, 'bestBidSize'),
+            'ask' => $this->safe_number_2($ticker, 'sell', 'bestAsk'),
+            'askVolume' => $this->safe_number($ticker, 'bestAskSize'),
             'vwap' => $vwap,
             'open' => $this->safe_number($ticker, 'open'),
             'close' => $last,
@@ -761,7 +779,7 @@ class kucoin extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

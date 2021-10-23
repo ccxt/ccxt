@@ -115,6 +115,7 @@ class okex(Exchange):
                         'market/trades': 1,
                         'market/platform-24-volume': 10,
                         'market/open-oracle': 100,
+                        'market/index-components': 1,
                         # 'market/oracle',
                         'public/instruments': 1,
                         'public/delivery-exercise-history': 0.5,
@@ -132,6 +133,18 @@ class okex(Exchange):
                         'public/position-tiers': 2,
                         'public/underlying': 1,
                         'public/interest-rate-loan-quota': 10,
+                        'rubik/stat/trading-data/support-coin': 4,
+                        'rubik/stat/taker-volume': 4,
+                        'rubik/stat/margin/loan-ratio': 4,
+                        # long/short
+                        'rubik/stat/contracts/long-short-account-ratio': 4,
+                        'rubik/stat/contracts/open-interest-volume': 4,
+                        'rubik/stat/option/open-interest-volume': 4,
+                        # put/call
+                        'rubik/stat/option/open-interest-volume-ratio': 4,
+                        'rubik/stat/option/open-interest-volume-expiry': 4,
+                        'rubik/stat/option/open-interest-volume-strike': 4,
+                        'rubik/stat/option/taker-block-volume': 4,
                         'system/status': 100,
                     },
                 },
@@ -153,11 +166,13 @@ class okex(Exchange):
                         'account/max-withdrawal': 1,
                         'asset/deposit-address': 5 / 3,
                         'asset/balances': 5 / 3,
+                        'asset/transfer-state': 10,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
                         'asset/currencies': 5 / 3,
                         'asset/bills': 5 / 3,
                         'asset/piggy-balance': 5 / 3,
+                        'asset/deposit-lightning': 5,
                         'trade/order': 1 / 3,
                         'trade/orders-pending': 1,
                         'trade/orders-history': 0.5,
@@ -169,6 +184,7 @@ class okex(Exchange):
                         'account/subaccount/balances': 10,
                         'asset/subaccount/bills': 5 / 3,
                         'users/subaccount/list': 10,
+                        'users/subaccount/apikey': 10,
                     },
                     'post': {
                         'account/set-position-mode': 4,
@@ -178,6 +194,7 @@ class okex(Exchange):
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/purchase_redempt': 5 / 3,
+                        'asset/withdrawal-lightning': 5,
                         'trade/order': 1 / 3,
                         'trade/batch-orders': 1 / 15,
                         'trade/cancel-order': 1 / 3,
@@ -680,6 +697,7 @@ class okex(Exchange):
         active = True
         fees = self.safe_value_2(self.fees, type, 'trading', {})
         contractSize = self.safe_string(market, 'ctVal')
+        leverage = self.safe_number(market, 'lever', 1)
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -710,6 +728,9 @@ class okex(Exchange):
                 'cost': {
                     'min': minCost,
                     'max': None,
+                },
+                'leverage': {
+                    'max': leverage,
                 },
             },
         })
@@ -1592,7 +1613,8 @@ class okex(Exchange):
         # see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
         defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
         tgtCcy = self.safe_string(order, 'tgtCcy', defaultTgtCcy)
-        if side == 'buy' and type == 'market' and market['spot'] and tgtCcy == 'quote_ccy':
+        instType = self.safe_string(order, 'instType')
+        if (side == 'buy') and (type == 'market') and (instType == 'SPOT') and (tgtCcy == 'quote_ccy'):
             # "sz" refers to the cost
             cost = self.safe_number(order, 'sz')
         else:

@@ -96,7 +96,6 @@ class binance extends Exchange {
                     'fapiPrivateV2' => 'https://testnet.binancefuture.com/fapi/v2',
                     'public' => 'https://testnet.binance.vision/api/v3',
                     'private' => 'https://testnet.binance.vision/api/v3',
-                    'v3' => 'https://testnet.binance.vision/api/v3',
                     'v1' => 'https://testnet.binance.vision/api/v1',
                 ),
                 'api' => array(
@@ -112,7 +111,6 @@ class binance extends Exchange {
                     'fapiPrivateV2' => 'https://fapi.binance.com/fapi/v2',
                     'public' => 'https://api.binance.com/api/v3',
                     'private' => 'https://api.binance.com/api/v3',
-                    'v3' => 'https://api.binance.com/api/v3',
                     'v1' => 'https://api.binance.com/api/v1',
                 ),
                 'www' => 'https://www.binance.com',
@@ -184,6 +182,8 @@ class binance extends Exchange {
                         'capital/deposit/subAddress' => 1,
                         'capital/deposit/subHisrec' => 1,
                         'capital/withdraw/history' => 1,
+                        'account/status' => 1,
+                        'account/apiTradingStatus' => 1,
                         'bnbBurn' => 1,
                         'sub-account/assets' => 1,
                         'sub-account/futures/account' => 1,
@@ -530,12 +530,6 @@ class binance extends Exchange {
                         'positionRisk' => 1,
                     ),
                 ),
-                'v3' => array(
-                    'get' => array(
-                        'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
-                        'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
-                    ),
-                ),
                 'public' => array(
                     'get' => array(
                         'ping' => 1,
@@ -856,7 +850,7 @@ class binance extends Exchange {
                     'Rest API trading is not enabled.' => '\\ccxt\\ExchangeNotAvailable',
                     "You don't have permission." => '\\ccxt\\PermissionDenied', // array("msg":"You don't have permission.","success":false)
                     'Market is closed.' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1013,"msg":"Market is closed.")
-                    'Too many requests.' => '\\ccxt\\DDoSProtection', // array("msg":"Too many requests. Please try again later.","success":false)
+                    'Too many requests. Please try again later.' => '\\ccxt\\DDoSProtection', // array("msg":"Too many requests. Please try again later.","success":false)
                     '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
                     '-1001' => '\\ccxt\\ExchangeNotAvailable', // 'Internal error; unable to process your request. Please try again.'
                     '-1002' => '\\ccxt\\AuthenticationError', // 'You are not authorized to execute this request.'
@@ -2856,13 +2850,6 @@ class binance extends Exchange {
         if (is_array($this->markets) && array_key_exists($applicantSymbol, $this->markets)) {
             $tradedCurrencyIsQuote = true;
         }
-        //
-        // Warning
-        // Binance dust $trade `$fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
-        // So the parser should either set the `$fee->cost` to `0` or add it on top of the earned
-        // BNB `$amount` (or `$cost` depending on the $trade `$side`). The second of the above options
-        // is much more illustrative and therefore preferable.
-        //
         $feeCostString = $this->safe_string($trade, 'serviceChargeAmount');
         $fee = array(
             'currency' => $earnedCurrency,
@@ -2874,13 +2861,13 @@ class binance extends Exchange {
         $side = null;
         if ($tradedCurrencyIsQuote) {
             $symbol = $applicantSymbol;
-            $amountString = Precise::string_add($this->safe_string($trade, 'transferedAmount'), $feeCostString);
+            $amountString = $this->safe_string($trade, 'transferedAmount');
             $costString = $this->safe_string($trade, 'amount');
             $side = 'buy';
         } else {
             $symbol = $tradedCurrency . '/' . $earnedCurrency;
             $amountString = $this->safe_string($trade, 'amount');
-            $costString = Precise::string_add($this->safe_string($trade, 'transferedAmount'), $feeCostString);
+            $costString = $this->safe_string($trade, 'transferedAmount');
             $side = 'sell';
         }
         $priceString = null;
@@ -3386,7 +3373,10 @@ class binance extends Exchange {
 
     public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $currency = $this->currency($code);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $defaultType = $this->safe_string_2($this->options, 'fetchTransfers', 'defaultType', 'spot');
         $fromAccount = $this->safe_string($params, 'fromAccount', $defaultType);
         $defaultTo = ($fromAccount === 'future') ? 'spot' : 'future';

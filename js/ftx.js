@@ -306,6 +306,7 @@ module.exports = class ftx extends Exchange {
                     'Invalid reduce-only order': InvalidOrder, // {"error":"Invalid reduce-only order","success":false}
                     'Account does not have enough balances': InsufficientFunds, // {"success":false,"error":"Account does not have enough balances"}
                     'Not authorized for subaccount-specific access': PermissionDenied, // {"success":false,"error":"Not authorized for subaccount-specific access"}
+                    'Not approved to trade this product': PermissionDenied, // {"success":false,"error":"Not approved to trade this product"}
                 },
                 'broad': {
                     'Account does not have enough margin for order': InsufficientFunds,
@@ -485,7 +486,6 @@ module.exports = class ftx extends Exchange {
                         'max': undefined,
                     },
                     'leverage': {
-                        'min': 1,
                         'max': 20,
                     },
                 },
@@ -1018,10 +1018,9 @@ module.exports = class ftx extends Exchange {
             'future': market['id'],
         };
         if (since !== undefined) {
-            request['start_time'] = since / 1000;
+            request['start_time'] = parseInt (since / 1000);
         }
-        const method = 'publicGetFundingRates';
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicGetFundingRates (this.extend (request, params));
         //
         //     {
         //        "success": true,

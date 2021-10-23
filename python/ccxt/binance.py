@@ -107,7 +107,6 @@ class binance(Exchange):
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
                     'public': 'https://testnet.binance.vision/api/v3',
                     'private': 'https://testnet.binance.vision/api/v3',
-                    'v3': 'https://testnet.binance.vision/api/v3',
                     'v1': 'https://testnet.binance.vision/api/v1',
                 },
                 'api': {
@@ -123,7 +122,6 @@ class binance(Exchange):
                     'fapiPrivateV2': 'https://fapi.binance.com/fapi/v2',
                     'public': 'https://api.binance.com/api/v3',
                     'private': 'https://api.binance.com/api/v3',
-                    'v3': 'https://api.binance.com/api/v3',
                     'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
@@ -195,6 +193,8 @@ class binance(Exchange):
                         'capital/deposit/subAddress': 1,
                         'capital/deposit/subHisrec': 1,
                         'capital/withdraw/history': 1,
+                        'account/status': 1,
+                        'account/apiTradingStatus': 1,
                         'bnbBurn': 1,
                         'sub-account/assets': 1,
                         'sub-account/futures/account': 1,
@@ -541,12 +541,6 @@ class binance(Exchange):
                         'positionRisk': 1,
                     },
                 },
-                'v3': {
-                    'get': {
-                        'ticker/price': {'cost': 1, 'noSymbol': 2},
-                        'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
-                    },
-                },
                 'public': {
                     'get': {
                         'ping': 1,
@@ -867,7 +861,7 @@ class binance(Exchange):
                     'Rest API trading is not enabled.': ExchangeNotAvailable,
                     "You don't have permission.": PermissionDenied,  # {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable,  # {"code":-1013,"msg":"Market is closed."}
-                    'Too many requests.': DDoSProtection,  # {"msg":"Too many requests. Please try again later.","success":false}
+                    'Too many requests. Please try again later.': DDoSProtection,  # {"msg":"Too many requests. Please try again later.","success":false}
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable,  # 'Internal error; unable to process your request. Please try again.'
                     '-1002': AuthenticationError,  # 'You are not authorized to execute self request.'
@@ -2734,13 +2728,6 @@ class binance(Exchange):
         tradedCurrencyIsQuote = False
         if applicantSymbol in self.markets:
             tradedCurrencyIsQuote = True
-        #
-        # Warning
-        # Binance dust trade `fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
-        # So the parser should either set the `fee.cost` to `0` or add it on top of the earned
-        # BNB `amount`(or `cost` depending on the trade `side`). The second of the above options
-        # is much more illustrative and therefore preferable.
-        #
         feeCostString = self.safe_string(trade, 'serviceChargeAmount')
         fee = {
             'currency': earnedCurrency,
@@ -2752,13 +2739,13 @@ class binance(Exchange):
         side = None
         if tradedCurrencyIsQuote:
             symbol = applicantSymbol
-            amountString = Precise.string_add(self.safe_string(trade, 'transferedAmount'), feeCostString)
+            amountString = self.safe_string(trade, 'transferedAmount')
             costString = self.safe_string(trade, 'amount')
             side = 'buy'
         else:
             symbol = tradedCurrency + '/' + earnedCurrency
             amountString = self.safe_string(trade, 'amount')
-            costString = Precise.string_add(self.safe_string(trade, 'transferedAmount'), feeCostString)
+            costString = self.safe_string(trade, 'transferedAmount')
             side = 'sell'
         priceString = None
         if costString is not None:
@@ -3228,7 +3215,9 @@ class binance(Exchange):
 
     def fetch_transfers(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
-        currency = self.currency(code)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         defaultType = self.safe_string_2(self.options, 'fetchTransfers', 'defaultType', 'spot')
         fromAccount = self.safe_string(params, 'fromAccount', defaultType)
         defaultTo = 'spot' if (fromAccount == 'future') else 'future'

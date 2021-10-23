@@ -96,6 +96,7 @@ module.exports = class okex extends Exchange {
                         'market/trades': 1,
                         'market/platform-24-volume': 10,
                         'market/open-oracle': 100,
+                        'market/index-components': 1,
                         // 'market/oracle',
                         'public/instruments': 1,
                         'public/delivery-exercise-history': 0.5,
@@ -113,6 +114,18 @@ module.exports = class okex extends Exchange {
                         'public/position-tiers': 2,
                         'public/underlying': 1,
                         'public/interest-rate-loan-quota': 10,
+                        'rubik/stat/trading-data/support-coin': 4,
+                        'rubik/stat/taker-volume': 4,
+                        'rubik/stat/margin/loan-ratio': 4,
+                        // long/short
+                        'rubik/stat/contracts/long-short-account-ratio': 4,
+                        'rubik/stat/contracts/open-interest-volume': 4,
+                        'rubik/stat/option/open-interest-volume': 4,
+                        // put/call
+                        'rubik/stat/option/open-interest-volume-ratio': 4,
+                        'rubik/stat/option/open-interest-volume-expiry': 4,
+                        'rubik/stat/option/open-interest-volume-strike': 4,
+                        'rubik/stat/option/taker-block-volume': 4,
                         'system/status': 100,
                     },
                 },
@@ -134,11 +147,13 @@ module.exports = class okex extends Exchange {
                         'account/max-withdrawal': 1,
                         'asset/deposit-address': 5 / 3,
                         'asset/balances': 5 / 3,
+                        'asset/transfer-state': 10,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
                         'asset/currencies': 5 / 3,
                         'asset/bills': 5 / 3,
                         'asset/piggy-balance': 5 / 3,
+                        'asset/deposit-lightning': 5,
                         'trade/order': 1 / 3,
                         'trade/orders-pending': 1,
                         'trade/orders-history': 0.5,
@@ -150,6 +165,7 @@ module.exports = class okex extends Exchange {
                         'account/subaccount/balances': 10,
                         'asset/subaccount/bills': 5 / 3,
                         'users/subaccount/list': 10,
+                        'users/subaccount/apikey': 10,
                     },
                     'post': {
                         'account/set-position-mode': 4,
@@ -159,6 +175,7 @@ module.exports = class okex extends Exchange {
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/purchase_redempt': 5 / 3,
+                        'asset/withdrawal-lightning': 5,
                         'trade/order': 1 / 3,
                         'trade/batch-orders': 1 / 15,
                         'trade/cancel-order': 1 / 3,
@@ -672,6 +689,7 @@ module.exports = class okex extends Exchange {
         const active = true;
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
         const contractSize = this.safeString (market, 'ctVal');
+        const leverage = this.safeNumber (market, 'lever', 1);
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -702,6 +720,9 @@ module.exports = class okex extends Exchange {
                 'cost': {
                     'min': minCost,
                     'max': undefined,
+                },
+                'leverage': {
+                    'max': leverage,
                 },
             },
         });
@@ -1638,7 +1659,8 @@ module.exports = class okex extends Exchange {
         // see documentation: https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
         const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
         const tgtCcy = this.safeString (order, 'tgtCcy', defaultTgtCcy);
-        if (side === 'buy' && type === 'market' && market['spot'] && tgtCcy === 'quote_ccy') {
+        const instType = this.safeString (order, 'instType');
+        if ((side === 'buy') && (type === 'market') && (instType === 'SPOT') && (tgtCcy === 'quote_ccy')) {
             // "sz" refers to the cost
             cost = this.safeNumber (order, 'sz');
         } else {
