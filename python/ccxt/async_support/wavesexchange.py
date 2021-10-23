@@ -44,6 +44,7 @@ class wavesexchange(Exchange):
                 'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'signIn': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -63,6 +64,14 @@ class wavesexchange(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
+                'test': {
+                    'matcher': 'http://matcher-testnet.waves.exchange',
+                    'node': 'https://nodes-testnet.wavesnodes.com',
+                    'public': 'https://api-testnet.wavesplatform.com/v0',
+                    'private': 'https://api-testnet.waves.exchange/v1',
+                    'forward': 'https://testnet.waves.exchange/api/v1/forward/matcher/matcher',
+                    'market': 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
+                },
                 'api': {
                     'matcher': 'http://matcher.waves.exchange',
                     'node': 'https://nodes.waves.exchange',
@@ -263,6 +272,7 @@ class wavesexchange(Exchange):
                 'withdrawFeeUSDN': 7420,
                 'withdrawFeeWAVES': 100000,
                 'wavesPrecision': 8,
+                'messagePrefix': 'W',  # W for production, T for testnet
             },
             'requiresEddsa': True,
             'exceptions': {
@@ -292,6 +302,10 @@ class wavesexchange(Exchange):
                 '1051904': AuthenticationError,
             },
         })
+
+    def set_sandbox_mode(self, enabled):
+        self.options['messagePrefix'] = 'T' if enabled else 'W'
+        return super(wavesexchange, self).set_sandbox_mode(enabled)
 
     async def get_quotes(self):
         quotes = self.safe_value(self.options, 'quotes')
@@ -490,14 +504,19 @@ class wavesexchange(Exchange):
                     url += '?' + queryString
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def get_access_token(self):
+    async def sign_in(self, params={}):
+        return await self.get_access_token(params)
+
+    async def get_access_token(self, params={}):
         if not self.safe_string(self.options, 'accessToken'):
             prefix = 'ffffff01'
             expiresDelta = 60 * 60 * 24 * 7
             seconds = self.sum(self.seconds(), expiresDelta)
             seconds = str(seconds)
             clientId = 'waves.exchange'
-            message = 'W:' + clientId + ':' + seconds
+            # W for production, T for testnet
+            defaultMessagePrefix = self.safe_string(self.options, 'messagePrefix', 'W')
+            message = defaultMessagePrefix + ':' + clientId + ':' + seconds
             messageHex = self.binary_to_base16(self.encode(message))
             payload = prefix + messageHex
             hexKey = self.binary_to_base16(self.base58_to_binary(self.secret))

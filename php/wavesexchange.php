@@ -37,6 +37,7 @@ class wavesexchange extends Exchange {
                 'fetchOrders' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'signIn' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -56,6 +57,14 @@ class wavesexchange extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
+                'test' => array(
+                    'matcher' => 'http://matcher-testnet.waves.exchange',
+                    'node' => 'https://nodes-testnet.wavesnodes.com',
+                    'public' => 'https://api-testnet.wavesplatform.com/v0',
+                    'private' => 'https://api-testnet.waves.exchange/v1',
+                    'forward' => 'https://testnet.waves.exchange/api/v1/forward/matcher/matcher',
+                    'market' => 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
+                ),
                 'api' => array(
                     'matcher' => 'http://matcher.waves.exchange',
                     'node' => 'https://nodes.waves.exchange',
@@ -256,6 +265,7 @@ class wavesexchange extends Exchange {
                 'withdrawFeeUSDN' => 7420,
                 'withdrawFeeWAVES' => 100000,
                 'wavesPrecision' => 8,
+                'messagePrefix' => 'W', // W for production, T for testnet
             ),
             'requiresEddsa' => true,
             'exceptions' => array(
@@ -285,6 +295,11 @@ class wavesexchange extends Exchange {
                 '1051904' => '\\ccxt\\AuthenticationError',
             ),
         ));
+    }
+
+    public function set_sandbox_mode($enabled) {
+        $this->options['messagePrefix'] = $enabled ? 'T' : 'W';
+        return parent::set_sandbox_mode($enabled);
     }
 
     public function get_quotes() {
@@ -509,14 +524,20 @@ class wavesexchange extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function get_access_token() {
+    public function sign_in($params = array ()) {
+        return $this->get_access_token($params);
+    }
+
+    public function get_access_token($params = array ()) {
         if (!$this->safe_string($this->options, 'accessToken')) {
             $prefix = 'ffffff01';
             $expiresDelta = 60 * 60 * 24 * 7;
             $seconds = $this->sum($this->seconds(), $expiresDelta);
             $seconds = (string) $seconds;
             $clientId = 'waves.exchange';
-            $message = 'W:' . $clientId . ':' . $seconds;
+            // W for production, T for testnet
+            $defaultMessagePrefix = $this->safe_string($this->options, 'messagePrefix', 'W');
+            $message = $defaultMessagePrefix . ':' . $clientId . ':' . $seconds;
             $messageHex = bin2hex($this->encode($message));
             $payload = $prefix . $messageHex;
             $hexKey = bin2hex($this->base58_to_binary($this->secret));
