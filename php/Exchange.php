@@ -1673,6 +1673,11 @@ class Exchange {
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
         $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $result);
 
+        // check if $curl_errno is not zero
+        if ($curl_errno) {
+            throw new NetworkError($this->id . ' unknown error: ' . strval($curl_errno) . ' ' . $curl_error);
+        }
+
         return isset($json_response) ? $json_response : $result;
     }
 
