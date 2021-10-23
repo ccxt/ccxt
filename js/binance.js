@@ -3462,6 +3462,11 @@ module.exports = class binance extends Exchange {
                 }
             }
             impliedNetwork = this.safeString (reverseNetworks, topLevel);
+            if ((code === 'ETH') && (impliedNetwork === 'ERC20')) {
+                impliedNetwork = 'ETH';
+            } else if ((code === 'TRX') && (impliedNetwork === 'TRC20')) {
+                impliedNetwork = 'TRX';
+            }
         }
         let tag = this.safeString (response, 'tag', '');
         if (tag.length === 0) {
