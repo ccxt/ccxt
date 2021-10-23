@@ -312,6 +312,7 @@ module.exports = class hitbtc3 extends Exchange {
             const active = payinEnabled && payoutEnabled && transferEnabled;
             const rawNetworks = this.safeValue (entry, 'networks', []);
             const networks = {};
+            let fee = undefined;
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 let networkId = this.safeString (rawNetwork, 'protocol');
@@ -319,7 +320,7 @@ module.exports = class hitbtc3 extends Exchange {
                     networkId = this.safeString (rawNetwork, 'network');
                 }
                 const network = this.safeNetwork (networkId);
-                const fee = this.safeNumber (rawNetwork, 'payout_fee');
+                fee = this.safeNumber (rawNetwork, 'payout_fee');
                 const precision = this.safeNumber (rawNetwork, 'precision_payout');
                 const payinEnabledNetwork = this.safeValue (entry, 'payin_enabled', false);
                 const payoutEnabledNetwork = this.safeValue (entry, 'payout_enabled', false);
@@ -340,6 +341,8 @@ module.exports = class hitbtc3 extends Exchange {
                     },
                 };
             }
+            const networksKeys = Object.keys (networks);
+            const networksLength = networksKeys.length;
             result[code] = {
                 'info': entry,
                 'code': code,
@@ -348,6 +351,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'name': name,
                 'active': active,
                 'networks': networks,
+                'fee': (networksLength <= 1) ? fee : undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -376,7 +380,114 @@ module.exports = class hitbtc3 extends Exchange {
 
     async fetchBalance (params) {
         const response = await this.privateGetSpotBalance ();
-        return response;
+        //
+        //     [
+        //       {
+        //         "currency": "PAXG",
+        //         "available": "0",
+        //         "reserved": "0",
+        //         "reserved_margin": "0",
+        //       },
+        //       ...
+        //     ]
+        //
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencyId = this.safeString (entry, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (entry, 'available');
+            account['used'] = this.safeString (entry, 'reserved');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        const response = await this.fetchTickers ([ symbol ], params);
+        return this.safeValue (response, symbol);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds (symbols);
+            const delimited = marketIds.join (',');
+            request['symbols'] = delimited;
+        }
+        const response = await this.publicGetPublicTicker (this.extend (request, params));
+        //
+        //     {
+        //       "BTCUSDT": {
+        //         "ask": "63049.06",
+        //         "bid": "63046.41",
+        //         "last": "63048.36",
+        //         "low": "62010.00",
+        //         "high": "66657.99",
+        //         "open": "64839.75",
+        //         "volume": "15272.13278",
+        //         "volume_quote": "976312127.6277998",
+        //         "timestamp": "2021-10-22T04:25:47.573Z"
+        //       }
+        //     }
+        //
+        const result = {};
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const marketId = keys[i];
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            const entry = response[marketId];
+            result[symbol] = this.parseTicker (entry, market);
+        }
+        return this.filterByArray (result, 'symbol', symbols);;
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //       "ask": "62756.01",
+        //       "bid": "62754.09",
+        //       "last": "62755.87",
+        //       "low": "62010.00",
+        //       "high": "66657.99",
+        //       "open": "65089.27",
+        //       "volume": "16719.50366",
+        //       "volume_quote": "1063422878.8156828",
+        //       "timestamp": "2021-10-22T07:29:14.585Z"
+        //     }
+        //
+        const timestamp = this.parse8601 (ticker['timestamp']);
+        const symbol = this.safeSymbol (undefined, market);
+        const baseVolume = this.safeNumber (ticker, 'volume');
+        const quoteVolume = this.safeNumber (ticker, 'volumeQuote');
+        const open = this.safeNumber (ticker, 'open');
+        const last = this.safeNumber (ticker, 'last');
+        const vwap = this.vwap (baseVolume, quoteVolume);
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeNumber (ticker, 'ask'),
+            'askVolume': undefined,
+            'vwap': vwap,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
