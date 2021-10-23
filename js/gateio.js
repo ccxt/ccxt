@@ -1763,13 +1763,14 @@ module.exports = class gateio extends Exchange {
         }
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
-        const amountString = this.safeString2 (trade, 'amount', 'size');
+        let amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
         const costString = Precise.stringAbs (Precise.stringMul (amountString, priceString));
-        const amount = this.parseNumber (amountString);
         const price = this.parseNumber (priceString);
         const cost = this.parseNumber (costString);
         const contractSide = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
+        amountString = Precise.abs (amountString);
+        const amount = this.parseNumber (amountString);
         const side = this.safeString (trade, 'side', contractSide);
         const orderId = this.safeString (trade, 'order_id');
         const gtFee = this.safeString (trade, 'gt_fee');
