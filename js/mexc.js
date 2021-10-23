@@ -1176,7 +1176,8 @@ module.exports = class mexc extends Exchange {
         networkId = parts.join ('');
         networkId = networkId.replace ('-20', '20');
         const networksById = {
-            'ETH': 'ERC20',
+            'ETH': 'ETH',
+            'ERC20': 'ERC20',
             'BEP20(BSC)': 'BEP20',
             'TRX': 'TRC20',
         };
