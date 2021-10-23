@@ -1166,6 +1166,14 @@ module.exports = class gateio extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        //
+        //     const request = {
+        //         'currency_pair': market['id'],
+        //         'interval': '0', // depth, 0 means no aggregation is applied, default to 0
+        //         'limit': limit, // maximum number of order depth data in asks or bids
+        //         'with_id': true, // return order book ID
+        //     };
+        //
         const request = this.prepareRequest (market);
         const spot = market['spot'];
         const method = this.getSupportedMapping (market['type'], {
@@ -1586,6 +1594,27 @@ module.exports = class gateio extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        //
+        // spot
+        //
+        //     const request = {
+        //         'currency_pair': market['id'],
+        //         'limit': limit, // maximum number of records to be returned in a single list
+        //         'last_id': 'id', // specify list staring point using the id of last record in previous list-query results
+        //         'reverse': false, // true to retrieve records where id is smaller than the specified last_id, false to retrieve records where id is larger than the specified last_id
+        //     };
+        //
+        // swap, futures
+        //
+        //     const request = {
+        //         'settle': market['settleId'],
+        //         'contract': market['id'],
+        //         'limit': limit, // maximum number of records to be returned in a single list
+        //         'last_id': 'id', // specify list staring point using the id of last record in previous list-query results
+        //         'from': since / 1000), // starting time in seconds, if not specified, to and limit will be used to limit response items
+        //         'to': this.seconds (), // end time in seconds, default to current time
+        //     };
+        //
         const request = this.prepareRequest (market);
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTrades',
@@ -1634,15 +1663,18 @@ module.exports = class gateio extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currency_pair': market['id'],
-            // 'limit': limit,
-            // 'page': 0,
-            // 'order_id': 'Order ID',
-            // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
-            // 'from': since, // default to 7 days before current time
-            // 'to': this.milliseconds (), // default to current time
-        };
+        //
+        //     const request = {
+        //         'currency_pair': market['id'],
+        //         // 'limit': limit,
+        //         // 'page': 0,
+        //         // 'order_id': 'Order ID',
+        //         // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
+        //         // 'from': since, // default to 7 days before current time
+        //         // 'to': this.milliseconds (), // default to current time
+        //     };
+        //
+        const request = this.prepareRequest (market);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
@@ -1650,7 +1682,39 @@ module.exports = class gateio extends Exchange {
             request['from'] = parseInt (since / 1000);
             // request['to'] = since + 7 * 24 * 60 * 60;
         }
-        const response = await this.privateSpotGetMyTrades (this.extend (request, params));
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateSpotGetMyTrades',
+            // 'margin': 'publicMarginGetCurrencyPairs',
+            'swap': 'privateFuturesGetSettleMyTrades',
+            'futures': 'privateDeliveryGetSettleMyTrades',
+        });
+        const response = await this[method] (this.extend (request, params));
+        // SPOT
+        // [{
+        //     id: "1851927191",
+        //     create_time: "1634333360",
+        //     create_time_ms: "1634333360359.901000",
+        //     currency_pair: "BTC_USDT",
+        //     side: "buy",
+        //     role: "taker",
+        //     amount: "0.0001",
+        //     price: "62547.51",
+        //     order_id: "93475897349",
+        //     fee: "2e-07",
+        //     fee_currency: "BTC",
+        //     point_fee: "0",
+        //     gt_fee: "0",
+        //   }]
+        // Perpetual Swap
+        // [{
+        //   size: "-13",
+        //   order_id: "79723658958",
+        //   id: "47612669",
+        //   role: "taker",
+        //   create_time: "1634600263.326",
+        //   contract: "BTC_USDT",
+        //   price: "61987.8",
+        // }]
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1687,20 +1751,27 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         const id = this.safeString (trade, 'id');
-        const timestampString = this.safeString2 (trade, 'create_time_ms', 'time');
+        const timestampStringContract = this.safeString (trade, 'create_time');
+        const timestampString = this.safeString2 (trade, 'create_time_ms', 'time', timestampStringContract);
         let timestamp = undefined;
         if (timestampString.indexOf ('.') > 0) {
             const milliseconds = timestampString.split ('.');
             timestamp = parseInt (milliseconds[0]);
         }
+        if (market['swap']) {
+            timestamp = timestamp * 1000;
+        }
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
-        const amountString = this.safeString2 (trade, 'amount', 'size');
+        let amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
-        const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-        const amount = this.parseNumber (amountString);
+        const costString = Precise.stringAbs (Precise.stringMul (amountString, priceString));
         const price = this.parseNumber (priceString);
-        const side = this.safeString (trade, 'side');
+        const cost = this.parseNumber (costString);
+        const contractSide = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
+        amountString = Precise.stringAbs (amountString);
+        const amount = this.parseNumber (amountString);
+        const side = this.safeString (trade, 'side', contractSide);
         const orderId = this.safeString (trade, 'order_id');
         const gtFee = this.safeString (trade, 'gt_fee');
         let feeCurrency = undefined;
