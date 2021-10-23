@@ -25,7 +25,7 @@ async def print_balance_continuously(exchange):
         except Exception as e:
             print('-----------------------------------------------------------')
             print(exchange.iso8601(exchange.milliseconds()), exchange.id, type(e), e)
-            await exchange.sleep (300000)  # sleep 5 minutes and retry
+            await exchange.sleep(300000)  # sleep 5 minutes and retry
 
 
 async def main():
