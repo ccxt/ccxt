@@ -278,6 +278,7 @@ module.exports = class kraken extends Exchange {
                     'LTC': 'Litecoin',
                     'MANA': 'MANA',
                     'MATIC': 'Polygon (MATIC)',
+                    'MINA': 'Mina', // inspected from webui
                     'MIR': 'Mirror Protocol (MIR)',
                     'MKR': 'Maker (MKR)',
                     'MLN': 'MLN',
@@ -302,6 +303,7 @@ module.exports = class kraken extends Exchange {
                     'SDN': 'Shiden (SDN)',
                     'SOL': 'Solana',  // their deposit method api doesn't work for SOL - was guessed
                     'SNX': 'Synthetix  Network (SNX)',
+                    'SRM': 'Serum', // inspected from webui
                     'STORJ': 'Storj (STORJ)',
                     'SUSHI': 'Sushiswap (SUSHI)',
                     'TBTC': 'tBTC',
