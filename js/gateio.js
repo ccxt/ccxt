@@ -1799,7 +1799,7 @@ module.exports = class gateio extends Exchange {
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'amount': Math.abs (amount),
+            'amount': amount,
             'cost': cost,
             'fee': fee,
         };
