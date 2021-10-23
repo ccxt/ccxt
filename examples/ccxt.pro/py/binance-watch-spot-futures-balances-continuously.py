@@ -39,8 +39,10 @@ async def main():
         'binancecoinm',
     ]
     exchanges = [getattr(ccxtpro, exchange_id)(config) for exchange_id in exchange_ids]
-    loops = [print_balance_continuously(exchange) for exchange in exchanges]
-    await gather(*loops)
+    printing_loops = [print_balance_continuously(exchange) for exchange in exchanges]
+    await gather(*printing_loops)
+    closing_tasks = [exchange.close() for exchange in exchanges]
+    await gather(*closing_tasks)
 
 
 loop = get_event_loop()
