@@ -238,7 +238,9 @@ class wavesexchange(Exchange):
                 },
                 'private': {
                     'get': [
-                        'deposit/addresses/{code}',
+                        'deposit/addresses/{currency}',
+                        'deposit/addresses/{currency}/{platform}',
+                        'platforms',
                         'deposit/currencies',
                         'withdraw/currencies',
                         'withdraw/addresses/{currency}/{address}',
@@ -273,6 +275,14 @@ class wavesexchange(Exchange):
                 'withdrawFeeWAVES': 100000,
                 'wavesPrecision': 8,
                 'messagePrefix': 'W',  # W for production, T for testnet
+                'networks': {
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
+                },
+                'reverseNetworks': {
+                    'ETH': 'ERC20',
+                    'BSC': 'BEP20',
+                },
             },
             'requiresEddsa': True,
             'exceptions': {
@@ -505,9 +515,6 @@ class wavesexchange(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def sign_in(self, params={}):
-        return await self.get_access_token(params)
-
-    async def get_access_token(self, params={}):
         if not self.safe_string(self.options, 'accessToken'):
             prefix = 'ffffff01'
             expiresDelta = 60 * 60 * 24 * 7
@@ -723,27 +730,98 @@ class wavesexchange(Exchange):
         ]
 
     async def fetch_deposit_address(self, code, params={}):
-        await self.get_access_token()
-        supportedCurrencies = await self.privateGetDepositCurrencies()
+        await self.sign_in()
+        networks = self.safe_value(self.options, 'networks', {})
+        rawNetwork = self.safe_string_upper(params, 'network')
+        network = self.safe_string(networks, rawNetwork, rawNetwork)
+        params = self.omit(params, ['network'])
+        supportedCurrencies = await self.privateGetPlatforms()
+        #
+        #     {
+        #       "type": "list",
+        #       "page_info": {
+        #         "has_next_page": False,
+        #         "last_cursor": null
+        #       },
+        #       "items": [
+        #         {
+        #           "type": "platform",
+        #           "id": "ETH",
+        #           "name": "Ethereum",
+        #           "currencies": [
+        #             "BAG",
+        #             "BNT",
+        #             "CRV",
+        #             "EGG",
+        #             "ETH",
+        #             "EURN",
+        #             "FL",
+        #             "NSBT",
+        #             "USDAP",
+        #             "USDC",
+        #             "USDFL",
+        #             "USDN",
+        #             "USDT",
+        #             "WAVES"
+        #           ]
+        #         }
+        #       ]
+        #     }
+        #
         currencies = {}
+        networksByCurrency = {}
         items = self.safe_value(supportedCurrencies, 'items', [])
         for i in range(0, len(items)):
             entry = items[i]
-            currencyCode = self.safe_string(entry, 'id')
-            currencies[currencyCode] = True
+            currencyId = self.safe_string(entry, 'id')
+            innerCurrencies = self.safe_value(entry, 'currencies', [])
+            for j in range(0, len(innerCurrencies)):
+                currencyCode = self.safe_string(innerCurrencies, j)
+                currencies[currencyCode] = True
+                if not (currencyCode in networksByCurrency):
+                    networksByCurrency[currencyCode] = {}
+                networksByCurrency[currencyCode][currencyId] = True
         if not (code in currencies):
             codes = list(currencies.keys())
-            raise ExchangeError(self.id + ' fetch ' + code + ' deposit address not supported. Currency code must be one of ' + str(codes))
-        request = self.extend({
-            'code': code,
-        }, params)
-        response = await self.privateGetDepositAddressesCode(request)
+            raise ExchangeError(self.id + ' fetch ' + code + ' deposit address not supported. Currency code must be one of ' + ', '.join(codes))
+        response = None
+        if network is None:
+            request = {
+                'currency': code,
+            }
+            response = await self.privateGetDepositAddressesCurrency(self.extend(request, params))
+        else:
+            supportedNetworks = networksByCurrency[code]
+            if not (network in supportedNetworks):
+                supportedNetworkKeys = list(supportedNetworks.keys())
+                raise ExchangeError(self.id + ' ' + network + ' network ' + code + ' deposit address not supported. Network must be one of ' + ', '.join(supportedNetworkKeys))
+            if network == 'WAVES':
+                request = {
+                    'publicKey': self.apiKey,
+                }
+                response = await self.nodeGetAddressesPublicKeyPublicKey(self.extend(request, request))
+                address = self.safe_string(response, 'address')
+                return {
+                    'address': address,
+                    'code': code,
+                    'network': network,
+                    'tag': None,
+                    'info': response,
+                }
+            else:
+                request = {
+                    'currency': code,
+                    'platform': network,
+                }
+                response = await self.privateGetDepositAddressesCurrencyPlatform(self.extend(request, params))
+        #
         # {
         #   "type": "deposit_addresses",
         #   "currency": {
         #     "type": "deposit_currency",
         #     "id": "ERGO",
         #     "waves_asset_id": "5dJj4Hn9t2Ve3tRpNGirUHy4yBK6qdJRAJYV21yPPuGz",
+        #     "platform_id": "BSC",
         #     "decimals": 9,
         #     "status": "active",
         #     "allowed_amount": {
@@ -759,12 +837,17 @@ class wavesexchange(Exchange):
         #     "9fRAAQjF8Yqg7qicQCL884zjimsRnuwsSavsM1rUdDaoG8mThku"
         #   ]
         # }
+        currency = self.safe_value(response, 'currency')
+        networkId = self.safe_string(currency, 'platform_id')
+        reverseNetworks = self.safe_value(self.options, 'reverseNetworks', {})
+        unifiedNetwork = self.safe_string(reverseNetworks, networkId, networkId)
         addresses = self.safe_value(response, 'deposit_addresses')
         address = self.safe_string(addresses, 0)
         return {
             'address': address,
             'code': code,
             'tag': None,
+            'network': unifiedNetwork,
             'info': response,
         }
 
@@ -992,7 +1075,7 @@ class wavesexchange(Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         self.check_required_dependencies()
         self.check_required_keys()
-        await self.get_access_token()
+        await self.sign_in()
         wavesAddress = await self.get_waves_address()
         response = await self.forwardPostMatcherOrdersWavesAddressCancel({
             'wavesAddress': wavesAddress,
@@ -1071,7 +1154,7 @@ class wavesexchange(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        await self.get_access_token()
+        await self.sign_in()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1085,7 +1168,7 @@ class wavesexchange(Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        await self.get_access_token()
+        await self.sign_in()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1541,7 +1624,7 @@ class wavesexchange(Exchange):
             if not (character in set):
                 isErc20 = False
                 break
-        await self.get_access_token()
+        await self.sign_in()
         proxyAddress = None
         if code == 'WAVES' and not isErc20:
             proxyAddress = address

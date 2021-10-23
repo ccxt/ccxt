@@ -232,7 +232,9 @@ class wavesexchange extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
-                        'deposit/addresses/{code}',
+                        'deposit/addresses/{currency}',
+                        'deposit/addresses/{currency}/{platform}',
+                        'platforms',
                         'deposit/currencies',
                         'withdraw/currencies',
                         'withdraw/addresses/{currency}/{address}',
@@ -267,6 +269,14 @@ class wavesexchange extends Exchange {
                 'withdrawFeeWAVES' => 100000,
                 'wavesPrecision' => 8,
                 'messagePrefix' => 'W', // W for production, T for testnet
+                'networks' => array(
+                    'ERC20' => 'ETH',
+                    'BEP20' => 'BSC',
+                ),
+                'reverseNetworks' => array(
+                    'ETH' => 'ERC20',
+                    'BSC' => 'BEP20',
+                ),
             ),
             'requiresEddsa' => true,
             'exceptions' => array(
@@ -526,10 +536,6 @@ class wavesexchange extends Exchange {
     }
 
     public function sign_in($params = array ()) {
-        return yield $this->get_access_token($params);
-    }
-
-    public function get_access_token($params = array ()) {
         if (!$this->safe_string($this->options, 'accessToken')) {
             $prefix = 'ffffff01';
             $expiresDelta = 60 * 60 * 24 * 7;
@@ -757,29 +763,105 @@ class wavesexchange extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        yield $this->get_access_token();
-        $supportedCurrencies = yield $this->privateGetDepositCurrencies ();
+        yield $this->sign_in();
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $rawNetwork = $this->safe_string_upper($params, 'network');
+        $network = $this->safe_string($networks, $rawNetwork, $rawNetwork);
+        $params = $this->omit($params, array( 'network' ));
+        $supportedCurrencies = yield $this->privateGetPlatforms ();
+        //
+        //     {
+        //       "type" => "list",
+        //       "page_info" => array(
+        //         "has_next_page" => false,
+        //         "last_cursor" => null
+        //       ),
+        //       "$items" => array(
+        //         {
+        //           "type" => "platform",
+        //           "id" => "ETH",
+        //           "name" => "Ethereum",
+        //           "$currencies" => array(
+        //             "BAG",
+        //             "BNT",
+        //             "CRV",
+        //             "EGG",
+        //             "ETH",
+        //             "EURN",
+        //             "FL",
+        //             "NSBT",
+        //             "USDAP",
+        //             "USDC",
+        //             "USDFL",
+        //             "USDN",
+        //             "USDT",
+        //             "WAVES"
+        //           )
+        //         }
+        //       )
+        //     }
+        //
         $currencies = array();
+        $networksByCurrency = array();
         $items = $this->safe_value($supportedCurrencies, 'items', array());
         for ($i = 0; $i < count($items); $i++) {
             $entry = $items[$i];
-            $currencyCode = $this->safe_string($entry, 'id');
-            $currencies[$currencyCode] = true;
+            $currencyId = $this->safe_string($entry, 'id');
+            $innerCurrencies = $this->safe_value($entry, 'currencies', array());
+            for ($j = 0; $j < count($innerCurrencies); $j++) {
+                $currencyCode = $this->safe_string($innerCurrencies, $j);
+                $currencies[$currencyCode] = true;
+                if (!(is_array($networksByCurrency) && array_key_exists($currencyCode, $networksByCurrency))) {
+                    $networksByCurrency[$currencyCode] = array();
+                }
+                $networksByCurrency[$currencyCode][$currencyId] = true;
+            }
         }
         if (!(is_array($currencies) && array_key_exists($code, $currencies))) {
             $codes = is_array($currencies) ? array_keys($currencies) : array();
-            throw new ExchangeError($this->id . ' fetch ' . $code . ' deposit $address not supported. Currency $code must be one of ' . (string) $codes);
+            throw new ExchangeError($this->id . ' fetch ' . $code . ' deposit $address not supported. Currency $code must be one of ' . implode(', ', $codes));
         }
-        $request = array_merge(array(
-            'code' => $code,
-        ), $params);
-        $response = yield $this->privateGetDepositAddressesCode ($request);
+        $response = null;
+        if ($network === null) {
+            $request = array(
+                'currency' => $code,
+            );
+            $response = yield $this->privateGetDepositAddressesCurrency (array_merge($request, $params));
+        } else {
+            $supportedNetworks = $networksByCurrency[$code];
+            if (!(is_array($supportedNetworks) && array_key_exists($network, $supportedNetworks))) {
+                $supportedNetworkKeys = is_array($supportedNetworks) ? array_keys($supportedNetworks) : array();
+                throw new ExchangeError($this->id . ' ' . $network . ' $network ' . $code . ' deposit $address not supported. Network must be one of ' . implode(', ', $supportedNetworkKeys));
+            }
+            if ($network === 'WAVES') {
+                $request = array(
+                    'publicKey' => $this->apiKey,
+                );
+                $response = yield $this->nodeGetAddressesPublicKeyPublicKey (array_merge($request, $request));
+                $address = $this->safe_string($response, 'address');
+                return array(
+                    'address' => $address,
+                    'code' => $code,
+                    'network' => $network,
+                    'tag' => null,
+                    'info' => $response,
+                );
+            } else {
+                $request = array(
+                    'currency' => $code,
+                    'platform' => $network,
+                );
+                $response = yield $this->privateGetDepositAddressesCurrencyPlatform (array_merge($request, $params));
+            }
+        }
+        //
         // {
         //   "type" => "deposit_addresses",
-        //   "currency" => {
+        //   "$currency" => {
         //     "type" => "deposit_currency",
         //     "id" => "ERGO",
         //     "waves_asset_id" => "5dJj4Hn9t2Ve3tRpNGirUHy4yBK6qdJRAJYV21yPPuGz",
+        //     "platform_id" => "BSC",
         //     "decimals" => 9,
         //     "status" => "active",
         //     "allowed_amount" => array(
@@ -795,12 +877,17 @@ class wavesexchange extends Exchange {
         //     "9fRAAQjF8Yqg7qicQCL884zjimsRnuwsSavsM1rUdDaoG8mThku"
         //   )
         // }
+        $currency = $this->safe_value($response, 'currency');
+        $networkId = $this->safe_string($currency, 'platform_id');
+        $reverseNetworks = $this->safe_value($this->options, 'reverseNetworks', array());
+        $unifiedNetwork = $this->safe_string($reverseNetworks, $networkId, $networkId);
         $addresses = $this->safe_value($response, 'deposit_addresses');
         $address = $this->safe_string($addresses, 0);
         return array(
             'address' => $address,
             'code' => $code,
             'tag' => null,
+            'network' => $unifiedNetwork,
             'info' => $response,
         );
     }
@@ -1051,7 +1138,7 @@ class wavesexchange extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->check_required_dependencies();
         $this->check_required_keys();
-        yield $this->get_access_token();
+        yield $this->sign_in();
         $wavesAddress = yield $this->get_waves_address();
         $response = yield $this->forwardPostMatcherOrdersWavesAddressCancel (array(
             'wavesAddress' => $wavesAddress,
@@ -1133,7 +1220,7 @@ class wavesexchange extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        yield $this->get_access_token();
+        yield $this->sign_in();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1149,7 +1236,7 @@ class wavesexchange extends Exchange {
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        yield $this->get_access_token();
+        yield $this->sign_in();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1642,7 +1729,7 @@ class wavesexchange extends Exchange {
                 break;
             }
         }
-        yield $this->get_access_token();
+        yield $this->sign_in();
         $proxyAddress = null;
         if ($code === 'WAVES' && !$isErc20) {
             $proxyAddress = $address;
