@@ -519,11 +519,11 @@ module.exports = class wavesexchange extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async signIn () {
-        return await this.getAccessToken ();
+    async signIn (params = {}) {
+        return await this.getAccessToken (params);
     }
 
-    async getAccessToken () {
+    async getAccessToken (params = {}) {
         if (!this.safeString (this.options, 'accessToken')) {
             const prefix = 'ffffff01';
             const expiresDelta = 60 * 60 * 24 * 7;
