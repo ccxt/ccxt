@@ -1634,7 +1634,15 @@ module.exports = class gateio extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = this.prepareRequest (market);
+        const request = {
+            'currency_pair': market['id'],
+            // 'limit': limit,
+            // 'page': 0,
+            // 'order_id': 'Order ID',
+            // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
+            // 'from': since, // default to 7 days before current time
+            // 'to': this.milliseconds (), // default to current time
+        };
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
