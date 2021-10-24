@@ -812,6 +812,10 @@ class binance(Exchange):
                     'explorer.zcha.in': 'ZEC',
                     'explorer.zensystem.io': 'ZEN',
                 },
+                'impliedNetworks': {
+                    'ETH': {'ERC20': 'ETH'},
+                    'TRX': {'TRC20': 'TRX'},
+                },
                 'legalMoney': {
                     'MXN': True,
                     'UGX': True,
@@ -3301,10 +3305,13 @@ class binance(Exchange):
                 if subLevel is not None:
                     topLevel = topLevel + '/' + subLevel
             impliedNetwork = self.safe_string(reverseNetworks, topLevel)
-            if (code == 'ETH') and (impliedNetwork == 'ERC20'):
-                impliedNetwork = 'ETH'
-            elif (code == 'TRX') and (impliedNetwork == 'TRC20'):
-                impliedNetwork = 'TRX'
+            impliedNetworks = self.safe_value(self.options, 'impliedNetworks', {
+                'ETH': {'ERC20': 'ETH'},
+                'TRX': {'TRC20': 'TRX'},
+            })
+            if code in impliedNetworks:
+                conversion = self.safe_value(impliedNetworks, code, {})
+                impliedNetwork = self.safe_string(conversion, impliedNetwork, impliedNetwork)
         tag = self.safe_string(response, 'tag', '')
         if len(tag) == 0:
             tag = None
