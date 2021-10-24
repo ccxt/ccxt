@@ -57,7 +57,7 @@ module.exports = class wavesexchange extends Exchange {
                     'node': 'https://nodes-testnet.wavesnodes.com',
                     'public': 'https://api-testnet.wavesplatform.com/v0',
                     'private': 'https://api-testnet.waves.exchange/v1',
-                    'forward': 'https://testnet.waves.exchange/api/v1/forward/matcher/matcher',
+                    'forward': 'https://testnet.waves.exchange/api/v1/forward/matcher',
                     'market': 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
                 },
                 'api': {
