@@ -225,7 +225,9 @@ class mexc extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'COFI' => 'COFIX', // conflict with CoinFi
                 'SIN' => 'Sin City Token',
+                'HERO' => 'Step Hero', // conflict with Metahero
             ),
             'exceptions' => array(
                 'exact' => array(
