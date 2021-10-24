@@ -3301,6 +3301,10 @@ class binance(Exchange):
                 if subLevel is not None:
                     topLevel = topLevel + '/' + subLevel
             impliedNetwork = self.safe_string(reverseNetworks, topLevel)
+            if (code == 'ETH') and (impliedNetwork == 'ERC20'):
+                impliedNetwork = 'ETH'
+            elif (code == 'TRX') and (impliedNetwork == 'TRC20'):
+                impliedNetwork = 'TRX'
         tag = self.safe_string(response, 'tag', '')
         if len(tag) == 0:
             tag = None
