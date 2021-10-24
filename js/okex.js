@@ -780,17 +780,12 @@ module.exports = class okex extends Exchange {
         return this.parseMarkets (data);
     }
 
-    safeNetwork (networkId, code) {
+    safeNetwork (networkId) {
         const networksById = {
             'Bitcoin': 'BTC',
             'Omni': 'OMNI',
             'TRON': 'TRC20',
         };
-        const isEth = (code === 'ETH') && (networkId === 'ERC20');
-        const isTrx = (code === 'TRX') && (networkId === 'TRON');
-        if (isEth || isTrx) {
-            return code;
-        }
         return this.safeString (networksById, networkId, networkId);
     }
 
@@ -832,7 +827,8 @@ module.exports = class okex extends Exchange {
         const precision = this.parseNumber ('0.00000001'); // default precision, todo: fix "magic constants"
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
+            const currency = this.safeCurrency (currencyId);
+            const code = currency['code'];
             const chains = dataByCurrencyId[currencyId];
             const networks = {};
             let currencyActive = false;
@@ -843,11 +839,15 @@ module.exports = class okex extends Exchange {
                 const canInternal = this.safeValue (chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (currencyActive === undefined) ? active : currencyActive;
-                let networkId = this.safeString (chain, 'chain');
+                const networkId = this.safeString (chain, 'chain');
                 if (networkId.indexOf ('-') >= 0) {
                     const parts = networkId.split ('-');
-                    networkId = this.safeString (parts, 1, networkId);
-                    const network = this.safeNetwork (networkId, code);
+                    const chainPart = this.safeString (parts, 1, networkId);
+                    let network = this.safeNetwork (chainPart);
+                    const mainNet = this.safeValue (chain, 'mainNet', false);
+                    if (mainNet) {
+                        network = code;
+                    }
                     networks[network] = {
                         'info': chain,
                         'id': networkId,
@@ -2242,14 +2242,13 @@ module.exports = class okex extends Exchange {
         let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
         tag = this.safeString (depositAddress, 'memo', tag);
         const currencyId = this.safeString (depositAddress, 'ccy');
-        const code = this.safeCurrencyCode (currencyId);
+        currency = this.safeCurrency (currencyId, currency);
+        const code = currency['code'];
         const chain = this.safeString (depositAddress, 'chain');
-        let network = undefined;
-        if (chain.indexOf ('-') > -1) {
-            const parts = chain.split ('-');
-            const networkId = this.safeString (parts, 1);
-            network = this.safeNetwork (networkId, code);
-        }
+        const networks = this.safeValue (currency, 'networks', {});
+        const networksById = this.indexBy (networks, 'id');
+        const networkData = this.safeValue (networksById, chain);
+        const network = this.safeString (networkData, 'network');
         this.checkAddress (address);
         return {
             'currency': code,
