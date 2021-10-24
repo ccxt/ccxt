@@ -136,6 +136,7 @@ module.exports = class aofex extends Exchange {
             },
             'commonCurrencies': {
                 'CPC': 'Consensus Planet Coin',
+                'HERO': 'Step Hero', // conflict with Metahero
             },
         });
     }
