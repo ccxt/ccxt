@@ -220,6 +220,7 @@ module.exports = class mexc extends Exchange {
             },
             'commonCurrencies': {
                 'SIN': 'Sin City Token',
+                'HERO': 'Step Hero', // Conflict with Metahero
             },
             'exceptions': {
                 'exact': {
