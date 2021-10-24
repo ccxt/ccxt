@@ -845,7 +845,7 @@ module.exports = class okex extends Exchange {
                     const chainPart = this.safeString (parts, 1, networkId);
                     let network = this.safeNetwork (chainPart);
                     const mainNet = this.safeValue (chain, 'mainNet', false);
-                    if (mainNet) {
+                    if (mainNet && (chainPart !== 'Lightning')) {
                         network = code;
                     }
                     networks[network] = {
@@ -865,6 +865,7 @@ module.exports = class okex extends Exchange {
                 }
             }
             result[code] = {
+                'info': undefined,
                 'code': code,
                 'id': currencyId,
                 'name': undefined,
