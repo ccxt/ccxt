@@ -506,6 +506,10 @@ module.exports = class okex extends Exchange {
                     'TRX': 'TRC20',
                     'OMNI': 'Omni',
                 },
+                'layerTwo': {
+                    'Lightning': true,
+                    'Liquid': true,
+                },
                 'fetchOHLCV': {
                     'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
@@ -845,7 +849,11 @@ module.exports = class okex extends Exchange {
                     const chainPart = this.safeString (parts, 1, networkId);
                     let network = this.safeNetwork (chainPart);
                     const mainNet = this.safeValue (chain, 'mainNet', false);
-                    if (mainNet && (chainPart[0] !== 'L')) {
+                    const layerTwo = this.safeValue (this.options, 'layerTwo', {
+                        'Liquid': true,
+                        'Lightning': true,
+                    });
+                    if (mainNet && !(chainPart in layerTwo)) {
                         // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
                         network = code;
                     }
