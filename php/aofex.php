@@ -139,6 +139,7 @@ class aofex extends Exchange {
             ),
             'commonCurrencies' => array(
                 'CPC' => 'Consensus Planet Coin',
+                'HERO' => 'Step Hero', // conflict with Metahero
             ),
         ));
     }
