@@ -780,12 +780,17 @@ module.exports = class okex extends Exchange {
         return this.parseMarkets (data);
     }
 
-    safeNetwork (networkId) {
+    safeNetwork (networkId, code) {
         const networksById = {
             'Bitcoin': 'BTC',
             'Omni': 'OMNI',
             'TRON': 'TRC20',
         };
+        const isEth = (code === 'ETH') && (networkId === 'ERC20');
+        const isTrx = (code === 'TRX') && (networkId === 'TRON');
+        if (isEth || isTrx) {
+            return code;
+        }
         return this.safeString (networksById, networkId, networkId);
     }
 
@@ -842,7 +847,7 @@ module.exports = class okex extends Exchange {
                 if (networkId.indexOf ('-') >= 0) {
                     const parts = networkId.split ('-');
                     networkId = this.safeString (parts, 1, networkId);
-                    const network = this.safeNetwork (networkId);
+                    const network = this.safeNetwork (networkId, code);
                     networks[network] = {
                         'info': chain,
                         'id': networkId,
@@ -2243,7 +2248,7 @@ module.exports = class okex extends Exchange {
         if (chain.indexOf ('-') > -1) {
             const parts = chain.split ('-');
             const networkId = this.safeString (parts, 1);
-            network = this.safeNetwork (networkId);
+            network = this.safeNetwork (networkId, code);
         }
         this.checkAddress (address);
         return {
