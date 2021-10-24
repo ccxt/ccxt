@@ -219,8 +219,9 @@ module.exports = class mexc extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'COFI': 'COFIX', // conflict with CoinFi
                 'SIN': 'Sin City Token',
-                'HERO': 'Step Hero', // Conflict with Metahero
+                'HERO': 'Step Hero', // conflict with Metahero
             },
             'exceptions': {
                 'exact': {
