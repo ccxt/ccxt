@@ -7,7 +7,7 @@ module.exports = class hitbtc3 extends Exchange {
             'id': 'hitbtc3',
             'name': 'HitBTC',
             'countries': [ 'HK' ],
-            'rateLimit': 1500,
+            'rateLimit': 100,
             'version': '3',
             'pro': true,
             'has': {
@@ -488,6 +488,88 @@ module.exports = class hitbtc3 extends Exchange {
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbols': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetPublicTrades (this.extend (request, params));
+        return response;
+    }
+
+    parseTrade (trade, market = undefined) {
+        // createMarketOrder
+        //
+        //  {       fee: "0.0004644",
+        //           id:  386394956,
+        //        price: "0.4644",
+        //     quantity: "1",
+        //    timestamp: "2018-10-25T16:41:44.780Z" }
+        //
+        // fetchTrades
+        //
+        // { id: 974786185,
+        //   price: '0.032462',
+        //   quantity: '0.3673',
+        //   side: 'buy',
+        //   timestamp: '2020-10-16T12:57:39.846Z' }
+        //
+        // fetchMyTrades
+        //
+        // { id: 277210397,
+        //   clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
+        //   orderId: 28102855393,
+        //   symbol: 'ETHBTC',
+        //   side: 'sell',
+        //   quantity: '0.002',
+        //   price: '0.073365',
+        //   fee: '0.000000147',
+        //   timestamp: '2018-04-28T18:39:55.345Z' }
+        const timestamp = this.parse8601 (trade['timestamp']);
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        let fee = undefined;
+        const feeCost = this.safeNumber (trade, 'fee');
+        if (feeCost !== undefined) {
+            const feeCurrencyCode = market ? market['feeCurrency'] : undefined;
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        // we use clientOrderId as the order id with this exchange intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
+        const orderId = this.safeString (trade, 'clientOrderId');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const side = this.safeString (trade, 'side');
+        const id = this.safeString (trade, 'id');
+        return {
+            'info': trade,
+            'id': id,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
