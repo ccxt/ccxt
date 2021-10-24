@@ -845,7 +845,8 @@ module.exports = class okex extends Exchange {
                     const chainPart = this.safeString (parts, 1, networkId);
                     let network = this.safeNetwork (chainPart);
                     const mainNet = this.safeValue (chain, 'mainNet', false);
-                    if (mainNet && (chainPart !== 'Lightning')) {
+                    if (mainNet && (chainPart[0] !== 'L')) {
+                        // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
                         network = code;
                     }
                     networks[network] = {
