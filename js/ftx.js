@@ -1023,11 +1023,13 @@ module.exports = class ftx extends Exchange {
         if (since !== undefined) {
             request['start_time'] = parseInt (since / 1000);
         }
-        const until = this.safeInteger (params, 'until');
-        const endTime = this.safeString (params, 'endTime', until); // exchange-specific
-        params = this.omit (params, [ 'end_time', 'until' ]);
-        if (endTime) {
-            request['endTime'] = endTime / 1000;
+        const till = this.safeInteger (params, 'till'); // unified in milliseconds
+        const endTime = this.safeString (params, 'end_time'); // exchange-specific in seconds
+        params = this.omit (params, [ 'end_time', 'till' ]);
+        if (till !== undefined) {
+            request['end_time'] = parseInt (till / 1000);
+        } else if (endTime !== undefined) {
+            request['end_time'] = endTime;
         }
         const response = await this.publicGetFundingRates (this.extend (request, params));
         //
