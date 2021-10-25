@@ -351,7 +351,7 @@ module.exports = class okex extends ccxt.okex {
         const data = this.safeValue (message, 'data', []);
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
-        const symbol = market['id'];
+        const symbol = market['symbol'];
         const depths = {
             'books': 400,
             'books5': 5,
