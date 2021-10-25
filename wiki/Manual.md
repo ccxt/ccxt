@@ -3326,6 +3326,8 @@ We present a unified structure for the positions returned by exchanges.
    'symbol': 'BTC/USD',         // uppercase string literal of a pair of currencies
    'timestamp': 1607723554607,  // integer unix time since 1st Jan 1970 in milliseconds
    'datetime': '2020-12-11T21:52:34.607Z',  // ISO8601 representation of the unix time above
+   'isolated': true,            // boolean, whether or not the position is isolated, as opposed to cross where margin is added automatically
+   'hedged': false,             // boolean, whether or not the position is hedged, i.e. if trading in the opposite direction will close this position or make a new one
    'side': 'long',              // string, long or short
    'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
    'contractSize': 100,         // float, the size of one contract in quote units
