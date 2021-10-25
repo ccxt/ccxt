@@ -341,6 +341,7 @@ module.exports = class kraken extends Exchange {
                 'EGeneral:Invalid arguments': BadRequest,
                 'ESession:Invalid session': AuthenticationError,
                 'EAPI:Invalid nonce': InvalidNonce,
+                'EFunding:No funding method': BadRequest, // {"error":"EFunding:No funding method"}
             },
         });
     }
