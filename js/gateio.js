@@ -203,6 +203,7 @@ module.exports = class gateio extends Exchange {
                         'post': {
                             '{settle}/positions/{contract}/margin': 1.5,
                             '{settle}/positions/{contract}/leverage': 1.5,
+                            '{settle}/positions/{contract}/leverage?leverage={leverage}': 1.5,
                             '{settle}/positions/{contract}/risk_limit': 1.5,
                             '{settle}/dual_mode': 1.5,
                             '{settle}/dual_comp/positions/{contract}': 1.5,
@@ -236,6 +237,7 @@ module.exports = class gateio extends Exchange {
                         'post': {
                             '{settle}/positions/{contract}/margin': 1.5,
                             '{settle}/positions/{contract}/leverage': 1.5,
+                            '{settle}/positions/{contract}/leverage?leverage={leverage}': 1.5,
                             '{settle}/positions/{contract}/risk_limit': 1.5,
                             '{settle}/orders': 1.5,
                         },
@@ -2218,6 +2220,33 @@ module.exports = class gateio extends Exchange {
         };
     }
 
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if ((leverage < 0) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const method = this.getSupportedMapping (market['type'], {
+            'swap': 'privateFuturesPostSettlePositionsContractLeverageLeverageLeverage',
+            'futures': 'privateDeliveryPostSettlePositionsContractLeverageLeverageLeverage',
+        });
+        const request = this.prepareRequest (market);
+        request['leverage'] = leverage.toString ();
+        if ('cross_leverage_limit' in params) {
+            if (leverage !== 0) {
+                throw new BadRequest (this.id + ' cross margin leverage(valid only when leverage is 0)');
+            }
+            request['cross_leverage_limit'] = params['cross_leverage_limit'].toString ();
+            params = this.omit (params, 'cross_leverage_limit');
+        }
+        return await this[method] (this.extend (request, params));
+    }
+
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, futures, delivery
@@ -2267,32 +2296,5 @@ module.exports = class gateio extends Exchange {
             const Error = this.safeValue (this.exceptions, label, ExchangeError);
             throw new Error (this.id + ' ' + message);
         }
-    }
-
-    async setLeverage (leverage, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
-        }
-        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
-        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        if ((leverage < 0) || (leverage > 100)) {
-            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const method = this.getSupportedMapping (market['type'], {
-            'swap': 'privateFuturesPostSettlePositionsContractLeverage',
-            'futures': 'privateDeliveryPostSettlePositionsContractLeverage',
-        });
-        const request = this.prepareRequest (market);
-        request['leverage'] = leverage.toString ();
-        if ('cross_leverage_limit' in params) {
-            if (leverage !== 0) {
-                throw new BadRequest (this.id + ' cross margin leverage(valid only when leverage is 0)');
-            }
-            request['cross_leverage_limit'] = params['cross_leverage_limit'].toString ();
-            params = this.omit (params, 'cross_leverage_limit');
-        }
-        return await this[method] (this.extend (request, params));
     }
 };
