@@ -224,16 +224,21 @@ module.exports = class kraken extends Exchange {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                 },
+                'depositMethods': {
+                    'MINA': 'Mina', // inspected from webui
+                    'SOL': 'Solana',  // their deposit method api doesn't work for SOL - was guessed
+                    'SRM': 'Serum', // inspected from webui
+                },
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
                 'EAPI:Invalid key': AuthenticationError,
-                'EFunding:Unknown withdraw key': ExchangeError,
+                'EFunding:Unknown withdraw key': InvalidAddress, // {"error":["EFunding:Unknown withdraw key"]}
                 'EFunding:Invalid amount': InsufficientFunds,
                 'EService:Unavailable': ExchangeNotAvailable,
                 'EDatabase:Internal error': ExchangeNotAvailable,
                 'EService:Busy': ExchangeNotAvailable,
-                'EQuery:Unknown asset': ExchangeError,
+                'EQuery:Unknown asset': BadSymbol, // {"error":["EQuery:Unknown asset"]}
                 'EAPI:Rate limit exceeded': DDoSProtection,
                 'EOrder:Rate limit exceeded': DDoSProtection,
                 'EGeneral:Internal error': ExchangeNotAvailable,
@@ -1725,34 +1730,38 @@ module.exports = class kraken extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const depositMethods = await this.fetchDepositMethods (code);
-        let depositMethod = this.safeString (params, 'method');
+        const defaultDepositMethods = this.safeValue (this.options, 'depositMethods', {});
+        const defaultDepositMethod = this.safeString (defaultDepositMethods, code);
+        let depositMethod = this.safeString (params, 'method', defaultDepositMethod);
         let network = this.safeString (params, 'network');
         // if the user has specified an exchange-specific method in params
         // we pass it as is, otherwise we take the 'network' unified param
-        if ((depositMethod === undefined) && (network !== undefined)) {
-            const networks = this.safeValue (this.options, 'networks', {});
-            network = this.safeString (networks, network, network); // support ETH > ERC20 aliases
-            params = this.omit (params, 'network');
-            // find best matching deposit method, or fallback to the first one
-            for (let i = 0; i < depositMethods.length; i++) {
-                const entry = this.safeString (depositMethods[i], 'method');
-                if (entry.indexOf (network) >= 0) {
-                    depositMethod = entry;
-                    break;
+        if (depositMethod === undefined) {
+            const depositMethods = await this.fetchDepositMethods (code);
+            if (network !== undefined) {
+                const networks = this.safeValue (this.options, 'networks', {});
+                network = this.safeString (networks, network, network); // support ETH > ERC20 aliases
+                params = this.omit (params, 'network');
+                // find best matching deposit method, or fallback to the first one
+                for (let i = 0; i < depositMethods.length; i++) {
+                    const entry = this.safeString (depositMethods[i], 'method');
+                    if (entry.indexOf (network) >= 0) {
+                        depositMethod = entry;
+                        break;
+                    }
                 }
             }
-        }
-        // if depositMethod was not specified, fallback to the first available deposit method
-        if (depositMethod === undefined) {
-            const firstDepositMethod = this.safeValue (depositMethods, 0, {});
-            depositMethod = this.safeString (firstDepositMethod, 'method');
+            // if depositMethod was not specified, fallback to the first available deposit method
+            if (depositMethod === undefined) {
+                const firstDepositMethod = this.safeValue (depositMethods, 0, {});
+                depositMethod = this.safeString (firstDepositMethod, 'method');
+            }
         }
         const request = {
             'asset': currency['id'],
             'method': depositMethod,
         };
-        const response = await this.privatePostDepositAddresses (this.extend (request, params)); // overwrite methods
+        const response = await this.privatePostDepositAddresses (this.extend (request, params));
         //
         //     {
         //         "error":[],
