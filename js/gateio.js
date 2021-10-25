@@ -295,7 +295,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'swap',
+                'defaultType': 'spot',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -2180,36 +2180,19 @@ module.exports = class gateio extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
-        const spot = type === 'spot';
-        const swap = type === 'swap';
-        const futures = type === 'future';
-        let market = {};
-        if (symbol === undefined && spot) {
-            throw new ArgumentsRequired (this.id + ' spot and margin cancelOrders requires a symbol parameter');
-        } else if (symbol) {
-            market = this.market (symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol parameter');
         }
+        const market = this.market (symbol);
         const request = {
             'order_id': id,
         };
-        if ((swap || futures) && symbol) {
+        if ((market['swap'] || market['futures'])) {
             request['settle'] = market['settleId'];
-        } else if (swap || futures) {
-            if (!('settle' in params)) {
-                throw new ArgumentsRequired (this.id + ' requires either a symbol or settle parameter');
-            }
-            const settle = params['settle'];
-            request['settle'] = settle;
-            market = {
-                'settleId': settle,
-            };
         } else {
             request['currency_pair'] = market['id'];
         }
-        const method = this.getSupportedMapping (type, {
+        const method = this.getSupportedMapping (market['type'], {
             'spot': 'privateSpotDeleteOrdersOrderId',
             'margin': 'privateSpotDeleteOrdersOrderId',
             'swap': 'privateFuturesDeleteSettleOrdersOrderId',
