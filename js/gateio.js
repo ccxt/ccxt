@@ -1515,9 +1515,6 @@ module.exports = class gateio extends Exchange {
         if (!symbol) {
             throw new ArgumentsRequired ('Parameter symbol required for fetchFundingRateHistory using gateio');
         }
-        if (since || 'until' in params) {
-            throw new BadRequest ('Gateio does not use the since or until time parameters in fetchFundingRateHistory');
-        }
         const market = this.market (symbol);
         const request = {
             'contract': market['id'],
