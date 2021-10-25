@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
 use \ccxt\OrderNotFound;
+use \ccxt\NotSupported;
 use \ccxt\Precise;
 
 class kuna extends Exchange {
@@ -41,12 +42,164 @@ class kuna extends Exchange {
                 'extension' => '.json',
                 'referral' => 'https://kuna.io?r=kunaid-gvfihe8az7o4',
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg',
-                'api' => 'https://kuna.io',
+                'api' => array(
+                    'xreserve' => 'https://api.xreserve.fund',
+                    'v3' => 'https://api.kuna.io',
+                    'public' => 'https://kuna.io', // v2
+                    'private' => 'https://kuna.io', // v2
+                ),
                 'www' => 'https://kuna.io',
                 'doc' => 'https://kuna.io/documents/api',
                 'fees' => 'https://kuna.io/documents/api',
             ),
             'api' => array(
+                'xreserve' => array(
+                    'get' => array(
+                        'nonce' => 1,
+                        'fee' => 1,
+                        'delegated-transactions' => 1,
+                    ),
+                    'post' => array(
+                        'delegate-transfer' => 1,
+                    ),
+                ),
+                'v3' => array(
+                    'public' => array(
+                        'get' => array(
+                            'timestamp' => 1,
+                            'currencies' => 1,
+                            'markets' => 1,
+                            'tickers' => 1,
+                            'k' => 1,
+                            'trades_history' => 1,
+                            'fees' => 1,
+                            'exchange-rates' => 1,
+                            'exchange-rates/currency' => 1,
+                            'book/market' => 1,
+                            'kuna_codes/code/check' => 1,
+                            'landing_page_statistic' => 1,
+                            'translations/locale' => 1,
+                            'trades/market/hist' => 1,
+                        ),
+                        'post' => array(
+                            'http_test' => 1,
+                            'deposit_channels' => 1,
+                            'withdraw_channels' => 1,
+                            'subscription_plans' => 1,
+                            'send_to' => 1,
+                            'confirm_token' => 1,
+                            'kunaid' => 1,
+                            'withdraw/prerequest' => 1,
+                            'deposit/prerequest' => 1,
+                            'deposit/exchange-rates' => 1,
+                        ),
+                    ),
+                    'sign' => array(
+                        'get' => array(
+                            'reset_password/token' => 1,
+                        ),
+                        'post' => array(
+                            'signup/google' => 1,
+                            'signup/resend_confirmation' => 1,
+                            'signup' => 1,
+                            'signin' => 1,
+                            'signin/two_factor' => 1,
+                            'signin/resend_confirm_device' => 1,
+                            'signin/confirm_device' => 1,
+                            'reset_password' => 1,
+                            'cool-signin' => 1,
+                        ),
+                        'put' => array(
+                            'reset_password/token' => 1,
+                            'signup/code/confirm' => 1,
+                        ),
+                    ),
+                    'private' => array(
+                        'post' => array(
+                            'auth/w/order/submit' => 1,
+                            'auth/r/orders' => 1,
+                            'auth/r/orders/market' => 1,
+                            'auth/r/orders/markets' => 1,
+                            'auth/api_tokens/delete' => 1,
+                            'auth/api_tokens/create' => 1,
+                            'auth/api_tokens' => 1,
+                            'auth/signin_history/uniq' => 1,
+                            'auth/signin_history' => 1,
+                            'auth/disable_withdraw_confirmation' => 1,
+                            'auth/change_password' => 1,
+                            'auth/deposit_address' => 1,
+                            'auth/announcements/accept' => 1,
+                            'auth/announcements/unaccepted' => 1,
+                            'auth/otp/deactivate' => 1,
+                            'auth/otp/activate' => 1,
+                            'auth/otp/secret' => 1,
+                            'auth/r/order/market/:order_id/trades' => 1,
+                            'auth/r/orders/market/hist' => 1,
+                            'auth/r/orders/hist' => 1,
+                            'auth/r/orders/hist/markets' => 1,
+                            'auth/r/orders/details' => 1,
+                            'auth/assets-history' => 1,
+                            'auth/assets-history/withdraws' => 1,
+                            'auth/assets-history/deposits' => 1,
+                            'auth/r/wallets' => 1,
+                            'auth/markets/favorites' => 1,
+                            'auth/markets/favorites/list' => 1,
+                            'auth/me/update' => 1,
+                            'auth/me' => 1,
+                            'auth/fund_sources' => 1,
+                            'auth/fund_sources/list' => 1,
+                            'auth/withdraw/resend_confirmation' => 1,
+                            'auth/withdraw' => 1,
+                            'auth/withdraw/details' => 1,
+                            'auth/withdraw/info' => 1,
+                            'auth/payment_addresses' => 1,
+                            'auth/deposit/prerequest' => 1,
+                            'auth/deposit/exchange-rates' => 1,
+                            'auth/deposit' => 1,
+                            'auth/deposit/details' => 1,
+                            'auth/deposit/info' => 1,
+                            'auth/kuna_codes/count' => 1,
+                            'auth/kuna_codes/details' => 1,
+                            'auth/kuna_codes/edit' => 1,
+                            'auth/kuna_codes/send-pdf' => 1,
+                            'auth/kuna_codes' => 1,
+                            'auth/kuna_codes/redeemed-by-me' => 1,
+                            'auth/kuna_codes/issued-by-me' => 1,
+                            'auth/payment_requests/invoice' => 1,
+                            'auth/payment_requests/type' => 1,
+                            'auth/referral_program/weekly_earnings' => 1,
+                            'auth/referral_program/stats' => 1,
+                            'auth/merchant/payout_services' => 1,
+                            'auth/merchant/withdraw' => 1,
+                            'auth/merchant/payment_services' => 1,
+                            'auth/merchant/deposit' => 1,
+                            'auth/verification/auth_token' => 1,
+                            'auth/kunaid_purchase/create' => 1,
+                            'auth/devices/list' => 1,
+                            'auth/sessions/list' => 1,
+                            'auth/subscriptions/reactivate' => 1,
+                            'auth/subscriptions/cancel' => 1,
+                            'auth/subscriptions/prolong' => 1,
+                            'auth/subscriptions/create' => 1,
+                            'auth/subscriptions/list' => 1,
+                            'auth/kuna_ids/list' => 1,
+                            'order/cancel/multi' => 1,
+                            'order/cancel' => 1,
+                        ),
+                        'put' => array(
+                            'auth/fund_sources/id' => 1,
+                            'auth/kuna_codes/redeem' => 1,
+                        ),
+                        'delete' => array(
+                            'auth/markets/favorites' => 1,
+                            'auth/fund_sources' => 1,
+                            'auth/devices' => 1,
+                            'auth/devices/list' => 1,
+                            'auth/sessions/list' => 1,
+                            'auth/sessions' => 1,
+                        ),
+                    ),
+                ),
                 'public' => array(
                     'get' => array(
                         'depth', // Get depth or specified market Both asks and bids are sorted from highest price to lowest.
@@ -491,31 +644,49 @@ class kuna extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
-        if (is_array($this->urls) && array_key_exists('extension', $this->urls)) {
-            $request .= $this->urls['extension'];
-        }
-        $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api'] . $request;
-        if ($api === 'public') {
-            if ($query) {
-                $url .= '?' . $this->urlencode($query);
+        $url = null;
+        if (gettype($api) === 'array' && count(array_filter(array_keys($api), 'is_string')) == 0) {
+            list($version, $access) = $api;
+            $url = $this->urls['api'][$version] . '/' . $version . '/' . $this->implode_params($path, $params);
+            if ($access === 'public') {
+                if ($method === 'GET') {
+                    if ($params) {
+                        $url .= '?' . $this->urlencode($params);
+                    }
+                } else if (($method === 'POST') || ($method === 'PUT')) {
+                    $headers = array( 'Content-Type' => 'application/json' );
+                    $body = $this->json($params);
+                }
+            } else if ($access === 'private') {
+                throw new NotSupported($this->id . ' private v3 API is not supported yet');
             }
         } else {
-            $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
-            $query = $this->encode_params(array_merge(array(
-                'access_key' => $this->apiKey,
-                'tonce' => $nonce,
-            ), $params));
-            $auth = $method . '|' . $request . '|' . $query;
-            $signed = $this->hmac($this->encode($auth), $this->encode($this->secret));
-            $suffix = $query . '&signature=' . $signed;
-            if ($method === 'GET') {
-                $url .= '?' . $suffix;
+            $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
+            if (is_array($this->urls) && array_key_exists('extension', $this->urls)) {
+                $request .= $this->urls['extension'];
+            }
+            $query = $this->omit($params, $this->extract_params($path));
+            $url = $this->urls['api'][$api] . $request;
+            if ($api === 'public') {
+                if ($query) {
+                    $url .= '?' . $this->urlencode($query);
+                }
             } else {
-                $body = $suffix;
-                $headers = array( 'Content-Type' => 'application/x-www-form-urlencoded' );
+                $this->check_required_credentials();
+                $nonce = (string) $this->nonce();
+                $query = $this->encode_params(array_merge(array(
+                    'access_key' => $this->apiKey,
+                    'tonce' => $nonce,
+                ), $params));
+                $auth = $method . '|' . $request . '|' . $query;
+                $signed = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                $suffix = $query . '&signature=' . $signed;
+                if ($method === 'GET') {
+                    $url .= '?' . $suffix;
+                } else {
+                    $body = $suffix;
+                    $headers = array( 'Content-Type' => 'application/x-www-form-urlencoded' );
+                }
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

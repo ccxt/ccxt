@@ -157,6 +157,7 @@ class yobit extends Exchange {
                 'PIVX' => 'Darknet',
                 'PRS' => 'PRE',
                 'PUTIN' => 'PutinCoin',
+                'SPACE' => 'Spacecoin',
                 'STK' => 'StakeCoin',
                 'SUB' => 'Subscriptio',
                 'PAY' => 'EPAY',
