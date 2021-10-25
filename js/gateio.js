@@ -295,7 +295,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'spot',
+                'defaultType': 'swap',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -1969,7 +1969,7 @@ module.exports = class gateio extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder
+        // createOrder, spot
         //
         //     {
         //       "id": "62364648575",
@@ -2001,38 +2001,61 @@ module.exports = class gateio extends Exchange {
         //
         //
         const id = this.safeString (order, 'id');
-        const marketId = this.safeString (order, 'currency_pair');
+        const marketId = this.safeString2 (order, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
         let timestamp = this.safeTimestamp (order, 'create_time');
         timestamp = this.safeInteger (order, 'create_time_ms', timestamp);
         let lastTradeTimestamp = this.safeTimestamp (order, 'update_time');
         lastTradeTimestamp = this.safeInteger (order, 'update_time_ms', lastTradeTimestamp);
-        const amount = this.safeNumber (order, 'amount');
+        const amount = this.safeNumber (order, 'amount', 'size');
         const price = this.safeNumber (order, 'price');
         const remaining = this.safeNumber (order, 'left');
         const cost = this.safeNumber (order, 'filled_total'); // same as filled_price
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
         // open, closed, cancelled - almost already ccxt unified!
+        const finishAs = this.safeString (order, 'finish_as'); // Perpetual Swap/Delivery Futures
         let status = this.safeString (order, 'status');
-        if (status === 'cancelled') {
+        if (status === 'cancelled' || finishAs === 'cancelled') {
             status = 'canceled';
         }
-        const timeInForce = this.safeStringUpper (order, 'time_in_force');
+        const timeInForce = this.safeStringUpper (order, 'time_in_force', 'tif');
         const fees = [];
-        fees.push ({
-            'currency': 'GT',
-            'cost': this.safeNumber (order, 'gt_fee'),
-        });
-        fees.push ({
-            'currency': this.safeCurrencyCode (this.safeString (order, 'fee_currency')),
-            'cost': this.safeNumber (order, 'fee'),
-        });
+        const gtFee = this.safeNumber (order, 'gt_fee');
+        if (gtFee) {
+            fees.push ({
+                'currency': 'GT',
+                'cost': gtFee,
+            });
+        }
+        const fee = this.safeNumber (order, 'fee');
+        if (fee) {
+            fees.push ({
+                'currency': this.safeCurrencyCode (this.safeString (order, 'fee_currency')),
+                'cost': fee,
+            });
+        }
         const rebate = this.safeString (order, 'rebated_fee');
-        fees.push ({
-            'currency': this.safeCurrencyCode (this.safeString (order, 'rebated_fee_currency')),
-            'cost': this.parseNumber (Precise.stringNeg (rebate)),
-        });
+        if (rebate) {
+            fees.push ({
+                'currency': this.safeCurrencyCode (this.safeString (order, 'rebated_fee_currency')),
+                'cost': this.parseNumber (Precise.stringNeg (rebate)),
+            });
+        }
+        const mkfr = this.safeNumber (order, 'mkfr');
+        const tkfr = this.safeNumber (order, 'tkfr');
+        if (mkfr) {
+            fees.push ({
+                'currency': this.safeCurrencyCode (this.safeString (order, 'settleId')),
+                'cost': mkfr,
+            });
+        }
+        if (tkfr) {
+            fees.push ({
+                'currency': this.safeCurrencyCode (this.safeString (market, 'settleId')),
+                'cost': tkfr,
+            });
+        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': id,
@@ -2157,16 +2180,67 @@ module.exports = class gateio extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol parameter');
+        const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        const spot = type === 'spot';
+        const swap = type === 'swap';
+        const futures = type === 'future';
+        let market = {};
+        if (symbol === undefined && spot) {
+            throw new ArgumentsRequired (this.id + ' spot and margin cancelOrders requires a symbol parameter');
+        } else if (symbol) {
+            market = this.market (symbol);
         }
-        const market = this.market (symbol);
         const request = {
             'order_id': id,
-            'currency_pair': market['id'],
         };
-        const response = await this.privateSpotDeleteOrdersOrderId (this.extend (request, params));
-        return this.parseOrder (response);
+        if ((swap || futures) && symbol) {
+            request['settle'] = market['settleId'];
+        } else if (swap || futures) {
+            if (!('settle' in params)) {
+                throw new ArgumentsRequired (this.id + ' requires either a symbol or settle parameter');
+            }
+            const settle = params['settle'];
+            request['settle'] = settle;
+            market = {
+                'settleId': settle,
+            };
+        } else {
+            request['currency_pair'] = market['id'];
+        }
+        const method = this.getSupportedMapping (type, {
+            'spot': 'privateSpotDeleteOrdersOrderId',
+            'margin': 'privateSpotDeleteOrdersOrderId',
+            'swap': 'privateFuturesDeleteSettleOrdersOrderId',
+            'futures': 'privateDeliveryDeleteSettleOrdersOrderId',
+        });
+        const response = await this[method] (this.extend (request, params));
+        // Perpetual swap
+        // {
+        //     id: "82241928192",
+        //     contract: "BTC_USDT",
+        //     mkfr: "0",
+        //     tkfr: "0.0005",
+        //     tif: "gtc",
+        //     is_reduce_only: false,
+        //     create_time: "1635196145.06",
+        //     finish_time: "1635196233.396",
+        //     price: "61000",
+        //     size: "4",
+        //     refr: "0",
+        //     left: "4",
+        //     text: "web",
+        //     fill_price: "0",
+        //     user: "6693577",
+        //     finish_as: "cancelled",
+        //     status: "finished",
+        //     is_liq: false,
+        //     refu: "0",
+        //     is_close: false,
+        //     iceberg: "0",
+        // }
+        return this.parseOrder (response, market);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
