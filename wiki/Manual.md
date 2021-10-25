@@ -1943,7 +1943,7 @@ Timestamp and datetime are both Universal Time Coordinated (UTC) in milliseconds
 
 Although some exchanges do mix-in orderbook's top bid/ask prices into their tickers (and some exchanges even serve top bid/ask volumes) you should not treat a ticker as a `fetchOrderBook` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as "live 24h OHLCV". It is known that exchanges discourage frequent `fetchTicker` requests by imposing stricter rate limits on these queries. If you need a unified way to access bids and asks you should use `fetchL[123]OrderBook` family instead.
 
-To get historical prices and volumes use the unified [`fetchOHLCV`](#ohlcv-candlestick-charts) method where available.
+To get historical prices and volumes use the unified [`fetchOHLCV`](#ohlcv-candlestick-charts) method where available. To get historical mark, index, and premium index prices, add the params `price: "mark"`, `price: "index"`, `price: "premiumIndex"` respectively to the `params` argument of `fetchOHLCV`. There are also convenience methods `getMarkPriceOHLCV`, `getIndexPriceOHLCV`, and `getPremiumIndexOHLCV` that obtain the mark, index and premiumIndex historical prices and volumes.
 
 Methods for fetching tickers:
 
@@ -2118,6 +2118,7 @@ The `since` argument is an integer UTC timestamp **in milliseconds** (everywhere
 
 If `since` is not specified the `fetchOHLCV` method will return the time range as is the default from the exchange itself.  This is not a bug. Some exchanges will return candles from the beginning of time, others will return most recent candles only, the exchanges' default behaviour is expected. Thus, without specifying `since` the range of returned candles will be exchange-specific. One should pass  the `since` argument to ensure getting precisely the history range needed.
 
+
 ### OHLCV Structure
 
 The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles represented by the following structure:
@@ -2137,6 +2138,107 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
 ```
 
 The list of candles is returned sorted in ascending (historical/chronological) order, oldest candle first, most recent candle last.
+
+### Mark, Index and PremiumIndex Candlestick charts
+
+To obtain historical Mark, Index Price and Premium Index candlesticks by passing the (key, value) pair `price: 'mark'` (or index) as params to `fetchOHLCV`
+
+## JS
+
+```
+const ccxt = require('ccxt')
+
+console.log('CCXT Version:', ccxt.__version__)
+
+const exchange = new ccxt.binance({
+    "api_key": "...",
+    "secret": "...",
+    "options": {
+      "defaultType": "future"
+    }}
+)
+
+const main = async () => {
+  markKlines = await exchange.fetchOHLCV(
+    symbol='ADA/USDT', 
+    timeframe='1h', 
+    undefined, 
+    undefined, 
+    params={price: 'mark'}
+  );
+  console.log(markKlines);
+}
+
+main();
+
+```
+
+Replace `params={price: 'mark'}` with `params={price: 'index'}` or `params={price: 'premiumIndex'}` for the historical index price and premium index price respectively 
+
+---
+
+There are also convenience methods `fetchMarkOHLCV`, `fetchIndexOHLCV` and `fetchPremiumIndexOHLCV`
+
+```
+main = async () => {
+  markKlines = await exchange.fetchMarkOHLCV(
+    symbol='ADA/USDT', 
+    timeframe='1h', 
+  );
+  indexKlines = await exchange.fetchIndexOHLCV(
+    symbol='ADA/USDT', 
+    timeframe='1h', 
+  );
+  console.log(markKlines);
+  console.log(indexKlines);
+}
+
+main();
+
+```
+
+## Python
+
+```
+import ccxt
+from pprint import pprint
+
+print('CCXT Version:', ccxt.__version__)
+
+exchange = ccxt.binance({
+    "api_key": "...",
+    "secret": "...",
+    "options": {
+        "defaultType": "future"
+    }}
+)
+
+response = exchange.fetchOHLCV(
+    symbol='ADA/USDT',
+    timeframe='1h',
+    params={"price": 'index'}
+)
+
+pprint(response)
+
+# Convenience methods
+
+markKlines = exchange.fetchMarkOHLCV(
+    symbol='ADA/USDT',
+    timeframe='1h',
+    params={"price": 'mark'}
+)
+
+indexKlines = exchange.fetchIndexOHLCV(
+    symbol='ADA/USDT',
+    timeframe='1h',
+    params={"price": 'mark'}
+)
+
+pprint(markKlines)
+pprint(indexKlines)
+
+```
 
 ### OHLCV Emulation
 
