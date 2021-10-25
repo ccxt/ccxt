@@ -333,7 +333,7 @@ class okex(Exchange, ccxt.okex):
         data = self.safe_value(message, 'data', [])
         marketId = self.safe_string(arg, 'instId')
         market = self.safe_market(marketId)
-        symbol = market['id']
+        symbol = market['symbol']
         depths = {
             'books': 400,
             'books5': 5,

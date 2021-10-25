@@ -354,7 +354,7 @@ class okex extends \ccxt\async\okex {
         $data = $this->safe_value($message, 'data', array());
         $marketId = $this->safe_string($arg, 'instId');
         $market = $this->safe_market($marketId);
-        $symbol = $market['id'];
+        $symbol = $market['symbol'];
         $depths = array(
             'books' => 400,
             'books5' => 5,
