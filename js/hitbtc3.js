@@ -1,5 +1,6 @@
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 module.exports = class hitbtc3 extends Exchange {
     describe () {
@@ -7,7 +8,7 @@ module.exports = class hitbtc3 extends Exchange {
             'id': 'hitbtc3',
             'name': 'HitBTC',
             'countries': [ 'HK' ],
-            'rateLimit': 100,
+            'rateLimit': 100, // TODO: optimize https://api.hitbtc.com/#rate-limiting
             'version': '3',
             'pro': true,
             'has': {
@@ -187,7 +188,32 @@ module.exports = class hitbtc3 extends Exchange {
                     },
                 },
             },
+            'timeframes': {
+                '1m': 'M1',
+                '3m': 'M3',
+                '5m': 'M5',
+                '15m': 'M15',
+                '30m': 'M30', // default
+                '1h': 'H1',
+                '4h': 'H4',
+                '1d': 'D1',
+                '1w': 'D7',
+                '1M': '1M',
+            },
+            'options': {
+                'networks': {
+                    'ETH': '20',
+                    'ERC20': '20',
+                    'TRX': 'RX',
+                    'TRC20': 'RX',
+                    'OMNI': '',
+                },
+            },
         });
+    }
+
+    nonce () {
+        return this.milliseconds ()
     }
 
     async fetchMarkets (params = {}) {
@@ -373,9 +399,30 @@ module.exports = class hitbtc3 extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
+            'currency': currency['id'],
         };
-        const response = await this.privateGetWalletCryptoAddress (request);
-        return response;
+        const network = this.safeString (params, 'network');
+        if ((network !== undefined) && (code === 'USDT')) {
+            params = this.omit (params, 'network');
+            const networks = this.safeValue (this.options, 'networks');
+            const endpart = this.safeString (networks, network, network);
+            request['currency'] += endpart;
+        }
+        const response = await this.privateGetWalletCryptoAddress (this.extend (request, params));
+        //
+        //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
+        //
+        const firstAddress = this.safeValue (response, 0);
+        const address = this.safeString (firstAddress, 'address');
+        const currencyId = this.safeString (firstAddress, 'currency');
+        const tag = this.safeString (firstAddress, 'payment_id');
+        const parsedCode = this.safeCurrencyCode (currencyId);
+        return {
+            'info': response,
+            'address': address,
+            'tag': tag,
+            'code': parsedCode,
+        };
     }
 
     async fetchBalance (params) {
@@ -492,15 +539,48 @@ module.exports = class hitbtc3 extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbols': market['id'],
-        };
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            // symbol is optional for hitbtc fetchTrades
+            request['symbols'] = market['id'];
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        if (since !== undefined) {
+            request['since'] = since;
+        }
         const response = await this.publicGetPublicTrades (this.extend (request, params));
-        return response;
+        const marketIds = Object.keys (response);
+        let trades = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.market (marketId);
+            const rawTrades = response[marketId];
+            const parsed = this.parseTrades (rawTrades, market);
+            trades = trades.concat (parsed);
+        }
+        return trades;
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        const response = await this.privateGetSpotHistoryTrade (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -530,15 +610,23 @@ module.exports = class hitbtc3 extends Exchange {
         //   quantity: '0.002',
         //   price: '0.073365',
         //   fee: '0.000000147',
-        //   timestamp: '2018-04-28T18:39:55.345Z' }
+        //   timestamp: '2018-04-28T18:39:55.345Z',
+        //   taker: true }
         const timestamp = this.parse8601 (trade['timestamp']);
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
+        const taker = this.safeValue (trade, 'taker');
+        let takerOrMaker = undefined;
+        if (taker !== undefined) {
+            takerOrMaker = taker ? 'taker' : 'maker';
+        }
         if (feeCost !== undefined) {
-            const feeCurrencyCode = market ? market['feeCurrency'] : undefined;
+            const info = this.safeValue (market, 'info', {});
+            const feeCurrency = this.safeString (info, 'fee_currency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrency);
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -564,7 +652,7 @@ module.exports = class hitbtc3 extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -572,9 +660,287 @@ module.exports = class hitbtc3 extends Exchange {
         };
     }
 
+    async fetchTransactionsHelper (types, code, since, limit, params) {
+        await this.loadMarkets ();
+        const request = {
+            'types': types,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currencies'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetWalletTransactions (this.extend (request, params));
+        //
+        //     [
+        //       {
+        //         "id": "101609495",
+        //         "created_at": "2018-03-06T22:05:06.507Z",
+        //         "updated_at": "2018-03-06T22:11:45.03Z",
+        //         "status": "SUCCESS",
+        //         "type": "DEPOSIT",
+        //         "subtype": "BLOCKCHAIN",
+        //         "native": {
+        //           "tx_id": "e20b0965-4024-44d0-b63f-7fb8996a6706",
+        //           "index": "881652766",
+        //           "currency": "ETH",
+        //           "amount": "0.01418088",
+        //           "hash": "d95dbbff3f9234114f1211ab0ba2a94f03f394866fd5749d74a1edab80e6c5d3",
+        //           "address": "0xd9259302c32c0a0295d86a39185c9e14f6ba0a0d",
+        //           "confirmations": "20",
+        //           "senders": [
+        //             "0x243bec9256c9a3469da22103891465b47583d9f1"
+        //           ]
+        //         }
+        //       }
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit, params);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'PENDING': 'pending',
+            'FAILED': 'failed',
+            'SUCCESS': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransactionType (type) {
+        const types = {
+            'DEPOSIT': 'deposit',
+            'WITHDRAW': 'withdrawal',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //       "id": "101609495",
+        //       "created_at": "2018-03-06T22:05:06.507Z",
+        //       "updated_at": "2018-03-06T22:11:45.03Z",
+        //       "status": "SUCCESS",
+        //       "type": "DEPOSIT",
+        //       "subtype": "BLOCKCHAIN",
+        //       "native": {
+        //         "tx_id": "e20b0965-4024-44d0-b63f-7fb8996a6706",
+        //         "index": "881652766",
+        //         "currency": "ETH",
+        //         "amount": "0.01418088",
+        //         "hash": "d95dbbff3f9234114f1211ab0ba2a94f03f394866fd5749d74a1edab80e6c5d3",
+        //         "address": "0xd9259302c32c0a0295d86a39185c9e14f6ba0a0d",
+        //         "confirmations": "20",
+        //         "senders": [
+        //           "0x243bec9256c9a3469da22103891465b47583d9f1"
+        //         ]
+        //       }
+        //     }
+        //
+        //     {
+        //       "id": "102703545",
+        //       "created_at": "2018-03-30T21:39:17.854Z",
+        //       "updated_at": "2018-03-31T00:23:19.067Z",
+        //       "status": "SUCCESS",
+        //       "type": "WITHDRAW",
+        //       "subtype": "BLOCKCHAIN",
+        //       "native": {
+        //         "tx_id": "5ecd7a85-ce5d-4d52-a916-b8b755e20926",
+        //         "index": "918286359",
+        //         "currency": "OMG",
+        //         "amount": "2.45",
+        //         "fee": "1.22",
+        //         "hash": "0x1c621d89e7a0841342d5fb3b3587f60b95351590161e078c4a1daee353da4ca9",
+        //         "address": "0x50227da7644cea0a43258a2e2d7444d01b43dcca",
+        //         "confirmations": "0"
+        //       }
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
+        const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
+        const type = this.parseTransactionType (this.safeString (transaction, 'type'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const native = this.safeValue (transaction, 'native');
+        const currencyId = this.safeString (native, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const txhash = this.safeString (native, 'hash');
+        const address = this.safeString (native, 'address');
+        const addressTo = address;
+        const tag = this.safeString (native, 'payment_id');
+        const tagTo = tag;
+        const sender = this.safeValue (native, 'senders');
+        const addressFrom = this.safeString (sender, 0);
+        const amount = this.safeNumber (native, 'amount');
+        const fee = {
+            'code': code,
+            'cost': this.safeNumber (native, 'fee', this.parseNumber ('0')),  // TODO: fix
+        };
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txhash,
+            'code': code,
+            'amount': amount,
+            'address': address,
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
+            'tag': tag,
+            'tagFrom': undefined,
+            'tagTo': tagTo,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'updated': updated,
+            'status': status,
+            'type': type,
+            'fee': fee,
+        };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsHelper ('DEPOSIT,WITHDRAW', code, since, limit, params);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsHelper ('DEPOSIT', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsHelper ('WITHDRAW', code, since, limit, params);
+    }
+
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds (symbols);
+            request['symbols'] = marketIds.join (',');
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetPublicOrderbook (this.extend (request, params));
+        const result = {};
+        const marketIds = Object.keys (response);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const orderbook = response[marketId];
+            const symbol = this.safeSymbol (marketId);
+            const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
+            result[symbol] = this.parseOrderBook (response[marketId], symbol, timestamp, 'bid', 'ask');
+        }
+        return result;
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        const result = await this.fetchOrderBooks ([ symbol ], limit, params);
+        return result[symbol];
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetSpotFeeSymbol (this.extend (request, params));
+        //  {"take_rate":"0.0009","make_rate":"0.0009"}
+        const taker = this.safeNumber (response, 'take_rate');
+        const maker = this.safeNumber (response, 'make_rate');
+        return {
+            'info': response,
+            'symbol': symbol,
+            'taker': taker,
+            'maker': maker,
+        };
+    }
+
+    async fetchTradingFees (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetSpotFee (params);
+        // [{"symbol":"ARVUSDT","take_rate":"0.0009","make_rate":"0.0009"}]
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const symbol = this.safeSymbol (this.safeString (entry, 'symbol'));
+            const taker = this.safeNumber (entry, 'take_rate');
+            const maker = this.safeNumber (entry, 'make_rate');
+            result[symbol] = {
+                'info': entry,
+                'symbol': symbol,
+                'taker': taker,
+                'maker': maker,
+            };
+        }
+        return result;
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbols': market['id'],
+            'period': this.timeframes[timeframe],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['from'] = this.iso8601 (since);
+        }
+        const response = await this.publicGetPublicCandles (this.extend (request, params));
+        //
+        //     {
+        //       "ETHUSDT": [
+        //         {
+        //           "timestamp": "2021-10-25T07:38:00.000Z",
+        //           "open": "4173.391",
+        //           "close": "4170.923",
+        //           "min": "4170.923",
+        //           "max": "4173.986",
+        //           "volume": "0.1879",
+        //           "volume_quote": "784.2517846"
+        //         }
+        //       ]
+        //     }
+        //
+        const ohlcvs = this.safeValue (response, market['id']);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "timestamp":"2015-08-20T19:01:00.000Z",
+        //         "open":"0.006",
+        //         "close":"0.006",
+        //         "min":"0.006",
+        //         "max":"0.006",
+        //         "volume":"0.003",
+        //         "volume_quote":"0.000018"
+        //     }
+        //
+        return [
+            this.parse8601 (this.safeString (ohlcv, 'timestamp')),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'max'),
+            this.safeNumber (ohlcv, 'min'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        const implodedPath = this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/' + implodedPath;
         let getRequest = undefined;
         const keys = Object.keys (query);
         const queryLength = keys.length;
@@ -588,8 +954,8 @@ module.exports = class hitbtc3 extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const timestamp = this.milliseconds ().toString ();
-            const payload = [ method, '/api/3/' + path ];
+            const timestamp = this.nonce ().toString ();
+            const payload = [ method, '/api/3/' + implodedPath ];
             if (method === 'GET') {
                 if (getRequest !== undefined) {
                     payload.push (getRequest);
