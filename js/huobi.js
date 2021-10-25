@@ -851,9 +851,9 @@ module.exports = class huobi extends Exchange {
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
         let method = 'marketGetHistoryKline';
-        if (price === 'index') {
-            method = 'indexMarketGetHistoryMark_price_kline';
-        } else if (price === 'mark') {
+        if (price === 'mark') {
+            method = 'indexMarketGetHistoryMarkPriceKline';
+        } else if (price === 'index') {
             method = 'indexMarketGetHistoryIndex';
         }
         const response = await this[method] (this.extend (request, params));
