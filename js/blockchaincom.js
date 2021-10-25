@@ -1,8 +1,6 @@
 'use strict';
 
 //  ---------------------------------------------------------------------------
-// Started Writing on Monday 27th September 2021
-//  ---------------------------------------------------------------------------
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
@@ -29,7 +27,7 @@ module.exports = class blockchaincom extends Exchange {
                 'fetchTicker': true,
                 'fetchOrderBook': true,
                 'fetchL2OrderBook': true,
-                'fetchL3OrderBook': true, // needs proper parsing
+                'fetchL3OrderBook': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -81,12 +79,12 @@ module.exports = class blockchaincom extends Exchange {
                         'fees', // fetchFees
                         'orders', // fetchOpenOrders, fetchClosedOrders
                         'orders/{orderId}', // fetchOrder(id)
-                        'trades', // ** NULL
+                        'trades',
                         'fills', // fetchMyTrades
                         'deposits', // fetchDeposits
                         'deposits/{depositId}', // fetchDeposit
                         'accounts', // fetchBalance
-                        'accounts/{account}/{currency}', // ** unused
+                        'accounts/{account}/{currency}',
                         'whitelist', // fetchWithdrawalWhitelist
                         'whitelist/{currency}', // fetchWithdrawalWhitelistByCurrency
                         'withdrawals', // fetchWithdrawalWhitelist
@@ -149,12 +147,8 @@ module.exports = class blockchaincom extends Exchange {
                 'exact': {
                     '401': AuthenticationError,
                     '404': OrderNotFound,
-                    // 500 insufficient funds
-                    // 'errorCode' : unifiedErrorMethod, ... populate via testing
                 },
-                'broad': {
-                    // help what is broad
-                },
+                'broad': {},
             },
         });
     }
@@ -456,7 +450,7 @@ module.exports = class blockchaincom extends Exchange {
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
         // cancels all open orders if no symbol specified
-        // cancels all open orders of given symbol, if symbol is specified
+        // cancels all open orders of specified symbol, if symbol is specified
         await this.loadMarkets ();
         const request = {
             // 'symbol': marketId,
@@ -480,7 +474,6 @@ module.exports = class blockchaincom extends Exchange {
         //
         await this.loadMarkets ();
         const response = await this.privateGetFees ();
-        // no referance to funding fees in API
         return {
             'maker': this.safeNumber (response, 'makerRate'),
             'taker': this.safeNumber (response, 'takerRate'),
@@ -832,12 +825,14 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        // note: only works with exchange-order-id
+        // does not work with clientOrderId
         await this.loadMarkets ();
         const request = {
             'orderId': id,
         };
         const response = await this.privateGetOrdersOrderId (this.extend (request, params));
-        // fetch Order by Id
+        //
         // {
         // "exOrdId": 11111111,
         // "clOrdId": "ABC",
