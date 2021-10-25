@@ -3872,13 +3872,14 @@ module.exports = class binance extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    async fetchFundingRateHistory (symbol = undefined, limit = undefined, start = undefined, end = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
         //
         // Gets a history of funding rates with their timestamps
         //  (param) symbol: Future currency pair (e.g. "BTC/USDT")
         //  (param) limit: maximum number of data points returned
-        //  (param) start: Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        //  (param) end: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) params: Object containing more params for the request
+        //          - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
         //  return: [{symbol, fundingRate, timestamp}]
         //
         await this.loadMarkets ();
@@ -3893,11 +3894,14 @@ module.exports = class binance extends Exchange {
         } else if ('type' in params && params['type'] === 'future') {
             method = 'dapiPublicGetFundingRate';
         }
-        if (start !== undefined) {
-            request['startTime'] = start;
+        if (since !== undefined) {
+            request['startTime'] = since;
         }
-        if (end !== undefined) {
-            request['endTime'] = end;
+        const until = this.safeInteger (params, 'until');
+        const endTime = this.safeString (params, 'endTime', until); // exchange-specific
+        params = this.omit (params, [ 'endTime', 'until' ]);
+        if (endTime) {
+            request['endTime'] = endTime;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
