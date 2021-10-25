@@ -1016,7 +1016,7 @@ module.exports = class ftx extends Exchange {
         //
         await this.loadMarkets ();
         const request = {};
-        if (symbol) {
+        if (symbol !== undefined) {
             const market = this.market (symbol);
             request['future'] = market['id'];
         }
