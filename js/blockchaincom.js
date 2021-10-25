@@ -6,7 +6,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
-// const Precise = require ('./base/Precise');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -25,7 +25,6 @@ module.exports = class blockchaincom extends Exchange {
                 'fetchOHLCV': false,
                 'fetchLedger': false,
                 'fetchMarkets': true,
-                'fetchMarket': true,
                 'fetchTickers': true,
                 'fetchTicker': true,
                 'fetchOrderBook': true,
@@ -36,8 +35,6 @@ module.exports = class blockchaincom extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchPartiallyFilledOrders': true,
                 'fetchCanceledOrders': true,
-                'fetchExpiredOrders': true,
-                'fetchRejectedOrders': true,
                 'fetchBalance': true,
                 'createOrder': true,
                 'cancelOrder': true,
@@ -113,32 +110,32 @@ module.exports = class blockchaincom extends Exchange {
                     'percentage': true,
                     'tiers': {
                         'taker': [
-                            [0, 0.4 / 100],
-                            [10000, 0.22 / 100],
-                            [50000, 0.2 / 100],
-                            [100000, 0.18 / 100],
-                            [500000, 0.18 / 100],
-                            [1000000, 0.18 / 100],
-                            [2500000, 0.18 / 100],
-                            [5000000, 0.16 / 100],
-                            [25000000, 0.14 / 100],
-                            [100000000, 0.11 / 100],
-                            [500000000, 0.08 / 100],
-                            [1000000000, 0.06 / 100],
+                            [this.parseNumber ('0'), this.parseNumber ('0.004')],
+                            [this.parseNumber ('10000'), this.parseNumber ('0.0022')],
+                            [this.parseNumber ('50000'), this.parseNumber ('0.002')],
+                            [this.parseNumber ('100000'), this.parseNumber ('0.0018')],
+                            [this.parseNumber ('500000'), this.parseNumber ('0.0018')],
+                            [this.parseNumber ('1000000'), this.parseNumber ('0.0018')],
+                            [this.parseNumber ('2500000'), this.parseNumber ('0.0018')],
+                            [this.parseNumber ('5000000'), this.parseNumber ('0.0016')],
+                            [this.parseNumber ('25000000'), this.parseNumber ('0.0014')],
+                            [this.parseNumber ('100000000'), this.parseNumber ('0.0011')],
+                            [this.parseNumber ('500000000'), this.parseNumber ('0.0008')],
+                            [this.parseNumber ('1000000000'), this.parseNumber ('0.0006')],
                         ],
                         'maker': [
-                            [0, 0.2 / 100],
-                            [10000, 0.12 / 100],
-                            [50000, 0.1 / 100],
-                            [100000, 0.08 / 100],
-                            [500000, 0.07 / 100],
-                            [1000000, 0.06 / 100],
-                            [2500000, 0.05 / 100],
-                            [5000000, 0.04 / 100],
-                            [25000000, 0.03 / 100],
-                            [100000000, 0.02 / 100],
-                            [500000000, 0.01 / 100],
-                            [1000000000, 0],
+                            [this.parseNumber ('0'), this.parseNumber ('0.002')],
+                            [this.parseNumber ('10000'), this.parseNumber ('0.0012')],
+                            [this.parseNumber ('50000'), this.parseNumber ('0.001')],
+                            [this.parseNumber ('100000'), this.parseNumber ('0.0008')],
+                            [this.parseNumber ('500000'), this.parseNumber ('0.0007000000000000001')],
+                            [this.parseNumber ('1000000'), this.parseNumber ('0.0006')],
+                            [this.parseNumber ('2500000'), this.parseNumber ('0.0005')],
+                            [this.parseNumber ('5000000'), this.parseNumber ('0.0004')],
+                            [this.parseNumber ('25000000'), this.parseNumber ('0.0003')],
+                            [this.parseNumber ('100000000'), this.parseNumber ('0.0002')],
+                            [this.parseNumber ('500000000'), this.parseNumber ('0.0001')],
+                            [this.parseNumber ('1000000000'), this.parseNumber ('0')],
                         ],
                     },
                 },
@@ -162,14 +159,7 @@ module.exports = class blockchaincom extends Exchange {
         });
     }
 
-    currencyId (code) {
-        const currency = this.currency (code);
-        const id = currency['id'];
-        return id;
-    }
-
     async fetchMarkets (params = {}) {
-        // still needs fee information
         //
         // },
         // "USDC-GBP": {
@@ -211,22 +201,44 @@ module.exports = class blockchaincom extends Exchange {
             } else {
                 active = 'false';
             }
-            const minPriceIncrement = this.safeInteger (market, 'min_price_increment');
-            const minPriceScale = this.safeInteger (market, 'min_price_increment_scale');
-            const pricePrecision = minPriceIncrement * Math.pow (10, -minPriceScale);
-            const lotSize = this.safeInteger (market, 'lot_size');
-            const lotScale = this.safeInteger (market, 'lot_size_scale');
-            const amountPrecision = lotSize * Math.pow (10, -lotScale);
+            // price precision
+            const minPriceIncrementString = this.safeString (market, 'min_price_increment');
+            const minPriceIncrementScaleString = this.safeString (market, 'min_price_increment_scale');
+            const minPriceScalePrecisionString = this.parsePrecision (minPriceIncrementScaleString);
+            const pricePrecisionString = Precise.stringMul (minPriceIncrementString, minPriceScalePrecisionString);
+            const pricePrecision = this.parseNumber (pricePrecisionString);
+            // amount precision
+            const lotSizeString = this.safeString (market, 'lot_size');
+            const lotSizeScaleString = this.safeString (market, 'lot_size_scale');
+            const lotSizeScalePrecisionString = this.parsePrecision (lotSizeScaleString);
+            const amountPrecisionString = Precise.stringMul (lotSizeString, lotSizeScalePrecisionString);
+            const amountPrecision = this.parseNumber (amountPrecisionString);
+            // precision
             const precision = {
                 'price': pricePrecision,
                 'amount': amountPrecision,
             };
-            const minOrderSize = this.safeInteger (market, 'min_order_size');
-            const minOrderSizeScale = this.safeInteger (market, 'min_order_size_scale');
+            // minimum order size
+            const minOrderSizeString = this.safeString (market, 'min_order_size');
+            const minOrderSizeScaleString = this.safeString (market, 'min_order_size_scale');
+            const minOrderSizeScalePrecisionString = this.parsePrecision (minOrderSizeScaleString);
+            const minOrderSizePreciseString = Precise.stringMul (minOrderSizeString, minOrderSizeScalePrecisionString);
+            const minOrderSize = this.parseNumber (minOrderSizePreciseString);
+            // maximum order size
+            let maxOrderSize = undefined;
+            maxOrderSize = this.safeString (market, 'max_order_size');
+            if (maxOrderSize !== '0') {
+                const maxOrderSizeScaleString = this.safeString (market, 'max_order_size_scale');
+                const maxOrderSizeScalePrecisionString = this.parsePrecision (maxOrderSizeScaleString);
+                const maxOrderSizeString = Precise.stringMul (maxOrderSize, maxOrderSizeScalePrecisionString);
+                maxOrderSize = this.parseNumber (maxOrderSizeString);
+            } else {
+                maxOrderSize = undefined;
+            }
             const limits = {
                 'amount': {
-                    'min': minOrderSize * Math.pow (10, -minOrderSizeScale),
-                    'max': undefined,
+                    'min': minOrderSize,
+                    'max': maxOrderSize,
                 },
                 'price': {
                     'min': undefined,
@@ -253,11 +265,6 @@ module.exports = class blockchaincom extends Exchange {
             });
         }
         return result;
-    }
-
-    async fetchMarket (symbol, params = {}) {
-        await this.loadMarkets ();
-        return this.market (symbol);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -296,7 +303,7 @@ module.exports = class blockchaincom extends Exchange {
         //   "last_trade_price": 47587.75
         // }
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, '-');
         const last = this.safeNumber (ticker, 'last_trade_price');
         const baseVolume = this.safeNumber (ticker, 'volume_24h');
         const open = this.safeNumber (ticker, 'price_24h');
@@ -376,15 +383,15 @@ module.exports = class blockchaincom extends Exchange {
         const state = this.parseOrderState (statusId);
         const side = this.safeStringLower (order, 'side');
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, '-');
         const exchangeOrderId = this.safeString (order, 'exOrdId');
         const price = (type !== 'market') ? this.safeString (order, 'price') : undefined;
-        const filled = this.safeNumber (order, 'cumQty', undefined);
-        const remaining = this.safeNumber (order, 'leavesQty', undefined);
         const average = this.safeNumber (order, 'avgPx', undefined);
         const timestamp = this.safeInteger (order, 'timestamp');
         const datetime = this.iso8601 (timestamp);
-        const result = {
+        const filled = this.safeString (order, 'cumQty');
+        const remaining = this.safeString (order, 'leavesQty');
+        const result = this.safeOrder2 ({
             'id': exchangeOrderId,
             'clientOrderId': clientOrderId,
             'datetime': datetime,
@@ -397,14 +404,14 @@ module.exports = class blockchaincom extends Exchange {
             'side': side,
             'price': price,
             'average': average,
-            'amount': filled + remaining, // 'ordered amount of base'
+            'amount': undefined,
             'filled': filled,
             'remaining': remaining,
-            'cost': undefined, // "'cost': 'filled' * 'price' (filling price used where available)"
+            'cost': undefined,
             'trades': [], // "a list of order trades/executions"
-            'fee': {},
+            'fees': {},
             'info': order,
-        };
+        });
         return result;
     }
 
@@ -481,23 +488,8 @@ module.exports = class blockchaincom extends Exchange {
         };
     }
 
-    async fetchRejectedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const state = 'REJECTED';
-        return await this.fetchOrdersByState (state, symbol, since, limit, params);
-    }
-
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const state = 'CANCELED';
-        return await this.fetchOrdersByState (state, symbol, since, limit, params);
-    }
-
-    async fetchExpiredOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const state = 'EXPIRED';
-        return await this.fetchOrdersByState (state, symbol, since, limit, params);
-    }
-
-    async fetchPartiallyFilledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const state = 'PART_FILLED';
         return await this.fetchOrdersByState (state, symbol, since, limit, params);
     }
 
@@ -544,21 +536,31 @@ module.exports = class blockchaincom extends Exchange {
         const order = this.safeString (trade, 'tradeId');
         const side = this.safeString (trade, 'side').toLowerCase ();
         const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'qty');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'qty');
+        const costString = Precise.stringMul (priceString, amountString);
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (costString);
         const timestamp = this.safeInteger (trade, 'timestamp');
         const datetime = this.iso8601 (timestamp);
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
+        let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
-        let feeCurrency = undefined;
-        if (side === 'buy') {
-            const base = symbol.split ('/')[0];
-            feeCurrency = this.safeCurrencyCode (base);
-        } else if (side === 'sell') {
-            const quote = symbol.split ('/')[1];
-            feeCurrency = this.safeCurrencyCode (quote);
+        if (feeCost !== undefined) {
+            let feeCurrency = undefined;
+            if (market !== undefined) {
+                if (side === 'buy') {
+                    const base = market['base'];
+                    feeCurrency = this.safeCurrencyCode (base);
+                } else if (side === 'sell') {
+                    const quote = market['quote'];
+                    feeCurrency = this.safeCurrencyCode (quote);
+                }
+            }
+            fee = { 'cost': feeCost, 'currency': feeCurrency };
         }
-        const fee = { 'cost': feeCost, 'currency': feeCurrency };
         return {
             'id': id,
             'timestamp': timestamp,
@@ -570,7 +572,7 @@ module.exports = class blockchaincom extends Exchange {
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
             'info': order,
         };
@@ -578,9 +580,10 @@ module.exports = class blockchaincom extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'limit': limit ? limit : 100,
-        };
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         let market = undefined;
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
@@ -597,14 +600,17 @@ module.exports = class blockchaincom extends Exchange {
             'currency': currency['id'],
         };
         const response = await this.privatePostDepositsCurrency (this.extend (request, params));
-        const splitArr = this.safeString (response, 'address').split (':');
-        const address = splitArr[0].trim ();
+        const rawAddress = this.safeString (response, 'address');
+        let tag = undefined;
+        let address = undefined;
+        if (rawAddress !== undefined) {
+            // if a tag or memo is used it is separated by a colon in the 'address' value
+            [address, tag] = rawAddress.split (':');
+        }
         const result = { 'info': response };
         result['currency'] = currency['code'];
         result['address'] = address;
-        // if a tag or memo is used it is separated by a colon in the 'address' value
-        if (splitArr[1] !== undefined) {
-            const tag = splitArr[1].trim ();
+        if (tag !== undefined) {
             result['tag'] = tag;
         }
         return result;
