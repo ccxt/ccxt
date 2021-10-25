@@ -3897,10 +3897,10 @@ module.exports = class binance extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger (params, 'until');
-        const endTime = this.safeString (params, 'endTime', until); // exchange-specific
-        params = this.omit (params, [ 'endTime', 'until' ]);
-        if (endTime) {
+        const till = this.safeInteger (params, 'till'); // unified in milliseconds
+        const endTime = this.safeString (params, 'endTime', till); // exchange-specific in milliseconds
+        params = this.omit (params, [ 'endTime', 'till' ]);
+        if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
         if (limit !== undefined) {
