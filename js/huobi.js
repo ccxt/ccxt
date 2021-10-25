@@ -453,6 +453,10 @@ module.exports = class huobi extends Exchange {
                         'min': minCost,
                         'max': undefined,
                     },
+                    'leverage': {
+                        'max': this.safeNumber (market, 'leverage-ratio', 1),
+                        'superMax': this.safeNumber (market, 'super-margin-leverage-ratio', 1),
+                    },
                 },
                 'info': market,
             });
@@ -902,7 +906,12 @@ module.exports = class huobi extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const chains = this.safeValue (entry, 'chains', []);
             const networks = {};
-            let currencyActive = false;
+            const instStatus = this.safeString (entry, 'instStatus');
+            const currencyActive = instStatus === 'normal';
+            let fee = undefined;
+            let precision = undefined;
+            let minWithdraw = undefined;
+            let maxWithdraw = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
@@ -916,14 +925,13 @@ module.exports = class huobi extends Exchange {
                     }
                 }
                 const network = this.safeNetwork (baseChainProtocol);
-                const minWithdraw = this.safeNumber (chain, 'minWithdrawAmt');
-                const maxWithdraw = this.safeNumber (chain, 'maxWithdrawAmt');
+                minWithdraw = this.safeNumber (chain, 'minWithdrawAmt');
+                maxWithdraw = this.safeNumber (chain, 'maxWithdrawAmt');
                 const withdraw = this.safeString (chain, 'withdrawStatus');
                 const deposit = this.safeString (chain, 'depositStatus');
                 const active = (withdraw === 'allowed') && (deposit === 'allowed');
-                currencyActive = (currencyActive === undefined) ? active : currencyActive;
-                const precision = this.safeInteger (chain, 'withdrawPrecision');
-                const fee = this.safeNumber (chain, 'transactFeeWithdraw');
+                precision = this.safeInteger (chain, 'withdrawPrecision');
+                fee = this.safeNumber (chain, 'transactFeeWithdraw');
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -939,20 +947,26 @@ module.exports = class huobi extends Exchange {
                     'precision': precision,
                 };
             }
+            const networksKeys = Object.keys (networks);
+            const networkLength = networksKeys.length;
             result[code] = {
-                'info': undefined,
+                'info': entry,
                 'code': code,
                 'id': currencyId,
                 'active': currencyActive,
-                'fee': undefined,
+                'fee': (networkLength <= 1) ? fee : undefined,
                 'name': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
+                    'withdraw': {
+                        'min': (networkLength <= 1) ? minWithdraw : undefined,
+                        'max': (networkLength <= 1) ? maxWithdraw : undefined,
+                    },
                 },
-                'precision': undefined,
+                'precision': (networkLength <= 1) ? precision : undefined,
                 'networks': networks,
             };
         }
@@ -1244,7 +1258,7 @@ module.exports = class huobi extends Exchange {
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
-        if (type === 'limit' || type === 'ioc' || type === 'limit-maker') {
+        if (type === 'limit' || type === 'ioc' || type === 'limit-maker' || type === 'stop-limit' || type === 'stop-limit-fok') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const method = this.options['createOrderMethod'];

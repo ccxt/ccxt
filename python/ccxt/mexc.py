@@ -233,6 +233,9 @@ class mexc(Exchange):
                 },
             },
             'commonCurrencies': {
+                'COFI': 'COFIX',  # conflict with CoinFi
+                'DFT': 'dFuture',
+                'HERO': 'Step Hero',  # conflict with Metahero
                 'SIN': 'Sin City Token',
             },
             'exceptions': {
@@ -936,7 +939,8 @@ class mexc(Exchange):
         timestamp = self.safe_integer_2(trade, 'create_time', 'trade_time')
         timestamp = self.safe_integer(trade, 't', timestamp)
         marketId = self.safe_string(trade, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '_')
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
         priceString = self.safe_string_2(trade, 'price', 'trade_price')
         priceString = self.safe_string(trade, 'p', priceString)
         amountString = self.safe_string_2(trade, 'quantity', 'trade_quantity')
@@ -953,7 +957,10 @@ class mexc(Exchange):
         elif (side == 'ASK') or (side == '2'):
             side = 'sell'
         id = self.safe_string_2(trade, 'id', 'trade_time')
-        id = self.safe_string(trade, 't', id)
+        if id is None:
+            id = self.safe_string(trade, 't', id)
+            if id is not None:
+                id += '-' + market['id'] + '-' + amountString
         feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
@@ -1134,7 +1141,8 @@ class mexc(Exchange):
         networkId = ''.join(parts)
         networkId = networkId.replace('-20', '20')
         networksById = {
-            'ETH': 'ERC20',
+            'ETH': 'ETH',
+            'ERC20': 'ERC20',
             'BEP20(BSC)': 'BEP20',
             'TRX': 'TRC20',
         }

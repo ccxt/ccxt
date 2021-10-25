@@ -282,7 +282,6 @@ module.exports = class gateio extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
-                'password': true,
             },
             'options': {
                 'networks': {
@@ -302,7 +301,7 @@ module.exports = class gateio extends Exchange {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
                 },
-                'future': {
+                'futures': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
@@ -357,7 +356,7 @@ module.exports = class gateio extends Exchange {
                         ],
                     },
                 },
-                'future': {
+                'swap': {
                     'tierBased': true,
                     'feeSide': 'base',
                     'percentage': true,
@@ -365,89 +364,42 @@ module.exports = class gateio extends Exchange {
                     'taker': this.parseNumber ('0.0005'),
                     'tiers': {
                         'maker': [
-                            this.parseNumber ('0.0000'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00008'),
-                            this.parseNumber ('-0.01000'),
-                            this.parseNumber ('-0.01002'),
-                            this.parseNumber ('-0.01005'),
-                            this.parseNumber ('-0.02000'),
-                            this.parseNumber ('-0.02005'),
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0000') ],
+                            [ this.parseNumber ('1.5'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('3'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('6'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('12.5'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('25'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('75'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('1250'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('2500'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('3000'), this.parseNumber ('-0.00008') ],
+                            [ this.parseNumber ('6000'), this.parseNumber ('-0.01000') ],
+                            [ this.parseNumber ('11000'), this.parseNumber ('-0.01002') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('-0.01005') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('-0.02000') ],
+                            [ this.parseNumber ('75000'), this.parseNumber ('-0.02005') ],
                         ],
                         'taker': [
-                            [this.parseNumber ('0.00050'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00048'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00046'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00044'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00042'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00040'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00038'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00036'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00034'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00032'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                        ],
-                    },
-                },
-                'delivery': {
-                    'tierBased': true,
-                    'feeSide': 'base',
-                    'percentage': true,
-                    'maker': this.parseNumber ('0.0'),
-                    'taker': this.parseNumber ('0.0005'),
-                    'tiers': {
-                        'maker': [
-                            this.parseNumber ('0.0000'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00005'),
-                            this.parseNumber ('-0.00008'),
-                            this.parseNumber ('-0.01000'),
-                            this.parseNumber ('-0.01002'),
-                            this.parseNumber ('-0.01005'),
-                            this.parseNumber ('-0.02000'),
-                            this.parseNumber ('-0.02005'),
-                        ],
-                        'taker': [
-                            [this.parseNumber ('0.00050'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00048'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00046'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00044'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00042'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00040'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00038'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00036'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00034'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00032'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
-                            [this.parseNumber ('0.00030'), this.parseNumber ('0.00075')],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.00050') ],
+                            [ this.parseNumber ('1.5'), this.parseNumber ('0.00048') ],
+                            [ this.parseNumber ('3'), this.parseNumber ('0.00046') ],
+                            [ this.parseNumber ('6'), this.parseNumber ('0.00044') ],
+                            [ this.parseNumber ('12.5'), this.parseNumber ('0.00042') ],
+                            [ this.parseNumber ('25'), this.parseNumber ('0.00040') ],
+                            [ this.parseNumber ('75'), this.parseNumber ('0.00038') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('0.00036') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('0.00034') ],
+                            [ this.parseNumber ('1250'), this.parseNumber ('0.00032') ],
+                            [ this.parseNumber ('2500'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('3000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('6000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('11000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('75000'), this.parseNumber ('0.00030') ],
                         ],
                     },
                 },
@@ -546,29 +498,27 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        // :param params['type']: 'spot', 'margin', 'future' or 'delivery'
+        // :param params['type']: 'spot', 'margin', 'futures' or 'delivery'
         // :param params['settle']: The quote currency
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         const spot = (type === 'spot');
         const margin = (type === 'margin');
-        const futures = (type === 'future');
+        const futures = (type === 'futures');
         const swap = (type === 'swap');
         const option = (type === 'option');
         if (!spot && !margin && !futures && !swap) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap' or 'futures'"); // eslint-disable-line quotes
         }
         let response = undefined;
         const result = [];
-        let method = 'publicSpotGetCurrencyPairs';
-        if (swap) {
-            method = 'publicFuturesGetSettleContracts';
-        } else if (futures) {
-            method = 'publicDeliveryGetSettleContracts';
-        } else if (margin) {
-            method = 'publicMarginGetCurrencyPairs';
-        }
+        const method = this.getSupportedMapping (type, {
+            'spot': 'publicSpotGetCurrencyPairs',
+            'margin': 'publicMarginGetCurrencyPairs',
+            'swap': 'publicFuturesGetSettleContracts',
+            'futures': 'publicDeliveryGetSettleContracts',
+        });
         if (futures || swap) {
             const settlementCurrencies = this.getSettlementCurrencies (type, 'fetchMarkets');
             for (let c = 0; c < settlementCurrencies.length; c++) {
@@ -680,6 +630,7 @@ module.exports = class gateio extends Exchange {
                     }
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
+                    const feeIndex = (type === 'futures') ? 'swap' : type;
                     result.push ({
                         'info': market,
                         'id': id,
@@ -691,6 +642,7 @@ module.exports = class gateio extends Exchange {
                         'symbol': symbol,
                         'type': type,
                         'spot': spot,
+                        'margin': margin,
                         'futures': futures,
                         'swap': swap,
                         'option': option,
@@ -700,10 +652,8 @@ module.exports = class gateio extends Exchange {
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                         'contractSize': this.safeString (market, 'contractSize', '1'),
-                        'contractType': linear ? 'Perpetual' : this.safeString (market, 'cycle'),
                         'limits': {
                             'leverage': {
-                                'min': this.safeNumber (market, 'leverage_min'),
                                 'max': this.safeNumber (market, 'leverage_max'),
                             },
                             'amount': {
@@ -712,7 +662,7 @@ module.exports = class gateio extends Exchange {
                             },
                         },
                         'expiry': this.safeInteger (market, 'expire_time'),
-                        'fees': this.fees[type],
+                        'fees': this.safeValue (this.fees, feeIndex, {}),
                     });
                 }
             }
@@ -752,7 +702,7 @@ module.exports = class gateio extends Exchange {
                 const market = response[i];
                 const id = this.safeString (market, 'id');
                 const spot = (type === 'spot');
-                const futures = (type === 'future');
+                const futures = (type === 'futures');
                 const swap = (type === 'swap');
                 const option = (type === 'option');
                 const [ baseId, quoteId ] = id.split ('_');
@@ -776,6 +726,7 @@ module.exports = class gateio extends Exchange {
                     'symbol': symbol,
                     'type': type,
                     'spot': spot,
+                    'margin': margin,
                     'futures': futures,
                     'swap': swap,
                     'option': option,
@@ -802,6 +753,9 @@ module.exports = class gateio extends Exchange {
                             'min': this.safeNumber (market, 'min_quote_amount'),
                             'max': undefined,
                         },
+                        'leverage': {
+                            'max': this.safeNumber (market, 'lever', 1),
+                        },
                     },
                 });
             }
@@ -810,7 +764,7 @@ module.exports = class gateio extends Exchange {
     }
 
     prepareRequest (market) {
-        if (market['type'] === 'future' || market['type'] === 'swap') {
+        if (market['type'] === 'futures' || market['type'] === 'swap') {
             return {
                 'contract': market['id'],
                 'settle': market['settleId'],
@@ -1212,16 +1166,22 @@ module.exports = class gateio extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        //
+        //     const request = {
+        //         'currency_pair': market['id'],
+        //         'interval': '0', // depth, 0 means no aggregation is applied, default to 0
+        //         'limit': limit, // maximum number of order depth data in asks or bids
+        //         'with_id': true, // return order book ID
+        //     };
+        //
         const request = this.prepareRequest (market);
-        const futures = market['futures'];
-        const swap = market['swap'];
         const spot = market['spot'];
-        let method = 'publicSpotGetOrderBook';
-        if (swap) {
-            method = 'publicFuturesGetSettleOrderBook';
-        } else if (futures) {
-            method = 'publicDeliveryGetSettleOrderBook';
-        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'publicSpotGetOrderBook',
+            // 'margin': 'publicMarginGetOrderBook',
+            'swap': 'publicFuturesGetSettleOrderBook',
+            'futures': 'publicDeliveryGetSettleOrderBook',
+        });
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
         }
@@ -1300,22 +1260,13 @@ module.exports = class gateio extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'publicSpotGetTickers';
-        const id = market['id'];
-        const request = {};
-        const swap = market['swap'];
-        const futures = market['futures'];
-        if (swap || futures) {
-            request['contract'] = id;
-            request['settle'] = market['settleId'];
-            if (swap) {
-                method = 'publicFuturesGetTickers';
-            } else {
-                method = 'publicDeliveryGetTickers';
-            }
-        } else {
-            request['currency_pair'] = id;
-        }
+        const request = this.prepareRequest (market);
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'publicSpotGetTickers',
+            // 'margin': 'publicMarginGetTickers',
+            'swap': 'publicFuturesGetSettleTickers',
+            'futures': 'publicDeliveryGetSettleTickers',
+        });
         const response = await this[method] (this.extend (request, params));
         const ticker = this.safeValue (response, 0);
         return this.parseTicker (ticker, market);
@@ -1397,22 +1348,17 @@ module.exports = class gateio extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        let method = 'publicSpotGetTickers';
+        const method = this.getSupportedMapping (type, {
+            'spot': 'publicSpotGetTickers',
+            // 'margin': 'publicMarginGetTickers',
+            'swap': 'publicFuturesGetSettleTickers',
+            'futures': 'publicDeliveryGetSettleTickers',
+        });
         const request = {};
-        const futures = type === 'future';
+        const futures = type === 'futures';
         const swap = type === 'swap';
-        if (swap || futures) {
-            if (swap) {
-                if (!params['settle']) {
-                    request['settle'] = 'usdt';
-                }
-                method = 'publicFuturesGetSettleTickers';
-            } else {
-                if (!params['settle']) {
-                    request['settle'] = 'btc';
-                }
-                method = 'publicDeliveryGetSettleTickers';
-            }
+        if ((swap || futures) && !params['settle']) {
+            request['settle'] = swap ? 'usdt' : 'btc';
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseTickers (response, symbols);
@@ -1426,16 +1372,16 @@ module.exports = class gateio extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         const swap = type === 'swap';
-        const future = type === 'future';
+        const futures = type === 'futures';
+        const method = this.getSupportedMapping (type, {
+            'spot': 'privateSpotGetAccounts',
+            // 'margin': 'publicMarginGetTickers',
+            'swap': 'privateFuturesGetSettleAccounts',
+            'futures': 'privateDeliveryGetSettleAccounts',
+        });
         const request = {};
-        let method = 'privateSpotGetAccounts';
-        if (swap) {
-            method = 'privateFuturesGetSettleAccounts';
-        } else if (future) {
-            method = 'privateDeliveryGetSettleAccounts';
-        }
         let response = [];
-        if (swap || future) {
+        if (swap || futures) {
             const defaultSettle = swap ? 'usdt' : 'btc';
             request['settle'] = this.safeString (params, 'settle', defaultSettle);
             const response_item = await this[method] (this.extend (request, params));
@@ -1521,7 +1467,7 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, 'price');
         const isMark = (price === 'mark');
         const isIndex = (price === 'index');
-        const future = market['futures'];
+        const futures = market['futures'];
         const swap = market['swap'];
         const request = {
             'interval': this.timeframes[timeframe],
@@ -1537,9 +1483,9 @@ module.exports = class gateio extends Exchange {
             }
         }
         let method = 'publicSpotGetCandlesticks';
-        if (isMark || isIndex || future || swap) {
+        if (isMark || isIndex || futures || swap) {
             request['contract'] = market['id'];
-            if (future) {
+            if (futures) {
                 method = 'publicDeliveryGetSettleCandlesticks';
             } else {
                 method = 'publicFuturesGetSettleCandlesticks';
@@ -1648,17 +1594,38 @@ module.exports = class gateio extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        //
+        // spot
+        //
+        //     const request = {
+        //         'currency_pair': market['id'],
+        //         'limit': limit, // maximum number of records to be returned in a single list
+        //         'last_id': 'id', // specify list staring point using the id of last record in previous list-query results
+        //         'reverse': false, // true to retrieve records where id is smaller than the specified last_id, false to retrieve records where id is larger than the specified last_id
+        //     };
+        //
+        // swap, futures
+        //
+        //     const request = {
+        //         'settle': market['settleId'],
+        //         'contract': market['id'],
+        //         'limit': limit, // maximum number of records to be returned in a single list
+        //         'last_id': 'id', // specify list staring point using the id of last record in previous list-query results
+        //         'from': since / 1000), // starting time in seconds, if not specified, to and limit will be used to limit response items
+        //         'to': this.seconds (), // end time in seconds, default to current time
+        //     };
+        //
         const request = this.prepareRequest (market);
-        let method = 'publicSpotGetTrades';
-        if (market['swap']) {
-            method = 'publicFuturesGetSettleTrades';
-        } else if (market['futures']) {
-            method = 'publicDeliveryGetSettleTrades';
-        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'publicSpotGetTrades',
+            // 'margin': 'publicMarginGetTickers',
+            'swap': 'publicFuturesGetSettleTrades',
+            'futures': 'publicDeliveryGetSettleTrades',
+        });
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        if (since !== undefined && (market['swap'] || market['delivery'])) {
+        if (since !== undefined && (market['swap'] || market['futures'])) {
             request['from'] = parseInt (since / 1000);
         }
         const response = await this[method] (this.extend (request, params));
@@ -1696,15 +1663,18 @@ module.exports = class gateio extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currency_pair': market['id'],
-            // 'limit': limit,
-            // 'page': 0,
-            // 'order_id': 'Order ID',
-            // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
-            // 'from': since, // default to 7 days before current time
-            // 'to': this.milliseconds (), // default to current time
-        };
+        //
+        //     const request = {
+        //         'currency_pair': market['id'],
+        //         // 'limit': limit,
+        //         // 'page': 0,
+        //         // 'order_id': 'Order ID',
+        //         // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
+        //         // 'from': since, // default to 7 days before current time
+        //         // 'to': this.milliseconds (), // default to current time
+        //     };
+        //
+        const request = this.prepareRequest (market);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
@@ -1712,7 +1682,39 @@ module.exports = class gateio extends Exchange {
             request['from'] = parseInt (since / 1000);
             // request['to'] = since + 7 * 24 * 60 * 60;
         }
-        const response = await this.privateSpotGetMyTrades (this.extend (request, params));
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateSpotGetMyTrades',
+            // 'margin': 'publicMarginGetCurrencyPairs',
+            'swap': 'privateFuturesGetSettleMyTrades',
+            'futures': 'privateDeliveryGetSettleMyTrades',
+        });
+        const response = await this[method] (this.extend (request, params));
+        // SPOT
+        // [{
+        //     id: "1851927191",
+        //     create_time: "1634333360",
+        //     create_time_ms: "1634333360359.901000",
+        //     currency_pair: "BTC_USDT",
+        //     side: "buy",
+        //     role: "taker",
+        //     amount: "0.0001",
+        //     price: "62547.51",
+        //     order_id: "93475897349",
+        //     fee: "2e-07",
+        //     fee_currency: "BTC",
+        //     point_fee: "0",
+        //     gt_fee: "0",
+        //   }]
+        // Perpetual Swap
+        // [{
+        //   size: "-13",
+        //   order_id: "79723658958",
+        //   id: "47612669",
+        //   role: "taker",
+        //   create_time: "1634600263.326",
+        //   contract: "BTC_USDT",
+        //   price: "61987.8",
+        // }]
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1749,20 +1751,27 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         const id = this.safeString (trade, 'id');
-        const timestampString = this.safeString2 (trade, 'create_time_ms', 'time');
+        const timestampStringContract = this.safeString (trade, 'create_time');
+        const timestampString = this.safeString2 (trade, 'create_time_ms', 'time', timestampStringContract);
         let timestamp = undefined;
         if (timestampString.indexOf ('.') > 0) {
             const milliseconds = timestampString.split ('.');
             timestamp = parseInt (milliseconds[0]);
         }
+        if (market['swap']) {
+            timestamp = timestamp * 1000;
+        }
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
-        const amountString = this.safeString2 (trade, 'amount', 'size');
+        let amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
-        const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-        const amount = this.parseNumber (amountString);
+        const costString = Precise.stringAbs (Precise.stringMul (amountString, priceString));
         const price = this.parseNumber (priceString);
-        const side = this.safeString (trade, 'side');
+        const cost = this.parseNumber (costString);
+        const contractSide = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
+        amountString = Precise.stringAbs (amountString);
+        const amount = this.parseNumber (amountString);
+        const side = this.safeString (trade, 'side', contractSide);
         const orderId = this.safeString (trade, 'order_id');
         const gtFee = this.safeString (trade, 'gt_fee');
         let feeCurrency = undefined;
@@ -2211,7 +2220,7 @@ module.exports = class gateio extends Exchange {
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
-        const type = api[1]; // spot, margin, future, delivery
+        const type = api[1]; // spot, margin, futures, delivery
         const query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
         const endPart = (path === '' ? '' : '/' + path);

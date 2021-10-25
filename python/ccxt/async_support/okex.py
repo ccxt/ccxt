@@ -525,6 +525,10 @@ class okex(Exchange):
                     'TRX': 'TRC20',
                     'OMNI': 'Omni',
                 },
+                'layerTwo': {
+                    'Lightning': True,
+                    'Liquid': True,
+                },
                 'fetchOHLCV': {
                     'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
@@ -697,6 +701,7 @@ class okex(Exchange):
         active = True
         fees = self.safe_value_2(self.fees, type, 'trading', {})
         contractSize = self.safe_string(market, 'ctVal')
+        leverage = self.safe_number(market, 'lever', 1)
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -727,6 +732,9 @@ class okex(Exchange):
                 'cost': {
                     'min': minCost,
                     'max': None,
+                },
+                'leverage': {
+                    'max': leverage,
                 },
             },
         })
@@ -825,7 +833,8 @@ class okex(Exchange):
         precision = self.parse_number('0.00000001')  # default precision, todo: fix "magic constants"
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.safe_currency_code(currencyId)
+            currency = self.safe_currency(currencyId)
+            code = currency['code']
             chains = dataByCurrencyId[currencyId]
             networks = {}
             currencyActive = False
@@ -839,8 +848,16 @@ class okex(Exchange):
                 networkId = self.safe_string(chain, 'chain')
                 if networkId.find('-') >= 0:
                     parts = networkId.split('-')
-                    networkId = self.safe_string(parts, 1, networkId)
-                    network = self.safe_network(networkId)
+                    chainPart = self.safe_string(parts, 1, networkId)
+                    network = self.safe_network(chainPart)
+                    mainNet = self.safe_value(chain, 'mainNet', False)
+                    layerTwo = self.safe_value(self.options, 'layerTwo', {
+                        'Liquid': True,
+                        'Lightning': True,
+                    })
+                    if mainNet and not (chainPart in layerTwo):
+                        # BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
+                        network = code
                     networks[network] = {
                         'info': chain,
                         'id': networkId,
@@ -856,6 +873,7 @@ class okex(Exchange):
                         },
                     }
             result[code] = {
+                'info': None,
                 'code': code,
                 'id': currencyId,
                 'name': None,
@@ -2162,13 +2180,13 @@ class okex(Exchange):
         tag = self.safe_string_2(depositAddress, 'tag', 'pmtId')
         tag = self.safe_string(depositAddress, 'memo', tag)
         currencyId = self.safe_string(depositAddress, 'ccy')
-        code = self.safe_currency_code(currencyId)
+        currency = self.safe_currency(currencyId, currency)
+        code = currency['code']
         chain = self.safe_string(depositAddress, 'chain')
-        network = None
-        if chain.find('-') > -1:
-            parts = chain.split('-')
-            networkId = self.safe_string(parts, 1)
-            network = self.safe_network(networkId)
+        networks = self.safe_value(currency, 'networks', {})
+        networksById = self.index_by(networks, 'id')
+        networkData = self.safe_value(networksById, chain)
+        network = self.safe_string(networkData, 'network')
         self.check_address(address)
         return {
             'currency': code,

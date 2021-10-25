@@ -231,21 +231,24 @@ class kraken extends Exchange {
                 // cannot withdraw/deposit these
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
                 'networks' => array(
-                    'ETH' => 'Tether USD (ERC20)',
-                    'ERC20' => 'Tether USD (ERC20)',
-                    'TRX' => 'Tether USD (TRC20)',
-                    'TRC20' => 'Tether USD (TRC20)',
+                    'ETH' => 'ERC20',
+                    'TRX' => 'TRC20',
+                ),
+                'depositMethods' => array(
+                    'MINA' => 'Mina', // inspected from webui
+                    'SOL' => 'Solana',  // their deposit method api doesn't work for SOL - was guessed
+                    'SRM' => 'Serum', // inspected from webui
                 ),
             ),
             'exceptions' => array(
                 'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
                 'EAPI:Invalid key' => '\\ccxt\\AuthenticationError',
-                'EFunding:Unknown withdraw key' => '\\ccxt\\ExchangeError',
+                'EFunding:Unknown withdraw key' => '\\ccxt\\InvalidAddress', // array("error":["EFunding:Unknown withdraw key"])
                 'EFunding:Invalid amount' => '\\ccxt\\InsufficientFunds',
                 'EService:Unavailable' => '\\ccxt\\ExchangeNotAvailable',
                 'EDatabase:Internal error' => '\\ccxt\\ExchangeNotAvailable',
                 'EService:Busy' => '\\ccxt\\ExchangeNotAvailable',
-                'EQuery:Unknown asset' => '\\ccxt\\ExchangeError',
+                'EQuery:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Unknown asset"])
                 'EAPI:Rate limit exceeded' => '\\ccxt\\DDoSProtection',
                 'EOrder:Rate limit exceeded' => '\\ccxt\\DDoSProtection',
                 'EGeneral:Internal error' => '\\ccxt\\ExchangeNotAvailable',
@@ -256,6 +259,8 @@ class kraken extends Exchange {
                 'EGeneral:Invalid arguments' => '\\ccxt\\BadRequest',
                 'ESession:Invalid session' => '\\ccxt\\AuthenticationError',
                 'EAPI:Invalid nonce' => '\\ccxt\\InvalidNonce',
+                'EFunding:No funding method' => '\\ccxt\\BadRequest', // array("error":"EFunding:No funding method")
+                'EFunding:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EFunding:Unknown asset"])
             ),
         ));
     }
@@ -382,7 +387,6 @@ class kraken extends Exchange {
                         'max' => null,
                     ),
                     'leverage' => array(
-                        'min' => 1,
                         'max' => $maxLeverage,
                     ),
                 ),
@@ -394,12 +398,14 @@ class kraken extends Exchange {
     }
 
     public function safe_currency($currencyId, $currency = null) {
-        if (strlen($currencyId) > 3) {
-            if ((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) {
-                if (mb_strpos($currencyId, '.') > 0) {
-                    return parent::safe_currency($currencyId, $currency);
-                } else {
-                    $currencyId = mb_substr($currencyId, 1);
+        if ($currencyId !== null) {
+            if (strlen($currencyId) > 3) {
+                if ((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) {
+                    if (mb_strpos($currencyId, '.') > 0) {
+                        return parent::safe_currency($currencyId, $currency);
+                    } else {
+                        $currencyId = mb_substr($currencyId, 1);
+                    }
                 }
             }
         }
@@ -1536,16 +1542,6 @@ class kraken extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_deposit_methods($code, $params = array ()) {
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'asset' => $currency['id'],
-        );
-        $response = yield $this->privatePostDepositMethods (array_merge($request, $params));
-        return $this->safe_value($response, 'result');
-    }
-
     public function parse_transaction_status($status) {
         // IFEX transaction states
         $statuses = array(
@@ -1707,49 +1703,111 @@ class kraken extends Exchange {
         $request = array(
             'new' => 'true',
         );
-        if (($code === 'USDT') && (is_array($params) && array_key_exists('network', $params))) {
-            $networks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network');
-            $request['method'] = $this->safe_string($networks, $network, $network);
-            $params = $this->omit($params, 'network');
-        }
-        $response = yield $this->fetch_deposit_address($code, array_merge($request, $params));
-        $address = $this->safe_string($response, 'address');
-        $this->check_address($address);
-        return array(
-            'currency' => $code,
-            'address' => $address,
-            'info' => $response,
-        );
+        return yield $this->fetch_deposit_address($code, array_merge($request, $params));
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_methods($code, $params = array ()) {
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
         );
-        // USDT is the only $currency with multiple $networks on kraken, you may check
-        if (($code === 'USDT') && (is_array($params) && array_key_exists('network', $params))) {
-            $networks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network');
-            $request['method'] = $this->safe_string($networks, $network, $network);
-            $params = $this->omit($params, 'network');
+        $response = yield $this->privatePostDepositMethods (array_merge($request, $params));
+        //
+        //     {
+        //         "error":array(),
+        //         "result":array(
+        //             array("method":"Ether (Hex)","limit":false,"gen-address":true)
+        //         )
+        //     }
+        //
+        //     {
+        //         "error":array(),
+        //         "result":array(
+        //             array("method":"Tether USD (ERC20)","limit":false,"address-setup-fee":"0.00000000","gen-address":true),
+        //             array("method":"Tether USD (TRC20)","limit":false,"address-setup-fee":"0.00000000","gen-address":true)
+        //         )
+        //     }
+        //
+        //     {
+        //         "error":array(),
+        //         "result":array(
+        //             array("method":"Bitcoin","limit":false,"fee":"0.0000000000","gen-address":true)
+        //         )
+        //     }
+        //
+        return $this->safe_value($response, 'result');
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $defaultDepositMethods = $this->safe_value($this->options, 'depositMethods', array());
+        $defaultDepositMethod = $this->safe_string($defaultDepositMethods, $code);
+        $depositMethod = $this->safe_string($params, 'method', $defaultDepositMethod);
+        $network = $this->safe_string($params, 'network');
+        // if the user has specified an exchange-specific method in $params
+        // we pass it as is, otherwise we take the 'network' unified param
+        if ($depositMethod === null) {
+            $depositMethods = yield $this->fetch_deposit_methods($code);
+            if ($network !== null) {
+                $networks = $this->safe_value($this->options, 'networks', array());
+                $network = $this->safe_string($networks, $network, $network); // support ETH > ERC20 aliases
+                $params = $this->omit($params, 'network');
+                // find best matching deposit method, or fallback to the first one
+                for ($i = 0; $i < count($depositMethods); $i++) {
+                    $entry = $this->safe_string($depositMethods[$i], 'method');
+                    if (mb_strpos($entry, $network) !== false) {
+                        $depositMethod = $entry;
+                        break;
+                    }
+                }
+            }
+            // if $depositMethod was not specified, fallback to the first available deposit method
+            if ($depositMethod === null) {
+                $firstDepositMethod = $this->safe_value($depositMethods, 0, array());
+                $depositMethod = $this->safe_string($firstDepositMethod, 'method');
+            }
         }
-        $response = yield $this->privatePostDepositAddresses (array_merge($request, $params)); // overwrite methods
-        $result = $response['result'];
-        $numResults = is_array($result) ? count($result) : 0;
-        if ($numResults < 1) {
-            throw new InvalidAddress($this->id . ' privatePostDepositAddresses() returned no addresses');
+        $request = array(
+            'asset' => $currency['id'],
+            'method' => $depositMethod,
+        );
+        $response = yield $this->privatePostDepositAddresses (array_merge($request, $params));
+        //
+        //     {
+        //         "error":array(),
+        //         "$result":array(
+        //             array("address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3","expiretm":"0")
+        //         )
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $firstResult = $this->safe_value($result, 0, array());
+        if ($firstResult === null) {
+            throw new InvalidAddress($this->id . ' privatePostDepositAddresses() returned no addresses for ' . $code);
         }
-        $address = $this->safe_string($result[0], 'address');
-        $tag = $this->safe_string_2($result[0], 'tag', 'memo');
+        return $this->parse_deposit_address($firstResult, $currency);
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //     {
+        //         "$address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
+        //         "expiretm":"0"
+        //     }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        $tag = $this->safe_string($depositAddress, 'tag');
+        $currency = $this->safe_currency(null, $currency);
+        $code = $currency['code'];
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'info' => $response,
+            'network' => null,
+            'info' => $depositAddress,
         );
     }
 

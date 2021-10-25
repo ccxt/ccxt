@@ -219,6 +219,9 @@ module.exports = class mexc extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'COFI': 'COFIX', // conflict with CoinFi
+                'DFT': 'dFuture',
+                'HERO': 'Step Hero', // conflict with Metahero
                 'SIN': 'Sin City Token',
             },
             'exceptions': {
@@ -955,7 +958,8 @@ module.exports = class mexc extends Exchange {
         let timestamp = this.safeInteger2 (trade, 'create_time', 'trade_time');
         timestamp = this.safeInteger (trade, 't', timestamp);
         const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '_');
+        market = this.safeMarket (marketId, market, '_');
+        const symbol = market['symbol'];
         let priceString = this.safeString2 (trade, 'price', 'trade_price');
         priceString = this.safeString (trade, 'p', priceString);
         let amountString = this.safeString2 (trade, 'quantity', 'trade_quantity');
@@ -974,7 +978,12 @@ module.exports = class mexc extends Exchange {
             side = 'sell';
         }
         let id = this.safeString2 (trade, 'id', 'trade_time');
-        id = this.safeString (trade, 't', id);
+        if (id === undefined) {
+            id = this.safeString (trade, 't', id);
+            if (id !== undefined) {
+                id += '-' + market['id'] + '-' + amountString;
+            }
+        }
         const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -1170,7 +1179,8 @@ module.exports = class mexc extends Exchange {
         networkId = parts.join ('');
         networkId = networkId.replace ('-20', '20');
         const networksById = {
-            'ETH': 'ERC20',
+            'ETH': 'ETH',
+            'ERC20': 'ERC20',
             'BEP20(BSC)': 'BEP20',
             'TRX': 'TRC20',
         };

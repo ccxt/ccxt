@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.58.73';
+$version = '1.59.6';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.58.73';
+    const VERSION = '1.59.6';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -122,7 +122,6 @@ class Exchange {
         'eqonex',
         'equos',
         'exmo',
-        'exx',
         'flowbtc',
         'ftx',
         'gateio',
@@ -361,6 +360,7 @@ class Exchange {
         'safeNumber2' => 'safe_number2',
         'parsePrecision' => 'parse_precision',
         'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
+        'getSupportedMapping' => 'get_supported_mapping',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -1671,6 +1671,11 @@ class Exchange {
 
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
         $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $result);
+
+        // check if $curl_errno is not zero
+        if ($curl_errno) {
+            throw new NetworkError($this->id . ' unknown error: ' . strval($curl_errno) . ' ' . $curl_error);
+        }
 
         return isset($json_response) ? $json_response : $result;
     }
@@ -3325,5 +3330,16 @@ class Exchange {
             }
         }
         return array($tag, $params);
+    }
+
+    public function get_supported_mapping($key, $mapping = array()) {
+        // Takes a key and a dictionary, and returns the dictionary's value for that key
+        // :throws:
+        //      NotSupported if the dictionary does not contain the key
+        if (in_array($key, $mapping)) {
+            return $mapping[$key];
+        } else {
+            throw new NotSupported ($this->id . ' ' . $key . ' does not have a value in mapping');
+        }
     }
 }

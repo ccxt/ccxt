@@ -286,6 +286,7 @@ class bitmart extends Exchange {
                 'COT' => 'Community Coin',
                 'CPC' => 'CPCoin',
                 'GDT' => 'Gorilla Diamond',
+                '$HERO' => 'Step Hero',
                 'MVP' => 'MVP Coin',
                 'ONE' => 'Menlo One',
                 'PLA' => 'Plair',

@@ -318,6 +318,9 @@ class bittrex(Exchange):
                         'min': None,
                         'max': None,
                     },
+                    'leverage': {
+                        'max': 1,
+                    },
                 },
             })
         return result

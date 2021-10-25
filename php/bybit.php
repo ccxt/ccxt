@@ -518,6 +518,7 @@ class bybit extends Exchange {
                 'amount' => $this->safe_number($lotSizeFilter, 'qty_step'),
                 'price' => $this->safe_number($priceFilter, 'tick_size'),
             );
+            $leverage = $this->safe_value($market, 'leverage_filter', array());
             $status = $this->safe_string($market, 'status');
             $active = null;
             if ($status !== null) {
@@ -555,6 +556,9 @@ class bybit extends Exchange {
                     'cost' => array(
                         'min' => null,
                         'max' => null,
+                    ),
+                    'leverage' => array(
+                        'max' => $this->safe_number($leverage, 'max_leverage', 1),
                     ),
                 ),
                 'info' => $market,

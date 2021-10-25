@@ -306,6 +306,9 @@ class bittrex extends Exchange {
                         'min' => null,
                         'max' => null,
                     ),
+                    'leverage' => array(
+                        'max' => 1,
+                    ),
                 ),
             );
         }

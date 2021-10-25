@@ -506,6 +506,10 @@ module.exports = class okex extends Exchange {
                     'TRX': 'TRC20',
                     'OMNI': 'Omni',
                 },
+                'layerTwo': {
+                    'Lightning': true,
+                    'Liquid': true,
+                },
                 'fetchOHLCV': {
                     'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
@@ -689,6 +693,7 @@ module.exports = class okex extends Exchange {
         const active = true;
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
         const contractSize = this.safeString (market, 'ctVal');
+        const leverage = this.safeNumber (market, 'lever', 1);
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -719,6 +724,9 @@ module.exports = class okex extends Exchange {
                 'cost': {
                     'min': minCost,
                     'max': undefined,
+                },
+                'leverage': {
+                    'max': leverage,
                 },
             },
         });
@@ -823,7 +831,8 @@ module.exports = class okex extends Exchange {
         const precision = this.parseNumber ('0.00000001'); // default precision, todo: fix "magic constants"
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
+            const currency = this.safeCurrency (currencyId);
+            const code = currency['code'];
             const chains = dataByCurrencyId[currencyId];
             const networks = {};
             let currencyActive = false;
@@ -834,11 +843,20 @@ module.exports = class okex extends Exchange {
                 const canInternal = this.safeValue (chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (currencyActive === undefined) ? active : currencyActive;
-                let networkId = this.safeString (chain, 'chain');
+                const networkId = this.safeString (chain, 'chain');
                 if (networkId.indexOf ('-') >= 0) {
                     const parts = networkId.split ('-');
-                    networkId = this.safeString (parts, 1, networkId);
-                    const network = this.safeNetwork (networkId);
+                    const chainPart = this.safeString (parts, 1, networkId);
+                    let network = this.safeNetwork (chainPart);
+                    const mainNet = this.safeValue (chain, 'mainNet', false);
+                    const layerTwo = this.safeValue (this.options, 'layerTwo', {
+                        'Liquid': true,
+                        'Lightning': true,
+                    });
+                    if (mainNet && !(chainPart in layerTwo)) {
+                        // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
+                        network = code;
+                    }
                     networks[network] = {
                         'info': chain,
                         'id': networkId,
@@ -856,6 +874,7 @@ module.exports = class okex extends Exchange {
                 }
             }
             result[code] = {
+                'info': undefined,
                 'code': code,
                 'id': currencyId,
                 'name': undefined,
@@ -2233,14 +2252,13 @@ module.exports = class okex extends Exchange {
         let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
         tag = this.safeString (depositAddress, 'memo', tag);
         const currencyId = this.safeString (depositAddress, 'ccy');
-        const code = this.safeCurrencyCode (currencyId);
+        currency = this.safeCurrency (currencyId, currency);
+        const code = currency['code'];
         const chain = this.safeString (depositAddress, 'chain');
-        let network = undefined;
-        if (chain.indexOf ('-') > -1) {
-            const parts = chain.split ('-');
-            const networkId = this.safeString (parts, 1);
-            network = this.safeNetwork (networkId);
-        }
+        const networks = this.safeValue (currency, 'networks', {});
+        const networksById = this.indexBy (networks, 'id');
+        const networkData = this.safeValue (networksById, chain);
+        const network = this.safeString (networkData, 'network');
         this.checkAddress (address);
         return {
             'currency': code,

@@ -460,6 +460,10 @@ class huobi(Exchange):
                         'min': minCost,
                         'max': None,
                     },
+                    'leverage': {
+                        'max': self.safe_number(market, 'leverage-ratio', 1),
+                        'superMax': self.safe_number(market, 'super-margin-leverage-ratio', 1),
+                    },
                 },
                 'info': market,
             })
@@ -878,7 +882,12 @@ class huobi(Exchange):
             code = self.safe_currency_code(currencyId)
             chains = self.safe_value(entry, 'chains', [])
             networks = {}
-            currencyActive = False
+            instStatus = self.safe_string(entry, 'instStatus')
+            currencyActive = instStatus == 'normal'
+            fee = None
+            precision = None
+            minWithdraw = None
+            maxWithdraw = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
@@ -895,7 +904,6 @@ class huobi(Exchange):
                 withdraw = self.safe_string(chain, 'withdrawStatus')
                 deposit = self.safe_string(chain, 'depositStatus')
                 active = (withdraw == 'allowed') and (deposit == 'allowed')
-                currencyActive = active if (currencyActive is None) else currencyActive
                 precision = self.safe_integer(chain, 'withdrawPrecision')
                 fee = self.safe_number(chain, 'transactFeeWithdraw')
                 networks[network] = {
@@ -912,20 +920,26 @@ class huobi(Exchange):
                     'fee': fee,
                     'precision': precision,
                 }
+            networksKeys = list(networks.keys())
+            networkLength = len(networksKeys)
             result[code] = {
-                'info': None,
+                'info': entry,
                 'code': code,
                 'id': currencyId,
                 'active': currencyActive,
-                'fee': None,
+                'fee': fee if (networkLength <= 1) else None,
                 'name': None,
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
+                    'withdraw': {
+                        'min': minWithdraw if (networkLength <= 1) else None,
+                        'max': maxWithdraw if (networkLength <= 1) else None,
+                    },
                 },
-                'precision': None,
+                'precision': precision if (networkLength <= 1) else None,
                 'networks': networks,
             }
         return result
@@ -1185,7 +1199,7 @@ class huobi(Exchange):
                 request['amount'] = self.cost_to_precision(symbol, amount)
         else:
             request['amount'] = self.amount_to_precision(symbol, amount)
-        if type == 'limit' or type == 'ioc' or type == 'limit-maker':
+        if type == 'limit' or type == 'ioc' or type == 'limit-maker' or type == 'stop-limit' or type == 'stop-limit-fok':
             request['price'] = self.price_to_precision(symbol, price)
         method = self.options['createOrderMethod']
         response = getattr(self, method)(self.extend(request, params))

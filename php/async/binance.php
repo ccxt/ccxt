@@ -801,6 +801,10 @@ class binance extends Exchange {
                     'explorer.zcha.in' => 'ZEC',
                     'explorer.zensystem.io' => 'ZEN',
                 ),
+                'impliedNetworks' => array(
+                    'ETH' => array( 'ERC20' => 'ETH' ),
+                    'TRX' => array( 'TRC20' => 'TRX' ),
+                ),
                 'legalMoney' => array(
                     'MXN' => true,
                     'UGX' => true,
@@ -3469,6 +3473,14 @@ class binance extends Exchange {
                 }
             }
             $impliedNetwork = $this->safe_string($reverseNetworks, $topLevel);
+            $impliedNetworks = $this->safe_value($this->options, 'impliedNetworks', array(
+                'ETH' => array( 'ERC20' => 'ETH' ),
+                'TRX' => array( 'TRC20' => 'TRX' ),
+            ));
+            if (is_array($impliedNetworks) && array_key_exists($code, $impliedNetworks)) {
+                $conversion = $this->safe_value($impliedNetworks, $code, array());
+                $impliedNetwork = $this->safe_string($conversion, $impliedNetwork, $impliedNetwork);
+            }
         }
         $tag = $this->safe_string($response, 'tag', '');
         if (strlen($tag) === 0) {

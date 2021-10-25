@@ -509,6 +509,10 @@ class okex extends Exchange {
                     'TRX' => 'TRC20',
                     'OMNI' => 'Omni',
                 ),
+                'layerTwo' => array(
+                    'Lightning' => true,
+                    'Liquid' => true,
+                ),
                 'fetchOHLCV' => array(
                     'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 ),
@@ -692,6 +696,7 @@ class okex extends Exchange {
         $active = true;
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
         $contractSize = $this->safe_string($market, 'ctVal');
+        $leverage = $this->safe_number($market, 'lever', 1);
         return array_merge($fees, array(
             'id' => $id,
             'symbol' => $symbol,
@@ -722,6 +727,9 @@ class okex extends Exchange {
                 'cost' => array(
                     'min' => $minCost,
                     'max' => null,
+                ),
+                'leverage' => array(
+                    'max' => $leverage,
                 ),
             ),
         ));
@@ -826,7 +834,8 @@ class okex extends Exchange {
         $precision = $this->parse_number('0.00000001'); // default $precision, todo => fix "magic constants"
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $this->safe_currency_code($currencyId);
+            $currency = $this->safe_currency($currencyId);
+            $code = $currency['code'];
             $chains = $dataByCurrencyId[$currencyId];
             $networks = array();
             $currencyActive = false;
@@ -840,8 +849,17 @@ class okex extends Exchange {
                 $networkId = $this->safe_string($chain, 'chain');
                 if (mb_strpos($networkId, '-') !== false) {
                     $parts = explode('-', $networkId);
-                    $networkId = $this->safe_string($parts, 1, $networkId);
-                    $network = $this->safe_network($networkId);
+                    $chainPart = $this->safe_string($parts, 1, $networkId);
+                    $network = $this->safe_network($chainPart);
+                    $mainNet = $this->safe_value($chain, 'mainNet', false);
+                    $layerTwo = $this->safe_value($this->options, 'layerTwo', array(
+                        'Liquid' => true,
+                        'Lightning' => true,
+                    ));
+                    if ($mainNet && !(is_array($layerTwo) && array_key_exists($chainPart, $layerTwo))) {
+                        // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
+                        $network = $code;
+                    }
                     $networks[$network] = array(
                         'info' => $chain,
                         'id' => $networkId,
@@ -859,6 +877,7 @@ class okex extends Exchange {
                 }
             }
             $result[$code] = array(
+                'info' => null,
                 'code' => $code,
                 'id' => $currencyId,
                 'name' => null,
@@ -2236,14 +2255,13 @@ class okex extends Exchange {
         $tag = $this->safe_string_2($depositAddress, 'tag', 'pmtId');
         $tag = $this->safe_string($depositAddress, 'memo', $tag);
         $currencyId = $this->safe_string($depositAddress, 'ccy');
-        $code = $this->safe_currency_code($currencyId);
+        $currency = $this->safe_currency($currencyId, $currency);
+        $code = $currency['code'];
         $chain = $this->safe_string($depositAddress, 'chain');
-        $network = null;
-        if (mb_strpos($chain, '-') > -1) {
-            $parts = explode('-', $chain);
-            $networkId = $this->safe_string($parts, 1);
-            $network = $this->safe_network($networkId);
-        }
+        $networks = $this->safe_value($currency, 'networks', array());
+        $networksById = $this->index_by($networks, 'id');
+        $networkData = $this->safe_value($networksById, $chain);
+        $network = $this->safe_string($networkData, 'network');
         $this->check_address($address);
         return array(
             'currency' => $code,

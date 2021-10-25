@@ -794,6 +794,10 @@ module.exports = class binance extends Exchange {
                     'explorer.zcha.in': 'ZEC',
                     'explorer.zensystem.io': 'ZEN',
                 },
+                'impliedNetworks': {
+                    'ETH': { 'ERC20': 'ETH' },
+                    'TRX': { 'TRC20': 'TRX' },
+                },
                 'legalMoney': {
                     'MXN': true,
                     'UGX': true,
@@ -3462,6 +3466,14 @@ module.exports = class binance extends Exchange {
                 }
             }
             impliedNetwork = this.safeString (reverseNetworks, topLevel);
+            const impliedNetworks = this.safeValue (this.options, 'impliedNetworks', {
+                'ETH': { 'ERC20': 'ETH' },
+                'TRX': { 'TRC20': 'TRX' },
+            });
+            if (code in impliedNetworks) {
+                const conversion = this.safeValue (impliedNetworks, code, {});
+                impliedNetwork = this.safeString (conversion, impliedNetwork, impliedNetwork);
+            }
         }
         let tag = this.safeString (response, 'tag', '');
         if (tag.length === 0) {

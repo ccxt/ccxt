@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.58.73'
+__version__ = '1.59.6'
 
 # -----------------------------------------------------------------------------
 
@@ -2497,3 +2497,12 @@ class Exchange(object):
             if tag is not None:
                 params = self.omit(params, 'tag')
         return [tag, params]
+
+    def get_supported_mapping(self, key, mapping={}):
+        # Takes a key and a dictionary, and returns the dictionary's value for that key
+        # :throws:
+        #      NotSupported if the dictionary does not contain the key
+        if (key in mapping):
+            return mapping[key]
+        else:
+            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
