@@ -234,8 +234,9 @@ class mexc(Exchange):
             },
             'commonCurrencies': {
                 'COFI': 'COFIX',  # conflict with CoinFi
-                'SIN': 'Sin City Token',
+                'DFT': 'dFuture',
                 'HERO': 'Step Hero',  # conflict with Metahero
+                'SIN': 'Sin City Token',
             },
             'exceptions': {
                 'exact': {
