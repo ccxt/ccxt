@@ -641,7 +641,7 @@ module.exports = class kuna extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = undefined;
-        if (this.isArray (api)) {
+        if (Array.isArray (api)) {
             const [ version, access ] = api;
             url = this.urls['api'][version] + '/' + version + '/' + this.implodeParams (path, params);
             if (access === 'public') {
