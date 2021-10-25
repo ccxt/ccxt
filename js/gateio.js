@@ -1513,7 +1513,7 @@ module.exports = class gateio extends Exchange {
     async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
         await this.loadMarkets ();
         if (!symbol) {
-            throw new ArgumentsRequired ('Parameter symbol required for fetchFundingRateHistory using gateio');
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         const market = this.market (symbol);
         const request = {
