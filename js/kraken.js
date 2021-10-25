@@ -388,12 +388,14 @@ module.exports = class kraken extends Exchange {
     }
 
     safeCurrency (currencyId, currency = undefined) {
-        if (currencyId.length > 3) {
-            if ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) {
-                if (currencyId.indexOf ('.') > 0) {
-                    return super.safeCurrency (currencyId, currency);
-                } else {
-                    currencyId = currencyId.slice (1);
+        if (currencyId !== undefined) {
+            if (currencyId.length > 3) {
+                if ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) {
+                    if (currencyId.indexOf ('.') > 0) {
+                        return super.safeCurrency (currencyId, currency);
+                    } else {
+                        currencyId = currencyId.slice (1);
+                    }
                 }
             }
         }
@@ -1771,18 +1773,31 @@ module.exports = class kraken extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        const numResults = result.length;
-        if (numResults < 1) {
+        const firstResult = this.safeValue (result, 0, {});
+        if (firstResult === undefined) {
             throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses for ' + code);
         }
-        const address = this.safeString (result[0], 'address');
-        const tag = this.safeString2 (result[0], 'tag', 'memo');
+        return this.parseDepositAddress (firstResult, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
+        //         "expiretm":"0"
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString (depositAddress, 'tag');
+        currency = this.safeCurrency (undefined, currency);
+        const code = currency['code'];
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'info': response,
+            'network': undefined,
+            'info': depositAddress,
         };
     }
 
