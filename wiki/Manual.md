@@ -3330,7 +3330,8 @@ We present a unified structure for the positions returned by exchanges.
    'hedged': false,             // boolean, whether or not the position is hedged, i.e. if trading in the opposite direction will close this position or make a new one
    'side': 'long',              // string, long or short
    'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
-   'price': 20000,              // float, the average entry price of the position
+   'contractSize': 100,         // float, the size of one contract in quote units
+   'entryPrice': 20000,         // float, the average entry price of the position
    'markPrice': 20050,          // float, a price that is used for funding calculations
    'notional': 100000,          // float, the value of the position in the settlement currency
    'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
@@ -3341,7 +3342,8 @@ We present a unified structure for the positions returned by exchanges.
    'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
    'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
    'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
-   'status': 'open',            // string, can be "open", "closed" or "liquidating"
+   'marginType': 'cross',       // string, can be cross or isolated
+   'percentage': 3.32,          // float, represents unrealizedPnl / initialMargin * 100
 }
 ```
 Positions allow you to borrow money from an exchange to go long or short on an market. Some exchanges require you to pay a funding fee to keep the position open.
