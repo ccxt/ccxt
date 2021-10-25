@@ -199,6 +199,7 @@ class bitstamp extends Exchange {
                         'liquidation_address/new/',
                         'liquidation_address/info/',
                         'btc_unconfirmed/',
+                        'websockets_token/',
                     ),
                 ),
             ),
