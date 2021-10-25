@@ -3885,7 +3885,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const request = {};
         let method = 'fapiPublicGetFundingRate';
-        if (symbol) {
+        if (symbol !== undefined) {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
             if (market['inverse']) {
@@ -3893,6 +3893,7 @@ module.exports = class binance extends Exchange {
             }
         } else if ('type' in params && params['type'] === 'future') {
             method = 'dapiPublicGetFundingRate';
+            params = this.omit (params, 'type');
         }
         if (since !== undefined) {
             request['startTime'] = since;
