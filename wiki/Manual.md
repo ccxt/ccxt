@@ -3330,7 +3330,7 @@ We present a unified structure for the positions returned by exchanges.
    'hedged': false,             // boolean, whether or not the position is hedged, i.e. if trading in the opposite direction will close this position or make a new one
    'side': 'long',              // string, long or short
    'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
-   'entryPrice': 20000,              // float, the average entry price of the position
+   'entryPrice': 20000,         // float, the average entry price of the position
    'markPrice': 20050,          // float, a price that is used for funding calculations
    'notional': 100000,          // float, the value of the position in the settlement currency
    'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
