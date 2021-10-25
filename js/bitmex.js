@@ -1335,7 +1335,7 @@ module.exports = class bitmex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderType = this.capitalize (type);
-        const response = [];
+        const requests = [];
         for (let i = 0; i < amount.length; i++) {
             const request = {
                 'symbol': market['id'],
@@ -1355,8 +1355,9 @@ module.exports = class bitmex extends Exchange {
                 request['clOrdID'] = clientOrderId;
                 params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
             }
-            response.push (this.privatePostOrder (this.extend (request, params)));
+            requests.push (request);
         }
+        const response = await this.privatePostOrder (this.extend (requests, params));
         return this.parseOrder (response, market);
     }
 
