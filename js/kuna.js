@@ -66,7 +66,7 @@ module.exports = class kuna extends Exchange {
                             'currencies': 1,
                             'markets': 1,
                             'tickers': 1,
-                            'k?limit=30&period=1': 1,
+                            'k': 1,
                             'trades_history': 1,
                             'fees': 1,
                             'exchange-rates': 1,
@@ -75,7 +75,7 @@ module.exports = class kuna extends Exchange {
                             'kuna_codes/code/check': 1,
                             'landing_page_statistic': 1,
                             'translations/locale': 1,
-                            'trades/market/hist?limit=25': 1,
+                            'trades/market/hist': 1,
                         },
                         'post': {
                             'http_test': 1,
