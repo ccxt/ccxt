@@ -714,6 +714,9 @@ class coinbasepro(Exchange):
         marketId = self.safe_string(order, 'product_id')
         market = self.safe_market(marketId, market, '-')
         status = self.parse_order_status(self.safe_string(order, 'status'))
+        doneReason = self.safe_string(order, 'done_reason')
+        if (status == 'closed') and (doneReason == 'canceled'):
+            status = 'canceled'
         price = self.safe_number(order, 'price')
         filled = self.safe_number(order, 'filled_size')
         amount = self.safe_number(order, 'size', filled)

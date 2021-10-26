@@ -726,6 +726,10 @@ class coinbasepro extends Exchange {
         $marketId = $this->safe_string($order, 'product_id');
         $market = $this->safe_market($marketId, $market, '-');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $doneReason = $this->safe_string($order, 'done_reason');
+        if (($status === 'closed') && ($doneReason === 'canceled')) {
+            $status = 'canceled';
+        }
         $price = $this->safe_number($order, 'price');
         $filled = $this->safe_number($order, 'filled_size');
         $amount = $this->safe_number($order, 'size', $filled);
