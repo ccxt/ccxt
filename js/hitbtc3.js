@@ -1,6 +1,7 @@
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
+const { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 module.exports = class hitbtc3 extends Exchange {
     describe () {
@@ -14,7 +15,6 @@ module.exports = class hitbtc3 extends Exchange {
             'has': {
                 'cancelOrder': true,
                 'CORS': false,
-                'createDepositAddress': true,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
@@ -200,6 +200,57 @@ module.exports = class hitbtc3 extends Exchange {
                 '1w': 'D7',
                 '1M': '1M',
             },
+            'exceptions': {
+                '429': RateLimitExceeded,
+                '500': ExchangeError,
+                '503': ExchangeNotAvailable,
+                '504': ExchangeNotAvailable,
+                '600': PermissionDenied,
+                '800': ExchangeError,
+                '1002': AuthenticationError,
+                '1003': PermissionDenied,
+                '1004': AuthenticationError,
+                '1005': AuthenticationError,
+                '2001': BadSymbol,
+                '2002': BadRequest,
+                '2003': BadRequest,
+                '2010': BadRequest,
+                '2011': BadRequest,
+                '2012': BadRequest,
+                '2020': BadRequest,
+                '2022': BadRequest,
+                '10001': BadRequest,
+                '10021': AccountSuspended,
+                '10022': BadRequest,
+                '20001': InsufficientFunds,
+                '20002': OrderNotFound,
+                '20003': ExchangeError,
+                '20004': ExchangeError,
+                '20005': ExchangeError,
+                '20006': ExchangeError,
+                '20007': ExchangeError,
+                '20008': InvalidOrder,
+                '20009': InvalidOrder,
+                '20010': OnMaintenance,
+                '20011': ExchangeError,
+                '20012': ExchangeError,
+                '20014': ExchangeError,
+                '20016': ExchangeError,
+                '20031': ExchangeError,
+                '20032': ExchangeError,
+                '20033': ExchangeError,
+                '20034': ExchangeError,
+                '20040': ExchangeError,
+                '20041': ExchangeError,
+                '20042': ExchangeError,
+                '20043': ExchangeError,
+                '20044': PermissionDenied,
+                '20045': ExchangeError,
+                '20080': ExchangeError,
+                '21001': ExchangeError,
+                '21003': AccountSuspended,
+                '21004': AccountSuspended,
+            },
             'options': {
                 'networks': {
                     'ETH': '20',
@@ -207,6 +258,11 @@ module.exports = class hitbtc3 extends Exchange {
                     'TRX': 'RX',
                     'TRC20': 'RX',
                     'OMNI': '',
+                },
+                'accountsByType': {
+                    'spot': 'spot',
+                    'wallet': 'wallet',
+                    'derivatives': 'derivatives',
                 },
             },
         });
@@ -612,6 +668,7 @@ module.exports = class hitbtc3 extends Exchange {
         //   fee: '0.000000147',
         //   timestamp: '2018-04-28T18:39:55.345Z',
         //   taker: true }
+        //
         const timestamp = this.parse8601 (trade['timestamp']);
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -779,10 +836,14 @@ module.exports = class hitbtc3 extends Exchange {
         const sender = this.safeValue (native, 'senders');
         const addressFrom = this.safeString (sender, 0);
         const amount = this.safeNumber (native, 'amount');
-        const fee = {
-            'code': code,
-            'cost': this.safeNumber (native, 'fee', this.parseNumber ('0')),  // TODO: fix
-        };
+        let fee = undefined;
+        const feeCost = this.safeNumber (native, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'code': code,
+                'cost': feeCost,
+            };
+        }
         return {
             'info': transaction,
             'id': id,
@@ -889,11 +950,11 @@ module.exports = class hitbtc3 extends Exchange {
             'symbols': market['id'],
             'period': this.timeframes[timeframe],
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
         const response = await this.publicGetPublicCandles (this.extend (request, params));
         //
@@ -937,6 +998,357 @@ module.exports = class hitbtc3 extends Exchange {
         ];
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetSpotHistoryOrder (this.extend (request, params));
+        const parsed = this.parseOrders (response, market, since, limit);
+        return this.filterByArray (parsed, 'status', [ 'closed', 'canceled' ], false);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetSpotOrder (this.extend (request, params));
+        //
+        //     [
+        //       {
+        //         "id": "488953123149",
+        //         "client_order_id": "103ad305301e4c3590045b13de15b36e",
+        //         "symbol": "BTCUSDT",
+        //         "side": "buy",
+        //         "status": "new",
+        //         "type": "limit",
+        //         "time_in_force": "GTC",
+        //         "quantity": "0.00001",
+        //         "quantity_cumulative": "0",
+        //         "price": "0.01",
+        //         "post_only": false,
+        //         "created_at": "2021-04-13T13:06:16.567Z",
+        //         "updated_at": "2021-04-13T13:06:16.567Z"
+        //       }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOpenOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'client_order_id': id,
+        };
+        const response = await this.privateGetSpotOrderClientOrderId (this.extend (request, params));
+        return this.parseOrder (response, market);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateDeleteSpotOrder (this.extend (request, params));
+        return this.parseOrders (response, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {
+            'client_order_id': id,
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const response = await this.privateDeleteSpotOrderClientOrderId (this.extend (request, params));
+        return this.parseOrder (response, market);
+    }
+
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {
+            'client_order_id': id,
+            'quantity': this.amountToPrecision (symbol, amount),
+        };
+        if ((type === 'limit') || (type === 'stopLimit')) {
+            if (price === undefined) {
+                throw new ExchangeError (this.id + ' limit order requires price');
+            }
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const response = await this.privatePatchSpotOrderClientOrderId (this.extend (request, params));
+        return this.parseOrder (response, market);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'type': type,
+            'side': side,
+            'quantity': this.amountToPrecision (symbol, amount),
+            'symbol': market['id'],
+        };
+        if ((type === 'limit') || (type === 'stopLimit')) {
+            if (price === undefined) {
+                throw new ExchangeError (this.id + ' limit order requires price');
+            }
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privatePostSpotOrder (this.extend (request, params));
+        return this.parseOrder (response, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'new': 'open',
+            'suspended': 'open',
+            'partiallyFilled': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'expired': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // limit
+        //     {
+        //       "id": 488953123149,
+        //       "client_order_id": "103ad305301e4c3590045b13de15b36e",
+        //       "symbol": "BTCUSDT",
+        //       "side": "buy",
+        //       "status": "new",
+        //       "type": "limit",
+        //       "time_in_force": "GTC",
+        //       "quantity": "0.00001",
+        //       "quantity_cumulative": "0",
+        //       "price": "0.01",
+        //       "price_average": "0.01",
+        //       "post_only": false,
+        //       "created_at": "2021-04-13T13:06:16.567Z",
+        //       "updated_at": "2021-04-13T13:06:16.567Z"
+        //     }
+        //
+        // market
+        //     {
+        //       "id": "685877626834",
+        //       "client_order_id": "Yshl7G-EjaREyXQYaGbsmdtVbW-nzQwu",
+        //       "symbol": "BTCUSDT",
+        //       "side": "buy",
+        //       "status": "filled",
+        //       "type": "market",
+        //       "time_in_force": "GTC",
+        //       "quantity": "0.00010",
+        //       "quantity_cumulative": "0.00010",
+        //       "post_only": false,
+        //       "created_at": "2021-10-26T08:55:55.1Z",
+        //       "updated_at": "2021-10-26T08:55:55.1Z",
+        //       "trades": [
+        //         {
+        //           "id": "1437229630",
+        //           "position_id": "0",
+        //           "quantity": "0.00010",
+        //           "price": "62884.78",
+        //           "fee": "0.005659630200",
+        //           "timestamp": "2021-10-26T08:55:55.1Z",
+        //           "taker": true
+        //         }
+        //       ]
+        //     }
+        //
+        const id = this.safeString (order, 'client_order_id');
+        // we use clientOrderId as the order id with this exchange intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
+        const side = this.safeString (order, 'side');
+        const type = this.safeString (order, 'type');
+        const amount = this.safeString (order, 'quantity');
+        const price = this.safeString (order, 'price');
+        const average = this.safeString (order, 'price_average');
+        const created = this.safeString (order, 'created_at');
+        const timestamp = this.parse8601 (created);
+        const updated = this.safeString (order, 'updated_at');
+        let lastTradeTimestamp = undefined;
+        if (updated !== created) {
+            lastTradeTimestamp = this.parse8601 (updated);
+        }
+        const filled = this.safeString (order, 'quantity_cumulative');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const marketId = this.safeString (order, 'marketId');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const postOnly = this.safeValue (order, 'post_only');
+        const timeInForce = this.safeString (order, 'time_in_force');
+        const rawTrades = this.safeValue (order, 'trades');
+        return this.safeOrder2 ({
+            'info': order,
+            'id': id,
+            'clientOrderId': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'price': price,
+            'amount': amount,
+            'type': type,
+            'side': side,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'filled': filled,
+            'remaining': undefined,
+            'cost': undefined,
+            'status': status,
+            'average': average,
+            'trades': rawTrades,
+            'fee': undefined,
+        }, market);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        // account can be "spot", "wallet", or "derivatives"
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const requestAmount = this.currencyToPrecision (code, amount);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        fromAccount = fromAccount.toLowerCase ();
+        toAccount = toAccount.toLowerCase ();
+        const fromId = this.safeString (accountsByType, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount);
+        const keys = Object.keys (accountsByType);
+        if (fromId === undefined) {
+            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', ') + ' instead of ' + fromId);
+        }
+        if (toId === undefined) {
+            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', ') + ' instead of ' + toId);
+        }
+        if (fromId === toId) {
+            throw new ExchangeError (this.id + ' from and to cannot be the same account');
+        }
+        const request = {
+            'currency': currency['id'],
+            'amount': requestAmount,
+            'source': fromId,
+            'destination': toId,
+        };
+        const response = await this.privatePostWalletTransfer (this.extend (request, params));
+        // [ '2db6ebab-fb26-4537-9ef8-1a689472d236' ]
+        const id = this.safeString (response, 0);
+        return {
+            'info': response,
+            'id': id,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'amount': this.parseNumber (requestAmount),
+            'currency': code,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': undefined,
+        };
+    }
+
+    async convertCurrencyNetwork (code, amount, fromNetwork, toNetwork, params) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const networks = this.safeValue (this.options, 'networks', {});
+        fromNetwork = fromNetwork.toUpperCase ();
+        toNetwork = toNetwork.toUpperCase ();
+        fromNetwork = this.safeString (networks, fromNetwork, fromNetwork); // handle ETH>ERC20 alias
+        toNetwork = this.safeString (networks, toNetwork, toNetwork); // handle ETH>ERC20 alias
+        if (fromNetwork === toNetwork) {
+            throw new ExchangeError (this.id + ' fromNetwork cannot be the same as toNetwork');
+        }
+        const request = {
+            'from_currency': currency['id'] + fromNetwork,
+            'to_currency': currency['id'] + toNetwork,
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.privatePostWalletConvert (this.extend (request, params));
+        // {"result":["587a1868-e62d-4d8e-b27c-dbdb2ee96149","e168df74-c041-41f2-b76c-e43e4fed5bc7"]}
+        return {
+            'info': response,
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': amount,
+            'address': address,
+        };
+        if (tag !== undefined) {
+            request['payment_id'] = tag;
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network');
+        network = this.safeString (networks, network, network);
+        if (network !== undefined) {
+            request['currency'] += network; // when network the currency need to be changed to currency + network
+            params = this.omit (params, 'network');
+        }
+        const response = await this.privatePostWalletCryptoWithdraw (this.extend (request, params));
+        // {"id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"}
+        const id = this.safeString (response, 'id');
+        return {
+            'info': response,
+            'id': id,
+        };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        //
+        //     {
+        //       "error": {
+        //         "code": 20001,
+        //         "message": "Insufficient funds",
+        //         "description": "Check that the funds are sufficient, given commissions"
+        //       }
+        //     }
+        //
+        const error = this.safeValue (response, 'error');
+        const errorCode = this.safeString (error, 'code');
+        if (errorCode !== undefined) {
+            const description = this.safeString (error, 'description', '');
+            const ExceptionClass = this.safeValue (this.exceptions, errorCode);
+            if (ExceptionClass !== undefined) {
+                throw new ExceptionClass (this.id + ' ' + description);
+            } else {
+                throw new ExchangeError (this.id + ' ' + description);
+            }
+        }
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
@@ -944,6 +1356,9 @@ module.exports = class hitbtc3 extends Exchange {
         let getRequest = undefined;
         const keys = Object.keys (query);
         const queryLength = keys.length;
+        headers = {
+            'Content-Type': 'application/json',
+        };
         if (method === 'GET') {
             if (queryLength) {
                 getRequest = '?' + this.urlencode (query);
@@ -968,9 +1383,7 @@ module.exports = class hitbtc3 extends Exchange {
             const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), 'sha256', 'hex');
             const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
             const encoded = this.stringToBase64 (secondPayload);
-            headers = {
-                'Authorization': 'HS256 ' + encoded,
-            };
+            headers['Authorization'] = 'HS256 ' + encoded;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
