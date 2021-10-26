@@ -308,6 +308,58 @@ module.exports = class gateio extends Exchange {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
                 },
+                'urls': {
+                    'margin': {
+                        'post': {
+                            'merged_loans': {
+                                'currency': true,
+                                'ids': true,
+                            },
+                            'auto_repay': {
+                                'status': true,
+                            },
+                        },
+                    },
+                    'swap': {
+                        'post': {
+                            '{settle}/positions/{symbol}/margin': {
+                                'change': true,
+                            },
+                            '{settle}/positions/{symbol}/leverage': {
+                                'leverage': true,
+                            },
+                            '{settle}/positions/{symbol}/risk_limit': {
+                                'leverage': true,
+                            },
+                            '{settle}/dual_mode': {
+                                'dual_mode': true,
+                            },
+                            '{settle}/dual_comp/positions/{symbol}/margin': {
+                                'change': true,
+                                'dual_side': true,
+                            },
+                            '{settle}/dual_comp/positions/{symbol}/leverage': {
+                                'leverage': true,
+                            },
+                            '{usdt}/dual_comp/positions/{symbol}/risk_limit': {
+                                'risk_limit': true,
+                            },
+                        },
+                    },
+                    'futures': {
+                        'post': {
+                            '{settle}/positions/{symbol}/margin': {
+                                'change': true,
+                            },
+                            '{settle}/positions/{symbol}/leverage': {
+                                'leverage': true,
+                            },
+                            '{settle}/positions/{symbol}/risk_limit': {
+                                'risk_limit': true,
+                            },
+                        },
+                    },
+                },
             },
             'fees': {
                 'trading': {
@@ -2250,32 +2302,38 @@ module.exports = class gateio extends Exchange {
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, futures, delivery
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
         const endPart = (path === '' ? '' : '/' + path);
         const entirePath = '/' + type + endPart;
         let url = this.urls['api'][authentication] + entirePath;
-        let queryString = '';
         if (authentication === 'public') {
-            queryString = this.urlencode (query);
-            if (Object.keys (query).length) {
-                url += '?' + queryString;
+            if (Object.keys (query).length > 0) {
+                url += '?' + this.urlencode (query);
             }
         } else {
             if ((method === 'GET') || (method === 'DELETE')) {
-                queryString = this.urlencode (query);
-                if (Object.keys (query).length) {
-                    url += '?' + queryString;
+                if (Object.keys (query).length > 0) {
+                    url += '?' + this.urlencode (query);
                 }
             } else {
-                body = this.json (query);
+                const urlsOptions = this.safeValue (this.options, 'urls', {});
+                const urlsOptionsPerType = this.safeValue (urlsOptions, type, {});
+                const urlsOptionsPerMethod = this.safeValue (urlsOptionsPerType, method, {});
+                const urlsOptionsPerPath = this.safeValue (urlsOptionsPerMethod, path, {});
+                const urlQueryParams = Object.keys (urlsOptionsPerPath);
+                if (Object.keys (urlQueryParams).length > 0) {
+                    url += '?' + this.urlencode (urlQueryParams);
+                }
+                body = this.json (this.omit (query, urlQueryParams));
+                query = this.extend (query, urlQueryParams);
             }
             const bodyPayload = (body === undefined) ? '' : body;
             const bodySignature = this.hash (this.encode (bodyPayload), 'sha512');
             const timestamp = this.seconds ();
             const timestampString = timestamp.toString ();
             const signaturePath = '/api/v4' + entirePath;
-            const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestampString ];
+            const payloadArray = [ method.toUpperCase (), signaturePath, this.urlencode (query), bodySignature, timestampString ];
             // eslint-disable-next-line quotes
             const payload = payloadArray.join ("\n");
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
