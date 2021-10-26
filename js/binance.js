@@ -3872,21 +3872,50 @@ module.exports = class binance extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    async fetchFundingRateHistory (symbol, limit = undefined, since = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
+        //
+        // Gets a history of funding rates with their timestamps
+        //  (param) symbol: Future currency pair (e.g. "BTC/USDT")
+        //  (param) limit: maximum number of data points returned
+        //  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) params: Object containing more params for the request
+        //          - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  return: [{symbol, fundingRate, timestamp}]
+        //
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
+        const request = {};
+        let method = undefined;
+        const defaultType = this.safeString2 (this.options, 'fetchFundingRateHistory', 'defaultType', 'future');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        if (type === 'future') {
+            method = 'fapiPublicGetFundingRate';
+        } else if (type === 'delivery') {
+            method = 'dapiPublicGetFundingRate';
+        }
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+            if (market['linear']) {
+                method = 'fapiPublicGetFundingRate';
+            } else if (market['inverse']) {
+                method = 'dapiPublicGetFundingRate';
+            }
+        }
+        if (method === undefined) {
+            throw new NotSupported (this.id + ' fetchFundingRateHistory() not supported for ' + type + ' markets');
+        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
+        const till = this.safeInteger (params, 'till'); // unified in milliseconds
+        const endTime = this.safeString (params, 'endTime', till); // exchange-specific in milliseconds
+        params = this.omit (params, [ 'endTime', 'till' ]);
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
-        }
-        let method = 'fapiPublicGetFundingRate';
-        if (market['inverse']) {
-            method = 'dapiPublicGetFundingRate';
         }
         const response = await this[method] (this.extend (request, params));
         //
