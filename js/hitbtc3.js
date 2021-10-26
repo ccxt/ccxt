@@ -1050,6 +1050,35 @@ module.exports = class hitbtc3 extends Exchange {
         return this.parseOrder (order, market);
     }
 
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'order_id': id, // exchange assigned order id as oppose to the client order id
+        };
+        const response = await this.privateGetSpotHistoryTrade (this.extend (request, params));
+        //
+        //     [
+        //       {
+        //         "id": 1393448977,
+        //         "order_id": 653496804534,
+        //         "client_order_id": "065f6f0ff9d54547848454182263d7b4",
+        //         "symbol": "DICEETH",
+        //         "side": "buy",
+        //         "quantity": "1.4",
+        //         "price": "0.00261455",
+        //         "fee": "0.000003294333",
+        //         "timestamp": "2021-09-19T05:35:56.601Z",
+        //         "taker": true
+        //       }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
