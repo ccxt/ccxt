@@ -722,7 +722,11 @@ module.exports = class coinbasepro extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const marketId = this.safeString (order, 'product_id');
         market = this.safeMarket (marketId, market, '-');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const doneReason = this.safeString (order, 'done_reason');
+        if ((status === 'closed') && (doneReason === 'canceled')) {
+            status = 'canceled';
+        }
         const price = this.safeNumber (order, 'price');
         const filled = this.safeNumber (order, 'filled_size');
         const amount = this.safeNumber (order, 'size', filled);
