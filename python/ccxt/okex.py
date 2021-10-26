@@ -703,6 +703,9 @@ class okex(Exchange):
         fees = self.safe_value_2(self.fees, type, 'trading', {})
         contractSize = self.safe_string(market, 'ctVal')
         leverage = self.safe_number(market, 'lever', 1)
+        expiry = None
+        if futures or option:
+            expiry = self.safe_number(market, 'expTime')
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -721,6 +724,8 @@ class okex(Exchange):
             'active': active,
             'contractSize': contractSize,
             'precision': precision,
+            'expiry': expiry,
+            'expiryDatetime': self.iso8601(expiry),
             'limits': {
                 'amount': {
                     'min': minAmount,

@@ -697,6 +697,10 @@ class okex extends Exchange {
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
         $contractSize = $this->safe_string($market, 'ctVal');
         $leverage = $this->safe_number($market, 'lever', 1);
+        $expiry = null;
+        if ($futures || $option) {
+            $expiry = $this->safe_number($market, 'expTime');
+        }
         return array_merge($fees, array(
             'id' => $id,
             'symbol' => $symbol,
@@ -715,6 +719,8 @@ class okex extends Exchange {
             'active' => $active,
             'contractSize' => $contractSize,
             'precision' => $precision,
+            'expiry' => $expiry,
+            'expiryDatetime' => $this->iso8601($expiry),
             'limits' => array(
                 'amount' => array(
                     'min' => $minAmount,
