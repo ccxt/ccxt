@@ -1943,7 +1943,7 @@ Timestamp and datetime are both Universal Time Coordinated (UTC) in milliseconds
 
 Although some exchanges do mix-in orderbook's top bid/ask prices into their tickers (and some exchanges even serve top bid/ask volumes) you should not treat a ticker as a `fetchOrderBook` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as "live 24h OHLCV". It is known that exchanges discourage frequent `fetchTicker` requests by imposing stricter rate limits on these queries. If you need a unified way to access bids and asks you should use `fetchL[123]OrderBook` family instead.
 
-To get historical prices and volumes use the unified [`fetchOHLCV`](#ohlcv-candlestick-charts) method where available. To get historical mark, index, and premium index prices, add the params `price: "mark"`, `price: "index"`, `price: "premiumIndex"` respectively to the `params` argument of `fetchOHLCV`. There are also convenience methods `getMarkPriceOHLCV`, `getIndexPriceOHLCV`, and `getPremiumIndexOHLCV` that obtain the mark, index and premiumIndex historical prices and volumes.
+To get historical prices and volumes use the unified [`fetchOHLCV`](#ohlcv-candlestick-charts) method where available. To get historical mark, index, and premium index prices, add one of `'price': 'mark'`, `'price': 'index'`, `'price': 'premiumIndex'` respectively to the [params-overrides](#overriding-unified-api-params) of `fetchOHLCV`. There are also convenience methods `fetchMarkPriceOHLCV`, `fetchIndexPriceOHLCV`, and `fetchPremiumIndexOHLCV` that obtain the mark, index and premiumIndex historical prices and volumes.
 
 Methods for fetching tickers:
 
@@ -2139,105 +2139,52 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
 
 The list of candles is returned sorted in ascending (historical/chronological) order, oldest candle first, most recent candle last.
 
-### Mark, Index and PremiumIndex Candlestick charts
+### Mark, Index and PremiumIndex Candlestick Charts
 
-To obtain historical Mark, Index Price and Premium Index candlesticks by passing the (key, value) pair `price: 'mark'` (or index) as params to `fetchOHLCV`
+To obtain historical Mark, Index Price and Premium Index candlesticks pass the `'price'` [params-override](overriding-unified-api-params) to `fetchOHLCV`. The `'price'` parameter accepts one of the following values:
 
-## JS
+- `'mark'`
+- `'index'`
+- `'premiumIndex'`
 
-```
-const ccxt = require('ccxt')
-
-console.log('CCXT Version:', ccxt.__version__)
-
-const exchange = new ccxt.binance({
-    "api_key": "...",
-    "secret": "...",
-    "options": {
-      "defaultType": "future"
-    }}
-)
-
-const main = async () => {
-  markKlines = await exchange.fetchOHLCV(
-    symbol='ADA/USDT', 
-    timeframe='1h', 
-    undefined, 
-    undefined, 
-    params={price: 'mark'}
-  );
-  console.log(markKlines);
+```JavaScript
+// JavaScript
+async function main () {
+    const exchange = new ccxt.binanceusdm ()
+    const markKlines = await exchange.fetchOHLCV ('ADA/USDT', '1h', undefined, undefined, { 'price': 'mark' })
+    console.log (markKlines)
+    const indexKlines = await exchange.fetchOHLCV ('ADA/USDT', '1h', undefined, undefined, { 'price': 'index' })
+    console.log (indexKlines)
 }
 
-main();
-
+main ()
 ```
-
-Replace `params={price: 'mark'}` with `params={price: 'index'}` or `params={price: 'premiumIndex'}` for the historical index price and premium index price respectively 
-
----
 
 There are also convenience methods `fetchMarkOHLCV`, `fetchIndexOHLCV` and `fetchPremiumIndexOHLCV`
 
-```
-main = async () => {
-  markKlines = await exchange.fetchMarkOHLCV(
-    symbol='ADA/USDT', 
-    timeframe='1h', 
-  );
-  indexKlines = await exchange.fetchIndexOHLCV(
-    symbol='ADA/USDT', 
-    timeframe='1h', 
-  );
-  console.log(markKlines);
-  console.log(indexKlines);
+```JavaScript
+// JavaScript
+async function main () {
+    const exchange = new ccxt.binanceusdm ()
+    const markKlines = await exchange.fetchMarkOHLCV ('ADA/USDT', '1h')
+    console.log (markKlines)
+    const indexKlines = await exchange.fetchIndexOHLCV ('ADA/USDT', '1h')
+    console.log (indexKlines)
 }
 
-main();
-
+main ()
 ```
 
-## Python
-
-```
-import ccxt
-from pprint import pprint
-
-print('CCXT Version:', ccxt.__version__)
-
-exchange = ccxt.binance({
-    "api_key": "...",
-    "secret": "...",
-    "options": {
-        "defaultType": "future"
-    }}
-)
-
-response = exchange.fetchOHLCV(
-    symbol='ADA/USDT',
-    timeframe='1h',
-    params={"price": 'index'}
-)
-
+```Python
+# Python
+exchange = ccxt.binance()
+response = exchange.fetch_ohlcv('ADA/USDT', '1h', params={'price':'index'})
 pprint(response)
-
 # Convenience methods
-
-markKlines = exchange.fetchMarkOHLCV(
-    symbol='ADA/USDT',
-    timeframe='1h',
-    params={"price": 'mark'}
-)
-
-indexKlines = exchange.fetchIndexOHLCV(
-    symbol='ADA/USDT',
-    timeframe='1h',
-    params={"price": 'mark'}
-)
-
-pprint(markKlines)
-pprint(indexKlines)
-
+mark_klines = exchange.fetch_mark_ohlcv('ADA/USDT', '1h')
+index_klines = exchange.fetch_index_ohlcv('ADA/USDT', '1h')
+pprint(mark_klines)
+pprint(index_klines)
 ```
 
 ### OHLCV Emulation
