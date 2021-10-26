@@ -269,7 +269,7 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ()
+        return this.milliseconds ();
     }
 
     async fetchMarkets (params = {}) {
@@ -545,7 +545,7 @@ module.exports = class hitbtc3 extends Exchange {
             const entry = response[marketId];
             result[symbol] = this.parseTicker (entry, market);
         }
-        return this.filterByArray (result, 'symbol', symbols);;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseTicker (ticker, market = undefined) {
