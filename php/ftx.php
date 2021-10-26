@@ -1007,21 +1007,32 @@ class ftx extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history($symbol, $limit = null, $since = null, $params = array ()) {
+    public function fetch_funding_rate_history($symbol = null, $limit = null, $since = null, $params = array ()) {
         //
         // Gets a history of funding $rates with their timestamps
         //  (param) $symbol => Future currency pair (e.g. "BTC-PERP")
         //  (param) $limit => Not used by ftx
         //  (param) $since => Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) $params => Object containing more $params for the $request
+        //             - until => Unix timestamp in miliseconds for the time of the earliest requested funding rate
         //  return => [array($symbol, fundingRate, timestamp)]
         //
         $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'future' => $market['id'],
-        );
+        $request = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['future'] = $market['id'];
+        }
         if ($since !== null) {
             $request['start_time'] = intval($since / 1000);
+        }
+        $till = $this->safe_integer($params, 'till'); // unified in milliseconds
+        $endTime = $this->safe_string($params, 'end_time'); // exchange-specific in seconds
+        $params = $this->omit($params, array( 'end_time', 'till' ));
+        if ($till !== null) {
+            $request['end_time'] = intval($till / 1000);
+        } else if ($endTime !== null) {
+            $request['end_time'] = $endTime;
         }
         $response = $this->publicGetFundingRates (array_merge($request, $params));
         //

@@ -3878,21 +3878,50 @@ class binance extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function fetch_funding_rate_history($symbol, $limit = null, $since = null, $params = array ()) {
+    public function fetch_funding_rate_history($symbol = null, $limit = null, $since = null, $params = array ()) {
+        //
+        // Gets a history of funding $rates with their timestamps
+        //  (param) $symbol => Future currency pair (e.g. "BTC/USDT")
+        //  (param) $limit => maximum number of data points returned
+        //  (param) $since => Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) $params => Object containing more $params for the $request
+        //          - until => Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  return => [array($symbol, fundingRate, timestamp)]
+        //
         $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
+        $request = array();
+        $method = null;
+        $defaultType = $this->safe_string_2($this->options, 'fetchFundingRateHistory', 'defaultType', 'future');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $params = $this->omit($params, 'type');
+        if ($type === 'future') {
+            $method = 'fapiPublicGetFundingRate';
+        } else if ($type === 'delivery') {
+            $method = 'dapiPublicGetFundingRate';
+        }
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+            if ($market['linear']) {
+                $method = 'fapiPublicGetFundingRate';
+            } else if ($market['inverse']) {
+                $method = 'dapiPublicGetFundingRate';
+            }
+        }
+        if ($method === null) {
+            throw new NotSupported($this->id . ' fetchFundingRateHistory() not supported for ' . $type . ' markets');
+        }
         if ($since !== null) {
             $request['startTime'] = $since;
         }
+        $till = $this->safe_integer($params, 'till'); // unified in milliseconds
+        $endTime = $this->safe_string($params, 'endTime', $till); // exchange-specific in milliseconds
+        $params = $this->omit($params, array( 'endTime', 'till' ));
+        if ($endTime !== null) {
+            $request['endTime'] = $endTime;
+        }
         if ($limit !== null) {
             $request['limit'] = $limit;
-        }
-        $method = 'fapiPublicGetFundingRate';
-        if ($market['inverse']) {
-            $method = 'dapiPublicGetFundingRate';
         }
         $response = $this->$method (array_merge($request, $params));
         //

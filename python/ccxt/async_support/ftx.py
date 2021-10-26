@@ -992,21 +992,30 @@ class ftx(Exchange):
             'taker': self.safe_number(result, 'takerFee'),
         }
 
-    async def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
+    async def fetch_funding_rate_history(self, symbol=None, limit=None, since=None, params={}):
         #
         # Gets a history of funding rates with their timestamps
         #  (param) symbol: Future currency pair(e.g. "BTC-PERP")
         #  (param) limit: Not used by ftx
         #  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        #  (param) params: Object containing more params for the request
+        #             - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
         #  return: [{symbol, fundingRate, timestamp}]
         #
         await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'future': market['id'],
-        }
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['future'] = market['id']
         if since is not None:
             request['start_time'] = int(since / 1000)
+        till = self.safe_integer(params, 'till')  # unified in milliseconds
+        endTime = self.safe_string(params, 'end_time')  # exchange-specific in seconds
+        params = self.omit(params, ['end_time', 'till'])
+        if till is not None:
+            request['end_time'] = int(till / 1000)
+        elif endTime is not None:
+            request['end_time'] = endTime
         response = await self.publicGetFundingRates(self.extend(request, params))
         #
         #     {

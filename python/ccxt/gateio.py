@@ -1480,8 +1480,10 @@ class gateio(Exchange):
         }
         return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
-    def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
+    def fetch_funding_rate_history(self, symbol=None, limit=None, since=None, params={}):
         self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         market = self.market(symbol)
         request = {
             'contract': market['id'],

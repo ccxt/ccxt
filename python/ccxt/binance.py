@@ -3688,19 +3688,44 @@ class binance(Exchange):
         #
         return self.parse_funding_rate(response, market)
 
-    def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
+    def fetch_funding_rate_history(self, symbol=None, limit=None, since=None, params={}):
+        #
+        # Gets a history of funding rates with their timestamps
+        #  (param) symbol: Future currency pair(e.g. "BTC/USDT")
+        #  (param) limit: maximum number of data points returned
+        #  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        #  (param) params: Object containing more params for the request
+        #          - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        #  return: [{symbol, fundingRate, timestamp}]
+        #
         self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
+        request = {}
+        method = None
+        defaultType = self.safe_string_2(self.options, 'fetchFundingRateHistory', 'defaultType', 'future')
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        if type == 'future':
+            method = 'fapiPublicGetFundingRate'
+        elif type == 'delivery':
+            method = 'dapiPublicGetFundingRate'
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            if market['linear']:
+                method = 'fapiPublicGetFundingRate'
+            elif market['inverse']:
+                method = 'dapiPublicGetFundingRate'
+        if method is None:
+            raise NotSupported(self.id + ' fetchFundingRateHistory() not supported for ' + type + ' markets')
         if since is not None:
             request['startTime'] = since
+        till = self.safe_integer(params, 'till')  # unified in milliseconds
+        endTime = self.safe_string(params, 'endTime', till)  # exchange-specific in milliseconds
+        params = self.omit(params, ['endTime', 'till'])
+        if endTime is not None:
+            request['endTime'] = endTime
         if limit is not None:
             request['limit'] = limit
-        method = 'fapiPublicGetFundingRate'
-        if market['inverse']:
-            method = 'dapiPublicGetFundingRate'
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
