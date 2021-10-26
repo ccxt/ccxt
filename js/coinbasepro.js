@@ -685,7 +685,7 @@ module.exports = class coinbasepro extends Exchange {
         return this.safeTimestamp (response, 'epoch');
     }
 
-    parseOrderStatus (status, done_reason) {
+    parseOrderStatus (status) {
         const statuses = {
             'pending': 'open',
             'active': 'open',
@@ -694,9 +694,6 @@ module.exports = class coinbasepro extends Exchange {
             'canceled': 'canceled',
             'canceling': 'open',
         };
-        if ((status === 'done') && (done_reason === 'canceled')) {
-            return 'canceled';
-        }
         return this.safeString (statuses, status, status);
     }
 
@@ -725,7 +722,11 @@ module.exports = class coinbasepro extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const marketId = this.safeString (order, 'product_id');
         market = this.safeMarket (marketId, market, '-');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'), this.safeString (order, 'done_reason'));
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const doneReason = this.safeString (order, 'done_reason');
+        if ((status === 'done') && (doneReason === 'canceled')) {
+            status = 'canceled';
+        }
         const price = this.safeNumber (order, 'price');
         const filled = this.safeNumber (order, 'filled_size');
         const amount = this.safeNumber (order, 'size', filled);
