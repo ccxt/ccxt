@@ -298,11 +298,11 @@ module.exports = class hitbtc3 extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const id = marketIds[i];
             const entry = response[id];
-            const baseId = this.safeString (entry, 'base_currency');
+            const baseId = this.safeString2 (entry, 'base_currency', 'underlying');
             const quoteId = this.safeString (entry, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            let symbol = base + '/' + quote;
             const maker = this.safeNumber (entry, 'make_rate');
             const taker = this.safeNumber (entry, 'take_rate');
             const feeCurrency = this.safeString (entry, 'fee_currency');
@@ -311,6 +311,9 @@ module.exports = class hitbtc3 extends Exchange {
             const type = this.safeString (entry, 'type');
             const spot = (type === 'spot');
             const futures = (type === 'futures');
+            if (futures) {
+                symbol = symbol + ':' + quote;
+            }
             const priceIncrement = this.safeNumber (entry, 'tick_size');
             const amountIncrement = this.safeNumber (entry, 'quantity_increment');
             const precision = {
