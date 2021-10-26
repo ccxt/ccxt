@@ -404,6 +404,9 @@ module.exports = class gateio extends Exchange {
                             [ this.parseNumber ('75000'), this.parseNumber ('0.00030') ],
                         ],
                     },
+                    'fundingFee': {
+                        'exchangedAt': [0, 8, 16],  // hours of the day in UTC
+                    },
                 },
             },
             // https://www.gate.io/docs/apiv4/en/index.html#label-list

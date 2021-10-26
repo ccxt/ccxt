@@ -170,6 +170,11 @@ module.exports = class hitbtc extends Exchange {
                     'maker': 0.1 / 100,
                     'taker': 0.2 / 100,
                 },
+                'future': {
+                    'fundingFee': {
+                        'exchangedAt': [0, 8, 16],    // hours of the day in UTC
+                    },
+                },
             },
             'options': {
                 'networks': {

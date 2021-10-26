@@ -412,6 +412,11 @@ module.exports = class bybit extends Exchange {
                     'taker': 0.00075,
                     'maker': -0.00025,
                 },
+                'future': {
+                    'fundingFee': {
+                        'exchangedAt': [0, 8, 16],  // hours of the day in UTC
+                    },
+                },
                 'funding': {
                     'tierBased': false,
                     'percentage': false,

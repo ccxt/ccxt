@@ -104,6 +104,11 @@ module.exports = class kraken extends Exchange {
                         ],
                     },
                 },
+                'future': {
+                    'fundingFee': {
+                        'exchangedAt': [0, 4, 8, 12, 16, 20],     // hours of the day in UTC
+                    },
+                },
                 // this is a bad way of hardcoding fees that change on daily basis
                 // hardcoding is now considered obsolete, we will remove all of it eventually
                 'funding': {

@@ -98,6 +98,11 @@ module.exports = class bibox extends Exchange {
                     'taker': this.parseNumber ('0.001'),
                     'maker': this.parseNumber ('0.0008'),
                 },
+                'future': {
+                    'fundingFee': {
+                        'exchangedAt': [0, 8, 16],  // hours of the day in UTC
+                    },
+                },
                 'funding': {
                     'tierBased': false,
                     'percentage': false,

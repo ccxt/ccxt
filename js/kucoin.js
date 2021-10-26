@@ -300,6 +300,11 @@ module.exports = class kucoin extends Exchange {
                     'taker': 0.001,
                     'maker': 0.001,
                 },
+                'future': {
+                    'fundingFee': {
+                        'exchangedAt': [4, 12, 20],    // hours of the day in UTC
+                    },
+                },
                 'funding': {
                     'tierBased': false,
                     'percentage': false,

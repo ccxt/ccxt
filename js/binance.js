@@ -580,6 +580,9 @@ module.exports = class binance extends Exchange {
                     'maker': this.parseNumber ('0.001'),
                 },
                 'future': {
+                    'fundingFee': {
+                        'exchangedAt': [0, 8, 16],  // hours of the day in UTC
+                    },
                     'trading': {
                         'feeSide': 'quote',
                         'tierBased': true,
