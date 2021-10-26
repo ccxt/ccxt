@@ -1017,6 +1017,39 @@ module.exports = class hitbtc3 extends Exchange {
         return this.filterByArray (parsed, 'status', [ 'closed', 'canceled' ], false);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'client_order_id': id,
+        };
+        const response = await this.privateGetSpotHistoryOrder (this.extend (request, params));
+        //
+        //     [
+        //       {
+        //         "id": "685965182082",
+        //         "client_order_id": "B3CBm9uGg9oYQlw96bBSEt38-6gbgBO0",
+        //         "symbol": "BTCUSDT",
+        //         "side": "buy",
+        //         "status": "new",
+        //         "type": "limit",
+        //         "time_in_force": "GTC",
+        //         "quantity": "0.00010",
+        //         "quantity_cumulative": "0",
+        //         "price": "50000.00",
+        //         "price_average": "0",
+        //         "created_at": "2021-10-26T11:40:09.287Z",
+        //         "updated_at": "2021-10-26T11:40:09.287Z"
+        //       }
+        //     ]
+        //
+        const order = this.safeValue (response, 0);
+        return this.parseOrder (order, market);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
