@@ -616,7 +616,7 @@ module.exports = class hitbtc3 extends Exchange {
             const market = this.market (marketId);
             const rawTrades = response[marketId];
             const parsed = this.parseTrades (rawTrades, market);
-            trades = trades.concat (parsed);
+            trades = this.arrayConcat (trades, parsed);
         }
         return trades;
     }
