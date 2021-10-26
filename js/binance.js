@@ -107,10 +107,10 @@ module.exports = class binance extends Exchange {
                     'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
-                'referral': {
-                    'url': 'https://www.binance.com/en/register?ref=BLEJC98C',
-                    'discount': 0.2,
-                },
+                // 'referral': {
+                //     'url': 'https://www.binance.com/en/register?ref=BLEJC98C',
+                //     'discount': 0.2,
+                // },
                 'doc': [
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],
@@ -3884,16 +3884,26 @@ module.exports = class binance extends Exchange {
         //
         await this.loadMarkets ();
         const request = {};
-        let method = 'fapiPublicGetFundingRate';
+        let method = undefined;
+        const defaultType = this.safeString2 (this.options, 'fetchFundingRateHistory', 'defaultType', 'future');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        if (type === 'future') {
+            method = 'fapiPublicGetFundingRate';
+        } else if (type === 'delivery') {
+            method = 'dapiPublicGetFundingRate';
+        }
         if (symbol !== undefined) {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
-            if (market['inverse']) {
+            if (market['linear']) {
+                method = 'fapiPublicGetFundingRate';
+            } else if (market['inverse']) {
                 method = 'dapiPublicGetFundingRate';
             }
-        } else if ('type' in params && params['type'] === 'future') {
-            method = 'dapiPublicGetFundingRate';
-            params = this.omit (params, 'type');
+        }
+        if (method === undefined) {
+            throw new NotSupported (this.id + ' fetchFundingRateHistory() not supported for ' + type + ' markets');
         }
         if (since !== undefined) {
             request['startTime'] = since;
