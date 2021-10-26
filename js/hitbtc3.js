@@ -298,22 +298,29 @@ module.exports = class hitbtc3 extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const id = marketIds[i];
             const entry = response[id];
-            const baseId = this.safeString2 (entry, 'base_currency', 'underlying');
+            const type = this.safeString (entry, 'type');
+            const spot = (type === 'spot');
+            const futures = (type === 'futures');
+            let baseId = undefined;
+            if (spot) {
+                baseId = this.safeString (entry, 'base_currency');
+            } else if (futures) {
+                baseId = this.safeString (entry, 'underlying');
+            } else {
+                throw new ExchangeError (this.id + ' invalid market type ' + type);
+            }
             const quoteId = this.safeString (entry, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
+            if (futures) {
+                symbol = symbol + ':' + quote;
+            }
             const maker = this.safeNumber (entry, 'make_rate');
             const taker = this.safeNumber (entry, 'take_rate');
             const feeCurrency = this.safeString (entry, 'fee_currency');
             const feeSide = (feeCurrency === quoteId) ? 'quote' : 'base';
             const margin = this.safeValue (entry, 'margin_trading', false);
-            const type = this.safeString (entry, 'type');
-            const spot = (type === 'spot');
-            const futures = (type === 'futures');
-            if (futures) {
-                symbol = symbol + ':' + quote;
-            }
             const priceIncrement = this.safeNumber (entry, 'tick_size');
             const amountIncrement = this.safeNumber (entry, 'quantity_increment');
             const precision = {
@@ -351,6 +358,8 @@ module.exports = class hitbtc3 extends Exchange {
                 'taker': taker,
                 'precision': precision,
                 'limits': limits,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
             });
         }
         return result;
