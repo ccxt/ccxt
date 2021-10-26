@@ -481,7 +481,7 @@ module.exports = class hitbtc3 extends Exchange {
         };
     }
 
-    async fetchBalance (params) {
+    async fetchBalance (params = {}) {
         const response = await this.privateGetSpotBalance ();
         //
         //     [
