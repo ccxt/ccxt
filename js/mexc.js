@@ -14,7 +14,7 @@ module.exports = class mexc extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'mexc',
             'name': 'MEXC Global',
-            'countries': [ 'SC' ], // Seychelles
+            'countries': [ 'SC' ],
             'rateLimit': 50, // default rate limit is 20 times per second
             'version': 'v2',
             'certified': true,
