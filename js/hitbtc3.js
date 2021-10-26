@@ -652,7 +652,7 @@ module.exports = class hitbtc3 extends Exchange {
         //
         // { id: 974786185,
         //   price: '0.032462',
-        //   quantity: '0.3673',
+        //   qty: '0.3673',
         //   side: 'buy',
         //   timestamp: '2020-10-16T12:57:39.846Z' }
         //
@@ -694,7 +694,7 @@ module.exports = class hitbtc3 extends Exchange {
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const orderId = this.safeString (trade, 'clientOrderId');
         const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'quantity');
+        const amountString = this.safeString2 (trade, 'quantity', 'qty');
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
