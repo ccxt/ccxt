@@ -90,6 +90,7 @@ module.exports = class gateio extends Exchange {
                             '{settle}/insurance': 1.5,
                             '{settle}/contract_stats': 1.5,
                             '{settle}/liq_orders': 1.5,
+                            '{settle}/price_orders/{order_id}': 1.5,
                         },
                     },
                     'delivery': {
@@ -101,6 +102,13 @@ module.exports = class gateio extends Exchange {
                             '{settle}/candlesticks': 1.5,
                             '{settle}/tickers': 1.5,
                             '{settle}/insurance': 1.5,
+                            '{settle}/price_orders/{order_id}': 1.5,
+                        },
+                        'delete': {
+                            '{settle}/orders': 1.5,
+                            '{settle}/orders/{order_id}': 1.5,
+                            '{settle}/price_orders': 1.5,
+                            '{settle}/price_orders/{order_id}': 1.5,
                         },
                     },
                 },
@@ -238,6 +246,7 @@ module.exports = class gateio extends Exchange {
                             '{settle}/positions/{contract}/leverage': 1.5,
                             '{settle}/positions/{contract}/risk_limit': 1.5,
                             '{settle}/orders': 1.5,
+                            '{settle}/price_orders': 1.5,
                         },
                         'delete': {
                             '{settle}/orders': 1.5,
@@ -296,7 +305,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'spot',
+                'defaultType': 'swap',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -2112,9 +2121,19 @@ module.exports = class gateio extends Exchange {
         const market = this.market (symbol);
         const request = {
             'order_id': id,
-            'currency_pair': market['id'],
         };
-        const response = await this.privateSpotGetOrdersOrderId (this.extend (request, params));
+        if (market['spot'] || market['margin']) {
+            request['currency_pair'] = market['id'];
+        } else {
+            request['settle'] = market['settleId'];
+        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateSpotGetOrdersOrderId',
+            // 'margin': 'publicMarginGetTickers',
+            'swap': 'privateFuturesGetSettleOrdersOrderId',
+            'futures': 'privateDeliveryGetSettlePriceOrdersOrderId',
+        });
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
