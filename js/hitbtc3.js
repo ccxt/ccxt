@@ -313,8 +313,10 @@ module.exports = class hitbtc3 extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
+            let minLeverage = undefined;
             if (futures) {
                 symbol = symbol + ':' + quote;
+                minLeverage = this.parseNumber ('1');
             }
             const maker = this.safeNumber (entry, 'make_rate');
             const taker = this.safeNumber (entry, 'take_rate');
@@ -323,6 +325,7 @@ module.exports = class hitbtc3 extends Exchange {
             const margin = this.safeValue (entry, 'margin_trading', false);
             const priceIncrement = this.safeNumber (entry, 'tick_size');
             const amountIncrement = this.safeNumber (entry, 'quantity_increment');
+            const maxLeverage = this.safeNumber (entry, 'max_initial_leverage');
             const precision = {
                 'price': priceIncrement,
                 'amount': amountIncrement,
@@ -339,6 +342,10 @@ module.exports = class hitbtc3 extends Exchange {
                 'cost': {
                     'min': undefined,
                     'max': undefined,
+                },
+                'leverage': {
+                    'min': minLeverage,
+                    'max': maxLeverage,
                 },
             };
             result.push ({
