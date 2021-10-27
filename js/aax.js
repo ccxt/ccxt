@@ -249,6 +249,7 @@ module.exports = class aax extends Exchange {
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
+                    'SOL': 'SPL',
                 },
             },
         });
