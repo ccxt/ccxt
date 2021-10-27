@@ -1293,18 +1293,16 @@ module.exports = class kucoin extends Exchange {
         const type = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'createdAt');
         const datetime = this.iso8601 (timestamp);
-        let price = this.safeNumber (order, 'price');
-        if (price === 0.0) {
-            // market orders
-            price = undefined;
-        }
+        const price = this.safeString (order, 'price');
+        // price is zero for market order
+        // omitZero is called in safeOrder2
         const side = this.safeString (order, 'side');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         const feeCost = this.safeNumber (order, 'fee');
-        const amount = this.safeNumber (order, 'size');
-        const filled = this.safeNumber (order, 'dealSize');
-        const cost = this.safeNumber (order, 'dealFunds');
+        const amount = this.safeString (order, 'size');
+        const filled = this.safeString (order, 'dealSize');
+        const cost = this.safeString (order, 'dealFunds');
         // bool
         const isActive = this.safeValue (order, 'isActive', false);
         const cancelExist = this.safeValue (order, 'cancelExist', false);
@@ -1318,7 +1316,7 @@ module.exports = class kucoin extends Exchange {
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         const postOnly = this.safeValue (order, 'postOnly');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
