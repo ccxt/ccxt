@@ -15,6 +15,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class bitpanda(Exchange):
@@ -775,11 +776,13 @@ class bitpanda(Exchange):
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'time'))
         side = self.safe_string_lower_2(trade, 'side', 'taker_side')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
         cost = self.safe_number(trade, 'volume')
-        if (cost is None) and (amount is not None) and (price is not None):
-            cost = amount * price
+        if (cost is None) and (amountString is not None) and (priceString is not None):
+            cost = self.parse_number(Precise.string_mul(amountString, priceString))
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         marketId = self.safe_string(trade, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
         feeCost = self.safe_number(feeInfo, 'fee_amount')
@@ -1231,20 +1234,16 @@ class bitpanda(Exchange):
         status = self.parse_order_status(rawStatus)
         marketId = self.safe_string(rawOrder, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
-        price = self.safe_number(rawOrder, 'price')
-        amount = self.safe_number(rawOrder, 'amount')
-        filledString = self.safe_string(rawOrder, 'filled_amount')
-        filled = self.parse_number(filledString)
+        price = self.safe_string(rawOrder, 'price')
+        amount = self.safe_string(rawOrder, 'amount')
+        filled = self.safe_string(rawOrder, 'filled_amount')
         side = self.safe_string_lower(rawOrder, 'side')
         type = self.safe_string_lower(rawOrder, 'type')
         timeInForce = self.parse_time_in_force(self.safe_string(rawOrder, 'time_in_force'))
         stopPrice = self.safe_number(rawOrder, 'trigger_price')
         postOnly = self.safe_value(rawOrder, 'is_post_only')
         rawTrades = self.safe_value(order, 'trades', [])
-        trades = self.parse_trades(rawTrades, market, None, None, {
-            'type': type,
-        })
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1265,7 +1264,7 @@ class bitpanda(Exchange):
             'remaining': None,
             'status': status,
             # 'fee': None,
-            'trades': trades,
+            'trades': rawTrades,
         })
 
     def parse_time_in_force(self, timeInForce):

@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class bitpanda extends Exchange {
 
@@ -792,12 +793,14 @@ class bitpanda extends Exchange {
             $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         }
         $side = $this->safe_string_lower_2($trade, 'side', 'taker_side');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
         $cost = $this->safe_number($trade, 'volume');
-        if (($cost === null) && ($amount !== null) && ($price !== null)) {
-            $cost = $amount * $price;
+        if (($cost === null) && ($amountString !== null) && ($priceString !== null)) {
+            $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
         }
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $marketId = $this->safe_string($trade, 'instrument_code');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $feeCost = $this->safe_number($feeInfo, 'fee_amount');
@@ -1243,7 +1246,7 @@ class bitpanda extends Exchange {
         //             "time_triggered" => "2019-08-24T14:15:22Z",
         //             "trigger_price" => "1234.5678"
         //         ),
-        //         "$trades" => array(
+        //         "trades" => array(
         //             {
         //                 "fee" => array(
         //                     "fee_amount" => "0.0014",
@@ -1276,20 +1279,16 @@ class bitpanda extends Exchange {
         $status = $this->parse_order_status($rawStatus);
         $marketId = $this->safe_string($rawOrder, 'instrument_code');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $price = $this->safe_number($rawOrder, 'price');
-        $amount = $this->safe_number($rawOrder, 'amount');
-        $filledString = $this->safe_string($rawOrder, 'filled_amount');
-        $filled = $this->parse_number($filledString);
+        $price = $this->safe_string($rawOrder, 'price');
+        $amount = $this->safe_string($rawOrder, 'amount');
+        $filled = $this->safe_string($rawOrder, 'filled_amount');
         $side = $this->safe_string_lower($rawOrder, 'side');
         $type = $this->safe_string_lower($rawOrder, 'type');
         $timeInForce = $this->parse_time_in_force($this->safe_string($rawOrder, 'time_in_force'));
         $stopPrice = $this->safe_number($rawOrder, 'trigger_price');
         $postOnly = $this->safe_value($rawOrder, 'is_post_only');
         $rawTrades = $this->safe_value($order, 'trades', array());
-        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-            'type' => $type,
-        ));
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -1310,7 +1309,7 @@ class bitpanda extends Exchange {
             'remaining' => null,
             'status' => $status,
             // 'fee' => null,
-            'trades' => $trades,
+            'trades' => $rawTrades,
         ));
     }
 
