@@ -1032,15 +1032,15 @@ module.exports = class bittrex extends Exchange {
         }
         const timestamp = this.parse8601 (createdAt);
         const type = this.safeStringLower (order, 'type');
-        const quantity = this.safeNumber (order, 'quantity');
-        const limit = this.safeNumber (order, 'limit');
-        const fillQuantity = this.safeNumber (order, 'fillQuantity');
+        const quantity = this.safeString (order, 'quantity');
+        const limit = this.safeString (order, 'limit');
+        const fillQuantity = this.safeString (order, 'fillQuantity');
         const commission = this.safeNumber (order, 'commission');
-        const proceeds = this.safeNumber (order, 'proceeds');
+        const proceeds = this.safeString (order, 'proceeds');
         const status = this.safeStringLower (order, 'status');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const postOnly = (timeInForce === 'PO');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
