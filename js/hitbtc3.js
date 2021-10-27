@@ -465,9 +465,11 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     safeNetwork (networkId) {
-        const networksById = {
-        };
-        return this.safeString (networksById, networkId, networkId);
+        if (networkId === undefined) {
+            return undefined;
+        } else {
+            return networkId.toUpperCase ();
+        }
     }
 
     async fetchDepositAddress (code, params = {}) {
