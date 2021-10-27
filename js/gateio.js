@@ -2061,11 +2061,14 @@ module.exports = class gateio extends Exchange {
         timestamp = this.safeInteger (order, 'create_time_ms', timestamp);
         let lastTradeTimestamp = this.safeTimestamp (order, 'update_time');
         lastTradeTimestamp = this.safeInteger (order, 'update_time_ms', lastTradeTimestamp);
-        const amount = this.safeString (order, 'amount', 'size');
+        const amount = this.safeString2 (order, 'amount', 'size');
         const price = this.safeString (order, 'price');
         const remaining = this.safeString (order, 'left');
-        const cost = this.safeString (order, 'filled_total'); // same as filled_price
-        const side = this.safeString (order, 'side');
+        const cost = this.safeString2 (order, 'filled_total'); // same as filled_price
+        let side = this.safeString (order, 'side');
+        if (market['swap'] || market['delivery']) {
+            side = amount > 0 ? 'buy' : 'sell';
+        }
         const type = this.safeString (order, 'type');
         // open, closed, cancelled - almost already ccxt unified!
         const finishAs = this.safeString (order, 'finish_as'); // Perpetual Swap/Delivery Futures
