@@ -1209,12 +1209,12 @@ class ftx extends Exchange {
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->parse8601($this->safe_string($order, 'createdAt'));
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $amount = $this->safe_number($order, 'size');
-        $filled = $this->safe_number($order, 'filledSize');
-        $remaining = $this->safe_number($order, 'remainingSize');
-        if (($remaining === 0.0) && ($amount !== null) && ($filled !== null)) {
-            $remaining = max ($amount - $filled, 0);
-            if ($remaining > 0) {
+        $amount = $this->safe_string($order, 'size');
+        $filled = $this->safe_string($order, 'filledSize');
+        $remaining = $this->safe_string($order, 'remainingSize');
+        if (Precise::string_equals($remaining, '0')) {
+            $remaining = Precise::string_sub($amount, $filled);
+            if (Precise::string_gt($remaining, '0')) {
                 $status = 'canceled';
             }
         }
@@ -1235,17 +1235,13 @@ class ftx extends Exchange {
         }
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type');
-        $average = $this->safe_number($order, 'avgFillPrice');
-        $price = $this->safe_number_2($order, 'price', 'triggerPrice', $average);
-        $cost = null;
-        if ($filled !== null && $price !== null) {
-            $cost = $filled * $price;
-        }
+        $average = $this->safe_string($order, 'avgFillPrice');
+        $price = $this->safe_string_2($order, 'price', 'triggerPrice', $average);
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'triggeredAt'));
         $clientOrderId = $this->safe_string($order, 'clientId');
         $stopPrice = $this->safe_number($order, 'triggerPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1260,14 +1256,14 @@ class ftx extends Exchange {
             'price' => $price,
             'stopPrice' => $stopPrice,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
