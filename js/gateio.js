@@ -646,6 +646,7 @@ module.exports = class gateio extends Exchange {
                         'futures': futures,
                         'swap': swap,
                         'option': option,
+                        'contract': swap || futures || option,
                         'linear': linear,
                         'inverse': inverse,
                         // Fee is in %, so divide by 100
