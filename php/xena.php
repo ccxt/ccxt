@@ -926,17 +926,17 @@ class xena extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'orderQty');
-        $filled = $this->safe_number($order, 'cumQty');
-        $remaining = $this->safe_number($order, 'leavesQty');
-        $side = $this->safe_string_lower($order, 'side');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'orderQty');
+        $filled = $this->safe_string($order, 'cumQty');
+        $remaining = $this->safe_string($order, 'leavesQty');
+        $side = $this->safe_string($order, 'side');
         if ($side === '1') {
             $side = 'buy';
-        } else if ($side === '1') {
+        } else if ($side === '2') {
             $side = 'sell';
         }
-        $type = $this->safe_string_lower($order, 'ordType');
+        $type = $this->safe_string($order, 'ordType');
         if ($type === '1') {
             $type = 'market';
         } else if ($type === '2') {
@@ -946,7 +946,7 @@ class xena extends Exchange {
         } else if ($type === '4') {
             $type = 'stop-limit';
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
