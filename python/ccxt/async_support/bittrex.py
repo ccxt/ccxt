@@ -1002,15 +1002,15 @@ class bittrex(Exchange):
             lastTradeTimestamp = self.parse8601(updatedAt)
         timestamp = self.parse8601(createdAt)
         type = self.safe_string_lower(order, 'type')
-        quantity = self.safe_number(order, 'quantity')
-        limit = self.safe_number(order, 'limit')
-        fillQuantity = self.safe_number(order, 'fillQuantity')
+        quantity = self.safe_string(order, 'quantity')
+        limit = self.safe_string(order, 'limit')
+        fillQuantity = self.safe_string(order, 'fillQuantity')
         commission = self.safe_number(order, 'commission')
-        proceeds = self.safe_number(order, 'proceeds')
+        proceeds = self.safe_string(order, 'proceeds')
         status = self.safe_string_lower(order, 'status')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         postOnly = (timeInForce == 'PO')
-        return self.safe_order({
+        return self.safe_order2({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
