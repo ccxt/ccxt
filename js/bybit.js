@@ -1305,15 +1305,12 @@ module.exports = class bybit extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const id = this.safeString2 (order, 'order_id', 'stop_order_id');
         const type = this.safeStringLower (order, 'order_type');
-        let price = this.safeNumber (order, 'price');
-        if (price === 0.0) {
-            price = undefined;
-        }
-        const average = this.safeNumber (order, 'average_price');
-        const amount = this.safeNumber (order, 'qty');
-        const cost = this.safeNumber (order, 'cum_exec_value');
-        const filled = this.safeNumber (order, 'cum_exec_qty');
-        const remaining = this.safeNumber (order, 'leaves_qty');
+        const price = this.safeString (order, 'price');
+        const average = this.safeString (order, 'average_price');
+        const amount = this.safeString (order, 'qty');
+        const cost = this.safeString (order, 'cum_exec_value');
+        const filled = this.safeString (order, 'cum_exec_qty');
+        const remaining = this.safeString (order, 'leaves_qty');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol);
         if (market !== undefined) {
@@ -1329,10 +1326,10 @@ module.exports = class bybit extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'stop_order_status'));
         const side = this.safeStringLower (order, 'side');
-        let feeCost = this.safeNumber (order, 'cum_exec_fee');
+        const feeCostString = this.safeString (order, 'cum_exec_fee');
+        const feeCost = this.parseNumber (Precise.stringAbs (feeCostString));
         let fee = undefined;
         if (feeCost !== undefined) {
-            feeCost = Math.abs (feeCost);
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -1345,7 +1342,7 @@ module.exports = class bybit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         const stopPrice = this.safeNumber2 (order, 'trigger_price', 'stop_px');
         const postOnly = (timeInForce === 'PO');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
