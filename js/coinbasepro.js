@@ -727,10 +727,10 @@ module.exports = class coinbasepro extends Exchange {
         if ((status === 'closed') && (doneReason === 'canceled')) {
             status = 'canceled';
         }
-        const price = this.safeNumber (order, 'price');
-        const filled = this.safeNumber (order, 'filled_size');
-        const amount = this.safeNumber (order, 'size', filled);
-        const cost = this.safeNumber (order, 'executed_value');
+        const price = this.safeString (order, 'price');
+        const filled = this.safeString (order, 'filled_size');
+        const amount = this.safeString (order, 'size', filled);
+        const cost = this.safeString (order, 'executed_value');
         const feeCost = this.safeNumber (order, 'fill_fees');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -751,7 +751,7 @@ module.exports = class coinbasepro extends Exchange {
         const postOnly = this.safeValue (order, 'post_only');
         const stopPrice = this.safeNumber (order, 'stop_price');
         const clientOrderId = this.safeString (order, 'client_oid');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
