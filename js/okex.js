@@ -1939,6 +1939,11 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const options = this.safeValue (this.options, 'fetchMyTrades', {});
+        let type = this.safeString (options, 'type', defaultType);
+        params = this.omit (params, 'type');
+        await this.loadMarkets ();
         const request = {
             // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly': currency['id'],
@@ -1948,16 +1953,13 @@ module.exports = class okex extends Exchange {
             // 'before': billId,
             // 'limit': limit, // default 100, max 100
         };
-        let instrumentType = this.safeString (params, 'type', 'SPOT');
-        params = this.omit (params, 'type');
-        await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
-            instrumentType = market['type'];
+            type = market['type'];
         }
-        request['instType'] = instrumentType.toUpperCase ();
+        request['instType'] = type.toUpperCase ();
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
