@@ -2010,10 +2010,10 @@ module.exports = class gateio extends Exchange {
         timestamp = this.safeInteger (order, 'create_time_ms', timestamp);
         let lastTradeTimestamp = this.safeTimestamp (order, 'update_time');
         lastTradeTimestamp = this.safeInteger (order, 'update_time_ms', lastTradeTimestamp);
-        const amount = this.safeNumber (order, 'amount');
-        const price = this.safeNumber (order, 'price');
-        const remaining = this.safeNumber (order, 'left');
-        const cost = this.safeNumber (order, 'filled_total'); // same as filled_price
+        const amount = this.safeString (order, 'amount');
+        const price = this.safeString (order, 'price');
+        const remaining = this.safeString (order, 'left');
+        const cost = this.safeString (order, 'filled_total'); // same as filled_price
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
         // open, closed, cancelled - almost already ccxt unified!
@@ -2036,7 +2036,7 @@ module.exports = class gateio extends Exchange {
             'currency': this.safeCurrencyCode (this.safeString (order, 'rebated_fee_currency')),
             'cost': this.parseNumber (Precise.stringNeg (rebate)),
         });
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': id,
             'timestamp': timestamp,
