@@ -1206,12 +1206,12 @@ module.exports = class ftx extends Exchange {
         const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const amount = this.safeNumber (order, 'size');
-        const filled = this.safeNumber (order, 'filledSize');
-        let remaining = this.safeNumber (order, 'remainingSize');
-        if ((remaining === 0.0) && (amount !== undefined) && (filled !== undefined)) {
-            remaining = Math.max (amount - filled, 0);
-            if (remaining > 0) {
+        const amount = this.safeString (order, 'size');
+        const filled = this.safeString (order, 'filledSize');
+        let remaining = this.safeString (order, 'remainingSize');
+        if (Precise.stringEquals (remaining, '0')) {
+            remaining = Precise.stringSub (amount, filled);
+            if (Precise.stringGt (remaining, '0')) {
                 status = 'canceled';
             }
         }
@@ -1232,17 +1232,13 @@ module.exports = class ftx extends Exchange {
         }
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
-        const average = this.safeNumber (order, 'avgFillPrice');
-        const price = this.safeNumber2 (order, 'price', 'triggerPrice', average);
-        let cost = undefined;
-        if (filled !== undefined && price !== undefined) {
-            cost = filled * price;
-        }
+        const average = this.safeString (order, 'avgFillPrice');
+        const price = this.safeString2 (order, 'price', 'triggerPrice', average);
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'triggeredAt'));
         const clientOrderId = this.safeString (order, 'clientId');
         const stopPrice = this.safeNumber (order, 'triggerPrice');
         const postOnly = this.safeValue (order, 'postOnly');
-        return {
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1257,14 +1253,14 @@ module.exports = class ftx extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
