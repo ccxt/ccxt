@@ -220,19 +220,19 @@ module.exports = class aofex extends Exchange {
                 },
                 'limits': {
                     'amount': {
-                        'min': this.safeNumber (precision, 'minQuantity'),
-                        'max': this.safeNumber (precision, 'maxQuantity'),
+                        'min': this.safeNumber (market, 'min_size'),
+                        'max': this.safeNumber (market, 'max_size'),
                     },
                     'price': {
-                        'min': this.safeNumber (precision, 'minPrice'),
-                        'max': this.safeNumber (precision, 'maxPrice'),
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
-                'info': market,
+                'info': this.extend (market, precision),
             });
         }
         return result;
