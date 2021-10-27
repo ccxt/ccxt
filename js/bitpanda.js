@@ -790,8 +790,8 @@ module.exports = class bitpanda extends Exchange {
             timestamp = this.parse8601 (this.safeString (trade, 'time'));
         }
         const side = this.safeStringLower2 (trade, 'side', 'taker_side');
-        const priceString = this.safeNumber (trade, 'price');
-        const amountString = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
         let cost = this.safeNumber (trade, 'volume');
         if ((cost === undefined) && (amountString !== undefined) && (priceString !== undefined)) {
             cost = this.parseNumber (Precise.stringMul (amountString, priceString));
