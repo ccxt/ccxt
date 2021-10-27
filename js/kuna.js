@@ -554,7 +554,7 @@ module.exports = class kuna extends Exchange {
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         const id = this.safeString (order, 'id');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -566,11 +566,11 @@ module.exports = class kuna extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': this.safeNumber (order, 'price'),
+            'price': this.safeString (order, 'price'),
             'stopPrice': undefined,
-            'amount': this.safeNumber (order, 'volume'),
-            'filled': this.safeNumber (order, 'executed_volume'),
-            'remaining': this.safeNumber (order, 'remaining_volume'),
+            'amount': this.safeString (order, 'volume'),
+            'filled': this.safeString (order, 'executed_volume'),
+            'remaining': this.safeString (order, 'remaining_volume'),
             'trades': undefined,
             'fee': undefined,
             'info': order,
