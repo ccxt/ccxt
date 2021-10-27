@@ -730,10 +730,10 @@ class coinbasepro extends Exchange {
         if (($status === 'closed') && ($doneReason === 'canceled')) {
             $status = 'canceled';
         }
-        $price = $this->safe_number($order, 'price');
-        $filled = $this->safe_number($order, 'filled_size');
-        $amount = $this->safe_number($order, 'size', $filled);
-        $cost = $this->safe_number($order, 'executed_value');
+        $price = $this->safe_string($order, 'price');
+        $filled = $this->safe_string($order, 'filled_size');
+        $amount = $this->safe_string($order, 'size', $filled);
+        $cost = $this->safe_string($order, 'executed_value');
         $feeCost = $this->safe_number($order, 'fill_fees');
         $fee = null;
         if ($feeCost !== null) {
@@ -754,7 +754,7 @@ class coinbasepro extends Exchange {
         $postOnly = $this->safe_value($order, 'post_only');
         $stopPrice = $this->safe_number($order, 'stop_price');
         $clientOrderId = $this->safe_string($order, 'client_oid');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,

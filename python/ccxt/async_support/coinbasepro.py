@@ -717,10 +717,10 @@ class coinbasepro(Exchange):
         doneReason = self.safe_string(order, 'done_reason')
         if (status == 'closed') and (doneReason == 'canceled'):
             status = 'canceled'
-        price = self.safe_number(order, 'price')
-        filled = self.safe_number(order, 'filled_size')
-        amount = self.safe_number(order, 'size', filled)
-        cost = self.safe_number(order, 'executed_value')
+        price = self.safe_string(order, 'price')
+        filled = self.safe_string(order, 'filled_size')
+        amount = self.safe_string(order, 'size', filled)
+        cost = self.safe_string(order, 'executed_value')
         feeCost = self.safe_number(order, 'fill_fees')
         fee = None
         if feeCost is not None:
@@ -739,7 +739,7 @@ class coinbasepro(Exchange):
         postOnly = self.safe_value(order, 'post_only')
         stopPrice = self.safe_number(order, 'stop_price')
         clientOrderId = self.safe_string(order, 'client_oid')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
