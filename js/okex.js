@@ -1950,7 +1950,6 @@ module.exports = class okex extends Exchange {
         };
         let instrumentType = this.safeString (params, 'type', 'SPOT');
         params = this.omit (params, 'type');
-        request['instType'] = type.toUpperCase ();
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
