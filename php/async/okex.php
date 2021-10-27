@@ -1943,8 +1943,13 @@ class okex extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $options = $this->safe_value($this->options, 'fetchMyTrades', array());
+        $type = $this->safe_string($options, 'type', $defaultType);
+        $params = $this->omit($params, 'type');
+        yield $this->load_markets();
         $request = array(
-            'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly' => currency['id'],
             // 'instId' => $market['id'],
             // 'ordId' => orderId,
@@ -1953,11 +1958,12 @@ class okex extends Exchange {
             // 'limit' => $limit, // default 100, max 100
         );
         $market = null;
-        yield $this->load_markets();
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['instId'] = $market['id'];
+            $type = $market['type'];
         }
+        $request['instType'] = strtoupper($type);
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }

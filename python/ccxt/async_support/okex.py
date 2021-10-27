@@ -1878,8 +1878,13 @@ class okex(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        defaultType = self.safe_string(self.options, 'defaultType')
+        options = self.safe_value(self.options, 'fetchMyTrades', {})
+        type = self.safe_string(options, 'type', defaultType)
+        params = self.omit(params, 'type')
+        await self.load_markets()
         request = {
-            'instType': 'SPOT',  # SPOT, MARGIN, SWAP, FUTURES, OPTION
+            # 'instType': 'SPOT',  # SPOT, MARGIN, SWAP, FUTURES, OPTION
             # 'uly': currency['id'],
             # 'instId': market['id'],
             # 'ordId': orderId,
@@ -1888,10 +1893,11 @@ class okex(Exchange):
             # 'limit': limit,  # default 100, max 100
         }
         market = None
-        await self.load_markets()
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
+            type = market['type']
+        request['instType'] = type.upper()
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         response = await self.privateGetTradeFillsHistory(self.extend(request, params))
