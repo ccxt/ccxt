@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.9.10'
+__version__ = '0.9.11'
 
 # -----------------------------------------------------------------------------
 
@@ -87,7 +87,6 @@ from ccxt.async_support.bytetrade import bytetrade                        # noqa
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.coinbase import coinbase                          # noqa: F401
 from ccxt.async_support.coincheck import coincheck                        # noqa: F401
-from ccxt.async_support.coinegg import coinegg                            # noqa: F401
 from ccxt.async_support.coinex import coinex                              # noqa: F401
 from ccxt.async_support.coinfalcon import coinfalcon                      # noqa: F401
 from ccxt.async_support.coinmarketcap import coinmarketcap                # noqa: F401
@@ -103,6 +102,7 @@ from ccxt.async_support.equos import equos                                # noqa
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
+from ccxt.async_support.hitbtc3 import hitbtc3                            # noqa: F401
 from ccxt.async_support.hollaex import hollaex                            # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve      # noqa: F401
 from ccxt.async_support.indodax import indodax                            # noqa: F401
