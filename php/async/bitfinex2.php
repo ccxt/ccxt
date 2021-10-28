@@ -998,10 +998,10 @@ class bitfinex2 extends bitfinex {
         // https://github.com/ccxt/ccxt/issues/6686
         // $timestamp = $this->safe_timestamp($order, 5);
         $timestamp = $this->safe_integer($order, 5);
-        $remaining = abs($this->safe_number($order, 6));
-        $signedAmount = $this->safe_number($order, 7);
-        $amount = abs($signedAmount);
-        $side = ($signedAmount < 0) ? 'sell' : 'buy';
+        $remaining = Precise::string_abs($this->safe_string($order, 6));
+        $signedAmount = $this->safe_string($order, 7);
+        $amount = Precise::string_abs($signedAmount);
+        $side = Precise::string_lt($signedAmount, '0') ? 'sell' : 'buy';
         $orderType = $this->safe_string($order, 8);
         $type = $this->safe_string($this->safe_value($this->options, 'exchangeTypes'), $orderType);
         $status = null;
@@ -1010,10 +1010,10 @@ class bitfinex2 extends bitfinex {
             $parts = explode(' @ ', $statusString);
             $status = $this->parse_order_status($this->safe_string($parts, 0));
         }
-        $price = $this->safe_number($order, 16);
-        $average = $this->safe_number($order, 17);
+        $price = $this->safe_string($order, 16);
+        $average = $this->safe_string($order, 17);
         $clientOrderId = $this->safe_string($order, 2);
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
