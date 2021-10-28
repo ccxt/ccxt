@@ -255,17 +255,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 1
      
    * - China
-     - .. image:: https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg
-          :target: https://www.coinegg.com/user/register?invite=523218
-          :alt: coinegg
-     
-     - coinegg
-     - `CoinEgg <https://www.coinegg.com/user/register?invite=523218>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://www.coinegg.com/explain.api.html
-          :alt: API Version *
-     
-   * - China
      - .. image:: https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg
           :target: https://www.coinex.com/register?refer_code=yw5fz
           :alt: coinex
@@ -1253,17 +1242,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - `CEX.IO <https://cex.io/r/0/up105393824/0/>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://cex.io/cex-api
-          :alt: API Version *
-     
-   * - UK
-     - .. image:: https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg
-          :target: https://www.coinegg.com/user/register?invite=523218
-          :alt: coinegg
-     
-     - coinegg
-     - `CoinEgg <https://www.coinegg.com/user/register?invite=523218>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://www.coinegg.com/explain.api.html
           :alt: API Version *
      
    * - UK
