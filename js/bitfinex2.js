@@ -992,10 +992,10 @@ module.exports = class bitfinex2 extends bitfinex {
         // https://github.com/ccxt/ccxt/issues/6686
         // const timestamp = this.safeTimestamp (order, 5);
         const timestamp = this.safeInteger (order, 5);
-        const remaining = Math.abs (this.safeNumber (order, 6));
-        const signedAmount = this.safeNumber (order, 7);
-        const amount = Math.abs (signedAmount);
-        const side = (signedAmount < 0) ? 'sell' : 'buy';
+        const remaining = Precise.stringAbs (this.safeString (order, 6));
+        const signedAmount = this.safeString (order, 7);
+        const amount = Precise.stringAbs (signedAmount);
+        const side = Precise.stringLt (signedAmount, '0') ? 'sell' : 'buy';
         const orderType = this.safeString (order, 8);
         const type = this.safeString (this.safeValue (this.options, 'exchangeTypes'), orderType);
         let status = undefined;
@@ -1004,10 +1004,10 @@ module.exports = class bitfinex2 extends bitfinex {
             const parts = statusString.split (' @ ');
             status = this.parseOrderStatus (this.safeString (parts, 0));
         }
-        const price = this.safeNumber (order, 16);
-        const average = this.safeNumber (order, 17);
+        const price = this.safeString (order, 16);
+        const average = this.safeString (order, 17);
         const clientOrderId = this.safeString (order, 2);
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
