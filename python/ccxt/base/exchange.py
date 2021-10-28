@@ -2507,5 +2507,5 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
 
-    def is_contract(self, type):
+    def is_derivative(self, type):
         return type == 'swap' or type == 'futures' or type == 'future' or type == 'delivery' or type == 'option'
