@@ -1913,8 +1913,4 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping')
         }
     }
-
-    isContract (type) {
-        return type === 'swap' || type === 'futures' || type === 'future' || type === 'delivery' || type === 'option';
-    }
 }
