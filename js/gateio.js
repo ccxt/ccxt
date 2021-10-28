@@ -632,6 +632,7 @@ module.exports = class gateio extends Exchange {
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
                     const feeIndex = (type === 'futures') ? 'swap' : type;
+                    const contract = swap || futures || option;
                     result.push ({
                         'info': market,
                         'id': id,
@@ -647,7 +648,8 @@ module.exports = class gateio extends Exchange {
                         'futures': futures,
                         'swap': swap,
                         'option': option,
-                        'contract': swap || futures || option,
+                        'derivative': contract,
+                        'contract': contract,
                         'linear': linear,
                         'inverse': inverse,
                         // Fee is in %, so divide by 100
