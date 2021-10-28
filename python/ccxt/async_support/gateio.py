@@ -1155,6 +1155,38 @@ class gateio(Exchange):
             'deposit': {},
         }
 
+    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        # defaultType = 'future'
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires the argument "symbol"')
+        market = self.market(symbol)
+        request = self.prepare_request(market)
+        request['type'] = 'fund'  # 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
+        if since is not None:
+            request['from'] = since
+        if limit is not None:
+            request['limit'] = limit
+        method = self.get_supported_mapping(market['type'], {
+            'swap': 'privateFuturesGetSettleAccountBook',
+            'futures': 'privateDeliveryGetSettleAccountBook',
+        })
+        response = await getattr(self, method)(self.extend(request, params))
+        result = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            timestamp = Precise.string_mul(entry['time'], '1000')
+            result.append({
+                'info': entry,
+                'symbol': symbol,
+                'code': self.safe_currency_code(entry['text']),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'id': None,
+                'amount': entry['change'],
+            })
+        return result
+
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)

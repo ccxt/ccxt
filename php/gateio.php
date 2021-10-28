@@ -1171,6 +1171,43 @@ class gateio extends Exchange {
         );
     }
 
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        // $defaultType = 'future';
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires the argument "$symbol"');
+        }
+        $market = $this->market($symbol);
+        $request = $this->prepare_request($market);
+        $request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
+        if ($since !== null) {
+            $request['from'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $method = $this->get_supported_mapping($market['type'], array(
+            'swap' => 'privateFuturesGetSettleAccountBook',
+            'futures' => 'privateDeliveryGetSettleAccountBook',
+        ));
+        $response = $this->$method (array_merge($request, $params));
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $timestamp = Precise::string_mul($entry['time'], '1000');
+            $result[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'code' => $this->safe_currency_code($entry['text']),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'id' => null,
+                'amount' => $entry['change'],
+            );
+        }
+        return $result;
+    }
+
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
