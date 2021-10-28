@@ -788,12 +788,6 @@ module.exports = class gateio extends Exchange {
         return this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
     }
 
-    getType (params) {
-        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        return type;
-    }
-
     async fetchCurrencies (params = {}) {
         const response = await this.publicSpotGetCurrencies (params);
         //
