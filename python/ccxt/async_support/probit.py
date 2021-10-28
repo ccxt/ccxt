@@ -182,6 +182,7 @@ class probit(Exchange):
                 'ORC': 'Oracle System',
                 'ROOK': 'Reckoon',
                 'SOC': 'Soda Coin',
+                'SST': 'SocialSwap',
                 'TCT': 'Top Coin Token',
                 'TPAY': 'Tetra Pay',
                 'UNI': 'UNICORN Token',
