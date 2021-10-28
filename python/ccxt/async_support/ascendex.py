@@ -980,10 +980,10 @@ class ascendex(Exchange):
         symbol = self.safe_symbol(marketId, market, '/')
         timestamp = self.safe_integer_2(order, 'timestamp', 'sendingTime')
         lastTradeTimestamp = self.safe_integer(order, 'lastExecTime')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'orderQty')
-        average = self.safe_number(order, 'avgPx')
-        filled = self.safe_number_2(order, 'cumFilledQty', 'cumQty')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'orderQty')
+        average = self.safe_string(order, 'avgPx')
+        filled = self.safe_string_2(order, 'cumFilledQty', 'cumQty')
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'id')
         if clientOrderId is not None:
@@ -1001,10 +1001,10 @@ class ascendex(Exchange):
                 'currency': feeCurrencyCode,
             }
         stopPrice = self.safe_number(order, 'stopPrice')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
