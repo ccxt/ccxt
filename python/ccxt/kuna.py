@@ -529,7 +529,7 @@ class kuna(Exchange):
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
         id = self.safe_string(order, 'id')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -541,11 +541,11 @@ class kuna(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': self.safe_number(order, 'price'),
+            'price': self.safe_string(order, 'price'),
             'stopPrice': None,
-            'amount': self.safe_number(order, 'volume'),
-            'filled': self.safe_number(order, 'executed_volume'),
-            'remaining': self.safe_number(order, 'remaining_volume'),
+            'amount': self.safe_string(order, 'volume'),
+            'filled': self.safe_string(order, 'executed_volume'),
+            'remaining': self.safe_string(order, 'remaining_volume'),
             'trades': None,
             'fee': None,
             'info': order,
