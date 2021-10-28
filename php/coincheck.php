@@ -180,13 +180,13 @@ class coincheck extends Exchange {
         $id = $this->safe_string($order, 'id');
         $side = $this->safe_string($order, 'order_type');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
-        $amount = $this->safe_number($order, 'pending_amount');
-        $remaining = $this->safe_number($order, 'pending_amount');
-        $price = $this->safe_number($order, 'rate');
+        $amount = $this->safe_string($order, 'pending_amount');
+        $remaining = $this->safe_string($order, 'pending_amount');
+        $price = $this->safe_string($order, 'rate');
         $status = null;
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
