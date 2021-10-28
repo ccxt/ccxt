@@ -2000,7 +2000,7 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    async createOrder (symbol, type = 'limit', side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         //
         // :param (str) symbol: base/quote currency pair
         // :param (str) type: Order type (limit, market, ...)
