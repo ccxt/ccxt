@@ -90,7 +90,6 @@ module.exports = class gateio extends Exchange {
                             '{settle}/insurance': 1.5,
                             '{settle}/contract_stats': 1.5,
                             '{settle}/liq_orders': 1.5,
-                            '{settle}/price_orders/{order_id}': 1.5,
                         },
                     },
                     'delivery': {
@@ -102,13 +101,6 @@ module.exports = class gateio extends Exchange {
                             '{settle}/candlesticks': 1.5,
                             '{settle}/tickers': 1.5,
                             '{settle}/insurance': 1.5,
-                            '{settle}/price_orders/{order_id}': 1.5,
-                        },
-                        'delete': {
-                            '{settle}/orders': 1.5,
-                            '{settle}/orders/{order_id}': 1.5,
-                            '{settle}/price_orders': 1.5,
-                            '{settle}/price_orders/{order_id}': 1.5,
                         },
                     },
                 },
@@ -305,7 +297,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'swap',
+                'defaultType': 'spot',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -2022,7 +2014,7 @@ module.exports = class gateio extends Exchange {
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
         const marketType = this.safeString (params, 'type', defaultType);
-        const future = market['future'];
+        const futures = market['futures'];
         const swap = market['swap'];
         const request = this.prepareRequest (market);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
@@ -2033,12 +2025,11 @@ module.exports = class gateio extends Exchange {
             }
             request['reduce_only'] = reduceOnly;
         }
-        if (future || swap) {
+        if (futures || swap) {
             if (side === 'sell') {
                 amount = 0 - amount;
             }
             request['size'] = this.parseNumber (this.amountToPrecision (symbol, amount));
-            request['settle'] = market['settleId'];
         } else {
             request['side'] = side;
             request['type'] = type;
@@ -2057,7 +2048,8 @@ module.exports = class gateio extends Exchange {
                 throw new ArgumentsRequired ('Argument price is required for ' + this.id + '.createOrder for limit orders');
             }
             request['price'] = this.priceToPrecision (symbol, price);
-        } else if (future || swap) {
+        } else if (type === 'market' && (swap || futures)) {
+            request['tif'] = 'ioc';
             request['price'] = 0;
         }
         const method = this.getSupportedMapping (market['type'], {
