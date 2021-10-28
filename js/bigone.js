@@ -29,8 +29,8 @@ module.exports = class bigone extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -199,6 +199,8 @@ module.exports = class bigone extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': true,
                 'precision': precision,
                 'limits': {
@@ -258,7 +260,7 @@ module.exports = class bigone extends Exchange {
         const close = this.safeNumber (ticker, 'close');
         const bid = this.safeValue (ticker, 'bid', {});
         const ask = this.safeValue (ticker, 'ask', {});
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -279,7 +281,7 @@ module.exports = class bigone extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1204,6 +1206,7 @@ module.exports = class bigone extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {

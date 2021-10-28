@@ -36,13 +36,13 @@ class yobit(Exchange):
             'version': '3',
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createDepositAddress': True,
-                'createMarketOrder': False,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchDepositAddress': True,
-                'fetchDeposits': False,
+                'fetchDeposits': None,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
@@ -52,8 +52,8 @@ class yobit(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTransactions': False,
-                'fetchWithdrawals': False,
+                'fetchTransactions': None,
+                'fetchWithdrawals': None,
                 'withdraw': True,
             },
             'urls': {
@@ -138,6 +138,7 @@ class yobit(Exchange):
                 'EXT': 'LifeExtension',
                 'FUND': 'FUNDChains',
                 'FUNK': 'FUNKCoin',
+                'FX': 'FCoin',
                 'GCC': 'GlobalCryptocurrency',
                 'GEN': 'Genstake',
                 'GENE': 'Genesiscoin',
@@ -172,6 +173,7 @@ class yobit(Exchange):
                 'PIVX': 'Darknet',
                 'PRS': 'PRE',
                 'PUTIN': 'PutinCoin',
+                'SPACE': 'Spacecoin',
                 'STK': 'StakeCoin',
                 'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
@@ -341,6 +343,8 @@ class yobit(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'taker': takerFee,
                 'maker': makerFee,
@@ -709,6 +713,7 @@ class yobit(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)

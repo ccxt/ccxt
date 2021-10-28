@@ -20,7 +20,6 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
@@ -38,7 +37,7 @@ class exmo(Exchange):
             'version': 'v1.1',
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,
@@ -168,6 +167,12 @@ class exmo(Exchange):
                     'percentage': False,  # fixed funding fees for crypto, see fetchFundingFees below
                 },
             },
+            'options': {
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                },
+            },
             'exceptions': {
                 'exact': {
                     '40005': AuthenticationError,  # Authorization error, incorrect signature
@@ -196,30 +201,10 @@ class exmo(Exchange):
         })
 
     def fetch_trading_fees(self, params={}):
-        if self.options['useWebapiForFetchingFees']:
-            response = self.webGetEnDocsFees(params)
-            parts = response.split('<td class="th_fees_2" colspan="2">')
-            numParts = len(parts)
-            if numParts != 2:
-                raise NotSupported(self.id + ' fetchTradingFees format has changed')
-            rest = parts[1]
-            parts = rest.split('</td>')
-            numParts = len(parts)
-            if numParts < 2:
-                raise NotSupported(self.id + ' fetchTradingFees format has changed')
-            fee = float(parts[0].replace('%', '')) * 0.01
-            taker = fee
-            maker = fee
-            return {
-                # 'info': response,
-                'maker': maker,
-                'taker': taker,
-            }
-        else:
-            return {
-                'maker': self.fees['trading']['maker'],
-                'taker': self.fees['trading']['taker'],
-            }
+        return {
+            'maker': self.fees['trading']['maker'],
+            'taker': self.fees['trading']['taker'],
+        }
 
     def parse_fixed_float_value(self, input):
         if (input is None) or (input == '-'):
@@ -438,6 +423,8 @@ class exmo(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
                 'taker': taker,
                 'maker': maker,
@@ -1107,6 +1094,7 @@ class exmo(Exchange):
         return None
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1116,6 +1104,12 @@ class exmo(Exchange):
         }
         if tag is not None:
             request['invoice'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['transport'] = network
+            params = self.omit(params, 'network')
         response = self.privatePostWithdrawCrypt(self.extend(request, params))
         return {
             'info': response,

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.56.29'
+__version__ = '1.59.29'
 
 # ----------------------------------------------------------------------------
 
@@ -99,9 +99,7 @@ from ccxt.bitstamp import bitstamp                          # noqa: F401
 from ccxt.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.bittrex import bittrex                            # noqa: F401
 from ccxt.bitvavo import bitvavo                            # noqa: F401
-from ccxt.bitz import bitz                                  # noqa: F401
 from ccxt.bl3p import bl3p                                  # noqa: F401
-from ccxt.braziliex import braziliex                        # noqa: F401
 from ccxt.btcalpha import btcalpha                          # noqa: F401
 from ccxt.btcbox import btcbox                              # noqa: F401
 from ccxt.btcmarkets import btcmarkets                      # noqa: F401
@@ -110,6 +108,7 @@ from ccxt.btcturk import btcturk                            # noqa: F401
 from ccxt.buda import buda                                  # noqa: F401
 from ccxt.bw import bw                                      # noqa: F401
 from ccxt.bybit import bybit                                # noqa: F401
+from ccxt.bytetrade import bytetrade                        # noqa: F401
 from ccxt.cdax import cdax                                  # noqa: F401
 from ccxt.cex import cex                                    # noqa: F401
 from ccxt.coinbase import coinbase                          # noqa: F401
@@ -119,7 +118,6 @@ from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinegg import coinegg                            # noqa: F401
 from ccxt.coinex import coinex                              # noqa: F401
 from ccxt.coinfalcon import coinfalcon                      # noqa: F401
-from ccxt.coinfloor import coinfloor                        # noqa: F401
 from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
@@ -132,12 +130,10 @@ from ccxt.digifinex import digifinex                        # noqa: F401
 from ccxt.eqonex import eqonex                              # noqa: F401
 from ccxt.equos import equos                                # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
-from ccxt.exx import exx                                    # noqa: F401
 from ccxt.flowbtc import flowbtc                            # noqa: F401
 from ccxt.ftx import ftx                                    # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
-from ccxt.hbtc import hbtc                                  # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hollaex import hollaex                            # noqa: F401
 from ccxt.huobi import huobi                                # noqa: F401
@@ -156,7 +152,7 @@ from ccxt.liquid import liquid                              # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
 from ccxt.lykke import lykke                                # noqa: F401
 from ccxt.mercado import mercado                            # noqa: F401
-from ccxt.mixcoins import mixcoins                          # noqa: F401
+from ccxt.mexc import mexc                                  # noqa: F401
 from ccxt.ndax import ndax                                  # noqa: F401
 from ccxt.novadax import novadax                            # noqa: F401
 from ccxt.oceanex import oceanex                            # noqa: F401
@@ -215,9 +211,7 @@ exchanges = [
     'bitstamp1',
     'bittrex',
     'bitvavo',
-    'bitz',
     'bl3p',
-    'braziliex',
     'btcalpha',
     'btcbox',
     'btcmarkets',
@@ -226,6 +220,7 @@ exchanges = [
     'buda',
     'bw',
     'bybit',
+    'bytetrade',
     'cdax',
     'cex',
     'coinbase',
@@ -235,7 +230,6 @@ exchanges = [
     'coinegg',
     'coinex',
     'coinfalcon',
-    'coinfloor',
     'coinmarketcap',
     'coinmate',
     'coinone',
@@ -248,12 +242,10 @@ exchanges = [
     'eqonex',
     'equos',
     'exmo',
-    'exx',
     'flowbtc',
     'ftx',
     'gateio',
     'gemini',
-    'hbtc',
     'hitbtc',
     'hollaex',
     'huobi',
@@ -272,7 +264,7 @@ exchanges = [
     'luno',
     'lykke',
     'mercado',
-    'mixcoins',
+    'mexc',
     'ndax',
     'novadax',
     'oceanex',

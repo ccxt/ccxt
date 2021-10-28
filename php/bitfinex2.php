@@ -24,31 +24,34 @@ class bitfinex2 extends bitfinex {
             'pro' => false,
             // new metainfo interface
             'has' => array(
-                'CORS' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'CORS' => null,
                 'createDepositAddress' => true,
                 'createLimitOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
-                'deposit' => false,
-                'editOrder' => false,
+                'deposit' => null,
+                'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => true,
-                'fetchClosedOrders' => false,
+                'fetchClosedOrders' => null,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchFundingFees' => false,
+                'fetchFundingFees' => null,
+                'fetchIndexOHLCV' => false,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
-                'fetchOrder' => false,
+                'fetchOrder' => null,
                 'fetchOrderTrades' => true,
                 'fetchStatus' => true,
                 'fetchTickers' => true,
-                'fetchTradingFee' => false,
-                'fetchTradingFees' => false,
+                'fetchTime' => false,
+                'fetchTradingFee' => null,
+                'fetchTradingFees' => null,
                 'fetchTransactions' => true,
                 'withdraw' => true,
             ),
@@ -726,13 +729,10 @@ class bitfinex2 extends bitfinex {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->milliseconds();
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol(null, $market);
         $length = is_array($ticker) ? count($ticker) : 0;
         $last = $this->safe_number($ticker, $length - 4);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -753,7 +753,7 @@ class bitfinex2 extends bitfinex {
             'baseVolume' => $this->safe_number($ticker, $length - 3),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

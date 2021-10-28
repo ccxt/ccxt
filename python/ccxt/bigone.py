@@ -39,8 +39,8 @@ class bigone(Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
                 'fetchOrderBook': True,
+                'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -208,6 +208,8 @@ class bigone(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': True,
                 'precision': precision,
                 'limits': {
@@ -262,7 +264,7 @@ class bigone(Exchange):
         close = self.safe_number(ticker, 'close')
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -283,7 +285,7 @@ class bigone(Exchange):
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -1145,6 +1147,7 @@ class bigone(Exchange):
         return self.parse_transactions(withdrawals, code, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         currency = self.currency(code)
         request = {

@@ -21,7 +21,7 @@ class timex extends Exchange {
             'has' => array(
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
@@ -883,6 +883,7 @@ class timex extends Exchange {
             'baseId' => $baseId,
             'quoteId' => $quoteId,
             'type' => 'spot',
+            'spot' => true,
             'active' => $active,
             'precision' => $precision,
             'limits' => $limits,

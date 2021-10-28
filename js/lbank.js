@@ -22,7 +22,7 @@ module.exports = class lbank extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': false, // status 0 API doesn't work
+                'fetchOpenOrders': undefined, // status 0 API doesn't work
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -129,6 +129,8 @@ module.exports = class lbank extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': true,
                 'precision': precision,
                 'limits': {
@@ -544,6 +546,7 @@ module.exports = class lbank extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // mark and fee are optional params, mark is a note and must be less than 255 characters
         this.checkAddress (address);
         await this.loadMarkets ();

@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,19 +18,17 @@ module.exports = class bitpanda extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'CORS': false,
-                'publicAPI': true,
-                'privateAPI': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDeposits': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -37,12 +36,14 @@ module.exports = class bitpanda extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
-                'fetchTicker': true,
-                'fetchTickers': true,
                 'fetchWithdrawals': true,
+                'privateAPI': true,
+                'publicAPI': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -333,6 +334,7 @@ module.exports = class bitpanda extends Exchange {
             const state = this.safeString (market, 'state');
             const active = (state === 'ACTIVE');
             result.push ({
+                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -341,7 +343,8 @@ module.exports = class bitpanda extends Exchange {
                 'quoteId': quoteId,
                 'precision': precision,
                 'limits': limits,
-                'info': market,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
             });
         }
@@ -787,12 +790,14 @@ module.exports = class bitpanda extends Exchange {
             timestamp = this.parse8601 (this.safeString (trade, 'time'));
         }
         const side = this.safeStringLower2 (trade, 'side', 'taker_side');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
         let cost = this.safeNumber (trade, 'volume');
-        if ((cost === undefined) && (amount !== undefined) && (price !== undefined)) {
-            cost = amount * price;
+        if ((cost === undefined) && (amountString !== undefined) && (priceString !== undefined)) {
+            cost = this.parseNumber (Precise.stringMul (amountString, priceString));
         }
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         const marketId = this.safeString (trade, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
         const feeCost = this.safeNumber (feeInfo, 'fee_amount');
@@ -1056,6 +1061,7 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1270,20 +1276,16 @@ module.exports = class bitpanda extends Exchange {
         const status = this.parseOrderStatus (rawStatus);
         const marketId = this.safeString (rawOrder, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const price = this.safeNumber (rawOrder, 'price');
-        const amount = this.safeNumber (rawOrder, 'amount');
-        const filledString = this.safeString (rawOrder, 'filled_amount');
-        const filled = this.parseNumber (filledString);
+        const price = this.safeString (rawOrder, 'price');
+        const amount = this.safeString (rawOrder, 'amount');
+        const filled = this.safeString (rawOrder, 'filled_amount');
         const side = this.safeStringLower (rawOrder, 'side');
         const type = this.safeStringLower (rawOrder, 'type');
         const timeInForce = this.parseTimeInForce (this.safeString (rawOrder, 'time_in_force'));
         const stopPrice = this.safeNumber (rawOrder, 'trigger_price');
         const postOnly = this.safeValue (rawOrder, 'is_post_only');
         const rawTrades = this.safeValue (order, 'trades', []);
-        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-            'type': type,
-        });
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1304,7 +1306,7 @@ module.exports = class bitpanda extends Exchange {
             'remaining': undefined,
             'status': status,
             // 'fee': undefined,
-            'trades': trades,
+            'trades': rawTrades,
         });
     }
 

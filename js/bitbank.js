@@ -180,6 +180,8 @@ module.exports = class bitbank extends Exchange {
                 'quote': quote,
                 'precision': precision,
                 'limits': limits,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'maker': maker,
                 'taker': taker,
@@ -189,13 +191,10 @@ module.exports = class bitbank extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeNumber (ticker, 'last');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -216,7 +215,7 @@ module.exports = class bitbank extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -567,6 +566,7 @@ module.exports = class bitbank extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         if (!('uuid' in params)) {
             throw new ExchangeError (this.id + ' uuid is required for withdrawal');
         }

@@ -224,6 +224,7 @@ class Transpiler {
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
+            [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -384,7 +385,7 @@ class Transpiler {
 
         // add {}-array syntax conversions up to 20 levels deep in the same line
         ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
-
+            [ /\[\s*([^\]]+)\s\]\s=/g, 'list($1) =' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],

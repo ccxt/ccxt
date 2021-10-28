@@ -18,7 +18,7 @@ module.exports = class luno extends Exchange {
             'version': '1',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -154,6 +154,8 @@ module.exports = class luno extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': precision,
                 'limits': {

@@ -28,27 +28,31 @@ class binance extends Exchange {
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
-                'fetchCurrencies' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchClosedOrders' => 'emulated',
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchIndexOHLCV' => true,
                 'fetchIsolatedPositions' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchOrders' => true,
                 'fetchPositions' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -56,13 +60,13 @@ class binance extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
-                'fetchTransactions' => false,
+                'fetchTransactions' => null,
+                'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
-                'withdraw' => true,
                 'transfer' => true,
-                'fetchTransfers' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -91,7 +95,6 @@ class binance extends Exchange {
                     'fapiPrivateV2' => 'https://testnet.binancefuture.com/fapi/v2',
                     'public' => 'https://testnet.binance.vision/api/v3',
                     'private' => 'https://testnet.binance.vision/api/v3',
-                    'v3' => 'https://testnet.binance.vision/api/v3',
                     'v1' => 'https://testnet.binance.vision/api/v1',
                 ),
                 'api' => array(
@@ -107,14 +110,13 @@ class binance extends Exchange {
                     'fapiPrivateV2' => 'https://fapi.binance.com/fapi/v2',
                     'public' => 'https://api.binance.com/api/v3',
                     'private' => 'https://api.binance.com/api/v3',
-                    'v3' => 'https://api.binance.com/api/v3',
                     'v1' => 'https://api.binance.com/api/v1',
                 ),
                 'www' => 'https://www.binance.com',
-                'referral' => array(
-                    'url' => 'https://www.binance.com/en/register?ref=BLEJC98C',
-                    'discount' => 0.2,
-                ),
+                // 'referral' => array(
+                //     'url' => 'https://www.binance.com/en/register?ref=BLEJC98C',
+                //     'discount' => 0.2,
+                // ),
                 'doc' => array(
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ),
@@ -179,6 +181,8 @@ class binance extends Exchange {
                         'capital/deposit/subAddress' => 1,
                         'capital/deposit/subHisrec' => 1,
                         'capital/withdraw/history' => 1,
+                        'account/status' => 1,
+                        'account/apiTradingStatus' => 1,
                         'bnbBurn' => 1,
                         'sub-account/assets' => 1,
                         'sub-account/futures/account' => 1,
@@ -443,6 +447,8 @@ class binance extends Exchange {
                         'aggTrades' => 20,
                         'klines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'continuousKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'markPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'indexPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'fundingRate' => 1,
                         'premiumIndex' => 1,
                         'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
@@ -521,12 +527,6 @@ class binance extends Exchange {
                         'account' => 1,
                         'balance' => 1,
                         'positionRisk' => 1,
-                    ),
-                ),
-                'v3' => array(
-                    'get' => array(
-                        'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
-                        'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
                     ),
                 ),
                 'public' => array(
@@ -697,6 +697,113 @@ class binance extends Exchange {
                     'CMFUTURE' => 'delivery',
                     'MINING' => 'mining',
                 ),
+                'networks' => array(
+                    'ERC20' => 'ETH',
+                    'TRC20' => 'TRX',
+                    'BEP2' => 'BNB',
+                    'BEP20' => 'BSC',
+                    'OMNI' => 'OMNI',
+                    'EOS' => 'EOS',
+                    'SPL' => 'SOL',
+                ),
+                'reverseNetworks' => array(
+                    'tronscan.org' => 'TRC20',
+                    'etherscan.io' => 'ERC20',
+                    'bscscan.com' => 'BSC',
+                    'explorer.binance.org' => 'BEP2',
+                    'bithomp.com' => 'XRP',
+                    'bloks.io' => 'EOS',
+                    'stellar.expert' => 'XLM',
+                    'blockchair.com/bitcoin' => 'BTC',
+                    'blockchair.com/bitcoin-cash' => 'BCH',
+                    'blockchair.com/ecash' => 'XEC',
+                    'explorer.litecoin.net' => 'LTC',
+                    'explorer.avax.network' => 'AVAX',
+                    'solscan.io' => 'SOL',
+                    'polkadot.subscan.io' => 'DOT',
+                    'dashboard.internetcomputer.org' => 'ICP',
+                    'explorer.chiliz.com' => 'CHZ',
+                    'cardanoscan.io' => 'ADA',
+                    'mainnet.theoan.com' => 'AION',
+                    'algoexplorer.io' => 'ALGO',
+                    'explorer.ambrosus.com' => 'AMB',
+                    'viewblock.io/zilliqa' => 'ZIL',
+                    'viewblock.io/arweave' => 'AR',
+                    'explorer.ark.io' => 'ARK',
+                    'atomscan.com' => 'ATOM',
+                    'www.mintscan.io' => 'CTK',
+                    'explorer.bitcoindiamond.org' => 'BCD',
+                    'btgexplorer.com' => 'BTG',
+                    'bts.ai' => 'BTS',
+                    'explorer.celo.org' => 'CELO',
+                    'explorer.nervos.org' => 'CKB',
+                    'cerebro.cortexlabs.ai' => 'CTXC',
+                    'chainz.cryptoid.info' => 'VIA',
+                    'explorer.dcrdata.org' => 'DCR',
+                    'digiexplorer.info' => 'DGB',
+                    'dock.subscan.io' => 'DOCK',
+                    'dogechain.info' => 'DOGE',
+                    'explorer.elrond.com' => 'EGLD',
+                    'blockscout.com' => 'ETC',
+                    'explore-fetchhub.fetch.ai' => 'FET',
+                    'filfox.info' => 'FIL',
+                    'fio.bloks.io' => 'FIO',
+                    'explorer.firo.org' => 'FIRO',
+                    'neoscan.io' => 'NEO',
+                    'ftmscan.com' => 'FTM',
+                    'explorer.gochain.io' => 'GO',
+                    'block.gxb.io' => 'GXS',
+                    'hash-hash.info' => 'HBAR',
+                    'www.hiveblockexplorer.com' => 'HIVE',
+                    'explorer.helium.com' => 'HNT',
+                    'tracker.icon.foundation' => 'ICX',
+                    'www.iostabc.com' => 'IOST',
+                    'explorer.iota.org' => 'IOTA',
+                    'iotexscan.io' => 'IOTX',
+                    'irishub.iobscan.io' => 'IRIS',
+                    'kava.mintscan.io' => 'KAVA',
+                    'scope.klaytn.com' => 'KLAY',
+                    'kmdexplorer.io' => 'KMD',
+                    'kusama.subscan.io' => 'KSM',
+                    'explorer.lto.network' => 'LTO',
+                    'polygonscan.com' => 'POLYGON',
+                    'explorer.ont.io' => 'ONT',
+                    'minaexplorer.com' => 'MINA',
+                    'nanolooker.com' => 'NANO',
+                    'explorer.nebulas.io' => 'NAS',
+                    'explorer.nbs.plus' => 'NBS',
+                    'explorer.nebl.io' => 'NEBL',
+                    'nulscan.io' => 'NULS',
+                    'nxscan.com' => 'NXS',
+                    'explorer.harmony.one' => 'ONE',
+                    'explorer.poa.network' => 'POA',
+                    'qtum.info' => 'QTUM',
+                    'explorer.rsk.co' => 'RSK',
+                    'www.oasisscan.com' => 'ROSE',
+                    'ravencoin.network' => 'RVN',
+                    'sc.tokenview.com' => 'SC',
+                    'secretnodes.com' => 'SCRT',
+                    'explorer.skycoin.com' => 'SKY',
+                    'steemscan.com' => 'STEEM',
+                    'explorer.stacks.co' => 'STX',
+                    'www.thetascan.io' => 'THETA',
+                    'scan.tomochain.com' => 'TOMO',
+                    'explore.vechain.org' => 'VET',
+                    'explorer.vite.net' => 'VITE',
+                    'www.wanscan.org' => 'WAN',
+                    'wavesexplorer.com' => 'WAVES',
+                    'wax.eosx.io' => 'WAXP',
+                    'waltonchain.pro' => 'WTC',
+                    'chain.nem.ninja' => 'XEM',
+                    'verge-blockchain.info' => 'XVG',
+                    'explorer.yoyow.org' => 'YOYOW',
+                    'explorer.zcha.in' => 'ZEC',
+                    'explorer.zensystem.io' => 'ZEN',
+                ),
+                'impliedNetworks' => array(
+                    'ETH' => array( 'ERC20' => 'ETH' ),
+                    'TRX' => array( 'TRC20' => 'TRX' ),
+                ),
                 'legalMoney' => array(
                     'MXN' => true,
                     'UGX' => true,
@@ -735,6 +842,7 @@ class binance extends Exchange {
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions' => array(
                 'exact' => array(
+                    'System is under maintenance.' => '\\ccxt\\OnMaintenance', // array("code":1,"msg":"System is under maintenance.")
                     'System abnormality' => '\\ccxt\\ExchangeError', // array("code":-1000,"msg":"System abnormality")
                     'You are not authorized to execute this request.' => '\\ccxt\\PermissionDenied', // array("msg":"You are not authorized to execute this request.")
                     'API key does not exist' => '\\ccxt\\AuthenticationError',
@@ -745,7 +853,7 @@ class binance extends Exchange {
                     'Rest API trading is not enabled.' => '\\ccxt\\ExchangeNotAvailable',
                     "You don't have permission." => '\\ccxt\\PermissionDenied', // array("msg":"You don't have permission.","success":false)
                     'Market is closed.' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1013,"msg":"Market is closed.")
-                    'Too many requests.' => '\\ccxt\\DDoSProtection', // array("msg":"Too many requests. Please try again later.","success":false)
+                    'Too many requests. Please try again later.' => '\\ccxt\\DDoSProtection', // array("msg":"Too many requests. Please try again later.","success":false)
                     '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
                     '-1001' => '\\ccxt\\ExchangeNotAvailable', // 'Internal error; unable to process your request. Please try again.'
                     '-1002' => '\\ccxt\\AuthenticationError', // 'You are not authorized to execute this request.'
@@ -812,7 +920,7 @@ class binance extends Exchange {
 
     public function currency_to_precision($currency, $fee) {
         // info is available in currencies only if the user has configured his api keys
-        if (is_array($this->currencies[$currency]) && array_key_exists('info', $this->currencies[$currency])) {
+        if ($this->safe_value($this->currencies[$currency], 'precision') !== null) {
             return $this->decimal_to_precision($fee, TRUNCATE, $this->currencies[$currency]['precision'], $this->precisionMode, $this->paddingMode);
         } else {
             return $this->number_to_string($fee);
@@ -824,14 +932,16 @@ class binance extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
-        $type = $this->safe_string_2($this->options, 'fetchTime', 'defaultType', 'spot');
+        $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $query = $this->omit($params, 'type');
         $method = 'publicGetTime';
         if ($type === 'future') {
             $method = 'fapiPublicGetTime';
         } else if ($type === 'delivery') {
             $method = 'dapiPublicGetTime';
         }
-        $response = $this->$method ($params);
+        $response = $this->$method ($query);
         return $this->safe_integer($response, 'serverTime');
     }
 
@@ -974,6 +1084,7 @@ class binance extends Exchange {
                 'precision' => $precision,
                 'info' => $entry,
                 'active' => $active,
+                'networks' => $networkList,
                 'fee' => $fee,
                 'fees' => $fees,
                 'limits' => $this->limits,
@@ -1270,11 +1381,11 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         $method = 'privateGetAccount';
         if ($type === 'future') {
-            $options = $this->safe_value($this->options, 'future', array());
+            $options = $this->safe_value($this->options, $type, array());
             $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
             $method = $this->safe_string($fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
         } else if ($type === 'delivery') {
-            $options = $this->safe_value($this->options, 'delivery', array());
+            $options = $this->safe_value($this->options, $type, array());
             $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
             $method = $this->safe_string($fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
         } else if ($type === 'margin') {
@@ -1631,7 +1742,7 @@ class binance extends Exchange {
             $baseVolume = $this->safe_number($ticker, 'volume');
             $quoteVolume = $this->safe_number($ticker, 'quoteVolume');
         }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1652,7 +1763,7 @@ class binance extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_status($params = array ()) {
@@ -1724,20 +1835,38 @@ class binance extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
-        //
+        // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     array(
-        //         1591478520000,
-        //         "0.02501300",
-        //         "0.02501800",
-        //         "0.02500000",
-        //         "0.02500000",
-        //         "22.19000000",
-        //         1591478579999,
-        //         "0.55490906",
-        //         40,
-        //         "10.92900000",
-        //         "0.27336462",
-        //         "0"
+        //         1591478520000, // open time
+        //         "0.02501300",  // open
+        //         "0.02501800",  // high
+        //         "0.02500000",  // low
+        //         "0.02500000",  // close
+        //         "22.19000000", // volume
+        //         1591478579999, // close time
+        //         "0.55490906",  // quote asset volume
+        //         40,            // number of trades
+        //         "10.92900000", // taker buy base asset volume
+        //         "0.27336462",  // taker buy quote asset volume
+        //         "0"            // ignore
+        //     )
+        //
+        //  when api method = fapiPublicGetMarkPriceKlines || fapiPublicGetIndexPriceKlines
+        //     array(
+        //         array(
+        //         1591256460000,          // Open time
+        //         "9653.29201333",        // Open
+        //         "9654.56401333",        // High
+        //         "9653.07367333",        // Low
+        //         "9653.07367333",        // Close (or latest price)
+        //         "0",                    // Ignore
+        //         1591256519999,          // Close time
+        //         "0",                    // Ignore
+        //         60,                     // Number of bisic data
+        //         "0",                    // Ignore
+        //         "0",                    // Ignore
+        //         "0"                     // Ignore
+        //         )
         //     )
         //
         return array(
@@ -1757,12 +1886,18 @@ class binance extends Exchange {
         // the reality is that the time range wider than 500 candles won't work right
         $defaultLimit = 500;
         $maxLimit = 1500;
+        $price = $this->safe_string($params, 'price');
+        $params = $this->omit($params, 'price');
         $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
         $request = array(
-            'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
             'limit' => $limit,
         );
+        if ($price === 'index') {
+            $request['pair'] = $market['id'];   // Index $price takes this argument instead of $symbol
+        } else {
+            $request['symbol'] = $market['id'];
+        }
         $duration = $this->parse_timeframe($timeframe);
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -1773,7 +1908,19 @@ class binance extends Exchange {
             }
         }
         $method = 'publicGetKlines';
-        if ($market['linear']) {
+        if ($price === 'mark') {
+            if ($market['inverse']) {
+                $method = 'dapiPublicGetMarkPriceKlines';
+            } else {
+                $method = 'fapiPublicGetMarkPriceKlines';
+            }
+        } else if ($price === 'index') {
+            if ($market['inverse']) {
+                $method = 'dapiPublicGetIndexPriceKlines';
+            } else {
+                $method = 'fapiPublicGetIndexPriceKlines';
+            }
+        } else if ($market['linear']) {
             $method = 'fapiPublicGetKlines';
         } else if ($market['inverse']) {
             $method = 'dapiPublicGetKlines';
@@ -1787,6 +1934,20 @@ class binance extends Exchange {
         //     ]
         //
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_trade($trade, $market = null) {
@@ -1876,6 +2037,16 @@ class binance extends Exchange {
         //       "buyer" => false
         //     }
         //
+        // array( respType => FULL )
+        //
+        //     {
+        //       "$price" => "4000.00000000",
+        //       "qty" => "1.00000000",
+        //       "commission" => "4.00000000",
+        //       "commissionAsset" => "USDT",
+        //       "tradeId" => "1234",
+        //     }
+        //
         $timestamp = $this->safe_integer_2($trade, 'T', 'time');
         $priceString = $this->safe_string_2($trade, 'p', 'price');
         $amountString = $this->safe_string_2($trade, 'q', 'qty');
@@ -1886,7 +2057,7 @@ class binance extends Exchange {
         $costString = Precise::string_mul($priceString, $amountString);
         $cost = $this->parse_number($costString);
         $id = $this->safe_string_2($trade, 't', 'a');
-        $id = $this->safe_string($trade, 'id', $id);
+        $id = $this->safe_string_2($trade, 'id', 'tradeId', $id);
         $side = null;
         $orderId = $this->safe_string($trade, 'orderId');
         if (is_array($trade) && array_key_exists('m', $trade)) {
@@ -2101,9 +2272,7 @@ class binance extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $filledString = $this->safe_string($order, 'executedQty', '0');
-        $filled = $this->parse_number($filledString);
-        $filledFloat = floatval($filledString);
+        $filled = $this->safe_string($order, 'executedQty', '0');
         $timestamp = null;
         $lastTradeTimestamp = null;
         if (is_array($order) && array_key_exists('time', $order)) {
@@ -2112,27 +2281,24 @@ class binance extends Exchange {
             $timestamp = $this->safe_integer($order, 'transactTime');
         } else if (is_array($order) && array_key_exists('updateTime', $order)) {
             if ($status === 'open') {
-                if ($filledFloat > 0) {
+                if (Precise::string_gt($filled, '0')) {
                     $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
                 } else {
                     $timestamp = $this->safe_integer($order, 'updateTime');
                 }
             }
         }
-        $averageString = $this->safe_string($order, 'avgPrice');
-        $average = $this->parse_number($this->omit_zero($averageString));
-        $priceString = $this->safe_string($order, 'price');
-        $price = $this->parse_number($this->omit_zero($priceString));
-        $amount = $this->safe_number($order, 'origQty');
+        $average = $this->safe_string($order, 'avgPrice');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'origQty');
         // - Spot/Margin $market => cummulativeQuoteQty
         // - Futures $market => cumQuote.
         //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
-        $cost = $this->safe_number_2($order, 'cummulativeQuoteQty', 'cumQuote');
+        $cost = $this->safe_string_2($order, 'cummulativeQuoteQty', 'cumQuote');
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
         $fills = $this->safe_value($order, 'fills', array());
-        $trades = $this->parse_trades($fills, $market);
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'GTX');
@@ -2141,7 +2307,7 @@ class binance extends Exchange {
         }
         $stopPriceString = $this->safe_string($order, 'stopPrice');
         $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -2162,8 +2328,15 @@ class binance extends Exchange {
             'remaining' => null,
             'status' => $status,
             'fee' => null,
-            'trades' => $trades,
-        ));
+            'trades' => $fills,
+        ), $market);
+    }
+
+    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $request = array(
+            'reduceOnly' => true,
+        );
+        return $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -2173,6 +2346,12 @@ class binance extends Exchange {
         $orderType = $this->safe_string($params, 'type', $defaultType);
         $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
         $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId' ));
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        if ($reduceOnly !== null) {
+            if (($orderType !== 'future') && ($orderType !== 'delivery')) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $orderType . ' orders, $reduceOnly orders are supported for futures and perpetuals only');
+            }
+        }
         $method = 'privatePostOrder';
         if ($orderType === 'future') {
             $method = 'fapiPrivatePostOrder';
@@ -2674,13 +2853,6 @@ class binance extends Exchange {
         if (is_array($this->markets) && array_key_exists($applicantSymbol, $this->markets)) {
             $tradedCurrencyIsQuote = true;
         }
-        //
-        // Warning
-        // Binance dust $trade `$fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
-        // So the parser should either set the `$fee->cost` to `0` or add it on top of the earned
-        // BNB `$amount` (or `$cost` depending on the $trade `$side`). The second of the above options
-        // is much more illustrative and therefore preferable.
-        //
         $feeCostString = $this->safe_string($trade, 'serviceChargeAmount');
         $fee = array(
             'currency' => $earnedCurrency,
@@ -2692,13 +2864,13 @@ class binance extends Exchange {
         $side = null;
         if ($tradedCurrencyIsQuote) {
             $symbol = $applicantSymbol;
-            $amountString = Precise::string_add($this->safe_string($trade, 'transferedAmount'), $feeCostString);
+            $amountString = $this->safe_string($trade, 'transferedAmount');
             $costString = $this->safe_string($trade, 'amount');
             $side = 'buy';
         } else {
             $symbol = $tradedCurrency . '/' . $earnedCurrency;
             $amountString = $this->safe_string($trade, 'amount');
-            $costString = Precise::string_add($this->safe_string($trade, 'transferedAmount'), $feeCostString);
+            $costString = $this->safe_string($trade, 'transferedAmount');
             $side = 'sell';
         }
         $priceString = null;
@@ -3204,7 +3376,10 @@ class binance extends Exchange {
 
     public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency($code);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $defaultType = $this->safe_string_2($this->options, 'fetchTransfers', 'defaultType', 'spot');
         $fromAccount = $this->safe_string($params, 'fromAccount', $defaultType);
         $defaultTo = ($fromAccount === 'future') ? 'spot' : 'future';
@@ -3258,10 +3433,17 @@ class binance extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
-            // 'network' => 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the $response of sapiGetCapitalConfigDetail
+            // 'network' => 'ETH', // 'BSC', 'XMR', you can get $network and isDefault in networkList in the $response of sapiGetCapitalConfigDetail
         );
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['network'] = $network;
+            $params = $this->omit($params, 'network');
+        }
         // has support for the 'network' parameter
-        // https://binance-docs.github.io/apidocs/spot/en/#deposit-$address-supporting-network-user_data
+        // https://binance-docs.github.io/apidocs/spot/en/#deposit-$address-supporting-$network-user_data
         $response = $this->sapiGetCapitalDepositAddress (array_merge($request, $params));
         //
         //     {
@@ -3272,17 +3454,43 @@ class binance extends Exchange {
         //             coin => 'XRP',
         //             $address => 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
         //             $tag => '108618262',
-        //             url => 'https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh'
+        //             $url => 'https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh'
         //         }
         //     }
         //
         $address = $this->safe_string($response, 'address');
-        $tag = $this->safe_string($response, 'tag');
+        $url = $this->safe_string($response, 'url');
+        $impliedNetwork = null;
+        if ($url !== null) {
+            $reverseNetworks = $this->safe_value($this->options, 'reverseNetworks', array());
+            $parts = explode('/', $url);
+            $topLevel = $this->safe_string($parts, 2);
+            if (($topLevel === 'blockchair.com') || ($topLevel === 'viewblock.io')) {
+                $subLevel = $this->safe_string($parts, 3);
+                if ($subLevel !== null) {
+                    $topLevel = $topLevel . '/' . $subLevel;
+                }
+            }
+            $impliedNetwork = $this->safe_string($reverseNetworks, $topLevel);
+            $impliedNetworks = $this->safe_value($this->options, 'impliedNetworks', array(
+                'ETH' => array( 'ERC20' => 'ETH' ),
+                'TRX' => array( 'TRC20' => 'TRX' ),
+            ));
+            if (is_array($impliedNetworks) && array_key_exists($code, $impliedNetworks)) {
+                $conversion = $this->safe_value($impliedNetworks, $code, array());
+                $impliedNetwork = $this->safe_string($conversion, $impliedNetwork, $impliedNetwork);
+            }
+        }
+        $tag = $this->safe_string($response, 'tag', '');
+        if (strlen($tag) === 0) {
+            $tag = null;
+        }
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => $impliedNetwork,
             'info' => $response,
         );
     }
@@ -3394,6 +3602,7 @@ class binance extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -3402,11 +3611,18 @@ class binance extends Exchange {
             'address' => $address,
             'amount' => $amount,
             // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
-            // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
+            // issue sapiGetCapitalConfigGetall () to get $networks for withdrawing USDT ERC20 vs USDT Omni
             // 'network' => 'ETH', // 'BTC', 'TRX', etc, optional
         );
         if ($tag !== null) {
             $request['addressTag'] = $tag;
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['network'] = $network;
+            $params = $this->omit($params, 'network');
         }
         $response = $this->sapiPostCapitalWithdrawApply (array_merge($request, $params));
         //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
@@ -3641,9 +3857,12 @@ class binance extends Exchange {
         } else if ($market['inverse']) {
             $method = 'dapiPublicGetPremiumIndex';
         } else {
-            throw NotSupported ($this->id . ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported($this->id . ' fetchFundingRate() supports linear and inverse contracts only');
         }
         $response = $this->$method (array_merge($request, $params));
+        if ($market['inverse']) {
+            $response = $response[0];
+        }
         //
         //     {
         //         "$symbol" => "BTCUSDT",
@@ -3656,7 +3875,71 @@ class binance extends Exchange {
         //         "time" => "1621252344001"
         //     }
         //
-        return $this->parse_funding_rate ($response);
+        return $this->parse_funding_rate($response, $market);
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $limit = null, $since = null, $params = array ()) {
+        //
+        // Gets a history of funding $rates with their timestamps
+        //  (param) $symbol => Future currency pair (e.g. "BTC/USDT")
+        //  (param) $limit => maximum number of data points returned
+        //  (param) $since => Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) $params => Object containing more $params for the $request
+        //          - until => Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  return => [array($symbol, fundingRate, timestamp)]
+        //
+        $this->load_markets();
+        $request = array();
+        $method = null;
+        $defaultType = $this->safe_string_2($this->options, 'fetchFundingRateHistory', 'defaultType', 'future');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $params = $this->omit($params, 'type');
+        if ($type === 'future') {
+            $method = 'fapiPublicGetFundingRate';
+        } else if ($type === 'delivery') {
+            $method = 'dapiPublicGetFundingRate';
+        }
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+            if ($market['linear']) {
+                $method = 'fapiPublicGetFundingRate';
+            } else if ($market['inverse']) {
+                $method = 'dapiPublicGetFundingRate';
+            }
+        }
+        if ($method === null) {
+            throw new NotSupported($this->id . ' fetchFundingRateHistory() not supported for ' . $type . ' markets');
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $till = $this->safe_integer($params, 'till'); // unified in milliseconds
+        $endTime = $this->safe_string($params, 'endTime', $till); // exchange-specific in milliseconds
+        $params = $this->omit($params, array( 'endTime', 'till' ));
+        if ($endTime !== null) {
+            $request['endTime'] = $endTime;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "$symbol" => "BTCUSDT",
+        //         "fundingRate" => "0.00063521",
+        //         "fundingTime" => "1621267200000",
+        //     }
+        //
+        $rates = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $rates[] = array(
+                'symbol' => $this->safe_string($response[$i], 'symbol'),
+                'fundingRate' => $this->safe_number($response[$i], 'fundingRate'),
+                'timestamp' => $this->safe_number($response[$i], 'fundingTime'),
+            );
+        }
+        return $rates;
     }
 
     public function fetch_funding_rates($symbols = null, $params = array ()) {
@@ -3670,13 +3953,13 @@ class binance extends Exchange {
         } else if ($type === 'delivery') {
             $method = 'dapiPublicGetPremiumIndex';
         } else {
-            throw NotSupported ($this->id . ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported($this->id . ' fetchFundingRates() supports linear and inverse contracts only');
         }
         $response = $this->$method ($query);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
-            $parsed = $this->parse_funding_rate ($entry);
+            $parsed = $this->parse_funding_rate($entry);
             $result[] = $parsed;
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
@@ -3689,7 +3972,7 @@ class binance extends Exchange {
         //     "$symbol" => "BTCUSDT",
         //     "$markPrice" => "45802.81129892",
         //     "$indexPrice" => "45745.47701915",
-        //     "estimatedSettlePrice" => "45133.91753671",
+        //     "$estimatedSettlePrice" => "45133.91753671",
         //     "lastFundingRate" => "0.00063521",
         //     "$interestRate" => "0.00010000",
         //     "$nextFundingTime" => "1621267200000",
@@ -3702,19 +3985,24 @@ class binance extends Exchange {
         $markPrice = $this->safe_number($premiumIndex, 'markPrice');
         $indexPrice = $this->safe_number($premiumIndex, 'indexPrice');
         $interestRate = $this->safe_number($premiumIndex, 'interestRate');
-        // current funding rate
-        $fundingRate = $this->safe_number($premiumIndex, 'lastFundingRate');
+        $estimatedSettlePrice = $this->safe_number($premiumIndex, 'estimatedSettlePrice');
+        $nextFundingRate = $this->safe_number($premiumIndex, 'lastFundingRate');
         $nextFundingTime = $this->safe_integer($premiumIndex, 'nextFundingTime');
+        $previousFundingTime = $nextFundingTime - (8 * 3600000);
         return array(
             'info' => $premiumIndex,
             'symbol' => $symbol,
             'markPrice' => $markPrice,
             'indexPrice' => $indexPrice,
             'interestRate' => $interestRate,
+            'estimatedSettlePrice' => $estimatedSettlePrice,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fundingRate' => $fundingRate,
+            'previousFundingRate' => null,
+            'nextFundingRate' => $nextFundingRate,
+            'previousFundingTimestamp' => $previousFundingTime, // subtract 8 hours
             'nextFundingTimestamp' => $nextFundingTime,
+            'previousFundingDatetime' => $this->iso8601($previousFundingTime),
             'nextFundingDatetime' => $this->iso8601($nextFundingTime),
         );
     }
@@ -3740,11 +4028,14 @@ class binance extends Exchange {
             $marketId = $this->safe_string($position, 'symbol');
             $market = $this->safe_market($marketId);
             $code = ($this->options['defaultType'] === 'future') ? $market['quote'] : $market['base'];
-            $parsed = $this->parse_position(array_merge($position, array(
-                'crossMargin' => $balances[$code]['crossMargin'],
-                'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
-            )), $market);
-            $result[] = $parsed;
+            // sometimes not all the codes are correctly returned...
+            if (is_array($balances) && array_key_exists($code, $balances)) {
+                $parsed = $this->parse_position(array_merge($position, array(
+                    'crossMargin' => $balances[$code]['crossMargin'],
+                    'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
+                )), $market);
+                $result[] = $parsed;
+            }
         }
         return $result;
     }
@@ -4219,7 +4510,7 @@ class binance extends Exchange {
         } else if ($market['inverse']) {
             $method = 'dapiPrivatePostLeverage';
         } else {
-            throw NotSupported ($this->id . ' setLeverage() supports linear and inverse contracts only');
+            throw new NotSupported($this->id . ' setLeverage() supports linear and inverse contracts only');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -4228,7 +4519,7 @@ class binance extends Exchange {
         return $this->$method (array_merge($request, $params));
     }
 
-    public function set_margin_mode($symbol, $marginType, $params = array ()) {
+    public function set_margin_mode($symbol, $marginType, $params = array (), $leverage = null) {
         //
         // array( "code" => -4048 , "msg" => "Margin type cannot be changed if there exists position." )
         //
@@ -4236,6 +4527,9 @@ class binance extends Exchange {
         //
         // array( "code" => 200, "msg" => "success" )
         //
+        if ($leverage) { // Needed because other exchanges require this argument
+            $leverage = null;
+        }
         $marginType = strtoupper($marginType);
         if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
             throw new BadRequest($this->id . ' $marginType must be either isolated or crossed');

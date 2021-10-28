@@ -148,7 +148,10 @@ class Precise:
     def string_div(string1, string2, precision=18):
         if string1 is None or string2 is None:
             return None
-        return str(Precise(string1).div(Precise(string2), precision))
+        string2_precise = Precise(string2)
+        if string2_precise.integer == 0:
+            return None
+        return str(Precise(string1).div(string2_precise, precision))
 
     @staticmethod
     def string_add(string1, string2):

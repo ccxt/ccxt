@@ -31,8 +31,8 @@ class bigone extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchOrders' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -201,6 +201,8 @@ class bigone extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => true,
                 'precision' => $precision,
                 'limits' => array(
@@ -260,7 +262,7 @@ class bigone extends Exchange {
         $close = $this->safe_number($ticker, 'close');
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -281,7 +283,7 @@ class bigone extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1206,6 +1208,7 @@ class bigone extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(

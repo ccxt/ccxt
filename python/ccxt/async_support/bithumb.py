@@ -33,7 +33,9 @@ class bithumb(Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -141,6 +143,7 @@ class bithumb(Exchange):
                 },
             },
             'commonCurrencies': {
+                'FTC': 'FTC2',
                 'MIR': 'MIR COIN',
                 'SOC': 'Soda Coin',
             },
@@ -178,6 +181,8 @@ class bithumb(Exchange):
                     'base': base,
                     'quote': quote,
                     'info': market,
+                    'type': 'spot',
+                    'spot': True,
                     'active': active,
                     'precision': {
                         'amount': 4,
@@ -787,6 +792,7 @@ class bithumb(Exchange):
         return self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)

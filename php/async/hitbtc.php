@@ -24,7 +24,7 @@ class hitbtc extends Exchange {
             'pro' => true,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'editOrder' => true,
@@ -32,7 +32,7 @@ class hitbtc extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchDeposits' => false,
+                'fetchDeposits' => null,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -40,16 +40,16 @@ class hitbtc extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => null,
                 'fetchOrderTrades' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTransactions' => true,
-                'fetchWithdrawals' => false,
-                'withdraw' => true,
+                'fetchWithdrawals' => null,
                 'transfer' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => 'M1',
@@ -176,6 +176,13 @@ class hitbtc extends Exchange {
                 ),
             ),
             'options' => array(
+                'networks' => array(
+                    'ETH' => 'T20',
+                    'ERC20' => 'T20',
+                    'TRX' => 'TTRX',
+                    'TRC20' => 'TTRX',
+                    'OMNI' => '',
+                ),
                 'defaultTimeInForce' => 'FOK',
                 'accountsByType' => array(
                     'bank' => 'bank',
@@ -284,6 +291,8 @@ class hitbtc extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => true,
                 'taker' => $taker,
                 'maker' => $maker,
@@ -1070,26 +1079,26 @@ class hitbtc extends Exchange {
         //
         //     array(
         //         array(
-        //         "id" => 9535486,
-        //         "clientOrderId" => "f8dbaab336d44d5ba3ff578098a68454",
-        //         "orderId" => 816088377,
-        //         "$symbol" => "ETHBTC",
-        //         "side" => "sell",
-        //         "quantity" => "0.061",
-        //         "price" => "0.045487",
-        //         "fee" => "0.000002775",
-        //         "timestamp" => "2017-05-17T12:32:57.848Z"
+        //             "id" => 9535486,
+        //             "clientOrderId" => "f8dbaab336d44d5ba3ff578098a68454",
+        //             "orderId" => 816088377,
+        //             "$symbol" => "ETHBTC",
+        //             "side" => "sell",
+        //             "quantity" => "0.061",
+        //             "price" => "0.045487",
+        //             "fee" => "0.000002775",
+        //             "timestamp" => "2017-05-17T12:32:57.848Z"
         //         ),
         //         {
-        //         "id" => 9535437,
-        //         "clientOrderId" => "27b9bfc068b44194b1f453c7af511ed6",
-        //         "orderId" => 816088021,
-        //         "$symbol" => "ETHBTC",
-        //         "side" => "buy",
-        //         "quantity" => "0.038",
-        //         "price" => "0.046000",
-        //         "fee" => "-0.000000174",
-        //         "timestamp" => "2017-05-17T12:30:57.848Z"
+        //             "id" => 9535437,
+        //             "clientOrderId" => "27b9bfc068b44194b1f453c7af511ed6",
+        //             "orderId" => 816088021,
+        //             "$symbol" => "ETHBTC",
+        //             "side" => "buy",
+        //             "quantity" => "0.038",
+        //             "price" => "0.046000",
+        //             "fee" => "-0.000000174",
+        //             "timestamp" => "2017-05-17T12:30:57.848Z"
         //         }
         //     )
         //
@@ -1140,6 +1149,13 @@ class hitbtc extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
+        $network = $this->safe_string($params, 'network');
+        if ($network !== null) {
+            $params = $this->omit($params, 'network');
+            $networks = $this->safe_value($this->options, 'networks');
+            $endpart = $this->safe_string($networks, $network, $network);
+            $request['currency'] .= $endpart;
+        }
         $response = yield $this->privateGetAccountCryptoAddressCurrency (array_merge($request, $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
@@ -1152,7 +1168,28 @@ class hitbtc extends Exchange {
         );
     }
 
+    public function convert_currency_network($code, $amount, $fromNetwork, $toNetwork, $params) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $fromNetwork = $this->safe_string($networks, $fromNetwork, $fromNetwork); // handle ETH>ERC20 alias
+        $toNetwork = $this->safe_string($networks, $toNetwork, $toNetwork); // handle ETH>ERC20 alias
+        if ($fromNetwork === $toNetwork) {
+            throw new ExchangeError($this->id . ' $fromNetwork cannot be the same as toNetwork');
+        }
+        $request = array(
+            'fromCurrency' => $currency['id'] . $fromNetwork,
+            'toCurrency' => $currency['id'] . $toNetwork,
+            'amount' => floatval($this->currency_to_precision($code, $amount)),
+        );
+        $response = yield $this->privatePostAccountCryptoTransferConvert (array_merge($request, $params));
+        return array(
+            'info' => $response,
+        );
+    }
+
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         yield $this->load_markets();
         $this->check_address($address);
         $currency = $this->currency($code);
@@ -1163,6 +1200,13 @@ class hitbtc extends Exchange {
         );
         if ($tag) {
             $request['paymentId'] = $tag;
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['currency'] .= $network; // when $network the $currency need to be changed to $currency . $network
+            $params = $this->omit($params, 'network');
         }
         $response = yield $this->privatePostAccountCryptoWithdraw (array_merge($request, $params));
         return array(

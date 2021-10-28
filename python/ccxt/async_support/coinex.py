@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -251,6 +252,8 @@ class coinex(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'taker': self.safe_number(market, 'taker_fee_rate'),
                 'maker': self.safe_number(market, 'maker_fee_rate'),
@@ -671,6 +674,7 @@ class coinex(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
@@ -932,9 +936,10 @@ class coinex(Exchange):
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
         message = self.safe_string(response, 'message')
-        if (code != '0') or (data is None) or ((message != 'Success') and (message != 'Ok') and not data):
+        if (code != '0') or (data is None) or ((message != 'Success') and (message != 'Succeeded') and (message != 'Ok') and not data):
             responseCodes = {
                 # https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
+                '23': PermissionDenied,  # IP Prohibited
                 '24': AuthenticationError,
                 '25': AuthenticationError,
                 '34': AuthenticationError,  # Access id is expires

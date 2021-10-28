@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, NotSupported, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -18,7 +18,7 @@ module.exports = class exmo extends Exchange {
             'version': 'v1.1',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
@@ -148,6 +148,12 @@ module.exports = class exmo extends Exchange {
                     'percentage': false, // fixed funding fees for crypto, see fetchFundingFees below
                 },
             },
+            'options': {
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                },
+            },
             'exceptions': {
                 'exact': {
                     '40005': AuthenticationError, // Authorization error, incorrect signature
@@ -177,33 +183,10 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        if (this.options['useWebapiForFetchingFees']) {
-            const response = await this.webGetEnDocsFees (params);
-            let parts = response.split ('<td class="th_fees_2" colspan="2">');
-            let numParts = parts.length;
-            if (numParts !== 2) {
-                throw new NotSupported (this.id + ' fetchTradingFees format has changed');
-            }
-            const rest = parts[1];
-            parts = rest.split ('</td>');
-            numParts = parts.length;
-            if (numParts < 2) {
-                throw new NotSupported (this.id + ' fetchTradingFees format has changed');
-            }
-            const fee = parseFloat (parts[0].replace ('%', '')) * 0.01;
-            const taker = fee;
-            const maker = fee;
-            return {
-                // 'info': response,
-                'maker': maker,
-                'taker': taker,
-            };
-        } else {
-            return {
-                'maker': this.fees['trading']['maker'],
-                'taker': this.fees['trading']['taker'],
-            };
-        }
+        return {
+            'maker': this.fees['trading']['maker'],
+            'taker': this.fees['trading']['taker'],
+        };
     }
 
     parseFixedFloatValue (input) {
@@ -439,6 +422,8 @@ module.exports = class exmo extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': true,
                 'taker': taker,
                 'maker': maker,
@@ -1186,6 +1171,7 @@ module.exports = class exmo extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1195,6 +1181,13 @@ module.exports = class exmo extends Exchange {
         };
         if (tag !== undefined) {
             request['invoice'] = tag;
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['transport'] = network;
+            params = this.omit (params, 'network');
         }
         const response = await this.privatePostWithdrawCrypt (this.extend (request, params));
         return {

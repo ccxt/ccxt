@@ -27,19 +27,22 @@ class bitmex extends Exchange {
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -229,6 +232,7 @@ class bitmex extends Exchange {
             if ($tickSize !== null) {
                 $precision['price'] = $tickSize;
             }
+            $maxLeverage = $this->parse_number(Precise::string_div('1', $this->safe_string($market, 'initMargin', '1')));
             $limits = array(
                 'amount' => array(
                     'min' => null,
@@ -241,6 +245,9 @@ class bitmex extends Exchange {
                 'cost' => array(
                     'min' => null,
                     'max' => null,
+                ),
+                'leverage' => array(
+                    'max' => $maxLeverage,
                 ),
             );
             $limitField = ($position === $quote) ? 'cost' : 'amount';
@@ -1574,6 +1581,7 @@ class bitmex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
         // $currency = $this->currency($code);

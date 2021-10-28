@@ -186,6 +186,8 @@ class bitbank(Exchange):
                 'quote': quote,
                 'precision': precision,
                 'limits': limits,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'maker': maker,
                 'taker': taker,
@@ -193,12 +195,10 @@ class bitbank(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(None, market)
         timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_number(ticker, 'last')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -219,7 +219,7 @@ class bitbank(Exchange):
             'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -542,6 +542,7 @@ class bitbank(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         if not ('uuid' in params):
             raise ExchangeError(self.id + ' uuid is required for withdrawal')
         await self.load_markets()

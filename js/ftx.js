@@ -15,7 +15,7 @@ module.exports = class ftx extends Exchange {
             'id': 'ftx',
             'name': 'FTX',
             'countries': [ 'HK' ],
-            'rateLimit': 50,
+            'rateLimit': 100,
             'certified': true,
             'pro': true,
             'hostname': 'ftx.com', // or ftx.us
@@ -39,12 +39,18 @@ module.exports = class ftx extends Exchange {
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': false,
+                'fetchFundingFees': undefined,
+                'fetchFundingRate': true,
+                'fetchFundingHistory': true,
+                'fetchFundingRateHistory': true,
+                'fetchFundingRates': undefined,
+                'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -52,12 +58,15 @@ module.exports = class ftx extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPositions': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
+                'setMarginMode': false, // FTX only supports cross margin
                 'withdraw': true,
             },
             'timeframes': {
@@ -297,6 +306,7 @@ module.exports = class ftx extends Exchange {
                     'Invalid reduce-only order': InvalidOrder, // {"error":"Invalid reduce-only order","success":false}
                     'Account does not have enough balances': InsufficientFunds, // {"success":false,"error":"Account does not have enough balances"}
                     'Not authorized for subaccount-specific access': PermissionDenied, // {"success":false,"error":"Not authorized for subaccount-specific access"}
+                    'Not approved to trade this product': PermissionDenied, // {"success":false,"error":"Not approved to trade this product"}
                 },
                 'broad': {
                     'Account does not have enough margin for order': InsufficientFunds,
@@ -330,6 +340,17 @@ module.exports = class ftx extends Exchange {
                 'sign': {
                     'ftx.com': 'FTX',
                     'ftx.us': 'FTXUS',
+                },
+                'networks': {
+                    'SOL': 'sol',
+                    'SPL': 'sol',
+                    'TRX': 'trx',
+                    'TRC20': 'trx',
+                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
+                    'OMNI': 'omni',
+                    'BEP2': 'bep2',
+                    'BNB': 'bep2',
                 },
             },
         });
@@ -463,6 +484,9 @@ module.exports = class ftx extends Exchange {
                     'cost': {
                         'min': undefined,
                         'max': undefined,
+                    },
+                    'leverage': {
+                        'max': 20,
                     },
                 },
                 'info': market,
@@ -687,6 +711,8 @@ module.exports = class ftx extends Exchange {
             'resolution': this.timeframes[timeframe],
             'market_name': marketId,
         };
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
         // max 1501 candles, including the current candle when since is not specified
         limit = (limit === undefined) ? 1501 : limit;
         if (since === undefined) {
@@ -698,7 +724,14 @@ module.exports = class ftx extends Exchange {
             request['limit'] = limit;
             request['end_time'] = this.sum (request['start_time'], limit * this.parseTimeframe (timeframe));
         }
-        const response = await this.publicGetMarketsMarketNameCandles (this.extend (request, params));
+        let method = 'publicGetMarketsMarketNameCandles';
+        if (price === 'index') {
+            if (symbol in this.markets) {
+                request['market_name'] = market['baseId'];
+            }
+            method = 'publicGetIndexesMarketNameCandles';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -726,6 +759,13 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {
@@ -964,6 +1004,58 @@ module.exports = class ftx extends Exchange {
         };
     }
 
+    async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
+        //
+        // Gets a history of funding rates with their timestamps
+        //  (param) symbol: Future currency pair (e.g. "BTC-PERP")
+        //  (param) limit: Not used by ftx
+        //  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) params: Object containing more params for the request
+        //             - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  return: [{symbol, fundingRate, timestamp}]
+        //
+        await this.loadMarkets ();
+        const request = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['future'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = parseInt (since / 1000);
+        }
+        const till = this.safeInteger (params, 'till'); // unified in milliseconds
+        const endTime = this.safeString (params, 'end_time'); // exchange-specific in seconds
+        params = this.omit (params, [ 'end_time', 'till' ]);
+        if (till !== undefined) {
+            request['end_time'] = parseInt (till / 1000);
+        } else if (endTime !== undefined) {
+            request['end_time'] = endTime;
+        }
+        const response = await this.publicGetFundingRates (this.extend (request, params));
+        //
+        //     {
+        //        "success": true,
+        //        "result": [
+        //          {
+        //            "future": "BTC-PERP",
+        //            "rate": 0.0025,
+        //            "time": "2019-06-02T08:00:00+00:00"
+        //          }
+        //        ]
+        //      }
+        //
+        const result = this.safeValue (response, 'result');
+        const rates = [];
+        for (let i = 0; i < result.length; i++) {
+            rates.push ({
+                'symbol': this.safeString (result[i], 'future'),
+                'fundingRate': this.safeNumber (result[i], 'rate'),
+                'timestamp': this.parse8601 (this.safeString (result[i], 'time')),
+            });
+        }
+        return this.sortBy (rates, 'timestamp');
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetWalletBalances (params);
@@ -1114,12 +1206,12 @@ module.exports = class ftx extends Exchange {
         const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const amount = this.safeNumber (order, 'size');
-        const filled = this.safeNumber (order, 'filledSize');
-        let remaining = this.safeNumber (order, 'remainingSize');
-        if ((remaining === 0.0) && (amount !== undefined) && (filled !== undefined)) {
-            remaining = Math.max (amount - filled, 0);
-            if (remaining > 0) {
+        const amount = this.safeString (order, 'size');
+        const filled = this.safeString (order, 'filledSize');
+        let remaining = this.safeString (order, 'remainingSize');
+        if (Precise.stringEquals (remaining, '0')) {
+            remaining = Precise.stringSub (amount, filled);
+            if (Precise.stringGt (remaining, '0')) {
                 status = 'canceled';
             }
         }
@@ -1140,17 +1232,13 @@ module.exports = class ftx extends Exchange {
         }
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
-        const average = this.safeNumber (order, 'avgFillPrice');
-        const price = this.safeNumber2 (order, 'price', 'triggerPrice', average);
-        let cost = undefined;
-        if (filled !== undefined && price !== undefined) {
-            cost = filled * price;
-        }
+        const average = this.safeString (order, 'avgFillPrice');
+        const price = this.safeString2 (order, 'price', 'triggerPrice', average);
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'triggeredAt'));
         const clientOrderId = this.safeString (order, 'clientId');
         const stopPrice = this.safeNumber (order, 'triggerPrice');
         const postOnly = this.safeValue (order, 'postOnly');
-        return {
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1165,14 +1253,14 @@ module.exports = class ftx extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1214,8 +1302,12 @@ module.exports = class ftx extends Exchange {
                 request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
             }
         } else if (type === 'trailingStop') {
+            const trailValue = this.safeNumber (params, 'trailValue', price);
+            if (trailValue === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a trailValue parameter or a price argument (negative or positive) for a ' + type + ' order');
+            }
             method = 'privatePostConditionalOrders';
-            request['trailValue'] = parseFloat (this.priceToPrecision (symbol, price)); // negative for "sell", positive for "buy"
+            request['trailValue'] = parseFloat (this.priceToPrecision (symbol, trailValue)); // negative for "sell", positive for "buy"
         } else {
             throw new InvalidOrder (this.id + ' createOrder () does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported');
         }
@@ -1606,6 +1698,7 @@ module.exports = class ftx extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);
@@ -1621,6 +1714,13 @@ module.exports = class ftx extends Exchange {
         }
         if (tag !== undefined) {
             request['tag'] = tag;
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['method'] = network;
+            params = this.omit (params, 'network');
         }
         const response = await this.privatePostWalletWithdrawals (this.extend (request, params));
         //
@@ -1646,7 +1746,7 @@ module.exports = class ftx extends Exchange {
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            // 'showAvgPrice': false,
+            'showAvgPrice': true,
         };
         const response = await this.privateGetPositions (this.extend (request, params));
         //
@@ -1665,6 +1765,9 @@ module.exports = class ftx extends Exchange {
         //                 "openSize": 1744.32,
         //                 "realizedPnl": 3.39441714,
         //                 "shortOrderSize": 1732.09,
+        //                 "recentAverageOpenPrice": 278.98,
+        //                 "recentPnl": 2.44,
+        //                 "recentBreakEvenPrice": 278.98,
         //                 "side": "sell",
         //                 "size": 0.23,
         //                 "unrealizedPnl": 0,
@@ -1673,62 +1776,90 @@ module.exports = class ftx extends Exchange {
         //         ]
         //     }
         //
-        // todo unify parsePosition/parsePositions
-        return this.safeValue (response, 'result', []);
+        const result = this.safeValue (response, 'result', []);
+        const results = [];
+        for (let i = 0; i < result.length; i++) {
+            results.push (this.parsePosition (result[i]));
+        }
+        return results;
     }
 
-    async fetchAccountPositions (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetAccount (params);
+    parsePosition (position) {
         //
-        //     {
-        //         "result":{
-        //             "backstopProvider":false,
-        //             "chargeInterestOnNegativeUsd":false,
-        //             "collateral":2830.2567913677476,
-        //             "freeCollateral":2829.670741867416,
-        //             "initialMarginRequirement":0.05,
-        //             "leverage":20.0,
-        //             "liquidating":false,
-        //             "maintenanceMarginRequirement":0.03,
-        //             "makerFee":0.0,
-        //             "marginFraction":null,
-        //             "openMarginFraction":null,
-        //             "positionLimit":null,
-        //             "positionLimitUsed":null,
-        //             "positions":[
-        //                 {
-        //                     "collateralUsed":0.0,
-        //                     "cost":0.0,
-        //                     "entryPrice":null,
-        //                     "estimatedLiquidationPrice":null,
-        //                     "future":"XRP-PERP",
-        //                     "initialMarginRequirement":0.05,
-        //                     "longOrderSize":0.0,
-        //                     "maintenanceMarginRequirement":0.03,
-        //                     "netSize":0.0,
-        //                     "openSize":0.0,
-        //                     "realizedPnl":0.016,
-        //                     "shortOrderSize":0.0,
-        //                     "side":"buy",
-        //                     "size":0.0,
-        //                     "unrealizedPnl":0.0,
-        //                 }
-        //             ],
-        //             "spotLendingEnabled":false,
-        //             "spotMarginEnabled":false,
-        //             "takerFee":0.0007,
-        //             "totalAccountValue":2830.2567913677476,
-        //             "totalPositionSize":0.0,
-        //             "useFttCollateral":true,
-        //             "username":"igor.kroitor@gmail.com"
-        //         },
-        //         "success":true
-        //     }
+        //   {
+        //     "future": "XMR-PERP",
+        //     "size": "0.0",
+        //     "side": "buy",
+        //     "netSize": "0.0",
+        //     "longOrderSize": "0.0",
+        //     "shortOrderSize": "0.0",
+        //     "cost": "0.0",
+        //     "entryPrice": null,
+        //     "unrealizedPnl": "0.0",
+        //     "realizedPnl": "0.0",
+        //     "initialMarginRequirement": "0.02",
+        //     "maintenanceMarginRequirement": "0.006",
+        //     "openSize": "0.0",
+        //     "collateralUsed": "0.0",
+        //     "estimatedLiquidationPrice": null
+        //   }
         //
-        const result = this.safeValue (response, 'result', {});
-        // todo unify parsePosition/parsePositions
-        return this.safeValue (result, 'positions', []);
+        const contractsString = this.safeString (position, 'size');
+        const rawSide = this.safeString (position, 'side');
+        const side = (rawSide === 'buy') ? 'long' : 'short';
+        const symbol = this.safeString (position, 'future');
+        const liquidationPriceString = this.safeString (position, 'estimatedLiquidationPrice');
+        const initialMarginPercentage = this.safeString (position, 'initialMarginRequirement');
+        const leverage = parseInt (Precise.stringDiv ('1', initialMarginPercentage, 0));
+        // on ftx the entryPrice is actually the mark price
+        const markPriceString = this.safeString (position, 'entryPrice');
+        const notionalString = Precise.stringMul (contractsString, markPriceString);
+        const initialMargin = Precise.stringMul (notionalString, initialMarginPercentage);
+        const maintenanceMarginPercentageString = this.safeString (position, 'maintenanceMarginRequirement');
+        const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
+        const unrealizedPnlString = this.safeString (position, 'recentPnl');
+        const percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMargin, 4), '100'));
+        const entryPriceString = this.safeString (position, 'recentAverageOpenPrice');
+        let difference = undefined;
+        let collateral = undefined;
+        let marginRatio = undefined;
+        if ((entryPriceString !== undefined) && (Precise.stringGt (liquidationPriceString, '0'))) {
+            // collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
+            if (side === 'long') {
+                difference = Precise.stringSub (markPriceString, liquidationPriceString);
+            } else {
+                difference = Precise.stringSub (liquidationPriceString, markPriceString);
+            }
+            const loss = Precise.stringMul (difference, contractsString);
+            collateral = Precise.stringAdd (loss, maintenanceMarginString);
+            marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateral, 4));
+        }
+        // ftx has a weird definition of realizedPnl
+        // it keeps the historical record of the realizedPnl per contract forever
+        // so we cannot use this data
+        return {
+            'info': position,
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
+            'maintenanceMargin': this.parseNumber (maintenanceMarginString),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
+            'entryPrice': undefined,
+            'notional': this.parseNumber (notionalString),
+            'leverage': leverage,
+            'unrealizedPnl': this.parseNumber (unrealizedPnlString),
+            'contracts': this.parseNumber (contractsString),
+            'contractSize': this.parseNumber ('1'),
+            'marginRatio': marginRatio,
+            'liquidationPrice': this.parseNumber (liquidationPriceString),
+            'markPrice': this.parseNumber (markPriceString),
+            'collateral': this.parseNumber (collateral),
+            'marginType': 'cross',
+            'side': side,
+            'percentage': percentage,
+        };
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -1737,6 +1868,13 @@ module.exports = class ftx extends Exchange {
         const request = {
             'coin': currency['id'],
         };
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['method'] = network;
+            params = this.omit (params, 'network');
+        }
         const response = await this.privateGetWalletDepositAddressCoin (this.extend (request, params));
         //
         //     {
@@ -2001,7 +2139,8 @@ module.exports = class ftx extends Exchange {
         const amount = this.safeNumber (income, 'payment');
         const code = this.safeCurrencyCode ('USD');
         const id = this.safeString (income, 'id');
-        const timestamp = this.safeInteger (income, 'time');
+        const time = this.safeString (income, 'time');
+        const timestamp = this.parse8601 (time);
         const rate = this.safe_number (income, 'rate');
         return {
             'info': income,
@@ -2027,7 +2166,6 @@ module.exports = class ftx extends Exchange {
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const method = 'private_get_funding_payments';
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -2037,7 +2175,73 @@ module.exports = class ftx extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await this[method] (this.extend (request, params));
-        return this.parseIncomes (response, market, since, limit);
+        const response = await this.privateGetFundingPayments (this.extend (request, params));
+        const result = this.safeValue (response, 'result', []);
+        return this.parseIncomes (result, market, since, limit);
+    }
+
+    parseFundingRate (fundingRate, market = undefined) {
+        //
+        // perp
+        //     {
+        //       "volume": "71294.7636",
+        //       "nextFundingRate": "0.000033",
+        //       "nextFundingTime": "2021-10-14T20:00:00+00:00",
+        //       "openInterest": "47142.994"
+        //     }
+        //
+        // delivery
+        //     {
+        //       "volume": "4998.727",
+        //       "predictedExpirationPrice": "3798.820141757",
+        //       "openInterest": "48307.96"
+        //     }
+        //
+        const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
+        const nextFundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
+        const nextFundingRateTimestamp = this.parse8601 (nextFundingRateDatetimeRaw);
+        let previousFundingTimestamp = undefined;
+        if (nextFundingRateTimestamp !== undefined) {
+            previousFundingTimestamp = nextFundingRateTimestamp - 3600000;
+        }
+        const estimatedSettlePrice = this.safeNumber (fundingRate, 'predictedExpirationPrice');
+        return {
+            'info': fundingRate,
+            'symbol': market['symbol'],
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': estimatedSettlePrice,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'previousFundingRate': undefined,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
+            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'future_name': market['id'],
+        };
+        const response = await this.publicGetFuturesFutureNameStats (this.extend (request, params));
+        //
+        //     {
+        //       "success": true,
+        //       "result": {
+        //         "volume": "71294.7636",
+        //         "nextFundingRate": "0.000033",
+        //         "nextFundingTime": "2021-10-14T20:00:00+00:00",
+        //         "openInterest": "47142.994"
+        //       }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseFundingRate (result, market);
     }
 };

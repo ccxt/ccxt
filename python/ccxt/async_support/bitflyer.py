@@ -22,7 +22,7 @@ class bitflyer(Exchange):
             'hostname': 'bitflyer.com',  # or bitflyer.com
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
@@ -193,12 +193,8 @@ class bitflyer(Exchange):
         orderbook = await self.publicGetGetboard(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'size')
 
-    async def fetch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        request = {
-            'product_code': self.market_id(symbol),
-        }
-        ticker = await self.publicGetGetticker(self.extend(request, params))
+    def parse_ticker(self, ticker, market=None):
+        symbol = self.safe_symbol(None, market)
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         last = self.safe_number(ticker, 'ltp')
         return {
@@ -223,6 +219,15 @@ class bitflyer(Exchange):
             'quoteVolume': None,
             'info': ticker,
         }
+
+    async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_code': market['id'],
+        }
+        response = await self.publicGetGetticker(self.extend(request, params))
+        return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
         side = self.safe_string_lower(trade, 'side')

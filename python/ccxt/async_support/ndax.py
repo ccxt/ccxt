@@ -39,10 +39,10 @@ class ndax(Exchange):
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
@@ -198,9 +198,9 @@ class ndax(Exchange):
                 'secret': True,
                 'uid': True,
                 # these credentials are required for signIn() and withdraw()
-                # 'login': True,
-                # 'password': True,
-                # 'twofa': True,
+                'login': True,
+                'password': True,
+                'twofa': True,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -391,6 +391,8 @@ class ndax(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -1938,6 +1940,7 @@ class ndax(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # self method required login, password and twofa key
         sessionToken = self.safe_string(self.options, 'sessionToken')
         if sessionToken is None:

@@ -25,7 +25,9 @@ class bithumb extends Exchange {
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -133,6 +135,7 @@ class bithumb extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'FTC' => 'FTC2',
                 'MIR' => 'MIR COIN',
                 'SOC' => 'Soda Coin',
             ),
@@ -175,6 +178,8 @@ class bithumb extends Exchange {
                     'base' => $base,
                     'quote' => $quote,
                     'info' => $market,
+                    'type' => 'spot',
+                    'spot' => true,
                     'active' => $active,
                     'precision' => array(
                         'amount' => 4,
@@ -829,6 +834,7 @@ class bithumb extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
         $currency = $this->currency($code);

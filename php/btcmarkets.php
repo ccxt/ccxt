@@ -21,7 +21,7 @@ class btcmarkets extends Exchange {
             'has' => array(
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
@@ -340,6 +340,8 @@ class btcmarkets extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => null,
                 'maker' => $fees['maker'],
                 'taker' => $fees['taker'],

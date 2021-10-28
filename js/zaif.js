@@ -18,14 +18,14 @@ module.exports = class zaif extends Exchange {
             'version': '1',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
-                'createMarketOrder': false,
+                'CORS': undefined,
+                'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchMarkets': true,
-                'fetchOrderBook': true,
                 'fetchOpenOrders': true,
+                'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'withdraw': true,
@@ -172,6 +172,8 @@ module.exports = class zaif extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': true, // can trade or not
                 'precision': precision,
                 'taker': taker,
@@ -359,10 +361,10 @@ module.exports = class zaif extends Exchange {
         const timestamp = this.safeTimestamp (order, 'timestamp');
         const marketId = this.safeString (order, 'currency_pair');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'amount');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'amount');
         const id = this.safeString (order, 'id');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -424,6 +426,7 @@ module.exports = class zaif extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

@@ -42,13 +42,16 @@ class phemex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
@@ -320,6 +323,13 @@ class phemex(Exchange):
             'options': {
                 'x-phemex-request-expiry': 60,  # in seconds
                 'createOrderByQuoteRequiresPrice': True,
+                'networks': {
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                },
+                'defaultNetworks': {
+                    'USDT': 'ETH',
+                },
             },
         })
 
@@ -382,15 +392,15 @@ class phemex(Exchange):
         quoteId = self.safe_string(market, 'quoteCurrency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
         type = self.safe_string_lower(market, 'type')
         inverse = False
         spot = False
         swap = True
-        settlementCurrencyId = self.safe_string(market, 'settlementCurrency')
+        settlementCurrencyId = self.safe_string(market, 'settleCurrency')
         if settlementCurrencyId != quoteId:
             inverse = True
         linear = not inverse
+        symbol = id if (inverse) else (base + '/' + quote)  # fix for uBTCUSD inverse
         precision = {
             'amount': self.safe_number(market, 'lotSize'),
             'price': self.safe_number(market, 'tickSize'),
@@ -2100,6 +2110,16 @@ class phemex(Exchange):
         request = {
             'currency': currency['id'],
         }
+        defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
+        defaultNetwork = self.safe_string_upper(defaultNetworks, code)
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network', defaultNetwork)
+        network = self.safe_string(networks, network, network)
+        if network is None:
+            request['chainName'] = currency['id']
+        else:
+            request['chainName'] = network
+            params = self.omit(params, 'network')
         response = self.privateGetPhemexUserWalletsV2DepositAddress(self.extend(request, params))
         #     {
         #         "code":0,

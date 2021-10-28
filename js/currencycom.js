@@ -22,7 +22,7 @@ module.exports = class currencycom extends Exchange {
             // new metainfo interface
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -34,8 +34,8 @@ module.exports = class currencycom extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchTradingFees': true,
                 'fetchTrades': true,
+                'fetchTradingFees': true,
             },
             'timeframes': {
                 '1m': '1m',

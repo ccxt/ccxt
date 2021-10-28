@@ -15,6 +15,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class bitpanda(Exchange):
@@ -28,19 +29,17 @@ class bitpanda(Exchange):
             'version': 'v1',
             # new metainfo interface
             'has': {
-                'CORS': False,
-                'publicAPI': True,
-                'privateAPI': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
-                'fetchDeposits': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -48,12 +47,14 @@ class bitpanda(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFees': True,
-                'fetchTicker': True,
-                'fetchTickers': True,
                 'fetchWithdrawals': True,
+                'privateAPI': True,
+                'publicAPI': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -340,6 +341,7 @@ class bitpanda(Exchange):
             state = self.safe_string(market, 'state')
             active = (state == 'ACTIVE')
             result.append({
+                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -348,7 +350,8 @@ class bitpanda(Exchange):
                 'quoteId': quoteId,
                 'precision': precision,
                 'limits': limits,
-                'info': market,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
             })
         return result
@@ -773,11 +776,13 @@ class bitpanda(Exchange):
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'time'))
         side = self.safe_string_lower_2(trade, 'side', 'taker_side')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
         cost = self.safe_number(trade, 'volume')
-        if (cost is None) and (amount is not None) and (price is not None):
-            cost = amount * price
+        if (cost is None) and (amountString is not None) and (priceString is not None):
+            cost = self.parse_number(Precise.string_mul(amountString, priceString))
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         marketId = self.safe_string(trade, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
         feeCost = self.safe_number(feeInfo, 'fee_amount')
@@ -1021,6 +1026,7 @@ class bitpanda(Exchange):
         return self.parse_transactions(withdrawalHistory, currency, since, limit, {'type': 'withdrawal'})
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
@@ -1228,20 +1234,16 @@ class bitpanda(Exchange):
         status = self.parse_order_status(rawStatus)
         marketId = self.safe_string(rawOrder, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
-        price = self.safe_number(rawOrder, 'price')
-        amount = self.safe_number(rawOrder, 'amount')
-        filledString = self.safe_string(rawOrder, 'filled_amount')
-        filled = self.parse_number(filledString)
+        price = self.safe_string(rawOrder, 'price')
+        amount = self.safe_string(rawOrder, 'amount')
+        filled = self.safe_string(rawOrder, 'filled_amount')
         side = self.safe_string_lower(rawOrder, 'side')
         type = self.safe_string_lower(rawOrder, 'type')
         timeInForce = self.parse_time_in_force(self.safe_string(rawOrder, 'time_in_force'))
         stopPrice = self.safe_number(rawOrder, 'trigger_price')
         postOnly = self.safe_value(rawOrder, 'is_post_only')
         rawTrades = self.safe_value(order, 'trades', [])
-        trades = self.parse_trades(rawTrades, market, None, None, {
-            'type': type,
-        })
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1262,7 +1264,7 @@ class bitpanda(Exchange):
             'remaining': None,
             'status': status,
             # 'fee': None,
-            'trades': trades,
+            'trades': rawTrades,
         })
 
     def parse_time_in_force(self, timeInForce):

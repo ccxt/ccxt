@@ -19,7 +19,7 @@ module.exports = class liquid extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
@@ -204,12 +204,18 @@ module.exports = class liquid extends Exchange {
                 'product_disabled': BadSymbol, // {"errors":{"order":["product_disabled"]}}
             },
             'commonCurrencies': {
-                'WIN': 'WCOIN',
                 'HOT': 'HOT Token',
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
+                'TON': 'Tokamak Network',
             },
             'options': {
                 'cancelOrderException': true,
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'XLM': 'Stellar',
+                    'ALGO': 'Algorand',
+                },
             },
         });
     }
@@ -974,6 +980,7 @@ module.exports = class liquid extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -995,6 +1002,13 @@ module.exports = class liquid extends Exchange {
             } else {
                 throw new NotSupported (this.id + ' withdraw() only supports a tag along the address for XRP or XLM');
             }
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['network'] = network;
+            params = this.omit (params, 'network');
         }
         const response = await this.privatePostCryptoWithdrawals (this.extend (request, params));
         //

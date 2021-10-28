@@ -19,27 +19,27 @@ module.exports = class gemini extends Exchange {
             'version': 'v1',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createDepositAddress': true,
-                'createMarketOrder': false,
+                'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
-                'fetchBidsAsks': false,
-                'fetchClosedOrders': false,
-                'fetchDepositAddress': false,
-                'fetchDeposits': false,
+                'fetchBidsAsks': undefined,
+                'fetchClosedOrders': undefined,
+                'fetchDepositAddress': undefined,
+                'fetchDeposits': undefined,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransactions': true,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': undefined,
                 'withdraw': true,
             },
             'urls': {
@@ -78,21 +78,23 @@ module.exports = class gemini extends Exchange {
                 'public': {
                     'get': [
                         'v1/symbols',
-                        'v1/pricefeed',
+                        'v1/symbols/details/{symbol}',
                         'v1/pubticker/{symbol}',
-                        'v1/book/{symbol}',
+                        'v2/ticker/{symbol}',
+                        'v2/candles/{symbol}/{timeframe}',
                         'v1/trades/{symbol}',
                         'v1/auction/{symbol}',
                         'v1/auction/{symbol}/history',
-                        'v2/candles/{symbol}/{timeframe}',
-                        'v2/ticker/{symbol}',
+                        'v1/pricefeed',
+                        'v1/book/{symbol}',
+                        'v1/earn/rates',
                     ],
                 },
                 'private': {
                     'post': [
-                        'v1/account/list',
                         'v1/order/new',
                         'v1/order/cancel',
+                        'v1/wrap/{symbol}',
                         'v1/order/cancel/session',
                         'v1/order/cancel/all',
                         'v1/order/status',
@@ -100,12 +102,29 @@ module.exports = class gemini extends Exchange {
                         'v1/mytrades',
                         'v1/notionalvolume',
                         'v1/tradevolume',
-                        'v1/transfers',
+                        'v1/clearing/new',
+                        'v1/clearing/status',
+                        'v1/clearing/cancel',
+                        'v1/clearing/confirm',
                         'v1/balances',
-                        'v1/deposit/{currency}/newAddress',
-                        'v1/withdraw/{currency}',
-                        'v1/heartbeat',
+                        'v1/notionalbalances/{currency}',
                         'v1/transfers',
+                        'v1/addresses/{network}',
+                        'v1/deposit/{network}/newAddress',
+                        'v1/withdraw/{currency}',
+                        'v1/account/transfer/{currency}',
+                        'v1/payments/addbank',
+                        'v1/payments/methods',
+                        'v1/payments/sen/withdraw',
+                        'v1/balances/earn',
+                        'v1/earn/interest',
+                        'v1/approvedAddresses/{network}/request',
+                        'v1/approvedAddresses/account/{network}',
+                        'v1/approvedAddresses/{network}/remove',
+                        'v1/account',
+                        'v1/account/create',
+                        'v1/account/list',
+                        'v1/heartbeat',
                     ],
                 },
             },
@@ -228,7 +247,8 @@ module.exports = class gemini extends Exchange {
             const amountPrecisionParts = amountPrecisionString.split (' ');
             const amountPrecision = this.safeNumber (amountPrecisionParts, 0);
             const idLength = marketId.length - 0;
-            const quoteId = marketId.slice (idLength - 3, idLength);
+            const startingIndex = idLength - 3;
+            const quoteId = marketId.slice (startingIndex, idLength);
             const quote = this.safeCurrencyCode (quoteId);
             const pricePrecisionString = cells[3].replace ('<td>', '');
             const pricePrecisionParts = pricePrecisionString.split (' ');
@@ -245,6 +265,8 @@ module.exports = class gemini extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': {
                     'amount': amountPrecision,
@@ -719,6 +741,7 @@ module.exports = class gemini extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -792,6 +815,10 @@ module.exports = class gemini extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
+            const apiKey = this.apiKey;
+            if (apiKey.indexOf ('account') < 0) {
+                throw new AuthenticationError (this.id + ' sign() requires an account-key, master-keys are not-supported');
+            }
             const nonce = this.nonce ();
             const request = this.extend ({
                 'request': url,

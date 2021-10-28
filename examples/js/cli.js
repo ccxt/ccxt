@@ -5,8 +5,6 @@
 let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
     , verbose = process.argv.includes ('--verbose')
     , debug = process.argv.includes ('--debug')
-    , cloudscrape = process.argv.includes ('--cloudscrape')
-    , cfscrape = process.argv.includes ('--cfscrape')
     , poll = process.argv.includes ('--poll')
     , no_send = process.argv.includes ('--no-send')
     , no_load_markets = process.argv.includes ('--no-load-markets')
@@ -48,6 +46,7 @@ const ccxt         = require ('../../ccxt.js')
 
 //-----------------------------------------------------------------------------
 
+console.log (new Date ())
 console.log ('Node.js:', process.version)
 console.log ('CCXT v' + ccxt.version)
 
@@ -55,45 +54,6 @@ console.log ('CCXT v' + ccxt.version)
 
 process.on ('uncaughtException',  e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
 process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
-
-//-----------------------------------------------------------------------------
-// cloudscraper helper
-
-const scrapeCloudflareHttpHeaderCookie = (url) =>
-
-	(new Promise ((resolve, reject) => {
-
-        const cloudscraper = require ('cloudscraper')
-		return cloudscraper.get (url, function (error, response, body) {
-
-			if (error) {
-
-                log.red ('Cloudscraper error')
-				reject (error)
-
-			} else {
-
-				resolve (response.request.headers)
-			}
-        })
-    }))
-
-const cfscrapeCookies = (url) => {
-
-    const command = [
-        `python -c "`,
-        `import cfscrape; `,
-        `import json; `,
-        `tokens, user_agent = cfscrape.get_tokens('${url}'); `,
-        `print(json.dumps({`,
-            `'Cookie': '; '.join([key + '=' + tokens[key] for key in tokens]), `,
-            `'User-Agent': user_agent`,
-        `}));" 2> /dev/null`
-    ].join ('')
-
-    const output = execSync (command)
-    return JSON.parse (output.toString ('utf8'))
-}
 
 //-----------------------------------------------------------------------------
 
@@ -157,8 +117,6 @@ function printSupportedExchanges () {
     log ('Supported options:')
     log ('--verbose         Print verbose output')
     log ('--debug           Print debugging output')
-    log ('--cloudscrape     Use https://github.com/codemanki/cloudscraper to bypass Cloudflare')
-    log ('--cfscrape        Use https://github.com/Anorov/cloudflare-scrape to bypass Cloudflare (requires python and cfscrape)')
     log ('--poll            Repeat continuously in rate-limited mode')
     log ("--no-send         Print the request but don't actually send it to the exchange (sets verbose and load-markets)")
     log ('--no-load-markets Do not pre-load markets (for debugging)')
@@ -234,12 +192,6 @@ async function main () {
             .map (s => (() => { try { return eval ('(() => (' + s + ')) ()') } catch (e) { return s } }) ())
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
-
-        if (cloudscrape)
-            exchange.headers = await scrapeCloudflareHttpHeaderCookie (www)
-
-        if (cfscrape)
-            exchange.headers = cfscrapeCookies (www)
 
         if (cors) {
             exchange.proxy = 'https://cors-anywhere.herokuapp.com/';

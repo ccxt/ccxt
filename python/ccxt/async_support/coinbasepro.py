@@ -34,7 +34,7 @@ class coinbasepro(Exchange):
             'id': 'coinbasepro',
             'name': 'Coinbase Pro',
             'countries': ['US'],
-            'rateLimit': 1000,
+            'rateLimit': 100,
             'userAgent': self.userAgents['chrome'],
             'pro': True,
             'has': {
@@ -46,9 +46,10 @@ class coinbasepro(Exchange):
                 'deposit': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
-                'fetchCurrencies': True,
                 'fetchClosedOrders': True,
-                'fetchDepositAddress': False,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchCurrencies': True,
+                'fetchDepositAddress': None,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchDeposits': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -57,13 +58,12 @@ class coinbasepro(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
-                'fetchTime': True,
                 'fetchTicker': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTransactions': True,
-                'withdraw': True,
-                'fetchDeposits': True,
                 'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -336,6 +336,9 @@ class coinbasepro(Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': True,
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -348,7 +351,6 @@ class coinbasepro(Exchange):
                         'max': self.safe_number(market, 'max_market_funds'),
                     },
                 },
-                'active': active,
                 'info': market,
             }))
         return result
@@ -712,10 +714,13 @@ class coinbasepro(Exchange):
         marketId = self.safe_string(order, 'product_id')
         market = self.safe_market(marketId, market, '-')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        price = self.safe_number(order, 'price')
-        filled = self.safe_number(order, 'filled_size')
-        amount = self.safe_number(order, 'size', filled)
-        cost = self.safe_number(order, 'executed_value')
+        doneReason = self.safe_string(order, 'done_reason')
+        if (status == 'closed') and (doneReason == 'canceled'):
+            status = 'canceled'
+        price = self.safe_string(order, 'price')
+        filled = self.safe_string(order, 'filled_size')
+        amount = self.safe_string(order, 'size', filled)
+        cost = self.safe_string(order, 'executed_value')
         feeCost = self.safe_number(order, 'fill_fees')
         fee = None
         if feeCost is not None:
@@ -734,7 +739,7 @@ class coinbasepro(Exchange):
         postOnly = self.safe_value(order, 'post_only')
         stopPrice = self.safe_number(order, 'stop_price')
         clientOrderId = self.safe_string(order, 'client_oid')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -939,6 +944,7 @@ class coinbasepro(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)

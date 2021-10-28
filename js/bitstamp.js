@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, ArgumentsRequired, OnMaintenance, ExchangeNotAvailable } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,29 +19,32 @@ module.exports = class bitstamp extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'pro': true,
             'has': {
-                'CORS': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': true,
                 'createOrder': true,
                 'fetchBalance': true,
-                'fetchDepositAddress': true,
-                'fetchMarkets': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchFees': true,
+                'fetchFundingFees': true,
+                'fetchIndexOHLCV': false,
+                'fetchLedger': true,
+                'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
-                'fetchTradingFee': true,
-                'fetchTradingFees': true,
-                'fetchFundingFees': true,
-                'fetchFees': true,
-                'fetchLedger': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
@@ -170,6 +174,18 @@ module.exports = class bitstamp extends Exchange {
                         'ftt_address/',
                         'storj_withdrawal/',
                         'storj_address/',
+                        'axs_withdrawal/',
+                        'axs_address/',
+                        'sand_withdrawal/',
+                        'sand_address/',
+                        'hbar_withdrawal/',
+                        'hbar_address/',
+                        'rgt_withdrawal/',
+                        'rgt_address/',
+                        'fet_withdrawal/',
+                        'fet_address/',
+                        'skl_withdrawal/',
+                        'skl_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -179,6 +195,7 @@ module.exports = class bitstamp extends Exchange {
                         'liquidation_address/new/',
                         'liquidation_address/info/',
                         'btc_unconfirmed/',
+                        'websockets_token/',
                     ],
                 },
             },
@@ -309,6 +326,8 @@ module.exports = class bitstamp extends Exchange {
                 'quoteId': quoteId,
                 'symbolId': symbolId,
                 'info': market,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -685,7 +704,9 @@ module.exports = class bitstamp extends Exchange {
 
     parseTradingFee (balances, symbol) {
         const market = this.market (symbol);
-        const tradeFee = this.safeNumber (balances, market['id'] + '_fee');
+        const feeString = this.safeString (balances, market['id'] + '_fee');
+        const dividedFeeString = Precise.stringDiv (feeString, '100');
+        const tradeFee = this.parseNumber (dividedFeeString);
         return {
             'symbol': symbol,
             'maker': tradeFee,
@@ -917,6 +938,11 @@ module.exports = class bitstamp extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         method += 'Pair';
+        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+        }
         const response = await this[method] (this.extend (request, params));
         const order = this.parseOrder (response, market);
         return this.extend (order, {
@@ -957,9 +983,14 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchOrderStatus (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'id': id,
-        };
+        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        const request = {};
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+        } else {
+            request['id'] = id;
+        }
         const response = await this.privatePostOrderStatus (this.extend (request, params));
         return this.parseOrderStatus (this.safeString (response, 'status'));
     }
@@ -970,12 +1001,20 @@ module.exports = class bitstamp extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = { 'id': id };
+        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        const request = {};
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+        } else {
+            request['id'] = id;
+        }
         const response = await this.privatePostOrderStatus (this.extend (request, params));
         //
         //     {
         //         "status": "Finished",
         //         "id": 3047704374,
+        //         "client_order_id": ""
         //         "transactions": [
         //             {
         //                 "usd": "6.0134400000000000",
@@ -1225,6 +1264,7 @@ module.exports = class bitstamp extends Exchange {
         // from fetch order:
         //   { status: 'Finished',
         //     id: 731693945,
+        //     client_order_id: '',
         //     transactions:
         //     [ { fee: '0.000019',
         //         price: '0.00015803',
@@ -1236,6 +1276,7 @@ module.exports = class bitstamp extends Exchange {
         //
         // partially filled order:
         //   { "id": 468646390,
+        //     "client_order_id": "",
         //     "status": "Canceled",
         //     "transactions": [{
         //         "eth": "0.23000000",
@@ -1250,6 +1291,7 @@ module.exports = class bitstamp extends Exchange {
         // from create order response:
         //     {
         //         price: '0.00008012',
+        //         client_order_id: '',
         //         currency_pair: 'XRP/BTC',
         //         datetime: '2019-01-31 21:23:36',
         //         amount: '15.00000000',
@@ -1258,6 +1300,7 @@ module.exports = class bitstamp extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'id');
+        const clientOrderId = this.safeString (order, 'client_order_id');
         let side = this.safeString (order, 'type');
         if (side !== undefined) {
             side = (side === '1') ? 'sell' : 'buy';
@@ -1277,7 +1320,7 @@ module.exports = class bitstamp extends Exchange {
         const price = this.safeNumber (order, 'price');
         return this.safeOrder ({
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -1430,6 +1473,7 @@ module.exports = class bitstamp extends Exchange {
         //         {
         //             price: '0.00008012',
         //             currency_pair: 'XRP/BTC',
+        //             client_order_id: '',
         //             datetime: '2019-01-31 21:23:36',
         //             amount: '15.00000000',
         //             type: '0',
@@ -1472,6 +1516,7 @@ module.exports = class bitstamp extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
         const request = {
@@ -1485,7 +1530,7 @@ module.exports = class bitstamp extends Exchange {
                 if (tag !== undefined) {
                     request['destination_tag'] = tag;
                 }
-            } else if (code === 'XLM') {
+            } else if (code === 'XLM' || code === 'HBAR') {
                 if (tag !== undefined) {
                     request['memo_id'] = tag;
                 }

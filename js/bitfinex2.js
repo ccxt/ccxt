@@ -19,31 +19,34 @@ module.exports = class bitfinex2 extends bitfinex {
             'pro': false,
             // new metainfo interface
             'has': {
-                'CORS': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
-                'deposit': false,
-                'editOrder': false,
+                'deposit': undefined,
+                'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchClosedOrder': true,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchFundingFees': false,
+                'fetchFundingFees': undefined,
+                'fetchIndexOHLCV': false,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
-                'fetchOrder': false,
+                'fetchOrder': undefined,
                 'fetchOrderTrades': true,
                 'fetchStatus': true,
                 'fetchTickers': true,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTime': false,
+                'fetchTradingFee': undefined,
+                'fetchTradingFees': undefined,
                 'fetchTransactions': true,
                 'withdraw': true,
             },
@@ -721,13 +724,10 @@ module.exports = class bitfinex2 extends bitfinex {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.milliseconds ();
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const length = ticker.length;
         const last = this.safeNumber (ticker, length - 4);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -748,7 +748,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'baseVolume': this.safeNumber (ticker, length - 3),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

@@ -12,9 +12,9 @@ module.exports = class xena extends Exchange {
             'countries': [ 'VC', 'UK' ],
             'rateLimit': 100,
             'has': {
-                'CORS': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'editOrder': true,
@@ -918,17 +918,17 @@ module.exports = class xena extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'orderQty');
-        const filled = this.safeNumber (order, 'cumQty');
-        const remaining = this.safeNumber (order, 'leavesQty');
-        let side = this.safeStringLower (order, 'side');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'orderQty');
+        const filled = this.safeString (order, 'cumQty');
+        const remaining = this.safeString (order, 'leavesQty');
+        let side = this.safeString (order, 'side');
         if (side === '1') {
             side = 'buy';
-        } else if (side === '1') {
+        } else if (side === '2') {
             side = 'sell';
         }
-        let type = this.safeStringLower (order, 'ordType');
+        let type = this.safeString (order, 'ordType');
         if (type === '1') {
             type = 'market';
         } else if (type === '2') {
@@ -938,7 +938,7 @@ module.exports = class xena extends Exchange {
         } else if (type === '4') {
             type = 'stop-limit';
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1492,6 +1492,7 @@ module.exports = class xena extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         await this.loadAccounts ();

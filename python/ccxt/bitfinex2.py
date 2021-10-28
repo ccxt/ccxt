@@ -35,31 +35,34 @@ class bitfinex2(bitfinex):
             'pro': False,
             # new metainfo interface
             'has': {
-                'CORS': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'CORS': None,
                 'createDepositAddress': True,
                 'createLimitOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
-                'deposit': False,
-                'editOrder': False,
+                'deposit': None,
+                'editOrder': None,
                 'fetchBalance': True,
                 'fetchClosedOrder': True,
-                'fetchClosedOrders': False,
+                'fetchClosedOrders': None,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'fetchFundingFees': False,
+                'fetchFundingFees': None,
+                'fetchIndexOHLCV': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
-                'fetchOrder': False,
+                'fetchOrder': None,
                 'fetchOrderTrades': True,
                 'fetchStatus': True,
                 'fetchTickers': True,
-                'fetchTradingFee': False,
-                'fetchTradingFees': False,
+                'fetchTime': False,
+                'fetchTradingFee': None,
+                'fetchTradingFees': None,
                 'fetchTransactions': True,
                 'withdraw': True,
             },
@@ -712,12 +715,10 @@ class bitfinex2(bitfinex):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(None, market)
         length = len(ticker)
         last = self.safe_number(ticker, length - 4)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -738,7 +739,7 @@ class bitfinex2(bitfinex):
             'baseVolume': self.safe_number(ticker, length - 3),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

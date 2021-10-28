@@ -15,7 +15,7 @@ module.exports = class timex extends Exchange {
             'has': {
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
@@ -877,6 +877,7 @@ module.exports = class timex extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'type': 'spot',
+            'spot': true,
             'active': active,
             'precision': precision,
             'limits': limits,

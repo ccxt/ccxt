@@ -18,7 +18,7 @@ class independentreserve extends Exchange {
             'rateLimit' => 1000,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -128,6 +128,8 @@ class independentreserve extends Exchange {
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
                     'info' => $id,
+                    'type' => 'spot',
+                    'spot' => true,
                     'active' => null,
                     'precision' => $this->precision,
                     'limits' => array(
@@ -276,7 +278,7 @@ class independentreserve extends Exchange {
         $remaining = $this->safe_number($order, 'Outstanding');
         $feeRate = $this->safe_number($order, 'FeePercent');
         $feeCost = null;
-        if ($feeRate !== null) {
+        if ($feeRate !== null && $filled !== null) {
             $feeCost = $feeRate * $filled;
         }
         $fee = array(

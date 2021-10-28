@@ -19,7 +19,7 @@ class flowbtc(Exchange):
             'rateLimit': 1000,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchMarkets': True,
@@ -100,6 +100,9 @@ class flowbtc(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
+                'active': None,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -116,7 +119,6 @@ class flowbtc(Exchange):
                     },
                 },
                 'info': market,
-                'active': None,
             }
         return result
 

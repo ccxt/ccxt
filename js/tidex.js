@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, PermissionDenied } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 module.exports = class tidex extends Exchange {
@@ -15,8 +15,8 @@ module.exports = class tidex extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
-                'createMarketOrder': false,
+                'CORS': undefined,
+                'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
@@ -75,10 +75,9 @@ module.exports = class tidex extends Exchange {
                         'OrderInfo',
                         'CancelOrder',
                         'TradeHistory',
-                        'CoinDepositAddress',
-                        'WithdrawCoin',
-                        'CreateCoupon',
-                        'RedeemCoupon',
+                        'getDepositAddress',
+                        'createWithdraw',
+                        'getWithdraw',
                     ],
                 },
             },
@@ -118,6 +117,7 @@ module.exports = class tidex extends Exchange {
                     'not available': ExchangeNotAvailable,
                     'data unavailable': ExchangeNotAvailable,
                     'external service unavailable': ExchangeNotAvailable,
+                    'IP restricted': PermissionDenied, // {"success":0,"code":0,"error":"IP restricted (223.xxx.xxx.xxx)"}
                 },
             },
             'options': {
@@ -265,6 +265,8 @@ module.exports = class tidex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'taker': takerFee,
                 'precision': precision,
@@ -716,22 +718,47 @@ module.exports = class tidex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'coinName': currency['id'],
+            'asset': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
         };
-        // no docs on the tag, yet...
         if (tag !== undefined) {
-            throw new ExchangeError (this.id + ' withdraw() does not support the tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.');
+            request['memo'] = tag;
         }
-        const response = await this.privatePostWithdrawCoin (this.extend (request, params));
+        const response = await this.privatePostCreateWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "success":1,
+        //         "return":{
+        //             "withdraw_id":1111,
+        //             "withdraw_info":{
+        //                 "id":1111,
+        //                 "asset_id":1,
+        //                 "asset":"BTC",
+        //                 "amount":0.0093,
+        //                 "fee":0.0007,
+        //                 "create_time":1575128018,
+        //                 "status":"Created",
+        //                 "data":{
+        //                     "address":"1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY",
+        //                     "memo":"memo",
+        //                     "tx":null,
+        //                     "error":null
+        //                 },
+        //             "in_blockchain":false
+        //             }
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'return', {});
         return {
             'info': response,
-            'id': response['return']['tId'],
+            'id': this.safeString (result, 'withdraw_id'),
         };
     }
 

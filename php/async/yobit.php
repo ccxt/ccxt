@@ -21,13 +21,13 @@ class yobit extends Exchange {
             'version' => '3',
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createDepositAddress' => true,
-                'createMarketOrder' => false,
+                'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchDepositAddress' => true,
-                'fetchDeposits' => false,
+                'fetchDeposits' => null,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
@@ -37,8 +37,8 @@ class yobit extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchTransactions' => false,
-                'fetchWithdrawals' => false,
+                'fetchTransactions' => null,
+                'fetchWithdrawals' => null,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -123,6 +123,7 @@ class yobit extends Exchange {
                 'EXT' => 'LifeExtension',
                 'FUND' => 'FUNDChains',
                 'FUNK' => 'FUNKCoin',
+                'FX' => 'FCoin',
                 'GCC' => 'GlobalCryptocurrency',
                 'GEN' => 'Genstake',
                 'GENE' => 'Genesiscoin',
@@ -157,6 +158,7 @@ class yobit extends Exchange {
                 'PIVX' => 'Darknet',
                 'PRS' => 'PRE',
                 'PUTIN' => 'PutinCoin',
+                'SPACE' => 'Spacecoin',
                 'STK' => 'StakeCoin',
                 'SUB' => 'Subscriptio',
                 'PAY' => 'EPAY',
@@ -329,6 +331,8 @@ class yobit extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'taker' => $takerFee,
                 'maker' => $makerFee,
@@ -741,6 +745,7 @@ class yobit extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
         $currency = $this->currency($code);

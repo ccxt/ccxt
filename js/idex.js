@@ -24,20 +24,20 @@ module.exports = class idex extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
-                'fetchMarkets': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposits': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchOrders': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrders': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTransactions': false,
-                'fetchDeposits': true,
+                'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -196,6 +196,8 @@ module.exports = class idex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'info': entry,
                 'precision': precision,
@@ -932,7 +934,7 @@ module.exports = class idex extends Exchange {
         };
         let priceString = undefined;
         const typeLower = type.toLowerCase ();
-        const limitOrder = typeLower.indexOf ('limit') > -1;
+        const limitOrder = typeLower.indexOf ('limit') >= 0;
         if (type in limitTypeEnums) {
             typeEnum = limitTypeEnums[type];
             priceString = this.priceToPrecision (symbol, price);
@@ -1083,6 +1085,7 @@ module.exports = class idex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const nonce = this.uuidv1 ();

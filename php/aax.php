@@ -248,6 +248,11 @@ class aax extends Exchange {
                     'F2CP' => 'otc',
                     'VLTP' => 'saving',
                 ),
+                'networks' => array(
+                    'ETH' => 'ERC20',
+                    'TRX' => 'TRC20',
+                    'SOL' => 'SPL',
+                ),
             ),
         ));
     }
@@ -1629,16 +1634,16 @@ class aax extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $price = $this->safe_number($order, 'price');
+        $price = $this->safe_string($order, 'price');
         $stopPrice = $this->safe_number($order, 'stopPrice');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $execInst = $this->safe_string($order, 'execInst');
         $postOnly = ($execInst === 'Post-Only');
-        $average = $this->safe_number($order, 'avgPrice');
-        $amount = $this->safe_number($order, 'orderQty');
-        $filled = $this->safe_number($order, 'cumQty');
-        $remaining = $this->safe_number($order, 'leavesQty');
-        if (($filled === 0) && ($remaining === 0)) {
+        $average = $this->safe_string($order, 'avgPrice');
+        $amount = $this->safe_string($order, 'orderQty');
+        $filled = $this->safe_string($order, 'cumQty');
+        $remaining = $this->safe_string($order, 'leavesQty');
+        if ((Precise::string_equals($filled, '0')) && (Precise::string_equals($remaining, '0'))) {
             $remaining = null;
         }
         $lastTradeTimestamp = $this->safe_value($order, 'transactTime');
@@ -1661,7 +1666,7 @@ class aax extends Exchange {
                 'cost' => $feeCost,
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'info' => $order,
             'clientOrderId' => $clientOrderId,
@@ -1777,6 +1782,12 @@ class aax extends Exchange {
             'currency' => $currency['id'],
             // 'network' => null, // 'ERC20
         );
+        if (is_array($params) && array_key_exists('network', $params)) {
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network');
+            $params = $this->omit($params, 'network');
+            $request['network'] = $this->safe_string_upper($networks, $network, $network);
+        }
         $response = $this->privateGetAccountDepositAddress (array_merge($request, $params));
         //
         //     {
@@ -1785,7 +1796,7 @@ class aax extends Exchange {
         //             "address":"0x080c5c667381404cca9be0be9a04b2e47691ff86",
         //             "tag":null,
         //             "$currency":"USDT",
-        //             "network":"ERC20"
+        //             "$network":"ERC20"
         //         ),
         //         "message":"success",
         //         "ts":1610270465132
@@ -1801,18 +1812,23 @@ class aax extends Exchange {
         //         "$address":"0x080c5c667381404cca9be0be9a04b2e47691ff86",
         //         "$tag":null,
         //         "$currency":"USDT",
-        //         "network":"ERC20"
+        //         "$network":"ERC20"
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'tag');
         $currencyId = $this->safe_string($depositAddress, 'currency');
+        $network = $this->safe_string($depositAddress, 'network');
+        if ($network !== null) {
+            $currencyId = str_replace($network, '', $currencyId);
+        }
         $code = $this->safe_currency_code($currencyId);
         return array(
             'info' => $depositAddress,
             'code' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => $network,
         );
     }
 

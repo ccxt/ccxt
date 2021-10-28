@@ -19,7 +19,7 @@ class btcbox extends Exchange {
             'version' => 'v1',
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchOpenOrders' => true,
@@ -27,7 +27,7 @@ class btcbox extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchTicker' => true,
-                'fetchTickers' => false,
+                'fetchTickers' => null,
                 'fetchTrades' => true,
             ),
             'urls' => array(
@@ -57,10 +57,10 @@ class btcbox extends Exchange {
                 ),
             ),
             'markets' => array(
-                'BTC/JPY' => array( 'id' => 'btc', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy', 'taker' => 0.05 / 100, 'maker' => 0.05 / 100 ),
-                'ETH/JPY' => array( 'id' => 'eth', 'symbol' => 'ETH/JPY', 'base' => 'ETH', 'quote' => 'JPY', 'baseId' => 'eth', 'quoteId' => 'jpy', 'taker' => 0.10 / 100, 'maker' => 0.10 / 100 ),
-                'LTC/JPY' => array( 'id' => 'ltc', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy', 'taker' => 0.10 / 100, 'maker' => 0.10 / 100 ),
-                'BCH/JPY' => array( 'id' => 'bch', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bch', 'quoteId' => 'jpy', 'taker' => 0.10 / 100, 'maker' => 0.10 / 100 ),
+                'BTC/JPY' => array( 'id' => 'btc', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy', 'taker' => 0.05 / 100, 'maker' => 0.05 / 100, 'type' => 'spot', 'spot' => true ),
+                'ETH/JPY' => array( 'id' => 'eth', 'symbol' => 'ETH/JPY', 'base' => 'ETH', 'quote' => 'JPY', 'baseId' => 'eth', 'quoteId' => 'jpy', 'taker' => 0.10 / 100, 'maker' => 0.10 / 100, 'type' => 'spot', 'spot' => true ),
+                'LTC/JPY' => array( 'id' => 'ltc', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy', 'taker' => 0.10 / 100, 'maker' => 0.10 / 100, 'type' => 'spot', 'spot' => true ),
+                'BCH/JPY' => array( 'id' => 'bch', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bch', 'quoteId' => 'jpy', 'taker' => 0.10 / 100, 'maker' => 0.10 / 100, 'type' => 'spot', 'spot' => true ),
             ),
             'exceptions' => array(
                 '104' => '\\ccxt\\AuthenticationError',

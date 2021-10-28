@@ -29,7 +29,7 @@ class timex(Exchange):
             'has': {
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -852,6 +852,7 @@ class timex(Exchange):
             'baseId': baseId,
             'quoteId': quoteId,
             'type': 'spot',
+            'spot': True,
             'active': active,
             'precision': precision,
             'limits': limits,

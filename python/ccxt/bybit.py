@@ -38,16 +38,19 @@ class bybit(Exchange):
             'rateLimit': 100,
             'hostname': 'bybit.com',  # bybit.com, bytick.com
             'has': {
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': True,
-                'cancelAllOrders': True,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
+                'fetchFundingRate': True,
+                'fetchIndexOHLCV': True,
                 'fetchLedger': True,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -55,13 +58,16 @@ class bybit(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTransactions': False,
+                'fetchTransactions': None,
                 'fetchWithdrawals': True,
-                'fetchPositions': True,
+                'setMarginMode': True,
+                'setLeverage': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -81,6 +87,7 @@ class bybit(Exchange):
             },
             'urls': {
                 'test': {
+                    'spot': 'https://api-testnet.{hostname}',
                     'futures': 'https://api-testnet.{hostname}',
                     'v2': 'https://api-testnet.{hostname}',
                     'public': 'https://api-testnet.{hostname}',
@@ -88,6 +95,7 @@ class bybit(Exchange):
                 },
                 'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
                 'api': {
+                    'spot': 'https://api.{hostname}',
                     'futures': 'https://api.{hostname}',
                     'v2': 'https://api.{hostname}',
                     'public': 'https://api.{hostname}',
@@ -103,6 +111,48 @@ class bybit(Exchange):
                 'referral': 'https://www.bybit.com/app/register?ref=X7Prm',
             },
             'api': {
+                'spot': {
+                    'public': {
+                        'get': [
+                            'symbols',
+                        ],
+                    },
+                    'quote': {
+                        'get': [
+                            'depth',
+                            'depth/merged',
+                            'trades',
+                            'kline',
+                            'ticker/24hr',
+                            'ticker/price',
+                            'ticker/book_ticker',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'order',
+                            'open-orders',
+                            'history-orders',
+                            'myTrades',
+                            'account',
+                            'time',
+                        ],
+                        'post': [
+                            'order',
+                        ],
+                        'delete': [
+                            'order',
+                            'order/fast',
+                        ],
+                    },
+                    'order': {
+                        'delete': [
+                            'batch-cancel',
+                            'batch-fast-cancel',
+                            'batch-cancel-by-ids',
+                        ],
+                    },
+                },
                 'futures': {
                     'private': {
                         'get': [
@@ -478,6 +528,7 @@ class bybit(Exchange):
                 'amount': self.safe_number(lotSizeFilter, 'qty_step'),
                 'price': self.safe_number(priceFilter, 'tick_size'),
             }
+            leverage = self.safe_value(market, 'leverage_filter', {})
             status = self.safe_string(market, 'status')
             active = None
             if status is not None:
@@ -514,6 +565,9 @@ class bybit(Exchange):
                     'cost': {
                         'min': None,
                         'max': None,
+                    },
+                    'leverage': {
+                        'max': self.safe_number(leverage, 'max_leverage', 1),
                     },
                 },
                 'info': market,
@@ -729,6 +783,8 @@ class bybit(Exchange):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
+        price = self.safe_string(params, 'price')
+        params = self.omit(params, 'price')
         request = {
             'symbol': market['id'],
             'interval': self.timeframes[timeframe],
@@ -744,7 +800,15 @@ class bybit(Exchange):
             request['from'] = int(since / 1000)
         if limit is not None:
             request['limit'] = limit  # max 200, default 200
-        method = 'publicLinearGetKline' if market['linear'] else 'v2PublicGetKlineList'
+        method = 'v2PublicGetKlineList'
+        if price == 'mark':
+            method = 'v2PublicGetMarkPriceKline'
+        elif price == 'index':
+            method = 'v2PublicGetIndexPriceKline'
+        elif price == 'premiumIndex':
+            method = 'v2PublicGetPremiumIndexKline'
+        elif market['linear']:
+            method = 'publicLinearGetKline'
         response = getattr(self, method)(self.extend(request, params))
         #
         # inverse perpetual BTC/USD
@@ -795,6 +859,77 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
+
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        method = 'v2PublicGetFundingPrevFundingRate'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # {
+        #     "ret_code": 0,
+        #     "ret_msg": "ok",
+        #     "ext_code": "",
+        #     "result": {
+        #         "symbol": "BTCUSD",
+        #         "funding_rate": "0.00010000",
+        #         "funding_rate_timestamp": 1577433600
+        #     },
+        #     "ext_info": null,
+        #     "time_now": "1577445586.446797",
+        #     "rate_limit_status": 119,
+        #     "rate_limit_reset_ms": 1577445586454,
+        #     "rate_limit": 120
+        # }
+        #
+        result = self.safe_value(response, 'result')
+        nextFundingRate = self.safe_number(result, 'funding_rate')
+        previousFundingTime = self.safe_integer(result, 'funding_rate_timestamp') * 1000
+        nextFundingTime = previousFundingTime + (8 * 3600000)
+        currentTime = self.milliseconds()
+        return {
+            'info': result,
+            'symbol': symbol,
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': currentTime,
+            'datetime': self.iso8601(currentTime),
+            'previousFundingRate': None,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTime,
+            'nextFundingTimestamp': nextFundingTime,
+            'previousFundingDatetime': self.iso8601(previousFundingTime),
+            'nextFundingDatetime': self.iso8601(nextFundingTime),
+        }
+
+    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        if since is None and limit is None:
+            raise ArgumentsRequired(self.id + ' fetchIndexOHLCV() requires a since argument or a limit argument')
+        request = {
+            'price': 'index',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        if since is None and limit is None:
+            raise ArgumentsRequired(self.id + ' fetchMarkOHLCV() requires a since argument or a limit argument')
+        request = {
+            'price': 'mark',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        if since is None and limit is None:
+            raise ArgumentsRequired(self.id + ' fetchPremiumIndexOHLCV() requires a since argument or a limit argument')
+        request = {
+            'price': 'premiumIndex',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_trade(self, trade, market=None):
         #
@@ -2248,10 +2383,17 @@ class bybit(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         type = self.safe_string(api, 0)
         section = self.safe_string(api, 1)
+        if type == 'spot':
+            if section == 'public':
+                section = 'v1'
+            else:
+                section += '/v1'
         url = self.implode_hostname(self.urls['api'][type])
         request = '/' + type + '/' + section + '/' + path
-        # public v2
-        if section == 'public':
+        if (type == 'spot') or (type == 'quote'):
+            if params:
+                request += '?' + self.rawencode(params)
+        elif section == 'public':
             if params:
                 request += '?' + self.rawencode(params)
         elif type == 'public':
@@ -2301,3 +2443,90 @@ class bybit(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
+
+    def set_margin_mode(self, symbol, marginType, params={}):
+        #
+        # {
+        #     "ret_code": 0,
+        #     "ret_msg": "ok",
+        #     "ext_code": "",
+        #     "result": null,
+        #     "ext_info": null,
+        #     "time_now": "1577477968.175013",
+        #     "rate_limit_status": 74,
+        #     "rate_limit_reset_ms": 1577477968183,
+        #     "rate_limit": 75
+        # }
+        #
+        leverage = self.safe_value(params, 'leverage')
+        if leverage is None:
+            raise ArgumentsRequired(self.id + '.setMarginMode requires a leverage parameter')
+        marginType = marginType.upper()
+        if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
+            raise BadRequest(self.id + ' marginType must be either isolated or crossed')
+        self.load_markets()
+        market = self.market(symbol)
+        method = None
+        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol, defaultType)
+        linear = market['linear'] or (marketType == 'linear')
+        inverse = (market['swap'] and market['inverse']) or (marketType == 'inverse')
+        futures = market['futures'] or (marketType == 'futures')
+        if linear:
+            method = 'privateLinearPostPositionSwitchIsolated'
+        elif inverse:
+            method = 'v2PrivatePostPositionSwitchIsolated'
+        elif futures:
+            method = 'privateFuturesPostPositionSwitchIsolated'
+        isIsolated = (marginType == 'ISOLATED')
+        request = {
+            'symbol': market['id'],
+            'is_isolated': isIsolated,
+            'buy_leverage': leverage,
+            'sell_leverage': leverage,
+        }
+        return getattr(self, method)(self.extend(request, params))
+
+    def set_leverage(self, leverage=None, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol, defaultType)
+        linear = market['linear'] or (marketType == 'linear')
+        inverse = (market['swap'] and market['inverse']) or (marketType == 'inverse')
+        futures = market['futures'] or (marketType == 'futures')
+        method = None
+        if linear:
+            method = 'privateLinearPostPositionSetLeverage'
+        elif inverse:
+            method = 'v2PrivatePostPositionLeverageSave'
+        elif futures:
+            method = 'privateFuturesPostPositionLeverageSave'
+        buy_leverage = leverage
+        sell_leverage = leverage
+        if params['buy_leverage'] and params['sell_leverage'] and linear:
+            buy_leverage = params['buy_leverage']
+            sell_leverage = params['sell_leverage']
+        elif not leverage:
+            if linear:
+                raise ArgumentsRequired(self.id + ' setLeverage() requires either the parameter leverage or params["buy_leverage"] and params["sell_leverage"] for linear contracts')
+            else:
+                raise ArgumentsRequired(self.id + ' setLeverage() requires parameter leverage for inverse and futures contracts')
+        if (buy_leverage < 1) or (buy_leverage > 100) or (sell_leverage < 1) or (sell_leverage > 100):
+            raise BadRequest(self.id + ' leverage should be between 1 and 100')
+        request = {
+            'symbol': market['id'],
+            'leverage_only': True,
+        }
+        if not linear:
+            request['leverage'] = buy_leverage
+        else:
+            request['buy_leverage'] = buy_leverage
+            request['sell_leverage'] = sell_leverage
+        return getattr(self, method)(self.extend(request, params))

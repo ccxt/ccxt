@@ -30,7 +30,7 @@ class bit2c(Exchange):
             'rateLimit': 3000,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchMyTrades': True,
@@ -84,14 +84,14 @@ class bit2c(Exchange):
                 },
             },
             'markets': {
-                'BTC/NIS': {'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS', 'baseId': 'Btc', 'quoteId': 'Nis'},
-                'ETH/NIS': {'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS', 'baseId': 'Eth', 'quoteId': 'Nis'},
-                'BCH/NIS': {'id': 'BchabcNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS', 'baseId': 'Bchabc', 'quoteId': 'Nis'},
-                'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS', 'baseId': 'Ltc', 'quoteId': 'Nis'},
-                'ETC/NIS': {'id': 'EtcNis', 'symbol': 'ETC/NIS', 'base': 'ETC', 'quote': 'NIS', 'baseId': 'Etc', 'quoteId': 'Nis'},
-                'BTG/NIS': {'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS', 'baseId': 'Btg', 'quoteId': 'Nis'},
-                'BSV/NIS': {'id': 'BchsvNis', 'symbol': 'BSV/NIS', 'base': 'BSV', 'quote': 'NIS', 'baseId': 'Bchsv', 'quoteId': 'Nis'},
-                'GRIN/NIS': {'id': 'GrinNis', 'symbol': 'GRIN/NIS', 'base': 'GRIN', 'quote': 'NIS', 'baseId': 'Grin', 'quoteId': 'Nis'},
+                'BTC/NIS': {'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS', 'baseId': 'Btc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
+                'ETH/NIS': {'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS', 'baseId': 'Eth', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
+                'BCH/NIS': {'id': 'BchabcNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS', 'baseId': 'Bchabc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
+                'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS', 'baseId': 'Ltc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
+                'ETC/NIS': {'id': 'EtcNis', 'symbol': 'ETC/NIS', 'base': 'ETC', 'quote': 'NIS', 'baseId': 'Etc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
+                'BTG/NIS': {'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS', 'baseId': 'Btg', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
+                'BSV/NIS': {'id': 'BchsvNis', 'symbol': 'BSV/NIS', 'base': 'BSV', 'quote': 'NIS', 'baseId': 'Bchsv', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
+                'GRIN/NIS': {'id': 'GrinNis', 'symbol': 'GRIN/NIS', 'base': 'GRIN', 'quote': 'NIS', 'baseId': 'Grin', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
             },
             'fees': {
                 'trading': {
@@ -185,12 +185,8 @@ class bit2c(Exchange):
         orderbook = self.publicGetExchangesPairOrderbook(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol)
 
-    def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
-        request = {
-            'pair': self.market_id(symbol),
-        }
-        ticker = self.publicGetExchangesPairTicker(self.extend(request, params))
+    def parse_ticker(self, ticker, market=None):
+        symbol = self.safe_symbol(None, market)
         timestamp = self.milliseconds()
         averagePrice = self.safe_number(ticker, 'av')
         baseVolume = self.safe_number(ticker, 'a')
@@ -198,7 +194,7 @@ class bit2c(Exchange):
         if baseVolume is not None and averagePrice is not None:
             quoteVolume = baseVolume * averagePrice
         last = self.safe_number(ticker, 'll')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -219,7 +215,16 @@ class bit2c(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market)
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
         }
+        response = self.publicGetExchangesPairTicker(self.extend(request, params))
+        return self.parse_ticker(response, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

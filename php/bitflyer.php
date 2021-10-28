@@ -22,7 +22,7 @@ class bitflyer extends Exchange {
             'hostname' => 'bitflyer.com', // or bitflyer.com
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
@@ -201,12 +201,8 @@ class bitflyer extends Exchange {
         return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'size');
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
-        $request = array(
-            'product_code' => $this->market_id($symbol),
-        );
-        $ticker = $this->publicGetGetticker (array_merge($request, $params));
+    public function parse_ticker($ticker, $market = null) {
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
         $last = $this->safe_number($ticker, 'ltp');
         return array(
@@ -231,6 +227,16 @@ class bitflyer extends Exchange {
             'quoteVolume' => null,
             'info' => $ticker,
         );
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'product_code' => $market['id'],
+        );
+        $response = $this->publicGetGetticker (array_merge($request, $params));
+        return $this->parse_ticker($response, $market);
     }
 
     public function parse_trade($trade, $market = null) {

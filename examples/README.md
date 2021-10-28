@@ -51,9 +51,11 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Freqtrade](https://www.freqtrade.io) – leading opensource cryptocurrency algorithmic trading software based on CCXT!
 
-[Enigma Catalyst](https://blog.enigma.co/enigma-announces-catalyst-0-4-our-biggest-release-yet-fa31a5ffa4b1) – The major effort towards decentralized exchanges integrates ccxt!
+[Blockpit](https://www.blockpit.io) – Tax reporting and portfolio tracking for Cryptocurrencies, Cryptoderivates and DeFi.
 
 [Projects based on ccxt](https://github.com/ccxt/ccxt/network/dependents) – A list of hundreds of ccxt-based projects by developers from all over the world!
+
+[Enigma Catalyst](https://blog.enigma.co/enigma-announces-catalyst-0-4-our-biggest-release-yet-fa31a5ffa4b1) – The major effort towards decentralized exchanges integrates ccxt!
 
 [Playing with CCXT in Google Colab](https://medium.com/@ccxt/playing-with-ccxt-in-google-colab-23522ac8a6cb) – An article on how useful Colab can be for quick prototyping and testing your trading ideas with CCXT.
 
@@ -128,6 +130,12 @@ php -f path/to/example.php # substitute for actual filename here
 [Trade and Invest Smarter — The Reinforcement Learning Way](https://towardsdatascience.com/trade-smarter-w-reinforcement-learning-a5e91163f315) – A deep dive into  trading and investing using deep reinforcement learning with Python.
 
 [Cryptocurrencies and APIs](https://jonc.dev/cryptocurrency) – A presentation given to kick off the Bloomberg cryptocurrency hackathon and as a Recurse Center talk.
+
+[Perform Currency Conversions And Get Bitcoin Prices In Python](http://www.maxpython.com/packages/perform-currency-conversions-and-get-bitcoin-prices-in-python.php) – an article showing how to use CCXT to get exchange rates, Bitcoin prices and perform currency conversions.
+
+[Using Apache Airflow ETL to fetch and analyze BTC data](https://itnext.io/using-apache-airflow-etl-to-fetch-and-analyze-btc-data-1adab96c410c) – how to use CCXT with Apache Airflow ETL for Bitcoin pricing data analysis.
+
+[Generic Position and Pnl Calculation](https://norman-lm-fung.medium.com/generic-position-and-pnl-calculation-67de9a9829be) – Using CCXT for fetching positions to calculate PnL.
 
 [비트코인 해외 거래소 API - 바이낸스 CCXT설치](https://www.youtube.com/watch?v=7dMGbjwZwlU) – Using CCXT to trade with Binance API.
 

@@ -246,6 +246,11 @@ module.exports = class aax extends Exchange {
                     'F2CP': 'otc',
                     'VLTP': 'saving',
                 },
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'SOL': 'SPL',
+                },
             },
         });
     }
@@ -1627,16 +1632,16 @@ module.exports = class aax extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeNumber (order, 'price');
+        const price = this.safeString (order, 'price');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const execInst = this.safeString (order, 'execInst');
         const postOnly = (execInst === 'Post-Only');
-        const average = this.safeNumber (order, 'avgPrice');
-        const amount = this.safeNumber (order, 'orderQty');
-        const filled = this.safeNumber (order, 'cumQty');
-        let remaining = this.safeNumber (order, 'leavesQty');
-        if ((filled === 0) && (remaining === 0)) {
+        const average = this.safeString (order, 'avgPrice');
+        const amount = this.safeString (order, 'orderQty');
+        const filled = this.safeString (order, 'cumQty');
+        let remaining = this.safeString (order, 'leavesQty');
+        if ((Precise.stringEquals (filled, '0')) && (Precise.stringEquals (remaining, '0'))) {
             remaining = undefined;
         }
         let lastTradeTimestamp = this.safeValue (order, 'transactTime');
@@ -1659,7 +1664,7 @@ module.exports = class aax extends Exchange {
                 'cost': feeCost,
             };
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,
@@ -1775,6 +1780,12 @@ module.exports = class aax extends Exchange {
             'currency': currency['id'],
             // 'network': undefined, // 'ERC20
         };
+        if ('network' in params) {
+            const networks = this.safeValue (this.options, 'networks', {});
+            const network = this.safeStringUpper (params, 'network');
+            params = this.omit (params, 'network');
+            request['network'] = this.safeStringUpper (networks, network, network);
+        }
         const response = await this.privateGetAccountDepositAddress (this.extend (request, params));
         //
         //     {
@@ -1804,13 +1815,18 @@ module.exports = class aax extends Exchange {
         //
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString (depositAddress, 'tag');
-        const currencyId = this.safeString (depositAddress, 'currency');
+        let currencyId = this.safeString (depositAddress, 'currency');
+        const network = this.safeString (depositAddress, 'network');
+        if (network !== undefined) {
+            currencyId = currencyId.replace (network, '');
+        }
         const code = this.safeCurrencyCode (currencyId);
         return {
             'info': depositAddress,
             'code': code,
             'address': address,
             'tag': tag,
+            'network': network,
         };
     }
 

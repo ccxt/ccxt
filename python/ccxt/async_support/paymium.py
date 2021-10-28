@@ -18,13 +18,13 @@ class paymium(Exchange):
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
+                'createOrder': True,
                 'fetchBalance': True,
+                'fetchOrderBook': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
-                'fetchOrderBook': True,
-                'createOrder': True,
-                'cancelOrder': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
@@ -75,7 +75,7 @@ class paymium(Exchange):
                 },
             },
             'markets': {
-                'BTC/EUR': {'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur'},
+                'BTC/EUR': {'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur', 'type': 'spot', 'spot': True},
             },
             'fees': {
                 'trading': {

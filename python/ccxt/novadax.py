@@ -32,8 +32,8 @@ class novadax(Exchange):
             'version': 'v1',
             # new metainfo interface
             'has': {
-                'CORS': False,
                 'cancelOrder': True,
+                'CORS': None,
                 'createOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
@@ -44,9 +44,9 @@ class novadax(Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOrderTrades': True,
                 'fetchOrderBook': True,
+                'fetchOrderTrades': True,
+                'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -230,10 +230,12 @@ class novadax(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
+                'active': active,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-                'active': active,
             })
         return result
 
@@ -875,6 +877,7 @@ class novadax(Exchange):
         })
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         currency = self.currency(code)
         request = {

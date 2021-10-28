@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
+use \ccxt\NotSupported;
 use \ccxt\Precise;
 
 class kucoin extends Exchange {
@@ -25,9 +26,9 @@ class kucoin extends Exchange {
             'comment' => 'Platform 2.0',
             'quoteJsonNumbers' => false,
             'has' => array(
-                'CORS' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'fetchAccounts' => true,
@@ -37,21 +38,26 @@ class kucoin extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFee' => true,
+                'fetchFundingHistory' => true,
+                'fetchFundingRateHistory' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
-                'withdraw' => true,
                 'transfer' => true,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
@@ -281,6 +287,7 @@ class kucoin extends Exchange {
                     '400007' => '\\ccxt\\AuthenticationError',
                     '400008' => '\\ccxt\\NotSupported',
                     '400100' => '\\ccxt\\BadRequest',
+                    '400500' => '\\ccxt\\InvalidOrder', // array("code":"400500","msg":"Your located country/region is currently not supported for the trading of this token")
                     '411100' => '\\ccxt\\AccountSuspended',
                     '415000' => '\\ccxt\\BadRequest', // array("code":"415000","msg":"Unsupported Media Type")
                     '500000' => '\\ccxt\\ExchangeError',
@@ -363,6 +370,14 @@ class kucoin extends Exchange {
                     'contract' => 'contract',
                     'pool' => 'pool',
                     'pool-x' => 'pool',
+                ),
+                'networks' => array(
+                    'ETH' => 'eth',
+                    'ERC20' => 'eth',
+                    'TRX' => 'trx',
+                    'TRC20' => 'trx',
+                    'KCC' => 'kcc',
+                    'TERRA' => 'luna',
                 ),
             ),
         ));
@@ -467,6 +482,9 @@ class kucoin extends Exchange {
                     'min' => $quoteMinSize,
                     'max' => $quoteMaxSize,
                 ),
+                'leverage' => array(
+                    'max' => $this->safe_number($market, 'maxLeverage', 1), // * Don't default to 1 for margin markets, leverage is located elsewhere
+                ),
             );
             $result[] = array(
                 'id' => $id,
@@ -475,6 +493,8 @@ class kucoin extends Exchange {
                 'quoteId' => $quoteId,
                 'base' => $base,
                 'quote' => $quote,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => $limits,
@@ -587,6 +607,92 @@ class kucoin extends Exchange {
         );
     }
 
+    public function is_futures_method($methodName, $params) {
+        //
+        // Helper
+        // @$methodName (string) => The name of the method
+        // @$params (dict) => The parameters passed into {$methodName}
+        // @return => true if the method used is meant for futures trading, false otherwise
+        //
+        $defaultType = $this->safe_string_2($this->options, $methodName, 'defaultType', 'trade');
+        $requestedType = $this->safe_string($params, 'type', $defaultType);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType');
+        $type = $this->safe_string($accountsByType, $requestedType);
+        if ($type === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' $type must be one of ' . implode(', ', $keys));
+        }
+        $params = $this->omit($params, 'type');
+        return ($type === 'contract') || ($type === 'futures');
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        //
+        // Private
+        // @param $symbol (string) => The pair for which the contract was traded
+        // @param $since (number) => The unix start time of the first funding payment requested
+        // @param $limit (number) => The number of results to return
+        // @param $params (dict) => Additional parameters to send to the API
+        // @param return => Data for the history of the accounts funding payments for futures contracts
+        //
+        if ($this->is_futures_method('fetchFundingHistory', $params)) {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+            }
+            yield $this->load_markets();
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($since !== null) {
+                $request['startAt'] = $since;
+            }
+            if ($limit !== null) {
+                $request['maxCount'] = $limit;
+            }
+            $method = 'futuresPrivateGetFundingHistory';
+            $response = yield $this->$method (array_merge($request, $params));
+            // {
+            //  "$data" => {
+            //     "$dataList" => [
+            //       array(
+            //         "id" => 36275152660006,                // id
+            //         "$symbol" => "XBTUSDM",                 // Symbol
+            //         "timePoint" => 1557918000000,          // Time point (milisecond)
+            //         "fundingRate" => 0.000013,             // Funding rate
+            //         "markPrice" => 8058.27,                // Mark price
+            //         "positionQty" => 10,                   // Position size
+            //         "positionCost" => -0.001241,           // Position value at settlement period
+            //         "funding" => -0.00000464,              // Settled funding $fees-> A positive number means that the user received the funding fee, and vice versa.
+            //         "settleCurrency" => "XBT"              // Settlement currency
+            //       ),
+            //  }
+            // }
+            $data = $this->safe_value($response, 'data');
+            $dataList = $this->safe_value($data, 'dataList');
+            $fees = array();
+            for ($i = 0; $i < count($dataList); $i++) {
+                $timestamp = $this->safe_integer($dataList[$i], 'timePoint');
+                $fees[] = array(
+                    'info' => $dataList[$i],
+                    'symbol' => $this->safe_symbol($dataList[$i], 'symbol'),
+                    'code' => $this->safe_currency_code($dataList[$i], 'settleCurrency'),
+                    'timestamp' => $timestamp,
+                    'datetime' => $this->iso8601($timestamp),
+                    'id' => $this->safe_number($dataList[$i], 'id'),
+                    'amount' => $this->safe_number($dataList[$i], 'funding'),
+                    'fundingRate' => $this->safe_number($dataList[$i], 'fundingRate'),
+                    'markPrice' => $this->safe_number($dataList[$i], 'markPrice'),
+                    'positionQty' => $this->safe_number($dataList[$i], 'positionQty'),
+                    'positionCost' => $this->safe_number($dataList[$i], 'positionCost'),
+                );
+            }
+            return $fees;
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingHistory() supports linear and inverse contracts only');
+        }
+    }
+
     public function parse_ticker($ticker, $market = null) {
         //
         //     {
@@ -626,27 +732,42 @@ class kucoin extends Exchange {
         //         "mark" => 0
         //     }
         //
+        // market/ticker ws subscription
+        //
+        //     {
+        //         bestAsk => '62258.9',
+        //         bestAskSize => '0.38579986',
+        //         bestBid => '62258.8',
+        //         bestBidSize => '0.0078381',
+        //         price => '62260.7',
+        //         sequence => '1621383297064',
+        //         size => '0.00002841',
+        //         time => 1634641777363
+        //     }
+        //
         $percentage = $this->safe_number($ticker, 'changeRate');
         if ($percentage !== null) {
             $percentage = $percentage * 100;
         }
         $last = $this->safe_number_2($ticker, 'last', 'lastTradedPrice');
+        $last = $this->safe_number($ticker, 'price', $last);
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $baseVolume = $this->safe_number($ticker, 'vol');
         $quoteVolume = $this->safe_number($ticker, 'volValue');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         $timestamp = $this->safe_integer_2($ticker, 'time', 'datetime');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'high'),
             'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
-            'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
-            'askVolume' => null,
+            'bid' => $this->safe_number_2($ticker, 'buy', 'bestBid'),
+            'bidVolume' => $this->safe_number($ticker, 'bestBidSize'),
+            'ask' => $this->safe_number_2($ticker, 'sell', 'bestAsk'),
+            'askVolume' => $this->safe_number($ticker, 'bestAskSize'),
             'vwap' => $vwap,
             'open' => $this->safe_number($ticker, 'open'),
             'close' => $last,
@@ -658,7 +779,7 @@ class kucoin extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -821,6 +942,14 @@ class kucoin extends Exchange {
             // for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
             // 'chain' => 'ERC20', // optional
         );
+        // same as for withdraw
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['chain'] = $network;
+            $params = $this->omit($params, 'network');
+        }
         $response = yield $this->privateGetDepositAddresses (array_merge($request, $params));
         // BCH array("$code":"200000","$data":array("$address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
         // BTC array("$code":"200000","$data":array("$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
@@ -1474,6 +1603,7 @@ class kucoin extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         yield $this->load_markets();
         $this->check_address($address);
         $currency = $this->currency($code);
@@ -1488,6 +1618,13 @@ class kucoin extends Exchange {
         );
         if ($tag !== null) {
             $request['memo'] = $tag;
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['chain'] = $network;
+            $params = $this->omit($params, 'network');
         }
         $response = yield $this->privatePostWithdrawals (array_merge($request, $params));
         //

@@ -20,7 +20,7 @@ class luno extends Exchange {
             'version' => '1',
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
@@ -156,6 +156,8 @@ class luno extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array(

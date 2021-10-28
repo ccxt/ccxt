@@ -24,6 +24,7 @@ class bitbns(Exchange):
             'rateLimit': 1000,
             'certified': False,
             'pro': False,
+            'version': 'v2',
             # new metainfo interface
             'has': {
                 'cancelOrder': True,
@@ -33,14 +34,14 @@ class bitbns(Exchange):
                 'fetchDeposits': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
-                'fetchOHLCV': False,
+                'fetchOHLCV': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchStatus': True,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
-                'fetchTrades': False,
+                'fetchTrades': True,
                 'fetchWithdrawals': True,
             },
             'timeframes': {
@@ -48,7 +49,7 @@ class bitbns(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
                 'api': {
-                    'ccxt': 'https://bitbns.com/order',
+                    'www': 'https://bitbns.com',
                     'v1': 'https://api.bitbns.com/api/trade/v1',
                     'v2': 'https://api.bitbns.com/api/trade/v2',
                 },
@@ -60,11 +61,15 @@ class bitbns(Exchange):
                 'fees': 'https://bitbns.com/fees',
             },
             'api': {
-                'ccxt': {
+                'www': {
                     'get': [
-                        'fetchMarkets',
-                        'fetchTickers',
-                        'fetchOrderbook',
+                        'order/fetchMarkets',
+                        'order/fetchTickers',
+                        'order/fetchOrderbook',
+                        'order/getTickerWithVolume',
+                        'exchangeData/ohlc',  # ?coin=${coin_name}&page=${page}
+                        'exchangeData/orderBook',
+                        'exchangeData/tradedetails',
                     ],
                 },
                 'v1': {
@@ -82,16 +87,21 @@ class bitbns(Exchange):
                         'orderStatus/{symbol}',
                         'depositHistory/{symbol}',
                         'withdrawHistory/{symbol}',
+                        'withdrawHistoryAll/{symbol}',
+                        'depositHistoryAll/{symbol}',
                         'listOpenOrders/{symbol}',
                         'listOpenStopOrders/{symbol}',
                         'getCoinAddress/{symbol}',
                         'placeSellOrder/{symbol}',
                         'placeBuyOrder/{symbol}',
                         'buyStopLoss/{symbol}',
+                        'sellStopLoss/{symbol}',
                         'placeSellOrder/{symbol}',
                         'cancelOrder/{symbol}',
                         'cancelStopLossOrder/{symbol}',
                         'listExecutedOrders/{symbol}',
+                        'placeMarketOrder/{symbol}',
+                        'placeMarketOrderQnty/{symbol}',
                     ],
                 },
                 'v2': {
@@ -147,7 +157,7 @@ class bitbns(Exchange):
         return self.status
 
     def fetch_markets(self, params={}):
-        response = self.ccxtGetFetchMarkets(params)
+        response = self.wwwGetOrderFetchMarkets(params)
         #
         #     [
         #         {
@@ -201,6 +211,8 @@ class bitbns(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': True,
                 'active': None,
                 'precision': precision,
                 'limits': {
@@ -228,7 +240,7 @@ class bitbns(Exchange):
         }
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
-        response = self.ccxtGetFetchOrderbook(self.extend(request, params))
+        response = self.wwwGetOrderFetchOrderbook(self.extend(request, params))
         #
         #     {
         #         "bids":[
@@ -284,7 +296,7 @@ class bitbns(Exchange):
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_number(ticker, 'last')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -305,11 +317,11 @@ class bitbns(Exchange):
             'baseVolume': self.safe_number(ticker, 'baseVolume'),
             'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.ccxtGetFetchTickers(params)
+        response = self.wwwGetOrderFetchTickers(params)
         #
         #     {
         #         "BTC/INR":{
@@ -487,15 +499,14 @@ class bitbns(Exchange):
         })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type != 'limit':
-            raise ExchangeError(self.id + ' allows limit orders only')
+        if type != 'limit' and type != 'market':
+            raise ExchangeError(self.id + ' allows limit and market orders only')
         self.load_markets()
         market = self.market(symbol)
         request = {
             'side': side.upper(),
             'symbol': market['uppercaseId'],
             'quantity': self.amount_to_precision(symbol, amount),
-            'rate': self.price_to_precision(symbol, price),
             # 'target_rate': self.price_to_precision(symbol, targetRate),
             # 't_rate': self.price_to_precision(symbol, stopPrice),
             # 'trail_rate': self.price_to_precision(symbol, trailRate),
@@ -503,7 +514,15 @@ class bitbns(Exchange):
             # To Place Stoploss Buy or Sell Order use rate & t_rate
             # To Place Bracket Buy or Sell Order use rate , t_rate, target_rate & trail_rate
         }
-        response = self.v2PostOrders(self.extend(request, params))
+        method = 'v2PostOrders'
+        if type == 'limit':
+            request['rate'] = self.price_to_precision(symbol, price)
+        elif type == 'market':
+            method = 'v1PostPlaceMarketOrderQntySymbol'
+            request['market'] = market['quoteId']
+        else:
+            raise ExchangeError(self.id + ' allows limit and market orders only')
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "data":"Successfully placed bid to purchase currency",
@@ -621,11 +640,23 @@ class bitbns(Exchange):
         #         "id": "2938823"
         #     }
         #
+        # fetchTrades
+        #
+        #     {
+        #         "tradeId":"1909151",
+        #         "price":"61904.6300",
+        #         "quote_volume":1618.05,
+        #         "base_volume":0.02607254,
+        #         "timestamp":1634548602000,
+        #         "type":"buy"
+        #     }
+        #
         market = self.safe_market(None, market)
-        orderId = self.safe_string(trade, 'id')
+        orderId = self.safe_string_2(trade, 'id', 'tradeId')
         timestamp = self.parse8601(self.safe_string(trade, 'date'))
-        amountString = self.safe_string(trade, 'amount')
-        priceString = self.safe_string(trade, 'rate')
+        timestamp = self.safe_integer(trade, 'timestamp', timestamp)
+        amountString = self.safe_string_2(trade, 'amount', 'base_volume')
+        priceString = self.safe_string_2(trade, 'rate', 'price')
         price = self.parse_number(priceString)
         factor = self.safe_string(trade, 'factor')
         amountScaled = Precise.string_div(amountString, factor)
@@ -633,10 +664,6 @@ class bitbns(Exchange):
         cost = self.parse_number(Precise.string_mul(priceString, amountScaled))
         symbol = market['symbol']
         side = self.safe_string_lower(trade, 'type')
-        if side.find('sell') >= 0:
-            side = 'sell'
-        elif side.find('buy') >= 0:
-            side = 'buy'
         fee = None
         feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
@@ -650,7 +677,7 @@ class bitbns(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': None,
+            'id': orderId,
             'order': orderId,
             'type': None,
             'side': side,
@@ -716,6 +743,25 @@ class bitbns(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
+
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchTrades() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'coin': market['baseId'],
+            'market': market['quoteId'],
+        }
+        response = self.wwwGetExchangeDataTradedetails(self.extend(request, params))
+        #
+        #     [
+        #         {"tradeId":"1909151","price":"61904.6300","quote_volume":1618.05,"base_volume":0.02607254,"timestamp":1634548602000,"type":"buy"},
+        #         {"tradeId":"1909153","price":"61893.9000","quote_volume":16384.42,"base_volume":0.26405767,"timestamp":1634548999000,"type":"sell"},
+        #         {"tradeId":"1909155","price":"61853.1100","quote_volume":2304.37,"base_volume":0.03716263,"timestamp":1634549670000,"type":"sell"}
+        #     }
+        #
+        return self.parse_trades(response, market, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if code is None:
@@ -880,15 +926,18 @@ class bitbns(Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='v1', method='GET', params={}, headers=None, body=None):
-        self.check_required_credentials()
+    def sign(self, path, api='www', method='GET', params={}, headers=None, body=None):
+        if not (api in self.urls['api']):
+            raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
+        if api != 'www':
+            self.check_required_credentials()
+            headers = {
+                'X-BITBNS-APIKEY': self.apiKey,
+            }
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         nonce = str(self.nonce())
-        headers = {
-            'X-BITBNS-APIKEY': self.apiKey,
-        }
         if method == 'GET':
             if query:
                 url += '?' + self.urlencode(query)

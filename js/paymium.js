@@ -17,13 +17,13 @@ module.exports = class paymium extends Exchange {
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
+                'createOrder': true,
                 'fetchBalance': true,
+                'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
-                'fetchOrderBook': true,
-                'createOrder': true,
-                'cancelOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
@@ -74,7 +74,7 @@ module.exports = class paymium extends Exchange {
                 },
             },
             'markets': {
-                'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur' },
+                'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur', 'type': 'spot', 'spot': true },
             },
             'fees': {
                 'trading': {

@@ -22,7 +22,6 @@ module.exports = class binanceus extends binance {
                     'wapi': 'https://api.binance.us/wapi/v3',
                     'public': 'https://api.binance.us/api/v1',
                     'private': 'https://api.binance.us/api/v3',
-                    'v3': 'https://api.binance.us/api/v3',
                     'v1': 'https://api.binance.us/api/v1',
                 },
                 'www': 'https://www.binance.us',
@@ -39,6 +38,7 @@ module.exports = class binanceus extends binance {
                 },
             },
             'options': {
+                'fetchCurrencies': false,
                 'quoteOrderQty': false,
             },
         });

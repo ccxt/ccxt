@@ -15,7 +15,7 @@ module.exports = class coinbasepro extends Exchange {
             'id': 'coinbasepro',
             'name': 'Coinbase Pro',
             'countries': [ 'US' ],
-            'rateLimit': 1000,
+            'rateLimit': 100,
             'userAgent': this.userAgents['chrome'],
             'pro': true,
             'has': {
@@ -27,9 +27,10 @@ module.exports = class coinbasepro extends Exchange {
                 'deposit': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
-                'fetchCurrencies': true,
                 'fetchClosedOrders': true,
-                'fetchDepositAddress': false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchCurrencies': true,
+                'fetchDepositAddress': undefined, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -38,13 +39,12 @@ module.exports = class coinbasepro extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
-                'fetchTime': true,
                 'fetchTicker': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTransactions': true,
-                'withdraw': true,
-                'fetchDeposits': true,
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 60,
@@ -320,6 +320,9 @@ module.exports = class coinbasepro extends Exchange {
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': true,
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -332,7 +335,6 @@ module.exports = class coinbasepro extends Exchange {
                         'max': this.safeNumber (market, 'max_market_funds'),
                     },
                 },
-                'active': active,
                 'info': market,
             }));
         }
@@ -720,11 +722,15 @@ module.exports = class coinbasepro extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const marketId = this.safeString (order, 'product_id');
         market = this.safeMarket (marketId, market, '-');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const price = this.safeNumber (order, 'price');
-        const filled = this.safeNumber (order, 'filled_size');
-        const amount = this.safeNumber (order, 'size', filled);
-        const cost = this.safeNumber (order, 'executed_value');
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const doneReason = this.safeString (order, 'done_reason');
+        if ((status === 'closed') && (doneReason === 'canceled')) {
+            status = 'canceled';
+        }
+        const price = this.safeString (order, 'price');
+        const filled = this.safeString (order, 'filled_size');
+        const amount = this.safeString (order, 'size', filled);
+        const cost = this.safeString (order, 'executed_value');
         const feeCost = this.safeNumber (order, 'fill_fees');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -745,7 +751,7 @@ module.exports = class coinbasepro extends Exchange {
         const postOnly = this.safeValue (order, 'post_only');
         const stopPrice = this.safeNumber (order, 'stop_price');
         const clientOrderId = this.safeString (order, 'client_oid');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -977,6 +983,7 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

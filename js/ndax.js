@@ -33,10 +33,10 @@ module.exports = class ndax extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
@@ -192,9 +192,9 @@ module.exports = class ndax extends Exchange {
                 'secret': true,
                 'uid': true,
                 // these credentials are required for signIn() and withdraw()
-                // 'login': true,
-                // 'password': true,
-                // 'twofa': true,
+                'login': true,
+                'password': true,
+                'twofa': true,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -392,6 +392,8 @@ module.exports = class ndax extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': 'spot',
+                'spot': true,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -2012,6 +2014,7 @@ module.exports = class ndax extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // this method required login, password and twofa key
         const sessionToken = this.safeString (this.options, 'sessionToken');
         if (sessionToken === undefined) {

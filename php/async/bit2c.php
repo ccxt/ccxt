@@ -20,7 +20,7 @@ class bit2c extends Exchange {
             'rateLimit' => 3000,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchMyTrades' => true,
@@ -74,14 +74,14 @@ class bit2c extends Exchange {
                 ),
             ),
             'markets' => array(
-                'BTC/NIS' => array( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS', 'baseId' => 'Btc', 'quoteId' => 'Nis' ),
-                'ETH/NIS' => array( 'id' => 'EthNis', 'symbol' => 'ETH/NIS', 'base' => 'ETH', 'quote' => 'NIS', 'baseId' => 'Eth', 'quoteId' => 'Nis' ),
-                'BCH/NIS' => array( 'id' => 'BchabcNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS', 'baseId' => 'Bchabc', 'quoteId' => 'Nis' ),
-                'LTC/NIS' => array( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS', 'baseId' => 'Ltc', 'quoteId' => 'Nis' ),
-                'ETC/NIS' => array( 'id' => 'EtcNis', 'symbol' => 'ETC/NIS', 'base' => 'ETC', 'quote' => 'NIS', 'baseId' => 'Etc', 'quoteId' => 'Nis' ),
-                'BTG/NIS' => array( 'id' => 'BtgNis', 'symbol' => 'BTG/NIS', 'base' => 'BTG', 'quote' => 'NIS', 'baseId' => 'Btg', 'quoteId' => 'Nis' ),
-                'BSV/NIS' => array( 'id' => 'BchsvNis', 'symbol' => 'BSV/NIS', 'base' => 'BSV', 'quote' => 'NIS', 'baseId' => 'Bchsv', 'quoteId' => 'Nis' ),
-                'GRIN/NIS' => array( 'id' => 'GrinNis', 'symbol' => 'GRIN/NIS', 'base' => 'GRIN', 'quote' => 'NIS', 'baseId' => 'Grin', 'quoteId' => 'Nis' ),
+                'BTC/NIS' => array( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS', 'baseId' => 'Btc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
+                'ETH/NIS' => array( 'id' => 'EthNis', 'symbol' => 'ETH/NIS', 'base' => 'ETH', 'quote' => 'NIS', 'baseId' => 'Eth', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
+                'BCH/NIS' => array( 'id' => 'BchabcNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS', 'baseId' => 'Bchabc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
+                'LTC/NIS' => array( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS', 'baseId' => 'Ltc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
+                'ETC/NIS' => array( 'id' => 'EtcNis', 'symbol' => 'ETC/NIS', 'base' => 'ETC', 'quote' => 'NIS', 'baseId' => 'Etc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
+                'BTG/NIS' => array( 'id' => 'BtgNis', 'symbol' => 'BTG/NIS', 'base' => 'BTG', 'quote' => 'NIS', 'baseId' => 'Btg', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
+                'BSV/NIS' => array( 'id' => 'BchsvNis', 'symbol' => 'BSV/NIS', 'base' => 'BSV', 'quote' => 'NIS', 'baseId' => 'Bchsv', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
+                'GRIN/NIS' => array( 'id' => 'GrinNis', 'symbol' => 'GRIN/NIS', 'base' => 'GRIN', 'quote' => 'NIS', 'baseId' => 'Grin', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
             ),
             'fees' => array(
                 'trading' => array(
@@ -180,12 +180,8 @@ class bit2c extends Exchange {
         return $this->parse_order_book($orderbook, $symbol);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $request = array(
-            'pair' => $this->market_id($symbol),
-        );
-        $ticker = yield $this->publicGetExchangesPairTicker (array_merge($request, $params));
+    public function parse_ticker($ticker, $market = null) {
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->milliseconds();
         $averagePrice = $this->safe_number($ticker, 'av');
         $baseVolume = $this->safe_number($ticker, 'a');
@@ -194,7 +190,7 @@ class bit2c extends Exchange {
             $quoteVolume = $baseVolume * $averagePrice;
         }
         $last = $this->safe_number($ticker, 'll');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -215,7 +211,17 @@ class bit2c extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
+        ), $market);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'pair' => $market['id'],
         );
+        $response = yield $this->publicGetExchangesPairTicker (array_merge($request, $params));
+        return $this->parse_ticker($response, $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

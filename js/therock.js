@@ -18,7 +18,7 @@ module.exports = class therock extends Exchange {
             'version': 'v1',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -177,6 +177,8 @@ module.exports = class therock extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': market,
+                    'type': 'spot',
+                    'spot': true,
                     'active': true,
                     'maker': maker,
                     'taker': taker,

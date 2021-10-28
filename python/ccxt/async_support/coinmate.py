@@ -225,6 +225,8 @@ class coinmate(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': None,
                 'maker': fees['maker'],
                 'taker': fees['taker'],

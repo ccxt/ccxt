@@ -18,7 +18,7 @@ module.exports = class buda extends Exchange {
             'version': 'v2',
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -28,14 +28,14 @@ module.exports = class buda extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingFees': true,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchTrades': true,
                 'fetchTicker': true,
+                'fetchTrades': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -204,6 +204,8 @@ module.exports = class buda extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': true,
                 'precision': precision,
                 'limits': limits,
@@ -749,6 +751,7 @@ module.exports = class buda extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

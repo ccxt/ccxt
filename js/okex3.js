@@ -20,11 +20,11 @@ module.exports = class okex3 extends Exchange {
             'pro': true,
             'has': {
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': false, // see below
+                'fetchCurrencies': undefined, // see below
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchLedger': true,
@@ -34,13 +34,13 @@ module.exports = class okex3 extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': undefined,
                 'fetchOrderTrades': true,
-                'fetchTime': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTransactions': false,
+                'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'futures': true,
                 'withdraw': true,
@@ -2500,6 +2500,7 @@ module.exports = class okex3 extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2508,7 +2509,7 @@ module.exports = class okex3 extends Exchange {
         }
         const fee = this.safeString (params, 'fee');
         if (fee === undefined) {
-            throw new ArgumentsRequired (this.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
+            throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
         }
         const request = {
             'currency': currency['id'],

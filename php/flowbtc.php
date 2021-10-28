@@ -19,7 +19,7 @@ class flowbtc extends Exchange {
             'rateLimit' => 1000,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchMarkets' => true,
@@ -101,6 +101,9 @@ class flowbtc extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
+                'active' => null,
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
@@ -117,7 +120,6 @@ class flowbtc extends Exchange {
                     ),
                 ),
                 'info' => $market,
-                'active' => null,
             );
         }
         return $result;

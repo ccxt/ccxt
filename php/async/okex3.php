@@ -26,11 +26,11 @@ class okex3 extends Exchange {
             'pro' => true,
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchCurrencies' => false, // see below
+                'fetchCurrencies' => null, // see below
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchLedger' => true,
@@ -40,13 +40,13 @@ class okex3 extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => null,
                 'fetchOrderTrades' => true,
-                'fetchTime' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTransactions' => false,
+                'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
                 'futures' => true,
                 'withdraw' => true,
@@ -2506,6 +2506,7 @@ class okex3 extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
         $currency = $this->currency($code);
@@ -2514,7 +2515,7 @@ class okex3 extends Exchange {
         }
         $fee = $this->safe_string($params, 'fee');
         if ($fee === null) {
-            throw new ArgumentsRequired($this->id . " withdraw() requires a `$fee` string parameter, network transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set '0'. Withdrawing to external digital asset $address requires network transaction $fee->");
+            throw new ArgumentsRequired($this->id . " withdraw() requires a 'fee' string parameter, network transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set '0'. Withdrawing to external digital asset $address requires network transaction $fee->");
         }
         $request = array(
             'currency' => $currency['id'],

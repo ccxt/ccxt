@@ -14,6 +14,7 @@ class huobipro extends huobi {
         // to be removed soon
         return $this->deep_extend(parent::describe (), array(
             'id' => 'huobipro',
+            'alias' => true,
         ));
     }
 }

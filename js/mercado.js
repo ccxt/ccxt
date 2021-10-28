@@ -30,7 +30,7 @@ module.exports = class mercado extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': undefined,
                 'fetchTrades': true,
                 'withdraw': true,
             },
@@ -157,6 +157,8 @@ module.exports = class mercado extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
                 'active': undefined,
                 'info': coin,
                 'precision': precision,
@@ -472,6 +474,7 @@ module.exports = class mercado extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

@@ -20,7 +20,7 @@ class luno(Exchange):
             'version': '1',
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
@@ -155,6 +155,8 @@ class luno(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': precision,
                 'limits': {

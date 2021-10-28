@@ -24,7 +24,7 @@ class therock(Exchange):
             'version': 'v1',
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
@@ -182,6 +182,8 @@ class therock(Exchange):
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': market,
+                    'type': 'spot',
+                    'spot': True,
                     'active': True,
                     'maker': maker,
                     'taker': taker,

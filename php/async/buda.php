@@ -23,7 +23,7 @@ class buda extends Exchange {
             'version' => 'v2',
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
+                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -33,14 +33,14 @@ class buda extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingFees' => true,
                 'fetchMarkets' => true,
-                'fetchMyTrades' => false,
+                'fetchMyTrades' => null,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
-                'fetchTrades' => true,
                 'fetchTicker' => true,
+                'fetchTrades' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -209,6 +209,8 @@ class buda extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => true,
                 'precision' => $precision,
                 'limits' => $limits,
@@ -754,6 +756,7 @@ class buda extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
         $currency = $this->currency($code);

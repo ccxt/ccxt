@@ -37,9 +37,9 @@ class kucoin(Exchange):
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': False,
             'has': {
-                'CORS': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'fetchAccounts': True,
@@ -49,21 +49,26 @@ class kucoin(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFee': True,
+                'fetchFundingHistory': True,
+                'fetchFundingRateHistory': False,
+                'fetchIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
-                'withdraw': True,
                 'transfer': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
@@ -293,6 +298,7 @@ class kucoin(Exchange):
                     '400007': AuthenticationError,
                     '400008': NotSupported,
                     '400100': BadRequest,
+                    '400500': InvalidOrder,  # {"code":"400500","msg":"Your located country/region is currently not supported for the trading of self token"}
                     '411100': AccountSuspended,
                     '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
                     '500000': ExchangeError,
@@ -375,6 +381,14 @@ class kucoin(Exchange):
                     'contract': 'contract',
                     'pool': 'pool',
                     'pool-x': 'pool',
+                },
+                'networks': {
+                    'ETH': 'eth',
+                    'ERC20': 'eth',
+                    'TRX': 'trx',
+                    'TRC20': 'trx',
+                    'KCC': 'kcc',
+                    'TERRA': 'luna',
                 },
             },
         })
@@ -473,6 +487,9 @@ class kucoin(Exchange):
                     'min': quoteMinSize,
                     'max': quoteMaxSize,
                 },
+                'leverage': {
+                    'max': self.safe_number(market, 'maxLeverage', 1),  # * Don't default to 1 for margin markets, leverage is located elsewhere
+                },
             }
             result.append({
                 'id': id,
@@ -481,6 +498,8 @@ class kucoin(Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': precision,
                 'limits': limits,
@@ -586,6 +605,84 @@ class kucoin(Exchange):
             'deposit': {},
         }
 
+    def is_futures_method(self, methodName, params):
+        #
+        # Helper
+        # @methodName(string): The name of the method
+        # @params(dict): The parameters passed into {methodName}
+        # @return: True if the method used is meant for futures trading, False otherwise
+        #
+        defaultType = self.safe_string_2(self.options, methodName, 'defaultType', 'trade')
+        requestedType = self.safe_string(params, 'type', defaultType)
+        accountsByType = self.safe_value(self.options, 'accountsByType')
+        type = self.safe_string(accountsByType, requestedType)
+        if type is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' type must be one of ' + ', '.join(keys))
+        params = self.omit(params, 'type')
+        return(type == 'contract') or (type == 'futures')
+
+    def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        #
+        # Private
+        # @param symbol(string): The pair for which the contract was traded
+        # @param since(number): The unix start time of the first funding payment requested
+        # @param limit(number): The number of results to return
+        # @param params(dict): Additional parameters to send to the API
+        # @param return: Data for the history of the accounts funding payments for futures contracts
+        #
+        if self.is_futures_method('fetchFundingHistory', params):
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+            self.load_markets()
+            market = self.market(symbol)
+            request = {
+                'symbol': market['id'],
+            }
+            if since is not None:
+                request['startAt'] = since
+            if limit is not None:
+                request['maxCount'] = limit
+            method = 'futuresPrivateGetFundingHistory'
+            response = getattr(self, method)(self.extend(request, params))
+            # {
+            #  "data": {
+            #     "dataList": [
+            #       {
+            #         "id": 36275152660006,                # id
+            #         "symbol": "XBTUSDM",                 # Symbol
+            #         "timePoint": 1557918000000,          # Time point(milisecond)
+            #         "fundingRate": 0.000013,             # Funding rate
+            #         "markPrice": 8058.27,                # Mark price
+            #         "positionQty": 10,                   # Position size
+            #         "positionCost": -0.001241,           # Position value at settlement period
+            #         "funding": -0.00000464,              # Settled funding fees. A positive number means that the user received the funding fee, and vice versa.
+            #         "settleCurrency": "XBT"              # Settlement currency
+            #       },
+            #  }
+            # }
+            data = self.safe_value(response, 'data')
+            dataList = self.safe_value(data, 'dataList')
+            fees = []
+            for i in range(0, len(dataList)):
+                timestamp = self.safe_integer(dataList[i], 'timePoint')
+                fees.append({
+                    'info': dataList[i],
+                    'symbol': self.safe_symbol(dataList[i], 'symbol'),
+                    'code': self.safe_currency_code(dataList[i], 'settleCurrency'),
+                    'timestamp': timestamp,
+                    'datetime': self.iso8601(timestamp),
+                    'id': self.safe_number(dataList[i], 'id'),
+                    'amount': self.safe_number(dataList[i], 'funding'),
+                    'fundingRate': self.safe_number(dataList[i], 'fundingRate'),
+                    'markPrice': self.safe_number(dataList[i], 'markPrice'),
+                    'positionQty': self.safe_number(dataList[i], 'positionQty'),
+                    'positionCost': self.safe_number(dataList[i], 'positionCost'),
+                })
+            return fees
+        else:
+            raise NotSupported(self.id + ' fetchFundingHistory() supports linear and inverse contracts only')
+
     def parse_ticker(self, ticker, market=None):
         #
         #     {
@@ -625,26 +722,41 @@ class kucoin(Exchange):
         #         "mark": 0
         #     }
         #
+        # market/ticker ws subscription
+        #
+        #     {
+        #         bestAsk: '62258.9',
+        #         bestAskSize: '0.38579986',
+        #         bestBid: '62258.8',
+        #         bestBidSize: '0.0078381',
+        #         price: '62260.7',
+        #         sequence: '1621383297064',
+        #         size: '0.00002841',
+        #         time: 1634641777363
+        #     }
+        #
         percentage = self.safe_number(ticker, 'changeRate')
         if percentage is not None:
             percentage = percentage * 100
         last = self.safe_number_2(ticker, 'last', 'lastTradedPrice')
+        last = self.safe_number(ticker, 'price', last)
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         baseVolume = self.safe_number(ticker, 'vol')
         quoteVolume = self.safe_number(ticker, 'volValue')
         vwap = self.vwap(baseVolume, quoteVolume)
         timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high'),
             'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
-            'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
-            'askVolume': None,
+            'bid': self.safe_number_2(ticker, 'buy', 'bestBid'),
+            'bidVolume': self.safe_number(ticker, 'bestBidSize'),
+            'ask': self.safe_number_2(ticker, 'sell', 'bestAsk'),
+            'askVolume': self.safe_number(ticker, 'bestAskSize'),
             'vwap': vwap,
             'open': self.safe_number(ticker, 'open'),
             'close': last,
@@ -656,7 +768,7 @@ class kucoin(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -807,6 +919,13 @@ class kucoin(Exchange):
             # for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
             # 'chain': 'ERC20',  # optional
         }
+        # same as for withdraw
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['chain'] = network
+            params = self.omit(params, 'network')
         response = self.privateGetDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
@@ -1416,6 +1535,7 @@ class kucoin(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
@@ -1430,6 +1550,12 @@ class kucoin(Exchange):
         }
         if tag is not None:
             request['memo'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['chain'] = network
+            params = self.omit(params, 'network')
         response = self.privatePostWithdrawals(self.extend(request, params))
         #
         # https://github.com/ccxt/ccxt/issues/5558

@@ -22,8 +22,8 @@ class tidex extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             'has' => array(
                 'cancelOrder' => true,
-                'CORS' => false,
-                'createMarketOrder' => false,
+                'CORS' => null,
+                'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
@@ -82,10 +82,9 @@ class tidex extends Exchange {
                         'OrderInfo',
                         'CancelOrder',
                         'TradeHistory',
-                        'CoinDepositAddress',
-                        'WithdrawCoin',
-                        'CreateCoupon',
-                        'RedeemCoupon',
+                        'getDepositAddress',
+                        'createWithdraw',
+                        'getWithdraw',
                     ),
                 ),
             ),
@@ -125,6 +124,7 @@ class tidex extends Exchange {
                     'not available' => '\\ccxt\\ExchangeNotAvailable',
                     'data unavailable' => '\\ccxt\\ExchangeNotAvailable',
                     'external service unavailable' => '\\ccxt\\ExchangeNotAvailable',
+                    'IP restricted' => '\\ccxt\\PermissionDenied', // array("success":0,"code":0,"error":"IP restricted (223.xxx.xxx.xxx)")
                 ),
             ),
             'options' => array(
@@ -272,6 +272,8 @@ class tidex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => 'spot',
+                'spot' => true,
                 'active' => $active,
                 'taker' => $takerFee,
                 'precision' => $precision,
@@ -723,22 +725,47 @@ class tidex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'coinName' => $currency['id'],
+            'asset' => $currency['id'],
             'amount' => floatval($amount),
             'address' => $address,
         );
-        // no docs on the $tag, yet...
         if ($tag !== null) {
-            throw new ExchangeError($this->id . ' withdraw() does not support the $tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.');
+            $request['memo'] = $tag;
         }
-        $response = yield $this->privatePostWithdrawCoin (array_merge($request, $params));
+        $response = yield $this->privatePostCreateWithdraw (array_merge($request, $params));
+        //
+        //     {
+        //         "success":1,
+        //         "return":{
+        //             "withdraw_id":1111,
+        //             "withdraw_info":{
+        //                 "id":1111,
+        //                 "asset_id":1,
+        //                 "asset":"BTC",
+        //                 "$amount":0.0093,
+        //                 "fee":0.0007,
+        //                 "create_time":1575128018,
+        //                 "status":"Created",
+        //                 "data":array(
+        //                     "$address":"1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY",
+        //                     "memo":"memo",
+        //                     "tx":null,
+        //                     "error":null
+        //                 ),
+        //             "in_blockchain":false
+        //             }
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'return', array());
         return array(
             'info' => $response,
-            'id' => $response['return']['tId'],
+            'id' => $this->safe_string($result, 'withdraw_id'),
         );
     }
 

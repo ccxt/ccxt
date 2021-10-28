@@ -40,27 +40,27 @@ class gemini(Exchange):
             'version': 'v1',
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createDepositAddress': True,
-                'createMarketOrder': False,
+                'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
-                'fetchBidsAsks': False,
-                'fetchClosedOrders': False,
-                'fetchDepositAddress': False,
-                'fetchDeposits': False,
+                'fetchBidsAsks': None,
+                'fetchClosedOrders': None,
+                'fetchDepositAddress': None,
+                'fetchDeposits': None,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': False,
+                'fetchOrders': None,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTransactions': True,
-                'fetchWithdrawals': False,
+                'fetchWithdrawals': None,
                 'withdraw': True,
             },
             'urls': {
@@ -99,21 +99,23 @@ class gemini(Exchange):
                 'public': {
                     'get': [
                         'v1/symbols',
-                        'v1/pricefeed',
+                        'v1/symbols/details/{symbol}',
                         'v1/pubticker/{symbol}',
-                        'v1/book/{symbol}',
+                        'v2/ticker/{symbol}',
+                        'v2/candles/{symbol}/{timeframe}',
                         'v1/trades/{symbol}',
                         'v1/auction/{symbol}',
                         'v1/auction/{symbol}/history',
-                        'v2/candles/{symbol}/{timeframe}',
-                        'v2/ticker/{symbol}',
+                        'v1/pricefeed',
+                        'v1/book/{symbol}',
+                        'v1/earn/rates',
                     ],
                 },
                 'private': {
                     'post': [
-                        'v1/account/list',
                         'v1/order/new',
                         'v1/order/cancel',
+                        'v1/wrap/{symbol}',
                         'v1/order/cancel/session',
                         'v1/order/cancel/all',
                         'v1/order/status',
@@ -121,12 +123,29 @@ class gemini(Exchange):
                         'v1/mytrades',
                         'v1/notionalvolume',
                         'v1/tradevolume',
-                        'v1/transfers',
+                        'v1/clearing/new',
+                        'v1/clearing/status',
+                        'v1/clearing/cancel',
+                        'v1/clearing/confirm',
                         'v1/balances',
-                        'v1/deposit/{currency}/newAddress',
-                        'v1/withdraw/{currency}',
-                        'v1/heartbeat',
+                        'v1/notionalbalances/{currency}',
                         'v1/transfers',
+                        'v1/addresses/{network}',
+                        'v1/deposit/{network}/newAddress',
+                        'v1/withdraw/{currency}',
+                        'v1/account/transfer/{currency}',
+                        'v1/payments/addbank',
+                        'v1/payments/methods',
+                        'v1/payments/sen/withdraw',
+                        'v1/balances/earn',
+                        'v1/earn/interest',
+                        'v1/approvedAddresses/{network}/request',
+                        'v1/approvedAddresses/account/{network}',
+                        'v1/approvedAddresses/{network}/remove',
+                        'v1/account',
+                        'v1/account/create',
+                        'v1/account/list',
+                        'v1/heartbeat',
                     ],
                 },
             },
@@ -243,7 +262,8 @@ class gemini(Exchange):
             amountPrecisionParts = amountPrecisionString.split(' ')
             amountPrecision = self.safe_number(amountPrecisionParts, 0)
             idLength = len(marketId) - 0
-            quoteId = marketId[idLength - 3:idLength]
+            startingIndex = idLength - 3
+            quoteId = marketId[startingIndex:idLength]
             quote = self.safe_currency_code(quoteId)
             pricePrecisionString = cells[3].replace('<td>', '')
             pricePrecisionParts = pricePrecisionString.split(' ')
@@ -260,6 +280,8 @@ class gemini(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': True,
                 'active': active,
                 'precision': {
                     'amount': amountPrecision,
@@ -700,6 +722,7 @@ class gemini(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
@@ -765,6 +788,9 @@ class gemini(Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
             self.check_required_credentials()
+            apiKey = self.apiKey
+            if apiKey.find('account') < 0:
+                raise AuthenticationError(self.id + ' sign() requires an account-key, master-keys are not-supported')
             nonce = self.nonce()
             request = self.extend({
                 'request': url,

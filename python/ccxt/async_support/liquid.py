@@ -30,7 +30,7 @@ class liquid(Exchange):
             'rateLimit': 1000,
             'has': {
                 'cancelOrder': True,
-                'CORS': False,
+                'CORS': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -215,12 +215,18 @@ class liquid(Exchange):
                 'product_disabled': BadSymbol,  # {"errors":{"order":["product_disabled"]}}
             },
             'commonCurrencies': {
-                'WIN': 'WCOIN',
                 'HOT': 'HOT Token',
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
+                'TON': 'Tokamak Network',
             },
             'options': {
                 'cancelOrderException': True,
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'XLM': 'Stellar',
+                    'ALGO': 'Algorand',
+                },
             },
         })
 
@@ -927,6 +933,7 @@ class liquid(Exchange):
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
@@ -947,6 +954,12 @@ class liquid(Exchange):
                 request['memo_value'] = tag
             else:
                 raise NotSupported(self.id + ' withdraw() only supports a tag along the address for XRP or XLM')
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['network'] = network
+            params = self.omit(params, 'network')
         response = await self.privatePostCryptoWithdrawals(self.extend(request, params))
         #
         #     {

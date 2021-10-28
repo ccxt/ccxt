@@ -30,20 +30,23 @@ class deribit extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => null,
                 'fetchOrderTrades' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTransactions' => false,
+                'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -540,8 +543,8 @@ class deribit extends Exchange {
         $currencyId = $this->safe_string($balance, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId);
         $account = $this->account();
-        $account['free'] = $this->safe_string($balance, 'availableFunds');
-        $account['used'] = $this->safe_string($balance, 'maintenanceMargin');
+        $account['free'] = $this->safe_string($balance, 'available_funds');
+        $account['used'] = $this->safe_string($balance, 'maintenance_margin');
         $account['total'] = $this->safe_string($balance, 'equity');
         $result[$currencyCode] = $account;
         return $this->parse_balance($result);
@@ -1703,6 +1706,7 @@ class deribit extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
