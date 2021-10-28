@@ -1914,7 +1914,7 @@ module.exports = class Exchange {
         }
     }
 
-    isDerivative (type) {
+    isContract (type) {
         return type === 'swap' || type === 'futures' || type === 'future' || type === 'delivery' || type === 'option';
     }
 }

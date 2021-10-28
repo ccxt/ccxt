@@ -3343,7 +3343,7 @@ class Exchange {
         }
     }
 
-    public function is_derivative($type) {
+    public function is_contract($type) {
         return $type === 'swap' || $type === 'futures' || $type === 'future' || $type === 'delivery' || $type === 'option';
     }
 }
