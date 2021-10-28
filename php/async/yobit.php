@@ -389,7 +389,7 @@ class yobit extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $symbol = $this->safe_symbol($id);
-            $result[$symbol] = $this->parse_order_book($response[$id]);
+            $result[$symbol] = $this->parse_order_book($response[$id], $symbol);
         }
         return $result;
     }
