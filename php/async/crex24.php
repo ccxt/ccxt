@@ -150,6 +150,7 @@ class crex24 extends Exchange {
                 'GHOST' => 'GHOSTPRISM',
                 'GTC' => 'GastroCoin', // conflict with Gitcoin and Game.com
                 'IQ' => 'IQ.Cash',
+                'ONE' => 'One Hundred Coin',
                 'PUT' => 'PutinCoin',
                 'SBTC' => 'SBTCT', // SiamBitcoin
                 'UNI' => 'Universe',
