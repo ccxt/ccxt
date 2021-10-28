@@ -14,7 +14,7 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
 
     // instantiate the exchange
     let exchange = new ccxt.b2c2  ({
-        "apiKey": "c2ed21ef1e8c278dde40bafdb6b81736f93fb7b1",
+        "apiKey": "",
         "verbose": true,
     })
     exchange.setSandboxMode (true);
