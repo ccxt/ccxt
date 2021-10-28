@@ -251,6 +251,7 @@ class aax extends Exchange {
                 'networks' => array(
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
+                    'SOL' => 'SPL',
                 ),
             ),
         ));
@@ -1633,16 +1634,16 @@ class aax extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $price = $this->safe_number($order, 'price');
+        $price = $this->safe_string($order, 'price');
         $stopPrice = $this->safe_number($order, 'stopPrice');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $execInst = $this->safe_string($order, 'execInst');
         $postOnly = ($execInst === 'Post-Only');
-        $average = $this->safe_number($order, 'avgPrice');
-        $amount = $this->safe_number($order, 'orderQty');
-        $filled = $this->safe_number($order, 'cumQty');
-        $remaining = $this->safe_number($order, 'leavesQty');
-        if (($filled === 0) && ($remaining === 0)) {
+        $average = $this->safe_string($order, 'avgPrice');
+        $amount = $this->safe_string($order, 'orderQty');
+        $filled = $this->safe_string($order, 'cumQty');
+        $remaining = $this->safe_string($order, 'leavesQty');
+        if ((Precise::string_equals($filled, '0')) && (Precise::string_equals($remaining, '0'))) {
             $remaining = null;
         }
         $lastTradeTimestamp = $this->safe_value($order, 'transactTime');
@@ -1665,7 +1666,7 @@ class aax extends Exchange {
                 'cost' => $feeCost,
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'info' => $order,
             'clientOrderId' => $clientOrderId,
