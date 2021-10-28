@@ -253,11 +253,11 @@ module.exports = class hitbtc3 extends Exchange {
             },
             'options': {
                 'networks': {
-                    'ETH': '20',
-                    'ERC20': '20',
-                    'TRX': 'RX',
-                    'TRC20': 'RX',
-                    'OMNI': '',
+                    'ETH': 'USDT20',
+                    'ERC20': 'USDT20',
+                    'TRX': 'USDTRX',
+                    'TRC20': 'USDTRX',
+                    'OMNI': 'USDT',
                 },
                 'accountsByType': {
                     'spot': 'spot',
@@ -478,12 +478,14 @@ module.exports = class hitbtc3 extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const network = this.safeString (params, 'network');
+        const network = this.safeStringUpper (params, 'network');
         if ((network !== undefined) && (code === 'USDT')) {
-            params = this.omit (params, 'network');
             const networks = this.safeValue (this.options, 'networks');
-            const endpart = this.safeString (networks, network, network);
-            request['currency'] += endpart;
+            const parsedNetwork = this.safeString (networks, network);
+            if (parsedNetwork !== undefined) {
+                request['currency'] = parsedNetwork;
+            }
+            params = this.omit (params, 'network');
         }
         const response = await this.privateGetWalletCryptoAddress (this.extend (request, params));
         //
@@ -1359,18 +1361,24 @@ module.exports = class hitbtc3 extends Exchange {
 
     async convertCurrencyNetwork (code, amount, fromNetwork, toNetwork, params) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        if (code !== 'USDT') {
+            throw new ExchangeError (this.id + ' convertCurrencyNetwork only supports USDT currently');
+        }
         const networks = this.safeValue (this.options, 'networks', {});
         fromNetwork = fromNetwork.toUpperCase ();
         toNetwork = toNetwork.toUpperCase ();
-        fromNetwork = this.safeString (networks, fromNetwork, fromNetwork); // handle ETH>ERC20 alias
-        toNetwork = this.safeString (networks, toNetwork, toNetwork); // handle ETH>ERC20 alias
+        fromNetwork = this.safeString (networks, fromNetwork); // handle ETH>ERC20 alias
+        toNetwork = this.safeString (networks, toNetwork); // handle ETH>ERC20 alias
         if (fromNetwork === toNetwork) {
             throw new ExchangeError (this.id + ' fromNetwork cannot be the same as toNetwork');
         }
+        if ((fromNetwork === undefined) || (toNetwork === undefined)) {
+            const keys = Object.keys (networks);
+            throw new ExchangeError (this.id + ' invalid network, please select one of ' + keys.join (', '));
+        }
         const request = {
-            'from_currency': currency['id'] + fromNetwork,
-            'to_currency': currency['id'] + toNetwork,
+            'from_currency': fromNetwork,
+            'to_currency': toNetwork,
             'amount': this.currencyToPrecision (code, amount),
         };
         const response = await this.privatePostWalletConvert (this.extend (request, params));
@@ -1394,10 +1402,12 @@ module.exports = class hitbtc3 extends Exchange {
             request['payment_id'] = tag;
         }
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network');
-        network = this.safeString (networks, network, network);
-        if (network !== undefined) {
-            request['currency'] += network; // when network the currency need to be changed to currency + network
+        const network = this.safeStringUpper (params, 'network');
+        if ((network !== undefined) && (code === 'USDT')) {
+            const parsedNetwork = this.safeString (networks, network);
+            if (parsedNetwork !== undefined) {
+                request['currency'] = parsedNetwork;
+            }
             params = this.omit (params, 'network');
         }
         const response = await this.privatePostWalletCryptoWithdraw (this.extend (request, params));
