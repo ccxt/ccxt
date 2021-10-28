@@ -1307,15 +1307,12 @@ class bybit extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $id = $this->safe_string_2($order, 'order_id', 'stop_order_id');
         $type = $this->safe_string_lower($order, 'order_type');
-        $price = $this->safe_number($order, 'price');
-        if ($price === 0.0) {
-            $price = null;
-        }
-        $average = $this->safe_number($order, 'average_price');
-        $amount = $this->safe_number($order, 'qty');
-        $cost = $this->safe_number($order, 'cum_exec_value');
-        $filled = $this->safe_number($order, 'cum_exec_qty');
-        $remaining = $this->safe_number($order, 'leaves_qty');
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'average_price');
+        $amount = $this->safe_string($order, 'qty');
+        $cost = $this->safe_string($order, 'cum_exec_value');
+        $filled = $this->safe_string($order, 'cum_exec_qty');
+        $remaining = $this->safe_string($order, 'leaves_qty');
         $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
         $marketType = $this->safe_string($marketTypes, $symbol);
         if ($market !== null) {
@@ -1331,10 +1328,10 @@ class bybit extends Exchange {
         }
         $status = $this->parse_order_status($this->safe_string_2($order, 'order_status', 'stop_order_status'));
         $side = $this->safe_string_lower($order, 'side');
-        $feeCost = $this->safe_number($order, 'cum_exec_fee');
+        $feeCostString = $this->safe_string($order, 'cum_exec_fee');
+        $feeCost = $this->parse_number(Precise::string_abs($feeCostString));
         $fee = null;
         if ($feeCost !== null) {
-            $feeCost = abs($feeCost);
             $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
@@ -1347,7 +1344,7 @@ class bybit extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = $this->safe_number_2($order, 'trigger_price', 'stop_px');
         $postOnly = ($timeInForce === 'PO');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
