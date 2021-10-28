@@ -1250,17 +1250,16 @@ class kucoin(Exchange):
         type = self.safe_string(order, 'type')
         timestamp = self.safe_integer(order, 'createdAt')
         datetime = self.iso8601(timestamp)
-        price = self.safe_number(order, 'price')
-        if price == 0.0:
-            # market orders
-            price = None
+        price = self.safe_string(order, 'price')
+        # price is zero for market order
+        # omitZero is called in safeOrder2
         side = self.safe_string(order, 'side')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         feeCost = self.safe_number(order, 'fee')
-        amount = self.safe_number(order, 'size')
-        filled = self.safe_number(order, 'dealSize')
-        cost = self.safe_number(order, 'dealFunds')
+        amount = self.safe_string(order, 'size')
+        filled = self.safe_string(order, 'dealSize')
+        cost = self.safe_string(order, 'dealFunds')
         # bool
         isActive = self.safe_value(order, 'isActive', False)
         cancelExist = self.safe_value(order, 'cancelExist', False)
@@ -1274,7 +1273,7 @@ class kucoin(Exchange):
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'stopPrice')
         postOnly = self.safe_value(order, 'postOnly')
-        return self.safe_order({
+        return self.safe_order2({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,

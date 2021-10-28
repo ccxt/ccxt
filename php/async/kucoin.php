@@ -1298,18 +1298,16 @@ class kucoin extends Exchange {
         $type = $this->safe_string($order, 'type');
         $timestamp = $this->safe_integer($order, 'createdAt');
         $datetime = $this->iso8601($timestamp);
-        $price = $this->safe_number($order, 'price');
-        if ($price === 0.0) {
-            // $market orders
-            $price = null;
-        }
+        $price = $this->safe_string($order, 'price');
+        // $price is zero for $market $order
+        // omitZero is called in safeOrder2
         $side = $this->safe_string($order, 'side');
         $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $feeCost = $this->safe_number($order, 'fee');
-        $amount = $this->safe_number($order, 'size');
-        $filled = $this->safe_number($order, 'dealSize');
-        $cost = $this->safe_number($order, 'dealFunds');
+        $amount = $this->safe_string($order, 'size');
+        $filled = $this->safe_string($order, 'dealSize');
+        $cost = $this->safe_string($order, 'dealFunds');
         // bool
         $isActive = $this->safe_value($order, 'isActive', false);
         $cancelExist = $this->safe_value($order, 'cancelExist', false);
@@ -1323,7 +1321,7 @@ class kucoin extends Exchange {
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_number($order, 'stopPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
             'symbol' => $symbol,
