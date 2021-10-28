@@ -1175,10 +1175,10 @@ module.exports = class gateio extends Exchange {
         //     };
         //
         const request = this.prepareRequest (market);
-        const spot = market['spot'];
+        const spotOrMargin = market['spot'] || market['margin'];
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetOrderBook',
-            // 'margin': 'publicMarginGetOrderBook',
+            'margin': 'publicSpotGetOrderBook',
             'swap': 'publicFuturesGetSettleOrderBook',
             'futures': 'publicDeliveryGetSettleOrderBook',
         });
@@ -1249,11 +1249,11 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         let timestamp = this.safeInteger (response, 'current');
-        if (!spot) {
+        if (!spotOrMargin) {
             timestamp = timestamp * 1000;
         }
-        const priceKey = spot ? 0 : 'p';
-        const amountKey = spot ? 1 : 's';
+        const priceKey = spotOrMargin ? 0 : 'p';
+        const amountKey = spotOrMargin ? 1 : 's';
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
     }
 
@@ -1263,7 +1263,7 @@ module.exports = class gateio extends Exchange {
         const request = this.prepareRequest (market);
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTickers',
-            // 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'futures': 'publicDeliveryGetSettleTickers',
         });
@@ -1350,7 +1350,7 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, 'type');
         const method = this.getSupportedMapping (type, {
             'spot': 'publicSpotGetTickers',
-            // 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'futures': 'publicDeliveryGetSettleTickers',
         });
@@ -1375,7 +1375,7 @@ module.exports = class gateio extends Exchange {
         const futures = type === 'futures';
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetAccounts',
-            // 'margin': 'publicMarginGetTickers',
+            'margin': 'privateMarginGetAccounts',
             'swap': 'privateFuturesGetSettleAccounts',
             'futures': 'privateDeliveryGetSettleAccounts',
         });
@@ -1398,6 +1398,27 @@ module.exports = class gateio extends Exchange {
         //       },
         //       ...
         //     ]
+        //
+        //  MARGIN
+        //  [{
+        //    "currency_pair":"DOGE_USDT",
+        //    "locked":false,
+        //    "risk":"9999.99",
+        //    "base":{
+        //      "currency":"DOGE",
+        //      "available":"0",
+        //      "locked":"0",
+        //      "borrowed":"0",
+        //      "interest":"0"
+        //     },
+        //     "quote":{
+        //       "currency":"USDT",
+        //       "available":"0.73402",
+        //       "locked":"0",
+        //       "borrowed":"0",
+        //       "interest":"0"
+        //      }
+        //  }]
         //
         //  Perpetual Swap
         //  {
@@ -1621,7 +1642,7 @@ module.exports = class gateio extends Exchange {
         const request = this.prepareRequest (market);
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTrades',
-            // 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTrades',
             'swap': 'publicFuturesGetSettleTrades',
             'futures': 'publicDeliveryGetSettleTrades',
         });
@@ -1687,7 +1708,7 @@ module.exports = class gateio extends Exchange {
         }
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'privateSpotGetMyTrades',
-            // 'margin': 'publicMarginGetCurrencyPairs',
+            'margin': 'privateSpotGetMyTrades',
             'swap': 'privateFuturesGetSettleMyTrades',
             'futures': 'privateDeliveryGetSettleMyTrades',
         });
