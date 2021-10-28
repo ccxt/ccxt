@@ -2014,10 +2014,10 @@ class gateio extends Exchange {
         $timestamp = $this->safe_integer($order, 'create_time_ms', $timestamp);
         $lastTradeTimestamp = $this->safe_timestamp($order, 'update_time');
         $lastTradeTimestamp = $this->safe_integer($order, 'update_time_ms', $lastTradeTimestamp);
-        $amount = $this->safe_number($order, 'amount');
-        $price = $this->safe_number($order, 'price');
-        $remaining = $this->safe_number($order, 'left');
-        $cost = $this->safe_number($order, 'filled_total'); // same as filled_price
+        $amount = $this->safe_string($order, 'amount');
+        $price = $this->safe_string($order, 'price');
+        $remaining = $this->safe_string($order, 'left');
+        $cost = $this->safe_string($order, 'filled_total'); // same as filled_price
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type');
         // open, closed, cancelled - almost already ccxt unified!
@@ -2040,7 +2040,7 @@ class gateio extends Exchange {
             'currency' => $this->safe_currency_code($this->safe_string($order, 'rebated_fee_currency')),
             'cost' => $this->parse_number(Precise::string_neg($rebate)),
         );
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $id,
             'timestamp' => $timestamp,

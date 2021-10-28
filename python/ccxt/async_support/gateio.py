@@ -1946,10 +1946,10 @@ class gateio(Exchange):
         timestamp = self.safe_integer(order, 'create_time_ms', timestamp)
         lastTradeTimestamp = self.safe_timestamp(order, 'update_time')
         lastTradeTimestamp = self.safe_integer(order, 'update_time_ms', lastTradeTimestamp)
-        amount = self.safe_number(order, 'amount')
-        price = self.safe_number(order, 'price')
-        remaining = self.safe_number(order, 'left')
-        cost = self.safe_number(order, 'filled_total')  # same as filled_price
+        amount = self.safe_string(order, 'amount')
+        price = self.safe_string(order, 'price')
+        remaining = self.safe_string(order, 'left')
+        cost = self.safe_string(order, 'filled_total')  # same as filled_price
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')
         # open, closed, cancelled - almost already ccxt unified!
@@ -1971,7 +1971,7 @@ class gateio(Exchange):
             'currency': self.safe_currency_code(self.safe_string(order, 'rebated_fee_currency')),
             'cost': self.parse_number(Precise.string_neg(rebate)),
         })
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': id,
             'timestamp': timestamp,
