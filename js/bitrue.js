@@ -18,6 +18,7 @@ module.exports = class bitrue extends Exchange {
             'rateLimit': 50,
             'certified': true,
             'pro': true,
+            'version': 'v1',
             // new metainfo interface
             'has': {
                 'cancelAllOrders': true,
@@ -2390,63 +2391,20 @@ module.exports = class bitrue extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!(api in this.urls['api'])) {
-            throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
-        }
-        let url = this.urls['api'][api];
-        url += '/' + path;
-        if (api === 'wapi') {
-            url += '.html';
-        }
-        if (path === 'historicalTrades') {
-            if (this.apiKey) {
-                headers = {
-                    'X-MBX-APIKEY': this.apiKey,
-                };
-            } else {
-                throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
-            }
-        }
-        const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
-        if (userDataStream) {
-            if (this.apiKey) {
-                // v1 special case for userDataStream
-                headers = {
-                    'X-MBX-APIKEY': this.apiKey,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                };
-                if (method !== 'GET') {
-                    body = this.urlencode (params);
-                }
-            } else {
-                throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
-            }
-        } else if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        let url = this.urls['api'][api] + '/' + this.version + '/' + path;
+        if (api === 'private') {
             this.checkRequiredCredentials ();
-            let query = undefined;
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
-            if ((api === 'sapi') && (path === 'asset/dust')) {
-                query = this.urlencodeWithArrayRepeat (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
-            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0)) {
-                query = this.rawencode (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
-            } else {
-                query = this.urlencode (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
-            }
+            let query = this.urlencode (this.extend ({
+                'timestamp': this.nonce (),
+                'recvWindow': recvWindow,
+            }, params));
             const signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
+            if ((method === 'GET') || (method === 'DELETE')) {
                 url += '?' + query;
             } else {
                 body = query;
