@@ -244,12 +244,6 @@ module.exports = class bitrue extends Exchange {
                     'limit': 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
                 'quoteOrderQty': true, // whether market orders support amounts in quote currency
-                'broker': {
-                    'spot': 'x-R4BD3S82',
-                    'margin': 'x-R4BD3S82',
-                    'future': 'x-xcKtGhcu',
-                    'delivery': 'x-xcKtGhcu',
-                },
                 'accountsByType': {
                     'main': 'MAIN',
                     'spot': 'MAIN',
@@ -500,16 +494,7 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        let method = 'publicGetTime';
-        if (type === 'future') {
-            method = 'fapiPublicGetTime';
-        } else if (type === 'delivery') {
-            method = 'dapiPublicGetTime';
-        }
-        const response = await this[method] (query);
+        const response = await this.publicGetTime (params);
         return this.safeInteger (response, 'serverTime');
     }
 
