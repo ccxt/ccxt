@@ -784,7 +784,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicSpotGetCurrencies (params);
+        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        let method = 'publicSpotGetCurrencies';
+        if (type === 'margin') {
+            method = 'publicMarginGetCurrencies';
+        }
+        const response = await this[method] (params);
         //
         //     {
         //       "currency": "BCN",
