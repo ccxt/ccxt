@@ -789,7 +789,7 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, 'type');
         let method = 'publicSpotGetCurrencies';
         if (type === 'margin') {
-            method = 'publicMarginGetCurrencies';
+            method = 'publicMarginGetCurrencyPairs';
         }
         const response = await this[method] (params);
         //
