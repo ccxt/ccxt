@@ -72,7 +72,7 @@ class binance(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'fetchTransactions': None,
+                'fetchTransactions': False,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
