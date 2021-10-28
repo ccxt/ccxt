@@ -637,6 +637,7 @@ class gateio extends Exchange {
                     $takerPercent = $this->safe_string($market, 'taker_fee_rate');
                     $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
                     $feeIndex = ($type === 'futures') ? 'swap' : $type;
+                    $contract = $swap || $futures || $option;
                     $result[] = array(
                         'info' => $market,
                         'id' => $id,
@@ -652,6 +653,8 @@ class gateio extends Exchange {
                         'futures' => $futures,
                         'swap' => $swap,
                         'option' => $option,
+                        'derivative' => $contract,
+                        'contract' => $contract,
                         'linear' => $linear,
                         'inverse' => $inverse,
                         // Fee is in %, so divide by 100
