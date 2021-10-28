@@ -552,6 +552,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - Hong Kong
+     - .. image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
+          :target: https://hitbtc.com/?ref_id=5a5d39a65d466
+          :alt: hitbtc3
+     
+     - hitbtc3
+     - `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://api.hitbtc.com
+          :alt: API Version 3
+     
+   * - Hong Kong
      - .. image:: https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg
           :target: http://bit.ly/2IX0LrM
           :alt: tidebit

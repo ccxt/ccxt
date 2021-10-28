@@ -490,6 +490,7 @@ declare module 'ccxt' {
     export class gateio extends Exchange {}
     export class gemini extends Exchange {}
     export class hitbtc extends Exchange {}
+    export class hitbtc3 extends Exchange {}
     export class hollaex extends Exchange {}
     export class huobi extends Exchange {}
     export class huobijp extends huobipro {}
@@ -603,6 +604,7 @@ declare module 'ccxt' {
         | 'gateio'
         | 'gemini'
         | 'hitbtc'
+        | 'hitbtc3'
         | 'hollaex'
         | 'huobi'
         | 'huobijp'
