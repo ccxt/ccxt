@@ -139,7 +139,7 @@ module.exports = class bitrue extends Exchange {
                 'v2': {
                     'private': {
                         'get': {
-                            'myTrades': { 'cost': 5, 'noSymbol': 40 },
+                            'myTrades': 5,
                         },
                     },
                 },
@@ -348,40 +348,6 @@ module.exports = class bitrue extends Exchange {
                 'impliedNetworks': {
                     'ETH': { 'ERC20': 'ETH' },
                     'TRX': { 'TRC20': 'TRX' },
-                },
-                'legalMoney': {
-                    'MXN': true,
-                    'UGX': true,
-                    'SEK': true,
-                    'CHF': true,
-                    'VND': true,
-                    'AED': true,
-                    'DKK': true,
-                    'KZT': true,
-                    'HUF': true,
-                    'PEN': true,
-                    'PHP': true,
-                    'USD': true,
-                    'TRY': true,
-                    'EUR': true,
-                    'NGN': true,
-                    'PLN': true,
-                    'BRL': true,
-                    'ZAR': true,
-                    'KES': true,
-                    'ARS': true,
-                    'RUB': true,
-                    'AUD': true,
-                    'NOK': true,
-                    'CZK': true,
-                    'GBP': true,
-                    'UAH': true,
-                    'GHS': true,
-                    'HKD': true,
-                    'CAD': true,
-                    'INR': true,
-                    'JPY': true,
-                    'NZD': true,
                 },
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
@@ -1525,36 +1491,26 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchMyTrades', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
-        let method = undefined;
-        if (type === 'spot') {
-            method = 'privateGetMyTrades';
-        } else if (type === 'margin') {
-            method = 'sapiGetMarginMyTrades';
-        } else if (type === 'future') {
-            method = 'fapiPrivateGetUserTrades';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateGetUserTrades';
-        }
         const request = {
-            'symbol': market['id'],
+            // 'symbol': market['id'],
+            // 'startTime': since,
+            // 'endTime': this.milliseconds (),
+            // 'fromId': 12345, // trade id to fetch from, most recent trades by default
+            // 'limit': limit, // default 100, max 1000
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
-        //
-        // spot trade
+        const response = await this.v1PrivateGetMyTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -1580,180 +1536,109 @@ module.exports = class bitrue extends Exchange {
         let currency = undefined;
         let response = undefined;
         const request = {};
-        const legalMoney = this.safeValue (this.options, 'legalMoney', {});
-        if (code in legalMoney) {
-            if (code !== undefined) {
-                currency = this.currency (code);
-            }
-            request['transactionType'] = 0;
-            if (since !== undefined) {
-                request['beginTime'] = since;
-            }
-            const raw = await this.sapiGetFiatOrders (this.extend (request, params));
-            response = this.safeValue (raw, 'data');
-            //     {
-            //       "code": "000000",
-            //       "message": "success",
-            //       "data": [
-            //         {
-            //           "orderNo": "25ced37075c1470ba8939d0df2316e23",
-            //           "fiatCurrency": "EUR",
-            //           "indicatedAmount": "15.00",
-            //           "amount": "15.00",
-            //           "totalFee": "0.00",
-            //           "method": "card",
-            //           "status": "Failed",
-            //           "createTime": 1627501026000,
-            //           "updateTime": 1627501027000
-            //         }
-            //       ],
-            //       "total": 1,
-            //       "success": true
-            //     }
-        } else {
-            if (code !== undefined) {
-                currency = this.currency (code);
-                request['coin'] = currency['id'];
-            }
-            if (since !== undefined) {
-                request['startTime'] = since;
-                // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-                request['endTime'] = this.sum (since, 7776000000);
-            }
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
-            response = await this.sapiGetCapitalDepositHisrec (this.extend (request, params));
-            //     [
-            //       {
-            //         "amount": "0.01844487",
-            //         "coin": "BCH",
-            //         "network": "BCH",
-            //         "status": 1,
-            //         "address": "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
-            //         "addressTag": "",
-            //         "txId": "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
-            //         "insertTime": 1610784980000,
-            //         "transferType": 0,
-            //         "confirmTimes": "2/2"
-            //       },
-            //       {
-            //         "amount": "4500",
-            //         "coin": "USDT",
-            //         "network": "BSC",
-            //         "status": 1,
-            //         "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
-            //         "addressTag": "",
-            //         "txId": "Internal transfer 51376627901",
-            //         "insertTime": 1618394381000,
-            //         "transferType": 1,
-            //         "confirmTimes": "1/15"
-            //     }
-            //   ]
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
         }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = this.sum (since, 7776000000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        response = await this.sapiGetCapitalDepositHisrec (this.extend (request, params));
+        //
+        //     [
+        //       {
+        //         "amount": "0.01844487",
+        //         "coin": "BCH",
+        //         "network": "BCH",
+        //         "status": 1,
+        //         "address": "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
+        //         "addressTag": "",
+        //         "txId": "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
+        //         "insertTime": 1610784980000,
+        //         "transferType": 0,
+        //         "confirmTimes": "2/2"
+        //       },
+        //       {
+        //         "amount": "4500",
+        //         "coin": "USDT",
+        //         "network": "BSC",
+        //         "status": 1,
+        //         "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
+        //         "addressTag": "",
+        //         "txId": "Internal transfer 51376627901",
+        //         "insertTime": 1618394381000,
+        //         "transferType": 1,
+        //         "confirmTimes": "1/15"
+        //     }
+        //   ]
+        //
         return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const legalMoney = this.safeValue (this.options, 'legalMoney', {});
         const request = {};
         let response = undefined;
         let currency = undefined;
-        if (code in legalMoney) {
-            if (code !== undefined) {
-                currency = this.currency (code);
-            }
-            request['transactionType'] = 1;
-            if (since !== undefined) {
-                request['beginTime'] = since;
-            }
-            const raw = await this.sapiGetFiatOrders (this.extend (request, params));
-            response = this.safeValue (raw, 'data');
-            //     {
-            //       "code": "000000",
-            //       "message": "success",
-            //       "data": [
-            //         {
-            //           "orderNo": "CJW706452266115170304",
-            //           "fiatCurrency": "GBP",
-            //           "indicatedAmount": "10001.50",
-            //           "amount": "100.00",
-            //           "totalFee": "1.50",
-            //           "method": "bank transfer",
-            //           "status": "Successful",
-            //           "createTime": 1620037745000,
-            //           "updateTime": 1620038480000
-            //         },
-            //         {
-            //           "orderNo": "CJW706287492781891584",
-            //           "fiatCurrency": "GBP",
-            //           "indicatedAmount": "10001.50",
-            //           "amount": "100.00",
-            //           "totalFee": "1.50",
-            //           "method": "bank transfer",
-            //           "status": "Successful",
-            //           "createTime": 1619998460000,
-            //           "updateTime": 1619998823000
-            //         }
-            //       ],
-            //       "total": 39,
-            //       "success": true
-            //     }
-        } else {
-            if (code !== undefined) {
-                currency = this.currency (code);
-                request['coin'] = currency['id'];
-            }
-            if (since !== undefined) {
-                request['startTime'] = since;
-                // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-                request['endTime'] = this.sum (since, 7776000000);
-            }
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
-            response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, params));
-            //     [
-            //       {
-            //         "id": "69e53ad305124b96b43668ceab158a18",
-            //         "amount": "28.75",
-            //         "transactionFee": "0.25",
-            //         "coin": "XRP",
-            //         "status": 6,
-            //         "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
-            //         "addressTag": "101286922",
-            //         "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
-            //         "applyTime": "2021-04-15 12:09:16",
-            //         "network": "XRP",
-            //         "transferType": 0
-            //       },
-            //       {
-            //         "id": "9a67628b16ba4988ae20d329333f16bc",
-            //         "amount": "20",
-            //         "transactionFee": "20",
-            //         "coin": "USDT",
-            //         "status": 6,
-            //         "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
-            //         "txId": "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
-            //         "applyTime": "2021-04-15 12:06:53",
-            //         "network": "ETH",
-            //         "transferType": 0
-            //       },
-            //       {
-            //         "id": "a7cdc0afbfa44a48bd225c9ece958fe2",
-            //         "amount": "51",
-            //         "transactionFee": "1",
-            //         "coin": "USDT",
-            //         "status": 6,
-            //         "address": "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
-            //         "txId": "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
-            //         "applyTime": "2021-04-13 12:46:59",
-            //         "network": "TRX",
-            //         "transferType": 0
-            //       }
-            //     ]
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
         }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = this.sum (since, 7776000000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, params));
+        //
+        //     [
+        //       {
+        //         "id": "69e53ad305124b96b43668ceab158a18",
+        //         "amount": "28.75",
+        //         "transactionFee": "0.25",
+        //         "coin": "XRP",
+        //         "status": 6,
+        //         "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+        //         "addressTag": "101286922",
+        //         "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+        //         "applyTime": "2021-04-15 12:09:16",
+        //         "network": "XRP",
+        //         "transferType": 0
+        //       },
+        //       {
+        //         "id": "9a67628b16ba4988ae20d329333f16bc",
+        //         "amount": "20",
+        //         "transactionFee": "20",
+        //         "coin": "USDT",
+        //         "status": 6,
+        //         "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //         "txId": "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
+        //         "applyTime": "2021-04-15 12:06:53",
+        //         "network": "ETH",
+        //         "transferType": 0
+        //       },
+        //       {
+        //         "id": "a7cdc0afbfa44a48bd225c9ece958fe2",
+        //         "amount": "51",
+        //         "transactionFee": "1",
+        //         "coin": "USDT",
+        //         "status": 6,
+        //         "address": "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
+        //         "txId": "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
+        //         "applyTime": "2021-04-13 12:46:59",
+        //         "network": "TRX",
+        //         "transferType": 0
+        //       }
+        //     ]
+        //
         return this.parseTransactions (response, currency, since, limit);
     }
 
