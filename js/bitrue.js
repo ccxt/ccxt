@@ -788,17 +788,25 @@ module.exports = class bitrue extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
+            request['limit'] = limit; // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
         }
-        let method = 'publicGetDepth';
-        if (market['linear']) {
-            method = 'fapiPublicGetDepth';
-        } else if (market['inverse']) {
-            method = 'dapiPublicGetDepth';
-        }
-        const response = await this[method] (this.extend (request, params));
-        const timestamp = this.safeInteger (response, 'T');
-        const orderbook = this.parseOrderBook (response, symbol, timestamp);
+        const response = await this.v1PublicGetDepth (this.extend (request, params));
+        //
+        //     {
+        //         "lastUpdateId":1635474910177,
+        //         "bids":[
+        //             ["61436.84","0.05",[]],
+        //             ["61435.77","0.0124",[]],
+        //             ["61434.88","0.012",[]],
+        //         ],
+        //         "asks":[
+        //             ["61452.46","0.0001",[]],
+        //             ["61452.47","0.0597",[]],
+        //             ["61452.76","0.0713",[]],
+        //         ]
+        //     }
+        //
+        const orderbook = this.parseOrderBook (response, symbol);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
     }
