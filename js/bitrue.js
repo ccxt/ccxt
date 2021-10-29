@@ -65,18 +65,11 @@ module.exports = class bitrue extends Exchange {
             },
             'timeframes': {
                 '1m': '1m',
-                '3m': '3m',
                 '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
-                '2h': '2h',
-                '4h': '4h',
-                '6h': '6h',
-                '8h': '8h',
-                '12h': '12h',
                 '1d': '1d',
-                '3d': '3d',
                 '1w': '1w',
                 '1M': '1M',
             },
@@ -1019,25 +1012,7 @@ module.exports = class bitrue extends Exchange {
                 request['endTime'] = Math.min (now, endTime);
             }
         }
-        let method = 'publicGetKlines';
-        if (price === 'mark') {
-            if (market['inverse']) {
-                method = 'dapiPublicGetMarkPriceKlines';
-            } else {
-                method = 'fapiPublicGetMarkPriceKlines';
-            }
-        } else if (price === 'index') {
-            if (market['inverse']) {
-                method = 'dapiPublicGetIndexPriceKlines';
-            } else {
-                method = 'fapiPublicGetIndexPriceKlines';
-            }
-        } else if (market['linear']) {
-            method = 'fapiPublicGetKlines';
-        } else if (market['inverse']) {
-            method = 'dapiPublicGetKlines';
-        }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.v1PublicGetKlines (this.extend (request, params));
         //
         //     [
         //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
