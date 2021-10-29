@@ -523,9 +523,12 @@ module.exports = class indodax extends Exchange {
             'type': side,
             'price': price,
         };
+        const amountString = amount.toString ();
         const currency = market['baseId'];
         if (side === 'buy') {
-            request[market['quoteId']] = amount * price;
+            const priceString = price.toString ();
+            const sizeString = Precise.stringMul (amountString, priceString);
+            request[market['quoteId']] = this.parseNumber (sizeString);
         } else {
             request[market['baseId']] = amount;
         }
