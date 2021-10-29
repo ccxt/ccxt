@@ -21,7 +21,7 @@ module.exports = class bitrue extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'cancelAllOrders': true,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createOrder': true,
@@ -1462,34 +1462,6 @@ module.exports = class bitrue extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const defaultType = this.safeString2 (this.options, 'cancelAllOrders', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        let method = 'privateDeleteOpenOrders';
-        if (type === 'margin') {
-            method = 'sapiDeleteMarginOpenOrders';
-        } else if (type === 'future') {
-            method = 'fapiPrivateDeleteAllOpenOrders';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateDeleteAllOpenOrders';
-        }
-        const response = await this[method] (this.extend (request, query));
-        if (Array.isArray (response)) {
-            return this.parseOrders (response, market);
-        } else {
-            return response;
-        }
-    }
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -1532,114 +1504,112 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let currency = undefined;
-        let response = undefined;
-        const request = {};
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['coin'] = currency['id'];
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a code argument');
         }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+            // 'status':  0, // 0 init, 1 finished, default 0
+            // 'offset': 0,
+            // 'limit': limit, // default 10, max 1000
+            // 'startTime': since,
+            // 'endTime': this.milliseconds (),
+        };
         if (since !== undefined) {
             request['startTime'] = since;
-            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            request['endTime'] = this.sum (since, 7776000000);
+            // request['endTime'] = this.sum (since, 7776000000);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        response = await this.sapiGetCapitalDepositHisrec (this.extend (request, params));
+        const response = await this.v1PrivateGetDepositHistory (this.extend (request, params));
         //
-        //     [
-        //       {
-        //         "amount": "0.01844487",
-        //         "coin": "BCH",
-        //         "network": "BCH",
-        //         "status": 1,
-        //         "address": "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
-        //         "addressTag": "",
-        //         "txId": "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
-        //         "insertTime": 1610784980000,
-        //         "transferType": 0,
-        //         "confirmTimes": "2/2"
-        //       },
-        //       {
-        //         "amount": "4500",
-        //         "coin": "USDT",
-        //         "network": "BSC",
-        //         "status": 1,
-        //         "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
-        //         "addressTag": "",
-        //         "txId": "Internal transfer 51376627901",
-        //         "insertTime": 1618394381000,
-        //         "transferType": 1,
-        //         "confirmTimes": "1/15"
+        //     {
+        //         "code": 200,
+        //         "msg": "succ",
+        //         "data": [
+        //             {
+        //                 "symbol": "XRP",
+        //                 "amount": "261.3361000000000000",
+        //                 "fee": "0.0E-15",
+        //                 "createdAt": 1548816979000,
+        //                 "updatedAt": 1548816999000,
+        //                 "addressFrom": "",
+        //                 "addressTo": "raLPjTYeGezfdb6crXZzcC8RkLBEwbBHJ5_18113641",
+        //                 "txid": "86D6EB68A7A28938BCE06BD348F8C07DEF500C5F7FE92069EF8C0551CE0F2C7D",
+        //                 "confirmations": 8,
+        //                 "status": 1,
+        //                 "tagType": "Tag"
+        //             },
+        //             {
+        //                 "symbol": "XRP",
+        //                 "amount": "20.0000000000000000",
+        //                 "fee": "0.0E-15",
+        //                 "createdAt": 1544669393000,
+        //                 "updatedAt": 1544669413000,
+        //                 "addressFrom": "",
+        //                 "addressTo": "raLPjTYeGezfdb6crXZzcC8RkLBEwbBHJ5_18113641",
+        //                 "txid": "515B23E1F9864D3AF7F5B4C4FCBED784BAE861854FAB95F4031922B6AAEFC7AC",
+        //                 "confirmations": 7,
+        //                 "status": 1,
+        //                 "tagType": "Tag"
+        //             }
+        //         ]
         //     }
-        //   ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        let response = undefined;
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['coin'] = currency['id'];
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a code argument');
         }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+            // 'status':  0, // 0 init, 1 finished, default 0
+            // 'offset': 0,
+            // 'limit': limit, // default 10, max 1000
+            // 'startTime': since,
+            // 'endTime': this.milliseconds (),
+        };
         if (since !== undefined) {
             request['startTime'] = since;
-            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            request['endTime'] = this.sum (since, 7776000000);
+            // request['endTime'] = this.sum (since, 7776000000);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, params));
+        const response = await this.v1PrivateGetWithdrawHistory (this.extend (request, params));
         //
-        //     [
-        //       {
-        //         "id": "69e53ad305124b96b43668ceab158a18",
-        //         "amount": "28.75",
-        //         "transactionFee": "0.25",
-        //         "coin": "XRP",
-        //         "status": 6,
-        //         "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
-        //         "addressTag": "101286922",
-        //         "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
-        //         "applyTime": "2021-04-15 12:09:16",
-        //         "network": "XRP",
-        //         "transferType": 0
-        //       },
-        //       {
-        //         "id": "9a67628b16ba4988ae20d329333f16bc",
-        //         "amount": "20",
-        //         "transactionFee": "20",
-        //         "coin": "USDT",
-        //         "status": 6,
-        //         "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
-        //         "txId": "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
-        //         "applyTime": "2021-04-15 12:06:53",
-        //         "network": "ETH",
-        //         "transferType": 0
-        //       },
-        //       {
-        //         "id": "a7cdc0afbfa44a48bd225c9ece958fe2",
-        //         "amount": "51",
-        //         "transactionFee": "1",
-        //         "coin": "USDT",
-        //         "status": 6,
-        //         "address": "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
-        //         "txId": "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
-        //         "applyTime": "2021-04-13 12:46:59",
-        //         "network": "TRX",
-        //         "transferType": 0
-        //       }
-        //     ]
+        //     {
+        //         "code": 200,
+        //         "msg": "succ",
+        //         "data": [
+        //             {
+        //                 "id": 183745,
+        //                 "symbol": "usdt_erc20",
+        //                 "amount": "8.4000000000000000",
+        //                 "fee": "1.6000000000000000",
+        //                 "payAmount": "0.0000000000000000",
+        //                 "createdAt": 1595336441000,
+        //                 "updatedAt": 1595336576000,
+        //                 "addressFrom": "",
+        //                 "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+        //                 "txid": "",
+        //                 "confirmations": 0,
+        //                 "status": 6,
+        //                 "tagType": null
+        //             }
+        //         ]
+        //     }
         //
-        return this.parseTransactions (response, currency, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -1667,89 +1637,102 @@ module.exports = class bitrue extends Exchange {
         // fetchDeposits
         //
         //     {
-        //       "amount": "4500",
-        //       "coin": "USDT",
-        //       "network": "BSC",
-        //       "status": 1,
-        //       "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
-        //       "addressTag": "",
-        //       "txId": "Internal transfer 51376627901",
-        //       "insertTime": 1618394381000,
-        //       "transferType": 1,
-        //       "confirmTimes": "1/15"
+        //         "symbol": "XRP",
+        //         "amount": "261.3361000000000000",
+        //         "fee": "0.0E-15",
+        //         "createdAt": 1548816979000,
+        //         "updatedAt": 1548816999000,
+        //         "addressFrom": "",
+        //         "addressTo": "raLPjTYeGezfdb6crXZzcC8RkLBEwbBHJ5_18113641",
+        //         "txid": "86D6EB68A7A28938BCE06BD348F8C07DEF500C5F7FE92069EF8C0551CE0F2C7D",
+        //         "confirmations": 8,
+        //         "status": 1,
+        //         "tagType": "Tag"
+        //     },
+        //     {
+        //         "symbol": "XRP",
+        //         "amount": "20.0000000000000000",
+        //         "fee": "0.0E-15",
+        //         "createdAt": 1544669393000,
+        //         "updatedAt": 1544669413000,
+        //         "addressFrom": "",
+        //         "addressTo": "raLPjTYeGezfdb6crXZzcC8RkLBEwbBHJ5_18113641",
+        //         "txid": "515B23E1F9864D3AF7F5B4C4FCBED784BAE861854FAB95F4031922B6AAEFC7AC",
+        //         "confirmations": 7,
+        //         "status": 1,
+        //         "tagType": "Tag"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //       "id": "69e53ad305124b96b43668ceab158a18",
-        //       "amount": "28.75",
-        //       "transactionFee": "0.25",
-        //       "coin": "XRP",
-        //       "status": 6,
-        //       "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
-        //       "addressTag": "101286922",
-        //       "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
-        //       "applyTime": "2021-04-15 12:09:16",
-        //       "network": "XRP",
-        //       "transferType": 0
+        //         "id": 183745,
+        //         "symbol": "usdt_erc20",
+        //         "amount": "8.4000000000000000",
+        //         "fee": "1.6000000000000000",
+        //         "payAmount": "0.0000000000000000",
+        //         "createdAt": 1595336441000,
+        //         "updatedAt": 1595336576000,
+        //         "addressFrom": "",
+        //         "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+        //         "txid": "",
+        //         "confirmations": 0,
+        //         "status": 6,
+        //         "tagType": null
         //     }
         //
-        const id = this.safeString2 (transaction, 'id', 'orderNo');
-        const address = this.safeString (transaction, 'address');
-        let tag = this.safeString (transaction, 'addressTag'); // set but unused
-        if (tag !== undefined) {
-            if (tag.length < 1) {
-                tag = undefined;
+        const id = this.safeString (transaction, 'id');
+        const tagType = this.safeString (transaction, 'tagType');
+        let addressTo = this.safeString (transaction, 'addressTo');
+        let addressFrom = this.safeString (transaction, 'addressFrom');
+        let tagTo = undefined;
+        let tagFrom = undefined;
+        if (tagType !== undefined) {
+            if (addressTo !== undefined) {
+                const parts = addressTo.split ('_');
+                addressTo = this.safeString (parts, 0);
+                tagTo = this.safeString (parts, 0);
+            }
+            if (addressFrom !== undefined) {
+                const parts = addressTo.split ('_');
+                addressFrom = this.safeString (parts, 0);
+                tagFrom = this.safeString (parts, 0);
             }
         }
         let txid = this.safeString (transaction, 'txId');
-        if ((txid !== undefined) && (txid.indexOf ('Internal transfer ') >= 0)) {
-            txid = txid.slice (18);
+        if (txid === '') {
+            txid = undefined;
         }
         const currencyId = this.safeString2 (transaction, 'coin', 'fiatCurrency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let timestamp = undefined;
-        const insertTime = this.safeInteger2 (transaction, 'insertTime', 'createTime');
-        const applyTime = this.parse8601 (this.safeString (transaction, 'applyTime'));
+        const timestamp = this.safeInteger (transaction, 'createdAt');
+        const updated = this.safeInteger (transaction, 'updatedAt');
         let type = this.safeString (transaction, 'type');
-        if (type === undefined) {
-            if ((insertTime !== undefined) && (applyTime === undefined)) {
-                type = 'deposit';
-                timestamp = insertTime;
-            } else if ((insertTime === undefined) && (applyTime !== undefined)) {
-                type = 'withdrawal';
-                timestamp = applyTime;
-            }
-        }
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
-        const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
+        const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
-        let internal = this.safeInteger (transaction, 'transferType', false);
-        internal = internal ? true : false;
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': address,
-            'addressTo': address,
-            'addressFrom': undefined,
-            'tag': tag,
-            'tagTo': tag,
-            'tagFrom': undefined,
+            'address': addressTo,
+            'addressTo': addressTo,
+            'addressFrom': tagFrom,
+            'tag': tagTo,
+            'tagTo': tagTo,
+            'tagFrom': tagFrom,
             'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
             'updated': updated,
-            'internal': internal,
+            'internal': false,
             'fee': fee,
         };
     }
