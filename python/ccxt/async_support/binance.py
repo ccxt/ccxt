@@ -939,7 +939,7 @@ class binance(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     async def fetch_time(self, params={}):
-        defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
+        defaultType = self.safe_string_2(self.options, 'fetchTime', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
         method = 'publicGetTime'
