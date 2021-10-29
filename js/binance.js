@@ -4438,9 +4438,7 @@ module.exports = class binance extends Exchange {
             const result = [];
             for (let i = 0; i < response.length; i++) {
                 const parsed = this.parsePositionRisk (response[i], market);
-                if (parsed['marginType'] === 'isolated') {
-                    result.push (parsed);
-                }
+                result.push (parsed);
             }
             return result;
         } else {
