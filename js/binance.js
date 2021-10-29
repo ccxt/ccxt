@@ -2662,7 +2662,7 @@ module.exports = class binance extends Exchange {
         }
         const query = this.omit (params, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
