@@ -514,7 +514,7 @@ module.exports = class okex extends Exchange {
                     'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
-                'createMarketBuyOrderRequiresPrice': true,
+                'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'futures', 'swap' ], // spot, futures, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 // 'fetchBalance': {
