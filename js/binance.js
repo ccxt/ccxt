@@ -4287,7 +4287,7 @@ module.exports = class binance extends Exchange {
         const unrealizedPnl = this.parseNumber (unrealizedPnlString);
         const leverageString = this.safeString (position, 'leverage');
         const leverage = parseInt (leverageString);
-        let liquidationPrice = this.safeNumber (position, 'liquidationPrice');
+        const liquidationPrice = this.safeNumber (position, 'liquidationPrice');
         const collateralString = this.safeString (position, 'isolatedMargin');
         const collateralFloat = parseFloat (collateralString);
         const collateral = this.parseNumber (collateralString);
@@ -4312,17 +4312,12 @@ module.exports = class binance extends Exchange {
         let marginRatio = undefined;
         let side = undefined;
         let percentage = undefined;
-        if (collateralFloat === 0.0) {
-            liquidationPrice = undefined;
-        } else {
+        if (collateralFloat !== 0.0) {
             marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
             side = (notionalFloat < 0) ? 'short' : 'long';
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
         }
         const marginType = this.safeString (position, 'marginType');
-        if (marginType === 'cross') {
-            liquidationPrice = undefined;
-        }
         return {
             'info': position,
             'symbol': symbol,
