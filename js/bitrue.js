@@ -1402,16 +1402,6 @@ module.exports = class bitrue extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        let method = 'privateGetAllOrders';
-        if (type === 'future') {
-            method = 'fapiPrivateGetAllOrders';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateGetAllOrders';
-        } else if (type === 'margin') {
-            method = 'sapiGetMarginAllOrders';
-        }
         const request = {
             'symbol': market['id'],
         };
@@ -1422,7 +1412,7 @@ module.exports = class bitrue extends Exchange {
             request['limit'] = limit;
         }
         const query = this.omit (params, 'type');
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v1PrivateGetAllOrders (this.extend (request, query));
         //
         //  spot
         //
@@ -1473,34 +1463,17 @@ module.exports = class bitrue extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let query = undefined;
-        let type = undefined;
         const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            type = this.safeString (params, 'type', defaultType);
-            query = this.omit (params, 'type');
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
             const symbols = this.symbols;
             const numSymbols = symbols.length;
             const fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
             throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
-        } else {
-            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            type = this.safeString (params, 'type', defaultType);
-            query = this.omit (params, 'type');
         }
-        let method = 'privateGetOpenOrders';
-        if (type === 'future') {
-            method = 'fapiPrivateGetOpenOrders';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateGetOpenOrders';
-        } else if (type === 'margin') {
-            method = 'sapiGetMarginOpenOrders';
-        }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v1PrivateGetOpenOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
