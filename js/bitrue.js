@@ -110,7 +110,6 @@ module.exports = class bitrue extends Exchange {
                             'trades': 1,
                             'historicalTrades': 5,
                             'aggTrades': 1,
-                            'klines': 1,
                             'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
                             'ticker/price': { 'cost': 1, 'noSymbol': 2 },
                             'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
@@ -1562,7 +1561,7 @@ module.exports = class bitrue extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1611,7 +1610,7 @@ module.exports = class bitrue extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -1711,13 +1710,22 @@ module.exports = class bitrue extends Exchange {
         if (txid === '') {
             txid = undefined;
         }
-        const currencyId = this.safeString2 (transaction, 'coin', 'fiatCurrency');
-        const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.safeInteger (transaction, 'createdAt');
         const updated = this.safeInteger (transaction, 'updatedAt');
-        let type = this.safeString (transaction, 'type');
+        const type = ('payAmount' in transaction) ? 'withdrawal': 'deposit';
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
+        let network = undefined;
+        let currencyId = this.safeString (transaction, 'symbol');
+        if (currencyId !== undefined) {
+            const parts = currencyId.split ('_');
+            currencyId = this.safeString (parts, 0);
+            const networkId = this.safeString (parts, 1);
+            if (networkId !== undefined) {
+                network = networkId.toUpperCase ();
+            }
+        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -1729,6 +1737,7 @@ module.exports = class bitrue extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'address': addressTo,
             'addressTo': addressTo,
             'addressFrom': addressFrom,
@@ -1774,43 +1783,6 @@ module.exports = class bitrue extends Exchange {
             'info': response,
             'id': this.safeString (response, 'id'),
         };
-    }
-
-    async fetchTradingFees (params = {}) {
-        await this.loadMarkets ();
-        let method = undefined;
-        const defaultType = this.safeString2 (this.options, 'fetchFundingRates', 'defaultType', 'future');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        if ((type === 'spot') || (type === 'margin')) {
-            method = 'sapiGetAssetTradeFee';
-        } else if (type === 'future') {
-            method = 'fapiPrivateGetAccount';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateGetAccount';
-        }
-        const response = await this[method] (query);
-        //
-        //    [
-        //       {
-        //         "symbol": "ZRXBNB",
-        //         "makerCommission": "0.001",
-        //         "takerCommission": "0.001"
-        //       },
-        //       {
-        //         "symbol": "ZRXBTC",
-        //         "makerCommission": "0.001",
-        //         "takerCommission": "0.001"
-        //       },
-        //    ]
-        //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const fee = this.parseTradingFee (response[i]);
-            const symbol = fee['symbol'];
-            result[symbol] = fee;
-        }
-        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
