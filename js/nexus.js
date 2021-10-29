@@ -6,6 +6,7 @@ const Exchange = require ('./base/Exchange');
 const {
     AuthenticationError,
     ExchangeError,
+    BadRequest,
 } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
@@ -40,14 +41,14 @@ module.exports = class nexus extends Exchange {
             },
             'urls': {
                 'test': {
-                    'auth': 'https://authentication-service.cryptosrvc-staging.com/api',
-                    'eds': 'https://exchange-data-service.cryptosrvc-staging.com/v1',
+                    'auth': 'https://sandbox.shiftmarkets.com/v2/authentication',
+                    'eds': 'https://sandbox.shiftmarkets.com/v2/exchange',
                     'trade': 'https://trade-service-sls.cryptosrvc.com/v1',
                     'nexusPay': 'https://nexus-pay.cryptosrvc.com/api/v1',
                 },
                 'api': {
-                    'auth': 'https://authentication-service.cryptosrvc.com/api',
-                    'eds': 'https://exchange-data-service.cryptosrvc.com/v1',
+                    'auth': 'https://api.cryptosrvc.com/v2/authentication',
+                    'eds': 'https://api.cryptosrvc.com/v2/exchange',
                     'trade': 'https://trade-service-sls.cryptosrvc.com/v1',
                     'nexusPay': 'https://nexus-pay.cryptosrvc.com/api/v1',
                 },
@@ -65,6 +66,7 @@ module.exports = class nexus extends Exchange {
                         'currencies',
                         'quotes',
                         'trades',
+                        'bars',
                     ],
                 },
                 'trade': {
@@ -74,7 +76,6 @@ module.exports = class nexus extends Exchange {
                         'trade/order/{id}',
                         'trade/orders/open',
                         'trade/orders/closed',
-                        'trade/transactions',
                     ],
                     'post': [
                         'trade/order',
@@ -113,8 +114,9 @@ module.exports = class nexus extends Exchange {
         }
     }
 
-    async fetchMarkets () {
-        const response = await this.edsGetInstruments ({ 'exchange': this.options['exchangeName'] });
+    async fetchMarkets (params = {}) {
+        params = this.extend (params, { 'exchange': this.options['exchangeName'] });
+        const response = await this.edsGetInstruments (params);
         const markets = response['instruments'];
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -148,8 +150,9 @@ module.exports = class nexus extends Exchange {
         return result;
     }
 
-    async fetchCurrencies () {
-        const response = await this.edsGetCurrencies ({ 'exchange': this.options['exchangeName'] });
+    async fetchCurrencies (params = {}) {
+        params = this.extend (params, { 'exchange': this.options['exchangeName'] });
+        const response = await this.edsGetCurrencies (params);
         const currencies = response['currencies'];
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
@@ -172,48 +175,82 @@ module.exports = class nexus extends Exchange {
         return result;
     }
 
-    parseTicker (ticker) {
-        return {
-            'symbol': ticker['pair'],
-            'datetime': ticker['date_ts'],
-            'ask': ticker['ask'],
-            'bid': ticker['bid'],
+    parseTicker (ticker, market = undefined) {
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        }
+        return this.safeTicker ({
+            'symbol': symbol,
+            'datetime': this.iso8601 (ticker['timestamp']),
+            'timestamp': ticker['timestamp'],
+            'ask': this.safeNumber (ticker, 'close_ask'),
+            'bid': this.safeNumber (ticker, 'close_bid'),
+            'high': this.safeNumber (ticker, 'high_ask'),
+            'low': this.safeNumber (ticker, 'low_bid'),
             'info': ticker,
-        };
+            'bidVolume': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'last': undefined,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+        }, market);
     }
 
-    async fetchTicker (symbol) {
+    async fetchTicker (symbol, params = {}) {
         symbol = symbol.replace ('/', '');
-        const ticker = await this.edsGetQuotes ({ 'exchange': this.options['exchangeName'], 'instrument': symbol });
-        return this.parseTicker (ticker);
+        const ts = this.nonce () * 1000;
+        const msInDay = 24 * 3600 * 1000;
+        params = this.extend (params, {
+            'exchange': this.options['exchangeName'],
+            'instrument': symbol,
+            'start_time': ts - ts % msInDay,
+            'periodicity': 'day',
+        });
+        const response = await this.edsGetBars (params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        return this.parseTicker (response['bars'][1]['aggregated_bar'], market);
     }
 
-    async fetchTickers () {
-        const tickers = await this.edsGetQuotes ({ 'exchange': this.options['exchangeName'] });
-        const result = [];
-        for (let i = 0; i < tickers.length; i++) {
-            result.push (this.parseTicker (tickers[i]));
+    async fetchTickers (symbols, params = {}) {
+        const result = {};
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i].replace ('/', '');
+            const ticker = await this.fetchTicker (symbol, params);
+            result[symbol] = ticker;
         }
         return result;
     }
 
     parseOrderBookItem (order) {
         return [
-            order['price'],
-            order['volume'],
+            this.safeNumber (order, 'price'),
+            this.safeNumber (order, 'volume'),
         ];
     }
 
-    async fetchOrderBook (symbol) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         const instrument = symbol.replace ('/', '');
         const orderbook = await this.tradeGetOrderbookSnapshotExchangeInstrument ({
             'exchange': this.options['exchangeName'],
             'instrument': instrument,
         });
+        const nonce = this.nonce ();
+        const ts = nonce * 1000;
         const result = {
             'bids': [],
             'asks': [],
-            'symbol': symbol,
+            'datetime': this.iso8601 (ts),
+            'timestamp': ts,
+            'nonce': nonce,
         };
         for (let i = 0; i < orderbook['buy'].length; i++) {
             result['bids'].push (this.parseOrderBookItem (orderbook['buy'][i]));
@@ -235,19 +272,22 @@ module.exports = class nexus extends Exchange {
         };
     }
 
-    async fetchTrades (symbol) {
+    async fetchTrades (symbol, since = undefined) {
         const instrument = symbol.replace ('/', '');
         const response = await this.edsGetTrades ({ 'exchange': this.options['exchangeName'], 'instrument': instrument });
         const trades = response['trades'];
         const result = [];
         for (let i = 0; i < trades.length; i++) {
-            result.push (this.parseTrade (trades[i], symbol));
+            const trade = this.parseTrade (trades[i], symbol);
+            if (trade['timestamp'] > since) {
+                result.push (trade);
+            }
         }
         return result;
     }
 
-    async fetchBalance () {
-        const balances = await this.tradeGetTradeAccounts ();
+    async fetchBalance (params = {}) {
+        const balances = await this.tradeGetTradeAccounts (params);
         const result = {
             'free': {},
             'used': {},
@@ -301,14 +341,20 @@ module.exports = class nexus extends Exchange {
         return result;
     }
 
-    async fetchOrder (orderId) {
-        const response = await this.tradeGetTradeOrderId ({ 'id': orderId });
-        return this.parseOrder (response);
+    async fetchOrder (orderId, symbol = undefined, params = {}) {
+        params = this.extend (params, { 'id': orderId });
+        const response = await this.tradeGetTradeOrderId (params);
+        const order = this.parseOrder (response);
+        if (order['symbol'] === symbol) {
+            return order;
+        } else {
+            throw new BadRequest ('Order not found');
+        }
     }
 
-    async fetchOrders () {
-        const openOrders = await this.fetchOpenOrders ();
-        const closedOrders = await this.fetchClosedOrders ();
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const openOrders = await this.fetchOpenOrders (symbol, since, limit, params);
+        const closedOrders = await this.fetchClosedOrders (symbol, since, limit, params);
         const allOrders = openOrders;
         for (let i = 0; i < closedOrders.length; i++) {
             allOrders.push (closedOrders[i]);
@@ -316,7 +362,16 @@ module.exports = class nexus extends Exchange {
         return allOrders;
     }
 
-    async fetchOpenOrders (params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol) {
+            params['instrument'] = symbol;
+        }
+        if (since) {
+            params['fromTimestamp'] = this.iso8601 (since);
+        }
+        if (limit) {
+            params['limit'] = limit;
+        }
         const response = await this.tradeGetTradeOrdersOpen (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -325,7 +380,16 @@ module.exports = class nexus extends Exchange {
         return result;
     }
 
-    async fetchClosedOrders (params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol) {
+            params['instrument'] = symbol;
+        }
+        if (since) {
+            params['filter_date_from'] = this.iso8601 (since);
+        }
+        if (limit) {
+            params['limit'] = limit;
+        }
         const response = await this.tradeGetTradeOrdersClosed (params);
         const orders = response['items'];
         const result = [];
@@ -335,12 +399,20 @@ module.exports = class nexus extends Exchange {
         return result;
     }
 
-    async createOrder (params) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        params = this.extend (params, {
+            'instrument': symbol,
+            'type': type,
+            'side': side,
+            'quantity': amount,
+            'limit_price': price,
+            'stop_price': price,
+        });
         const response = await this.tradePostTradeOrder (params);
         return await this.fetchOrder (response['order_id']);
     }
 
-    async cancelOrder (orderId) {
+    async cancelOrder (orderId, symbol = undefined, params = {}) {
         await this.tradeDeleteTradeOrderId ({ 'id': orderId });
         return await this.fetchOrder (orderId);
     }
@@ -378,8 +450,17 @@ module.exports = class nexus extends Exchange {
         };
     }
 
-    async fetchTransactions () {
-        const response = await this.nexusPayGetTransfers ();
+    async fetchTransactions (currency = undefined, since = undefined, limit = undefined, params = {}) {
+        if (currency) {
+            params['currency'] = currency;
+        }
+        if (since) {
+            params['fromTimestamp'] = since;
+        }
+        if (limit) {
+            params['limit'] = limit;
+        }
+        const response = await this.nexusPayGetTransfers (params);
         const transactions = response.items;
         const result = [];
         for (let i = 0; i < transactions.length; i++) {
@@ -388,31 +469,22 @@ module.exports = class nexus extends Exchange {
         return result;
     }
 
-    async fetchDeposits () {
-        const transactions = await this.fetchTransactions ();
-        const result = [];
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = transactions[i];
-            if (transaction['type'] === 'deposit') {
-                result.push (transaction);
-            }
-        }
-        return result;
+    async fetchDeposits (currency = undefined, since = undefined, limit = undefined, params = {}) {
+        params = this.extend (params, { 'type': 'DEPOSIT' });
+        return await this.fetchTransactions (currency, since, limit, params);
     }
 
-    async fetchWithdrawals () {
-        const transactions = await this.fetchTransactions ();
-        const result = [];
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = transactions[i];
-            if (transaction['type'] === 'withdrawal') {
-                result.push (transaction);
-            }
-        }
-        return result;
+    async fetchWithdrawals (currency = undefined, since = undefined, limit = undefined, params = {}) {
+        params = this.extend (params, { 'type': 'WITHDRAWAL' });
+        return await this.fetchTransactions (currency, since, limit, params);
     }
 
-    async withdraw (params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        params = this.extend (params, {
+            'currency': currency,
+            'amount': amount,
+            'address': address,
+        });
         const response = await this.nexusPayPostWithdraw (params);
         return this.parseTransaction (response);
     }
@@ -438,6 +510,9 @@ module.exports = class nexus extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (code >= 200 && code < 300) {
+            return;
+        }
         let error = 'An error occured during this operation';
         if (response.message) {
             error = response.message;
