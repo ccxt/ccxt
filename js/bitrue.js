@@ -87,8 +87,14 @@ module.exports = class bitrue extends Exchange {
                     'private': 'https://www.bitrue.com/api',
                 },
                 'api': {
-                    'public': 'https://www.bitrue.com/api',
-                    'private': 'https://www.bitrue.com/api',
+                    'v1': {
+                        'public': 'https://www.bitrue.com/api/v1',
+                        'private': 'https://www.bitrue.com/api/v1',
+                    },
+                    'v2': {
+                        'public': 'https://www.bitrue.com/api/v2',
+                        'private': 'https://www.bitrue.com/api/v2',
+                    },
                 },
                 'www': 'https://www.bitrue.com',
                 'doc': [
@@ -96,52 +102,58 @@ module.exports = class bitrue extends Exchange {
                 ],
                 'fees': 'https://bitrue.zendesk.com/hc/en-001/articles/4405479952537',
             },
-            'depth': 1,
             'api': {
-                'public': {
-                    'get': {
-                        'ping': 1,
-                        'time': 1,
-                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] },
-                        'trades': 1,
-                        'aggTrades': 1,
-                        'historicalTrades': 5,
-                        'klines': 1,
-                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
-                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
-                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                        'exchangeInfo': 10,
+                'v1': {
+                    'public': {
+                        'get': {
+                            'ping': 1,
+                            'time': 1,
+                            'exchangeInfo': 1,
+                            'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ] ] },
+                            'trades': 1,
+                            'historicalTrades': 5,
+                            'aggTrades': 1,
+                            'klines': 1,
+                            'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
+                            'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                            'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                        },
                     },
-                    'put': {
-                        'userDataStream': 1,
-                    },
-                    'post': {
-                        'userDataStream': 1,
-                    },
-                    'delete': {
-                        'userDataStream': 1,
+                    'private': {
+                        'get': {
+                            'allOrderList': 10, // oco
+                            'openOrderList': 3, // oco
+                            'orderList': 2, // oco
+                            'order': 2,
+                            'openOrders': { 'cost': 3, 'noSymbol': 40 },
+                            'allOrders': 10,
+                            'account': 10,
+                            'myTrades': 10,
+                        },
+                        'get': {
+                            'order': 1,
+                            'openOrders': 1,
+                            'allOrders': 5,
+                            'account': 5,
+                            'myTrades': { 'cost': 5, 'noSymbol': 40 },
+                            'etf/net-value/{symbol}': 1,
+                            'withdraw/history': 1,
+                            'deposit/history': 1,
+                        },
+                        'post': {
+                            'order': 4,
+                            'withdraw/commit': 1,
+                        },
+                        'delete': {
+                            'order': 1,
+                        },
                     },
                 },
-                'private': {
-                    'get': {
-                        'allOrderList': 10, // oco
-                        'openOrderList': 3, // oco
-                        'orderList': 2, // oco
-                        'order': 2,
-                        'openOrders': { 'cost': 3, 'noSymbol': 40 },
-                        'allOrders': 10,
-                        'account': 10,
-                        'myTrades': 10,
-                    },
-                    'post': {
-                        'order/oco': 1,
-                        'order': 4,
-                        'order/test': 1,
-                    },
-                    'delete': {
-                        'openOrders': 1, // added on 2020-04-25 for canceling all open orders per symbol
-                        'orderList': 1, // oco
-                        'order': 1,
+                'v2': {
+                    'private': {
+                        'get': {
+                            'myTrades': { 'cost': 5, 'noSymbol': 40 },
+                        },
                     },
                 },
             },
