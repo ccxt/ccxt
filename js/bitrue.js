@@ -2231,8 +2231,6 @@ module.exports = class bitrue extends Exchange {
         }
         const response = await this[method] (query);
         //
-        // sapi / spot
-        //
         //    [
         //       {
         //         "symbol": "ZRXBNB",
@@ -2246,97 +2244,13 @@ module.exports = class bitrue extends Exchange {
         //       },
         //    ]
         //
-        if ((type === 'spot') || (type === 'margin')) {
-            //
-            //    [
-            //       {
-            //         "symbol": "ZRXBNB",
-            //         "makerCommission": "0.001",
-            //         "takerCommission": "0.001"
-            //       },
-            //       {
-            //         "symbol": "ZRXBTC",
-            //         "makerCommission": "0.001",
-            //         "takerCommission": "0.001"
-            //       },
-            //    ]
-            //
-            const result = {};
-            for (let i = 0; i < response.length; i++) {
-                const fee = this.parseTradingFee (response[i]);
-                const symbol = fee['symbol'];
-                result[symbol] = fee;
-            }
-            return result;
-        } else if (type === 'future') {
-            //
-            //     {
-            //         "feeTier": 0,       // account commisssion tier
-            //         "canTrade": true,   // if can trade
-            //         "canDeposit": true,     // if can transfer in asset
-            //         "canWithdraw": true,    // if can transfer out asset
-            //         "updateTime": 0,
-            //         "totalInitialMargin": "0.00000000",    // total initial margin required with current mark price (useless with isolated positions), only for USDT asset
-            //         "totalMaintMargin": "0.00000000",     // total maintenance margin required, only for USDT asset
-            //         "totalWalletBalance": "23.72469206",     // total wallet balance, only for USDT asset
-            //         "totalUnrealizedProfit": "0.00000000",   // total unrealized profit, only for USDT asset
-            //         "totalMarginBalance": "23.72469206",     // total margin balance, only for USDT asset
-            //         "totalPositionInitialMargin": "0.00000000",    // initial margin required for positions with current mark price, only for USDT asset
-            //         "totalOpenOrderInitialMargin": "0.00000000",   // initial margin required for open orders with current mark price, only for USDT asset
-            //         "totalCrossWalletBalance": "23.72469206",      // crossed wallet balance, only for USDT asset
-            //         "totalCrossUnPnl": "0.00000000",      // unrealized profit of crossed positions, only for USDT asset
-            //         "availableBalance": "23.72469206",       // available balance, only for USDT asset
-            //         "maxWithdrawAmount": "23.72469206"     // maximum amount for transfer out, only for USDT asset
-            //         ...
-            //     }
-            //
-            const symbols = Object.keys (this.markets);
-            const result = {};
-            const feeTier = this.safeInteger (response, 'feeTier');
-            const feeTiers = this.fees[type]['trading']['tiers'];
-            const maker = feeTiers['maker'][feeTier][1];
-            const taker = feeTiers['taker'][feeTier][1];
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                result[symbol] = {
-                    'info': {
-                        'feeTier': feeTier,
-                    },
-                    'symbol': symbol,
-                    'maker': maker,
-                    'taker': taker,
-                };
-            }
-            return result;
-        } else if (type === 'delivery') {
-            //
-            //     {
-            //         "canDeposit": true,
-            //         "canTrade": true,
-            //         "canWithdraw": true,
-            //         "feeTier": 2,
-            //         "updateTime": 0
-            //     }
-            //
-            const symbols = Object.keys (this.markets);
-            const result = {};
-            const feeTier = this.safeInteger (response, 'feeTier');
-            const feeTiers = this.fees[type]['trading']['tiers'];
-            const maker = feeTiers['maker'][feeTier][1];
-            const taker = feeTiers['taker'][feeTier][1];
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                result[symbol] = {
-                    'info': {
-                        'feeTier': feeTier,
-                    },
-                    'symbol': symbol,
-                    'maker': maker,
-                    'taker': taker,
-                };
-            }
-            return result;
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const fee = this.parseTradingFee (response[i]);
+            const symbol = fee['symbol'];
+            result[symbol] = fee;
         }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
