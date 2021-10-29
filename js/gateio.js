@@ -1430,6 +1430,13 @@ module.exports = class gateio extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
+    fetchBalanceHelper (entry) {
+        const account = this.account ();
+        account['used'] = this.safeString2 (entry, 'locked', 'position_margin');
+        account['free'] = this.safeString (entry, 'available');
+        return account;
+    }
+
     async fetchBalance (params = {}) {
         // :param params.type: spot, margin, crossMargin, swap or future
         // :param params.settle: Settle currency (usdt or btc) for perpetual swap and futures
@@ -1535,16 +1542,26 @@ module.exports = class gateio extends Exchange {
         //     user: "6333333",
         //   }
         const result = {};
+        const margin = type === 'margin';
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
-            const account = this.account ();
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            account['used'] = this.safeString2 (entry, 'locked', 'position_margin');
-            account['free'] = this.safeString (entry, 'available');
-            result[code] = account;
+            if (margin) {
+                const marketId = this.safeString (entry, 'currency_pair');
+                const symbol = this.safeSymbol (marketId, undefined, '_');
+                const base = this.safeValue (entry, 'base', {});
+                const quote = this.safeValue (entry, 'quote', {});
+                const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency', {}));
+                const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency', {}));
+                const subResult = {};
+                subResult[baseCode] = this.fetchBalanceHelper (base);
+                subResult[quoteCode] = this.fetchBalanceHelper (quote);
+                result[symbol] = this.parseBalance (subResult);
+            } else {
+                const code = this.safeCurrencyCode (this.safeString (entry, 'currency', {}));
+                result[code] = this.fetchBalanceHelper (entry);
+            }
         }
-        return this.parseBalance (result);
+        return margin ? result : this.parseBalance (result);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
