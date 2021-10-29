@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -87,8 +87,9 @@ module.exports = class bitrue extends Exchange {
                     'private': 'https://www.bitrue.com/api',
                 },
                 'api': {
-                    'v1': 'https://www.bitrue.com/api',
-                    'v2': 'https://www.bitrue.com/api',
+                    'v1': 'https://www.bitrue.com/api/v1',
+                    'v2': 'https://www.bitrue.com/api/v2',
+                    'kline': 'https://www.bitrue.com/kline-api',
                 },
                 'www': 'https://www.bitrue.com',
                 'doc': [
@@ -97,6 +98,14 @@ module.exports = class bitrue extends Exchange {
                 'fees': 'https://bitrue.zendesk.com/hc/en-001/articles/4405479952537',
             },
             'api': {
+                'kline': {
+                    'public': {
+                        'get': {
+                            'public.json': 1,
+                            'public{currency}.json': 1,
+                        },
+                    },
+                },
                 'v1': {
                     'public': {
                         'get': {
@@ -226,7 +235,6 @@ module.exports = class bitrue extends Exchange {
             },
             // exchange-specific options
             'options': {
-                'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'hasAlreadyAuthenticatedSuccessfully': false,
@@ -535,8 +543,9 @@ module.exports = class bitrue extends Exchange {
         //     }
         //
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
+        const coins = this.safeValue (response, 'coins', []);
+        for (let i = 0; i < coins.length; i++) {
+            const currency = coins[i];
             const id = this.safeString (currency, 'coin');
             const name = this.safeString (currency, 'coinFulName');
             const code = this.safeCurrencyCode (id);
@@ -763,59 +772,16 @@ module.exports = class bitrue extends Exchange {
         const result = {
             'info': response,
         };
-        let timestamp = undefined;
-        if ((type === 'spot') || (type === 'margin')) {
-            timestamp = this.safeInteger (response, 'updateTime');
-            const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
-            for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
-                const currencyId = this.safeString (balance, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'free');
-                account['used'] = this.safeString (balance, 'locked');
-                result[code] = account;
-            }
-        } else if (type === 'savings') {
-            const positionAmountVos = this.safeValue (response, 'positionAmountVos');
-            for (let i = 0; i < positionAmountVos.length; i++) {
-                const entry = positionAmountVos[i];
-                const currencyId = this.safeString (entry, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                const usedAndTotal = this.safeString (entry, 'amount');
-                account['total'] = usedAndTotal;
-                account['used'] = usedAndTotal;
-                result[code] = account;
-            }
-        } else if (type === 'pay') {
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
-                const account = this.account ();
-                const currencyId = this.safeString (entry, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                account['free'] = this.safeString (entry, 'free');
-                const frozen = this.safeString (entry, 'freeze');
-                const withdrawing = this.safeString (entry, 'withdrawing');
-                const locked = this.safeString (entry, 'locked');
-                account['used'] = Precise.stringAdd (frozen, Precise.stringAdd (locked, withdrawing));
-                result[code] = account;
-            }
-        } else {
-            let balances = response;
-            if (!Array.isArray (response)) {
-                balances = this.safeValue (response, 'assets', []);
-            }
-            for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
-                const currencyId = this.safeString (balance, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'availableBalance');
-                account['used'] = this.safeString (balance, 'initialMargin');
-                account['total'] = this.safeString2 (balance, 'marginBalance', 'balance');
-                result[code] = account;
-            }
+        const timestamp = this.safeInteger (response, 'updateTime');
+        const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'free');
+            account['used'] = this.safeString (balance, 'locked');
+            result[code] = account;
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
@@ -927,13 +893,7 @@ module.exports = class bitrue extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = 'publicGetTicker24hr';
-        if (market['linear']) {
-            method = 'fapiPublicGetTicker24hr';
-        } else if (market['inverse']) {
-            method = 'dapiPublicGetTicker24hr';
-        }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.v1PublicGetTicker24hr (this.extend (request, params));
         if (Array.isArray (response)) {
             const firstTicker = this.safeValue (response, 0, {});
             return this.parseTicker (firstTicker, market);
@@ -2185,7 +2145,7 @@ module.exports = class bitrue extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ version, access ] = api;
-        let url = this.urls['api'][version] + '/' + version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][version] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (access === 'private') {
             this.checkRequiredCredentials ();
