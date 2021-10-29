@@ -812,64 +812,43 @@ module.exports = class bitrue extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
+        // fetchTicker
+        //
         //     {
-        //         symbol: 'ETHBTC',
-        //         priceChange: '0.00068700',
-        //         priceChangePercent: '2.075',
-        //         weightedAvgPrice: '0.03342681',
-        //         prevClosePrice: '0.03310300',
-        //         lastPrice: '0.03378900',
-        //         lastQty: '0.07700000',
-        //         bidPrice: '0.03378900',
-        //         bidQty: '7.16800000',
-        //         askPrice: '0.03379000',
-        //         askQty: '24.00000000',
-        //         openPrice: '0.03310200',
-        //         highPrice: '0.03388900',
-        //         lowPrice: '0.03306900',
-        //         volume: '205478.41000000',
-        //         quoteVolume: '6868.48826294',
-        //         openTime: 1601469986932,
-        //         closeTime: 1601556386932,
-        //         firstId: 196098772,
-        //         lastId: 196186315,
-        //         count: 87544
+        //         "id":397945892,
+        //         "last":"1.143411",
+        //         "lowestAsk":"1.144223",
+        //         "highestBid":"1.141696",
+        //         "percentChange":"-0.001432",
+        //         "baseVolume":"338287",
+        //         "quoteVolume":"415013.244366",
+        //         "isFrozen":"0",
+        //         "high24hr":"1.370087",
+        //         "low24hr":"1.370087",
         //     }
         //
-        const timestamp = this.safeInteger (ticker, 'closeTime');
-        const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'lastPrice');
-        const isCoinm = ('baseVolume' in ticker);
-        let baseVolume = undefined;
-        let quoteVolume = undefined;
-        if (isCoinm) {
-            baseVolume = this.safeNumber (ticker, 'baseVolume');
-            quoteVolume = this.safeNumber (ticker, 'volume');
-        } else {
-            baseVolume = this.safeNumber (ticker, 'volume');
-            quoteVolume = this.safeNumber (ticker, 'quoteVolume');
-        }
+        const symbol = this.safeSymbol (undefined, market);
+        const last = this.safeNumber (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'highPrice'),
-            'low': this.safeNumber (ticker, 'lowPrice'),
-            'bid': this.safeNumber (ticker, 'bidPrice'),
-            'bidVolume': this.safeNumber (ticker, 'bidQty'),
-            'ask': this.safeNumber (ticker, 'askPrice'),
-            'askVolume': this.safeNumber (ticker, 'askQty'),
-            'vwap': this.safeNumber (ticker, 'weightedAvgPrice'),
-            'open': this.safeNumber (ticker, 'openPrice'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': this.safeNumber (ticker, 'high24hr'),
+            'low': this.safeNumber (ticker, 'low24hr'),
+            'bid': this.safeNumber (ticker, 'highestBid'),
+            'bidVolume': undefined,
+            'ask': this.safeNumber (ticker, 'lowestAsk'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
             'close': last,
             'last': last,
-            'previousClose': this.safeNumber (ticker, 'prevClosePrice'), // previous day close
-            'change': this.safeNumber (ticker, 'priceChange'),
-            'percentage': this.safeNumber (ticker, 'priceChangePercent'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeNumber (ticker, 'percentChange'),
             'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': this.safeNumber (ticker, 'baseVolume'),
+            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
         }, market);
     }
@@ -891,14 +870,39 @@ module.exports = class bitrue extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'currency': market['quoteId'],
+            'command': 'returnTicker',
         };
-        const response = await this.v1PublicGetTicker24hr (this.extend (request, params));
-        if (Array.isArray (response)) {
-            const firstTicker = this.safeValue (response, 0, {});
-            return this.parseTicker (firstTicker, market);
+        const response = await this.klinePublicGetPublicJson (this.extend (request, params));
+        //
+        //     {
+        //         "code":"200",
+        //         "msg":"success",
+        //         "data":{
+        //             "DODO3S_USDT":{
+        //                 "id":397945892,
+        //                 "last":"1.143411",
+        //                 "lowestAsk":"1.144223",
+        //                 "highestBid":"1.141696",
+        //                 "percentChange":"-0.001432",
+        //                 "baseVolume":"338287",
+        //                 "quoteVolume":"415013.244366",
+        //                 "isFrozen":"0",
+        //                 "high24hr":"1.370087",
+        //                 "low24hr":"1.370087"
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const uppercaseBaseId = this.safeStringUpper (market, 'baseId');
+        const uppercaseQuoteId = this.safeStringUpper (market, 'quoteId');
+        const id = uppercaseBaseId + '_' + uppercaseQuoteId;
+        const ticker = this.safeValue (data, id);
+        if (ticker === undefined) {
+            throw new ExchangeError (this.id + ' fetchTicker() could not find the ticker for ' + market['symbol']);
         }
-        return this.parseTicker (response, market);
+        return this.parseTicker (ticker, market);
     }
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
