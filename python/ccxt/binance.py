@@ -4095,15 +4095,11 @@ class binance(Exchange):
         marginRatio = None
         side = None
         percentage = None
-        if collateralFloat == 0.0:
-            liquidationPrice = None
-        else:
+        if collateralFloat != 0.0:
             marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
             side = 'short' if (notionalFloat < 0) else 'long'
             percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
         marginType = self.safe_string(position, 'marginType')
-        if marginType == 'cross':
-            liquidationPrice = None
         return {
             'info': position,
             'symbol': symbol,

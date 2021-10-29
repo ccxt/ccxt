@@ -4319,17 +4319,12 @@ class binance extends Exchange {
         $marginRatio = null;
         $side = null;
         $percentage = null;
-        if ($collateralFloat === 0.0) {
-            $liquidationPrice = null;
-        } else {
+        if ($collateralFloat !== 0.0) {
             $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateralString, 4));
             $side = ($notionalFloat < 0) ? 'short' : 'long';
             $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100'));
         }
         $marginType = $this->safe_string($position, 'marginType');
-        if ($marginType === 'cross') {
-            $liquidationPrice = null;
-        }
         return array(
             'info' => $position,
             'symbol' => $symbol,
