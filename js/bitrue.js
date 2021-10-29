@@ -15,7 +15,7 @@ module.exports = class bitrue extends Exchange {
             'id': 'bitrue',
             'name': 'Bitrue',
             'countries': [ 'SG' ], // Singapore, Malta
-            'rateLimit': 50,
+            'rateLimit': 1000,
             'certified': true,
             'pro': true,
             'version': 'v1',
@@ -1511,7 +1511,7 @@ module.exports = class bitrue extends Exchange {
         const currency = this.currency (code);
         const request = {
             'coin': currency['id'],
-            // 'status':  0, // 0 init, 1 finished, default 0
+            'status': 1, // 0 init, 1 finished, default 0
             // 'offset': 0,
             // 'limit': limit, // default 10, max 1000
             // 'startTime': since,
@@ -1527,23 +1527,25 @@ module.exports = class bitrue extends Exchange {
         const response = await this.v1PrivateGetDepositHistory (this.extend (request, params));
         //
         //     {
-        //         "code": 200,
-        //         "msg": "succ",
-        //         "data": [
+        //         "code":200,
+        //         "msg":"succ",
+        //         "data":[
         //             {
-        //                 "symbol": "XRP",
-        //                 "amount": "261.3361000000000000",
-        //                 "fee": "0.0E-15",
-        //                 "createdAt": 1548816979000,
-        //                 "updatedAt": 1548816999000,
-        //                 "addressFrom": "",
-        //                 "addressTo": "raLPjTYeGezfdb6crXZzcC8RkLBEwbBHJ5_18113641",
-        //                 "txid": "86D6EB68A7A28938BCE06BD348F8C07DEF500C5F7FE92069EF8C0551CE0F2C7D",
-        //                 "confirmations": 8,
-        //                 "status": 1,
-        //                 "tagType": "Tag"
+        //                 "id":2659137,
+        //                 "symbol":"USDC",
+        //                 "amount":"200.0000000000000000",
+        //                 "fee":"0.0E-15",
+        //                 "createdAt":1635503169000,
+        //                 "updatedAt":1635503202000,
+        //                 "addressFrom":"0x2faf487a4414fe77e2327f0bf4ae2a264a776ad2",
+        //                 "addressTo":"0x190ceccb1f8bfbec1749180f0ba8922b488d865b",
+        //                 "txid":"0x9970aec41099ac385568859517308707bc7d716df8dabae7b52f5b17351c3ed0",
+        //                 "confirmations":5,
+        //                 "status":0,
+        //                 "tagType":null,
         //             },
         //             {
+        //                 "id":2659137,
         //                 "symbol": "XRP",
         //                 "amount": "20.0000000000000000",
         //                 "fee": "0.0E-15",
@@ -1560,7 +1562,7 @@ module.exports = class bitrue extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1571,7 +1573,7 @@ module.exports = class bitrue extends Exchange {
         const currency = this.currency (code);
         const request = {
             'coin': currency['id'],
-            // 'status':  0, // 0 init, 1 finished, default 0
+            'status': 5, // 0 init, 5 finished, 6 canceled, default 0
             // 'offset': 0,
             // 'limit': limit, // default 10, max 1000
             // 'startTime': since,
@@ -1609,7 +1611,7 @@ module.exports = class bitrue extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -1684,22 +1686,28 @@ module.exports = class bitrue extends Exchange {
         const id = this.safeString (transaction, 'id');
         const tagType = this.safeString (transaction, 'tagType');
         let addressTo = this.safeString (transaction, 'addressTo');
+        if (addressTo === '') {
+            addressTo = undefined;
+        }
         let addressFrom = this.safeString (transaction, 'addressFrom');
+        if (addressFrom === '') {
+            addressFrom = undefined;
+        }
         let tagTo = undefined;
         let tagFrom = undefined;
         if (tagType !== undefined) {
             if (addressTo !== undefined) {
                 const parts = addressTo.split ('_');
                 addressTo = this.safeString (parts, 0);
-                tagTo = this.safeString (parts, 0);
+                tagTo = this.safeString (parts, 1);
             }
             if (addressFrom !== undefined) {
-                const parts = addressTo.split ('_');
+                const parts = addressFrom.split ('_');
                 addressFrom = this.safeString (parts, 0);
-                tagFrom = this.safeString (parts, 0);
+                tagFrom = this.safeString (parts, 1);
             }
         }
-        let txid = this.safeString (transaction, 'txId');
+        let txid = this.safeString (transaction, 'txid');
         if (txid === '') {
             txid = undefined;
         }
@@ -1723,7 +1731,7 @@ module.exports = class bitrue extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'address': addressTo,
             'addressTo': addressTo,
-            'addressFrom': tagFrom,
+            'addressFrom': addressFrom,
             'tag': tagTo,
             'tagTo': tagTo,
             'tagFrom': tagFrom,
