@@ -101,6 +101,9 @@ php -f path/to/example.php # substitute for actual filename here
 
 [ccxt 를 사용하여 가상화폐 데이터 다운로드하기](https://antilibrary.org/2174) – A Korean translation of the above article.
 
+[Getting started with CCXT Crypto Exchange Library and Python
+](https://medium.com/@pknerd/getting-started-with-ccxt-crypto-exchange-library-and-python-93175d5a898d) – An article on using CCXT to pull different kinds of data from exchanges and for trading automation.
+
 [Experiments : Creating a Crypto Twitter Bot to Announce Newly Listed CryptoCoins](https://medium.com/@kennychuaio/experiments-creating-a-crypto-twitter-bot-to-announce-newly-listed-cryptocoins-9cd23930f5cb) – An article on how to integrate with CCXT and Twitter to get new currencies from exchanges automatically.
 
 [CCXT Exercise Index (Python)](https://coil.com/p/sarantium/CCXT-Exercise-Index/U3-ljsKK1) – All CCXT exercises for Python by number and subject. It will be continuously updated as more exercises are added!
