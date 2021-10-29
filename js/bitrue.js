@@ -958,12 +958,8 @@ module.exports = class bitrue extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        if ('isDustTrade' in trade) {
-            return this.parseDustTrade (trade, market);
-        }
         //
         // aggregate trades
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
         //
         //     {
         //         "a": 26129,         // Aggregate tradeId
@@ -977,8 +973,6 @@ module.exports = class bitrue extends Exchange {
         //     }
         //
         // recent public trades and old public trades
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-trade-lookup-market_data
         //
         //     {
         //         "id": 28457,
@@ -990,7 +984,6 @@ module.exports = class bitrue extends Exchange {
         //     }
         //
         // private trades
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#account-trade-list-user_data
         //
         //     {
         //         "symbol": "BNBBTC",
@@ -1076,44 +1069,11 @@ module.exports = class bitrue extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
-            // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-            // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-            // 'limit': 500,     // default = 500, maximum = 1000
+            // 'limit': 100, // default 100, max = 1000
         };
-        const defaultType = this.safeString2 (this.options, 'fetchTrades', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        let defaultMethod = undefined;
-        if (type === 'future') {
-            defaultMethod = 'fapiPublicGetAggTrades';
-        } else if (type === 'delivery') {
-            defaultMethod = 'dapiPublicGetAggTrades';
-        } else {
-            defaultMethod = 'publicGetAggTrades';
-        }
-        let method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
-        if (method === 'publicGetAggTrades') {
-            if (since !== undefined) {
-                request['startTime'] = since;
-                // https://github.com/ccxt/ccxt/issues/6400
-                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-                request['endTime'] = this.sum (since, 3600000);
-            }
-            if (type === 'future') {
-                method = 'fapiPublicGetAggTrades';
-            } else if (type === 'delivery') {
-                method = 'dapiPublicGetAggTrades';
-            }
-        } else if (method === 'publicGetHistoricalTrades') {
-            if (type === 'future') {
-                method = 'fapiPublicGetHistoricalTrades';
-            } else if (type === 'delivery') {
-                method = 'dapiPublicGetHistoricalTrades';
-            }
-        }
+        const method = this.safeString (this.options, 'fetchTradesMethod', 'v1PublicGetAggTrades');
         if (limit !== undefined) {
-            request['limit'] = limit; // default = 500, maximum = 1000
+            request['limit'] = limit; // default 100, max 1000
         }
         //
         // Caveats:
@@ -1124,7 +1084,7 @@ module.exports = class bitrue extends Exchange {
         // - 'tradeId' accepted and returned by this method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // aggregate trades
         //
