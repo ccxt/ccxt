@@ -869,11 +869,13 @@ module.exports = class bitrue extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const uppercaseBaseId = this.safeStringUpper (market, 'baseId');
+        const uppercaseQuoteId = this.safeStringUpper (market, 'quoteId');
         const request = {
-            'currency': market['quoteId'],
+            'currency': uppercaseQuoteId,
             'command': 'returnTicker',
         };
-        const response = await this.klinePublicGetPublicJson (this.extend (request, params));
+        const response = await this.klinePublicGetPublicCurrencyJson (this.extend (request, params));
         //
         //     {
         //         "code":"200",
@@ -895,8 +897,6 @@ module.exports = class bitrue extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const uppercaseBaseId = this.safeStringUpper (market, 'baseId');
-        const uppercaseQuoteId = this.safeStringUpper (market, 'quoteId');
         const id = uppercaseBaseId + '_' + uppercaseQuoteId;
         const ticker = this.safeValue (data, id);
         if (ticker === undefined) {
@@ -924,20 +924,44 @@ module.exports = class bitrue extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        let defaultMethod = undefined;
-        if (type === 'future') {
-            defaultMethod = 'fapiPublicGetTicker24hr';
-        } else if (type === 'delivery') {
-            defaultMethod = 'dapiPublicGetTicker24hr';
-        } else {
-            defaultMethod = 'publicGetTicker24hr';
+        const request = {
+            'command': 'returnTicker',
+        };
+        const response = await this.klinePublicGetPublicJson (this.extend (request, params));
+        //
+        //     {
+        //         "code":"200",
+        //         "msg":"success",
+        //         "data":{
+        //             "DODO3S_USDT":{
+        //                 "id":397945892,
+        //                 "last":"1.143411",
+        //                 "lowestAsk":"1.144223",
+        //                 "highestBid":"1.141696",
+        //                 "percentChange":"-0.001432",
+        //                 "baseVolume":"338287",
+        //                 "quoteVolume":"415013.244366",
+        //                 "isFrozen":"0",
+        //                 "high24hr":"1.370087",
+        //                 "low24hr":"1.370087"
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const ids = Object.keys (data);
+        const result = {};
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const [ baseId, quoteId ] = id.split ('_');
+            const marketId = baseId + quoteId;
+            const market = this.safeMarket (marketId);
+            const rawTicker = this.safeValue (data, id);
+            const ticker = this.parseTicker (rawTicker, market);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
-        const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
-        const response = await this[method] (query);
-        return this.parseTickers (response, symbols);
+        return result;
     }
 
     parseOHLCV (ohlcv, market = undefined) {
