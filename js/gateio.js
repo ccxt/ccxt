@@ -520,7 +520,7 @@ module.exports = class gateio extends Exchange {
             'swap': 'publicFuturesGetSettleContracts',
             'futures': 'publicDeliveryGetSettleContracts',
         });
-        if (futures || swap) {
+        if (swap || futures || option) {
             const settlementCurrencies = this.getSettlementCurrencies (type, 'fetchMarkets');
             for (let c = 0; c < settlementCurrencies.length; c++) {
                 const settle = settlementCurrencies[c];
@@ -632,7 +632,6 @@ module.exports = class gateio extends Exchange {
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
                     const feeIndex = (type === 'futures') ? 'swap' : type;
-                    const contract = swap || futures || option;
                     result.push ({
                         'info': market,
                         'id': id,
@@ -648,8 +647,8 @@ module.exports = class gateio extends Exchange {
                         'futures': futures,
                         'swap': swap,
                         'option': option,
-                        'derivative': contract,
-                        'contract': contract,
+                        'derivative': true,
+                        'contract': true,
                         'linear': linear,
                         'inverse': inverse,
                         // Fee is in %, so divide by 100
@@ -734,6 +733,8 @@ module.exports = class gateio extends Exchange {
                     'futures': futures,
                     'swap': swap,
                     'option': option,
+                    'contract': false,
+                    'derivative': false,
                     'linear': false,
                     'inverse': false,
                     // Fee is in %, so divide by 100
@@ -768,7 +769,7 @@ module.exports = class gateio extends Exchange {
     }
 
     prepareRequest (market) {
-        if (market['type'] === 'futures' || market['type'] === 'swap') {
+        if (market['contract']) {
             return {
                 'contract': market['id'],
                 'settle': market['settleId'],
@@ -1507,13 +1508,14 @@ module.exports = class gateio extends Exchange {
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        const isMark = (price === 'mark');
-        const isIndex = (price === 'index');
-        const futures = market['futures'];
-        const swap = market['swap'];
-        const request = {
-            'interval': this.timeframes[timeframe],
-        };
+        const request = this.prepareRequest (market);
+        request['interval'] = this.timeframes[timeframe];
+        const isMark = price === 'mark';
+        const isIndex = price === 'index';
+        if (isMark || isIndex) {
+            const prefix = isMark ? 'mark_' : 'index_';
+            request['contract'] = prefix + market['id'];
+        }
         if (since === undefined) {
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -1524,23 +1526,12 @@ module.exports = class gateio extends Exchange {
                 request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe) - 1);
             }
         }
-        let method = 'publicSpotGetCandlesticks';
-        if (isMark || isIndex || futures || swap) {
-            request['contract'] = market['id'];
-            if (futures) {
-                method = 'publicDeliveryGetSettleCandlesticks';
-            } else {
-                method = 'publicFuturesGetSettleCandlesticks';
-            }
-            request['settle'] = market['settleId'];
-            if (isMark) {
-                request['contract'] = 'mark_' + request['contract'];
-            } else if (isIndex) {
-                request['contract'] = 'index_' + request['contract'];
-            }
-        } else {
-            request['currency_pair'] = market['id'];
-        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'publicSpotGetCandlesticks',
+            'margin': 'publicSpotGetCandlesticks',
+            'swap': 'publicFuturesGetSettleCandlesticks',
+            'futures': 'publicDeliveryGetSettleCandlesticks',
+        });
         const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
@@ -1670,7 +1661,7 @@ module.exports = class gateio extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        if (since !== undefined && (market['swap'] || market['futures'])) {
+        if (since !== undefined && (market['contract'])) {
             request['from'] = parseInt (since / 1000);
         }
         const response = await this[method] (this.extend (request, params));
@@ -1803,7 +1794,7 @@ module.exports = class gateio extends Exchange {
             const milliseconds = timestampString.split ('.');
             timestamp = parseInt (milliseconds[0]);
         }
-        if (market['swap']) {
+        if (market['contract']) {
             timestamp = timestamp * 1000;
         }
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
