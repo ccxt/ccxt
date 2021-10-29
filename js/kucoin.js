@@ -960,6 +960,7 @@ module.exports = class kucoin extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
         };
     }
 

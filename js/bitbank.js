@@ -561,6 +561,7 @@ module.exports = class bitbank extends Exchange {
             'currency': currency,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': response,
         };
     }

@@ -1241,6 +1241,7 @@ module.exports = class bibox extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

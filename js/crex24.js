@@ -1320,6 +1320,7 @@ module.exports = class crex24 extends Exchange {
             'currency': code,
             'address': this.checkAddress (address),
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

@@ -955,6 +955,7 @@ module.exports = class bitbns extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

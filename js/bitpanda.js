@@ -908,6 +908,7 @@ module.exports = class bitpanda extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': depositAddress,
         };
     }
