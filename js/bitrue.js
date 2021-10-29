@@ -225,7 +225,6 @@ module.exports = class bitrue extends Exchange {
             // exchange-specific options
             'options': {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
-                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
@@ -236,7 +235,6 @@ module.exports = class bitrue extends Exchange {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
-                'quoteOrderQty': true, // whether market orders support amounts in quote currency
                 'networks': {
                     'SPL': 'SOLANA',
                     'SOL': 'SOLANA',
@@ -1184,8 +1182,14 @@ module.exports = class bitrue extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'type': uppercaseType,
             'side': side.toUpperCase (),
+            'type': uppercaseType,
+            // 'timeInForce': '',
+            'quantity': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
+            // 'newClientOrderId': clientOrderId, // auomatically generated if not sent
+            // 'stopPrice': this.priceToPrecision (symbol, 'stopPrice'),
+            // 'icebergQty': this.amountToPrecision (symbol, icebergQty),
         };
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker');
@@ -1198,87 +1202,21 @@ module.exports = class bitrue extends Exchange {
         } else {
             request['newClientOrderId'] = clientOrderId;
         }
-        if ((orderType === 'spot') || (orderType === 'margin')) {
-            request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        } else {
-            // delivery and future
-            request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
-        }
+        request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         // additional required fields depending on the order type
-        let timeInForceIsRequired = false;
         let priceIsRequired = false;
-        let stopPriceIsRequired = false;
         let quantityIsRequired = false;
         //
         // spot/margin
         //
-        //     LIMIT                timeInForce, quantity, price
-        //     MARKET               quantity or quoteOrderQty
-        //     STOP_LOSS            quantity, stopPrice
-        //     STOP_LOSS_LIMIT      timeInForce, quantity, price, stopPrice
-        //     TAKE_PROFIT          quantity, stopPrice
-        //     TAKE_PROFIT_LIMIT    timeInForce, quantity, price, stopPrice
-        //     LIMIT_MAKER          quantity, price
-        //
-        // futures
-        //
-        //     LIMIT                timeInForce, quantity, price
+        //     LIMIT                quantity, price
         //     MARKET               quantity
-        //     STOP/TAKE_PROFIT     quantity, price, stopPrice
-        //     STOP_MARKET          stopPrice
-        //     TAKE_PROFIT_MARKET   stopPrice
-        //     TRAILING_STOP_MARKET callbackRate
         //
         if (uppercaseType === 'MARKET') {
-            const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
-            if (quoteOrderQty) {
-                const quoteOrderQty = this.safeNumber (params, 'quoteOrderQty');
-                const precision = market['precision']['price'];
-                if (quoteOrderQty !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
-                    params = this.omit (params, 'quoteOrderQty');
-                } else if (price !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
-                } else {
-                    quantityIsRequired = true;
-                }
-            } else {
-                quantityIsRequired = true;
-            }
+            quantityIsRequired = true;
         } else if (uppercaseType === 'LIMIT') {
             priceIsRequired = true;
-            timeInForceIsRequired = true;
             quantityIsRequired = true;
-        } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
-            stopPriceIsRequired = true;
-            quantityIsRequired = true;
-            if (market['linear'] || market['inverse']) {
-                priceIsRequired = true;
-            }
-        } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-            quantityIsRequired = true;
-            stopPriceIsRequired = true;
-            priceIsRequired = true;
-            timeInForceIsRequired = true;
-        } else if (uppercaseType === 'LIMIT_MAKER') {
-            priceIsRequired = true;
-            quantityIsRequired = true;
-        } else if (uppercaseType === 'STOP') {
-            quantityIsRequired = true;
-            stopPriceIsRequired = true;
-            priceIsRequired = true;
-        } else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            const closePosition = this.safeValue (params, 'closePosition');
-            if (closePosition === undefined) {
-                quantityIsRequired = true;
-            }
-            stopPriceIsRequired = true;
-        } else if (uppercaseType === 'TRAILING_STOP_MARKET') {
-            quantityIsRequired = true;
-            const callbackRate = this.safeNumber (params, 'callbackRate');
-            if (callbackRate === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order');
-            }
         }
         if (quantityIsRequired) {
             request['quantity'] = this.amountToPrecision (symbol, amount);
@@ -1289,17 +1227,10 @@ module.exports = class bitrue extends Exchange {
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (timeInForceIsRequired) {
-            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-        }
-        if (stopPriceIsRequired) {
-            const stopPrice = this.safeNumber (params, 'stopPrice');
-            if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
-            } else {
-                params = this.omit (params, 'stopPrice');
-                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            }
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        if (stopPrice !== undefined) {
+            params = this.omit (params, 'stopPrice');
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
@@ -1564,27 +1495,18 @@ module.exports = class bitrue extends Exchange {
         //     {
         //         "code": 200,
         //         "msg": "succ",
-        //         "data": [
-        //             {
-        //                 "id": 183745,
-        //                 "symbol": "usdt_erc20",
-        //                 "amount": "8.4000000000000000",
-        //                 "fee": "1.6000000000000000",
-        //                 "payAmount": "0.0000000000000000",
-        //                 "createdAt": 1595336441000,
-        //                 "updatedAt": 1595336576000,
-        //                 "addressFrom": "",
-        //                 "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
-        //                 "txid": "",
-        //                 "confirmations": 0,
-        //                 "status": 6,
-        //                 "tagType": null
-        //             }
-        //         ]
+        //         "data": {
+        //             "msg": null,
+        //             "amount": 1000,
+        //             "fee": 1,
+        //             "ctime": null,
+        //             "coin": "usdt_erc20",
+        //             "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
+        //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, currency, since, limit);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransaction (data, currency);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -1652,6 +1574,17 @@ module.exports = class bitrue extends Exchange {
         //         "tagType": null
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "msg": null,
+        //         "amount": 1000,
+        //         "fee": 1,
+        //         "ctime": null,
+        //         "coin": "usdt_erc20",
+        //         "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
+        //     }
+        //
         const id = this.safeString (transaction, 'id');
         const tagType = this.safeString (transaction, 'tagType');
         let addressTo = this.safeString (transaction, 'addressTo');
@@ -1682,7 +1615,9 @@ module.exports = class bitrue extends Exchange {
         }
         const timestamp = this.safeInteger (transaction, 'createdAt');
         const updated = this.safeInteger (transaction, 'updatedAt');
-        const type = ('payAmount' in transaction) ? 'withdrawal' : 'deposit';
+        const payAmount = ('payAmount' in transaction);
+        const ctime = ('ctime' in transaction);
+        const type = (payAmount || ctime) ? 'withdrawal' : 'deposit';
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
         let network = undefined;
