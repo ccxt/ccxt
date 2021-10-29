@@ -940,6 +940,7 @@ class kucoin(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
         }
 
     def fetch_l3_order_book(self, symbol, limit=None, params={}):

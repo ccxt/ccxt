@@ -1054,7 +1054,7 @@ class bytetrade(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'chainType': chainType,
+            'network': chainType,
             'info': response,
         }
 

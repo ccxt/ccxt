@@ -1456,6 +1456,7 @@ class ascendex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null, // TODO => parse network
             'info' => $depositAddress,
         );
     }

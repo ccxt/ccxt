@@ -1195,6 +1195,7 @@ class bibox(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

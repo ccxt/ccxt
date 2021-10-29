@@ -1251,6 +1251,7 @@ class bitfinex2(bitfinex):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

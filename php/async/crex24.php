@@ -1328,6 +1328,7 @@ class crex24 extends Exchange {
             'currency' => $code,
             'address' => $this->check_address($address),
             'tag' => $tag,
+            'network' => null,
             'info' => $response,
         );
     }

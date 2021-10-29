@@ -506,6 +506,7 @@ class hitbtc3(Exchange):
             'address': address,
             'tag': tag,
             'code': parsedCode,
+            'network': None,
         }
 
     def fetch_balance(self, params={}):

@@ -1408,6 +1408,7 @@ class ascendex(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,  # TODO: parse network
             'info': depositAddress,
         }
 

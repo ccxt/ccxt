@@ -538,6 +538,7 @@ class bitbank(Exchange):
             'currency': currency,
             'address': address,
             'tag': None,
+            'network': None,
             'info': response,
         }
 

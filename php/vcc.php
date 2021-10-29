@@ -1241,6 +1241,7 @@ class vcc extends Exchange {
             'currency' => $this->safe_currency_code($currencyId),
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
             'info' => $data,
         );
     }

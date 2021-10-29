@@ -1083,6 +1083,7 @@ class gateio(Exchange):
             'code': code,
             'address': address,
             'tag': tag,
+            'network': None,
         }
 
     def fetch_trading_fees(self, params={}):

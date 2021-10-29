@@ -562,6 +562,7 @@ class bitbank extends Exchange {
             'currency' => $currency,
             'address' => $address,
             'tag' => null,
+            'network' => null,
             'info' => $response,
         );
     }

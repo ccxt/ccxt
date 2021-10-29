@@ -657,6 +657,7 @@ class buda extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => null,
+            'network' => null,
             'info' => $receiveAddresses,
         );
     }

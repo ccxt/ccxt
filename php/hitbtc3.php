@@ -507,6 +507,7 @@ class hitbtc3 extends Exchange {
             'address' => $address,
             'tag' => $tag,
             'code' => $parsedCode,
+            'network' => null,
         );
     }
 

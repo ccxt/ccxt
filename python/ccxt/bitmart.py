@@ -2020,6 +2020,7 @@ class bitmart(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,  # TODO: parse
             'info': response,
         }
 

@@ -1192,6 +1192,7 @@ class vcc(Exchange):
             'currency': self.safe_currency_code(currencyId),
             'address': address,
             'tag': tag,
+            'network': None,
             'info': data,
         }
 

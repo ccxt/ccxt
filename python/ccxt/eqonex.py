@@ -949,6 +949,7 @@ class eqonex(Exchange):
             'currency': code,
             'address': address,
             'tag': None,
+            'network': None,
             'info': depositAddress,
         }
 

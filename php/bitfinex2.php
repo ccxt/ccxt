@@ -1320,6 +1320,7 @@ class bitfinex2 extends bitfinex {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
             'info' => $response,
         );
     }
