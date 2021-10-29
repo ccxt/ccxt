@@ -1404,17 +1404,18 @@ module.exports = class bitrue extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            // 'orderId': 123445, // long
+            // 'startTime': since,
+            // 'endTime': this.milliseconds (),
+            // 'limit': limit, // default 100, max 1000
         };
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = limit; // default 100, max 1000
         }
-        const query = this.omit (params, 'type');
-        const response = await this.v1PrivateGetAllOrders (this.extend (request, query));
-        //
-        //  spot
+        const response = await this.v1PrivateGetAllOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1434,26 +1435,6 @@ module.exports = class bitrue extends Exchange {
         //             "time": 1499827319559,
         //             "updateTime": 1499827319559,
         //             "isWorking": true
-        //         }
-        //     ]
-        //
-        //  futures
-        //
-        //     [
-        //         {
-        //             "symbol": "BTCUSDT",
-        //             "orderId": 1,
-        //             "clientOrderId": "myOrder1",
-        //             "price": "0.1",
-        //             "origQty": "1.0",
-        //             "executedQty": "1.0",
-        //             "cumQuote": "10.0",
-        //             "status": "NEW",
-        //             "timeInForce": "GTC",
-        //             "type": "LIMIT",
-        //             "side": "BUY",
-        //             "stopPrice": "0.0",
-        //             "updateTime": 1499827319559
         //         }
         //     ]
         //
