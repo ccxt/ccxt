@@ -496,6 +496,11 @@ module.exports = class bitrue extends Exchange {
 
     async fetchTime (params = {}) {
         const response = await this.publicGetTime (params);
+        //
+        //     {
+        //         "serverTime":1635467280514
+        //     }
+        //
         return this.safeInteger (response, 'serverTime');
     }
 
@@ -752,37 +757,20 @@ module.exports = class bitrue extends Exchange {
             };
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-                const tickSize = this.safeString (filter, 'tickSize');
-                entry['precision']['price'] = this.precisionFromString (tickSize);
-                // PRICE_FILTER reports zero values for maxPrice
-                // since they updated filter types in November 2018
-                // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
                 entry['limits']['price'] = {
                     'min': this.safeNumber (filter, 'minPrice'),
                     'max': this.safeNumber (filter, 'maxPrice'),
                 };
-                entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
+                entry['precision']['price'] = this.safeInteger (filter, 'priceScale');
             }
             if ('LOT_SIZE' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
-                const stepSize = this.safeString (filter, 'stepSize');
-                entry['precision']['amount'] = this.precisionFromString (stepSize);
+                entry['precision']['amount'] = this.safeInteger (filter, 'volumeScale');
                 entry['limits']['amount'] = {
                     'min': this.safeNumber (filter, 'minQty'),
                     'max': this.safeNumber (filter, 'maxQty'),
                 };
-            }
-            if ('MARKET_LOT_SIZE' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
-                entry['limits']['market'] = {
-                    'min': this.safeNumber (filter, 'minQty'),
-                    'max': this.safeNumber (filter, 'maxQty'),
-                };
-            }
-            if ('MIN_NOTIONAL' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
-                entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
+                entry['limits']['cost']['min'] = this.safeNumber (filter, 'minVal');
             }
             result.push (entry);
         }
