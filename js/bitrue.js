@@ -87,14 +87,8 @@ module.exports = class bitrue extends Exchange {
                     'private': 'https://www.bitrue.com/api',
                 },
                 'api': {
-                    'v1': {
-                        'public': 'https://www.bitrue.com/api/v1',
-                        'private': 'https://www.bitrue.com/api/v1',
-                    },
-                    'v2': {
-                        'public': 'https://www.bitrue.com/api/v2',
-                        'private': 'https://www.bitrue.com/api/v2',
-                    },
+                    'v1': 'https://www.bitrue.com/api',
+                    'v2': 'https://www.bitrue.com/api',
                 },
                 'www': 'https://www.bitrue.com',
                 'doc': [
@@ -120,16 +114,6 @@ module.exports = class bitrue extends Exchange {
                         },
                     },
                     'private': {
-                        'get': {
-                            'allOrderList': 10, // oco
-                            'openOrderList': 3, // oco
-                            'orderList': 2, // oco
-                            'order': 2,
-                            'openOrders': { 'cost': 3, 'noSymbol': 40 },
-                            'allOrders': 10,
-                            'account': 10,
-                            'myTrades': 10,
-                        },
                         'get': {
                             'order': 1,
                             'openOrders': 1,
@@ -507,7 +491,7 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetTime (params);
+        const response = await this.v1PublicGetTime (params);
         //
         //     {
         //         "serverTime":1635467280514
@@ -665,7 +649,7 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetExchangeInfo (params);
+        const response = await this.v1PublicGetExchangeInfo (params);
         //
         //     {
         //         "timezone":"CTT",
@@ -2356,8 +2340,10 @@ module.exports = class bitrue extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.version + '/' + path;
-        if (api === 'private') {
+        const [ version, access ] = api;
+        let url = this.urls['api'][version] + '/' + version + '/' + this.implodeParams (path, params);
+        params = this.omit (params, this.extractParams (path));
+        if (access === 'private') {
             this.checkRequiredCredentials ();
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
             let query = this.urlencode (this.extend ({
