@@ -509,7 +509,6 @@ module.exports = class gateio extends Exchange {
         const futures = (type === 'futures');
         const swap = (type === 'swap');
         const option = (type === 'option');
-        const contract = swap || futures || option;
         if (!spot && !margin && !futures && !swap) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap' or 'futures'"); // eslint-disable-line quotes
         }
@@ -521,7 +520,7 @@ module.exports = class gateio extends Exchange {
             'swap': 'publicFuturesGetSettleContracts',
             'futures': 'publicDeliveryGetSettleContracts',
         });
-        if (contract) {
+        if (swap || futures || option) {
             const settlementCurrencies = this.getSettlementCurrencies (type, 'fetchMarkets');
             for (let c = 0; c < settlementCurrencies.length; c++) {
                 const settle = settlementCurrencies[c];
@@ -648,8 +647,8 @@ module.exports = class gateio extends Exchange {
                         'futures': futures,
                         'swap': swap,
                         'option': option,
-                        'derivative': contract,
-                        'contract': contract,
+                        'derivative': true,
+                        'contract': true,
                         'linear': linear,
                         'inverse': inverse,
                         // Fee is in %, so divide by 100
@@ -734,6 +733,8 @@ module.exports = class gateio extends Exchange {
                     'futures': futures,
                     'swap': swap,
                     'option': option,
+                    'contract': false,
+                    'derivative': false,
                     'linear': false,
                     'inverse': false,
                     // Fee is in %, so divide by 100
