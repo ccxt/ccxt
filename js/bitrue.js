@@ -41,7 +41,7 @@ module.exports = class bitrue extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
-                'fetchOHLCV': true,
+                'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -955,72 +955,6 @@ module.exports = class bitrue extends Exchange {
             result[symbol] = ticker;
         }
         return result;
-    }
-
-    parseOHLCV (ohlcv, market = undefined) {
-        // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
-        //     [
-        //         1591478520000, // open time
-        //         "0.02501300",  // open
-        //         "0.02501800",  // high
-        //         "0.02500000",  // low
-        //         "0.02500000",  // close
-        //         "22.19000000", // volume
-        //         1591478579999, // close time
-        //         "0.55490906",  // quote asset volume
-        //         40,            // number of trades
-        //         "10.92900000", // taker buy base asset volume
-        //         "0.27336462",  // taker buy quote asset volume
-        //         "0"            // ignore
-        //     ]
-        //
-        return [
-            this.safeInteger (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
-        ];
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
-        // the reality is that the time range wider than 500 candles won't work right
-        const defaultLimit = 500;
-        const maxLimit = 1500;
-        const price = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
-        limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
-        const request = {
-            'interval': this.timeframes[timeframe],
-            'limit': limit,
-        };
-        if (price === 'index') {
-            request['pair'] = market['id'];   // Index price takes this argument instead of symbol
-        } else {
-            request['symbol'] = market['id'];
-        }
-        const duration = this.parseTimeframe (timeframe);
-        if (since !== undefined) {
-            request['startTime'] = since;
-            if (since > 0) {
-                const endTime = this.sum (since, limit * duration * 1000 - 1);
-                const now = this.milliseconds ();
-                request['endTime'] = Math.min (now, endTime);
-            }
-        }
-        const response = await this.v1PublicGetKlines (this.extend (request, params));
-        //
-        //     [
-        //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
-        //         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
-        //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
-        //     ]
-        //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
