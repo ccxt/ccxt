@@ -648,56 +648,44 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        if ((type !== 'spot') && (type !== 'future') && (type !== 'margin') && (type !== 'delivery')) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
-        }
-        let method = 'publicGetExchangeInfo';
-        if (type === 'future') {
-            method = 'fapiPublicGetExchangeInfo';
-        } else if (type === 'delivery') {
-            method = 'dapiPublicGetExchangeInfo';
-        }
-        const response = await this[method] (query);
-        //
-        // spot / margin
+        const response = await this.publicGetExchangeInfo (params);
         //
         //     {
-        //         "timezone":"UTC",
-        //         "serverTime":1575416692969,
+        //         "timezone":"CTT",
+        //         "serverTime":1635464889117,
         //         "rateLimits":[
-        //             {"rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":1200},
-        //             {"rateLimitType":"ORDERS","interval":"SECOND","intervalNum":10,"limit":100},
-        //             {"rateLimitType":"ORDERS","interval":"DAY","intervalNum":1,"limit":200000}
+        //             {"rateLimitType":"REQUESTS_WEIGHT","interval":"MINUTES","limit":6000},
+        //             {"rateLimitType":"ORDERS","interval":"SECONDS","limit":150},
+        //             {"rateLimitType":"ORDERS","interval":"DAYS","limit":288000},
         //         ],
         //         "exchangeFilters":[],
         //         "symbols":[
         //             {
-        //                 "symbol":"ETHBTC",
+        //                 "symbol":"SHABTC",
         //                 "status":"TRADING",
-        //                 "baseAsset":"ETH",
-        //                 "baseAssetPrecision":8,
-        //                 "quoteAsset":"BTC",
-        //                 "quotePrecision":8,
-        //                 "baseCommissionPrecision":8,
-        //                 "quoteCommissionPrecision":8,
-        //                 "orderTypes":["LIMIT","LIMIT_MAKER","MARKET","STOP_LOSS_LIMIT","TAKE_PROFIT_LIMIT"],
-        //                 "icebergAllowed":true,
-        //                 "ocoAllowed":true,
-        //                 "quoteOrderQtyMarketAllowed":true,
-        //                 "isSpotTradingAllowed":true,
-        //                 "isMarginTradingAllowed":true,
+        //                 "baseAsset":"sha",
+        //                 "baseAssetPrecision":0,
+        //                 "quoteAsset":"btc",
+        //                 "quotePrecision":10,
+        //                 "orderTypes":["MARKET","LIMIT"],
+        //                 "icebergAllowed":false,
         //                 "filters":[
-        //                     {"filterType":"PRICE_FILTER","minPrice":"0.00000100","maxPrice":"100000.00000000","tickSize":"0.00000100"},
-        //                     {"filterType":"PERCENT_PRICE","multiplierUp":"5","multiplierDown":"0.2","avgPriceMins":5},
-        //                     {"filterType":"LOT_SIZE","minQty":"0.00100000","maxQty":"100000.00000000","stepSize":"0.00100000"},
-        //                     {"filterType":"MIN_NOTIONAL","minNotional":"0.00010000","applyToMarket":true,"avgPriceMins":5},
-        //                     {"filterType":"ICEBERG_PARTS","limit":10},
-        //                     {"filterType":"MARKET_LOT_SIZE","minQty":"0.00000000","maxQty":"63100.00000000","stepSize":"0.00000000"},
-        //                     {"filterType":"MAX_NUM_ALGO_ORDERS","maxNumAlgoOrders":5}
-        //                 ]
+        //                     {"filterType":"PRICE_FILTER","minPrice":"0.00000001349","maxPrice":"0.00000017537","priceScale":10},
+        //                     {"filterType":"LOT_SIZE","minQty":"1.0","minVal":"0.00020","maxQty":"1000000000","volumeScale":0},
+        //                 ],
+        //                 "defaultPrice":"0.0000006100",
+        //             },
+        //         ],
+        //         "coins":[
+        //             {
+        //                 "coin":"sbr",
+        //                 "coinFulName":"Saber",
+        //                 "enableWithdraw":true,
+        //                 "enableDeposit":true,
+        //                 "chains":["SOLANA"],
+        //                 "withdrawFee":"2.0",
+        //                 "minWithdraw":"5.0",
+        //                 "maxWithdraw":"1000000000000000",
         //             },
         //         ],
         //     }
@@ -709,25 +697,13 @@ module.exports = class bitrue extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const spot = (type === 'spot');
-            const future = (type === 'future');
-            const delivery = (type === 'delivery');
             const id = this.safeString (market, 'symbol');
             const lowercaseId = this.safeStringLower (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const contractType = this.safeString (market, 'contractType');
-            const idSymbol = (future || delivery) && (contractType !== 'PERPETUAL');
-            let symbol = undefined;
-            let expiry = undefined;
-            if (idSymbol) {
-                symbol = id;
-                expiry = this.safeInteger (market, 'deliveryDate');
-            } else {
-                symbol = base + '/' + quote;
-            }
+            const symbol = base + '/' + quote;
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
             const precision = {
@@ -736,17 +712,8 @@ module.exports = class bitrue extends Exchange {
                 'amount': this.safeInteger (market, 'quantityPrecision'),
                 'price': this.safeInteger (market, 'pricePrecision'),
             };
-            const status = this.safeString2 (market, 'status', 'contractStatus');
+            const status = this.safeString2 (market, 'status');
             const active = (status === 'TRADING');
-            const margin = this.safeValue (market, 'isMarginTradingAllowed', false);
-            let contractSize = undefined;
-            let fees = this.fees;
-            if (future || delivery) {
-                contractSize = this.safeString (market, 'contractSize', '1');
-                fees = this.fees[type];
-            }
-            const maker = fees['trading']['maker'];
-            const taker = fees['trading']['taker'];
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -756,20 +723,18 @@ module.exports = class bitrue extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'spot': spot,
-                'type': type,
-                'margin': margin,
-                'future': future,
-                'delivery': delivery,
-                'linear': future,
-                'inverse': delivery,
-                'expiry': expiry,
-                'expiryDatetime': this.iso8601 (expiry),
+                'spot': true,
+                'type': 'spot',
+                'margin': false,
+                'future': false,
+                'delivery': false,
+                'linear': false,
+                'inverse': false,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
                 'active': active,
                 'precision': precision,
-                'contractSize': contractSize,
-                'maker': maker,
-                'taker': taker,
+                'contractSize': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
