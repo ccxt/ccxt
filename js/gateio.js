@@ -2014,18 +2014,17 @@ module.exports = class gateio extends Exchange {
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
         const marketType = this.safeString (params, 'type', defaultType);
-        const futures = market['futures'];
-        const swap = market['swap'];
+        const contract = market['contract'];
         const request = this.prepareRequest (market);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         params = this.omit (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
-            if ((marketType !== 'future') && (marketType !== 'swap')) {
+            if (!contract) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
             }
             request['reduce_only'] = reduceOnly;
         }
-        if (futures || swap) {
+        if (contract) {
             if (side === 'sell') {
                 amount = 0 - amount;
             }
@@ -2048,7 +2047,7 @@ module.exports = class gateio extends Exchange {
                 throw new ArgumentsRequired ('Argument price is required for ' + this.id + '.createOrder for limit orders');
             }
             request['price'] = this.priceToPrecision (symbol, price);
-        } else if (type === 'market' && (swap || futures)) {
+        } else if (type === 'market' && contract) {
             request['tif'] = 'ioc';
             request['price'] = 0;
         }
@@ -2107,7 +2106,7 @@ module.exports = class gateio extends Exchange {
         const remaining = this.safeString (order, 'left');
         const cost = this.safeString2 (order, 'filled_total'); // same as filled_price
         let side = this.safeString (order, 'side');
-        if (market['swap'] || market['delivery']) {
+        if (market['contract']) {
             side = amount > 0 ? 'buy' : 'sell';
         }
         const type = this.safeString (order, 'type');
@@ -2350,7 +2349,7 @@ module.exports = class gateio extends Exchange {
         const request = {
             'order_id': id,
         };
-        if ((market['swap'] || market['futures'])) {
+        if (market['contract']) {
             request['settle'] = market['settleId'];
         } else {
             request['currency_pair'] = market['id'];
