@@ -2824,6 +2824,121 @@ module.exports = class gateio extends Exchange {
         return response;
     }
 
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         value: "12.475572",
+        //         leverage: "0",
+        //         mode: "single",
+        //         realised_point: "0",
+        //         contract: "BTC_USDT",
+        //         entry_price: "62422.6",
+        //         mark_price: "62377.86",
+        //         history_point: "0",
+        //         realised_pnl: "-0.00624226",
+        //         close_order:  null,
+        //         size: "2",
+        //         cross_leverage_limit: "25",
+        //         pending_orders: "0",
+        //         adl_ranking: "5",
+        //         maintenance_rate: "0.005",
+        //         unrealised_pnl: "-0.008948",
+        //         user: "6645677",
+        //         leverage_max: "100",
+        //         history_pnl: "14.98868396636",
+        //         risk_limit: "1000000",
+        //         margin: "0.740721495056",
+        //         last_close_pnl: "-0.041996015",
+        //         liq_price: "59058.58"
+        //     }
+        //
+        const contract = this.safeValue (position, 'contract');
+        market = this.safeMarket (contract, market);
+        const now = this.milliseconds ();
+        return {
+            'info': position,
+            'symbol': market['symbol'],
+            'timestamp': now,
+            'datetime': this.iso8601 (now),
+            'initialMargin': position['margin'],
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': position['entry_price'],
+            'notional': undefined,
+            'leverage': position['leverage'],
+            'unrealizedPnl': position['unrealised_pnl'],
+            'contracts': undefined,
+            'contractSize': position['size'],
+            //     realisedPnl: position['realised_pnl'],
+            'marginRatio': undefined,
+            'liquidationPrice': position['liq_price'],
+            'markPrice': position['mark_price'],
+            'collateral': position['margin'],
+            'marginType': undefined,
+            'side': undefined,
+            'percentage': undefined,
+        };
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        return result;
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType', 'futures');
+        const type = this.safeString (params, 'type', defaultType);
+        const method = this.getSupportedMapping (type, {
+            'swap': 'privateFuturesGetSettlePositions',
+            'futures': 'privateDeliveryGetSettlePositions',
+        });
+        let positions = [];
+        const settlementCurrencies = this.getSettlementCurrencies (type, 'fetchPositions');
+        for (let c = 0; c < settlementCurrencies.length; c++) {
+            const request = {
+                'settle': settlementCurrencies[c],
+            };
+            const response = await this[method] (request);
+            positions = positions.concat (response);
+        }
+        //
+        //     [
+        //         {
+        //             value: "12.475572",
+        //             leverage: "0",
+        //             mode: "single",
+        //             realised_point: "0",
+        //             contract: "BTC_USDT",
+        //             entry_price: "62422.6",
+        //             mark_price: "62377.86",
+        //             history_point: "0",
+        //             realised_pnl: "-0.00624226",
+        //             close_order:  null,
+        //             size: "2",
+        //             cross_leverage_limit: "25",
+        //             pending_orders: "0",
+        //             adl_ranking: "5",
+        //             maintenance_rate: "0.005",
+        //             unrealised_pnl: "-0.008948",
+        //             user: "6693577",
+        //             leverage_max: "100",
+        //             history_pnl: "14.98868396636",
+        //             risk_limit: "1000000",
+        //             margin: "0.740721495056",
+        //             last_close_pnl: "-0.041996015",
+        //             liq_price: "59058.58"
+        //         }
+        //     ]
+        //
+        const result = this.parsePositions (positions);
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, futures, delivery
