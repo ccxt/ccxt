@@ -994,6 +994,7 @@ module.exports = class eqonex extends Exchange {
             'currency': code,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': depositAddress,
         };
     }

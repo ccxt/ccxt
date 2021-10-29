@@ -2105,6 +2105,7 @@ module.exports = class bitmart extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined, // TODO: parse
             'info': response,
         };
     }

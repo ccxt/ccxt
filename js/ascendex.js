@@ -1452,6 +1452,7 @@ module.exports = class ascendex extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined, // TODO: parse network
             'info': depositAddress,
         };
     }

@@ -1088,6 +1088,7 @@ module.exports = class gateio extends Exchange {
             'code': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
         };
     }
 

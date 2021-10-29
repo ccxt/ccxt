@@ -1156,6 +1156,7 @@ module.exports = class exmo extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

@@ -996,6 +996,7 @@ module.exports = class bw extends Exchange {
             'currency': code,
             'address': this.checkAddress (address),
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

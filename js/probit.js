@@ -1056,6 +1056,7 @@ module.exports = class probit extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': depositAddress,
         };
     }
