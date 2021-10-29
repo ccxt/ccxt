@@ -222,10 +222,6 @@ module.exports = class bitrue extends Exchange {
                     },
                 },
             },
-            'commonCurrencies': {
-                'BCC': 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
-                'YOYO': 'YOYOW',
-            },
             // exchange-specific options
             'options': {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
@@ -242,111 +238,10 @@ module.exports = class bitrue extends Exchange {
                 },
                 'quoteOrderQty': true, // whether market orders support amounts in quote currency
                 'networks': {
-                    'ERC20': 'ETH',
-                    'TRC20': 'TRX',
-                    'BEP2': 'BNB',
-                    'BEP20': 'BSC',
-                    'OMNI': 'OMNI',
-                    'EOS': 'EOS',
-                    'SPL': 'SOL',
-                },
-                'reverseNetworks': {
-                    'tronscan.org': 'TRC20',
-                    'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
-                    'explorer.binance.org': 'BEP2',
-                    'bithomp.com': 'XRP',
-                    'bloks.io': 'EOS',
-                    'stellar.expert': 'XLM',
-                    'blockchair.com/bitcoin': 'BTC',
-                    'blockchair.com/bitcoin-cash': 'BCH',
-                    'blockchair.com/ecash': 'XEC',
-                    'explorer.litecoin.net': 'LTC',
-                    'explorer.avax.network': 'AVAX',
-                    'solscan.io': 'SOL',
-                    'polkadot.subscan.io': 'DOT',
-                    'dashboard.internetcomputer.org': 'ICP',
-                    'explorer.chiliz.com': 'CHZ',
-                    'cardanoscan.io': 'ADA',
-                    'mainnet.theoan.com': 'AION',
-                    'algoexplorer.io': 'ALGO',
-                    'explorer.ambrosus.com': 'AMB',
-                    'viewblock.io/zilliqa': 'ZIL',
-                    'viewblock.io/arweave': 'AR',
-                    'explorer.ark.io': 'ARK',
-                    'atomscan.com': 'ATOM',
-                    'www.mintscan.io': 'CTK',
-                    'explorer.bitcoindiamond.org': 'BCD',
-                    'btgexplorer.com': 'BTG',
-                    'bts.ai': 'BTS',
-                    'explorer.celo.org': 'CELO',
-                    'explorer.nervos.org': 'CKB',
-                    'cerebro.cortexlabs.ai': 'CTXC',
-                    'chainz.cryptoid.info': 'VIA',
-                    'explorer.dcrdata.org': 'DCR',
-                    'digiexplorer.info': 'DGB',
-                    'dock.subscan.io': 'DOCK',
-                    'dogechain.info': 'DOGE',
-                    'explorer.elrond.com': 'EGLD',
-                    'blockscout.com': 'ETC',
-                    'explore-fetchhub.fetch.ai': 'FET',
-                    'filfox.info': 'FIL',
-                    'fio.bloks.io': 'FIO',
-                    'explorer.firo.org': 'FIRO',
-                    'neoscan.io': 'NEO',
-                    'ftmscan.com': 'FTM',
-                    'explorer.gochain.io': 'GO',
-                    'block.gxb.io': 'GXS',
-                    'hash-hash.info': 'HBAR',
-                    'www.hiveblockexplorer.com': 'HIVE',
-                    'explorer.helium.com': 'HNT',
-                    'tracker.icon.foundation': 'ICX',
-                    'www.iostabc.com': 'IOST',
-                    'explorer.iota.org': 'IOTA',
-                    'iotexscan.io': 'IOTX',
-                    'irishub.iobscan.io': 'IRIS',
-                    'kava.mintscan.io': 'KAVA',
-                    'scope.klaytn.com': 'KLAY',
-                    'kmdexplorer.io': 'KMD',
-                    'kusama.subscan.io': 'KSM',
-                    'explorer.lto.network': 'LTO',
-                    'polygonscan.com': 'POLYGON',
-                    'explorer.ont.io': 'ONT',
-                    'minaexplorer.com': 'MINA',
-                    'nanolooker.com': 'NANO',
-                    'explorer.nebulas.io': 'NAS',
-                    'explorer.nbs.plus': 'NBS',
-                    'explorer.nebl.io': 'NEBL',
-                    'nulscan.io': 'NULS',
-                    'nxscan.com': 'NXS',
-                    'explorer.harmony.one': 'ONE',
-                    'explorer.poa.network': 'POA',
-                    'qtum.info': 'QTUM',
-                    'explorer.rsk.co': 'RSK',
-                    'www.oasisscan.com': 'ROSE',
-                    'ravencoin.network': 'RVN',
-                    'sc.tokenview.com': 'SC',
-                    'secretnodes.com': 'SCRT',
-                    'explorer.skycoin.com': 'SKY',
-                    'steemscan.com': 'STEEM',
-                    'explorer.stacks.co': 'STX',
-                    'www.thetascan.io': 'THETA',
-                    'scan.tomochain.com': 'TOMO',
-                    'explore.vechain.org': 'VET',
-                    'explorer.vite.net': 'VITE',
-                    'www.wanscan.org': 'WAN',
-                    'wavesexplorer.com': 'WAVES',
-                    'wax.eosx.io': 'WAXP',
-                    'waltonchain.pro': 'WTC',
-                    'chain.nem.ninja': 'XEM',
-                    'verge-blockchain.info': 'XVG',
-                    'explorer.yoyow.org': 'YOYOW',
-                    'explorer.zcha.in': 'ZEC',
-                    'explorer.zensystem.io': 'ZEN',
-                },
-                'impliedNetworks': {
-                    'ETH': { 'ERC20': 'ETH' },
-                    'TRX': { 'TRC20': 'TRX' },
+                    'SPL': 'SOLANA',
+                    'SOL': 'SOLANA',
+                    'DOGE': 'dogecoin',
+                    'ADA': 'Cardano',
                 },
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
@@ -458,6 +353,78 @@ module.exports = class bitrue extends Exchange {
         return this.options['timeDifference'];
     }
 
+    safeNetwork (networkId) {
+        const uppercaseNetworkId = networkId.toUpperCase ();
+        const networksById = {
+            'Aeternity': 'Aeternity',
+            'AION': 'AION',
+            'Algorand': 'Algorand',
+            'ASK': 'ASK',
+            'ATOM': 'ATOM',
+            'AVAX C-Chain': 'AVAX C-Chain',
+            'bch': 'bch',
+            'BCH': 'BCH',
+            'BEP2': 'BEP2',
+            'BEP20': 'BEP20',
+            'Bitcoin': 'Bitcoin',
+            'BRP20': 'BRP20',
+            'Cardano': 'ADA',
+            'CasinoCoin': 'CasinoCoin',
+            'CasinoCoin XRPL': 'CasinoCoin XRPL',
+            'Contentos': 'Contentos',
+            'Dash': 'Dash',
+            'Decoin': 'Decoin',
+            'DeFiChain': 'DeFiChain',
+            'DGB': 'DGB',
+            'Divi': 'Divi',
+            'dogecoin': 'DOGE',
+            'EOS': 'EOS',
+            'ERC20': 'ERC20',
+            'ETC': 'ETC',
+            'Filecoin': 'Filecoin',
+            'FREETON': 'FREETON',
+            'HBAR': 'HBAR',
+            'Hedera Hashgraph': 'Hedera Hashgraph',
+            'HRC20': 'HRC20',
+            'ICON': 'ICON',
+            'ICP': 'ICP',
+            'Ignis': 'Ignis',
+            'Internet Computer': 'Internet Computer',
+            'IOTA': 'IOTA',
+            'KAVA': 'KAVA',
+            'KSM': 'KSM',
+            'LiteCoin': 'LiteCoin',
+            'Luna': 'Luna',
+            'MATIC': 'MATIC',
+            'Mobile Coin': 'Mobile Coin',
+            'MonaCoin': 'MonaCoin',
+            'Monero': 'Monero',
+            'NEM': 'NEM',
+            'NEP5': 'NEP5',
+            'OMNI': 'OMNI',
+            'PAC': 'PAC',
+            'Polkadot': 'Polkadot',
+            'Ravencoin': 'Ravencoin',
+            'Safex': 'Safex',
+            'SOLANA': 'SOL',
+            'Songbird': 'Songbird',
+            'Stellar Lumens': 'Stellar Lumens',
+            'Symbol': 'Symbol',
+            'Tezos': 'XTZ',
+            'theta': 'theta',
+            'THETA': 'THETA',
+            'TRC20': 'TRC20',
+            'VeChain': 'VeChain',
+            'VECHAIN': 'VECHAIN',
+            'Wanchain': 'Wanchain',
+            'XinFin Network': 'XinFin Network',
+            'XRP': 'XRP',
+            'XRPL': 'XRPL',
+            'ZIL': 'ZIL',
+        };
+        return this.safeString2 (networksById, networkId, uppercaseNetworkId, networkId);
+    }
+
     async fetchCurrencies (params = {}) {
         const response = await this.v1PublicGetExchangeInfo (params);
         //
@@ -511,19 +478,26 @@ module.exports = class bitrue extends Exchange {
             const enableDeposit = this.safeValue (currency, 'enableDeposit');
             const enableWithdraw = this.safeValue (currency, 'enableWithdraw');
             const precision = undefined;
-            // const chains = this.safeValue (currency, 'chains', []);
-            // for (let j = 0; j < networkList.length; j++) {
-            //     const networkItem = networkList[j];
-            //     const network = this.safeString (networkItem, 'network');
-            //     // const name = this.safeString (networkItem, 'name');
-            //     const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
-            //     fees[network] = withdrawFee;
-            //     const isDefault = this.safeValue (networkItem, 'isDefault');
-            //     if (isDefault || fee === undefined) {
-            //         fee = withdrawFee;
-            //     }
-            // }
-            // fees
+            const networkIds = this.safeValue (currency, 'chains', []);
+            const networks = {};
+            for (let j = 0; j < networkIds.length; j++) {
+                const networkId = networkIds[j];
+                const network = this.safeNetwork (networkId);
+                networks[network] = {
+                    'info': networkId,
+                    'id': networkId,
+                    'network': network,
+                    'active': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
             const active = (enableWithdraw && enableDeposit);
             result[code] = {
                 'id': id,
@@ -532,7 +506,7 @@ module.exports = class bitrue extends Exchange {
                 'precision': precision,
                 'info': currency,
                 'active': active,
-                // 'networks': networkList,
+                'networks': networks,
                 'fee': this.safeNumber (currency, 'withdrawFee'),
                 // 'fees': fees,
                 'limits': {
@@ -1621,12 +1595,8 @@ module.exports = class bitrue extends Exchange {
             },
             'withdrawal': {
                 '0': 'pending', // Email Sent
-                '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
-                '2': 'pending', // Awaiting Approval
-                '3': 'failed', // Rejected
-                '4': 'pending', // Processing
-                '5': 'failed', // Failure
-                '6': 'ok', // Completed
+                '5': 'ok', // Failure
+                '6': 'canceled',
             },
         };
         const statuses = this.safeValue (statusesByType, type, {});
@@ -1712,7 +1682,7 @@ module.exports = class bitrue extends Exchange {
         }
         const timestamp = this.safeInteger (transaction, 'createdAt');
         const updated = this.safeInteger (transaction, 'updatedAt');
-        const type = ('payAmount' in transaction) ? 'withdrawal': 'deposit';
+        const type = ('payAmount' in transaction) ? 'withdrawal' : 'deposit';
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
         let network = undefined;
@@ -1759,25 +1729,30 @@ module.exports = class bitrue extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
-            'coin': currency['id'],
-            'address': address,
-            'amount': amount,
-            // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
-            // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
-            // 'network': 'ETH', // 'BTC', 'TRX', etc, optional
-        };
-        if (tag !== undefined) {
-            request['addressTag'] = tag;
-        }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
+        let chainName = this.safeString (params, 'chainName');
+        if (chainName === undefined) {
+            const networks = this.safeValue (currency, 'networks', {});
+            const network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+            const networkEntry = this.safeValue (networks, network, {});
+            chainName = this.safeString (networkEntry, 'id'); // handle ERC20>ETH alias
+            if (chainName === undefined) {
+                throw new ArgumentsRequired (this.id + ' withdraw requires a network parameter or a chainName parameter');
+            }
             params = this.omit (params, 'network');
         }
-        const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
+        const request = {
+            'coin': currency['id'].toUpperCase (),
+            'amount': amount,
+            'addressTo': address,
+            'chainName': chainName, // 'ERC20', 'TRC20', 'SOL'
+            // 'addressMark': '', // mark of address
+            // 'addrType': '', // type of address
+            // 'tag': tag,
+        };
+        if (tag !== undefined) {
+            request['tag'] = tag;
+        }
+        const response = await this.v1PrivatePostWithdrawCommit (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return {
             'info': response,
