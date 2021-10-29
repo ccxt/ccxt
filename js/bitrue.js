@@ -1647,14 +1647,6 @@ module.exports = class bitrue extends Exchange {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
-                // Fiat
-                // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
-                'Processing': 'pending',
-                'Failed': 'failed',
-                'Successful': 'ok',
-                'Refunding': 'canceled',
-                'Refunded': 'canceled',
-                'Refund Failed': 'failed',
             },
             'withdrawal': {
                 '0': 'pending', // Email Sent
@@ -1664,14 +1656,6 @@ module.exports = class bitrue extends Exchange {
                 '4': 'pending', // Processing
                 '5': 'failed', // Failure
                 '6': 'ok', // Completed
-                // Fiat
-                // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
-                'Processing': 'pending',
-                'Failed': 'failed',
-                'Successful': 'ok',
-                'Refunding': 'canceled',
-                'Refunded': 'canceled',
-                'Refund Failed': 'failed',
             },
         };
         const statuses = this.safeValue (statusesByType, type, {});
@@ -1938,8 +1922,6 @@ module.exports = class bitrue extends Exchange {
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
-        } else if (('noPoolId' in config) && !('poolId' in params)) {
-            return config['noPoolId'];
         } else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
             const byLimit = config['byLimit'];
