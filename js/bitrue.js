@@ -48,7 +48,7 @@ module.exports = class bitrue extends Exchange {
                 'fetchOrders': true,
                 'fetchPositions': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchStatus': true,
+                'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -852,19 +852,6 @@ module.exports = class bitrue extends Exchange {
             'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
         }, market);
-    }
-
-    async fetchStatus (params = {}) {
-        const response = await this.sapiGetSystemStatus (params);
-        let status = this.safeString (response, 'status');
-        if (status !== undefined) {
-            status = (status === '0') ? 'ok' : 'maintenance';
-            this.status = this.extend (this.status, {
-                'status': status,
-                'updated': this.milliseconds (),
-            });
-        }
-        return this.status;
     }
 
     async fetchTicker (symbol, params = {}) {
