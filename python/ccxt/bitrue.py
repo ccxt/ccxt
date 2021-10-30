@@ -33,8 +33,7 @@ class bitrue(Exchange):
             'name': 'Bitrue',
             'countries': ['SG'],  # Singapore, Malta
             'rateLimit': 1000,
-            'certified': True,
-            'pro': True,
+            'certified': False,
             'version': 'v1',
             # new metainfo interface
             'has': {
