@@ -1328,6 +1328,8 @@ module.exports = class Exchange {
         if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
             return this.currencies_by_id[currencyId]
         }
+        //
+        //
         return {
             'id': currencyId,
             'code': (currencyId === undefined) ? currencyId : this.commonCurrencyCode (currencyId.toUpperCase ()),
