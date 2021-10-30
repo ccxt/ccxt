@@ -27,7 +27,7 @@ module.exports = class bitrue extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
-                'fetchClosedOrders': 'emulated',
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
@@ -45,7 +45,7 @@ module.exports = class bitrue extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchPositions': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
@@ -226,7 +226,6 @@ module.exports = class bitrue extends Exchange {
             'options': {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'hasAlreadyAuthenticatedSuccessfully': false,
-                'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
@@ -882,27 +881,18 @@ module.exports = class bitrue extends Exchange {
         // private trades
         //
         //     {
-        //         "symbol": "BNBBTC",
-        //         "id": 28457,
-        //         "orderId": 100234,
-        //         "price": "4.00000100",
-        //         "qty": "12.00000000",
-        //         "commission": "10.10000000",
-        //         "commissionAsset": "BNB",
-        //         "time": 1499865549590,
-        //         "isBuyer": true,
-        //         "isMaker": false,
-        //         "isBestMatch": true
-        //     }
-        //
-        // { respType: FULL }
-        //
-        //     {
-        //       "price": "4000.00000000",
-        //       "qty": "1.00000000",
-        //       "commission": "4.00000000",
-        //       "commissionAsset": "USDT",
-        //       "tradeId": "1234",
+        //         "symbol":"USDCUSDT",
+        //         "id":20725156,
+        //         "orderId":2880918576,
+        //         "origClientOrderId":null,
+        //         "price":"0.9996000000000000",
+        //         "qty":"100.0000000000000000",
+        //         "commission":null,
+        //         "commissionAssert":null,
+        //         "time":1635558511000,
+        //         "isBuyer":false,
+        //         "isMaker":false,
+        //         "isBestMatch":true
         //     }
         //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
@@ -1028,58 +1018,40 @@ module.exports = class bitrue extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // spot
+        // createOrder
         //
         //     {
-        //         "symbol": "LTCBTC",
-        //         "orderId": 1,
-        //         "clientOrderId": "myOrder1",
-        //         "price": "0.1",
-        //         "origQty": "1.0",
-        //         "executedQty": "0.0",
-        //         "cummulativeQuoteQty": "0.0",
-        //         "status": "NEW",
-        //         "timeInForce": "GTC",
-        //         "type": "LIMIT",
-        //         "side": "BUY",
-        //         "stopPrice": "0.0",
-        //         "icebergQty": "0.0",
-        //         "time": 1499827319559,
-        //         "updateTime": 1499827319559,
-        //         "isWorking": true
+        //         "symbol":"USDCUSDT",
+        //         "orderId":2878854881,
+        //         "clientOrderId":"",
+        //         "transactTime":1635551031276
         //     }
         //
-        // createOrder with { "newOrderRespType": "FULL" }
+        // fetchOpenOrders
         //
         //     {
-        //       "symbol": "BTCUSDT",
-        //       "orderId": 5403233939,
-        //       "orderListId": -1,
-        //       "clientOrderId": "x-R4BD3S825e669e75b6c14f69a2c43e",
-        //       "transactTime": 1617151923742,
-        //       "price": "0.00000000",
-        //       "origQty": "0.00050000",
-        //       "executedQty": "0.00050000",
-        //       "cummulativeQuoteQty": "29.47081500",
-        //       "status": "FILLED",
-        //       "timeInForce": "GTC",
-        //       "type": "MARKET",
-        //       "side": "BUY",
-        //       "fills": [
-        //         {
-        //           "price": "58941.63000000",
-        //           "qty": "0.00050000",
-        //           "commission": "0.00007050",
-        //           "commissionAsset": "BNB",
-        //           "tradeId": 737466631
-        //         }
-        //       ]
+        //         "symbol":"USDCUSDT",
+        //         "orderId":"2878854881",
+        //         "clientOrderId":"",
+        //         "price":"1.1000000000000000",
+        //         "origQty":"100.0000000000000000",
+        //         "executedQty":"0.0000000000000000",
+        //         "cummulativeQuoteQty":"0.0000000000000000",
+        //         "status":"NEW",
+        //         "timeInForce":"",
+        //         "type":"LIMIT",
+        //         "side":"SELL",
+        //         "stopPrice":"",
+        //         "icebergQty":"",
+        //         "time":1635551031000,
+        //         "updateTime":1635551031000,
+        //         "isWorking":false
         //     }
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const filled = this.safeString (order, 'executedQty', '0');
+        const filled = this.safeString (order, 'executedQty');
         let timestamp = undefined;
         let lastTradeTimestamp = undefined;
         if ('time' in order) {
@@ -1139,42 +1111,9 @@ module.exports = class bitrue extends Exchange {
         }, market);
     }
 
-    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const request = {
-            'reduceOnly': true,
-        };
-        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId' ]);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        if (reduceOnly !== undefined) {
-            if ((orderType !== 'future') && (orderType !== 'delivery')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
-            }
-        }
-        let method = 'privatePostOrder';
-        if (orderType === 'future') {
-            method = 'fapiPrivatePostOrder';
-        } else if (orderType === 'delivery') {
-            method = 'dapiPrivatePostOrder';
-        } else if (orderType === 'margin') {
-            method = 'sapiPostMarginOrder';
-        }
-        // the next 5 lines are added to support for testing orders
-        if (market['spot']) {
-            const test = this.safeValue (params, 'test', false);
-            if (test) {
-                method += 'Test';
-            }
-            params = this.omit (params, 'test');
-        }
         const uppercaseType = type.toUpperCase ();
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
@@ -1186,44 +1125,19 @@ module.exports = class bitrue extends Exchange {
             'type': uppercaseType,
             // 'timeInForce': '',
             'quantity': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
-            // 'newClientOrderId': clientOrderId, // auomatically generated if not sent
+            // 'price': this.priceToPrecision (symbol, price),
+            // 'newClientOrderId': clientOrderId, // automatically generated if not sent
             // 'stopPrice': this.priceToPrecision (symbol, 'stopPrice'),
             // 'icebergQty': this.amountToPrecision (symbol, icebergQty),
         };
-        if (clientOrderId === undefined) {
-            const broker = this.safeValue (this.options, 'broker');
-            if (broker !== undefined) {
-                const brokerId = this.safeString (broker, orderType);
-                if (brokerId !== undefined) {
-                    request['newClientOrderId'] = brokerId + this.uuid22 ();
-                }
-            }
-        } else {
+        const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, [ 'newClientOrderId', 'clientOrderId' ]);
             request['newClientOrderId'] = clientOrderId;
         }
-        request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        // additional required fields depending on the order type
-        let priceIsRequired = false;
-        let quantityIsRequired = false;
-        //
-        // spot/margin
-        //
-        //     LIMIT                quantity, price
-        //     MARKET               quantity
-        //
-        if (uppercaseType === 'MARKET') {
-            quantityIsRequired = true;
-        } else if (uppercaseType === 'LIMIT') {
-            priceIsRequired = true;
-            quantityIsRequired = true;
-        }
-        if (quantityIsRequired) {
-            request['quantity'] = this.amountToPrecision (symbol, amount);
-        }
-        if (priceIsRequired) {
+        if (uppercaseType === 'LIMIT') {
             if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+                throw new InvalidOrder (this.id + ' createOrder() requires a price argument');
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -1232,7 +1146,15 @@ module.exports = class bitrue extends Exchange {
             params = this.omit (params, 'stopPrice');
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.v1PrivatePostOrder (this.extend (request, params));
+        //
+        //     {
+        //         "symbol":"USDCUSDT",
+        //         "orderId":2878854881,
+        //         "clientOrderId":"",
+        //         "transactTime":1635551031276
+        //     }
+        //
         return this.parseOrder (response, market);
     }
 
@@ -1242,16 +1164,6 @@ module.exports = class bitrue extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        let method = 'privateGetOrder';
-        if (type === 'future') {
-            method = 'fapiPrivateGetOrder';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateGetOrder';
-        } else if (type === 'margin') {
-            method = 'sapiGetMarginOrder';
-        }
         const request = {
             'symbol': market['id'],
         };
@@ -1262,11 +1174,11 @@ module.exports = class bitrue extends Exchange {
             request['orderId'] = id;
         }
         const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v1PrivateGetOrder (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
@@ -1312,25 +1224,38 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        const request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
-            const symbols = this.symbols;
-            const numSymbols = symbols.length;
-            const fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
-            throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
         }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
         const response = await this.v1PrivateGetOpenOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol":"USDCUSDT",
+        //             "orderId":"2878854881",
+        //             "clientOrderId":"",
+        //             "price":"1.1000000000000000",
+        //             "origQty":"100.0000000000000000",
+        //             "executedQty":"0.0000000000000000",
+        //             "cummulativeQuoteQty":"0.0000000000000000",
+        //             "status":"NEW",
+        //             "timeInForce":"",
+        //             "type":"LIMIT",
+        //             "side":"SELL",
+        //             "stopPrice":"",
+        //             "icebergQty":"",
+        //             "time":1635551031000,
+        //             "updateTime":1635551031000,
+        //             "isWorking":false
+        //         }
+        //     ]
+        //
         return this.parseOrders (response, market, since, limit);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1339,31 +1264,29 @@ module.exports = class bitrue extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        // https://github.com/ccxt/ccxt/issues/6507
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         const request = {
             'symbol': market['id'],
             // 'orderId': id,
             // 'origClientOrderId': id,
+            // 'newClientOrderId': id,
         };
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
         } else {
             request['origClientOrderId'] = origClientOrderId;
         }
-        let method = 'privateDeleteOrder';
-        if (type === 'future') {
-            method = 'fapiPrivateDeleteOrder';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateDeleteOrder';
-        } else if (type === 'margin') {
-            method = 'sapiDeleteMarginOrder';
-        }
         const query = this.omit (params, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
-        const response = await this[method] (this.extend (request, query));
-        return this.parseOrder (response);
+        const response = await this.v1PrivateDeleteOrder (this.extend (request, query));
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "origClientOrderId": "myOrder1",
+        //         "orderId": 1,
+        //         "clientOrderId": "cancelMyOrder1"
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1390,17 +1313,18 @@ module.exports = class bitrue extends Exchange {
         //
         //     [
         //         {
-        //             "symbol": "BNBBTC",
-        //             "id": 28457,
-        //             "orderId": 100234,
-        //             "price": "4.00000100",
-        //             "qty": "12.00000000",
-        //             "commission": "10.10000000",
-        //             "commissionAsset": "BNB",
-        //             "time": 1499865549590,
-        //             "isBuyer": true,
-        //             "isMaker": false,
-        //             "isBestMatch": true,
+        //             "symbol":"USDCUSDT",
+        //             "id":20725156,
+        //             "orderId":2880918576,
+        //             "origClientOrderId":null,
+        //             "price":"0.9996000000000000",
+        //             "qty":"100.0000000000000000",
+        //             "commission":null,
+        //             "commissionAssert":null,
+        //             "time":1635558511000,
+        //             "isBuyer":false,
+        //             "isMaker":false,
+        //             "isBestMatch":true
         //         }
         //     ]
         //
