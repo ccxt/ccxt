@@ -301,10 +301,9 @@ async function testExchange (exchange) {
         await tests['fetchLedger'] (exchange, code)
     }
 
-    // const code = exchange.markets[symbol]['quote']
-    // await tests['fetchTransactions'] (exchange, code)
-    // await tests['fetchDeposits']     (exchange, code)
-    // await tests['fetchWithdrawals']  (exchange, code)
+    await tests['fetchTransactions'] (exchange, code)
+    await tests['fetchDeposits']     (exchange, code)
+    await tests['fetchWithdrawals']  (exchange, code)
 
     if (exchange.extendedTest) {
 
