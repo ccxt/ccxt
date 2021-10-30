@@ -16,8 +16,7 @@ module.exports = class bitrue extends Exchange {
             'name': 'Bitrue',
             'countries': [ 'SG' ], // Singapore, Malta
             'rateLimit': 1000,
-            'certified': true,
-            'pro': true,
+            'certified': false,
             'version': 'v1',
             // new metainfo interface
             'has': {
