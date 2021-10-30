@@ -50,7 +50,6 @@ class coinbasepro(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': None,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': True,
-                'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -970,107 +969,6 @@ class coinbasepro(Exchange):
             'info': response,
             'id': response['id'],
         }
-
-    def parse_ledger_entry_type(self, type):
-        types = {
-            'transfer': 'transfer',  # Funds moved between portfolios
-            'match': 'trade',       # Funds moved as a result of a trade
-            'fee': 'fee',           # Fee as a result of a trade
-            'rebate': 'rebate',     # Fee rebate
-            'conversion': 'trade',  # Funds converted between fiat currency and a stablecoin
-        }
-        return self.safe_string(types, type, type)
-
-    def parse_ledger_entry(self, item, currency=None):
-        #  {
-        #      id: '12087495079',
-        #      amount: '-0.0100000000000000',
-        #      balance: '0.0645419900000000',
-        #      created_at: '2021-10-28T17:14:32.593168Z',
-        #      type: 'transfer',
-        #      details: {
-        #          from: '2f74edf7-1440-4586-86dc-ae58c5693691',
-        #          profile_transfer_id: '3ef093ad-2482-40d1-8ede-2f89cff5099e',
-        #          to: 'dda99503-4980-4b60-9549-0b770ee51336'
-        #      }
-        #  },
-        #  {
-        #     id: '11740725774',
-        #     amount: '-1.7565669701255000',
-        #     balance: '0.0016490047745000',
-        #     created_at: '2021-10-22T03:47:34.764122Z',
-        #     type: 'fee',
-        #     details: {
-        #         order_id: 'ad06abf4-95ab-432a-a1d8-059ef572e296',
-        #         product_id: 'ETH-DAI',
-        #         trade_id: '1740617'
-        #     }
-        #  }
-        id = self.safe_string(item, 'id')
-        amount = self.safe_number(item, 'amount')
-        direction = None
-        if amount < 0:
-            direction = 'out'
-            amount = abs(amount)
-        else:
-            direction = 'in'
-        after = self.safe_number(item, 'balance')
-        before = None
-        if after is not None and amount is not None:
-            difference = amount if (direction == 'out') else -amount
-            before = self.sum(after, difference)
-        timestamp = self.parse8601(self.safe_value(item, 'created_at'))
-        type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
-        code = self.safe_currency_code(currency.code)
-        details = self.safe_value(item, 'details', {})
-        account = None
-        referenceAccount = None
-        referenceId = None
-        if type == 'transfer':
-            account = self.safe_string(details, 'from')
-            referenceAccount = self.safe_string(details, 'to')
-            referenceId = self.safe_string(details, 'profile_transfer_id')
-        else:
-            referenceId = self.safe_string(details, 'order_id')
-        status = 'ok'
-        return {
-            'id': id,
-            'currency': code,
-            'account': account,
-            'referenceAccount': referenceAccount,
-            'referenceId': referenceId,
-            'status': status,
-            'amount': amount,
-            'before': before,
-            'after': after,
-            'fee': None,
-            'direction': direction,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'type': type,
-            'info': item,
-        }
-
-    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
-        # https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchLedger() requires a code param')
-        await self.load_markets()
-        await self.load_accounts()
-        currency = self.currency(code)
-        accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
-        account = self.safe_value(accountsByCurrencyCode, code)
-        if account is None:
-            raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
-        id = account['id']
-        request = {}
-        request['id'] = id
-        if limit is not None:
-            request['limit'] = limit
-        response = await self.privateGetAccountsIdLedger(self.extend(request, params))
-        for i in range(0, len(response)):
-            response[i]['currency'] = code
-        return self.parse_ledger(response, currency, since, limit)
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()

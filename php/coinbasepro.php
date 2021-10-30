@@ -34,7 +34,6 @@ class coinbasepro extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => null, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits' => true,
-                'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -1015,117 +1014,6 @@ class coinbasepro extends Exchange {
             'info' => $response,
             'id' => $response['id'],
         );
-    }
-
-    public function parse_ledger_entry_type($type) {
-        $types = array(
-            'transfer' => 'transfer', // Funds moved between portfolios
-            'match' => 'trade',       // Funds moved as a result of a trade
-            'fee' => 'fee',           // Fee as a result of a trade
-            'rebate' => 'rebate',     // Fee rebate
-            'conversion' => 'trade',  // Funds converted between fiat currency and a stablecoin
-        );
-        return $this->safe_string($types, $type, $type);
-    }
-
-    public function parse_ledger_entry($item, $currency = null) {
-        //  {
-        //      $id => '12087495079',
-        //      $amount => '-0.0100000000000000',
-        //      balance => '0.0645419900000000',
-        //      created_at => '2021-10-28T17:14:32.593168Z',
-        //      $type => 'transfer',
-        //      $details => array(
-        //          from => '2f74edf7-1440-4586-86dc-ae58c5693691',
-        //          profile_transfer_id => '3ef093ad-2482-40d1-8ede-2f89cff5099e',
-        //          to => 'dda99503-4980-4b60-9549-0b770ee51336'
-        //      }
-        //  ),
-        //  {
-        //     $id => '11740725774',
-        //     $amount => '-1.7565669701255000',
-        //     balance => '0.0016490047745000',
-        //     created_at => '2021-10-22T03:47:34.764122Z',
-        //     $type => 'fee',
-        //     $details => {
-        //         order_id => 'ad06abf4-95ab-432a-a1d8-059ef572e296',
-        //         product_id => 'ETH-DAI',
-        //         trade_id => '1740617'
-        //     }
-        //  }
-        $id = $this->safe_string($item, 'id');
-        $amount = $this->safe_number($item, 'amount');
-        $direction = null;
-        if ($amount < 0) {
-            $direction = 'out';
-            $amount = abs($amount);
-        } else {
-            $direction = 'in';
-        }
-        $after = $this->safe_number($item, 'balance');
-        $before = null;
-        if ($after !== null && $amount !== null) {
-            $difference = ($direction === 'out') ? $amount : -$amount;
-            $before = $this->sum($after, $difference);
-        }
-        $timestamp = $this->parse8601($this->safe_value($item, 'created_at'));
-        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
-        $code = $this->safe_currency_code($currency->code);
-        $details = $this->safe_value($item, 'details', array());
-        $account = null;
-        $referenceAccount = null;
-        $referenceId = null;
-        if ($type === 'transfer') {
-            $account = $this->safe_string($details, 'from');
-            $referenceAccount = $this->safe_string($details, 'to');
-            $referenceId = $this->safe_string($details, 'profile_transfer_id');
-        } else {
-            $referenceId = $this->safe_string($details, 'order_id');
-        }
-        $status = 'ok';
-        return array(
-            'id' => $id,
-            'currency' => $code,
-            'account' => $account,
-            'referenceAccount' => $referenceAccount,
-            'referenceId' => $referenceId,
-            'status' => $status,
-            'amount' => $amount,
-            'before' => $before,
-            'after' => $after,
-            'fee' => null,
-            'direction' => $direction,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'type' => $type,
-            'info' => $item,
-        );
-    }
-
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
-        // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code param');
-        }
-        $this->load_markets();
-        $this->load_accounts();
-        $currency = $this->currency($code);
-        $accountsByCurrencyCode = $this->index_by($this->accounts, 'currency');
-        $account = $this->safe_value($accountsByCurrencyCode, $code);
-        if ($account === null) {
-            throw new ExchangeError($this->id . ' fetchTransactions() could not find $account $id for ' . $code);
-        }
-        $id = $account['id'];
-        $request = array();
-        $request['id'] = $id;
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = $this->privateGetAccountsIdLedger (array_merge($request, $params));
-        for ($i = 0; $i < count($response); $i++) {
-            $response[$i]['currency'] = $code;
-        }
-        return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
