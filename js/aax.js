@@ -611,6 +611,23 @@ module.exports = class aax extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
+    safeTrade (trade, market = undefined) {
+        const amount = this.safeValue (trade, 'amount');
+        const price = this.safeValue (trade, 'price');
+        let cost = this.safeValue (trade, 'cost');
+        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
+            if (price instanceof String) {
+                cost = Precise.stringMul (price, amount);
+                cost = this.parseNumber (cost);
+            } else {
+                cost = price * amount;
+            }
+        }
+        return this.extend (trade, {
+            'cost': cost,
+        });
+    }
+
     parseTrade (trade, market = undefined) {
         //
         // public fetchTrades
