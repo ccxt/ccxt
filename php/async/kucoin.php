@@ -115,7 +115,8 @@ class kucoin extends Exchange {
                         'market/orderbook/level3',
                         'accounts',
                         'accounts/{accountId}',
-                        'accounts/{accountId}/ledgers',
+                        // 'accounts/{accountId}/ledgers', Deprecated endpoint
+                        'accounts/ledgers',
                         'accounts/{accountId}/holds',
                         'accounts/transferable',
                         'sub/user',
@@ -2073,143 +2074,190 @@ class kucoin extends Exchange {
         }
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code param');
-        }
-        yield $this->load_markets();
-        yield $this->load_accounts();
-        $currency = $this->currency($code);
-        $accountId = $this->safe_string($params, 'accountId');
-        if ($accountId === null) {
-            for ($i = 0; $i < count($this->accounts); $i++) {
-                $account = $this->accounts[$i];
-                if ($account['currency'] === $code && $account['type'] === 'main') {
-                    $accountId = $account['id'];
-                    break;
-                }
-            }
-        }
-        if ($accountId === null) {
-            throw new ExchangeError($this->id . ' ' . $code . 'main $account is not loaded in loadAccounts');
-        }
-        $request = array(
-            'accountId' => $accountId,
+    public function parse_ledger_entry_type($type) {
+        $types = array(
+            'Assets Transferred in After Upgrading' => 'transfer', // Assets Transferred in After V1 to V2 Upgrading
+            'Deposit' => 'transaction', // Deposit
+            'Withdrawal' => 'transaction', // Withdrawal
+            'Transfer' => 'transfer', // Transfer
+            'Trade_Exchange' => 'trade', // Trade
+            // 'Vote for Coin' => 'Vote for Coin', // Vote for Coin
+            'KuCoin Bonus' => 'bonus', // KuCoin Bonus
+            'Referral Bonus' => 'referral', // Referral Bonus
+            'Rewards' => 'bonus', // Activities Rewards
+            // 'Distribution' => 'Distribution', // Distribution, such as get GAS by holding NEO
+            'Airdrop/Fork' => 'airdrop', // Airdrop/Fork
+            'Other rewards' => 'bonus', // Other rewards, except Vote, Airdrop, Fork
+            'Fee Rebate' => 'rebate', // Fee Rebate
+            'Buy Crypto' => 'trade', // Use credit card to buy crypto
+            'Sell Crypto' => 'sell', // Use credit card to sell crypto
+            'Public Offering Purchase' => 'trade', // Public Offering Purchase for Spotlight
+            // 'Send red envelope' => 'Send red envelope', // Send red envelope
+            // 'Open red envelope' => 'Open red envelope', // Open red envelope
+            // 'Staking' => 'Staking', // Staking
+            // 'LockDrop Vesting' => 'LockDrop Vesting', // LockDrop Vesting
+            // 'Staking Profits' => 'Staking Profits', // Staking Profits
+            // 'Redemption' => 'Redemption', // Redemption
+            'Refunded Fees' => 'fee', // Refunded Fees
+            'KCS Pay Fees' => 'fee', // KCS Pay Fees
+            'Margin Trade' => 'trade', // Margin Trade
+            'Loans' => 'Loans', // Loans
+            // 'Borrowings' => 'Borrowings', // Borrowings
+            // 'Debt Repayment' => 'Debt Repayment', // Debt Repayment
+            // 'Loans Repaid' => 'Loans Repaid', // Loans Repaid
+            // 'Lendings' => 'Lendings', // Lendings
+            // 'Pool transactions' => 'Pool transactions', // Pool-X transactions
+            'Instant Exchange' => 'trade', // Instant Exchange
+            'Sub-account transfer' => 'transfer', // Sub-account transfer
+            'Liquidation Fees' => 'fee', // Liquidation Fees
+            // 'Soft Staking Profits' => 'Soft Staking Profits', // Soft Staking Profits
+            // 'Voting Earnings' => 'Voting Earnings', // Voting Earnings on Pool-X
+            // 'Redemption of Voting' => 'Redemption of Voting', // Redemption of Voting on Pool-X
+            // 'Voting' => 'Voting', // Voting on Pool-X
+            // 'Convert to KCS' => 'Convert to KCS', // Convert to KCS
         );
-        if ($since !== null) {
-            $request['startAt'] = (int) floor($since / 1000);
-        }
-        $response = yield $this->privateGetAccountsAccountIdLedgers (array_merge($request, $params));
-        //
-        //     {
-        //         $code => '200000',
-        //         data => {
-        //             totalNum => 1,
-        //             totalPage => 1,
-        //             pageSize => 50,
-        //             currentPage => 1,
-        //             $items => array(
-        //                 {
-        //                     createdAt => 1561897880000,
-        //                     amount => '0.0111123',
-        //                     bizType => 'Exchange',
-        //                     balance => '0.13224427',
-        //                     fee => '0.0000111',
-        //                     context => 'array("symbol":"KCS-ETH","orderId":"5d18ab98c788c6426188296f","tradeId":"5d18ab9818996813f539a806")',
-        //                     $currency => 'ETH',
-        //                     direction => 'out'
-        //                 }
-        //             )
-        //         }
-        //     }
-        //
-        $items = $response['data']['items'];
-        return $this->parse_ledger($items, $currency, $since, $limit);
+        return $this->safe_string($types, $type, $type);
     }
 
     public function parse_ledger_entry($item, $currency = null) {
         //
-        // trade
-        //
         //     {
-        //         createdAt => 1561897880000,
-        //         $amount => '0.0111123',
-        //         bizType => 'Exchange',
-        //         balance => '0.13224427',
-        //         $fee => '0.0000111',
-        //         $context => 'array("symbol":"KCS-ETH","orderId":"5d18ab98c788c6426188296f","tradeId":"5d18ab9818996813f539a806")',
-        //         $currency => 'ETH',
-        //         $direction => 'out'
+        //         "$id" => "611a1e7c6a053300067a88d9", //unique key for each ledger entry
+        //         "$currency" => "USDT", //Currency
+        //         "$amount" => "10.00059547", //The total $amount of assets (fees included) involved in assets changes such as transaction, withdrawal and bonus distribution.
+        //         "$fee" => "0", //Deposit or withdrawal $fee
+        //         "balance" => "0", //Total assets of a $currency remaining funds after transaction
+        //         "accountType" => "MAIN", //Account Type
+        //         "$bizType" => "Loans Repaid", //business $type
+        //         "$direction" => "in", //side, in or out
+        //         "createdAt" => 1629101692950, //Creation time
+        //         "$context" => "array(\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\")" //Business core parameters
         //     }
         //
-        // withdrawal
-        //
-        //     {
-        //         createdAt => 1561900264000,
-        //         $amount => '0.14333217',
-        //         bizType => 'Withdrawal',
-        //         balance => '0',
-        //         $fee => '0.01',
-        //         $context => 'array("orderId":"5d18b4e687111437cf1c48b9","txId":"0x1d136ee065c5c4c5caa293faa90d43e213c953d7cdd575c89ed0b54eb87228b8")',
-        //         $currency => 'ETH',
-        //         $direction => 'out'
-        //     }
-        //
+        $id = $this->safe_string($item, 'id');
         $currencyId = $this->safe_string($item, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $fee = array(
-            'cost' => $this->safe_number($item, 'fee'),
-            'code' => $code,
-        );
         $amount = $this->safe_number($item, 'amount');
-        $after = $this->safe_number($item, 'balance');
+        $balanceAfter = null;
+        // $balanceAfter = $this->safe_number($item, 'balance'); only returns zero string
+        $bizType = $this->safe_string($item, 'bizType');
+        $type = $this->parse_ledger_entry_type($bizType);
         $direction = $this->safe_string($item, 'direction');
-        $before = null;
-        if ($after !== null && $amount !== null) {
-            $difference = ($direction === 'out') ? $amount : -$amount;
-            $before = $this->sum($after, $difference);
-        }
         $timestamp = $this->safe_integer($item, 'createdAt');
-        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'bizType'));
-        $contextString = $this->safe_string($item, 'context');
-        $id = null;
+        $datetime = $this->iso8601($timestamp);
+        $account = $this->safe_string($item, 'accountType'); // MAIN, TRADE, MARGIN, or CONTRACT
+        $context = $this->safe_string($item, 'context'); // contains other information about the ledger entry
+        //
+        // withdrawal transaction
+        //
+        //     "array(\"$orderId\":\"617bb2d09e7b3b000196dac8\",\"txId\":\"0x79bb9855f86b351a45cab4dc69d78ca09586a94c45dde49475722b98f401b054\")"
+        //
+        // deposit to MAIN, trade via MAIN
+        //
+        //     "array(\"$orderId\":\"617ab9949e7b3b0001948081\",\"txId\":\"0x7a06b16bbd6b03dbc3d96df5683b15229fc35e7184fd7179a5f3a310bd67d1fa@default@0\")"
+        //
+        // sell trade
+        //
+        //     "array(\"symbol\":\"ETH-USDT\",\"$orderId\":\"617adcd1eb3fa20001dd29a1\",\"$tradeId\":\"617adcd12e113d2b91222ff9\")"
+        //
         $referenceId = null;
-        if ($this->is_json_encoded_object($contextString)) {
-            $context = $this->parse_json($contextString);
-            $id = $this->safe_string($context, 'orderId');
-            if ($type === 'trade') {
-                $referenceId = $this->safe_string($context, 'tradeId');
-            } else if ($type === 'transaction') {
-                $referenceId = $this->safe_string($context, 'txId');
+        if ($context !== null) {
+            $parsed = json_decode($context, $as_associative_array = true);
+            $orderId = $this->safe_string($parsed, 'orderId');
+            $tradeId = $this->safe_string($parsed, 'tradeId');
+            // transactions only have an $orderId but for trades we wish to use $tradeId
+            if ($tradeId !== null) {
+                $referenceId = $tradeId;
+            } else {
+                $referenceId = $orderId;
             }
+        }
+        $fee = null;
+        $feeCost = $this->safe_number($item, 'fee');
+        $feeCurrency = null;
+        if ($feeCost !== 0) {
+            $feeCurrency = $code;
+            $fee = array( 'cost' => $feeCost, 'currency' => $feeCurrency );
         }
         return array(
             'id' => $id,
-            'currency' => $code,
-            'account' => null,
-            'referenceAccount' => null,
-            'referenceId' => $referenceId,
-            'status' => null,
-            'amount' => $amount,
-            'before' => $before,
-            'after' => $after,
-            'fee' => $fee,
             'direction' => $direction,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'account' => $account,
+            'referenceId' => $referenceId,
+            'referenceAccount' => $account,
             'type' => $type,
+            'currency' => $code,
+            'amount' => $amount,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'before' => null,
+            'after' => $balanceAfter, // null
+            'status' => null,
+            'fee' => $fee,
             'info' => $item,
         );
     }
 
-    public function parse_ledger_entry_type($type) {
-        $types = array(
-            'Exchange' => 'trade',
-            'Withdrawal' => 'transaction',
-            'Deposit' => 'transaction',
-            'Transfer' => 'transfer',
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        yield $this->load_accounts();
+        $request = array(
+            // 'currency' => $currency['id'], // can choose up to 10, if not provided returns for all currencies by default
+            // 'direction' => 'in', // 'out'
+            // 'bizType' => 'DEPOSIT', // DEPOSIT, WITHDRAW, TRANSFER, SUB_TRANSFER,TRADE_EXCHANGE, MARGIN_EXCHANGE, KUCOIN_BONUS (optional)
+            // 'startAt' => $since,
+            // 'endAt' => exchange.milliseconds (),
         );
-        return $this->safe_string($types, $type, $type);
+        if ($since !== null) {
+            $request['startAt'] = $since;
+        }
+        // atm only single $currency retrieval is supported
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = yield $this->privateGetAccountsLedgers (array_merge($request, $params));
+        //
+        //     {
+        //         "$code":"200000",
+        //         "$data":{
+        //             "currentPage":1,
+        //             "pageSize":50,
+        //             "totalNum":1,
+        //             "totalPage":1,
+        //             "$items":array(
+        //                 {
+        //                     "id":"617cc528729f5f0001c03ceb",
+        //                     "$currency":"GAS",
+        //                     "amount":"0.00000339",
+        //                     "fee":"0",
+        //                     "balance":"0",
+        //                     "accountType":"MAIN",
+        //                     "bizType":"Distribution",
+        //                     "direction":"in",
+        //                     "createdAt":1635566888183,
+        //                     "context":"array(\"orderId\":\"617cc47a1c47ed0001ce3606\",\"description\":\"Holding NEO,distribute GAS(2021/10/30)\")"
+        //                 }
+        //                 array(
+        //                     "id" => "611a1e7c6a053300067a88d9",//unique key
+        //                     "$currency" => "USDT", //Currency
+        //                     "amount" => "10.00059547", //Change amount of the funds
+        //                     "fee" => "0", //Deposit or withdrawal fee
+        //                     "balance" => "0", //Total assets of a $currency
+        //                     "accountType" => "MAIN", //Account Type
+        //                     "bizType" => "Loans Repaid", //business type
+        //                     "direction" => "in", //side, in or out
+        //                     "createdAt" => 1629101692950, //Creation time
+        //                     "context" => "array(\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\")"
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $items = $this->safe_value($data, 'items');
+        return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
