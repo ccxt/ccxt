@@ -1110,13 +1110,22 @@ module.exports = class coinbasepro extends Exchange {
         const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
         const account = this.safeValue (accountsByCurrencyCode, code);
         if (account === undefined) {
-            throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
+            throw new ExchangeError (this.id + ' fetchLedger() could not find account id for ' + code);
         }
-        const id = account['id'];
-        const request = {};
-        request['id'] = id;
+        const request = {
+            'id': account['id'],
+            // 'start_date': this.iso8601 (since),
+            // 'end_date': this.iso8601 (this.milliseconds ()),
+            // 'before': 'cursor', // sets start cursor to before date
+            // 'after': 'cursor', // sets end cursor to after date
+            // 'limit': limit, // default 100
+            // 'profile_id': 'string'
+        };
+        if (since !== undefined) {
+            request['start_date'] = this.iso8601 (since);
+        }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = limit; // default 100
         }
         const response = await this.privateGetAccountsIdLedger (this.extend (request, params));
         for (let i = 0; i < response.length; i++) {
