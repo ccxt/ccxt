@@ -848,24 +848,6 @@ module.exports = class bitrue extends Exchange {
         return result;
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        const market = symbol ? this.market (symbol) : undefined;
-        if (symbol !== undefined) {
-            request['symbol'] = market['id'];
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        const response = await this.privateGetMyTrades (this.extend (request, params));
-        const data = Array.isArray (response) ? response : [];
-        return this.parseTrades (data, market, since, limit);
-    }
-
     parseTrade (trade, market = undefined) {
         //
         // aggregate trades
