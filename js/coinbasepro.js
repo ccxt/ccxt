@@ -31,6 +31,7 @@ module.exports = class coinbasepro extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': undefined, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': true,
+                'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -1011,6 +1012,125 @@ module.exports = class coinbasepro extends Exchange {
             'info': response,
             'id': response['id'],
         };
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'transfer': 'transfer', // Funds moved between portfolios
+            'match': 'trade',       // Funds moved as a result of a trade
+            'fee': 'fee',           // Fee as a result of a trade
+            'rebate': 'rebate',     // Fee rebate
+            'conversion': 'trade',  // Funds converted between fiat currency and a stablecoin
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //  {
+        //      id: '12087495079',
+        //      amount: '-0.0100000000000000',
+        //      balance: '0.0645419900000000',
+        //      created_at: '2021-10-28T17:14:32.593168Z',
+        //      type: 'transfer',
+        //      details: {
+        //          from: '2f74edf7-1440-4586-86dc-ae58c5693691',
+        //          profile_transfer_id: '3ef093ad-2482-40d1-8ede-2f89cff5099e',
+        //          to: 'dda99503-4980-4b60-9549-0b770ee51336'
+        //      }
+        //  },
+        //  {
+        //     id: '11740725774',
+        //     amount: '-1.7565669701255000',
+        //     balance: '0.0016490047745000',
+        //     created_at: '2021-10-22T03:47:34.764122Z',
+        //     type: 'fee',
+        //     details: {
+        //         order_id: 'ad06abf4-95ab-432a-a1d8-059ef572e296',
+        //         product_id: 'ETH-DAI',
+        //         trade_id: '1740617'
+        //     }
+        //  }
+        const id = this.safeString (item, 'id');
+        let amountString = this.safeString (item, 'amount');
+        let direction = undefined;
+        const afterString = this.safeNumber (item, 'balance');
+        const beforeString = Precise.stringSub (afterString, amountString);
+        if (Precise.lt (amountString, '0')) {
+            direction = 'out';
+            amountString = Precise.stringAbs (amountString);
+        } else {
+            direction = 'in';
+        }
+        const amount = this.parseNumber (amountString);
+        const after = this.parseNumber (afterString);
+        const before = this.parseNumber (beforeString);
+        const timestamp = this.parse8601 (this.safeValue (item, 'created_at'));
+        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
+        const code = this.safeCurrencyCode (undefined, currency);
+        const details = this.safeValue (item, 'details', {});
+        let account = undefined;
+        let referenceAccount = undefined;
+        let referenceId = undefined;
+        if (type === 'transfer') {
+            account = this.safeString (details, 'from');
+            referenceAccount = this.safeString (details, 'to');
+            referenceId = this.safeString (details, 'profile_transfer_id');
+        } else {
+            referenceId = this.safeString (details, 'order_id');
+        }
+        const status = 'ok';
+        return {
+            'id': id,
+            'currency': code,
+            'account': account,
+            'referenceAccount': referenceAccount,
+            'referenceId': referenceId,
+            'status': status,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'fee': undefined,
+            'direction': direction,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'type': type,
+            'info': item,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code param');
+        }
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const currency = this.currency (code);
+        const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
+        const account = this.safeValue (accountsByCurrencyCode, code);
+        if (account === undefined) {
+            throw new ExchangeError (this.id + ' fetchLedger() could not find account id for ' + code);
+        }
+        const request = {
+            'id': account['id'],
+            // 'start_date': this.iso8601 (since),
+            // 'end_date': this.iso8601 (this.milliseconds ()),
+            // 'before': 'cursor', // sets start cursor to before date
+            // 'after': 'cursor', // sets end cursor to after date
+            // 'limit': limit, // default 100
+            // 'profile_id': 'string'
+        };
+        if (since !== undefined) {
+            request['start_date'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100
+        }
+        const response = await this.privateGetAccountsIdLedger (this.extend (request, params));
+        for (let i = 0; i < response.length; i++) {
+            response[i]['currency'] = code;
+        }
+        return this.parseLedger (response, currency, since, limit);
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
