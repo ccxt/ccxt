@@ -1051,23 +1051,22 @@ module.exports = class coinbasepro extends Exchange {
         //     }
         //  }
         const id = this.safeString (item, 'id');
-        let amount = this.safeNumber (item, 'amount');
+        let amountString = this.safeString (item, 'amount');
         let direction = undefined;
-        if (amount < 0) {
+        const afterString = this.safeNumber (item, 'balance');
+        const beforeString = Precise.stringSub (afterString, amountString);
+        if (Precise.lt (amountString, '0')) {
             direction = 'out';
-            amount = Math.abs (amount);
+            amountString = Precise.stringAbs (amountString);
         } else {
             direction = 'in';
         }
-        const after = this.safeNumber (item, 'balance');
-        let before = undefined;
-        if (after !== undefined && amount !== undefined) {
-            const difference = (direction === 'out') ? amount : -amount;
-            before = this.sum (after, difference);
-        }
+        const amount = this.parseNumber (amountString);
+        const after = this.parseNumber (afterString);
+        const before = this.parseNumber (beforeString);
         const timestamp = this.parse8601 (this.safeValue (item, 'created_at'));
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
-        const code = this.safeCurrencyCode (currency.code);
+        const code = this.safeCurrencyCode (undefined, currency);
         const details = this.safeValue (item, 'details', {});
         let account = undefined;
         let referenceAccount = undefined;
