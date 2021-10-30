@@ -1261,37 +1261,37 @@ module.exports = class okex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const method = 'publicGetPublicFundingRateHistory';
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicGetPublicFundingRateHistory (this.extend (request, params));
         //
         //     {
-        //      "code":"0",
-        //      "msg":"",
-        //      "data":[
-        //          {
-        //              "instType":"SWAP",
-        //              "instId":"BTC-USDT-SWAP",
-        //              "fundingRate":"0.018",
-        //              "realizedRate":"0.017",
-        //              "fundingTime":"1597026383085"
-        //          },
-        //          {
-        //              "instType":"SWAP",
-        //              "instId":"BTC-USDT-SWAP",
-        //              "fundingRate":"0.018",
-        //              "realizedRate":"0.017",
-        //              "fundingTime":"1597026383085"
-        //          }
-        //      ]
-        //  }
+        //         "code":"0",
+        //         "msg":"",
+        //         "data":[
+        //             {
+        //                 "instType":"SWAP",
+        //                 "instId":"BTC-USDT-SWAP",
+        //                 "fundingRate":"0.018",
+        //                 "realizedRate":"0.017",
+        //                 "fundingTime":"1597026383085"
+        //             },
+        //             {
+        //                 "instType":"SWAP",
+        //                 "instId":"BTC-USDT-SWAP",
+        //                 "fundingRate":"0.018",
+        //                 "realizedRate":"0.017",
+        //                 "fundingTime":"1597026383085"
+        //             }
+        //         ]
+        //     }
         //
         const rates = [];
         const data = this.safeValue (response, 'data');
         for (let i = 0; i < data.length; i++) {
+            const rate = data[i];
             rates.push ({
-                'symbol': this.safeString (data[i], 'instId'),
-                'fundingRate': this.safeNumber (data[i], 'realizedRate'),
-                'timestamp': this.safeNumber (data[i], 'fundingTime'),
+                'symbol': this.safeString (rate, 'instId'),
+                'fundingRate': this.safeNumber (rate, 'realizedRate'),
+                'timestamp': this.safeNumber (rate, 'fundingTime'),
             });
         }
         return rates;
