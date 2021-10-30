@@ -2669,7 +2669,7 @@ class binance extends Exchange {
         }
         $query = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId' ));
         $response = yield $this->$method (array_merge($request, $query));
-        return $this->parse_order($response);
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {

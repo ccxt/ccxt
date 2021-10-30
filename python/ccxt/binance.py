@@ -2562,7 +2562,7 @@ class binance(Exchange):
             method = 'sapiDeleteMarginOrder'
         query = self.omit(params, ['type', 'origClientOrderId', 'clientOrderId'])
         response = getattr(self, method)(self.extend(request, query))
-        return self.parse_order(response)
+        return self.parse_order(response, market)
 
     def cancel_all_orders(self, symbol=None, params={}):
         if symbol is None:
