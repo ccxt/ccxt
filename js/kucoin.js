@@ -2187,16 +2187,16 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const request = {
-            // 'currency': can chose up to 10, if not provided returns for all currencies by default
-            // 'direction': 'in'or 'out'
-            // 'bizType':  DEPOSIT, WITHDRAW, TRANSFER, SUB_TRANSFER,TRADE_EXCHANGE, MARGIN_EXCHANGE, KUCOIN_BONUS (optional)
-            // 'startAt':  unix/ms
-            // 'endAt': unix/ms
+            // 'currency': currency['id'], // can choose up to 10, if not provided returns for all currencies by default
+            // 'direction': 'in', // 'out'
+            // 'bizType': 'DEPOSIT', // DEPOSIT, WITHDRAW, TRANSFER, SUB_TRANSFER,TRADE_EXCHANGE, MARGIN_EXCHANGE, KUCOIN_BONUS (optional)
+            // 'startAt': since,
+            // 'endAt': exchange.milliseconds (),
         };
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        // atm only single currency retrival is supported
+        // atm only single currency retrieval is supported
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
