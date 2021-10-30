@@ -578,7 +578,7 @@ module.exports = class bitrue extends Exchange {
                 'amount': this.safeInteger (market, 'quantityPrecision'),
                 'price': this.safeInteger (market, 'pricePrecision'),
             };
-            const status = this.safeString2 (market, 'status');
+            const status = this.safeString (market, 'status');
             const active = (status === 'TRADING');
             const entry = {
                 'id': id,
