@@ -170,6 +170,7 @@ class probit extends Exchange {
                 'GOL' => 'Goldofir',
                 'GRB' => 'Global Reward Bank',
                 'HBC' => 'Hybrid Bank Cash',
+                'LBK' => 'Legal Block',
                 'ORC' => 'Oracle System',
                 'ROOK' => 'Reckoon',
                 'SOC' => 'Soda Coin',
