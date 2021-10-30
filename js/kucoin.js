@@ -961,6 +961,7 @@ module.exports = class kucoin extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
         };
     }
 
@@ -1294,18 +1295,16 @@ module.exports = class kucoin extends Exchange {
         const type = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'createdAt');
         const datetime = this.iso8601 (timestamp);
-        let price = this.safeNumber (order, 'price');
-        if (price === 0.0) {
-            // market orders
-            price = undefined;
-        }
+        const price = this.safeString (order, 'price');
+        // price is zero for market order
+        // omitZero is called in safeOrder2
         const side = this.safeString (order, 'side');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         const feeCost = this.safeNumber (order, 'fee');
-        const amount = this.safeNumber (order, 'size');
-        const filled = this.safeNumber (order, 'dealSize');
-        const cost = this.safeNumber (order, 'dealFunds');
+        const amount = this.safeString (order, 'size');
+        const filled = this.safeString (order, 'dealSize');
+        const cost = this.safeString (order, 'dealFunds');
         // bool
         const isActive = this.safeValue (order, 'isActive', false);
         const cancelExist = this.safeValue (order, 'cancelExist', false);
@@ -1319,7 +1318,7 @@ module.exports = class kucoin extends Exchange {
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         const postOnly = this.safeValue (order, 'postOnly');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
@@ -2204,26 +2203,44 @@ module.exports = class kucoin extends Exchange {
             request['currency'] = currency['id'];
         }
         const response = await this.privateGetAccountsLedgers (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
-        // { "currentPage": 1, not returned
-        //   "pageSize": 50, not returned
-        //   "totalNum": 2, not returned
-        //   "totalPage": 1, not returned
-        //   "items": [
+        //
         //     {
-        //       "id": "611a1e7c6a053300067a88d9",//unique key
-        //       "currency": "USDT", //Currency
-        //       "amount": "10.00059547", //Change amount of the funds
-        //       "fee": "0", //Deposit or withdrawal fee
-        //       "balance": "0", //Total assets of a currency
-        //       "accountType": "MAIN", //Account Type
-        //       "bizType": "Loans Repaid", //business type
-        //       "direction": "in", //side, in or out
-        //       "createdAt": 1629101692950, //Creation time
-        //       "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}" //Business core parameters
-        //     }, ...
-        //   ]
-        // }
+        //         "code":"200000",
+        //         "data":{
+        //             "currentPage":1,
+        //             "pageSize":50,
+        //             "totalNum":1,
+        //             "totalPage":1,
+        //             "items":[
+        //                 {
+        //                     "id":"617cc528729f5f0001c03ceb",
+        //                     "currency":"GAS",
+        //                     "amount":"0.00000339",
+        //                     "fee":"0",
+        //                     "balance":"0",
+        //                     "accountType":"MAIN",
+        //                     "bizType":"Distribution",
+        //                     "direction":"in",
+        //                     "createdAt":1635566888183,
+        //                     "context":"{\"orderId\":\"617cc47a1c47ed0001ce3606\",\"description\":\"Holding NEO,distribute GAS(2021/10/30)\"}"
+        //                 }
+        //                 {
+        //                     "id": "611a1e7c6a053300067a88d9",//unique key
+        //                     "currency": "USDT", //Currency
+        //                     "amount": "10.00059547", //Change amount of the funds
+        //                     "fee": "0", //Deposit or withdrawal fee
+        //                     "balance": "0", //Total assets of a currency
+        //                     "accountType": "MAIN", //Account Type
+        //                     "bizType": "Loans Repaid", //business type
+        //                     "direction": "in", //side, in or out
+        //                     "createdAt": 1629101692950, //Creation time
+        //                     "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
         const items = this.safeValue (data, 'items');
         return this.parseLedger (items, currency, since, limit);
     }
