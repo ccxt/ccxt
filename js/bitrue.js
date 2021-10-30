@@ -74,11 +74,7 @@ module.exports = class bitrue extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
-                'test': {
-                    'public': 'https://www.bitrue.com/api',
-                    'private': 'https://www.bitrue.com/api',
-                },
+                'logo': 'https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg',
                 'api': {
                     'v1': 'https://www.bitrue.com/api/v1',
                     'v2': 'https://www.bitrue.com/api/v2',
@@ -1078,7 +1074,10 @@ module.exports = class bitrue extends Exchange {
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
         const fills = this.safeValue (order, 'fills', []);
-        const clientOrderId = this.safeString (order, 'clientOrderId');
+        let clientOrderId = this.safeString (order, 'clientOrderId');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
         if (type === 'limit_maker') {
