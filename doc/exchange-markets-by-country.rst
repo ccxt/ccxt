@@ -970,6 +970,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 3
      
    * - Singapore
+     - .. image:: https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg
+          :target: https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000
+          :alt: bitrue
+     
+     - bitrue
+     - `Bitrue <https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://github.com/Bitrue-exchange/bitrue-official-api-docs
+          :alt: API Version 1
+     
+   * - Singapore
      - .. image:: https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg
           :target: https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp
           :alt: digifinex
