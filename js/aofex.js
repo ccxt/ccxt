@@ -135,6 +135,7 @@ module.exports = class aofex extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'AQT': 'AOFEX AQT',
                 'CPC': 'Consensus Planet Coin',
                 'HERO': 'Step Hero', // conflict with Metahero
                 'XBT': 'XBT', // conflict with BTC
