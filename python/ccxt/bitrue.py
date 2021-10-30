@@ -583,7 +583,7 @@ class bitrue(Exchange):
                 'amount': self.safe_integer(market, 'quantityPrecision'),
                 'price': self.safe_integer(market, 'pricePrecision'),
             }
-            status = self.safe_string_2(market, 'status')
+            status = self.safe_string(market, 'status')
             active = (status == 'TRADING')
             entry = {
                 'id': id,

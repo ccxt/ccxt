@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.59.59'
+__version__ = '1.59.60'
 
 # -----------------------------------------------------------------------------
 
@@ -75,6 +75,7 @@ from ccxt.async_support.bithumb import bithumb                            # noqa
 from ccxt.async_support.bitmart import bitmart                            # noqa: F401
 from ccxt.async_support.bitmex import bitmex                              # noqa: F401
 from ccxt.async_support.bitpanda import bitpanda                          # noqa: F401
+from ccxt.async_support.bitrue import bitrue                              # noqa: F401
 from ccxt.async_support.bitso import bitso                                # noqa: F401
 from ccxt.async_support.bitstamp import bitstamp                          # noqa: F401
 from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa: F401
@@ -186,6 +187,7 @@ exchanges = [
     'bitmart',
     'bitmex',
     'bitpanda',
+    'bitrue',
     'bitso',
     'bitstamp',
     'bitstamp1',
