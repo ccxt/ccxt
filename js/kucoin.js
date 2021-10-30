@@ -2070,64 +2070,65 @@ module.exports = class kucoin extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        // UNPARSED
-        // 'Vote for Coin':    Vote for Coin
-        // Distribution:    Distribution, such as get GAS by holding NEO
-        // Send red envelope:    Send red envelope
-        // Open red envelope:    Open red envelope
-        // Staking:    Staking
-        // LockDrop Vesting:    LockDrop Vesting
-        // Staking Profits:    Staking Profits
-        // Pool transactions:    Pool-X transactions
-        // Soft Staking Profits:    Soft Staking Profits
-        // Voting Earnings:    Voting Earnings on Pool-X
-        // Redemption of Voting:    Redemption of Voting on Pool-X
-        // Voting:    Voting on Pool-X
-        // Convert to KCS:    Convert to KCS
         const types = {
-            'Deposit': 'transaction',
-            'Withdrawal': 'transaction',
-            'Transfer': 'transfer',
-            'Exchange': 'trade',
-            'Trade_Exchange': 'trade',
-            'Margin Trade': 'trade',
-            'Instant Exchange': 'trade',
-            'Buy Crypto': 'trade',
-            'Sell Crypto': 'trade',
-            'Sub-account transfer': 'transfer',
-            'Fee Rebate': 'rebate',
-            'KCS Pay Fees': 'fee',
-            'Liquidation Fees': 'fee',
-            'Airdrop/Fork': 'airdrop',
             'Assets Transferred in After Upgrading': 'transfer', // Assets Transferred in After V1 to V2 Upgrading
-            'Loans': 'transaction',
-            'Loans Repaid': 'transaction',
-            'Borrowings': 'transaction',
-            'Debt Repayment': 'transaction',
-            'Lendings': 'transaction',
-            'Redemption': 'transaction',
-            'Refunded Fees': 'transaction',
-            'Public Offering Purchase': 'trade',
-            'KuCoin Bonus': 'bonus',
-            'Referral Bonus': 'referral',
-            'Rewards': 'bonus',
-            'Other rewards': 'bonus',
+            'Deposit': 'transaction', // Deposit
+            'Withdrawal': 'transaction', // Withdrawal
+            'Transfer': 'transfer', // Transfer
+            'Trade_Exchange': 'trade', // Trade
+            // 'Vote for Coin': 'Vote for Coin', // Vote for Coin
+            'KuCoin Bonus': 'bonus', // KuCoin Bonus
+            'Referral Bonus': 'referral', // Referral Bonus
+            'Rewards': 'bonus', // Activities Rewards
+            // 'Distribution': 'Distribution', // Distribution, such as get GAS by holding NEO
+            'Airdrop/Fork': 'airdrop', // Airdrop/Fork
+            'Other rewards': 'bonus', // Other rewards, except Vote, Airdrop, Fork
+            'Fee Rebate': 'rebate', // Fee Rebate
+            'Buy Crypto': 'trade', // Use credit card to buy crypto
+            'Sell Crypto': 'sell', // Use credit card to sell crypto
+            'Public Offering Purchase': 'trade', // Public Offering Purchase for Spotlight
+            // 'Send red envelope': 'Send red envelope', // Send red envelope
+            // 'Open red envelope': 'Open red envelope', // Open red envelope
+            // 'Staking': 'Staking', // Staking
+            // 'LockDrop Vesting': 'LockDrop Vesting', // LockDrop Vesting
+            // 'Staking Profits': 'Staking Profits', // Staking Profits
+            // 'Redemption': 'Redemption', // Redemption
+            'Refunded Fees': 'fee', // Refunded Fees
+            'KCS Pay Fees': 'fee', // KCS Pay Fees
+            'Margin Trade': 'trade', // Margin Trade
+            'Loans': 'Loans', // Loans
+            // 'Borrowings': 'Borrowings', // Borrowings
+            // 'Debt Repayment': 'Debt Repayment', // Debt Repayment
+            // 'Loans Repaid': 'Loans Repaid', // Loans Repaid
+            // 'Lendings': 'Lendings', // Lendings
+            // 'Pool transactions': 'Pool transactions', // Pool-X transactions
+            'Instant Exchange': 'trade', // Instant Exchange
+            'Sub-account transfer': 'transfer', // Sub-account transfer
+            'Liquidation Fees': 'fee', // Liquidation Fees
+            // 'Soft Staking Profits': 'Soft Staking Profits', // Soft Staking Profits
+            // 'Voting Earnings': 'Voting Earnings', // Voting Earnings on Pool-X
+            // 'Redemption of Voting': 'Redemption of Voting', // Redemption of Voting on Pool-X
+            // 'Voting': 'Voting', // Voting on Pool-X
+            // 'Convert to KCS': 'Convert to KCS', // Convert to KCS
         };
         return this.safeString (types, type, type);
     }
 
     parseLedgerEntry (item, currency = undefined) {
-        //     {  "id": "611a1e7c6a053300067a88d9", //unique key for each ledger entry
-        //       "currency": "USDT", //Currency
-        //       "amount": "10.00059547", //The total amount of assets (fees included) involved in assets changes such as transaction, withdrawal and bonus distribution.
-        //       "fee": "0", //Deposit or withdrawal fee
-        //       "balance": "0", //Total assets of a currency remaining funds after transaction
-        //       "accountType": "MAIN", //Account Type
-        //       "bizType": "Loans Repaid", //business type
-        //       "direction": "in", //side, in or out
-        //       "createdAt": 1629101692950, //Creation time
-        //       "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}" //Business core parameters
+        //
+        //     {
+        //         "id": "611a1e7c6a053300067a88d9", //unique key for each ledger entry
+        //         "currency": "USDT", //Currency
+        //         "amount": "10.00059547", //The total amount of assets (fees included) involved in assets changes such as transaction, withdrawal and bonus distribution.
+        //         "fee": "0", //Deposit or withdrawal fee
+        //         "balance": "0", //Total assets of a currency remaining funds after transaction
+        //         "accountType": "MAIN", //Account Type
+        //         "bizType": "Loans Repaid", //business type
+        //         "direction": "in", //side, in or out
+        //         "createdAt": 1629101692950, //Creation time
+        //         "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}" //Business core parameters
         //     }
+        //
         const id = this.safeString (item, 'id');
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -2141,10 +2142,19 @@ module.exports = class kucoin extends Exchange {
         const datetime = this.iso8601 (timestamp);
         const account = this.safeString (item, 'accountType'); // MAIN, TRADE, MARGIN, or CONTRACT
         const context = this.safeString (item, 'context'); // contains other information about the ledger entry
-        // eg:
-        // transaction (withdrawal): "{\"orderId\":\"617bb2d09e7b3b000196dac8\",\"txId\":\"0x79bb9855f86b351a45cab4dc69d78ca09586a94c45dde49475722b98f401b054\"}"
-        // deposit (to MAIN) (TRADE via MAIN): "{\"orderId\":\"617ab9949e7b3b0001948081\",\"txId\":\"0x7a06b16bbd6b03dbc3d96df5683b15229fc35e7184fd7179a5f3a310bd67d1fa@default@0\"}"
-        // trade sell (out): "{\"symbol\":\"ETH-USDT\",\"orderId\":\"617adcd1eb3fa20001dd29a1\",\"tradeId\":\"617adcd12e113d2b91222ff9\"}"
+        //
+        // withdrawal transaction
+        //
+        //     "{\"orderId\":\"617bb2d09e7b3b000196dac8\",\"txId\":\"0x79bb9855f86b351a45cab4dc69d78ca09586a94c45dde49475722b98f401b054\"}"
+        //
+        // deposit to MAIN, trade via MAIN
+        //
+        //     "{\"orderId\":\"617ab9949e7b3b0001948081\",\"txId\":\"0x7a06b16bbd6b03dbc3d96df5683b15229fc35e7184fd7179a5f3a310bd67d1fa@default@0\"}"
+        //
+        // sell trade
+        //
+        //     "{\"symbol\":\"ETH-USDT\",\"orderId\":\"617adcd1eb3fa20001dd29a1\",\"tradeId\":\"617adcd12e113d2b91222ff9\"}"
+        //
         let referenceId = undefined;
         if (context !== undefined) {
             const parsed = JSON.parse (context);
