@@ -300,7 +300,7 @@ function testDecimalToPrecisionRoundingToTickSize () {
 	decimalToPrecisionTest ('0.0002734', '0.000273398', ROUND, 1e-7, TICK_SIZE);
 	
 	decimalToPrecisionTest ('0.00005714', '0.00005714', TRUNCATE, 0.00000001, TICK_SIZE);
-	// this line causes problems in JS, fix with Precise
+	// this line causes problems in JS AND PHP
 	// assert (decimalToPrecisionTest ('0.0000571495257361', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
 	
 	decimalToPrecisionTest ('0.0100', '0.01', ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO);
