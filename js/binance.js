@@ -3927,13 +3927,17 @@ module.exports = class binance extends Exchange {
         //
         const rates = [];
         for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const timestamp = this.safeInteger (entry, 'fundingTime');
             rates.push ({
-                'symbol': this.safeString (response[i], 'symbol'),
-                'fundingRate': this.safeNumber (response[i], 'fundingRate'),
-                'timestamp': this.safeNumber (response[i], 'fundingTime'),
+                'info': entry,
+                'symbol': this.safeString (entry, 'symbol'),
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
             });
         }
-        return rates;
+        return this.sortBy (rates, 'timestamp');
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {
