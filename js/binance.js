@@ -4291,7 +4291,12 @@ module.exports = class binance extends Exchange {
         const liquidationPrice = this.parseNumber (liquidationPriceString);
         let collateralString = undefined;
         const marginType = this.safeString (position, 'marginType');
-        const side = (notionalFloat > 0) ? 'long' : 'short';
+        let side = undefined;
+        if (notionalFloat > 0) {
+            side = 'long';
+        } else if (notionalFloat < 0) {
+            side = 'short';
+        }
         const entryPriceString = this.safeString (position, 'entryPrice');
         const entryPrice = this.parseNumber (entryPriceString);
         if (marginType === 'cross') {
@@ -4329,7 +4334,10 @@ module.exports = class binance extends Exchange {
         const collateralFloat = parseFloat (collateralString);
         const collateral = this.parseNumber (collateralString);
         const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice')));
-        const timestamp = this.safeInteger (position, 'updateTime');
+        let timestamp = this.safeInteger (position, 'updateTime');
+        if (timestamp === 0) {
+            timestamp = undefined;
+        }
         const maintenanceMarginPercentage = this.parseNumber (maintenanceMarginPercentageString);
         const maintenanceMarginString = Precise.stringMul (maintenanceMarginPercentageString, notionalStringAbs);
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
@@ -4552,7 +4560,7 @@ module.exports = class binance extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async setMarginMode (symbol, marginType, params = {}, leverage = undefined) {
+    async setMarginMode (marginType, symbol, params = {}) {
         //
         // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
         //
@@ -4560,9 +4568,6 @@ module.exports = class binance extends Exchange {
         //
         // { "code": 200, "msg": "success" }
         //
-        if (leverage) { // Needed because other exchanges require this argument
-            leverage = undefined;
-        }
         marginType = marginType.toUpperCase ();
         if ((marginType !== 'ISOLATED') && (marginType !== 'CROSSED')) {
             throw new BadRequest (this.id + ' marginType must be either isolated or crossed');
