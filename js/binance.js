@@ -679,6 +679,7 @@ module.exports = class binance extends Exchange {
                 'accountsByType': {
                     'main': 'MAIN',
                     'spot': 'MAIN',
+                    'pay': 'PAY',
                     'margin': 'MARGIN',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
@@ -3336,8 +3337,8 @@ module.exports = class binance extends Exchange {
         let type = this.safeString (params, 'type');
         if (type === undefined) {
             const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-            const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-            const toId = this.safeString (accountsByType, toAccount, toAccount);
+            const fromId = this.safeString (accountsByType, fromAccount);
+            const toId = this.safeString (accountsByType, toAccount);
             if (fromId === undefined) {
                 const keys = Object.keys (accountsByType);
                 throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
@@ -4419,11 +4420,13 @@ module.exports = class binance extends Exchange {
 
     async fetchPositions (symbolOrSymbols = undefined, params = {}) {
         const defaultMethod = this.safeString (this.options, 'fetchPositions', 'positionRisk');
-        const method = this.getSupportedMapping (defaultMethod, {
-            'positionRisk': 'fetchPositionsRisk',
-            'account': 'fetchAccountPositions',
-        });
-        return await this[method] (symbolOrSymbols, params);
+        if (defaultMethod === 'positionRisk') {
+            return await this.fetchPositionsRisk (symbolOrSymbols, params);
+        } else if (defaultMethod === 'account') {
+            return await this.fetchAccountPositions (symbolOrSymbols, params);
+        } else {
+            throw new NotSupported (this.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"');
+        }
     }
 
     async fetchAccountPositions (symbols = undefined, params = {}) {
