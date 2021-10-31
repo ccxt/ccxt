@@ -462,12 +462,12 @@ module.exports = class bitbns extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (order, 'time'));
-        const price = this.safeNumber (order, 'rate');
-        const amount = this.safeNumber2 (order, 'amount', 'btc');
-        const filled = this.safeNumber (order, 'filled');
-        const remaining = this.safeNumber (order, 'remaining');
-        const average = this.safeNumber (order, 'avg_cost');
-        const cost = this.safeNumber (order, 'cost');
+        const price = this.safeString (order, 'rate');
+        const amount = this.safeString2 (order, 'amount', 'btc');
+        const filled = this.safeString (order, 'filled');
+        const remaining = this.safeString (order, 'remaining');
+        const average = this.safeString (order, 'avg_cost');
+        const cost = this.safeString (order, 'cost');
         let type = this.safeStringLower (order, 'type');
         if (type === '0') {
             type = 'limit';
@@ -483,7 +483,7 @@ module.exports = class bitbns extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
