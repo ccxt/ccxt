@@ -4560,7 +4560,7 @@ module.exports = class binance extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async setMarginMode (marginType, symbol, params = {}) {
+    async setMarginMode (marginType, symbol = undefined, params = {}) {
         //
         // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
         //

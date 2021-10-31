@@ -1686,7 +1686,7 @@ module.exports = class ascendex extends Exchange {
         return await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
     }
 
-    async setMarginMode (marginType, symbol, params = {}) {
+    async setMarginMode (marginType, symbol = undefined, params = {}) {
         if (marginType !== 'isolated' && marginType !== 'crossed') {
             throw new BadRequest (this.id + ' setMarginMode() marginType argument should be isolated or crossed');
         }

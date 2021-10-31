@@ -2570,7 +2570,7 @@ module.exports = class bybit extends Exchange {
         }
     }
 
-    async setMarginMode (marginType, symbol, params = {}) {
+    async setMarginMode (marginType, symbol = undefined, params = {}) {
         //
         // {
         //     "ret_code": 0,
