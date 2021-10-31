@@ -4295,7 +4295,7 @@ module.exports = class binance extends Exchange {
         const entryPriceString = this.safeString (position, 'entryPrice');
         const entryPrice = this.parseNumber (entryPriceString);
         if (marginType === 'cross') {
-            // calculate cross wallet balance
+            // calculate collateral
             if (market['linear']) {
                 // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 let onePlusMaintenanceMarginPercentageString = undefined;
