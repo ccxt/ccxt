@@ -2570,7 +2570,7 @@ module.exports = class bybit extends Exchange {
         }
     }
 
-    async setMarginMode (symbol, marginType, params = {}) {
+    async setMarginMode (marginType, symbol = undefined, params = {}) {
         //
         // {
         //     "ret_code": 0,
@@ -2618,7 +2618,7 @@ module.exports = class bybit extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async setLeverage (leverage = undefined, symbol = undefined, params = {}) {
+    async setLeverage (leverage, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

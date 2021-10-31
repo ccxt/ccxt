@@ -1690,7 +1690,7 @@ class ascendex extends Exchange {
         return $this->v2PrivateAccountGroupPostFuturesLeverage (array_merge($request, $params));
     }
 
-    public function set_margin_mode($symbol, $marginType = '', $params = array ()) {
+    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
         if ($marginType !== 'isolated' && $marginType !== 'crossed') {
             throw new BadRequest($this->id . ' setMarginMode() $marginType argument should be isolated or crossed');
         }

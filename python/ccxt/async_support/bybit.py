@@ -2442,7 +2442,7 @@ class bybit(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
 
-    async def set_margin_mode(self, symbol, marginType, params={}):
+    async def set_margin_mode(self, marginType, symbol=None, params={}):
         #
         # {
         #     "ret_code": 0,
@@ -2486,7 +2486,7 @@ class bybit(Exchange):
         }
         return await getattr(self, method)(self.extend(request, params))
 
-    async def set_leverage(self, leverage=None, symbol=None, params={}):
+    async def set_leverage(self, leverage, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         await self.load_markets()

@@ -3884,10 +3884,10 @@ class binance extends Exchange {
         // Gets a history of funding $rates with their timestamps
         //  (param) $symbol => Future currency pair (e.g. "BTC/USDT")
         //  (param) $limit => maximum number of data points returned
-        //  (param) $since => Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) $since => Unix $timestamp in miliseconds for the time of the earliest requested funding rate
         //  (param) $params => Object containing more $params for the $request
-        //          - until => Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        //  return => [array($symbol, fundingRate, timestamp)]
+        //          - until => Unix $timestamp in miliseconds for the time of the earliest requested funding rate
+        //  return => [array($symbol, fundingRate, $timestamp)]
         //
         $this->load_markets();
         $request = array();
@@ -3934,13 +3934,17 @@ class binance extends Exchange {
         //
         $rates = array();
         for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $timestamp = $this->safe_integer($entry, 'fundingTime');
             $rates[] = array(
-                'symbol' => $this->safe_string($response[$i], 'symbol'),
-                'fundingRate' => $this->safe_number($response[$i], 'fundingRate'),
-                'timestamp' => $this->safe_number($response[$i], 'fundingTime'),
+                'info' => $entry,
+                'symbol' => $this->safe_string($entry, 'symbol'),
+                'fundingRate' => $this->safe_number($entry, 'fundingRate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
             );
         }
-        return $rates;
+        return $this->sort_by($rates, 'timestamp');
     }
 
     public function fetch_funding_rates($symbols = null, $params = array ()) {
@@ -4298,7 +4302,12 @@ class binance extends Exchange {
         $liquidationPrice = $this->parse_number($liquidationPriceString);
         $collateralString = null;
         $marginType = $this->safe_string($position, 'marginType');
-        $side = ($notionalFloat > 0) ? 'long' : 'short';
+        $side = null;
+        if ($notionalFloat > 0) {
+            $side = 'long';
+        } else if ($notionalFloat < 0) {
+            $side = 'short';
+        }
         $entryPriceString = $this->safe_string($position, 'entryPrice');
         $entryPrice = $this->parse_number($entryPriceString);
         if ($marginType === 'cross') {
@@ -4337,6 +4346,9 @@ class binance extends Exchange {
         $collateral = $this->parse_number($collateralString);
         $markPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'markPrice')));
         $timestamp = $this->safe_integer($position, 'updateTime');
+        if ($timestamp === 0) {
+            $timestamp = null;
+        }
         $maintenanceMarginPercentage = $this->parse_number($maintenanceMarginPercentageString);
         $maintenanceMarginString = Precise::string_mul($maintenanceMarginPercentageString, $notionalStringAbs);
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
@@ -4559,7 +4571,7 @@ class binance extends Exchange {
         return $this->$method (array_merge($request, $params));
     }
 
-    public function set_margin_mode($symbol, $marginType, $params = array (), $leverage = null) {
+    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
         //
         // array( "code" => -4048 , "msg" => "Margin type cannot be changed if there exists position." )
         //
@@ -4567,9 +4579,6 @@ class binance extends Exchange {
         //
         // array( "code" => 200, "msg" => "success" )
         //
-        if ($leverage) { // Needed because other exchanges require this argument
-            $leverage = null;
-        }
         $marginType = strtoupper($marginType);
         if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
             throw new BadRequest($this->id . ' $marginType must be either isolated or crossed');

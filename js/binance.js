@@ -3927,13 +3927,17 @@ module.exports = class binance extends Exchange {
         //
         const rates = [];
         for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const timestamp = this.safeInteger (entry, 'fundingTime');
             rates.push ({
-                'symbol': this.safeString (response[i], 'symbol'),
-                'fundingRate': this.safeNumber (response[i], 'fundingRate'),
-                'timestamp': this.safeNumber (response[i], 'fundingTime'),
+                'info': entry,
+                'symbol': this.safeString (entry, 'symbol'),
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
             });
         }
-        return rates;
+        return this.sortBy (rates, 'timestamp');
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {
@@ -4291,7 +4295,12 @@ module.exports = class binance extends Exchange {
         const liquidationPrice = this.parseNumber (liquidationPriceString);
         let collateralString = undefined;
         const marginType = this.safeString (position, 'marginType');
-        const side = (notionalFloat > 0) ? 'long' : 'short';
+        let side = undefined;
+        if (notionalFloat > 0) {
+            side = 'long';
+        } else if (notionalFloat < 0) {
+            side = 'short';
+        }
         const entryPriceString = this.safeString (position, 'entryPrice');
         const entryPrice = this.parseNumber (entryPriceString);
         if (marginType === 'cross') {
@@ -4329,7 +4338,10 @@ module.exports = class binance extends Exchange {
         const collateralFloat = parseFloat (collateralString);
         const collateral = this.parseNumber (collateralString);
         const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice')));
-        const timestamp = this.safeInteger (position, 'updateTime');
+        let timestamp = this.safeInteger (position, 'updateTime');
+        if (timestamp === 0) {
+            timestamp = undefined;
+        }
         const maintenanceMarginPercentage = this.parseNumber (maintenanceMarginPercentageString);
         const maintenanceMarginString = Precise.stringMul (maintenanceMarginPercentageString, notionalStringAbs);
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
@@ -4552,7 +4564,7 @@ module.exports = class binance extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async setMarginMode (symbol, marginType, params = {}, leverage = undefined) {
+    async setMarginMode (marginType, symbol = undefined, params = {}) {
         //
         // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
         //
@@ -4560,9 +4572,6 @@ module.exports = class binance extends Exchange {
         //
         // { "code": 200, "msg": "success" }
         //
-        if (leverage) { // Needed because other exchanges require this argument
-            leverage = undefined;
-        }
         marginType = marginType.toUpperCase ();
         if ((marginType !== 'ISOLATED') && (marginType !== 'CROSSED')) {
             throw new BadRequest (this.id + ' marginType must be either isolated or crossed');

@@ -1196,15 +1196,15 @@ class gateio extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
-            $timestamp = Precise::string_mul($entry['time'], '1000');
+            $timestamp = $this->safe_timestamp($entry, 'time');
             $result[] = array(
                 'info' => $entry,
                 'symbol' => $symbol,
-                'code' => $this->safe_currency_code($entry['text']),
+                'code' => $this->safe_currency_code($this->safe_string($entry, 'text')),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
                 'id' => null,
-                'amount' => $entry['change'],
+                'amount' => $this->safe_number($entry, 'change'),
             );
         }
         return $result;
@@ -1564,19 +1564,23 @@ class gateio extends Exchange {
         $response = $this->$method (array_merge($request, $params));
         //
         //     {
-        //         "fundingRate" => "0.00063521",
-        //         "fundingTime" => "1621267200000",
+        //         "r" => "0.00063521",
+        //         "t" => "1621267200000",
         //     }
         //
         $rates = array();
         for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $timestamp = $this->safe_timestamp($entry, 't');
             $rates[] = array(
+                'info' => $entry,
                 'symbol' => $symbol,
-                'fundingRate' => $this->safe_number($response[$i], 'r'),
-                'timestamp' => $this->safe_number($response[$i], 't'),
+                'fundingRate' => $this->safe_number($entry, 'r'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
             );
         }
-        return $rates;
+        return $this->sort_by($rates, 'timestamp');
     }
 
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
