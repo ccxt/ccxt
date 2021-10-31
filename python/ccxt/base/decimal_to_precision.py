@@ -62,7 +62,7 @@ def decimal_to_precision(x, rounding_mode=ROUND, num_precision_digits=None, coun
             x_p = Precise(x, 0)
         elif isinstance(x, float):
             # Occurrences of this should be eliminated and replaced by strings instead.
-            exponent = math.floor(math.log10(math.abs(x))) - 15 + 1
+            exponent = math.floor(math.log10(abs(x))) - 15 + 1
             mantissa = round(x / math.pow(10, exponent))
             x_p = Precise(mantissa, -exponent)
             x_p.reduce()
@@ -84,7 +84,11 @@ def decimal_to_precision(x, rounding_mode=ROUND, num_precision_digits=None, coun
         counting_mode = DECIMAL_PLACES
         # return decimal_to_precision(x, ROUND, newprecision, DECIMAL_PLACES, padding_mode)
     else:
-        if isinstance(x, float) or isinstance(x, numbers.Integral):
+        if isinstance(x, float):
+            # Avoid converting to scientific format
+            dec = decimal.Decimal(str(x))
+            x = '{:f}'.format(dec)
+        elif isinstance(x, numbers.Integral):
             x = str(x)
         elif not isinstance(x, str):
             raise ValueError('x must be a string number or a number')
