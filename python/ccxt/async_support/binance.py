@@ -3736,12 +3736,16 @@ class binance(Exchange):
         #
         rates = []
         for i in range(0, len(response)):
+            entry = response[i]
+            timestamp = self.safe_integer(entry, 'fundingTime')
             rates.append({
-                'symbol': self.safe_string(response[i], 'symbol'),
-                'fundingRate': self.safe_number(response[i], 'fundingRate'),
-                'timestamp': self.safe_number(response[i], 'fundingTime'),
+                'info': entry,
+                'symbol': self.safe_string(entry, 'symbol'),
+                'fundingRate': self.safe_number(entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
             })
-        return rates
+        return self.sort_by(rates, 'timestamp')
 
     async def fetch_funding_rates(self, symbols=None, params={}):
         await self.load_markets()

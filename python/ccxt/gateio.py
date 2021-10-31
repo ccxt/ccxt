@@ -1525,18 +1525,22 @@ class gateio(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
-        #         "fundingRate": "0.00063521",
-        #         "fundingTime": "1621267200000",
+        #         "r": "0.00063521",
+        #         "t": "1621267200000",
         #     }
         #
         rates = []
         for i in range(0, len(response)):
+            entry = response[i]
+            timestamp = self.safe_timestamp(entry, 't')
             rates.append({
+                'info': entry,
                 'symbol': symbol,
-                'fundingRate': self.safe_number(response[i], 'r'),
-                'timestamp': self.safe_number(response[i], 't'),
+                'fundingRate': self.safe_number(entry, 'r'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
             })
-        return rates
+        return self.sort_by(rates, 'timestamp')
 
     def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {

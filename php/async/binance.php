@@ -3885,10 +3885,10 @@ class binance extends Exchange {
         // Gets a history of funding $rates with their timestamps
         //  (param) $symbol => Future currency pair (e.g. "BTC/USDT")
         //  (param) $limit => maximum number of data points returned
-        //  (param) $since => Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) $since => Unix $timestamp in miliseconds for the time of the earliest requested funding rate
         //  (param) $params => Object containing more $params for the $request
-        //          - until => Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        //  return => [array($symbol, fundingRate, timestamp)]
+        //          - until => Unix $timestamp in miliseconds for the time of the earliest requested funding rate
+        //  return => [array($symbol, fundingRate, $timestamp)]
         //
         yield $this->load_markets();
         $request = array();
@@ -3935,13 +3935,17 @@ class binance extends Exchange {
         //
         $rates = array();
         for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $timestamp = $this->safe_integer($entry, 'fundingTime');
             $rates[] = array(
-                'symbol' => $this->safe_string($response[$i], 'symbol'),
-                'fundingRate' => $this->safe_number($response[$i], 'fundingRate'),
-                'timestamp' => $this->safe_number($response[$i], 'fundingTime'),
+                'info' => $entry,
+                'symbol' => $this->safe_string($entry, 'symbol'),
+                'fundingRate' => $this->safe_number($entry, 'fundingRate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
             );
         }
-        return $rates;
+        return $this->sort_by($rates, 'timestamp');
     }
 
     public function fetch_funding_rates($symbols = null, $params = array ()) {
