@@ -147,8 +147,8 @@ class bitrue extends Exchange {
                     'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => $this->parse_number('0.001'),
-                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.0098'),
+                    'maker' => $this->parse_number('0.0098'),
                 ),
                 'future' => array(
                     'trading' => array(
