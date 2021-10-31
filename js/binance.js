@@ -4297,7 +4297,7 @@ module.exports = class binance extends Exchange {
         if (marginType === 'cross') {
             // calculate cross wallet balance
             if (market['linear']) {
-                // walletBalance = (liquidationPrice * (±1 + mmp) - entryPrice) * contracts
+                // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 let onePlusMaintenanceMarginPercentageString = undefined;
                 let entryPriceSignString = entryPriceString;
                 if (side === 'short') {
