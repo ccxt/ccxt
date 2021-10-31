@@ -4076,7 +4076,11 @@ class binance(Exchange):
         liquidationPrice = self.parse_number(liquidationPriceString)
         collateralString = None
         marginType = self.safe_string(position, 'marginType')
-        side = 'long' if (notionalFloat > 0) else 'short'
+        side = None
+        if notionalFloat > 0:
+            side = 'long'
+        elif notionalFloat < 0:
+            side = 'short'
         entryPriceString = self.safe_string(position, 'entryPrice')
         entryPrice = self.parse_number(entryPriceString)
         if marginType == 'cross':
@@ -4111,6 +4115,8 @@ class binance(Exchange):
         collateral = self.parse_number(collateralString)
         markPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'markPrice')))
         timestamp = self.safe_integer(position, 'updateTime')
+        if timestamp == 0:
+            timestamp = None
         maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
         maintenanceMarginString = Precise.string_mul(maintenanceMarginPercentageString, notionalStringAbs)
         maintenanceMargin = self.parse_number(maintenanceMarginString)
@@ -4303,7 +4309,7 @@ class binance(Exchange):
         }
         return await getattr(self, method)(self.extend(request, params))
 
-    async def set_margin_mode(self, symbol, marginType, params={}, leverage=None):
+    async def set_margin_mode(self, marginType, symbol=None, params={}):
         #
         # {"code": -4048 , "msg": "Margin type cannot be changed if there exists position."}
         #
@@ -4311,8 +4317,6 @@ class binance(Exchange):
         #
         # {"code": 200, "msg": "success"}
         #
-        if leverage:  # Needed because other exchanges require self argument
-            leverage = None
         marginType = marginType.upper()
         if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
             raise BadRequest(self.id + ' marginType must be either isolated or crossed')

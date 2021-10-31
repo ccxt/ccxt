@@ -4298,7 +4298,12 @@ class binance extends Exchange {
         $liquidationPrice = $this->parse_number($liquidationPriceString);
         $collateralString = null;
         $marginType = $this->safe_string($position, 'marginType');
-        $side = ($notionalFloat > 0) ? 'long' : 'short';
+        $side = null;
+        if ($notionalFloat > 0) {
+            $side = 'long';
+        } else if ($notionalFloat < 0) {
+            $side = 'short';
+        }
         $entryPriceString = $this->safe_string($position, 'entryPrice');
         $entryPrice = $this->parse_number($entryPriceString);
         if ($marginType === 'cross') {
@@ -4337,6 +4342,9 @@ class binance extends Exchange {
         $collateral = $this->parse_number($collateralString);
         $markPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'markPrice')));
         $timestamp = $this->safe_integer($position, 'updateTime');
+        if ($timestamp === 0) {
+            $timestamp = null;
+        }
         $maintenanceMarginPercentage = $this->parse_number($maintenanceMarginPercentageString);
         $maintenanceMarginString = Precise::string_mul($maintenanceMarginPercentageString, $notionalStringAbs);
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
@@ -4559,7 +4567,7 @@ class binance extends Exchange {
         return $this->$method (array_merge($request, $params));
     }
 
-    public function set_margin_mode($symbol, $marginType, $params = array (), $leverage = null) {
+    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
         //
         // array( "code" => -4048 , "msg" => "Margin type cannot be changed if there exists position." )
         //
@@ -4567,9 +4575,6 @@ class binance extends Exchange {
         //
         // array( "code" => 200, "msg" => "success" )
         //
-        if ($leverage) { // Needed because other exchanges require this argument
-            $leverage = null;
-        }
         $marginType = strtoupper($marginType);
         if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
             throw new BadRequest($this->id . ' $marginType must be either isolated or crossed');
