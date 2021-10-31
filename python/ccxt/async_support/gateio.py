@@ -1177,15 +1177,15 @@ class gateio(Exchange):
         result = []
         for i in range(0, len(response)):
             entry = response[i]
-            timestamp = Precise.string_mul(entry['time'], '1000')
+            timestamp = self.safe_timestamp(entry, 'time')
             result.append({
                 'info': entry,
                 'symbol': symbol,
-                'code': self.safe_currency_code(entry['text']),
+                'code': self.safe_currency_code(self.safe_string(entry, 'text')),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'id': None,
-                'amount': entry['change'],
+                'amount': self.safe_number(entry, 'change'),
             })
         return result
 

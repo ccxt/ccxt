@@ -1196,15 +1196,15 @@ class gateio extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
-            $timestamp = Precise::string_mul($entry['time'], '1000');
+            $timestamp = $this->safe_timestamp($entry, 'time');
             $result[] = array(
                 'info' => $entry,
                 'symbol' => $symbol,
-                'code' => $this->safe_currency_code($entry['text']),
+                'code' => $this->safe_currency_code($this->safe_string($entry, 'text')),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
                 'id' => null,
-                'amount' => $entry['change'],
+                'amount' => $this->safe_number($entry, 'change'),
             );
         }
         return $result;
