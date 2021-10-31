@@ -1192,15 +1192,15 @@ module.exports = class gateio extends Exchange {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
-            const timestamp = Precise.stringMul (entry['time'], '1000');
+            const timestamp = this.safeTimestamp (entry, 'time');
             result.push ({
                 'info': entry,
                 'symbol': symbol,
-                'code': this.safeCurrencyCode (entry['text']),
+                'code': this.safeCurrencyCode (this.safeString (entry, 'text')),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'id': undefined,
-                'amount': entry['change'],
+                'amount': this.safeNumber (entry, 'amount'),
             });
         }
         return result;
