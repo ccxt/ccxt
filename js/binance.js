@@ -4413,12 +4413,12 @@ module.exports = class binance extends Exchange {
         const defaultMethod = this.safeString (this.options, 'fetchPositions', 'positionRisk');
         const method = this.getSupportedMapping (defaultMethod, {
             'positionRisk': 'fetchPositionsRisk',
-            'account': 'fetchPositionsAccount',
+            'account': 'fetchAccountPositions',
         });
         return await this[method] (symbolOrSymbols, params);
     }
 
-    async fetchPositionsAccount (symbols = undefined, params = {}) {
+    async fetchAccountPositions (symbols = undefined, params = {}) {
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
                 symbols = [ symbols ];
