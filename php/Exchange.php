@@ -2924,15 +2924,46 @@ class Exchange {
             $countingMode = DECIMAL_PLACES;
             // return static::decimal_to_precision_p($xP, ROUND, $newNumPrecisionDigits, DECIMAL_PLACES, padding_mode);
         } else {
-            if (is_float($x) or is_int($x)) {
+            if (is_int($x)){
                 $x = strval($x);
+            } elseif (is_float($x)) {
+                $xs = strval($x);
+                $epos = strpos($xs,'E');
+                if ($epos !== false) {
+                    $e = intval(substr($xs,$epos+1));
+                    $m = substr($xs,0,$epos);
+                    $pointpos = strpos($xs,'.');
+                    if ($pointpos === false) {
+                        $pointpos = $epos;
+                    } else {
+                        $m = substr_replace($m,'',$pointpos,1);
+                    }
+                    $newpointpos = $pointpos + $e;
+                    if ($newpointpos < 0) {
+                        $m = str_repeat('0', -$newpointpos) . $m;
+                        $newpointpos = 0;
+                    } elseif ($newpointpos > strlen($m)) {
+                        $m .= str_repeat('0', $newpointpos - strlen($m));
+                    }
+                    if ($newpointpos == 0) {
+                        $m = '0.' . $m;
+                        $m = rtrim($m, '0');
+                    } elseif ($newpointpos < strlen($m)) {
+                        $m = substr_replace($m, '.', $newpointpos, 0);
+                        $m = rtrim($m, '0');
+                    }
+                    //assert( floatval($m) === $x );
+                    $x = $m;
+                } else {
+                    $x = $xs;
+                }
             } elseif (!is_string($x)) {
                 throw new BaseError('x must be a string or a number');
             }
             
-            if (preg_match('/^-?[0-9]+(\.[0-9]*)?$/', $x) != 1) {
-                throw new BaseError('x must be a string representing a number in non-scientific notation');
-            }
+            //if (preg_match('/^-?[0-9]+(\.[0-9]*)?$/', $x) != 1) {
+            //    throw new BaseError('x must be a string representing a number in non-scientific notation');
+            //}
             
             if (is_string($numPrecisionDigits)) {
                 $numPrecisionDigitsNum = intval($numPrecisionDigits);
