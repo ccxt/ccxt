@@ -1200,7 +1200,7 @@ module.exports = class gateio extends Exchange {
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'id': undefined,
-                'amount': this.safeNumber (entry, 'amount'),
+                'amount': this.safeNumber (entry, 'change'),
             });
         }
         return result;
