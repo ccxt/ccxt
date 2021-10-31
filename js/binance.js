@@ -4145,7 +4145,7 @@ module.exports = class binance extends Exchange {
             entryPrice = undefined;
         } else {
             side = (notionalFloat < 0) ? 'short' : 'long';
-            marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
+            marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
             if (usdm) {
                 // calculate liquidation price
@@ -4343,7 +4343,7 @@ module.exports = class binance extends Exchange {
         let marginRatio = undefined;
         let percentage = undefined;
         if (collateralFloat !== 0.0) {
-            marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
+            marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
         }
         return {
