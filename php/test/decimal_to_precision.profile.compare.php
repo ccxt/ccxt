@@ -458,7 +458,7 @@ function runOneTest ($testFunc, $testName) {
     $t1 = hrtime(true);
     $t = ($t1 - $t0) / $numRepeats;
     // hrtime returns nanoseconds
-    print( number_format($t/1000000,6) . ', '. $testName . "\n" );
+    print( number_format($t/1000000,6,'.','') . ', '. $testName . "\n" );
 }
 
 function runAllTests () {
@@ -496,7 +496,7 @@ function runAllTests () {
     $t1 = hrtime(true);
     $t = $t1 - $t0;
     // hrtime returns nanoseconds
-    print( number_format($t/1000000,6) . ", runAllTests\n");
+    print( number_format($t/1000000,6,'.','') . ", runAllTests\n");
 }
 
 runAllTests ();
