@@ -455,12 +455,12 @@ class bitbns(Exchange):
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(order, 'time'))
-        price = self.safe_number(order, 'rate')
-        amount = self.safe_number_2(order, 'amount', 'btc')
-        filled = self.safe_number(order, 'filled')
-        remaining = self.safe_number(order, 'remaining')
-        average = self.safe_number(order, 'avg_cost')
-        cost = self.safe_number(order, 'cost')
+        price = self.safe_string(order, 'rate')
+        amount = self.safe_string_2(order, 'amount', 'btc')
+        filled = self.safe_string(order, 'filled')
+        remaining = self.safe_string(order, 'remaining')
+        average = self.safe_string(order, 'avg_cost')
+        cost = self.safe_string(order, 'cost')
         type = self.safe_string_lower(order, 'type')
         if type == '0':
             type = 'limit'
@@ -474,7 +474,7 @@ class bitbns(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
