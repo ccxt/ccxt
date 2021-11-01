@@ -1,5 +1,5 @@
 {
-  "name": "ccxt",
+  "name": "@2525venturesbv/ccxt.pro",
   "version": "1.59.83",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ccxt/ccxt.git"
+    "url": "git://github.com/2525VenturesBV/ccxt.git"
   },
   "readme": "README.md",
   "scripts": {
