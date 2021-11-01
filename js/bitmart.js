@@ -1559,14 +1559,13 @@ module.exports = class bitmart extends Exchange {
         }
         const amount = this.safeString2 (order, 'size', 'vol');
         const filled = this.safeString2 (order, 'filled_size', 'done_vol');
-        let average = this.safeString2 (order, 'price_avg', 'done_avg_price');
-        let price = this.safeString (order, 'price');
-        let side = this.safeString (order, 'side');
+        const average = this.safeString2 (order, 'price_avg', 'done_avg_price');
+        const price = this.safeString (order, 'price');
+        const side = this.safeString2 (order, 'way', 'side');
         // 1 = Open long
         // 2 = Close short
         // 3 = Close long
         // 4 = Open short
-        side = this.safeString (order, 'way', side);
         const category = this.safeInteger (order, 'category');
         let type = this.safeString (order, 'type');
         if (category === 1) {
