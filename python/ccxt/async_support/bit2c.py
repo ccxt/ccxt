@@ -283,8 +283,8 @@ class bit2c(Exchange):
 
     def parse_order(self, order, market=None):
         timestamp = self.safe_integer(order, 'created')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'amount')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -295,7 +295,7 @@ class bit2c(Exchange):
             side = 'sell'
         id = self.safe_string(order, 'id')
         status = self.safe_string(order, 'status')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
