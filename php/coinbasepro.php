@@ -1056,9 +1056,9 @@ class coinbasepro extends Exchange {
         $id = $this->safe_string($item, 'id');
         $amountString = $this->safe_string($item, 'amount');
         $direction = null;
-        $afterString = $this->safe_number($item, 'balance');
+        $afterString = $this->safe_string($item, 'balance');
         $beforeString = Precise::string_sub($afterString, $amountString);
-        if (Precise.lt ($amountString, '0')) {
+        if (Precise::string_lt($amountString, '0')) {
             $direction = 'out';
             $amountString = Precise::string_abs($amountString);
         } else {
