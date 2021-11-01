@@ -99,6 +99,7 @@ class bitforex extends Exchange {
                 'CTC' => 'Culture Ticket Chain',
                 'IQ' => 'IQ.Cash',
                 'MIR' => 'MIR COIN',
+                'NOIA' => 'METANOIA',
                 'TON' => 'To The Moon',
             ),
             'exceptions' => array(
