@@ -697,6 +697,7 @@ class binance(Exchange):
                 'accountsByType': {
                     'main': 'MAIN',
                     'spot': 'MAIN',
+                    'pay': 'PAY',
                     'margin': 'MARGIN',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
@@ -3186,11 +3187,13 @@ class binance(Exchange):
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         await self.load_markets()
         currency = self.currency(code)
+        fromAccount = fromAccount.lower()
+        toAccount = toAccount.lower()
         type = self.safe_string(params, 'type')
         if type is None:
             accountsByType = self.safe_value(self.options, 'accountsByType', {})
-            fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
-            toId = self.safe_string(accountsByType, toAccount, toAccount)
+            fromId = self.safe_string(accountsByType, fromAccount)
+            toId = self.safe_string(accountsByType, toAccount)
             if fromId is None:
                 keys = list(accountsByType.keys())
                 raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
@@ -4194,11 +4197,12 @@ class binance(Exchange):
 
     async def fetch_positions(self, symbolOrSymbols=None, params={}):
         defaultMethod = self.safe_string(self.options, 'fetchPositions', 'positionRisk')
-        method = self.get_supported_mapping(defaultMethod, {
-            'positionRisk': 'fetchPositionsRisk',
-            'account': 'fetchAccountPositions',
-        })
-        return await getattr(self, method)(symbolOrSymbols, params)
+        if defaultMethod == 'positionRisk':
+            return await self.fetch_positions_risk(symbolOrSymbols, params)
+        elif defaultMethod == 'account':
+            return await self.fetch_account_positions(symbolOrSymbols, params)
+        else:
+            raise NotSupported(self.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"')
 
     async def fetch_account_positions(self, symbols=None, params={}):
         if symbols is not None:

@@ -686,6 +686,7 @@ class binance extends Exchange {
                 'accountsByType' => array(
                     'main' => 'MAIN',
                     'spot' => 'MAIN',
+                    'pay' => 'PAY',
                     'margin' => 'MARGIN',
                     'future' => 'UMFUTURE',
                     'delivery' => 'CMFUTURE',
@@ -3340,11 +3341,13 @@ class binance extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
+        $fromAccount = strtolower($fromAccount);
+        $toAccount = strtolower($toAccount);
         $type = $this->safe_string($params, 'type');
         if ($type === null) {
             $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+            $fromId = $this->safe_string($accountsByType, $fromAccount);
+            $toId = $this->safe_string($accountsByType, $toAccount);
             if ($fromId === null) {
                 $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
                 throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
@@ -4430,11 +4433,13 @@ class binance extends Exchange {
 
     public function fetch_positions($symbolOrSymbols = null, $params = array ()) {
         $defaultMethod = $this->safe_string($this->options, 'fetchPositions', 'positionRisk');
-        $method = $this->get_supported_mapping($defaultMethod, array(
-            'positionRisk' => 'fetchPositionsRisk',
-            'account' => 'fetchAccountPositions',
-        ));
-        return $this->$method ($symbolOrSymbols, $params);
+        if ($defaultMethod === 'positionRisk') {
+            return $this->fetch_positions_risk($symbolOrSymbols, $params);
+        } else if ($defaultMethod === 'account') {
+            return $this->fetch_account_positions($symbolOrSymbols, $params);
+        } else {
+            throw new NotSupported($this->id . '.options["fetchPositions"] = "' . $defaultMethod . '" is invalid, please choose between "account" and "positionRisk"');
+        }
     }
 
     public function fetch_account_positions($symbols = null, $params = array ()) {
