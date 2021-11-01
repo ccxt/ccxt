@@ -1574,14 +1574,6 @@ module.exports = class bitmart extends Exchange {
         } else if (category === 2) {
             type = 'market';
         }
-        if (type === 'market') {
-            if (price === 0.0) {
-                price = undefined;
-            }
-            if (average === 0.0) {
-                average = undefined;
-            }
-        }
         return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
