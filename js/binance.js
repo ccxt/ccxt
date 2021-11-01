@@ -4624,6 +4624,12 @@ module.exports = class binance extends Exchange {
             // default to future
             method = 'fapiPrivatePostPositionSideDual';
         }
+        //
+        //     {
+        //       "code": 200,
+        //       "msg": "success"
+        //     }
+        //
         return await this[method] (this.extend (request, params));
     }
 
